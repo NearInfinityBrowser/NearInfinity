@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -13,22 +13,19 @@ import org.infinity.resource.are.AreResource;
 /**
  * Manages map transition layer objects.
  */
-public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResource>
-{
-  private static final String AvailableFmt = "Map transitions: %d";
+public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResource> {
+  private static final String AVAILABLE_FMT = "Map transitions: %d";
 
-  public LayerTransition(AreResource are, AreaViewer viewer)
-  {
+  public LayerTransition(AreResource are, AreaViewer viewer) {
     super(are, ViewerConstants.LayerType.TRANSITION, viewer);
     loadLayer();
   }
 
   @Override
-  protected void loadLayer()
-  {
+  protected void loadLayer() {
     final List<LayerObjectTransition> list = getLayerObjects();
     for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
-      ResourceRef ref = (ResourceRef)parent.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
+      ResourceRef ref = (ResourceRef) parent.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
       if (ref != null && !ref.isEmpty()) {
         try {
           final AreResource destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
@@ -44,9 +41,8 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResour
   }
 
   @Override
-  public String getAvailability()
-  {
+  public String getAvailability() {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt);
+    return String.format(AVAILABLE_FMT, cnt);
   }
 }

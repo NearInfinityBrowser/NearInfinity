@@ -1,9 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
 
+import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -39,23 +40,22 @@ import org.infinity.icon.Icons;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.Misc;
 
-public final class TextListPanel<E> extends JPanel implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener
-{
+public final class TextListPanel<E> extends JPanel
+    implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener {
   private static boolean filterEnabled = false;
 
-  private boolean sortValues = true;
   private final FilteredListModel<E> listmodel = new FilteredListModel<>(filterEnabled);
   private final JList<E> list = new JList<>();
   private final JTextField tfield = new JTextField();
   private final JToggleButton tbFilter = new JToggleButton(Icons.ICON_FILTER_16.getIcon(), filterEnabled);
 
-  public TextListPanel(List<? extends E> values)
-  {
+  private boolean sortValues = true;
+
+  public TextListPanel(List<? extends E> values) {
     this(values, true);
   }
 
-  public TextListPanel(List<? extends E> values, boolean sortValues)
-  {
+  public TextListPanel(List<? extends E> values, boolean sortValues) {
     super(new BorderLayout());
     this.sortValues = sortValues;
     setValues(values);
@@ -87,11 +87,10 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
     ensurePreferredComponentWidth(tfield, false);
   }
 
-// --------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent event)
-  {
+  public void insertUpdate(DocumentEvent event) {
     if (tfield.hasFocus()) {
       if (!filterEnabled) {
         selectClosest(tfield.getText());
@@ -101,8 +100,7 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   }
 
   @Override
-  public void removeUpdate(DocumentEvent event)
-  {
+  public void removeUpdate(DocumentEvent event) {
     if (tfield.hasFocus()) {
       if (!filterEnabled) {
         selectClosest(tfield.getText());
@@ -112,17 +110,15 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   }
 
   @Override
-  public void changedUpdate(DocumentEvent event)
-  {
+  public void changedUpdate(DocumentEvent event) {
   }
 
-// --------------------- End Interface DocumentListener ---------------------
+  // --------------------- End Interface DocumentListener ---------------------
 
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     if (list.hasFocus() && list.getSelectedValue() != null) {
       if (!tfield.getText().equals(list.getSelectedValue().toString())) {
         tfield.setText(list.getSelectedValue().toString());
@@ -131,24 +127,22 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
     }
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-// --------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
+  public void stateChanged(ChangeEvent e) {
     // fixes issues with scrollbar visibility and visibility of selected entry
     calculatePreferredComponentHeight(list);
   }
 
-// --------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == tbFilter) {
       filterEnabled = tbFilter.isSelected();
 
@@ -177,70 +171,59 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
   @Override
-  public synchronized void addMouseListener(MouseListener listener)
-  {
+  public synchronized void addMouseListener(MouseListener listener) {
     list.addMouseListener(listener);
   }
 
   @Override
-  public void setEnabled(boolean enabled)
-  {
+  public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
     list.setEnabled(enabled);
     tfield.setEditable(enabled);
     tbFilter.setEnabled(enabled);
   }
 
-  public void addListSelectionListener(ListSelectionListener listener)
-  {
+  public void addListSelectionListener(ListSelectionListener listener) {
     list.addListSelectionListener(listener);
   }
 
-  public void removeListSelectionListener(ListSelectionListener listener)
-  {
+  public void removeListSelectionListener(ListSelectionListener listener) {
     list.removeListSelectionListener(listener);
   }
 
-  public void ensureIndexIsVisible(int i)
-  {
+  public void ensureIndexIsVisible(int i) {
     list.ensureIndexIsVisible(i);
   }
 
-  public ListModel<E> getModel()
-  {
+  public ListModel<E> getModel() {
     return listmodel;
   }
 
-  public int getSelectedIndex()
-  {
+  public int getSelectedIndex() {
     return list.getSelectedIndex();
   }
 
-  public E getSelectedValue()
-  {
+  public E getSelectedValue() {
     return list.getSelectedValue();
   }
 
-  public void setSelectedIndex(int index)
-  {
+  public void setSelectedIndex(int index) {
     list.setSelectedIndex(index);
     list.ensureIndexIsVisible(index);
     tfield.setText(list.getSelectedValue().toString());
     listmodel.setPattern(list.getSelectedValue().toString());
   }
 
-  public void setSelectedValue(E value, boolean shouldScroll)
-  {
+  public void setSelectedValue(E value, boolean shouldScroll) {
     list.setSelectedValue(value, shouldScroll);
     tfield.setText(value.toString());
     listmodel.setPattern(value.toString());
   }
 
-  public void setValues(List<? extends E> values)
-  {
+  public void setValues(List<? extends E> values) {
     if (this.sortValues) {
       Collections.sort(values, Misc.getIgnoreCaseComparator());
     }
@@ -254,20 +237,15 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   }
 
   /**
-   * Selects the first list item starting with the specified text.
-   * Returns the index of the selected item or -1 if not available.
+   * Selects the first list item starting with the specified text. Returns the index of the selected item or -1 if not
+   * available.
    */
-  private int selectClosest(String text)
-  {
+  private int selectClosest(String text) {
     int retVal = -1;
     if (!text.isEmpty() && listmodel.getSize() > 0) {
       final String pattern = text.toUpperCase(Locale.ENGLISH);
-      E item = listmodel
-          .elements()
-          .stream()
-          .filter(f -> f.toString().toUpperCase(Locale.ENGLISH).startsWith(pattern))
-          .findFirst()
-          .orElse(listmodel.firstElement());
+      E item = listmodel.elements().stream().filter(f -> f.toString().toUpperCase(Locale.ENGLISH).startsWith(pattern))
+          .findFirst().orElse(listmodel.firstElement());
       retVal = listmodel.indexOf(item);
       if (retVal >= 0) {
         list.setSelectedIndex(retVal);
@@ -278,35 +256,33 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   }
 
   /** Recalculates preferred control width enough to fit all list items horizontally. */
-  private void ensurePreferredComponentWidth(JComponent c, boolean includeScrollBar)
-  {
-    if (c == null)
+  private void ensurePreferredComponentWidth(JComponent c, boolean includeScrollBar) {
+    if (c == null) {
       return;
+    }
 
     final Graphics g = c.getGraphics() != null ? c.getGraphics() : NearInfinity.getInstance().getGraphics();
     final FontMetrics fm = c.getFontMetrics(c.getFont());
-    if (fm == null)
+    if (fm == null) {
       return;
+    }
 
-    final E item = listmodel.baseElements()
-        .stream()
-        .max((e1, e2) -> {
-          double w1 = fm.getStringBounds(e1.toString(), g).getWidth();
-          double w2 = fm.getStringBounds(e2.toString(), g).getWidth();
-          return (int)(w1 - w2);
-        })
-        .get();
+    final E item = listmodel.baseElements().stream().max((e1, e2) -> {
+      double w1 = fm.getStringBounds(e1.toString(), g).getWidth();
+      double w2 = fm.getStringBounds(e2.toString(), g).getWidth();
+      return (int) (w1 - w2);
+    }).get();
     if (item != null) {
-      int cw = (int)fm.getStringBounds(item.toString(), g).getWidth();
+      int cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
       cw += c.getInsets().left;
       cw += c.getInsets().right;
       if (includeScrollBar) {
         int sbWidth = 0;
         try {
-          sbWidth = ((Integer)UIManager.get("ScrollBar.width")).intValue();
+          sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
         } catch (Exception ex) {
           // not all l&f styles provide UIManager value
-          sbWidth = (new JScrollBar(JScrollBar.VERTICAL)).getWidth();
+          sbWidth = (new JScrollBar(Adjustable.VERTICAL)).getWidth();
         }
         cw += sbWidth;
       }
@@ -318,10 +294,10 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   }
 
   /** Enforces recalculation of preferred control height. */
-  private void calculatePreferredComponentHeight(JComponent c)
-  {
-    if (c == null)
+  private void calculatePreferredComponentHeight(JComponent c) {
+    if (c == null) {
       return;
+    }
 
     int width = c.getPreferredSize().width;
     c.setPreferredSize(null);

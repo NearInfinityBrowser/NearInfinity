@@ -1,47 +1,42 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
+import static org.infinity.resource.wed.WedResource.WED_NUM_DOORS;
+import static org.infinity.resource.wed.WedResource.WED_OFFSET_DOORS;
+
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
-import static org.infinity.resource.wed.WedResource.WED_NUM_DOORS;
-import static org.infinity.resource.wed.WedResource.WED_OFFSET_DOORS;
 
 /**
  * Manages door polygon layer objects.
  */
-public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly, WedResource>
-{
-  private static final String AvailableFmt = "Door polygons: %d";
+public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly, WedResource> {
+  private static final String AVAILABLE_FMT = "Door polygons: %d";
 
   private boolean doorClosed;
 
-  public LayerDoorPoly(WedResource wed, AreaViewer viewer)
-  {
+  public LayerDoorPoly(WedResource wed, AreaViewer viewer) {
     super(wed, ViewerConstants.LayerType.DOOR_POLY, viewer);
     loadLayer();
   }
 
   @Override
-  protected void loadLayer()
-  {
-    loadLayerItems(WED_OFFSET_DOORS, WED_NUM_DOORS,
-                   Door.class, d -> new LayerObjectDoorPoly(parent, d));
+  protected void loadLayer() {
+    loadLayerItems(WED_OFFSET_DOORS, WED_NUM_DOORS, Door.class, d -> new LayerObjectDoorPoly(parent, d));
   }
 
   @Override
-  public String getAvailability()
-  {
+  public String getAvailability() {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt);
+    return String.format(AVAILABLE_FMT, cnt);
   }
 
   @Override
-  public void setLayerVisible(boolean visible)
-  {
+  public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
     for (final LayerObjectDoorPoly obj : getLayerObjects()) {
       // processing open door items
@@ -63,20 +58,19 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly, WedResource>
 
   /**
    * Returns the current state of doors.
+   *
    * @return Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
-  public int getDoorState()
-  {
+  public int getDoorState() {
     return doorClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
   }
 
   /**
    * Sets the state of doors for all door layer objects.
-   * @param state The door state (either {@code ViewerConstants.DOOR_OPEN} or
-   *              {@code ViewerConstants.DOOR_CLOSED}).
+   *
+   * @param state The door state (either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}).
    */
-  public void setDoorState(int state)
-  {
+  public void setDoorState(int state) {
     boolean isClosed = (state == ViewerConstants.DOOR_CLOSED);
     if (isClosed != doorClosed) {
       doorClosed = isClosed;

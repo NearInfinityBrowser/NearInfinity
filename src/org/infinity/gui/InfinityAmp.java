@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -42,8 +42,7 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
 
 public final class InfinityAmp extends ChildFrame
-                                implements ActionListener, ListSelectionListener, Runnable, Closeable
-{
+    implements ActionListener, ListSelectionListener, Runnable, Closeable {
   private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<>();
   private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<>();
   private final JButton bPlay = new JButton(Icons.ICON_PLAY_16.getIcon());
@@ -57,16 +56,16 @@ public final class InfinityAmp extends ChildFrame
   private final JList<ResourceEntry> selectedMusList;
   private final JTextField tfNowPlaying = new JTextField(10);
   private final AudioPlayer player = new AudioPlayer();
-  private List<Entry> entryList = new ArrayList<>();
+  private final List<Entry> entryList = new ArrayList<>();
+
   private boolean keepPlaying = true;
 
-  public InfinityAmp()
-  {
+  public InfinityAmp() {
     super("InfinityAmp");
     setIconImage(Icons.ICON_VOLUME_16.getIcon().getImage());
     List<ResourceEntry> files = ResourceFactory.getResources("MUS");
-    for (int i = 0; i < files.size(); i++) {
-      allMusModel.addElement(files.get(i));
+    for (ResourceEntry file : files) {
+      allMusModel.addElement(file);
     }
     allMusList = new JList<>(allMusModel);
     selectedMusList = new JList<>(selectedMusModel);
@@ -136,7 +135,7 @@ public final class InfinityAmp extends ChildFrame
     lowerPanel.add(new JLabel("Now playing:"));
     lowerPanel.add(tfNowPlaying);
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(playlistPanel, BorderLayout.CENTER);
     pane.add(lowerPanel, BorderLayout.SOUTH);
@@ -146,154 +145,146 @@ public final class InfinityAmp extends ChildFrame
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
- @Override
-public void actionPerformed(ActionEvent event)
- {
-   if (event.getSource() == bPlay) {
-     new Thread(this).start();
-   }
-   else if (event.getSource() == bStop) {
-     keepPlaying = false;
-     player.stopPlay();
-   }
-   else if (event.getSource() == bAdd) {
-     int indices[] = allMusList.getSelectedIndices();
-     for (final int index : indices)
-       selectedMusModel.addElement(allMusModel.get(index));
-     bPlay.setEnabled(true);
-   }
-   else if (event.getSource() == bRemove) {
-     int index = selectedMusList.getSelectedIndex();
-     selectedMusModel.remove(index);
-     index = Math.min(index, selectedMusModel.size() - 1);
-     if (index >= 0)
-       selectedMusList.addSelectionInterval(index, index);
-     bPlay.setEnabled(selectedMusModel.size() > 0);
-   }
-   else if (event.getSource() == bUp) {
-     int index = selectedMusList.getSelectedIndex();
-     ResourceEntry o = selectedMusModel.remove(index);
-     selectedMusModel.add(index - 1, o);
-     selectedMusList.addSelectionInterval(index - 1, index - 1);
-   }
-   else if (event.getSource() == bDown) {
-     int index = selectedMusList.getSelectedIndex();
-     ResourceEntry o = selectedMusModel.remove(index);
-     selectedMusModel.add(index + 1, o);
-     selectedMusList.addSelectionInterval(index + 1, index + 1);
-   }
- }
+  @Override
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == bPlay) {
+      new Thread(this).start();
+    } else if (event.getSource() == bStop) {
+      keepPlaying = false;
+      player.stopPlay();
+    } else if (event.getSource() == bAdd) {
+      int indices[] = allMusList.getSelectedIndices();
+      for (final int index : indices) {
+        selectedMusModel.addElement(allMusModel.get(index));
+      }
+      bPlay.setEnabled(true);
+    } else if (event.getSource() == bRemove) {
+      int index = selectedMusList.getSelectedIndex();
+      selectedMusModel.remove(index);
+      index = Math.min(index, selectedMusModel.size() - 1);
+      if (index >= 0) {
+        selectedMusList.addSelectionInterval(index, index);
+      }
+      bPlay.setEnabled(selectedMusModel.size() > 0);
+    } else if (event.getSource() == bUp) {
+      int index = selectedMusList.getSelectedIndex();
+      ResourceEntry o = selectedMusModel.remove(index);
+      selectedMusModel.add(index - 1, o);
+      selectedMusList.addSelectionInterval(index - 1, index - 1);
+    } else if (event.getSource() == bDown) {
+      int index = selectedMusList.getSelectedIndex();
+      ResourceEntry o = selectedMusModel.remove(index);
+      selectedMusModel.add(index + 1, o);
+      selectedMusList.addSelectionInterval(index + 1, index + 1);
+    }
+  }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
+  // --------------------- Begin Interface Closeable ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  @Override
+  public void close() {
+    keepPlaying = false;
+    player.stopPlay();
+    Entry.clearCache();
+  }
 
- @Override
-public void close()
- {
-   keepPlaying = false;
-   player.stopPlay();
-   Entry.clearCache();
- }
+  // --------------------- End Interface Closeable ---------------------
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
+  @Override
+  public void valueChanged(ListSelectionEvent event) {
+    if (event.getSource() == allMusList) {
+      bAdd.setEnabled(allMusList.getSelectedIndices().length != 0);
+    } else if (event.getSource() == selectedMusList) {
+      bRemove.setEnabled(selectedMusList.getSelectedIndices().length != 0);
+      bUp.setEnabled(selectedMusList.getSelectedIndex() > 0);
+      bDown.setEnabled(
+          selectedMusList.getSelectedIndex() >= 0 && selectedMusList.getSelectedIndex() < selectedMusModel.size() - 1);
+    }
+  }
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
- @Override
-public void valueChanged(ListSelectionEvent event)
- {
-   if (event.getSource() == allMusList)
-     bAdd.setEnabled(allMusList.getSelectedIndices().length != 0);
-   else if (event.getSource() == selectedMusList) {
-     bRemove.setEnabled(selectedMusList.getSelectedIndices().length != 0);
-     bUp.setEnabled(selectedMusList.getSelectedIndex() > 0);
-     bDown.setEnabled(selectedMusList.getSelectedIndex() >= 0 &&
-                      selectedMusList.getSelectedIndex() < selectedMusModel.size() - 1);
-   }
- }
+  // --------------------- Begin Interface Runnable ---------------------
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  @Override
+  public void run() {
+    keepPlaying = true;
+    bPlay.setEnabled(false);
+    bStop.setEnabled(true);
+    bAdd.setEnabled(false);
+    bRemove.setEnabled(false);
+    bUp.setEnabled(false);
+    bDown.setEnabled(false);
+    allMusList.setEnabled(false);
+    selectedMusList.setEnabled(false);
+    int index = 0;
+    if (selectedMusList.getSelectedIndex() != -1) {
+      index = selectedMusList.getSelectedIndex();
+    }
+    while (keepPlaying) {
+      ResourceEntry musEntry = selectedMusModel.get(index++);
+      playMus(musEntry);
+      if (index == selectedMusModel.size()) {
+        if (cbLoop.isSelected()) {
+          index = 0;
+        } else {
+          keepPlaying = false;
+        }
+      }
+    }
+    tfNowPlaying.setText("");
+    bPlay.setEnabled(true);
+    bStop.setEnabled(false);
+    bAdd.setEnabled(allMusList.getSelectedIndices().length != 0);
+    bRemove.setEnabled(selectedMusList.getSelectedIndices().length != 0);
+    bUp.setEnabled(selectedMusList.getSelectedIndex() > 0);
+    bDown.setEnabled(
+        selectedMusList.getSelectedIndex() >= 0 && selectedMusList.getSelectedIndex() < selectedMusModel.size() - 1);
+    allMusList.setEnabled(true);
+    selectedMusList.setEnabled(true);
+  }
 
+  // --------------------- End Interface Runnable ---------------------
 
-//--------------------- Begin Interface Runnable ---------------------
+  private void playMus(ResourceEntry musEntry) {
+    try {
+      ByteBuffer bb = musEntry.getResourceBuffer();
+      String[] lines = StreamUtils.readString(bb, bb.limit()).split("\r?\n");
+      int idx = 0;
+      String dir = lines[idx++].trim();
+      int count = Integer.parseInt(lines[idx++].trim());
+      entryList.clear();
+      for (int i = 0; i < count; i++) {
+        entryList.add(new Entry(musEntry, dir, entryList, lines[idx++].trim(), i));
+      }
+      for (final Entry entry : entryList) {
+        entry.init();
+      }
 
- @Override
-public void run()
- {
-   keepPlaying = true;
-   bPlay.setEnabled(false);
-   bStop.setEnabled(true);
-   bAdd.setEnabled(false);
-   bRemove.setEnabled(false);
-   bUp.setEnabled(false);
-   bDown.setEnabled(false);
-   allMusList.setEnabled(false);
-   selectedMusList.setEnabled(false);
-   int index = 0;
-   if (selectedMusList.getSelectedIndex() != -1)
-     index = selectedMusList.getSelectedIndex();
-   while (keepPlaying) {
-     ResourceEntry musEntry = selectedMusModel.get(index++);
-     playMus(musEntry);
-     if (index == selectedMusModel.size()) {
-       if (cbLoop.isSelected())
-         index = 0;
-       else
-         keepPlaying = false;
-     }
-   }
-   tfNowPlaying.setText("");
-   bPlay.setEnabled(true);
-   bStop.setEnabled(false);
-   bAdd.setEnabled(allMusList.getSelectedIndices().length != 0);
-   bRemove.setEnabled(selectedMusList.getSelectedIndices().length != 0);
-   bUp.setEnabled(selectedMusList.getSelectedIndex() > 0);
-   bDown.setEnabled(selectedMusList.getSelectedIndex() >= 0 &&
-                    selectedMusList.getSelectedIndex() < selectedMusModel.size() - 1);
-   allMusList.setEnabled(true);
-   selectedMusList.setEnabled(true);
- }
-
-//--------------------- End Interface Runnable ---------------------
-
- private void playMus(ResourceEntry musEntry)
- {
-   try {
-     ByteBuffer bb = musEntry.getResourceBuffer();
-     String[] lines = StreamUtils.readString(bb, bb.limit()).split("\r?\n");
-     int idx = 0;
-     String dir = lines[idx++].trim();
-     int count = Integer.parseInt(lines[idx++].trim());
-     entryList.clear();
-     for (int i = 0; i < count; i++) {
-       entryList.add(new Entry(musEntry, dir, entryList, lines[idx++].trim(), i));
-     }
-     for (final Entry entry : entryList) {
-       entry.init();
-     }
-
-     tfNowPlaying.setText(musEntry.toString());
-     setTitle("InfinityAmp: " + musEntry.toString());
-     int nextnr = 0;
-     while (keepPlaying) {
-       AudioBuffer audio = entryList.get(nextnr).getAudioBuffer();
-       player.play(audio);
-       if (entryList.get(nextnr).getNextNr() <= nextnr ||
-           entryList.get(nextnr).getNextNr() >= entryList.size())
-         break;
-       nextnr = entryList.get(nextnr).getNextNr();
-     }
-     if (keepPlaying && entryList.get(nextnr).getEndBuffer() != null)
-       player.play(entryList.get(nextnr).getEndBuffer());
-   } catch (Exception e) {
-     JOptionPane.showMessageDialog(this, "Error accessing " + musEntry + '\n' + e.getMessage(), "Error",
-                                   JOptionPane.ERROR_MESSAGE);
-     e.printStackTrace();
-   }
- }
+      tfNowPlaying.setText(musEntry.toString());
+      setTitle("InfinityAmp: " + musEntry.toString());
+      int nextnr = 0;
+      while (keepPlaying) {
+        AudioBuffer audio = entryList.get(nextnr).getAudioBuffer();
+        player.play(audio);
+        if (entryList.get(nextnr).getNextNr() <= nextnr || entryList.get(nextnr).getNextNr() >= entryList.size()) {
+          break;
+        }
+        nextnr = entryList.get(nextnr).getNextNr();
+      }
+      if (keepPlaying && entryList.get(nextnr).getEndBuffer() != null) {
+        player.play(entryList.get(nextnr).getEndBuffer());
+      }
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(this, "Error accessing " + musEntry + '\n' + e.getMessage(), "Error",
+          JOptionPane.ERROR_MESSAGE);
+      e.printStackTrace();
+    }
+  }
 }

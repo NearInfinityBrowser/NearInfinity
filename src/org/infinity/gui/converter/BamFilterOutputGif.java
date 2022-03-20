@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -35,36 +35,37 @@ import org.infinity.util.Misc;
 /**
  * Output filter: Exports frame or cycles into a GIF file.
  */
-public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeListener, ActionListener
-{
-  private static final String FilterName = "GIF output (BAM v1 only)";
-  private static final String FilterDesc = "This filter exports all cycles of the BAM into separate GIF files. " +
-                                           "Each cycle adds the suffix \"_cycleX\" to the filename, " +
-                                           "where X is the cycle index.\n" +
-                                           "Notes: Output filters will always be processed last. Supports " +
-                                           "legacy BAM (v1) only. All frames must be of same dimension " +
-                                           "(use \"Center BAM frames\" filter if needed).";
+public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeListener, ActionListener {
+  private static final String FILTER_NAME = "GIF output (BAM v1 only)";
+  private static final String FILTER_DESC = "This filter exports all cycles of the BAM into separate GIF files. "
+                                            + "Each cycle adds the suffix \"_cycleX\" to the filename, "
+                                            + "where X is the cycle index.\n"
+                                            + "Notes: Output filters will always be processed last. Supports "
+                                            + "legacy BAM (v1) only. All frames must be of same dimension "
+                                            + "(use \"Center BAM frames\" filter if needed).";
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
+
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
 
   private JSpinner spinnerFPS;
   private JCheckBox cbLoopAnim;
 
-  public BamFilterOutputGif(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public BamFilterOutputGif(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public boolean process(PseudoBamDecoder decoder) throws Exception
-  {
+  public boolean process(PseudoBamDecoder decoder) throws Exception {
     return applyEffect(decoder);
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(spinnerFPS.getValue()).append(';');
     sb.append(cbLoopAnim.isSelected());
@@ -72,8 +73,7 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -82,8 +82,8 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
         boolean loop = true;
 
         if (params.length > 0) {
-          int min = ((Number)((SpinnerNumberModel)spinnerFPS.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerFPS.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerFPS.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerFPS.getModel()).getMaximum()).intValue();
           fps = decodeNumber(params[0], min, max, Integer.MIN_VALUE);
           if (fps == Integer.MIN_VALUE) {
             return false;
@@ -111,14 +111,12 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
     return frame;
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Frames per second:");
@@ -129,46 +127,43 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
     cbLoopAnim.addActionListener(this);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     panel.add(spinnerFPS, c);
 
-    ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel.add(cbLoopAnim, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == spinnerFPS) {
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == cbLoopAnim) {
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception
-  {
+  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception {
     if (getConverter() != null && decoder != null) {
       if (!getConverter().isBamV1Selected()) {
         throw new Exception("Only BAM V1 output supported.");
@@ -178,21 +173,25 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
       Dimension dim = new Dimension(decoder.getFrameInfo(0).getWidth(), decoder.getFrameInfo(0).getHeight());
       for (int idx = 0; idx < decoder.frameCount(); idx++) {
         canvasCheck &= (decoder.getFrameInfo(idx).getWidth() == dim.width);
-        if (!canvasCheck) break;
+        if (!canvasCheck) {
+          break;
+        }
         canvasCheck &= (decoder.getFrameInfo(idx).getHeight() == dim.height);
-        if (!canvasCheck) break;
+        if (!canvasCheck) {
+          break;
+        }
       }
       if (!canvasCheck) {
         throw new Exception("Width and height of all BAM frames must be identical.");
       }
 
-      int fps = ((Integer)spinnerFPS.getValue()).intValue();
+      int fps = ((Integer) spinnerFPS.getValue());
       boolean loop = cbLoopAnim.isSelected();
       String fileName = getConverter().getBamOutput().toString();
       String fileExt = ".GIF";
       int idx = fileName.lastIndexOf('.');
       if (idx >= 0) {
-        if (Character.isLowerCase(fileName.charAt(idx+1))) {
+        if (Character.isLowerCase(fileName.charAt(idx + 1))) {
           fileExt = ".gif";
         }
         fileName = fileName.substring(0, idx);
@@ -202,19 +201,21 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
       for (int idxCycle = 0; idxCycle < control.cycleCount(); idxCycle++) {
         control.cycleSet(idxCycle);
         if (control.cycleFrameCount() > 0) {
-          try (ImageOutputStream output = new FileImageOutputStream(new File(fileName + "_cycle" + idxCycle + fileExt))) {
+          try (ImageOutputStream output = new FileImageOutputStream(
+              new File(fileName + "_cycle" + idxCycle + fileExt))) {
             control.cycleSetFrameIndex(0);
-            BufferedImage image = (BufferedImage)control.cycleGetFrame();
+            BufferedImage image = (BufferedImage) control.cycleGetFrame();
             int transIndex = -1;
             ColorModel cm = image.getColorModel();
-            if (cm instanceof IndexColorModel && ((IndexColorModel)cm).getTransparentPixel() >= 0) {
-              transIndex = ((IndexColorModel)cm).getTransparentPixel();
+            if (cm instanceof IndexColorModel && ((IndexColorModel) cm).getTransparentPixel() >= 0) {
+              transIndex = ((IndexColorModel) cm).getTransparentPixel();
             }
-            try (GifSequenceWriter writer = new GifSequenceWriter(output, image.getType(), 1000 / fps, loop, transIndex)) {
+            try (GifSequenceWriter writer = new GifSequenceWriter(output, image.getType(), 1000 / fps, loop,
+                transIndex)) {
               writer.writeToSequence(image);
               for (int idxFrames = 1; idxFrames < control.cycleFrameCount(); idxFrames++) {
                 control.cycleSetFrameIndex(idxFrames);
-                writer.writeToSequence((BufferedImage)control.cycleGetFrame());
+                writer.writeToSequence((BufferedImage) control.cycleGetFrame());
               }
             }
           }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -33,8 +33,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.key.ResourceEntry;
 
-public final class TextResourceSearcher extends AbstractSearcher implements Runnable, ActionListener
-{
+public final class TextResourceSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;
   private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_AGAIN_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
@@ -46,15 +45,14 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
   private Pattern regPattern;
   private TextHitFrame resultFrame;
 
-  public TextResourceSearcher(List<ResourceEntry> files, Container parent)
-  {
+  public TextResourceSearcher(List<ResourceEntry> files, Container parent) {
     super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.files = files;
 
     String title = "";
-    if (files.size() == 1)
+    if (files.size() == 1) {
       title = (files.get(0)).toString();
-    else if (files.size() > 1) {
+    } else if (files.size() > 1) {
       ResourceEntry entry = files.get(0);
       title = "all " + entry.getExtension() + " files";
     }
@@ -110,25 +108,22 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
     inputFrame.setVisible(true);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
       inputFrame.setVisible(false);
       new Thread(this).start();
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
       term = Pattern.quote(term);
@@ -167,15 +162,14 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof TextResource) {
-        try (final BufferedReader br = new BufferedReader(new StringReader(((TextResource)resource).getText()))) {
+        try (final BufferedReader br = new BufferedReader(new StringReader(((TextResource) resource).getText()))) {
           String line;
           int linenr = 0;
           while ((line = br.readLine()) != null) {
@@ -194,8 +188,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
     };
   }
 
-  private synchronized void addHit(ResourceEntry entry, String line, int lineNr)
-  {
+  private synchronized void addHit(ResourceEntry entry, String line, int lineNr) {
     if (resultFrame != null) {
       resultFrame.addHit(entry, line, lineNr);
     }

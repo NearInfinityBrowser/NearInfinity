@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -18,8 +18,7 @@ import org.infinity.util.Misc;
  * {@code ComboBoxModel} for the creature allegiance combo box used in the Creature Animation Browser.
  */
 public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.StatusEntry>
-    implements ComboBoxModel<CreatureStatusModel.StatusEntry>
-{
+    implements ComboBoxModel<CreatureStatusModel.StatusEntry> {
   /** Available creature status entries. */
   public enum Status {
     /** Indicates green selection circle. */
@@ -32,58 +31,54 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
     PANICKED(-1);
 
     private final int id;
-    private Status(int id) { this.id = id; }
+
+    private Status(int id) {
+      this.id = id;
+    }
 
     /** Returns the numeric id associated with the enum. */
-    public int getValue() { return id; }
+    public int getValue() {
+      return id;
+    }
   }
 
   private final List<StatusEntry> statusList = new ArrayList<>();
 
   private Object selectedItem;
 
-  public CreatureStatusModel()
-  {
+  public CreatureStatusModel() {
     super();
     init();
   }
 
-  public void reload()
-  {
+  public void reload() {
     init();
   }
 
   /**
    * Returns the index-position of the specified object in the list.
+   *
    * @param anItem a {@code StatusEntry} object, {@code Number} object or {@code String} specifying an allegiance name.
-   * @return an int representing the index position, where 0 is the first position. Returns -1
-   *         if the item could not be found in the list.
+   * @return an int representing the index position, where 0 is the first position. Returns -1 if the item could not be
+   *         found in the list.
    */
-  public int getIndexOf(Object anItem)
-  {
+  public int getIndexOf(Object anItem) {
     if (anItem instanceof StatusEntry) {
       return statusList.indexOf(anItem);
     } else if (anItem instanceof Number) {
-      final int eaValue = ((Number)anItem).intValue();
-      return IntStream
-          .range(0, statusList.size())
-          .filter(i -> statusList.get(i).getStatus().getValue() == eaValue)
-          .findAny()
-          .orElse(-1);
+      final int eaValue = ((Number) anItem).intValue();
+      return IntStream.range(0, statusList.size()).filter(i -> statusList.get(i).getStatus().getValue() == eaValue)
+          .findAny().orElse(-1);
     } else if (anItem != null) {
       final String eaName = anItem.toString().trim();
-      return IntStream
-          .range(0, statusList.size())
-          .filter(i -> eaName.equalsIgnoreCase(statusList.get(i).getName()))
-          .findAny()
-          .orElse(-1);
+      return IntStream.range(0, statusList.size()).filter(i -> eaName.equalsIgnoreCase(statusList.get(i).getName()))
+          .findAny().orElse(-1);
     }
     return -1;
   }
 
   /** Empties the list. */
-  public void removeAllElements()
-  {
+  public void removeAllElements() {
     if (!statusList.isEmpty()) {
       int oldSize = statusList.size();
       statusList.clear();
@@ -96,17 +91,15 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
     }
   }
 
-//--------------------- Begin Interface ListModel ---------------------
+  // --------------------- Begin Interface ListModel ---------------------
 
   @Override
-  public int getSize()
-  {
+  public int getSize() {
     return statusList.size();
   }
 
   @Override
-  public StatusEntry getElementAt(int index)
-  {
+  public StatusEntry getElementAt(int index) {
     if (index >= 0 && index < statusList.size()) {
       return statusList.get(index);
     } else {
@@ -114,30 +107,26 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
     }
   }
 
-//--------------------- End Interface ListModel ---------------------
+  // --------------------- End Interface ListModel ---------------------
 
-//--------------------- Begin Interface ComboBoxModel ---------------------
+  // --------------------- Begin Interface ComboBoxModel ---------------------
 
   @Override
-  public void setSelectedItem(Object anItem)
-  {
-    if ((selectedItem != null && !selectedItem.equals(anItem)) ||
-        selectedItem == null && anItem != null) {
+  public void setSelectedItem(Object anItem) {
+    if ((selectedItem != null && !selectedItem.equals(anItem)) || selectedItem == null && anItem != null) {
       selectedItem = anItem;
       fireContentsChanged(this, -1, -1);
     }
   }
 
   @Override
-  public Object getSelectedItem()
-  {
+  public Object getSelectedItem() {
     return selectedItem;
   }
 
-//--------------------- End Interface ComboBoxModel ---------------------
+  // --------------------- End Interface ComboBoxModel ---------------------
 
-  private void init()
-  {
+  private void init() {
     removeAllElements();
 
     for (final Status status : Status.values()) {
@@ -148,34 +137,36 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
     setSelectedItem(getElementAt(0));
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public static class StatusEntry
-  {
+  public static class StatusEntry {
     private final Status status;
     private final String name;
 
-    public StatusEntry(Status status)
-    {
+    public StatusEntry(Status status) {
       this.status = Objects.requireNonNull(status);
       this.name = Misc.prettifySymbol(this.status.toString());
     }
 
     /** Returns the status enum. */
-    public Status getStatus() { return status; }
+    public Status getStatus() {
+      return status;
+    }
 
     /**
-     * Returns a typical EA.IDS value representing the status.
-     * Returns negative values for non-allegiance status types.
+     * Returns a typical EA.IDS value representing the status. Returns negative values for non-allegiance status types.
      */
-    public int getValue() { return status.getValue(); }
+    public int getValue() {
+      return status.getValue();
+    }
 
     /** Returns the descriptive name of the status. */
-    public String getName() { return name; }
+    public String getName() {
+      return name;
+    }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return getName();
     }
   }

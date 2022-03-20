@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -34,7 +34,6 @@ import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.EventListener;
 import java.util.EventObject;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -53,36 +52,33 @@ import org.infinity.util.io.FileEx;
 /**
  * Generic collection of updater-related methods.
  */
-public class Utils
-{
+public class Utils {
   // System-specific temp folder
-  private static final String TEMP_FOLDER       = System.getProperty("java.io.tmpdir");
+  private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
   // Path to java executable
-  private static final String JAVA_EXECUTABLE   = System.getProperty("java.home") +
-                                                  File.separator + "bin" + File.separator + "java";
+  private static final String JAVA_EXECUTABLE = System.getProperty("java.home") + File.separator + "bin"
+      + File.separator + "java";
 
   // The algorithm used for calculating hash strings
-  private static final String HASH_TYPE         = "md5";
+  private static final String HASH_TYPE = "md5";
 
   /** Returns the full path to the system temp folder. */
-  public static String getTempFolder()
-  {
+  public static String getTempFolder() {
     return TEMP_FOLDER;
   }
 
   /** Returns the full path to the java executable. */
-  public static String getJavaExecutable()
-  {
+  public static String getJavaExecutable() {
     return JAVA_EXECUTABLE;
   }
 
   /**
    * Attempts to determine the full filepath of the java application.
+   *
    * @return The full path of the current JAR file or an empty string on error.
    */
-  public static String getJarFileName(Class<? extends Object> classType)
-  {
+  public static String getJarFileName(Class<? extends Object> classType) {
     if (classType != null) {
       URL url = classType.getProtectionDomain().getCodeSource().getLocation();
       if (url != null) {
@@ -101,8 +97,7 @@ public class Utils
   /**
    * Converts a Calendar object into a timestamp string in ISO 8601 format.
    */
-  public static String toTimeStamp(Calendar cal)
-  {
+  public static String toTimeStamp(Calendar cal) {
     if (cal == null) {
       cal = Calendar.getInstance();
     }
@@ -130,13 +125,12 @@ public class Utils
   /**
    * Converts a timestamp string in ISO 8601 format into a Calendar object.
    */
-  public static Calendar toCalendar(String timeStamp)
-  {
+  public static Calendar toCalendar(String timeStamp) {
     Calendar retVal = null;
     if (timeStamp != null && !timeStamp.isEmpty()) {
-      final String regDate  = "(\\d{4})-?([0-1][0-9])-?([0-3][0-9])";
+      final String regDate = "(\\d{4})-?([0-1][0-9])-?([0-3][0-9])";
       final String regTime = "T([0-2][0-9]):?([0-5][0-9])?:?([0-5][0-9])?";
-      final String regZone  = "(([-+])([0-2][0-9]):?([0-5][0-9])|(Z))";
+      final String regZone = "(([-+])([0-2][0-9]):?([0-5][0-9])|(Z))";
       int year = 0, month = -1, day = 0, hour = 0, minute = 0, second = 0, ofsHour = 0, ofsMinute = 0;
       char sign = 0;
       Matcher m;
@@ -187,7 +181,7 @@ public class Utils
 
         // applying timezone offset (in ms)
         if (sign != 0) {
-          int amount = (ofsHour*60 + ofsMinute)*60*1000;
+          int amount = (ofsHour * 60 + ofsMinute) * 60 * 1000;
           switch (sign) {
             case '+':
               retVal.set(Calendar.ZONE_OFFSET, amount);
@@ -204,13 +198,13 @@ public class Utils
 
   /**
    * Returns an number based on the specified timestamp.
+   *
    * @param timestamp The timestamp in ISO 8601 format. Either in UTC or using time offset.<br>
    *                  Syntax: YYYY-MM-DD[Thh:mm[:ss][(±hh[:mm])|Z]]<br>
    *                  (Example: 2007-11-26T14:53+06:00)
    * @return A comparable numeric value of the timestamp (higher = newer). Returns 0 on error.
    */
-  public static long toTimeValue(String timestamp)
-  {
+  public static long toTimeValue(String timestamp) {
     Calendar cal = toCalendar(timestamp);
     if (cal != null) {
       return cal.getTimeInMillis();
@@ -221,11 +215,11 @@ public class Utils
 
   /**
    * Returns a number based on the date and time of the specified Calendar object.
+   *
    * @param cal The calendar object or {@code null} to get a number based on the current time.
    * @return A comparable numeric value derived from the calendar object (higher = newer).
    */
-  public static long getTimeValue(Calendar cal)
-  {
+  public static long getTimeValue(Calendar cal) {
     if (cal == null) {
       cal = Calendar.getInstance();
     }
@@ -233,13 +227,12 @@ public class Utils
     return cal.getTimeInMillis();
   }
 
-
   /**
    * Calculates the hash value from input stream data using the specified hash type.
+   *
    * @param is The input stream to read the data from.
    */
-  public static String generateMD5Hash(InputStream is)
-  {
+  public static String generateMD5Hash(InputStream is) {
     if (is != null) {
       try {
         MessageDigest m = MessageDigest.getInstance(HASH_TYPE);
@@ -258,9 +251,7 @@ public class Utils
         }
         return sb.toString();
 
-      } catch (NoSuchAlgorithmException nsae) {
-        nsae.printStackTrace();
-      } catch (IOException ioe) {
+      } catch (NoSuchAlgorithmException | IOException ioe) {
         ioe.printStackTrace();
       }
     }
@@ -269,11 +260,11 @@ public class Utils
 
   /**
    * Checks whether the specified string contains a valid URL.
+   *
    * @param url The URL string to test.
    * @return {@code true} if the string contains a valid URL, {@code false} otherwise.
    */
-  public static boolean isUrlValid(String url)
-  {
+  public static boolean isUrlValid(String url) {
     if (url != null) {
       try {
         new URL(url);
@@ -286,7 +277,8 @@ public class Utils
 
   /**
    * Checks whether the specified URL points to a valid resource.
-   * @param url The URL to check.
+   *
+   * @param url   The URL to check.
    * @param proxy An optional proxy definition. Can be null.
    * @return true if the URL is available, false otherwise.
    * @throws IOException
@@ -295,17 +287,16 @@ public class Utils
    * @throws ProtocolException
    */
   public static boolean isUrlAvailable(URL url, Proxy proxy)
-      throws IOException, IllegalArgumentException, UnsupportedOperationException, ProtocolException
-  {
+      throws IOException, IllegalArgumentException, UnsupportedOperationException, ProtocolException {
     if (url != null) {
       if (url.getProtocol().equalsIgnoreCase("http") || url.getProtocol().equalsIgnoreCase("https")) {
         // We only need to check header for HTTP protocol
         HttpURLConnection.setFollowRedirects(true);
         HttpURLConnection conn = null;
         if (proxy != null) {
-          conn = (HttpURLConnection)url.openConnection(proxy);
+          conn = (HttpURLConnection) url.openConnection(proxy);
         } else {
-          conn = (HttpURLConnection)url.openConnection();
+          conn = (HttpURLConnection) url.openConnection();
         }
         if (conn != null) {
           int timeout = conn.getConnectTimeout();
@@ -341,14 +332,13 @@ public class Utils
 
   /**
    * Attempts to determine the size of the file specified by url.
-   * @param url The URL pointing to a file of any kind.
+   *
+   * @param url   The URL pointing to a file of any kind.
    * @param proxy An optional proxy definition. Can be {@code null}.
    * @return The size of the file or -1 on error.
    * @throws IOException
    */
-  public static int getFileSizeUrl(URL url, Proxy proxy)
-      throws IOException
-  {
+  public static int getFileSizeUrl(URL url, Proxy proxy) throws IOException {
     if (url != null) {
       URLConnection conn = url.openConnection();
       return conn.getContentLength();
@@ -357,15 +347,14 @@ public class Utils
   }
 
   /**
-   * Attempts to return a valid URL from either an absolute 'path' or a relative 'path'
-   * combined with 'base'.
+   * Attempts to return a valid URL from either an absolute 'path' or a relative 'path' combined with 'base'.
+   *
    * @param base An optional URL which is used with a relative path parameter.
    * @param path Either an absolute path or a relative path together with the base parameter.
    * @return A valid URL or {@code null} in case of an error.
    * @throws MalformedURLException
    */
-  public static URL getUrl(URL base, String path) throws MalformedURLException
-  {
+  public static URL getUrl(URL base, String path) throws MalformedURLException {
     URL retVal = null;
     if (path != null) {
       try {
@@ -404,8 +393,7 @@ public class Utils
   }
 
   /** Returns whether the specified link is using the https protocol. */
-  public static boolean isSecureUrl(String link)
-  {
+  public static boolean isSecureUrl(String link) {
     if (link != null) {
       try {
         URL url = new URL(link);
@@ -418,10 +406,10 @@ public class Utils
 
   /**
    * Checks whether the certificates of the specified HTTPS url are valid.
+   *
    * @param url The url to test. Must be HTTPS!
-   * @return {@code true} if the certificate chain of the specified URL is valid.
-   *         {@code false} if the certificate chain is invalid or the connection does not use
-   *         the HTTPS protocol.
+   * @return {@code true} if the certificate chain of the specified URL is valid. {@code false} if the certificate chain
+   *         is invalid or the connection does not use the HTTPS protocol.
    * @throws Exception
    * @throws IOException
    * @throws IllegalArgumentException
@@ -429,24 +417,22 @@ public class Utils
    * @throws SSLPeerUnverifiedException
    * @throws IllegalStateException
    */
-  public static boolean validateSecureConnection(URL url, Proxy proxy)
-      throws Exception, IOException, IllegalArgumentException, UnsupportedOperationException,
-             SSLPeerUnverifiedException, IllegalStateException
-  {
+  public static boolean validateSecureConnection(URL url, Proxy proxy) throws Exception, IOException,
+      IllegalArgumentException, UnsupportedOperationException, SSLPeerUnverifiedException, IllegalStateException {
     if (url != null && url.getProtocol().equalsIgnoreCase("https")) {
       HttpsURLConnection conn = null;
       try {
         if (proxy != null) {
-          conn = (HttpsURLConnection)url.openConnection(proxy);
+          conn = (HttpsURLConnection) url.openConnection(proxy);
         } else {
-          conn = (HttpsURLConnection)url.openConnection();
+          conn = (HttpsURLConnection) url.openConnection();
         }
         if (conn != null) {
           conn.connect();
           Certificate[] certs = conn.getServerCertificates();
-          for (final Certificate cert: certs) {
+          for (final Certificate cert : certs) {
             if (cert instanceof X509Certificate) {
-              ((X509Certificate)cert).checkValidity();
+              ((X509Certificate) cert).checkValidity();
             } else {
               throw new Exception("Not a X.509 certificate");
             }
@@ -465,17 +451,16 @@ public class Utils
 
   /**
    * Attempts to open the specified URL in the default browser of the system.
+   *
    * @param url The URL to open.
-   * @return {@code true} if the URL has been opened in the system's default browser.
-   *         {@code false} otherwise.
+   * @return {@code true} if the URL has been opened in the system's default browser. {@code false} otherwise.
    * @throws IOException
    * @throws URISyntaxException
    * @throws UnsupportedOperationException
    * @throws IllegalArgumentException
    */
   public static boolean openWebPage(URL url)
-      throws IOException, URISyntaxException, UnsupportedOperationException, IllegalArgumentException
-  {
+      throws IOException, URISyntaxException, UnsupportedOperationException, IllegalArgumentException {
     if (url != null) {
       URI uri = url.toURI();
       if (uri != null) {
@@ -491,8 +476,9 @@ public class Utils
 
   /**
    * A convenience method for downloading textual data from a URL.
-   * @param url The URL to download data from.
-   * @param proxy An optional proxy definition. Can be {@code null}.
+   *
+   * @param url     The URL to download data from.
+   * @param proxy   An optional proxy definition. Can be {@code null}.
    * @param charset The character set of the text content (e.g. utf-8).
    * @return The text content on success or {@code null} on error.
    * @throws IOException
@@ -502,13 +488,12 @@ public class Utils
    * @throws ZipException
    */
   public static String downloadText(URL url, Proxy proxy, String charset)
-      throws IOException, FileNotFoundException, ProtocolException, UnknownServiceException, ZipException
-  {
+      throws IOException, FileNotFoundException, ProtocolException, UnknownServiceException, ZipException {
     String retVal = null;
     if (url != null) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       if (Utils.downloadFromUrl(url, proxy, baos, UpdateInfo.FileType.ORIGINAL, null)) {
-        if (charset == null  || charset.isEmpty() || !Charset.isSupported(charset)) {
+        if (charset == null || charset.isEmpty() || !Charset.isSupported(charset)) {
           charset = Charset.defaultCharset().name();
         }
         try {
@@ -522,15 +507,15 @@ public class Utils
   }
 
   /**
-   * Downloads data from the specified URL into the output stream. It is recommended to call this
-   * method in a background task.
-   * @param url The URL to download data from.
-   * @param proxy An optional proxy definition. Can be {@code null}.
-   * @param os The output stream to write the downloaded data into.
-   * @param type The file type of the data.
-   *             FileType.Original does no further preprocessing.
-   *             FileType.ZIP unpacks the first available file found in the zip archive.
-   *             FileType.GZIP unpacks the data and writes it into the output stream.
+   * Downloads data from the specified URL into the output stream. It is recommended to call this method in a background
+   * task.
+   *
+   * @param url       The URL to download data from.
+   * @param proxy     An optional proxy definition. Can be {@code null}.
+   * @param os        The output stream to write the downloaded data into.
+   * @param type      The file type of the data. FileType.Original does no further preprocessing. FileType.ZIP unpacks
+   *                  the first available file found in the zip archive. FileType.GZIP unpacks the data and writes it
+   *                  into the output stream.
    * @param listeners A list of event listeners to keep track of the current download progress.
    * @return true on success, false on error or if operation has been canceled.
    * @throws IOException
@@ -540,9 +525,8 @@ public class Utils
    * @throws FileNotFoundException
    */
   public static boolean downloadFromUrl(URL url, Proxy proxy, OutputStream os, UpdateInfo.FileType type,
-                                        List<ProgressListener> listeners)
-      throws IOException, ProtocolException, UnknownServiceException, ZipException, FileNotFoundException
-  {
+      List<ProgressListener> listeners)
+      throws IOException, ProtocolException, UnknownServiceException, ZipException, FileNotFoundException {
     if (url != null && os != null) {
       URLConnection conn = null;
       if (proxy != null) {
@@ -553,7 +537,7 @@ public class Utils
 
       if (conn != null) {
         int timeout = conn.getConnectTimeout();
-        conn.setConnectTimeout(6000);   // wait max. 6 seconds
+        conn.setConnectTimeout(6000); // wait max. 6 seconds
         try (InputStream is = conn.getInputStream()) {
           conn.setConnectTimeout(timeout);
           switch (type) {
@@ -574,16 +558,15 @@ public class Utils
 
   /**
    * Download data from the input stream into the output stream without special processing.
-   * @return {@code true} if the download has finished successfully,
-   *         {@code false} on error or if the download has been cancelled.
+   *
+   * @return {@code true} if the download has finished successfully, {@code false} on error or if the download has been
+   *         cancelled.
    * @throws IOException
    * @throws ProtocolException
    * @throws UnknownServiceException
    */
-  static boolean downloadRaw(InputStream is, OutputStream os, URL url, Proxy proxy,
-                             List<ProgressListener> listeners)
-      throws UnknownServiceException, ProtocolException, IOException
-  {
+  static boolean downloadRaw(InputStream is, OutputStream os, URL url, Proxy proxy, List<ProgressListener> listeners)
+      throws UnknownServiceException, ProtocolException, IOException {
     if (is != null && os != null) {
       byte[] buffer = new byte[4096];
       try {
@@ -610,21 +593,20 @@ public class Utils
 
   /**
    * Decompresses the first available file entry in the zipped data provided by the input stream.
-   * @return {@code true} if the download has finished successfully,
-   *         {@code false} on error or if the download has been cancelled.
+   *
+   * @return {@code true} if the download has finished successfully, {@code false} on error or if the download has been
+   *         cancelled.
    * @throws IOException
    * @throws ZipException
    */
-  static boolean downloadZip(InputStream is, OutputStream os, URL url, Proxy proxy,
-                             List<ProgressListener> listeners)
-      throws IOException, ZipException
-  {
+  static boolean downloadZip(InputStream is, OutputStream os, URL url, Proxy proxy, List<ProgressListener> listeners)
+      throws IOException, ZipException {
     if (is != null && os != null) {
       try (ZipInputStream zis = new ZipInputStream(is)) {
         byte[] buffer = new byte[4096];
         ZipEntry entry = zis.getNextEntry();
         if (entry != null) {
-          int totalSize = (int)entry.getSize();
+          int totalSize = (int) entry.getSize();
           int curSize = 0;
           int size;
           while ((size = zis.read(buffer)) != -1) {
@@ -646,20 +628,19 @@ public class Utils
 
   /**
    * Decompresses the GZIP compressed data provided by the input stream.
-   * @return {@code true} if the download has finished successfully,
-   *         {@code false} on error or if the download has been cancelled.
+   *
+   * @return {@code true} if the download has finished successfully, {@code false} on error or if the download has been
+   *         cancelled.
    * @throws IOException
    */
-  static boolean downloadGzip(InputStream is, OutputStream os, URL url, Proxy proxy,
-                              List<ProgressListener> listeners)
-      throws IOException
-  {
+  static boolean downloadGzip(InputStream is, OutputStream os, URL url, Proxy proxy, List<ProgressListener> listeners)
+      throws IOException {
     if (is != null && os != null) {
       GZIPInputStream gis = null;
       byte[] buffer = new byte[4096];
       try {
         gis = new GZIPInputStream(is);
-        int totalSize = -1;   // impossible to determine the uncompressed file size
+        int totalSize = -1; // impossible to determine the uncompressed file size
         int curSize = 0;
         int size;
         while ((size = gis.read(buffer)) != -1) {
@@ -685,17 +666,15 @@ public class Utils
   }
 
   // Informs about the progress of the current operation. Returns true if the operation can be cancelled.
-  static boolean fireProgressEvent(List<ProgressListener> listeners, URL url,
-                                int curBytes, int totalBytes, boolean finished)
-  {
+  static boolean fireProgressEvent(List<ProgressListener> listeners, URL url, int curBytes, int totalBytes,
+      boolean finished) {
     boolean bRet = false;
     if (listeners != null) {
       ProgressEvent event = null;
-      for (Iterator<ProgressListener> iter = listeners.iterator(); iter.hasNext();) {
+      for (ProgressListener l : listeners) {
         if (event == null) {
           event = new ProgressEvent(url, curBytes, totalBytes, finished);
         }
-        ProgressListener l = iter.next();
         if (l != null) {
           l.dataProgressed(event);
         }
@@ -707,66 +686,65 @@ public class Utils
     return bRet;
   }
 
-// TODO: remove?
-//  /**
-//   * Executes the specified JAR file with optional parameters and working directory.
-//   * @param jar The JAR file to execute.
-//   * @param params Parameter list. Can be {@code null}.
-//   * @param dir An optional working directory. Can be {@code null}.
-//   * @return The Process instance of the executed JAR file or {@code null} on error.
-//   */
-//  public static Process executeJar(String jar, String params, String dir)
-//  {
-//    if (jar != null && !jar.isEmpty()) {
-//      StringBuilder sb = new StringBuilder();
-//      sb.append(JAVA_EXECUTABLE).append(" ");
-//      sb.append("-jar ");
-//      sb.append(jar).append(" ");
-//      if (params != null && !params.isEmpty()) {
-//        sb.append(params);
-//      }
-//      File file = null;
-//      if (dir != null && !dir.isEmpty()) {
-//        file = new File(dir);
-//        if (!file.isDirectory()) {
-//          file = null;
-//        }
-//      }
-//      try {
-//        return Runtime.getRuntime().exec(sb.toString(), null, file);
-//      } catch (IOException e) {
-//      }
-//    }
-//    return null;
-//  }
+  // TODO: remove?
+  // /**
+  // * Executes the specified JAR file with optional parameters and working directory.
+  // * @param jar The JAR file to execute.
+  // * @param params Parameter list. Can be {@code null}.
+  // * @param dir An optional working directory. Can be {@code null}.
+  // * @return The Process instance of the executed JAR file or {@code null} on error.
+  // */
+  // public static Process executeJar(String jar, String params, String dir)
+  // {
+  // if (jar != null && !jar.isEmpty()) {
+  // StringBuilder sb = new StringBuilder();
+  // sb.append(JAVA_EXECUTABLE).append(" ");
+  // sb.append("-jar ");
+  // sb.append(jar).append(" ");
+  // if (params != null && !params.isEmpty()) {
+  // sb.append(params);
+  // }
+  // File file = null;
+  // if (dir != null && !dir.isEmpty()) {
+  // file = new File(dir);
+  // if (!file.isDirectory()) {
+  // file = null;
+  // }
+  // }
+  // try {
+  // return Runtime.getRuntime().exec(sb.toString(), null, file);
+  // } catch (IOException e) {
+  // }
+  // }
+  // return null;
+  // }
 
-  private Utils() {}
+  private Utils() {
+  }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-//-------------------------- INNER CLASSES --------------------------
-
-  public static interface ProgressListener extends EventListener
-  {
+  public static interface ProgressListener extends EventListener {
     void dataProgressed(ProgressEvent event);
   }
 
   /** Is used to notify interested parties to document the progress in a download or upload operation. */
-  public static class ProgressEvent extends EventObject
-  {
+  public static class ProgressEvent extends EventObject {
     private final boolean finished;
-    private final int currentBytes, totalBytes;
+    private final int currentBytes;
+    private final int totalBytes;
 
     private boolean cancelOperation;
 
     /**
      * Constructs a new ProgressEvent object.
-     * @param source should point to the URL object to download from or upload to.
+     *
+     * @param source       should point to the URL object to download from or upload to.
      * @param currentBytes The cumulative amount of bytes processed in the current operation up until now.
-     * @param totalBytes The total amount of bytes to process in the current operation.
-     *                   Specify -1 if the total size of the data is unknown.
+     * @param totalBytes   The total amount of bytes to process in the current operation. Specify -1 if the total size
+     *                     of the data is unknown.
      */
-    public ProgressEvent(Object source, int currentBytes, int totalBytes, boolean finished)
-    {
+    public ProgressEvent(Object source, int currentBytes, int totalBytes, boolean finished) {
       super(source);
       this.currentBytes = currentBytes;
       this.totalBytes = totalBytes;
@@ -775,25 +753,34 @@ public class Utils
     }
 
     /** Returns the cumulative amount of bytes processed in the current operation up until now. */
-    public int getCurrentBytes() { return currentBytes; }
+    public int getCurrentBytes() {
+      return currentBytes;
+    }
 
     /**
-     * Returns the total amount of bytes to procress in the current operation.
-     * Can be -1 for operations where the total total size of the data is unknown.
+     * Returns the total amount of bytes to procress in the current operation. Can be -1 for operations where the total
+     * total size of the data is unknown.
      */
-    public int getTotalBytes() { return totalBytes; }
+    public int getTotalBytes() {
+      return totalBytes;
+    }
 
     /** Returns true if the process has been finished, false otherwise. */
-    public boolean isFinished() { return finished; }
+    public boolean isFinished() {
+      return finished;
+    }
 
     /**
-     * Call this method to signal that the current operation can be canceled ({@code true})
-     * or resumed ({@code false}).
+     * Call this method to signal that the current operation can be canceled ({@code true}) or resumed ({@code false}).
      */
-    public void cancelOperation(boolean cancel) { cancelOperation = cancel; }
+    public void cancelOperation(boolean cancel) {
+      cancelOperation = cancel;
+    }
 
     /** Returns whether the current operation can be cancelled. */
-    public boolean isOperationCancelled() { return cancelOperation; }
+    public boolean isOperationCancelled() {
+      return cancelOperation;
+    }
   }
 
 }

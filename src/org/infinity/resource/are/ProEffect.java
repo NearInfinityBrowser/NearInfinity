@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -15,29 +15,25 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect2;
 import org.infinity.resource.StructEntry;
 
-public class ProEffect extends AbstractStruct implements AddRemovable
-{
+public class ProEffect extends AbstractStruct implements AddRemovable {
   // ARE/Projectile Effect-specific field labels
-  public static final String ARE_PROEFFECT  = "Effect";
+  public static final String ARE_PROEFFECT = "Effect";
 
-  ProEffect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  ProEffect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, ARE_PROEFFECT + " " + number, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return false;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     EffectType type = new EffectType(buffer, offset + 8, 4);

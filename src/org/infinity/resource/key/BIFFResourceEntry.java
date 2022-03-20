@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Objects;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.Profile;
@@ -22,28 +23,30 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public final class BIFFResourceEntry extends ResourceEntry implements Writeable
-{
+public final class BIFFResourceEntry extends ResourceEntry implements Writeable {
   /** Full path to KEY file containing BIFF entry. */
   private final Path keyFile;
+
   /** Resource name without extension. */
   private final String resourceName;
+
   /** Resource type. */
   private final int type;
+
   /** Cached resource extension (in upper case). */
   private final String extension;
+
   private boolean hasOverride = false;
   private int locator;
 
-  public BIFFResourceEntry(BIFFEntry bifEntry, String resourceName, int offset)
-  {
+  public BIFFResourceEntry(BIFFEntry bifEntry, String resourceName, int offset) {
     final int p = resourceName.lastIndexOf('.');
     if (p <= 0) {
-      throw new IllegalArgumentException("BIFF resource name '"+resourceName+"' doesn't contain extension");
+      throw new IllegalArgumentException("BIFF resource name '" + resourceName + "' doesn't contain extension");
     }
     this.keyFile = ResourceFactory.getKeyfile().getKeyfile();
     this.resourceName = resourceName.substring(0, p);
-    this.type = ResourceFactory.getKeyfile().getExtensionType(resourceName.substring(p+1));
+    this.type = ResourceFactory.getKeyfile().getExtensionType(resourceName.substring(p + 1));
     this.extension = ResourceFactory.getKeyfile().getExtension(this.type);
 
     int bifIndex = bifEntry.getIndex();
@@ -55,8 +58,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     }
   }
 
-  BIFFResourceEntry(Path keyFile, ByteBuffer buffer, int offset)
-  {
+  BIFFResourceEntry(Path keyFile, ByteBuffer buffer, int offset) {
     if (keyFile == null || buffer == null) {
       throw new NullPointerException("Path to KEY file and byte buffer with BIFF content must not be null");
     }
@@ -73,65 +75,51 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     this.locator = buffer.getInt();
   }
 
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     StreamUtils.writeString(os, resourceName, 8);
-    StreamUtils.writeShort(os, (short)type);
+    StreamUtils.writeShort(os, (short) type);
     StreamUtils.writeInt(os, locator);
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((resourceName == null) ? 0 : resourceName.hashCode());
-    hash = 31 * hash + type;
-    hash = 31 * hash + ((extension == null) ? 0 : extension.hashCode());
-    hash = 31 * hash + Boolean.hashCode(hasOverride);
-    hash = 31 * hash + locator;
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object o)
-  {
-    if (o == this) {
-      return true;
-    }
-
-    if (!(o instanceof BIFFResourceEntry)) {
-      return false;
-    }
-
-    BIFFResourceEntry other = (BIFFResourceEntry)o;
-    boolean retVal = (resourceName == null && other.resourceName == null) ||
-                     (resourceName != null && resourceName.equalsIgnoreCase(other.resourceName));
-    retVal &= (type == other.type);
-    retVal &= (extension == null && other.extension == null) ||
-              (extension != null && extension.equalsIgnoreCase(other.extension));
-    retVal &= (hasOverride == other.hasOverride);
-    retVal &= (locator == other.locator);
-    return retVal;
-  }
-
-  @Override
-  public String toString()
-  {
+  public String toString() {
     return getResourceName();
   }
 
-  public Path getKeyfile()
-  {
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(extension, hasOverride, locator, resourceName, type);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    BIFFResourceEntry other = (BIFFResourceEntry) obj;
+    return Objects.equals(extension, other.extension) && hasOverride == other.hasOverride && locator == other.locator
+        && Objects.equals(resourceName, other.resourceName) && type == other.type;
+  }
+
+  public Path getKeyfile() {
     return keyFile;
   }
 
-  public void deleteOverride() throws IOException
-  {
+  public void deleteOverride() throws IOException {
     List<Path> overrides = Profile.getOverrideFolders(false);
     Path file = FileManager.query(overrides, getResourceName());
     if (file != null && FileEx.create(file).isFile()) {
@@ -144,8 +132,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public Path getActualPath(boolean ignoreOverride)
-  {
+  public Path getActualPath(boolean ignoreOverride) {
     if (!ignoreOverride) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
@@ -162,8 +149,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public long getResourceSize(boolean ignoreOverride)
-  {
+  public long getResourceSize(boolean ignoreOverride) {
     long retVal = -1L;
     try {
       if (!ignoreOverride) {
@@ -180,7 +166,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
         if (info.length == 1) {
           retVal = info[0];
         } else if (info.length == 2) {
-          retVal = info[0]*info[1] + 0x18;
+          retVal = info[0] * info[1] + 0x18;
         }
       }
     } catch (Exception e) {
@@ -189,32 +175,28 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     return retVal;
   }
 
-  public BIFFEntry getBIFFEntry()
-  {
+  public BIFFEntry getBIFFEntry() {
     int sourceIndex = (locator >> 20) & 0xfff;
     return ResourceFactory.getKeyfile().getBIFFEntry(keyFile, sourceIndex);
   }
 
   @Override
-  public String getExtension()
-  {
+  public String getExtension() {
     return extension;
   }
 
-  public int getLocator()
-  {
+  public int getLocator() {
     return locator;
   }
 
   @Override
-  public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception
-  {
+  public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception {
     if (!ignoreOverride) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
       if (file != null && FileEx.create(file).isFile()) {
         try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
-          ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
+          ByteBuffer bb = StreamUtils.getByteBuffer((int) ch.size());
           if (ch.read(bb) < ch.size()) {
             throw new IOException();
           }
@@ -228,8 +210,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public InputStream getResourceDataAsStream(boolean ignoreOverride) throws Exception
-  {
+  public InputStream getResourceDataAsStream(boolean ignoreOverride) throws Exception {
     if (!ignoreOverride) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
@@ -242,8 +223,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public int[] getResourceInfo(boolean ignoreOverride) throws Exception
-  {
+  public int[] getResourceInfo(boolean ignoreOverride) throws Exception {
     if (!ignoreOverride) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
@@ -256,43 +236,35 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public String getResourceName()
-  {
+  public String getResourceName() {
     return resourceName + '.' + extension;
   }
 
   @Override
-  public String getResourceRef()
-  {
+  public String getResourceRef() {
     return resourceName;
   }
 
   @Override
-  public String getTreeFolderName()
-  {
+  public String getTreeFolderName() {
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
-    if ((options != null) &&
-        (options.getOverrideMode() == BrowserMenuBar.OverrideMode.InOverride) &&
-        hasOverride()) {
+    if ((options != null) && (options.getOverrideMode() == BrowserMenuBar.OverrideMode.InOverride) && hasOverride()) {
       return Profile.getOverrideFolderName();
     }
     return getExtension();
   }
 
   @Override
-  public ResourceTreeFolder getTreeFolder()
-  {
+  public ResourceTreeFolder getTreeFolder() {
     return ResourceFactory.getResourceTreeModel().getFolder(getTreeFolderName());
   }
 
-  public int getType()
-  {
+  public int getType() {
     return type;
   }
 
   @Override
-  public boolean hasOverride()
-  {
+  public boolean hasOverride() {
     // TODO: update dynamically via WatchService class?
     if (!BrowserMenuBar.getInstance().cacheOverride()) {
       List<Path> overrides = Profile.getOverrideFolders(false);
@@ -304,13 +276,11 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
     return hasOverride;
   }
 
-  public synchronized void setOverride(boolean hasOverride)
-  {
+  public synchronized void setOverride(boolean hasOverride) {
     this.hasOverride = hasOverride;
   }
 
-  synchronized void adjustSourceIndex(int index)
-  {
+  synchronized void adjustSourceIndex(int index) {
     int sourceindex = (locator >> 20) & 0xfff;
     if (sourceindex > index) {
       sourceindex--;

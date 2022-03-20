@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text;
@@ -25,25 +25,22 @@ import org.infinity.util.StringTable;
 import org.infinity.util.Variables;
 
 /**
- * Resource, that represents PS:T {@code "quests.ini"} file - special resource
- * with list of quests.
+ * Resource, that represents PS:T {@code "quests.ini"} file - special resource with list of quests.
  *
  * @author Mingun
  */
-public class QuestsResource extends PlainTextResource implements ChangeListener
-{
+public class QuestsResource extends PlainTextResource implements ChangeListener {
   /** Special resource name {@code "quests.ini"}. */
   public static final String RESOURCE_NAME = "quests.ini";
 
   /**
-   * Flag, that indicates, that {@link #quests is not synchronized with current
-   * {@link #getText() resource text} and reloading is required.
+   * Flag, that indicates, that {@link #quests is not synchronized with current {@link #getText() resource text} and
+   * reloading is required.
    */
   private boolean dirty = false;
 
   /** Represents one quest in the file. */
-  public static final class Quest
-  {
+  public static final class Quest {
     /** Positional number of quest in the ini file. */
     final int number;
     /** StringRef with name of quest. */
@@ -53,61 +50,55 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     /** StringRef, that displayed in completed (succesfully or not) quests area. */
     final StringRef descCompleted;
     /**
-     * List of checks that determines, when this quest must be shown in the
-     * "Assigned" quests page. All checks combined by {@code AND}.
+     * List of checks that determines, when this quest must be shown in the "Assigned" quests page. All checks combined
+     * by {@code AND}.
      */
     final List<Check> assignedChecks;
     /**
-     * List of checks that determines, when this quest must be shown in the
-     * "Completed" quests page. All checks combined by {@code AND}.
+     * List of checks that determines, when this quest must be shown in the "Completed" quests page. All checks combined
+     * by {@code AND}.
      */
     final List<Check> completeChecks;
 
-    public Quest(IniMapSection section)
-    {
-      number         = Integer.parseInt(section.getName());
-      title          = section.getAsStringRef("title");
-      descAssigned   = section.getAsStringRef("descAssigned");
-      descCompleted  = section.getAsStringRef("descCompleted");
+    public Quest(IniMapSection section) {
+      number = Integer.parseInt(section.getName());
+      title = section.getAsStringRef("title");
+      descAssigned = section.getAsStringRef("descAssigned");
+      descCompleted = section.getAsStringRef("descCompleted");
 
       assignedChecks = readConditions(section, "assignedChecks", 'a');
       completeChecks = readConditions(section, "completeChecks", 'c');
     }
 
     /**
-     * Evaluates execution status of this quest. Firstly checks completed conditions
-     * and return {@link State#Completed} if all conditions met. If not, run
-     * assigned conditions check and return {@link State#Assigned} if all conditions
-     * met. Otherwise return {@link State#Unassigned}.
+     * Evaluates execution status of this quest. Firstly checks completed conditions and return {@link State#COMPLETED}
+     * if all conditions met. If not, run assigned conditions check and return {@link State#ASSIGNED} if all conditions
+     * met. Otherwise return {@link State#UNASSIGNED}.
      *
      * @param vars Container with variables, containing the status of quest.
      *
      * @return Execution status of the quest
      */
-    public State evaluate(Variables vars)
-    {
+    public State evaluate(Variables vars) {
       if (evaluateAnd(vars, completeChecks)) {
-        return State.Completed;
+        return State.COMPLETED;
       }
       if (evaluateAnd(vars, assignedChecks)) {
-        return State.Assigned;
+        return State.ASSIGNED;
       }
-      return State.Unassigned;
+      return State.UNASSIGNED;
     }
 
-    public String toString(StringTable.Format fmt)
-    {
+    public String toString(StringTable.Format fmt) {
       return title == null ? "<no title>" : title.toString(fmt);
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return toString(StringTable.Format.NONE);
     }
 
-    private static List<Check> readConditions(IniMapSection section, String countVar, char prefix)
-    {
+    private static List<Check> readConditions(IniMapSection section, String countVar, char prefix) {
       final int count = section.getAsInteger(countVar, 0);
       final ArrayList<Check> result = new ArrayList<>(count);
       for (int i = 1; i <= count; ++i) {
@@ -117,45 +108,42 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     }
 
     /**
-     * Evaluate all checks againist specified variables combining results with AND
-     * logical operator.
+     * Evaluate all checks againist specified variables combining results with AND logical operator.
      *
-     * @param vars Container with values of variables
+     * @param vars   Container with values of variables
      * @param checks List of checks to run
      *
-     * @return {@code true} if all checks evaluated to {@code true}, {@code false}
-     *         otherwise
+     * @return {@code true} if all checks evaluated to {@code true}, {@code false} otherwise
      */
-    private static boolean evaluateAnd(Variables vars, List<Check> checks)
-    {
+    private static boolean evaluateAnd(Variables vars, List<Check> checks) {
       for (final Check check : checks) {
-        if (!check.evaluate(vars)) return false;
+        if (!check.evaluate(vars)) {
+          return false;
+        }
       }
       return true;
     }
   }
+
   /** Class, that represent one variable check condition for quest. */
-  public static final class Check
-  {
+  public static final class Check {
     /** Variable to check. */
     final String var;
     /** Value to check againist. */
     final String value;
     /**
-     * Condition for check. Must be one of the {@link Condition} constants, but
-     * stored as a string to be able to save invalid conditions.
+     * Condition for check. Must be one of the {@link Condition} constants, but stored as a string to be able to save
+     * invalid conditions.
      */
     final String condition;
 
-    public Check(IniMapSection section, char prefix, int number)
-    {
-      var       = section.getAsString(prefix + "Var" + number);
-      value     = section.getAsString(prefix + "Value" + number);
+    public Check(IniMapSection section, char prefix, int number) {
+      var = section.getAsString(prefix + "Var" + number);
+      value = section.getAsString(prefix + "Value" + number);
       condition = section.getAsString(prefix + "Condition" + number);
     }
 
-    public String getHumanizedCondition()
-    {
+    public String getHumanizedCondition() {
       try {
         return Condition.valueOf(condition).title;
       } catch (IllegalArgumentException ex) {
@@ -169,26 +157,28 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
      * @param vars Container with values of variables
      * @return {@code true} if condition met, {@code false} otherwise
      *
-     * @throws NumberFormatException If condition {@link #value} is not integer number
-     * @throws IllegalArgumentException If {@link #condition} is not one of the
-     *         {@link Condition known conditions}
+     * @throws NumberFormatException    If condition {@link #value} is not integer number
+     * @throws IllegalArgumentException If {@link #condition} is not one of the {@link Condition known conditions}
      */
-    public boolean evaluate(Variables vars)
-    {
+    public boolean evaluate(Variables vars) {
       final int val = Integer.parseInt(value);
       final int var = vars.getInt(this.var);
       final Condition cond = Condition.valueOf(condition);
       switch (cond) {
-        case EQ: return var == val;
-        case NE: return var != val;
-        case LT: return var <  val;
-        case GT: return var >  val;
+        case EQ:
+          return var == val;
+        case NE:
+          return var != val;
+        case LT:
+          return var < val;
+        case GT:
+          return var > val;
       }
       throw new InternalError("Unknown enum variant: " + cond);
     }
   }
-  public enum Condition
-  {
+
+  public enum Condition {
     /** Variable must be equal ({@code ==}) to condition constant. */
     EQ("=="),
     /** Variable must be unequal ({@code !=}) to condition constant. */
@@ -201,32 +191,31 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     /** Humanized name оf condition operator. */
     final String title;
 
-    private Condition(String title) { this.title = title; }
-  }
-  /** Quest execution status. */
-  public enum State
-  {
-    /** Quest not yet taken by player and unknown to him. */
-    Unassigned,
-    /** Quest taken by player but not yet completed, active quest. */
-    Assigned,
-    /** Quest is finished. */
-    Completed;
+    private Condition(String title) {
+      this.title = title;
+    }
   }
 
-  public QuestsResource() throws Exception
-  {
+  /** Quest execution status. */
+  public enum State {
+    /** Quest not yet taken by player and unknown to him. */
+    UNASSIGNED,
+    /** Quest taken by player but not yet completed, active quest. */
+    ASSIGNED,
+    /** Quest is finished. */
+    COMPLETED;
+  }
+
+  public QuestsResource() throws Exception {
     this(ResourceFactory.getResourceEntry(RESOURCE_NAME));
   }
 
-  public QuestsResource(ResourceEntry entry) throws Exception
-  {
+  public QuestsResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     final JComponent textPage = super.makeViewer(container);
     final QuestsPanel details = new QuestsPanel(readQuests(), null);
     final JTabbedPane pane = new JTabbedPane();
@@ -237,39 +226,34 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
   }
 
   @Override
-  public void changedUpdate(DocumentEvent event)
-  {
+  public void changedUpdate(DocumentEvent event) {
     super.changedUpdate(event);
     dirty = true;
   }
 
   @Override
-  public void insertUpdate(DocumentEvent event)
-  {
+  public void insertUpdate(DocumentEvent event) {
     super.insertUpdate(event);
     dirty = true;
   }
 
   @Override
-  public void removeUpdate(DocumentEvent event)
-  {
+  public void removeUpdate(DocumentEvent event) {
     super.removeUpdate(event);
     dirty = true;
   }
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
-    final JTabbedPane pane = (JTabbedPane)e.getSource();
+  public void stateChanged(ChangeEvent e) {
+    final JTabbedPane pane = (JTabbedPane) e.getSource();
     final Component selected = pane.getSelectedComponent();
     if (selected instanceof QuestsPanel && dirty) {
-      ((QuestsPanel)selected).setQuests(readQuests());
+      ((QuestsPanel) selected).setQuests(readQuests());
       dirty = false;
     }
   }
 
-  public List<Quest> readQuests()
-  {
+  public List<Quest> readQuests() {
     final IniMap ini = new IniMap(editor == null ? text : editor.getText());
     final IniMapSection init = ini.getSection("init");
     final int questCount = init == null ? -1 : init.getAsInteger("questcount", -1);

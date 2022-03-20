@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.spl;
@@ -19,10 +19,8 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.Effect;
 
-final class ViewerAbility extends JPanel
-{
-  private static JPanel makeFieldPanel(Ability ability)
-  {
+final class ViewerAbility extends JPanel {
+  private static JPanel makeFieldPanel(Ability ability) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldPanel = new JPanel(gbl);
@@ -44,11 +42,10 @@ final class ViewerAbility extends JPanel
     return fieldPanel;
   }
 
-  ViewerAbility(Ability ability)
-  {
+  ViewerAbility(Ability ability) {
     JPanel fieldPanel = makeFieldPanel(ability);
     JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class, EffectType.EFFECT_TYPE);
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
 
     JPanel mainPanel = new JPanel(new GridLayout(1, 3, 6, 6));
     mainPanel.add(iconPanel);
@@ -67,4 +64,3 @@ final class ViewerAbility extends JPanel
     add(mainPanel);
   }
 }
-

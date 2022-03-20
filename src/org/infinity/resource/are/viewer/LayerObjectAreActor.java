@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -27,52 +27,54 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * Handles specific layer type: ARE/Actor
  */
-public class LayerObjectAreActor extends LayerObjectActor
-{
-  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class) {{
-    put(Allegiance.GOOD, new Image[] {ViewerIcons.ICON_ITM_ARE_ACTOR_G_1.getIcon().getImage(),
-                                      ViewerIcons.ICON_ITM_ARE_ACTOR_G_2.getIcon().getImage()});
-    put(Allegiance.NEUTRAL, new Image[] {ViewerIcons.ICON_ITM_ARE_ACTOR_B_1.getIcon().getImage(),
-                                         ViewerIcons.ICON_ITM_ARE_ACTOR_B_2.getIcon().getImage()});
-    put(Allegiance.ENEMY, new Image[] {ViewerIcons.ICON_ITM_ARE_ACTOR_R_1.getIcon().getImage(),
-                                       ViewerIcons.ICON_ITM_ARE_ACTOR_R_2.getIcon().getImage()});
-  }};
+public class LayerObjectAreActor extends LayerObjectActor {
+  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class);
+
   private static final Point CENTER = new Point(12, 40);
+
+  static {
+    ICONS.put(Allegiance.GOOD, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_G_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_ARE_ACTOR_G_2.getIcon().getImage() });
+    ICONS.put(Allegiance.NEUTRAL, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_B_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_ARE_ACTOR_B_2.getIcon().getImage() });
+    ICONS.put(Allegiance.ENEMY, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_R_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_ARE_ACTOR_R_2.getIcon().getImage() });
+  }
 
   private final Actor actor;
   private final CreResource cre;
   private Flag scheduleFlags;
 
-  public LayerObjectAreActor(AreResource parent, Actor actor)
-  {
+  public LayerObjectAreActor(AreResource parent, Actor actor) {
     super(Actor.class, parent);
     this.actor = actor;
 
-    int ea = 128;   // default: neutral
+    int ea = 128; // default: neutral
     CreResource cre = null;
     try {
       // initializations
-      location.x = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
-      location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
-      scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
+      location.x = ((IsNumeric) actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
+      location.y = ((IsNumeric) actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
+      scheduleFlags = ((Flag) actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
 
-      boolean isReference = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_FLAGS)).isFlagSet(0);
+      boolean isReference = ((Flag) actor.getAttribute(Actor.ARE_ACTOR_FLAGS)).isFlagSet(0);
       if (isReference) {
         // external CRE resource?
-        ResourceEntry creEntry = ResourceFactory.getResourceEntry(((IsReference)actor.getAttribute(Actor.ARE_ACTOR_CHARACTER)).getResourceName());
+        ResourceEntry creEntry = ResourceFactory
+            .getResourceEntry(((IsReference) actor.getAttribute(Actor.ARE_ACTOR_CHARACTER)).getResourceName());
         if (creEntry != null) {
           Resource res = ResourceFactory.getResource(creEntry);
           if (res instanceof CreResource) {
-            cre = (CreResource)res;
+            cre = (CreResource) res;
           }
         }
       } else {
         // attached CRE resource?
-        cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
+        cre = (CreResource) actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
       }
 
       if (cre != null) {
-        ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+        ea = ((IsNumeric) cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -94,7 +96,8 @@ public class LayerObjectAreActor extends LayerObjectActor
     items[0] = item1;
 
     // payload is initialized on demand
-    AnimatedLayerItem item2 = new AnimatedLayerItem(actor, tooltip, AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER);
+    AnimatedLayerItem item2 = new AnimatedLayerItem(actor, tooltip,
+        AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER);
     item2.setName(getCategory());
     item2.setToolTipText(tooltip);
     item2.setVisible(false);
@@ -110,14 +113,12 @@ public class LayerObjectAreActor extends LayerObjectActor
   }
 
   @Override
-  public Viewable getViewable()
-  {
+  public Viewable getViewable() {
     return actor;
   }
 
   @Override
-  public boolean isScheduled(int schedule)
-  {
+  public boolean isScheduled(int schedule) {
     if (schedule >= ViewerConstants.TIME_0 && schedule <= ViewerConstants.TIME_23) {
       return (scheduleFlags.isFlagSet(schedule));
     } else {
@@ -126,14 +127,13 @@ public class LayerObjectAreActor extends LayerObjectActor
   }
 
   @Override
-  public synchronized void loadAnimation()
-  {
+  public synchronized void loadAnimation() {
     if (items[1] instanceof AnimatedLayerItem) {
-      AnimatedLayerItem item = (AnimatedLayerItem)items[1];
+      AnimatedLayerItem item = (AnimatedLayerItem) items[1];
       if (item.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER) {
         if (cre != null) {
           try {
-            int orientation = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION)).getValue();
+            int orientation = ((IsNumeric) actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION)).getValue();
             ActorAnimationProvider sprite = createAnimationProvider(cre);
             sprite.setOrientation(orientation);
 
@@ -148,13 +148,12 @@ public class LayerObjectAreActor extends LayerObjectActor
   }
 
   /** Tooltip for actor object. */
-  private String getTooltip()
-  {
+  private String getTooltip() {
     String retVal = null;
     if (cre != null) {
-      retVal = ((IsTextual)cre.getAttribute(CreResource.CRE_NAME)).getText();
+      retVal = ((IsTextual) cre.getAttribute(CreResource.CRE_NAME)).getText();
     } else {
-      retVal = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
+      retVal = ((IsTextual) actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
     }
     return retVal;
   }

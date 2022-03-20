@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -12,39 +12,33 @@ import java.util.List;
 import org.infinity.datatype.EffectType;
 import org.infinity.util.io.StreamUtils;
 
-public final class Effect extends AbstractStruct implements AddRemovable
-{
+public final class Effect extends AbstractStruct implements AddRemovable {
   // Effect-specific field labels
   public static final String EFFECT = "Effect";
 
-  public Effect() throws Exception
-  {
+  public Effect() throws Exception {
     super(null, EFFECT, StreamUtils.getByteBuffer(48), 0);
   }
 
-  public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, EFFECT + " " + number, buffer, offset);
   }
 
-  public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception
-  {
+  public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception {
     super(superStruct, name, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     EffectType type = new EffectType(buffer, offset, 2);
     addField(type);
     final List<StructEntry> list = new ArrayList<>();
@@ -55,12 +49,12 @@ public final class Effect extends AbstractStruct implements AddRemovable
 
   /**
    * Creates a copy of the current structure, optionally converted to the EFF V2.0 format.
+   *
    * @param asV2 {@code true} if result should be of {@link Effect2} type.
    * @return A copy of the current instance.
    * @throws Exception
    */
-  public Object clone(boolean asV2) throws Exception
-  {
+  public Object clone(boolean asV2) throws Exception {
     StructEntry retVal = null;
 
     if (asV2) {
@@ -68,8 +62,8 @@ public final class Effect extends AbstractStruct implements AddRemovable
       ByteBuffer dst = StreamUtils.getByteBuffer(264);
       byte[] resref = new byte[8];
 
-      dst.putInt(0);  // Signature
-      dst.putInt(0);  // Version
+      dst.putInt(0); // Signature
+      dst.putInt(0); // Version
       dst.putInt(src.getShort(0x00)); // Type
       dst.putInt(src.get(0x02)); // Target
       dst.putInt(src.get(0x03)); // Power
@@ -81,7 +75,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
       dst.putShort(src.get(0x13)); // Probability 2
       src.position(0x14);
       src.get(resref);
-      dst.put(resref);  // Resource
+      dst.put(resref); // Resource
       src.position(0);
       dst.putInt(src.getInt(0x1c)); // # dice thrown
       dst.putInt(src.getInt(0x20)); // Dice size
@@ -97,27 +91,27 @@ public final class Effect extends AbstractStruct implements AddRemovable
       dst.putInt(0); // Parameter 4
       dst.putInt(0); // Parameter 5 (unused)
       dst.putInt(0); // Time applied (ticks)
-      dst.putInt(0).putInt(0);  // Resource 2
-      dst.putInt(0).putInt(0);  // Resource 3
-      dst.putInt(-1);  // Caster location: X
-      dst.putInt(-1);  // Caster location: Y
-      dst.putInt(-1);  // Target location: X
-      dst.putInt(-1);  // Target location: Y
-      dst.putInt(0);  // Resource type
-      dst.putInt(0).putInt(0);  // Parent resource
-      dst.putInt(0);  // Resource flags
-      dst.putInt(0);  // Impact projectile
-      dst.putInt(-1);  // Source item slot
-      dst.position(dst.position() + 32);  // Variable name
-      dst.putInt(0);  // Caster level
-      dst.putInt(0);  // Internal flags
-      dst.putInt(0);  // Secondary type
+      dst.putInt(0).putInt(0); // Resource 2
+      dst.putInt(0).putInt(0); // Resource 3
+      dst.putInt(-1); // Caster location: X
+      dst.putInt(-1); // Caster location: Y
+      dst.putInt(-1); // Target location: X
+      dst.putInt(-1); // Target location: Y
+      dst.putInt(0); // Resource type
+      dst.putInt(0).putInt(0); // Parent resource
+      dst.putInt(0); // Resource flags
+      dst.putInt(0); // Impact projectile
+      dst.putInt(-1); // Source item slot
+      dst.position(dst.position() + 32); // Variable name
+      dst.putInt(0); // Caster level
+      dst.putInt(0); // Internal flags
+      dst.putInt(0); // Secondary type
       dst.position(0);
 
       int offset = getOffset();
       retVal = new Effect2(null, dst, 0, getName());
       retVal.setOffset(offset);
-      ((AbstractStruct)retVal).realignStructOffsets();
+      ((AbstractStruct) retVal).realignStructOffsets();
     } else {
       retVal = clone();
     }

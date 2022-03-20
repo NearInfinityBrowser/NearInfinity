@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.src;
@@ -20,56 +20,47 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
- * This resource contain strrefs for out-of-dialog text (e.g text displayed over
- * the chracter on the game screen). Text is usually displayed over the creatures
- * head, and the associated sound is played.
+ * This resource contain strrefs for out-of-dialog text (e.g text displayed over the chracter on the game screen). Text
+ * is usually displayed over the creatures head, and the associated sound is played.
  * <p>
- * SRC files have a very simple header, simply containing the count of strref entries.
- * Each strref entry is eight bytes and consists of a strref and an unknown dword
- * (always set to 1).
+ * SRC files have a very simple header, simply containing the count of strref entries. Each strref entry is eight bytes
+ * and consists of a strref and an unknown dword (always set to 1).
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm</a>
  */
-public final class SrcResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
-{
+public final class SrcResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs {
   // SRC-specific field labels
-  public static final String SRC_NUM_ENTRIES  = "# entries";
+  public static final String SRC_NUM_ENTRIES = "# entries";
 
   private StructHexViewer hexViewer;
 
-  public SrcResource(ResourceEntry entry) throws Exception
-  {
+  public SrcResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    return new AddRemovable[]{new Entry()};
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] { new Entry() };
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, Entry.class);
@@ -79,18 +70,16 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
-    SectionCount entry_count = new SectionCount(buffer, offset, 4, SRC_NUM_ENTRIES, Entry.class);
-    addField(entry_count);
+  public int read(ByteBuffer buffer, int offset) throws Exception {
+    SectionCount entryCount = new SectionCount(buffer, offset, 4, SRC_NUM_ENTRIES, Entry.class);
+    addField(entryCount);
     offset += 4;
-    for (int i = 0; i < entry_count.getValue(); i++) {
+    for (int i = 0; i < entryCount.getValue(); i++) {
       Entry entry = new Entry(this, buffer, offset, i);
       addField(entry);
       offset = entry.getEndOffset();
@@ -99,22 +88,19 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -122,16 +108,14 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();

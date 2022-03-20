@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -40,64 +40,62 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * Represents reference to another resource in game. This resource can be
- * sound, item, dialog, creature, image.
+ * Represents reference to another resource in game. This resource can be sound, item, dialog, creature, image.
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@link String}</li>
- * <li>Value meaning: name of the resource (without extension, 8 chars max).
- *     {code null} means that field not contains any reference</li>
+ * <li>Value meaning: name of the resource (without extension, 8 chars max). {code null} means that field not contains
+ * any reference</li>
  * </ul>
  */
 public class ResourceRef extends Datatype
-    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener
-{
+    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener {
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
   /** Special constant that represents absense of resource in the field. */
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
+
   /** Possible file extensions that can have this resource. */
   private final String[] types;
+
   /** Raw bytes of the resource reference, read from stream. */
   private final ByteBuffer buffer;
+
   private String type;
+
   /** Name of the resource, called {@code ResRef}, 8 bytes usually, as stored in the resource. */
   private String resname;
+
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
+
   /**
-   * GUI component that lists all available resources that can be set to this
-   * resource reference and have edit field for ability to enter resource reference
-   * manually.
+   * GUI component that lists all available resources that can be set to this resource reference and have edit field for
+   * ability to enter resource reference manually.
    */
   private TextListPanel<ResourceRefEntry> list;
 
-  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String... types)
-  {
-    this(h_buffer, offset, 8, name, types);
+  public ResourceRef(ByteBuffer buffer, int offset, String name, String... types) {
+    this(buffer, offset, 8, name, types);
   }
 
-  private ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String... types)
-  {
+  private ResourceRef(ByteBuffer buffer, int offset, int length, String name, String... types) {
     super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(length);
     if (types == null || types.length == 0) {
-      this.types = new String[]{""};
+      this.types = new String[] { "" };
     } else {
       this.types = types;
     }
     this.type = this.types[0];
-    read(h_buffer, offset);
+    read(buffer, offset);
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bView) {
       final ResourceRefEntry selected = list.getSelectedValue();
       if (isEditable(selected)) {
@@ -107,8 +105,7 @@ public class ResourceRef extends Datatype
   }
 
   @Override
-  public JComponent edit(final ActionListener container)
-  {
+  public JComponent edit(final ActionListener container) {
     final List<List<ResourceEntry>> resourceList = new ArrayList<>(types.length);
     int count = 0;
     for (final String type : types) {
@@ -121,7 +118,7 @@ public class ResourceRef extends Datatype
     values.add(NONE);
     for (List<ResourceEntry> resources : resourceList) {
       for (ResourceEntry entry : resources) {
-        //FIXME: ResRefChecker check only that point is exist, so this must be
+        // FIXME: ResRefChecker check only that point is exist, so this must be
         // the same check or this check must be inside isLegalEntry(...)
         // There only 2 places where isLegalEntry is called: this and ResRefChecker
         if (isLegalEntry(entry) && entry.getResourceRef().length() <= 8) {
@@ -132,13 +129,12 @@ public class ResourceRef extends Datatype
     addExtraEntries(values);
     Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
     list = new TextListPanel<>(values, false);
-    list.addMouseListener(new MouseAdapter()
-    {
+    list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
-        if (event.getClickCount() == 2)
+      public void mouseClicked(MouseEvent event) {
+        if (event.getClickCount() == 2) {
           container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
+        }
       }
     });
 
@@ -202,18 +198,16 @@ public class ResourceRef extends Datatype
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     String oldString = getText();
     final ResourceRefEntry selected = list.getSelectedValue();
     if (selected == NONE) {
-      setValue(NONE.name);//FIXME: use null instead of this
+      setValue(NONE.name);// FIXME: use null instead of this
 
       // notifying listeners
       if (!getText().equals(oldString)) {
@@ -236,8 +230,9 @@ public class ResourceRef extends Datatype
           break;
         }
       }
-      if (!found)
+      if (!found) {
         return false;
+      }
     }
 
     // notifying listeners
@@ -249,22 +244,20 @@ public class ResourceRef extends Datatype
   }
 
   @Override
-  public void valueChanged(ListSelectionEvent e)
-  {
+  public void valueChanged(ListSelectionEvent e) {
     bView.setEnabled(isEditable(list.getSelectedValue()));
   }
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
-    if (resname.equalsIgnoreCase(NONE.name)) {//FIXME: use null instead of NONE.name
+  public void write(OutputStream os) throws IOException {
+    if (resname.equalsIgnoreCase(NONE.name)) {// FIXME: use null instead of NONE.name
       buffer.position(0);
       String s = StreamUtils.readString(buffer, buffer.limit());
       buffer.position(0);
       if (s.equalsIgnoreCase(NONE.name)) {// TODO: What this check do?
         StreamUtils.writeBytes(os, buffer);
       } else {
-        StreamUtils.writeBytes(os, (byte)0, buffer.limit());
+        StreamUtils.writeBytes(os, (byte) 0, buffer.limit());
       }
     } else {
       StreamUtils.writeString(os, resname, getSize());
@@ -272,15 +265,14 @@ public class ResourceRef extends Datatype
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     this.buffer.position(0);
     final String s = StreamUtils.readString(this.buffer, this.buffer.limit()).toUpperCase(Locale.ENGLISH);
-    resname = s.isEmpty() || s.equalsIgnoreCase(NONE.name) ? NONE.name : s;//FIXME: use null instead of NONE.name
+    resname = s.isEmpty() || s.equalsIgnoreCase(NONE.name) ? NONE.name : s;// FIXME: use null instead of NONE.name
 
     // determine the correct file extension
-    if (!resname.equals(NONE.name)) { //FIXME: use null instead of NONE.name
+    if (!resname.equals(NONE.name)) { // FIXME: use null instead of NONE.name
       for (final String type : types) {
         if (null != ResourceFactory.getResourceEntry(resname + '.' + type, true)) {
           this.type = type;
@@ -293,103 +285,93 @@ public class ResourceRef extends Datatype
   }
 
   @Override
-  public String toString()
-  {
-    if (resname.equals(NONE.name))//FIXME: use null instead of NONE.name
+  public String toString() {
+    if (resname.equals(NONE.name)) {
       return resname;
+    }
     String searchName = getSearchName();
-    if (searchName != null)
+    if (searchName != null) {
       return getResourceName() + " (" + searchName + ')';
+    }
     return getResourceName();
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
-    hash = 31 * hash + ((resname == null) ? 0 : resname.hashCode());
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(resname, type);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof ResourceRef)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    ResourceRef other = (ResourceRef)o;
-    boolean retVal = (type == null && other.type == null) ||
-                     (type != null && type.equals(other.type));
-    retVal &= (resname == null && other.resname == null) ||
-              (resname != null && resname.equals(other.resname));
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    ResourceRef other = (ResourceRef) obj;
+    return Objects.equals(resname, other.resname) && Objects.equals(type, other.type);
   }
 
   @Override
-  public String getText()
-  {
+  public String getText() {
     return resname;
   }
 
   @Override
-  public String getResourceName()
-  {
-    if (!resname.equals(NONE.name)) {//FIXME: use null instead of NONE.name
+  public String getResourceName() {
+    if (!resname.equals(NONE.name)) {// FIXME: use null instead of NONE.name
       return resname + '.' + type;
     }
     return resname;
   }
 
-  public boolean isEmpty()
-  {
-    return (resname.equals(NONE.name));//FIXME: use null instead of NONE.name
+  public boolean isEmpty() {
+    return (resname.equals(NONE.name));// FIXME: use null instead of NONE.name
   }
 
-  public String getSearchName()
-  {
+  public String getSearchName() {
     ResourceEntry entry = ResourceFactory.getResourceEntry(getResourceName(), true);
-    if (entry != null)
+    if (entry != null) {
       return entry.getSearchString();
+    }
     return null;
   }
 
-  public String getType()
-  {
+  public String getType() {
     return type;
   }
 
   /**
    * Check that this object can hold reference to the specified resource.
    *
-   * @param entry Pointer to resource for check. If {@code null}, method returns
-   *        {@code false}
+   * @param entry Pointer to resource for check. If {@code null}, method returns {@code false}
    *
-   * @return {@code false} if {@code entry} can not be target for this resource
-   *         reference, {@code true} otherwise
+   * @return {@code false} if {@code entry} can not be target for this resource reference, {@code true} otherwise
    */
-  public boolean isLegalEntry(ResourceEntry entry)
-  {
+  public boolean isLegalEntry(ResourceEntry entry) {
     return entry != null && entry.getResourceName().lastIndexOf('.') != 0;
   }
 
   /**
    * Appends additional resources to the list of selectable resources for this reference.
    *
-   * @param entries List with selectable resources. Implementers must add additional
-   *        resources to it. Never {@code null}
+   * @param entries List with selectable resources. Implementers must add additional resources to it. Never {@code null}
    */
-  void addExtraEntries(List<ResourceRefEntry> entries)
-  {
+  void addExtraEntries(List<ResourceRefEntry> entries) {
   }
 
-  private boolean isEditable(ResourceRefEntry ref)
-  {
+  private boolean isEditable(ResourceRefEntry ref) {
     return ref != null && ref != NONE && ref.entry != null;
   }
 
-  private void setValue(String newValue)
-  {
+  private void setValue(String newValue) {
     final String oldValue = NONE.name.equals(resname) ? null : resname;
     resname = newValue;
 
@@ -401,53 +383,55 @@ public class ResourceRef extends Datatype
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
   /** Class that represents resource reference in the list of choice. */
-  static final class ResourceRefEntry
-  {
+  static final class ResourceRefEntry {
     final ResourceEntry entry;
+
     /**
-     * If {@link #entry} is not {@code null}, contains full resource name (i.e.
-     * name and extension), otherwise contains arbitrary value with reference to
-     * the resource.
+     * If {@link #entry} is not {@code null}, contains full resource name (i.e. name and extension), otherwise contains
+     * arbitrary value with reference to the resource.
      */
     final String name;
 
-    private ResourceRefEntry(ResourceEntry entry)
-    {
+    private ResourceRefEntry(ResourceEntry entry) {
       this.entry = entry;
-      this.name  = entry.getResourceName();
+      this.name = entry.getResourceName();
     }
 
-    ResourceRefEntry(String name)
-    {
+    ResourceRefEntry(String name) {
       this.entry = null;
-      this.name  = name;
+      this.name = name;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return entry == null ? name : BrowserMenuBar.getInstance().getResRefMode().format(entry);
     }
   }
 
-  private static final class IgnoreCaseExtComparator implements Comparator<ResourceRefEntry>
-  {
+  private static final class IgnoreCaseExtComparator implements Comparator<ResourceRefEntry> {
     @Override
-    public int compare(ResourceRefEntry o1, ResourceRefEntry o2)
-    {
+    public int compare(ResourceRefEntry o1, ResourceRefEntry o2) {
       // null always smaller any other value
-      if (o1 == null) return o2 == null ? 0 : -1;
-      if (o2 == null) return 1;
+      if (o1 == null) {
+        return o2 == null ? 0 : -1;
+      }
+      if (o2 == null) {
+        return 1;
+      }
 
       // NONE always smaller any other value except null
-      if (o1 == NONE) return o2 == NONE ? 0 : -1;
-      if (o2 == NONE) return 1;
+      if (o1 == NONE) {
+        return o2 == NONE ? 0 : -1;
+      }
+      if (o2 == NONE) {
+        return 1;
+      }
 
       final String s1 = o1.toString();
       final String s2 = o2.toString();
-      //TODO: must use special method to extract only name without extension
+      // TODO: must use special method to extract only name without extension
       final int i1 = s1.lastIndexOf('.') > 0 ? s1.lastIndexOf('.') : s1.length();
       final int i2 = s2.lastIndexOf('.') > 0 ? s2.lastIndexOf('.') : s2.length();
       return s1.substring(0, i1).compareToIgnoreCase(s2.substring(0, i2));

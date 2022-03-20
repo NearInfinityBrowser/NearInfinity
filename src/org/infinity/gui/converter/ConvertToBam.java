@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -87,6 +87,7 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -127,53 +128,52 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 
-public class ConvertToBam extends ChildFrame
-  implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
-             ListSelectionListener, MouseListener, KeyListener
-{
+public class ConvertToBam extends ChildFrame implements ActionListener, PropertyChangeListener, FocusListener,
+    ChangeListener, ListSelectionListener, MouseListener, KeyListener {
   // Available TabPane indices
-  static final int TAB_FRAMES   = 0;
-  static final int TAB_CYCLES   = 1;
-  static final int TAB_PREVIEW  = 2;
-  static final int TAB_FILTERS  = 3;
-  static final String[] TabNames = {"Frames", "Cycles", "Preview", "Post-processing"};
+  protected static final int TAB_FRAMES   = 0;
+  protected static final int TAB_CYCLES   = 1;
+  protected static final int TAB_PREVIEW  = 2;
+  protected static final int TAB_FILTERS  = 3;
+  protected static final String[] TAB_NAMES = { "Frames", "Cycles", "Preview", "Post-processing" };
 
   // Available DXT compression types for BAM v2 export
-  static final int COMPRESSION_AUTO = 0;
-  static final int COMPRESSION_DXT1 = 1;
-  static final int COMPRESSION_DXT5 = 2;
-  static final String[] CompressionItems = {"Auto", "DXT1", "DXT5"};
+  protected static final int COMPRESSION_AUTO = 0;
+  protected static final int COMPRESSION_DXT1 = 1;
+  protected static final int COMPRESSION_DXT5 = 2;
+  protected static final String[] COMPRESSION_ITEMS = { "Auto", "DXT1", "DXT5" };
 
   // Available BAM versions
-  static final int VERSION_BAMV1 = 0;
-  static final int VERSION_BAMV2 = 1;
-  static final String[] BamVersionItems = {"Legacy (v1)", "PVRZ-based (v2)"};
+  protected static final int VERSION_BAMV1 = 0;
+  protected static final int VERSION_BAMV2 = 1;
+  protected static final String[] BAM_VERSION_ITEMS = { "Legacy (v1)", "PVRZ-based (v2)" };
 
   // Alpha component support for BAM v1
-  static final int ALPHA_AUTO   = 0;
-  static final int ALPHA_ALWAYS = 1;
-  static final int ALPHA_NEVER  = 2;
-  static final String[] UseAlphaItems = {"In EE only", "Always", "Never"};
+  protected static final int ALPHA_AUTO   = 0;
+  protected static final int ALPHA_ALWAYS = 1;
+  protected static final int ALPHA_NEVER  = 2;
+  protected static final String[] USE_ALPHA_ITEMS = { "In EE only", "Always", "Never" };
 
   // Available playback modes for preview
-  static final int MODE_CURRENT_CYCLE_ONCE    = 0;
-  static final int MODE_CURRENT_CYCLE_LOOPED  = 1;
-  static final int MODE_ALL_CYCLES_ONCE       = 2;
-  static final int MODE_ALL_CYCLES_LOOPED     = 3;
-  static final String[] PlaybackModeItems = {"Current cycle once", "Current cycle looped",
-                                             "All cycles once", "All cycles looped"};
+  protected static final int MODE_CURRENT_CYCLE_ONCE    = 0;
+  protected static final int MODE_CURRENT_CYCLE_LOOPED  = 1;
+  protected static final int MODE_ALL_CYCLES_ONCE       = 2;
+  protected static final int MODE_ALL_CYCLES_LOOPED     = 3;
+  protected static final String[] PLAYBACK_MODE_ITEMS = {
+      "Current cycle once", "Current cycle looped", "All cycles once", "All cycles looped",
+  };
 
   // PseudoBamDecoder->setOption(): Full path to frame source
-  static final String BAM_FRAME_OPTION_PATH         = "Path";
+  protected static final String BAM_FRAME_OPTION_PATH = "Path";
   // PseudoBamDecoder->setOption(): frame source index (usually 0, except for BAM sources)
-  static final String BAM_FRAME_OPTION_SOURCE_INDEX = "FrameIndex";
+  protected static final String BAM_FRAME_OPTION_SOURCE_INDEX = "FrameIndex";
 
   // Used as prefix if BAM source file is based on a biffed resource
-  static final String BAM_FRAME_PATH_BIFF     = "BIFF:/";
+  protected static final String BAM_FRAME_PATH_BIFF = "BIFF:/";
 
   // Available lists of frame images
-  static final int BAM_ORIGINAL = 0;    // the original unprocessed frames list
-  static final int BAM_FINAL    = 1;    // final frames list including palette and/or post-processor
+  protected static final int BAM_ORIGINAL = 0; // the original unprocessed frames list
+  protected static final int BAM_FINAL    = 1; // final frames list including palette and/or post-processor
 
   private static Path currentPath;
 
@@ -188,62 +188,127 @@ public class ConvertToBam extends ChildFrame
   // The palette dialog instance for BAM v1 export
   private final BamPaletteDialog paletteDialog = new BamPaletteDialog(this);
 
-  private JTabbedPane tpMain, tpCyclesSection;
-  private BamFramesListModel modelFrames;   // Frames == FramesAvail
+  private JTabbedPane tpMain;
+  private JTabbedPane tpCyclesSection;
+  private BamFramesListModel modelFrames; // Frames == FramesAvail
   private BamCycleFramesListModel modelCurCycle;
   private BamCyclesListModel modelCycles;
   private SimpleListModel<BamFilterBase> modelFilters;
-  private JList<PseudoBamFrameEntry> listFrames, listFramesAvail, listCurCycle;
+  private JList<PseudoBamFrameEntry> listFrames;
+  private JList<PseudoBamFrameEntry> listFramesAvail;
+  private JList<PseudoBamFrameEntry> listCurCycle;
   private JList<PseudoBamCycleEntry> listCycles;
   private JList<BamFilterBase> listFilters;
-  private JMenuItem miFramesAddFiles, miFramesAddResources, miFramesAddFolder, miFramesImportFile,
-                    miFramesImportResource, miFramesRemove, miFramesRemoveAll, miFramesDropUnused,
-                    miSessionExport, miSessionImport;
+  private JMenuItem miFramesAddFiles;
+  private JMenuItem miFramesAddResources;
+  private JMenuItem miFramesAddFolder;
+  private JMenuItem miFramesImportFile;
+  private JMenuItem miFramesImportResource;
+  private JMenuItem miFramesRemove;
+  private JMenuItem miFramesRemoveAll;
+  private JMenuItem miFramesDropUnused;
+  private JMenuItem miSessionExport;
+  private JMenuItem miSessionImport;
   private JMenu miSessionHistory;
-  private ButtonPopupMenu bpmFramesAdd, bpmFramesRemove, bpmSession;
-  private JButton bOptions, bConvert, bCancel, bPalette, bVersionHelp, bCompressionHelp;
-  private JButton bFramesUp, bFramesDown;
-  private JButton bCyclesUp, bCyclesDown, bCyclesAdd, bCyclesRemove, bCyclesRemoveAll, bCurCycleUp,
-                  bCurCycleDown, bCurCycleAdd, bCurCycleRemove;
-  private JButton bMacroAssignFrames, bMacroRemoveFrames, bMacroSortFramesAsc, bMacroDuplicateCycle,
-                  bMacroDuplicateFrames, bMacroReverseFrames, bMacroRemoveAll, bMacroReverseCycles;
-  private JButton bPreviewCyclePrev, bPreviewCycleNext, bPreviewFramePrev, bPreviewFrameNext,
-                  bPreviewPlay, bPreviewStop;
-  private JButton bFiltersAdd, bFiltersRemove, bFiltersRemoveAll, bFiltersUp, bFiltersDown;
-  private JTextField tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY;
-  private JCheckBox cbCloseOnExit, cbCompressFrame, cbCompressBam, cbPreviewShowMarker, cbPreviewZoom,
-                    cbFiltersShowMarker;
-  private JPanel pFramesCurFrame, pCurrentCycle, pFramesOptionsVersion, pFiltersSettings;
+  private ButtonPopupMenu bpmFramesAdd;
+  private ButtonPopupMenu bpmFramesRemove;
+  private ButtonPopupMenu bpmSession;
+  private JButton bOptions;
+  private JButton bConvert;
+  private JButton bCancel;
+  private JButton bPalette;
+  private JButton bVersionHelp;
+  private JButton bCompressionHelp;
+  private JButton bFramesUp;
+  private JButton bFramesDown;
+  private JButton bCyclesUp;
+  private JButton bCyclesDown;
+  private JButton bCyclesAdd;
+  private JButton bCyclesRemove;
+  private JButton bCyclesRemoveAll;
+  private JButton bCurCycleUp;
+  private JButton bCurCycleDown;
+  private JButton bCurCycleAdd;
+  private JButton bCurCycleRemove;
+  private JButton bMacroAssignFrames;
+  private JButton bMacroRemoveFrames;
+  private JButton bMacroSortFramesAsc;
+  private JButton bMacroDuplicateCycle;
+  private JButton bMacroDuplicateFrames;
+  private JButton bMacroReverseFrames;
+  private JButton bMacroRemoveAll;
+  private JButton bMacroReverseCycles;
+  private JButton bPreviewCyclePrev;
+  private JButton bPreviewCycleNext;
+  private JButton bPreviewFramePrev;
+  private JButton bPreviewFrameNext;
+  private JButton bPreviewPlay;
+  private JButton bPreviewStop;
+  private JButton bFiltersAdd;
+  private JButton bFiltersRemove;
+  private JButton bFiltersRemoveAll;
+  private JButton bFiltersUp;
+  private JButton bFiltersDown;
+  private JTextField tfFrameWidth;
+  private JTextField tfFrameHeight;
+  private JTextField tfFrameCenterX;
+  private JTextField tfFrameCenterY;
+  private JCheckBox cbCloseOnExit;
+  private JCheckBox cbCompressFrame;
+  private JCheckBox cbCompressBam;
+  private JCheckBox cbPreviewShowMarker;
+  private JCheckBox cbPreviewZoom;
+  private JCheckBox cbFiltersShowMarker;
+  private JPanel pFramesCurFrame;
+  private JPanel pCurrentCycle;
+  private JPanel pFramesOptionsVersion;
+  private JPanel pFiltersSettings;
   private JComboBox<String> cbPreviewMode;
   private JComboBox<BamFilterFactory.FilterInfo> cbFiltersAdd;
-  private JComboBox<String> cbVersion, cbCompression;
+  private JComboBox<String> cbVersion;
+  private JComboBox<String> cbCompression;
   private JTextArea taFiltersDesc;
-  private RenderCanvas rcFramesPreview, rcCyclesPreview, rcPreview, rcFiltersPreview;
-  private JScrollPane scrollPreview, scrollFiltersPreview;
+  private RenderCanvas rcFramesPreview;
+  private RenderCanvas rcCyclesPreview;
+  private RenderCanvas rcPreview;
+  private RenderCanvas rcFiltersPreview;
+  private JScrollPane scrollPreview;
+  private JScrollPane scrollFiltersPreview;
   private BufferedImage previewCanvas;
-  private JLabel lPreviewCycle, lPreviewFrame;
-  private JSpinner sPvrzIndex, sPreviewFps, sFiltersPreviewFrame;
+  private JLabel lPreviewCycle;
+  private JLabel lPreviewFrame;
+  private JSpinner sPvrzIndex;
+  private JSpinner sPreviewFps;
+  private JSpinner sFiltersPreviewFrame;
   private Timer timer;
   private SwingWorker<List<String>, Void> workerConvert;
   private SwingWorker<Void, Void> workerProcess;
   private WindowBlocker blocker;
   private ProgressMonitor progress;
   private PseudoBamControl bamControlPreview;
-  private boolean isPreviewModified, isPreviewPlaying;
+  private boolean isPreviewModified;
+  private boolean isPreviewPlaying;
   private double currentFps;
-  private int pmCur, pmMax;
+  private int pmCur;
+  private int pmMax;
   private Path bamOutputFile;
 
-
   /** Validates numberString and modifies it to fit into the specified limits. */
-  public static int numberValidator(String numberString, int min, int max, int defaultValue)
-  {
+  public static int numberValidator(String numberString, int min, int max, int defaultValue) {
     int retVal = defaultValue;
     if (numberString != null) {
       try {
         retVal = Integer.parseInt(numberString);
-        if (min > max) { int tmp = min; min = max; max = tmp; }
-        if (retVal < min) retVal = min; else if (retVal > max) retVal = max;
+        if (min > max) {
+          int tmp = min;
+          min = max;
+          max = tmp;
+        }
+        if (retVal < min) {
+          retVal = min;
+        } else if (retVal > max) {
+          retVal = max;
+        }
       } catch (NumberFormatException e) {
       }
     }
@@ -251,14 +316,21 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Validates numberString and modifies it to fit into the specified limits. */
-  public static double doubleValidator(String numberString, double min, double max, double defaultValue)
-  {
+  public static double doubleValidator(String numberString, double min, double max, double defaultValue) {
     double retVal = defaultValue;
     if (numberString != null) {
       try {
         retVal = Double.parseDouble(numberString);
-        if (min > max) { double tmp = min; min = max; max = tmp; }
-        if (retVal < min) retVal = min; else if (retVal > max) retVal = max;
+        if (min > max) {
+          double tmp = min;
+          min = max;
+          max = tmp;
+        }
+        if (retVal < min) {
+          retVal = min;
+        } else if (retVal > max) {
+          retVal = max;
+        }
       } catch (NumberFormatException e) {
       }
     }
@@ -266,52 +338,45 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns a list of supported input graphics file formats. */
-  public static FileNameExtensionFilter[] getGraphicsFilters()
-  {
+  public static FileNameExtensionFilter[] getGraphicsFilters() {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.gif, *.png, *,jpg, *.jpeg)",
-                                    "bam", "bmp", "gif", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.gif, *.png, *,jpg, *.jpeg)", "bam", "bmp", "gif",
+            "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("GIF files (*.gif)", "gif"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
-        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
-    };
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
     return filters;
   }
 
   /** Returns a list of supported input file formats containing palettes. */
-  public static FileNameExtensionFilter[] getPaletteFilters()
-  {
+  public static FileNameExtensionFilter[] getPaletteFilters() {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.png, *.act, *.pal)",
-                                    "bam", "bmp", "png", "act", "pal"),
+        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.png, *.act, *.pal)", "bam", "bmp", "png",
+            "act", "pal"),
         new FileNameExtensionFilter("Palette from BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("Palette from BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("Palette from PNG files (*.png)", "png"),
         new FileNameExtensionFilter("Adobe Color Table files (*.act)", "act"),
-        new FileNameExtensionFilter("Microsoft Palette files (*.pal)", "pal"),
-    };
+        new FileNameExtensionFilter("Microsoft Palette files (*.pal)", "pal"), };
     return filters;
   }
 
   /** Returns a extension filter for BAM files. */
-  public static FileNameExtensionFilter getBamFilter()
-  {
+  public static FileNameExtensionFilter getBamFilter() {
     return new FileNameExtensionFilter("BAM files (*.bam)", "bam");
   }
 
   /** Returns a list of files that can be specified in an "Open file" dialog. */
-  public static Path[] getOpenFileName(Component parent, String title, Path rootPath,
-                                       boolean selectMultiple,
-                                       FileNameExtensionFilter[] filters, int filterIndex)
-  {
+  public static Path[] getOpenFileName(Component parent, String title, Path rootPath, boolean selectMultiple,
+      FileNameExtensionFilter[] filters, int filterIndex) {
     if (rootPath == null) {
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
     if (!FileEx.create(rootPath).isDirectory()) {
-        fc.setSelectedFile(rootPath.toFile());
+      fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
       title = selectMultiple ? "Select file(s)" : "Select file";
@@ -321,7 +386,7 @@ public class ConvertToBam extends ChildFrame
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     fc.setMultiSelectionEnabled(selectMultiple);
     if (filters != null) {
-      for (final FileNameExtensionFilter filter: filters) {
+      for (final FileNameExtensionFilter filter : filters) {
         fc.addChoosableFileFilter(filter);
       }
       if (filterIndex >= 0 && filterIndex < filters.length) {
@@ -341,7 +406,7 @@ public class ConvertToBam extends ChildFrame
         return paths;
       } else {
         currentPath = fc.getSelectedFile().toPath().getParent();
-        return new Path[]{fc.getSelectedFile().toPath()};
+        return new Path[] { fc.getSelectedFile().toPath() };
       }
     } else {
       return null;
@@ -349,8 +414,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns a path name from a "Select path" dialog. */
-  public static Path getOpenPathName(Component parent, String title, Path rootPath)
-  {
+  public static Path getOpenPathName(Component parent, String title, Path rootPath) {
     if (rootPath == null) {
       rootPath = currentPath;
     }
@@ -370,15 +434,14 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns a filename that can be specified in a "Save file" dialog */
-  public static Path getSaveFileName(Component parent, String title, Path rootPath,
-                                     FileNameExtensionFilter[] filters, int filterIndex)
-  {
+  public static Path getSaveFileName(Component parent, String title, Path rootPath, FileNameExtensionFilter[] filters,
+      int filterIndex) {
     if (rootPath == null) {
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
     if (!FileEx.create(rootPath).isDirectory()) {
-        fc.setSelectedFile(rootPath.toFile());
+      fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
       title = "Specify filename";
@@ -387,7 +450,7 @@ public class ConvertToBam extends ChildFrame
     fc.setDialogType(JFileChooser.SAVE_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     if (filters != null) {
-      for (final FileNameExtensionFilter filter: filters) {
+      for (final FileNameExtensionFilter filter : filters) {
         fc.addChoosableFileFilter(filter);
       }
       if (filterIndex >= 0 && filterIndex < filters.length) {
@@ -402,98 +465,87 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  public ConvertToBam()
-  {
+  public ConvertToBam() {
     super("Convert image sequence to BAM", true);
     init();
   }
 
   /**
    * Returns the BAM decoder instance that is used internally to manage the BAM structure.
+   *
    * @param bamType Either one of {@link #BAM_ORIGINAL} or {@link #BAM_FINAL}.
    */
-  public PseudoBamDecoder getBamDecoder(int bamType)
-  {
+  public PseudoBamDecoder getBamDecoder(int bamType) {
     return (bamType == BAM_FINAL) ? bamDecoderFinal : bamDecoder;
   }
 
   /** Returns the BAM decoder instance that is used to display the BAM in the preview tab. */
-  public PseudoBamDecoder getPreviewBamDecoder()
-  {
+  public PseudoBamDecoder getPreviewBamDecoder() {
     return bamDecoderFinal;
   }
 
   /** Returns the associated BAM v1 palette dialog. */
-  public BamPaletteDialog getPaletteDialog()
-  {
+  public BamPaletteDialog getPaletteDialog() {
     return paletteDialog;
   }
 
   /** Convenience method: Returns true if BAM v1 has been selected. */
-  public boolean isBamV1Selected()
-  {
+  public boolean isBamV1Selected() {
     return (cbVersion.getSelectedIndex() == VERSION_BAMV1);
   }
 
   /** Returns the currently selected output BAM version. */
-  public int getBamVersion()
-  {
+  public int getBamVersion() {
     return cbVersion.getSelectedIndex();
   }
 
   /** Returns the BAM output file. */
-  public Path getBamOutput()
-  {
+  public Path getBamOutput() {
     return bamOutputFile;
   }
 
   /** Predefines BAM output file or path. */
-  public void setBamOutput(Path path)
-  {
+  public void setBamOutput(Path path) {
     bamOutputFile = path;
   }
 
   /** Returns whether BAM v1 output is compressed. */
-  public boolean isBamV1Compressed()
-  {
+  public boolean isBamV1Compressed() {
     return cbCompressBam.isSelected();
   }
 
   /** Returns the threshold used to determine transparent colors. Range: [0, 255]. */
-  public static int getTransparencyThreshold()
-  {
-    return (255*BamOptionsDialog.getTransparencyThreshold()) / 100;
+  public static int getTransparencyThreshold() {
+    return (255 * BamOptionsDialog.getTransparencyThreshold()) / 100;
   }
 
   /** Returns whether alpha channel support is enabled. */
-  public static boolean getUseAlpha()
-  {
-    return (BamOptionsDialog.getUseAlpha() == ALPHA_ALWAYS) ||
-           (Profile.isEnhancedEdition() && BamOptionsDialog.getUseAlpha() == ALPHA_AUTO);
+  public static boolean getUseAlpha() {
+    return (BamOptionsDialog.getUseAlpha() == ALPHA_ALWAYS)
+        || (Profile.isEnhancedEdition() && BamOptionsDialog.getUseAlpha() == ALPHA_AUTO);
   }
 
   /** Returns the start index for PVRZ files used for BAM v2 output. */
-  public int getPvrzIndex()
-  {
-    return ((Integer)sPvrzIndex.getValue()).intValue();
+  public int getPvrzIndex() {
+    return ((Integer) sPvrzIndex.getValue());
   }
 
   /** Returns the selected DXT type for BAM v2. */
-  public DxtEncoder.DxtType getDxtType()
-  {
+  public DxtEncoder.DxtType getDxtType() {
     switch (cbCompression.getSelectedIndex()) {
-      case COMPRESSION_DXT1:  return DxtEncoder.DxtType.DXT1;
-      case COMPRESSION_DXT5:  return DxtEncoder.DxtType.DXT5;
-      default: return getAutoDxtType();
+      case COMPRESSION_DXT1:
+        return DxtEncoder.DxtType.DXT1;
+      case COMPRESSION_DXT5:
+        return DxtEncoder.DxtType.DXT5;
+      default:
+        return getAutoDxtType();
     }
   }
 
-
-//--------------------- Begin Class ChildFrame ---------------------
+  // --------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     BamOptionsDialog.saveRecentSessions();
     if (forced || confirmCloseDialog()) {
       clear();
@@ -503,14 +555,12 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  // --------------------- End Class ChildFrame ---------------------
 
-
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == timer) {
       if (!previewAdvanceAnimation()) {
         previewStop();
@@ -524,10 +574,8 @@ public class ConvertToBam extends ChildFrame
         do {
           file = setBamOutput();
           if (file != null) {
-            if (!FileEx.create(file).exists() ||
-                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                        JOptionPane.YES_NO_OPTION,
-                                                                        JOptionPane.QUESTION_MESSAGE)) {
+            if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
+                "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
               file = null;
               workerConvert = new SwingWorker<List<String>, Void>() {
                 @Override
@@ -566,9 +614,8 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == miFramesRemoveAll) {
       if (!modelFrames.isEmpty()) {
         final String msg = "Do you really want to remove all frames?";
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                    JOptionPane.YES_NO_OPTION,
-                                                                    JOptionPane.QUESTION_MESSAGE)) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE)) {
           framesRemoveAll();
         }
       }
@@ -582,7 +629,7 @@ public class ConvertToBam extends ChildFrame
           msg = String.format("%d unused frames can be dropped. Do you want to continue?", count);
         }
         int retVal = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
-                                                   JOptionPane.QUESTION_MESSAGE);
+            JOptionPane.QUESTION_MESSAGE);
         if (retVal == JOptionPane.YES_OPTION) {
           framesDropUnusedFrames();
         }
@@ -631,9 +678,8 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == bCyclesRemoveAll) {
       if (!modelCycles.isEmpty()) {
         final String msg = "Do you really want to remove all cycles?";
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                    JOptionPane.YES_NO_OPTION,
-                                                                    JOptionPane.QUESTION_MESSAGE)) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE)) {
           cyclesRemoveAll();
         }
       }
@@ -690,9 +736,8 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == bFiltersRemoveAll) {
       if (!modelFilters.isEmpty()) {
         final String msg = "Do you really want to remove all filters?";
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                    JOptionPane.YES_NO_OPTION,
-                                                                    JOptionPane.QUESTION_MESSAGE)) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE)) {
           filterRemoveAll();
         }
       }
@@ -703,9 +748,9 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == cbFiltersShowMarker) {
       filterSetPreviewFrame(filterGetPreviewFrameIndex(), false);
     } else if (event.getSource() instanceof DataMenuItem) {
-      DataMenuItem dmi = (DataMenuItem)event.getSource();
+      DataMenuItem dmi = (DataMenuItem) event.getSource();
       if (dmi.getData() instanceof Path) {
-        Path path = (Path)dmi.getData();
+        Path path = (Path) dmi.getData();
         Exporter importer = new Exporter(this);
         try {
           if (importer.importData(path, false)) {
@@ -726,16 +771,14 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerConvert) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
 
         if (blocker != null) {
           blocker.setBlocked(false);
@@ -781,8 +824,7 @@ public class ConvertToBam extends ChildFrame
         }
       }
     } else if (event.getSource() == workerProcess) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
 
         if (blocker != null) {
           blocker.setBlocked(false);
@@ -798,33 +840,30 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent event)
-  {
+  public void focusGained(FocusEvent event) {
     if (event.getSource() == tfFrameCenterX || event.getSource() == tfFrameCenterY) {
-      ((JTextField)event.getSource()).selectAll();
+      ((JTextField) event.getSource()).selectAll();
     }
   }
 
   @Override
-  public void focusLost(FocusEvent event)
-  {
+  public void focusLost(FocusEvent event) {
     if (event.getSource() == tfFrameCenterX || event.getSource() == tfFrameCenterY) {
-      framesValidateCenterValue((JTextField)event.getSource());
+      framesValidateCenterValue((JTextField) event.getSource());
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == tpMain) {
       bamControlPreview = null;
       if (tpMain.getSelectedIndex() == TAB_PREVIEW) {
@@ -856,7 +895,7 @@ public class ConvertToBam extends ChildFrame
         }
       }
     } else if (event.getSource() == sPreviewFps) {
-      double v = (Double)sPreviewFps.getValue();
+      double v = (Double) sPreviewFps.getValue();
       previewSetFrameRate(v);
     } else if (event.getSource() == sFiltersPreviewFrame) {
       filterSetPreviewFrame(filterGetPreviewFrameIndex(), true);
@@ -866,13 +905,12 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     if (event.getSource() == listFrames) {
       int[] indices = listFrames.getSelectedIndices();
       updateFramesList();
@@ -891,13 +929,12 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-//--------------------- Begin Interface MouseListener ---------------------
+  // --------------------- Begin Interface MouseListener ---------------------
 
   @Override
-  public void mouseClicked(MouseEvent event)
-  {
+  public void mouseClicked(MouseEvent event) {
     if (event.getSource() == listFramesAvail && (event.getClickCount() & 1) == 0) {
       // double click on list element
       int idx = listFramesAvail.getSelectedIndex();
@@ -920,56 +957,47 @@ public class ConvertToBam extends ChildFrame
   }
 
   @Override
-  public void mousePressed(MouseEvent event)
-  {
+  public void mousePressed(MouseEvent event) {
   }
 
   @Override
-  public void mouseReleased(MouseEvent event)
-  {
+  public void mouseReleased(MouseEvent event) {
   }
 
   @Override
-  public void mouseEntered(MouseEvent event)
-  {
+  public void mouseEntered(MouseEvent event) {
   }
 
   @Override
-  public void mouseExited(MouseEvent event)
-  {
+  public void mouseExited(MouseEvent event) {
   }
 
-//--------------------- End Interface MouseListener ---------------------
+  // --------------------- End Interface MouseListener ---------------------
 
-//--------------------- Begin Interface KeyListener ---------------------
+  // --------------------- Begin Interface KeyListener ---------------------
 
   @Override
-  public void keyTyped(KeyEvent e)
-  {
+  public void keyTyped(KeyEvent e) {
   }
 
   @Override
-  public void keyPressed(KeyEvent e)
-  {
+  public void keyPressed(KeyEvent e) {
     if (e.getSource() == listFrames) {
       if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-        doWithSelectedListItems(listFrames, list -> framesRemove(), true,
-                            "Remove selected frame?", "Remove %d selected frames?");
+        doWithSelectedListItems(listFrames, list -> framesRemove(), true, "Remove selected frame?",
+            "Remove %d selected frames?");
       }
-    }
-    else if (e.getSource() == listCurCycle) {
+    } else if (e.getSource() == listCurCycle) {
       if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-        doWithSelectedListItems(listCurCycle, list -> currentCycleRemove(), true,
-                            "Remove selected frame index?", "Remove %d selected frame indices?");
+        doWithSelectedListItems(listCurCycle, list -> currentCycleRemove(), true, "Remove selected frame index?",
+            "Remove %d selected frame indices?");
       }
-    }
-    else if (e.getSource() == listCycles) {
+    } else if (e.getSource() == listCycles) {
       if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-        doWithSelectedListItems(listCycles, list -> cyclesRemove(), true,
-                            "Remove selected cycle?", "Remove %d selected cycles?");
+        doWithSelectedListItems(listCycles, list -> cyclesRemove(), true, "Remove selected cycle?",
+            "Remove %d selected cycles?");
       }
-    }
-    else if (e.getSource() == listFilters) {
+    } else if (e.getSource() == listFilters) {
       if (e.getKeyCode() == KeyEvent.VK_DELETE) {
         // List is set to single selection mode
         doWithSelectedListItems(listFilters, list -> filterRemove(), true, "Remove selected filter?", null);
@@ -978,15 +1006,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   @Override
-  public void keyReleased(KeyEvent e)
-  {
+  public void keyReleased(KeyEvent e) {
   }
 
-//--------------------- End Interface KeyListener ---------------------
+  // --------------------- End Interface KeyListener ---------------------
 
-
-  private void init()
-  {
+  private void init() {
     setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     BamOptionsDialog.loadSettings(false);
 
@@ -997,9 +1022,9 @@ public class ConvertToBam extends ChildFrame
     }
 
     // initializing frame image lists
-    listFrameEntries.add(bamDecoder.getFramesList());         // original frames list
-    listFrameEntries.add(bamDecoderFinal.getFramesList());    // processed frames list
-    bamDecoderFinal.setCyclesList(bamDecoder.getCyclesList());  // shared cycles list
+    listFrameEntries.add(bamDecoder.getFramesList()); // original frames list
+    listFrameEntries.add(bamDecoderFinal.getFramesList()); // processed frames list
+    bamDecoderFinal.setCyclesList(bamDecoder.getCyclesList()); // shared cycles list
 
     JPanel pFrames = createFramesTab();
     JPanel pCycles = createCyclesTab();
@@ -1007,14 +1032,14 @@ public class ConvertToBam extends ChildFrame
     JPanel pFilters = createFiltersTab();
 
     // setting up tabbed pane
-    tpMain = new JTabbedPane(JTabbedPane.TOP);
-    tpMain.addTab(TabNames[TAB_FRAMES], pFrames);
+    tpMain = new JTabbedPane(SwingConstants.TOP);
+    tpMain.addTab(TAB_NAMES[TAB_FRAMES], pFrames);
     tpMain.setMnemonicAt(TAB_FRAMES, KeyEvent.VK_F);
-    tpMain.addTab(TabNames[TAB_CYCLES], pCycles);
+    tpMain.addTab(TAB_NAMES[TAB_CYCLES], pCycles);
     tpMain.setMnemonicAt(TAB_CYCLES, KeyEvent.VK_C);
-    tpMain.addTab(TabNames[TAB_PREVIEW], pPreview);
+    tpMain.addTab(TAB_NAMES[TAB_PREVIEW], pPreview);
     tpMain.setMnemonicAt(TAB_PREVIEW, KeyEvent.VK_P);
-    tpMain.addTab(TabNames[TAB_FILTERS], pFilters);
+    tpMain.addTab(TAB_NAMES[TAB_FILTERS], pFilters);
     tpMain.setMnemonicAt(TAB_FILTERS, KeyEvent.VK_O);
     tpMain.addChangeListener(this);
 
@@ -1050,29 +1075,29 @@ public class ConvertToBam extends ChildFrame
     i = bCancel.getInsets();
     bCancel.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bpmSession, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 6, 0, 0), 0, 0);
     pButtons.add(bOptions, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     // putting all sections together
     setLayout(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     add(tpMain, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
     // finalizing dialog initialization
@@ -1089,8 +1114,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Creating panel "Frames". */
-  private JPanel createFramesTab()
-  {
+  private JPanel createFramesTab() {
     GridBagConstraints c = new GridBagConstraints();
 
     // creating "Frames List"
@@ -1101,11 +1125,11 @@ public class ConvertToBam extends ChildFrame
     bFramesDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bFramesDown.setMargin(new Insets(bFramesDown.getInsets().top, 2, bFramesDown.getInsets().bottom, 2));
     bFramesDown.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 16);
     pFramesListArrows.add(bFramesUp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 16);
     pFramesListArrows.add(bFramesDown, c);
 
     JPanel pFramesAdd = new JPanel(new GridBagLayout());
@@ -1113,7 +1137,8 @@ public class ConvertToBam extends ChildFrame
     miFramesAddFiles.setToolTipText("Add only frames from an external graphics file. Cycle definitions are ignored.");
     miFramesAddFiles.addActionListener(this);
     miFramesAddResources = new JMenuItem("Add resource(s)...");
-    miFramesAddResources.setToolTipText("Add only frames from an internal graphics resource. Cycle definitions are ignored.");
+    miFramesAddResources
+        .setToolTipText("Add only frames from an internal graphics resource. Cycle definitions are ignored.");
     miFramesAddResources.addActionListener(this);
     miFramesAddFolder = new JMenuItem("Add folder...");
     miFramesAddFolder.addActionListener(this);
@@ -1123,14 +1148,12 @@ public class ConvertToBam extends ChildFrame
     miFramesImportResource = new JMenuItem("Import BAM resource...");
     miFramesImportResource.setToolTipText("Import both frame and cycle definitions from an internal BAM resource.");
     miFramesImportResource.addActionListener(this);
-    bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddResources,
-                                                                 miFramesAddFolder,
-                                                                 miFramesImportFile, miFramesImportResource},
-                                       false, ButtonPopupMenu.Align.TOP);
+    bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[] { miFramesAddFiles, miFramesAddResources,
+        miFramesAddFolder, miFramesImportFile, miFramesImportResource }, false, ButtonPopupMenu.Align.TOP);
     bpmFramesAdd.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmFramesAdd.setIconTextGap(8);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesAdd.add(bpmFramesAdd, c);
 
     JPanel pFramesRemove = new JPanel(new GridBagLayout());
@@ -1141,23 +1164,23 @@ public class ConvertToBam extends ChildFrame
     miFramesDropUnused = new JMenuItem("Drop unused frames");
     miFramesDropUnused.addActionListener(this);
     miFramesDropUnused.setToolTipText("Remove frames that are not used in any cycle definitions.");
-    bpmFramesRemove = new ButtonPopupMenu("Remove...", new JMenuItem[]{miFramesRemove, miFramesRemoveAll,
-                                                                       miFramesDropUnused});
+    bpmFramesRemove = new ButtonPopupMenu("Remove...",
+        new JMenuItem[] { miFramesRemove, miFramesRemoveAll, miFramesDropUnused });
     bpmFramesRemove.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmFramesRemove.setIconTextGap(8);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesRemove.add(bpmFramesRemove, c);
 
     JPanel pFramesListButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(pFramesAdd, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesListButtons.add(pFramesRemove, c);
 
     JPanel pFramesList = new JPanel(new GridBagLayout());
@@ -1172,17 +1195,17 @@ public class ConvertToBam extends ChildFrame
     listFrames.setTransferHandler(new ListFileTransferHandler());
     listFrames.setDragEnabled(true);
     JScrollPane scroll = new JScrollPane(listFrames);
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 4, 0), 0, 0);
     pFramesList.add(lFramesTitle, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFramesList.add(scroll, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFramesList.add(pFramesListArrows, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pFramesList.add(pFramesListButtons, c);
 
     // creating "Current Frame" section
@@ -1196,8 +1219,8 @@ public class ConvertToBam extends ChildFrame
     tfFrameWidth.setEditable(false);
     tfFrameHeight = new JTextField("0", 6);
     tfFrameHeight.setEditable(false);
-    String tip = "Tip: You can prefix the entered number by '++' for adding to or '- -' " +
-                 "for subtracting from the current center coordinate.";
+    String tip = "Tip: You can prefix the entered number by '++' for adding to or '- -' "
+        + "for subtracting from the current center coordinate.";
     tfFrameCenterX = new JTextField("0", 6);
     tfFrameCenterX.setToolTipText(tip);
     tfFrameCenterX.addFocusListener(this);
@@ -1207,34 +1230,34 @@ public class ConvertToBam extends ChildFrame
     cbCompressFrame = new JCheckBox("Compress frame");
     cbCompressFrame.setToolTipText("Selecting this option activates RLE compression for the current frame(s).");
     cbCompressFrame.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesWidth, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(tfFrameWidth, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 16, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesCenterX, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 4), 0, 0);
     pFramesCurFrame.add(tfFrameCenterX, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesHeight, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 0), 0, 0);
     pFramesCurFrame.add(tfFrameHeight, c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 16, 0, 0), 0, 0);
     pFramesCurFrame.add(lFramesCenterY, c);
-    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 4), 0, 0);
     pFramesCurFrame.add(tfFrameCenterY, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 4), 0, 0);
     pFramesCurFrame.add(cbCompressFrame, c);
-    Component[] orderList = new Component[]{tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY};
+    Component[] orderList = new Component[] { tfFrameWidth, tfFrameHeight, tfFrameCenterX, tfFrameCenterY };
     pFramesCurFrame.setFocusTraversalPolicy(new FixedFocusTraversalPolicy(orderList));
     pFramesCurFrame.setFocusTraversalPolicyProvider(true);
 
@@ -1242,22 +1265,22 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesQuickView = new JPanel(new GridBagLayout());
     pFramesQuickView.setBorder(BorderFactory.createTitledBorder("Quick Preview "));
     rcFramesPreview = new RenderCanvas(new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pFramesQuickView.add(rcFramesPreview, c);
     pFramesQuickView.setMinimumSize(pFramesQuickView.getPreferredSize());
 
     // creating "Import" section
     JPanel pFramesImport = new JPanel(new GridBagLayout());
     pFramesImport.setBorder(BorderFactory.createTitledBorder("Import "));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 16), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 16), 0, 0);
     pFramesImport.add(pFramesList, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 4), 0, 0);
     pFramesImport.add(pFramesCurFrame, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 8, 4), 0, 0);
     pFramesImport.add(pFramesQuickView, c);
 
     // creating "Export options" sections
@@ -1267,11 +1290,11 @@ public class ConvertToBam extends ChildFrame
     cbCompressBam.addActionListener(this);
     bPalette = new JButton("Palette...");
     bPalette.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV1.add(bPalette, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV1.add(cbCompressBam, c);
 
     JPanel pFramesOptionsVersionV2 = new JPanel(new GridBagLayout());
@@ -1280,26 +1303,26 @@ public class ConvertToBam extends ChildFrame
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
     sPvrzIndex.addChangeListener(this);
     JLabel lFramesCompression = new JLabel("Compression type:");
-    cbCompression = new JComboBox<>(CompressionItems);
+    cbCompression = new JComboBox<>(COMPRESSION_ITEMS);
     cbCompression.setSelectedIndex(BamOptionsDialog.getCompressionType());
     bCompressionHelp = new JButton("?");
     bCompressionHelp.setMargin(new Insets(2, 4, 2, 4));
     bCompressionHelp.setToolTipText("About compression types");
     bCompressionHelp.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(lPvrzIndex, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(sPvrzIndex, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pFramesOptionsVersionV2.add(lFramesCompression, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 8, 0);
     pFramesOptionsVersionV2.add(cbCompression, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFramesOptionsVersionV2.add(bCompressionHelp, c);
 
     pFramesOptionsVersion = new JPanel(new CardLayout());
@@ -1310,40 +1333,39 @@ public class ConvertToBam extends ChildFrame
     JPanel pFramesExport = new JPanel(new GridBagLayout());
     pFramesExport.setBorder(BorderFactory.createTitledBorder("Output options "));
     JLabel lFramesVersion = new JLabel("BAM version:");
-    cbVersion = new JComboBox<>(BamVersionItems);
+    cbVersion = new JComboBox<>(BAM_VERSION_ITEMS);
     cbVersion.addActionListener(this);
     cbVersion.setSelectedIndex(BamOptionsDialog.getBamVersion());
     bVersionHelp = new JButton("?");
     bVersionHelp.setMargin(new Insets(2, 4, 2, 4));
     bVersionHelp.setToolTipText("About BAM versions");
     bVersionHelp.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 4, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 4, 8, 0), 0, 0);
     pFramesExport.add(lFramesVersion, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 8, 0);
     pFramesExport.add(cbVersion, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFramesExport.add(bVersionHelp, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFramesExport.add(pFramesOptionsVersion, c);
 
     // putting all together
     JPanel pFrames = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pFrames.add(pFramesImport, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 8, 8), 0, 0);
     pFrames.add(pFramesExport, c);
 
     return pFrames;
   }
 
-  private JPanel createCyclesTab()
-  {
+  private JPanel createCyclesTab() {
     GridBagConstraints c = new GridBagConstraints();
 
     // creating "Cycles" section
@@ -1354,14 +1376,14 @@ public class ConvertToBam extends ChildFrame
     bCyclesRemove.addActionListener(this);
     bCyclesRemoveAll = new JButton("Remove all");
     bCyclesRemoveAll.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesAdd, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesRemove, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pCyclesButtons.add(bCyclesRemoveAll, c);
 
     JPanel pCyclesArrows = new JPanel(new GridBagLayout());
@@ -1371,11 +1393,11 @@ public class ConvertToBam extends ChildFrame
     bCyclesDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bCyclesDown.setMargin(new Insets(bCyclesDown.getInsets().top, 2, bCyclesDown.getInsets().bottom, 2));
     bCyclesDown.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 16);
     pCyclesArrows.add(bCyclesUp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 16);
     pCyclesArrows.add(bCyclesDown, c);
 
     JPanel pCyclesList = new JPanel(new GridBagLayout());
@@ -1387,17 +1409,17 @@ public class ConvertToBam extends ChildFrame
     listCycles.addListSelectionListener(this);
     listCycles.addKeyListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 4, 0), 0, 0);
     pCyclesList.add(lCycles, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pCyclesList.add(scroll, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pCyclesList.add(pCyclesArrows, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pCyclesList.add(pCyclesButtons, c);
 
     // creating Macros/Preview section
@@ -1421,80 +1443,78 @@ public class ConvertToBam extends ChildFrame
     bMacroReverseCycles = new JButton("Reverse cycles order");
     bMacroReverseCycles.addActionListener(this);
     JPanel pMacroPanel = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pMacroPanel.add(lMacroCurCycle, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroAssignFrames, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroRemoveFrames, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroDuplicateFrames, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroDuplicateCycle, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroSortFramesAsc, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroReverseFrames, c);
-    c = ViewerUtil.setGBC(c, 0, 4, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 4, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(16, 0, 0, 0), 0, 0);
     pMacroPanel.add(lMacroAllCycles, c);
-    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pMacroPanel.add(bMacroRemoveAll, c);
-    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     pMacroPanel.add(bMacroReverseCycles, c);
-    c = ViewerUtil.setGBC(c, 0, 6, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 6, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pMacroPanel.add(new JPanel(), c);
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 8, 8, 8), 0, 0);
     pMacros.add(pMacroPanel, c);
     pMacros.setMinimumSize(pMacros.getPreferredSize());
 
     JPanel pPreview = new JPanel(new GridBagLayout());
     rcCyclesPreview = new RenderCanvas(new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pPreview.add(rcCyclesPreview, c);
     pPreview.setMinimumSize(pPreview.getPreferredSize());
 
-    tpCyclesSection = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+    tpCyclesSection = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     tpCyclesSection.addTab("Macros", pMacros);
     tpCyclesSection.addTab("Quick Preview", pPreview);
     tpCyclesSection.setSelectedIndex(0);
 
     JPanel pTopHalf = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 8, 0, 0), 0, 0);
     pTopHalf.add(pCyclesList, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     pTopHalf.add(tpCyclesSection, c);
 
     // creating "Current Cycles" section
     JPanel pCycleTransfer = new JPanel(new GridBagLayout());
     bCurCycleAdd = new JButton(Icons.ICON_FORWARD_16.getIcon());
-    bCurCycleAdd.setMargin(new Insets(2, bCurCycleAdd.getInsets().left,
-                                      2, bCurCycleAdd.getInsets().right));
+    bCurCycleAdd.setMargin(new Insets(2, bCurCycleAdd.getInsets().left, 2, bCurCycleAdd.getInsets().right));
     bCurCycleAdd.addActionListener(this);
     bCurCycleRemove = new JButton(Icons.ICON_BACK_16.getIcon());
-    bCurCycleRemove.setMargin(new Insets(2, bCurCycleRemove.getInsets().left,
-                                         2, bCurCycleRemove.getInsets().right));
+    bCurCycleRemove.setMargin(new Insets(2, bCurCycleRemove.getInsets().left, 2, bCurCycleRemove.getInsets().right));
     bCurCycleRemove.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 8, 0);
     pCycleTransfer.add(bCurCycleAdd, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 8, 0);
     pCycleTransfer.add(bCurCycleRemove, c);
 
     JPanel pCurCycleArrows = new JPanel(new GridBagLayout());
@@ -1504,11 +1524,11 @@ public class ConvertToBam extends ChildFrame
     bCurCycleDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bCurCycleDown.setMargin(new Insets(bCurCycleDown.getInsets().top, 2, bCurCycleDown.getInsets().bottom, 2));
     bCurCycleDown.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 16);
     pCurCycleArrows.add(bCurCycleUp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 16);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 16);
     pCurCycleArrows.add(bCurCycleDown, c);
 
     JLabel lCurCycleFrames = new JLabel("Available frames:");
@@ -1530,39 +1550,38 @@ public class ConvertToBam extends ChildFrame
 
     pCurrentCycle = new JPanel(new GridBagLayout());
     pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pCurrentCycle.add(lCurCycleFrames, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pCurrentCycle.add(lCurCycle, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 0), 0, 0);
     pCurrentCycle.add(scroll, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pCurrentCycle.add(pCycleTransfer, c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 0, 4, 0), 0, 0);
     pCurrentCycle.add(scroll2, c);
-    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(4, 4, 0, 4), 0, 0);
     pCurrentCycle.add(pCurCycleArrows, c);
 
     // putting all together
     JPanel pCycles = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pCycles.add(pTopHalf, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 2.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 2.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pCycles.add(pCurrentCycle, c);
 
     return pCycles;
   }
 
-  private JPanel createPreviewTab()
-  {
+  private JPanel createPreviewTab() {
     bamControlPreview = null;
 
     GridBagConstraints c = new GridBagConstraints();
@@ -1570,22 +1589,22 @@ public class ConvertToBam extends ChildFrame
     // create bottom control bar
     lPreviewCycle = new JLabel("Cycle: X/Y");
     bPreviewCyclePrev = new JButton(Icons.ICON_BACK_16.getIcon());
-    bPreviewCyclePrev.setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 2,
-                                           bPreviewCyclePrev.getMargin().bottom, 2));
+    bPreviewCyclePrev
+        .setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 2, bPreviewCyclePrev.getMargin().bottom, 2));
     bPreviewCyclePrev.addActionListener(this);
     bPreviewCycleNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
-    bPreviewCycleNext.setMargin(new Insets(bPreviewCycleNext.getMargin().top, 2,
-                                           bPreviewCycleNext.getMargin().bottom, 2));
+    bPreviewCycleNext
+        .setMargin(new Insets(bPreviewCycleNext.getMargin().top, 2, bPreviewCycleNext.getMargin().bottom, 2));
     bPreviewCycleNext.addActionListener(this);
 
     lPreviewFrame = new JLabel("Frame: X/Y");
     bPreviewFramePrev = new JButton(Icons.ICON_BACK_16.getIcon());
-    bPreviewFramePrev.setMargin(new Insets(bPreviewFramePrev.getMargin().top, 2,
-                                           bPreviewFramePrev.getMargin().bottom, 2));
+    bPreviewFramePrev
+        .setMargin(new Insets(bPreviewFramePrev.getMargin().top, 2, bPreviewFramePrev.getMargin().bottom, 2));
     bPreviewFramePrev.addActionListener(this);
     bPreviewFrameNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
-    bPreviewFrameNext.setMargin(new Insets(bPreviewFrameNext.getMargin().top, 2,
-                                           bPreviewFrameNext.getMargin().bottom, 2));
+    bPreviewFrameNext
+        .setMargin(new Insets(bPreviewFrameNext.getMargin().top, 2, bPreviewFrameNext.getMargin().bottom, 2));
     bPreviewFrameNext.addActionListener(this);
 
     bPreviewPlay = new JButton("Pause", Icons.ICON_PLAY_16.getIcon());
@@ -1595,38 +1614,38 @@ public class ConvertToBam extends ChildFrame
     bPreviewStop = new JButton("Stop", Icons.ICON_STOP_16.getIcon());
     bPreviewStop.addActionListener(this);
     JPanel pControls = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(lPreviewCycle, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewCyclePrev, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewCycleNext, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(lPreviewFrame, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewFramePrev, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 2, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewFrameNext, c);
-    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(bPreviewPlay, c);
-    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewStop, c);
 
     JLabel lFps = new JLabel("Frames/second:");
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(15.0, 1.0, 30.0, 1.0);
     sPreviewFps = new JSpinner(spinnerModel);
     sPreviewFps.addChangeListener(this);
-    currentFps = (Double)spinnerModel.getValue();
+    currentFps = (Double) spinnerModel.getValue();
     JLabel lPreviewMode = new JLabel("Playback mode:");
-    cbPreviewMode = new JComboBox<>(PlaybackModeItems);
+    cbPreviewMode = new JComboBox<>(PLAYBACK_MODE_ITEMS);
     cbPreviewMode.setSelectedIndex(MODE_CURRENT_CYCLE_LOOPED);
     cbPreviewMode.addActionListener(this);
     cbPreviewShowMarker = new JCheckBox("Show markers");
@@ -1634,23 +1653,23 @@ public class ConvertToBam extends ChildFrame
     cbPreviewZoom = new JCheckBox("Zoom");
     cbPreviewZoom.addActionListener(this);
     JPanel pOptions = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(lPreviewMode, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(cbPreviewMode, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(lFps, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(sPreviewFps, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(cbPreviewZoom, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pOptions.add(cbPreviewShowMarker, c);
 
     JPanel pCanvas = new JPanel(new GridBagLayout());
@@ -1663,20 +1682,20 @@ public class ConvertToBam extends ChildFrame
     scrollPreview.setBorder(BorderFactory.createEmptyBorder());
     previewCanvas = null;
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pCanvas.add(scrollPreview, c);
 
     // putting all together
     JPanel pPreview = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 8), 0, 0);
     pPreview.add(pOptions, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pPreview.add(pCanvas, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 8, 8), 0, 0);
     pPreview.add(pControls, c);
 
     timer = new Timer(0, this);
@@ -1687,8 +1706,7 @@ public class ConvertToBam extends ChildFrame
     return pPreview;
   }
 
-  private JPanel createFiltersTab()
-  {
+  private JPanel createFiltersTab() {
     GridBagConstraints c = new GridBagConstraints();
 
     // creating "Filters" section
@@ -1701,11 +1719,11 @@ public class ConvertToBam extends ChildFrame
     bFiltersAdd = new JButton("Add");
     bFiltersAdd.addActionListener(this);
     JPanel pFiltersAdd = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFiltersAdd.add(cbFiltersAdd, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFiltersAdd.add(bFiltersAdd, c);
 
     bFiltersRemove = new JButton("Remove");
@@ -1713,14 +1731,14 @@ public class ConvertToBam extends ChildFrame
     bFiltersRemoveAll = new JButton("Remove all");
     bFiltersRemoveAll.addActionListener(this);
     JPanel pFiltersRemove = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemove, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFiltersRemove.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemoveAll, c);
 
     bFiltersUp = new JButton(Icons.ICON_UP_16.getIcon());
@@ -1730,11 +1748,11 @@ public class ConvertToBam extends ChildFrame
     bFiltersDown.setMargin(new Insets(16, 2, 16, 2));
     bFiltersDown.addActionListener(this);
     JPanel pFiltersMove = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFiltersMove.add(bFiltersUp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pFiltersMove.add(bFiltersDown, c);
 
     JPanel pFiltersDesc = new JPanel(new GridBagLayout());
@@ -1748,8 +1766,8 @@ public class ConvertToBam extends ChildFrame
     taFiltersDesc.setSelectedTextColor(bg);
     taFiltersDesc.setWrapStyleWord(true);
     taFiltersDesc.setLineWrap(true);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFiltersDesc.add(taFiltersDesc, c);
 
     modelFilters = new SimpleListModel<>();
@@ -1762,35 +1780,34 @@ public class ConvertToBam extends ChildFrame
 
     JPanel pFiltersList = new JPanel(new GridBagLayout());
     pFiltersList.setBorder(BorderFactory.createTitledBorder("Filters "));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFiltersList.add(pFiltersAdd, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 4), 0, 0);
     pFiltersList.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 0, 0), 0, 0);
     pFiltersList.add(scroll, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(4, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(4, 4, 0, 4), 0, 0);
     pFiltersList.add(pFiltersMove, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     pFiltersList.add(pFiltersRemove, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 4), 0, 0);
     pFiltersList.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 4, 4, 0), 0, 0);
     pFiltersList.add(pFiltersDesc, c);
-
 
     // creating "Filter settings" section
     JPanel pFiltersSettingsMain = new JPanel(new GridBagLayout());
     pFiltersSettingsMain.setBorder(BorderFactory.createTitledBorder("Filter settings "));
     pFiltersSettings = new JPanel(new BorderLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 4, 4, 4), 0, 0);
     pFiltersSettingsMain.add(pFiltersSettings, c);
 
     // creating "Quick Preview" section
@@ -1802,17 +1819,17 @@ public class ConvertToBam extends ChildFrame
     sFiltersPreviewFrame.addChangeListener(this);
     JPanel pDummy = new JPanel();
     pDummy.setPreferredSize(cbFiltersShowMarker.getPreferredSize());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 0, 4, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 4, 8), 0, 0);
     pFiltersPreviewControls.add(cbFiltersShowMarker, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 0, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 4, 0), 0, 0);
     pFiltersPreviewControls.add(l, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 0), 0, 0);
     pFiltersPreviewControls.add(sFiltersPreviewFrame, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 0, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 4, 4), 0, 0);
     pFiltersPreviewControls.add(pDummy, c);
 
     JPanel pFiltersPreview = new JPanel(new GridBagLayout());
@@ -1827,24 +1844,23 @@ public class ConvertToBam extends ChildFrame
     scrollFiltersPreview.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
     scrollFiltersPreview.setBorder(BorderFactory.createEmptyBorder());
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFiltersPreview.add(scrollFiltersPreview, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 4, 4), 0, 0);
     pFiltersPreview.add(pFiltersPreviewControls, c);
-
 
     // putting all together
     JPanel pFilters = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 2, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 0), 0, 0);
     pFilters.add(pFiltersList, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.5, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pFilters.add(pFiltersSettingsMain, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 8), 0, 0);
     pFilters.add(pFiltersPreview, c);
 
     updateFilterList();
@@ -1852,10 +1868,8 @@ public class ConvertToBam extends ChildFrame
     return pFilters;
   }
 
-
   /** Close the main dialog manually. 'force' overrides the confirmation dialog. */
-  private void hideWindow(boolean force)
-  {
+  private void hideWindow(boolean force) {
     if (force || confirmCloseDialog()) {
       clear();
       setVisible(false);
@@ -1863,15 +1877,14 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Presents a confirmation dialog if any frames or cycles are present. */
-  private boolean confirmCloseDialog()
-  {
+  private boolean confirmCloseDialog() {
     boolean isEmpty = (modelFrames.isEmpty() && modelCycles.isEmpty());
     if (!isEmpty) {
-      String msg = String.format("%d frame(s) and %d cycle(s) will be discarded.\n" +
-                                 "Do you really want to close the dialog?",
-                                 modelFrames.getSize(), modelCycles.getSize());
+      String msg = String.format(
+          "%d frame(s) and %d cycle(s) will be discarded.\n" + "Do you really want to close the dialog?",
+          modelFrames.getSize(), modelCycles.getSize());
       if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Close dialog",
-                                                                  JOptionPane.YES_NO_OPTION)) {
+          JOptionPane.YES_NO_OPTION)) {
         isEmpty = true;
       }
     }
@@ -1879,8 +1892,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Resets the dialog state. */
-  private void clear()
-  {
+  private void clear() {
     previewStop();
     outputSetModified(true);
     filterRemoveAll();
@@ -1889,10 +1901,8 @@ public class ConvertToBam extends ChildFrame
     paletteDialog.clear();
   }
 
-
   /** Updates the tab component state. */
-  private void updateStatus()
-  {
+  private void updateStatus() {
     boolean isReady = (!modelFrames.isEmpty() && !modelCycles.isEmpty());
     boolean showTabs = !modelFrames.isEmpty();
 
@@ -1908,18 +1918,17 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates relevant components to reflect the current state of the global frames list. */
-  private void updateFramesList()
-  {
+  private void updateFramesList() {
     // updating button states
     Couple<Integer, Integer> bounds = getIndexBounds(listFrames.getSelectedIndices());
     bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() > 0);
-    bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() >= 0 &&
-                           bounds.getValue1() < modelFrames.getSize() - 1);
+    bFramesDown.setEnabled(
+        !modelFrames.isEmpty() && bounds.getValue0() >= 0 && bounds.getValue1() < modelFrames.getSize() - 1);
     miFramesRemove.setEnabled(!modelFrames.isEmpty() && !listFrames.isSelectionEmpty());
     miFramesRemoveAll.setEnabled(!modelFrames.isEmpty());
     miFramesDropUnused.setEnabled(!modelFrames.isEmpty());
-    bpmFramesRemove.setEnabled(miFramesRemove.isEnabled() || miFramesRemoveAll.isEnabled() ||
-                               miFramesDropUnused.isEnabled());
+    bpmFramesRemove
+        .setEnabled(miFramesRemove.isEnabled() || miFramesRemoveAll.isEnabled() || miFramesDropUnused.isEnabled());
 
     // updating frame info box
     updateFrameInfo(listFrames.getSelectedIndices());
@@ -1932,8 +1941,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates relevant components to reflect the current state of the cycles list. */
-  private void updateCyclesList()
-  {
+  private void updateCyclesList() {
     listCycles.repaint();
     Couple<Integer, Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
     int idx = (bounds.getValue0().compareTo(bounds.getValue1()) == 0) ? bounds.getValue0() : -1;
@@ -1943,8 +1951,8 @@ public class ConvertToBam extends ChildFrame
 
     // updating button states
     bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() > 0);
-    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() >= 0 &&
-                           bounds.getValue1() < modelCycles.getSize() - 1);
+    bCyclesDown.setEnabled(
+        !modelCycles.isEmpty() && bounds.getValue0() >= 0 && bounds.getValue1() < modelCycles.getSize() - 1);
     bCyclesRemove.setEnabled(!listCycles.isSelectionEmpty());
     bCyclesRemoveAll.setEnabled(!modelCycles.isEmpty());
 
@@ -1963,13 +1971,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates relevant components to reflect the current state of the selected cycle. */
-  private void updateCurrentCycle()
-  {
+  private void updateCurrentCycle() {
     // updating button states
     Couple<Integer, Integer> bounds = getIndexBounds(listCurCycle.getSelectedIndices());
     bCurCycleUp.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() > 0);
-    bCurCycleDown.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() >= 0 &&
-                             bounds.getValue1() < modelCurCycle.getSize() - 1);
+    bCurCycleDown.setEnabled(
+        !modelCurCycle.isEmpty() && bounds.getValue0() >= 0 && bounds.getValue1() < modelCurCycle.getSize() - 1);
     bCurCycleAdd.setEnabled(!listFramesAvail.isSelectionEmpty());
     bCurCycleRemove.setEnabled(!listCurCycle.isSelectionEmpty());
     listFramesAvail.invalidate();
@@ -1977,17 +1984,15 @@ public class ConvertToBam extends ChildFrame
     pCurrentCycle.validate();
   }
 
-  private void initCurrentCycle(int cycleIdx)
-  {
+  private void initCurrentCycle(int cycleIdx) {
     initCurrentCycle(Couple.with(cycleIdx, cycleIdx));
   }
 
   /** Initializes the "Current cycle" section of the Cycles tab. */
-  private void initCurrentCycle(Couple<Integer, Integer> cycleIndices)
-  {
+  private void initCurrentCycle(Couple<Integer, Integer> cycleIndices) {
     if (cycleIndices != null) {
-      if (cycleIndices.getValue0().compareTo(cycleIndices.getValue1()) == 0 &&
-          cycleIndices.getValue0() >= 0 && cycleIndices.getValue0() < modelCycles.getSize()) {
+      if (cycleIndices.getValue0().compareTo(cycleIndices.getValue1()) == 0 && cycleIndices.getValue0() >= 0
+          && cycleIndices.getValue0() < modelCycles.getSize()) {
         int cycleIdx = cycleIndices.getValue0();
 
         // enabling components
@@ -1999,21 +2004,21 @@ public class ConvertToBam extends ChildFrame
         // updating group box title
         pCurrentCycle.setBorder(BorderFactory.createTitledBorder(String.format("Cycle %d ", cycleIdx)));
 
-        listFramesAvail.setSelectedIndices(new int[]{});
+        listFramesAvail.setSelectedIndices(new int[] {});
 
         // updating current cycle list view
         modelCurCycle.setCycle(cycleIdx);
 
-        listCurCycle.setSelectedIndices(new int[]{});
+        listCurCycle.setSelectedIndices(new int[] {});
 
         updateCurrentCycle();
       } else {
         // no cycle selected
-        listFramesAvail.setSelectedIndices(new int[]{});
+        listFramesAvail.setSelectedIndices(new int[] {});
         listFramesAvail.setEnabled(false);
         bCurCycleAdd.setEnabled(false);
         bCurCycleRemove.setEnabled(false);
-        listCurCycle.setSelectedIndices(new int[]{});
+        listCurCycle.setSelectedIndices(new int[] {});
         listCurCycle.setEnabled(false);
 
         if (cycleIndices.getValue0() < 0 || cycleIndices.getValue1() < 0) {
@@ -2027,8 +2032,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates relevant components to reflect the current frames list selection in the Frames tab. */
-  private void updateFrameInfo(int[] indices)
-  {
+  private void updateFrameInfo(int[] indices) {
     if (indices != null && indices.length > 0) {
       // enabling components
       tfFrameWidth.setEnabled(true);
@@ -2043,8 +2047,9 @@ public class ConvertToBam extends ChildFrame
       int initialHeight = fe.getHeight();
       int initialX = fe.getCenterX();
       int initialY = fe.getCenterY();
-      boolean initialState = (fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) != null) ?
-                             (Boolean)fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) : false;
+      boolean initialState = (fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) != null)
+          ? (Boolean) fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED)
+          : false;
       boolean changedWidth = false, changedHeight = false;
       boolean changedCenterX = false, changedCenterY = false;
       boolean changedCompression = false;
@@ -2055,8 +2060,9 @@ public class ConvertToBam extends ChildFrame
         changedHeight |= (!changedHeight && initialHeight != fe.getHeight());
         changedCenterX |= (!changedCenterX && initialX != fe.getCenterX());
         changedCenterY |= (!changedCenterY && initialY != fe.getCenterY());
-        boolean b = (fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) != null) ?
-                    (Boolean)fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) : false;
+        boolean b = (fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED) != null)
+            ? (Boolean) fe.getOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED)
+            : false;
         changedCompression |= (!changedCompression && initialState != b);
         if (changedWidth && changedHeight && changedCenterX && changedCenterY && changedCompression) {
           break;
@@ -2094,19 +2100,17 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates the specified quick preview section. */
-  private void updateQuickPreview(RenderCanvas target, int[] indices, boolean showCenter)
-  {
+  private void updateQuickPreview(RenderCanvas target, int[] indices, boolean showCenter) {
     if (target != null) {
       int imgWidth = target.getImage().getWidth(null);
       int imgHeight = target.getImage().getHeight(null);
-      Graphics2D g = (Graphics2D)target.getImage().getGraphics();
+      Graphics2D g = (Graphics2D) target.getImage().getGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(new Color(0, true));
         g.fillRect(0, 0, imgWidth, imgHeight);
 
-        if (indices != null && indices.length == 1 &&
-            indices[0] >= 0 && indices[0] < modelFrames.getSize()) {
+        if (indices != null && indices.length == 1 && indices[0] >= 0 && indices[0] < modelFrames.getSize()) {
 
           // drawing frame
           int left = 0, top = 0;
@@ -2121,17 +2125,17 @@ public class ConvertToBam extends ChildFrame
           boolean zoom = ((fe.getWidth() > imgWidth || fe.getHeight() > imgHeight));
           if (zoom) {
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            float ratioX = (float)imgWidth / (float)image.getWidth(null);
-            float ratioY = (float)imgHeight / (float)image.getHeight(null);
+            float ratioX = (float) imgWidth / (float) image.getWidth(null);
+            float ratioY = (float) imgHeight / (float) image.getHeight(null);
             Couple<Float, Float> minMaxRatio = Couple.with(Math.min(ratioX, ratioY), Math.max(ratioX, ratioY));
-            if ((float)image.getWidth(null)*minMaxRatio.getValue1() < (float)imgWidth &&
-                (float)image.getHeight(null)*minMaxRatio.getValue1() < (float)imgHeight) {
+            if (image.getWidth(null) * minMaxRatio.getValue1() < imgWidth
+                && image.getHeight(null) * minMaxRatio.getValue1() < imgHeight) {
               ratio = minMaxRatio.getValue1();
             } else {
               ratio = minMaxRatio.getValue0();
             }
-            int newWidth = (int)((float)image.getWidth(null)*ratio);
-            int newHeight = (int)((float)image.getHeight(null)*ratio);
+            int newWidth = (int) (image.getWidth(null) * ratio);
+            int newHeight = (int) (image.getHeight(null) * ratio);
             left = (imgWidth - newWidth) >>> 1;
             top = (imgHeight - newHeight) >>> 1;
             g.drawImage(image, left, top, newWidth, newHeight, null);
@@ -2143,8 +2147,8 @@ public class ConvertToBam extends ChildFrame
 
           if (showCenter) {
             // drawing center location
-            int cx = left + (int)((float)fe.getCenterX()*ratio);
-            int cy = top + (int)((float)fe.getCenterY()*ratio);
+            int cx = left + (int) (fe.getCenterX() * ratio);
+            int cy = top + (int) (fe.getCenterY() * ratio);
             if (cx >= 0 && cx < imgWidth && cy >= 0 && cy < imgHeight) {
               g.setStroke(new BasicStroke(3.0f));
               g.setColor(Color.BLACK);
@@ -2166,8 +2170,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates the preview tab. */
-  private void updatePreview()
-  {
+  private void updatePreview() {
     previewPrepare(false);
     previewDisplay();
 
@@ -2176,17 +2179,14 @@ public class ConvertToBam extends ChildFrame
     bPreviewCycleNext.setEnabled(bamControlPreview.cycleGet() < bamControlPreview.cycleCount() - 1);
     bPreviewFramePrev.setEnabled(bamControlPreview.cycleGetFrameIndex() > 0);
     bPreviewFrameNext.setEnabled(bamControlPreview.cycleGetFrameIndex() < bamControlPreview.cycleFrameCount() - 1);
-    lPreviewCycle.setText(String.format("Cycle: %d/%d",
-                                        bamControlPreview.cycleGet(), bamControlPreview.cycleCount() - 1));
-    lPreviewFrame.setText(String.format("Frame: %d/%d",
-                                        bamControlPreview.cycleGetFrameIndex(),
-                                        bamControlPreview.cycleFrameCount() - 1));
+    lPreviewCycle
+        .setText(String.format("Cycle: %d/%d", bamControlPreview.cycleGet(), bamControlPreview.cycleCount() - 1));
+    lPreviewFrame.setText(
+        String.format("Frame: %d/%d", bamControlPreview.cycleGetFrameIndex(), bamControlPreview.cycleFrameCount() - 1));
   }
 
-
   /** Updates relevant components to reflect the current state of the filters list. */
-  private void updateFilterList()
-  {
+  private void updateFilterList() {
     // updating button states
     int idx = listFilters.getSelectedIndex();
     bFiltersUp.setEnabled(!modelFilters.isEmpty() && idx > 0);
@@ -2200,8 +2200,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates the filter info box. */
-  private void updateFilterInfo()
-  {
+  private void updateFilterInfo() {
     final String fmt = "Name: %s\n\nDescription:\n%s";
     int idx = listFilters.getSelectedIndex();
     if (idx >= 0) {
@@ -2213,8 +2212,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates the filter settings section with the controls of the currently selected filter. */
-  private void updateFilterControls()
-  {
+  private void updateFilterControls() {
     pFiltersSettings.removeAll();
     int idx = listFilters.getSelectedIndex();
     if (idx >= 0) {
@@ -2229,11 +2227,10 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Adjusts cycle indices after adding frames to the global frames list. */
-  private void updateCyclesAddedFrames(int[] indices)
-  {
+  private void updateCyclesAddedFrames(int[] indices) {
     if (indices != null && indices.length > 0) {
       Arrays.sort(indices);
-      for (final int index: indices) {
+      for (final int index : indices) {
         for (int i = 0; i < modelCycles.getSize(); i++) {
           PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
           for (int j = 0; j < cycle.size(); j++) {
@@ -2249,8 +2246,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Adjusts cycle indices after removing frames from the global frames list. */
-  private void updateCyclesRemovedFrames(int[] indices)
-  {
+  private void updateCyclesRemovedFrames(int[] indices) {
     if (indices != null && indices.length > 0) {
       Arrays.sort(indices);
       for (int x = indices.length - 1; x >= 0; x--) {
@@ -2275,17 +2271,16 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Adjusts cycle indices after moving frames within the global frames list. */
-  private void updateCyclesMovedFrames(int index, int shift)
-  {
+  private void updateCyclesMovedFrames(int index, int shift) {
     if (index >= 0 && shift != 0) {
       for (int i = 0; i < modelCycles.getSize(); i++) {
         PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
         for (int j = 0; j < cycle.size(); j++) {
           if (cycle.get(j) == index) {
             cycle.set(j, cycle.get(j) + shift);
-          } else if (shift > 0 && cycle.get(j) > index && cycle.get(j) <= index+shift) {
+          } else if (shift > 0 && cycle.get(j) > index && cycle.get(j) <= index + shift) {
             cycle.set(j, cycle.get(j) - 1);
-          } else if (shift < 0 && cycle.get(j) < index && cycle.get(j) >= index+shift) {
+          } else if (shift < 0 && cycle.get(j) < index && cycle.get(j) >= index + shift) {
             cycle.set(j, cycle.get(j) + 1);
           }
         }
@@ -2295,21 +2290,19 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Compress frame". */
-  private void framesUpdateCompressFrame()
-  {
+  private void framesUpdateCompressFrame() {
     int[] indices = listFrames.getSelectedIndices();
     if (indices != null) {
-      Boolean b = Boolean.valueOf(cbCompressFrame.isSelected());
-      for (int i = 0; i < indices.length; i++) {
-        getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
+      Boolean b = cbCompressFrame.isSelected();
+      for (int index : indices) {
+        getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
       }
       outputSetModified(true);
     }
   }
 
   /** Evaluates the value in the specified "Center X/Y" text field. */
-  private void framesValidateCenterValue(JTextField tf)
-  {
+  private void framesValidateCenterValue(JTextField tf) {
     if (tf != null) {
       boolean isCenterX = (tf == tfFrameCenterX);
       int[] indices = listFrames.getSelectedIndices();
@@ -2328,23 +2321,23 @@ public class ConvertToBam extends ChildFrame
         int value = numberValidator(s, Short.MIN_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE);
         if (value != Integer.MAX_VALUE) {
           int result = 0;
-          for(int i = 0; i < indices.length; i++) {
+          for (int index : indices) {
             if (isCenterX) {
               if (isRelative) {
-                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).getCenterX() + value;
+                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).getCenterX() + value;
                 result = Math.min(Math.max(result, Short.MIN_VALUE), Short.MAX_VALUE);
-                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterX(result);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).setCenterX(result);
               } else {
-                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterX(value);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).setCenterX(value);
               }
               outputSetModified(true);
             } else {
               if (isRelative) {
-                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).getCenterY() + value;
+                result = getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).getCenterY() + value;
                 result = Math.min(Math.max(result, Short.MIN_VALUE), Short.MAX_VALUE);
-                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterY(result);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).setCenterY(result);
               } else {
-                getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[i]).setCenterY(value);
+                getBamDecoder(BAM_ORIGINAL).getFrameInfo(index).setCenterY(value);
               }
               outputSetModified(true);
             }
@@ -2365,8 +2358,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Add..."->"Add file(s)...": adds image files to the frames list. */
-  public void framesAddFiles()
-  {
+  public void framesAddFiles() {
     Path[] files = getOpenFileName(this, "Choose file(s) to add", null, true, getGraphicsFilters(), 0);
     if (files != null) {
       try {
@@ -2379,10 +2371,9 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Add..."->"Add resource(s)...": adds image resources to the frames list. */
-  public void framesAddResources()
-  {
-    ResourceEntry[] entries =
-        OpenResourceDialog.showOpenDialog(this, "Choose resource(s) to add", new String[]{"BAM", "BMP"}, true);
+  public void framesAddResources() {
+    ResourceEntry[] entries = OpenResourceDialog.showOpenDialog(this, "Choose resource(s) to add",
+        new String[] { "BAM", "BMP" }, true);
     if (entries != null) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -2393,14 +2384,12 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  public void framesAdd(Path[] files)
-  {
+  public void framesAdd(Path[] files) {
     framesAdd(files, listFrames.getSelectedIndex());
   }
 
   /** Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available. */
-  public void framesAdd(Path[] files, int insertIndex)
-  {
+  public void framesAdd(Path[] files, int insertIndex) {
     if (files != null) {
       ResourceEntry[] entries = new ResourceEntry[files.length];
       for (int i = 0; i < files.length; i++) {
@@ -2410,13 +2399,14 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-  public void framesAdd(ResourceEntry[] entries, int insertIndex)
-  {
+  public void framesAdd(ResourceEntry[] entries, int insertIndex) {
     if (entries != null) {
       outputSetModified(true);
       final List<ResourceEntry> skippedFiles = new ArrayList<>();
       int idx = insertIndex;
-      if (idx < -1) idx = modelFrames.getSize() - 1;  // includes adding frames before first list entry
+      if (idx < -1) {
+        idx = modelFrames.getSize() - 1; // includes adding frames before first list entry
+      }
       try {
         for (int i = 0; i < entries.length; i++) {
           if (isProgressMonitorActive()) {
@@ -2430,7 +2420,7 @@ public class ConvertToBam extends ChildFrame
               }
               break;
             }
-            advanceProgressMonitor(String.format("Adding file %d/%d", i+1, entries.length));
+            advanceProgressMonitor(String.format("Adding file %d/%d", i + 1, entries.length));
           }
           // adding files to global frames list
           if (entries[i] != null) {
@@ -2457,9 +2447,9 @@ public class ConvertToBam extends ChildFrame
       listFrames.ensureIndexIsVisible(idx);
 
       // adjusting cycle indices
-//      int[] indices = new int[entries.length - skippedFiles.size()];
+      // int[] indices = new int[entries.length - skippedFiles.size()];
       int[] indices = new int[idx - insertIndex];
-//      for (int i = 0; i < entries.length - skippedFiles.size(); i++) {
+      // for (int i = 0; i < entries.length - skippedFiles.size(); i++) {
       for (int i = 0; i < indices.length; i++) {
         indices[i] = insertIndex + 1 + i;
       }
@@ -2494,8 +2484,7 @@ public class ConvertToBam extends ChildFrame
    *
    * @return the BamDecoder object of the source BAM, or {@code null} on error
    */
-  public BamDecoder framesAddBam(int listIndex, Path file)
-  {
+  public BamDecoder framesAddBam(int listIndex, Path file) {
     return framesAddBam(listIndex, new FileResourceEntry(file));
   }
 
@@ -2504,8 +2493,7 @@ public class ConvertToBam extends ChildFrame
    *
    * @return the BamDecoder object of the source BAM, or {@code null on error
    */
-  public BamDecoder framesAddBam(int listIndex, ResourceEntry entry)
-  {
+  public BamDecoder framesAddBam(int listIndex, ResourceEntry entry) {
     if (listIndex >= 0 && entry != null && BamDecoder.isValid(entry)) {
       BamDecoder decoder = BamDecoder.loadBam(entry);
       BamDecoder.BamControl control = decoder.createControl();
@@ -2514,8 +2502,8 @@ public class ConvertToBam extends ChildFrame
       // preparing palette-specific properties
       IndexColorModel cm = null;
       if (decoder instanceof BamV1Decoder) {
-        int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
-        int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
+        int[] palette = ((BamV1Decoder.BamV1Control) control).getPalette();
+        int transColor = ((BamV1Decoder.BamV1Control) control).getTransparencyIndex();
         cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
       }
 
@@ -2530,9 +2518,8 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Adds a single BAM frame to the frame list. */
-  private int framesAddBamFrame(int listIndex, BamDecoder decoder, BamDecoder.BamControl control,
-                                int frameIndex, IndexColorModel cm)
-  {
+  private int framesAddBamFrame(int listIndex, BamDecoder decoder, BamDecoder.BamControl control, int frameIndex,
+      IndexColorModel cm) {
     if (decoder != null && frameIndex >= 0 && frameIndex < decoder.frameCount()) {
       listIndex = Math.max(0, Math.min(modelFrames.getSize(), listIndex));
 
@@ -2542,8 +2529,8 @@ public class ConvertToBam extends ChildFrame
 
       // preparing palette-specific properties
       if (cm == null && decoder instanceof BamV1Decoder) {
-        int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
-        int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
+        int[] palette = ((BamV1Decoder.BamV1Control) control).getPalette();
+        int transColor = ((BamV1Decoder.BamV1Control) control).getTransparencyIndex();
         cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
       }
 
@@ -2558,8 +2545,8 @@ public class ConvertToBam extends ChildFrame
         } else {
           image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_INDEXED, cm);
         }
-        isCompressed = ((BamV1Decoder.BamV1FrameEntry)fe).isCompressed();
-        rleIndex = ((BamV1Decoder)decoder).getRleIndex();
+        isCompressed = ((BamV1Decoder.BamV1FrameEntry) fe).isCompressed();
+        rleIndex = ((BamV1Decoder) decoder).getRleIndex();
       } else {
         if (fe.getWidth() > 0 && fe.getHeight() > 0) {
           image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -2591,8 +2578,7 @@ public class ConvertToBam extends ChildFrame
     return -1;
   }
 
-  private boolean framesAddImage(int listIndex, Path file, int frameIndex)
-  {
+  private boolean framesAddImage(int listIndex, Path file, int frameIndex) {
     if (file != null) {
       return framesAddImage(listIndex, new FileResourceEntry(file), frameIndex);
     } else {
@@ -2602,15 +2588,14 @@ public class ConvertToBam extends ChildFrame
 
   /**
    * Adds the specified source graphics file to the frames list.
-   * @param listIndex The start position of the image or images in the frames list.
-   * @param entry The resource entry pointing to the graphics file.
-   * @param frameIndex An optional index for graphics files with multiple frames.
-   *                   This is relevant for loading specific frames from animated GIFs.
-   *                   Specify {@code -1} to load all available frames.
+   *
+   * @param listIndex  The start position of the image or images in the frames list.
+   * @param entry      The resource entry pointing to the graphics file.
+   * @param frameIndex An optional index for graphics files with multiple frames. This is relevant for loading specific
+   *                   frames from animated GIFs. Specify {@code -1} to load all available frames.
    * @return {@code true} if image or images have been successfully added to the frames list.
    */
-  private boolean framesAddImage(int listIndex, ResourceEntry entry, int frameIndex)
-  {
+  private boolean framesAddImage(int listIndex, ResourceEntry entry, int frameIndex) {
     boolean retVal = false;
     if (listIndex >= 0 && entry != null) {
       try (InputStream is = entry.getResourceDataAsStream()) {
@@ -2648,18 +2633,15 @@ public class ConvertToBam extends ChildFrame
 
           // transparency detection for paletted images
           if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-            boolean hasAlpha = ((IndexColorModel)image.getColorModel()).hasAlpha();
+            boolean hasAlpha = ((IndexColorModel) image.getColorModel()).hasAlpha();
             int[] cmap = new int[256];
             int transIndex = -1;
-            IndexColorModel srcCm = (IndexColorModel)image.getColorModel();
+            IndexColorModel srcCm = (IndexColorModel) image.getColorModel();
             int numColors = Math.min(1 << srcCm.getPixelSize(), cmap.length);
             int i = 0;
             for (; i < numColors; i++) {
               int alpha = hasAlpha ? srcCm.getAlpha(i) : 0xff;
-              cmap[i] = (alpha << 24) |
-                        (srcCm.getRed(i) << 16) |
-                        (srcCm.getGreen(i) << 8) |
-                        srcCm.getBlue(i);
+              cmap[i] = (alpha << 24) | (srcCm.getRed(i) << 16) | (srcCm.getGreen(i) << 8) | srcCm.getBlue(i);
               // marking first occurence of "Green" as transparent
               if (transIndex < 0) {
                 if ((cmap[i] & 0xff000000) == 0) {
@@ -2681,11 +2663,13 @@ public class ConvertToBam extends ChildFrame
 
             // Adding transparency to image
             IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
-            BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
-            byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
-            byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+            BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(),
+                BufferedImage.TYPE_BYTE_INDEXED, cm);
+            byte[] srcBuffer = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+            byte[] dstBuffer = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
             System.arraycopy(srcBuffer, 0, dstBuffer, 0, srcBuffer.length);
-            srcBuffer = null; dstBuffer = null;
+            srcBuffer = null;
+            dstBuffer = null;
             cmap = null;
             image = dstImage;
           }
@@ -2715,10 +2699,9 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Import BAM file...": loads a complete frames/cycles structure. */
-  public void framesImportBamFile()
-  {
+  public void framesImportBamFile() {
     Path[] files = getOpenFileName(this, "Import BAM file", null, false,
-                                   new FileNameExtensionFilter[]{getBamFilter()}, 0);
+        new FileNameExtensionFilter[] { getBamFilter() }, 0);
     if (files != null && files.length > 0) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -2730,10 +2713,9 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Import BAM resource...": loads a complete frames/cycles structure. */
-  public void framesImportBamResource()
-  {
-    ResourceEntry[] entries =
-        OpenResourceDialog.showOpenDialog(this, "Import BAM resource", new String[]{"BAM"}, false);
+  public void framesImportBamResource() {
+    ResourceEntry[] entries = OpenResourceDialog.showOpenDialog(this, "Import BAM resource", new String[] { "BAM" },
+        false);
     if (entries != null && entries.length > 0) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -2745,25 +2727,21 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Specific: Loads the whole frames/cycles structure from the specified BAM file. */
-  public void framesImportBam(Path file)
-  {
+  public void framesImportBam(Path file) {
     framesImportBam(new FileResourceEntry(file));
   }
 
   /** Specific: Loads the whole frames/cycles structure from the specified BAM ResourceEntry object. */
-  public void framesImportBam(ResourceEntry entry)
-  {
+  public void framesImportBam(ResourceEntry entry) {
     if (entry != null) {
       outputSetModified(true);
       boolean cancelled = false;
       boolean replace = true;
       if (!modelFrames.isEmpty()) {
-        String[] options = {"Append", "Replace", "Cancel"};
+        String[] options = { "Append", "Replace", "Cancel" };
         String msg = "What do you want to do with the selected BAM file?";
-        int ret = JOptionPane.showOptionDialog(this, msg, "Question",
-                                               JOptionPane.YES_NO_CANCEL_OPTION,
-                                               JOptionPane.QUESTION_MESSAGE, null,
-                                               options, options[0]);
+        int ret = JOptionPane.showOptionDialog(this, msg, "Question", JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         cancelled = (ret == 2 || ret == JOptionPane.CLOSED_OPTION);
         replace = (ret == 1);
       }
@@ -2781,9 +2759,9 @@ public class ConvertToBam extends ChildFrame
           for (int i = 0; i < control.cycleCount(); i++) {
             int[] indices = new int[control.cycleFrameCount(i)];
             for (int j = 0; j < control.cycleFrameCount(i); j++) {
-              indices[j] = control.cycleGetFrameIndexAbsolute(i, j)+frameBase;
+              indices[j] = control.cycleGetFrameIndexAbsolute(i, j) + frameBase;
             }
-            cyclesAdd(i+cycleBase, indices);
+            cyclesAdd(i + cycleBase, indices);
           }
           // updating GUI controls
           updateFramesList();
@@ -2795,32 +2773,29 @@ public class ConvertToBam extends ChildFrame
             updateCyclesList();
           }
         } else {
-          JOptionPane.showMessageDialog(this, "Error while importing BAM file " + entry.getResourceName(),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Error while importing BAM file " + entry.getResourceName(), "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
   }
 
   /** Action for "Add..."->"Add folder...": adds all supported files from the specified folder. */
-  public void framesAddFolder()
-  {
+  public void framesAddFolder() {
     framesAddFolder(getOpenPathName(this, "Select folder", null));
   }
 
-  public void framesAddFolder(Path path)
-  {
+  public void framesAddFolder(Path path) {
     framesAddFolder(path, listFrames.getSelectedIndex());
   }
 
-  public void framesAddFolder(Path path, int insertIndex)
-  {
+  public void framesAddFolder(Path path, int insertIndex) {
     if (path != null && FileEx.create(path).isDirectory()) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
       List<Path> validFiles = new ArrayList<>();
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
-        for (final Path file: dstream) {
+        for (final Path file : dstream) {
           if (FileEx.create(file).isFile() && filters.accept(file.toFile())) {
             validFiles.add(file);
           }
@@ -2841,8 +2816,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Remove": removes the selected frame entry/entries from the frames list, updates cycle structures. */
-  public void framesRemove()
-  {
+  public void framesRemove() {
     try {
       WindowBlocker.blockWindow(this, true);
       int[] indices = listFrames.getSelectedIndices();
@@ -2857,8 +2831,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Specific: Removes the selected frames from the frames list. */
-  public void framesRemove(int[] indices)
-  {
+  public void framesRemove(int[] indices) {
     if (indices != null && indices.length > 0) {
       outputSetModified(true);
       Arrays.sort(indices);
@@ -2878,8 +2851,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Remove all": removes all frame entries from frames list, updatees cycle structures. */
-  public void framesRemoveAll()
-  {
+  public void framesRemoveAll() {
     outputSetModified(true);
     modelFrames.clear();
     updateFramesList();
@@ -2887,8 +2859,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Up" button next to frames list. */
-  private void framesMoveUp()
-  {
+  private void framesMoveUp() {
     outputSetModified(true);
     int[] indices = listFrames.getSelectedIndices();
     for (int i = 0; i < indices.length; i++) {
@@ -2904,8 +2875,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Down" button next to frames list. */
-  private void framesMoveDown()
-  {
+  private void framesMoveDown() {
     outputSetModified(true);
     int[] indices = listFrames.getSelectedIndices();
     for (int i = indices.length - 1; i >= 0; i--) {
@@ -2921,14 +2891,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Drop unused frames": return number of unused frames. */
-  private int framesGetUnusedFramesCount()
-  {
+  private int framesGetUnusedFramesCount() {
     return framesGetUnusedFramesCount(framesGetUnusedFrames());
   }
 
   /** Action for "Drop unused frames": return number of unused frames. */
-  private int framesGetUnusedFramesCount(BitSet framesUsed)
-  {
+  private int framesGetUnusedFramesCount(BitSet framesUsed) {
     int retVal = 0;
     if (framesUsed != null) {
       for (int i = 0; i < modelFrames.getSize(); i++) {
@@ -2940,9 +2908,8 @@ public class ConvertToBam extends ChildFrame
     return retVal;
   }
 
-  /** Action  for "Drop unused frames": returns a bitset that maps the used state of all frames. */
-  private BitSet framesGetUnusedFrames()
-  {
+  /** Action for "Drop unused frames": returns a bitset that maps the used state of all frames. */
+  private BitSet framesGetUnusedFrames() {
     BitSet framesUsed = new BitSet(modelFrames.getSize());
     for (int i = 0; i < modelCycles.getSize(); i++) {
       PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
@@ -2957,8 +2924,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Drop unused frames": removes unused frames and adjusts cycle indices respectively. */
-  private void framesDropUnusedFrames()
-  {
+  private void framesDropUnusedFrames() {
     BitSet framesUsed = framesGetUnusedFrames();
     int count = framesGetUnusedFramesCount(framesUsed);
     if (count > 0) {
@@ -2973,20 +2939,25 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
   /** Action for "Add cycle": adds a new empty cycle at the current cycle index to the cycles list. */
-  private void cyclesAdd()
-  {
+  private void cyclesAdd() {
     int idx = listCycles.getSelectedIndex() + 1;
-    if (idx < 0) idx = modelCycles.getSize();
+    if (idx < 0) {
+      idx = modelCycles.getSize();
+    }
     cyclesAdd(idx, new int[0]);
   }
 
   /** Specific: adds a new cycle with the specified frame indices at the specified position. */
-  private void cyclesAdd(int index, int[] indices)
-  {
-    if (index < 0) index = 0; else if (index > modelCycles.getSize()) index = modelCycles.getSize();
-    if (indices == null) indices = new int[0];
+  private void cyclesAdd(int index, int[] indices) {
+    if (index < 0) {
+      index = 0;
+    } else if (index > modelCycles.getSize()) {
+      index = modelCycles.getSize();
+    }
+    if (indices == null) {
+      indices = new int[0];
+    }
     modelCycles.insert(index, indices);
     listCycles.setSelectedIndex(index);
     listCycles.ensureIndexIsVisible(index);
@@ -2994,8 +2965,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Remove cycle": removes the selected cycles from the cycles list. */
-  private void cyclesRemove()
-  {
+  private void cyclesRemove() {
     int[] indices = listCycles.getSelectedIndices();
     if (indices.length > 0) {
       for (int i = indices.length - 1; i >= 0; i--) {
@@ -3007,8 +2977,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Specific: removes the specified cycle from the cycles list. */
-  private void cyclesRemove(int index)
-  {
+  private void cyclesRemove(int index) {
     if (index >= 0 && index < modelCycles.getSize()) {
       modelCycles.remove(index, 1);
       if (index > 0) {
@@ -3022,15 +2991,13 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Remove all": removes all cycles from the cycles list. */
-  private void cyclesRemoveAll()
-  {
+  private void cyclesRemoveAll() {
     modelCycles.clear();
     updateCyclesList();
   }
 
   /** Action for "Up" button next to cycles list. */
-  private void cyclesMoveUp()
-  {
+  private void cyclesMoveUp() {
     int[] indices = listCycles.getSelectedIndices();
     if (indices.length > 0) {
       for (int i = 0; i < indices.length; i++) {
@@ -3046,8 +3013,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Down" button next to cycles list. */
-  private void cyclesMoveDown()
-  {
+  private void cyclesMoveDown() {
     int[] indices = listCycles.getSelectedIndices();
     if (indices.length > 0) {
       for (int i = indices.length - 1; i >= 0; i--) {
@@ -3062,14 +3028,14 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
-  /** Action for macro "Selected cycle"->"Assign all frames": puts all available frames into the selected cycle (sorted). */
-  private void macroAssignFrames()
-  {
+  /**
+   * Action for macro "Selected cycle"->"Assign all frames": puts all available frames into the selected cycle (sorted).
+   */
+  private void macroAssignFrames() {
     int[] indices = listCycles.getSelectedIndices();
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
-        modelCurCycle.setCycle(indices[i]);
+    for (int index : indices) {
+      if (index >= 0 && index < modelCycles.getSize()) {
+        modelCurCycle.setCycle(index);
         modelCurCycle.clear();
         int[] frames = new int[modelFrames.getSize()];
         for (int j = 0; j < frames.length; j++) {
@@ -3082,12 +3048,11 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "Selected cycle"->"Remove all frames": Removes all frame indices. */
-  private void macroRemoveAllFrames()
-  {
+  private void macroRemoveAllFrames() {
     int[] indices = listCycles.getSelectedIndices();
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
-        modelCurCycle.setCycle(indices[i]);
+    for (int index : indices) {
+      if (index >= 0 && index < modelCycles.getSize()) {
+        modelCurCycle.setCycle(index);
         modelCurCycle.clear();
       }
     }
@@ -3095,8 +3060,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "Selected cycle"->"Duplicate cycle": Adds a duplicate below the selected cycle. */
-  private void macroDuplicateCycle()
-  {
+  private void macroDuplicateCycle() {
     int[] indices = listCycles.getSelectedIndices();
     for (int i = 0; i < indices.length; i++) {
       if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
@@ -3104,7 +3068,7 @@ public class ConvertToBam extends ChildFrame
         for (int j = 0; j < frames.length; j++) {
           frames[j] = modelCycles.getElementAt(indices[i]).get(j);
         }
-        modelCycles.insert(indices[i]+1, frames);
+        modelCycles.insert(indices[i] + 1, frames);
         for (int j = i; j < indices.length; j++) {
           indices[j]++;
         }
@@ -3115,15 +3079,14 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "Selected cycle"->"Duplicate each frame": Duplicates each frame in the selected cycle. */
-  private void macroDuplicateFrames()
-  {
+  private void macroDuplicateFrames() {
     int[] indices = listCycles.getSelectedIndices();
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
-        modelCurCycle.setCycle(indices[i]);
+    for (int index : indices) {
+      if (index >= 0 && index < modelCycles.getSize()) {
+        modelCurCycle.setCycle(index);
         int frameIdx = modelCurCycle.getSize() - 1;
         while (frameIdx >= 0) {
-          modelCurCycle.insert(frameIdx+1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
+          modelCurCycle.insert(frameIdx + 1, modelCurCycle.getControl().cycleGetFrameIndexAbsolute(frameIdx));
           frameIdx--;
         }
       }
@@ -3132,18 +3095,17 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "Selected cycle"->"Sort frames": Sorts frame indices by value. */
-  private void macroSortFrames()
-  {
+  private void macroSortFrames() {
     int[] indices = listCycles.getSelectedIndices();
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
-        int[] frames = new int[modelCycles.getElementAt(indices[i]).size()];
+    for (int index : indices) {
+      if (index >= 0 && index < modelCycles.getSize()) {
+        int[] frames = new int[modelCycles.getElementAt(index).size()];
         for (int j = 0; j < frames.length; j++) {
-          frames[j] = modelCycles.getElementAt(indices[i]).get(j);
+          frames[j] = modelCycles.getElementAt(index).get(j);
         }
         Arrays.sort(frames);
         for (int j = 0; j < frames.length; j++) {
-          modelCycles.getElementAt(indices[i]).set(j, frames[j]);
+          modelCycles.getElementAt(index).set(j, frames[j]);
         }
       }
     }
@@ -3151,18 +3113,17 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "Selected cycle"->"Reverse frames order": Reverses the current order of the frame indices. */
-  private void macroReverseFramesOrder()
-  {
+  private void macroReverseFramesOrder() {
     int[] indices = listCycles.getSelectedIndices();
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i] >= 0 && indices[i] < modelCycles.getSize()) {
-        int[] frames = new int[modelCycles.getElementAt(indices[i]).size()];
-        int len = modelCycles.getElementAt(indices[i]).size();
+    for (int index : indices) {
+      if (index >= 0 && index < modelCycles.getSize()) {
+        int[] frames = new int[modelCycles.getElementAt(index).size()];
+        int len = modelCycles.getElementAt(index).size();
         for (int j = 0; j < len; j++) {
-          frames[j] = modelCycles.getElementAt(indices[i]).get(len - j - 1);
+          frames[j] = modelCycles.getElementAt(index).get(len - j - 1);
         }
         for (int j = 0; j < len; j++) {
-          modelCycles.getElementAt(indices[i]).set(j, frames[j]);
+          modelCycles.getElementAt(index).set(j, frames[j]);
         }
       }
     }
@@ -3170,12 +3131,11 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "All cycles"->"Remove all frames": Removes all frame indices. */
-  private void macroRemoveAllFramesGlobal()
-  {
+  private void macroRemoveAllFramesGlobal() {
     if (!modelCycles.isEmpty()) {
       String msg = "Do you really want to remove all frame indices from each cycle?";
       int ret = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
-                                              JOptionPane.QUESTION_MESSAGE);
+          JOptionPane.QUESTION_MESSAGE);
       if (ret == JOptionPane.YES_OPTION) {
         for (int i = 0; i < modelCycles.getSize(); i++) {
           modelCycles.getElementAt(i).clear();
@@ -3186,8 +3146,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for macro "All cycles"->"Reverse cycles order": Reverses the order of all cycle entries. */
-  private void macroReverseCyclesOrder()
-  {
+  private void macroReverseCyclesOrder() {
     if (!modelCycles.isEmpty()) {
       int idx = listCycles.getSelectedIndex();
       int[][] entries = new int[modelCycles.getSize()][];
@@ -3209,25 +3168,27 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
-  /** Action for "Right" button between available frames/current cycle: adds selected frames to the current cycle list. */
-  private void currentCycleAdd()
-  {
+  /**
+   * Action for "Right" button between available frames/current cycle: adds selected frames to the current cycle list.
+   */
+  private void currentCycleAdd() {
     int[] indices = listFramesAvail.getSelectedIndices();
     if (indices != null && indices.length > 0) {
       Couple<Integer, Integer> dstBounds = getIndexBounds(listCurCycle.getSelectedIndices());
       int dstIdx = dstBounds.getValue1() + 1;
       modelCurCycle.insert(dstIdx, indices);
       modelCycles.contentChanged(modelCurCycle.getCycle());
-      listFramesAvail.setSelectedIndices(new int[]{getIndexBounds(indices).getValue1()});
+      listFramesAvail.setSelectedIndices(new int[] { getIndexBounds(indices).getValue1() });
       listCurCycle.setSelectedIndex(dstIdx + indices.length - 1);
       updateCurrentCycle();
     }
   }
 
-  /** Action for "Left" button between available frames/current cycle: removes selected frames from the current cycle list. */
-  private void currentCycleRemove()
-  {
+  /**
+   * Action for "Left" button between available frames/current cycle: removes selected frames from the current cycle
+   * list.
+   */
+  private void currentCycleRemove() {
     int[] indices = listCurCycle.getSelectedIndices();
     if (indices != null && indices.length > 0) {
       for (int i = indices.length - 1; i >= 0; i--) {
@@ -3240,8 +3201,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Up" button of current cycle list. */
-  private void currentCycleMoveUp()
-  {
+  private void currentCycleMoveUp() {
     int[] indices = listCurCycle.getSelectedIndices();
     for (int i = 0; i < indices.length; i++) {
       if (indices[i] > 0 && indices[i] < modelCurCycle.getSize()) {
@@ -3256,8 +3216,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Down" button of current cycle list. */
-  private void currentCycleMoveDown()
-  {
+  private void currentCycleMoveDown() {
     int[] indices = listCurCycle.getSelectedIndices();
     for (int i = indices.length - 1; i >= 0; i--) {
       if (indices[i] >= 0 && indices[i] < modelCurCycle.getSize() - 1) {
@@ -3271,10 +3230,8 @@ public class ConvertToBam extends ChildFrame
     updateCurrentCycle();
   }
 
-
   /** Action for "Play/Pause": start/pause playback without resetting current frame. */
-  private void previewPlay()
-  {
+  private void previewPlay() {
     if (previewIsPlaying()) {
       timer.stop();
       isPreviewPlaying = false;
@@ -3292,8 +3249,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Stop": stops playback and resets current frame to 1. */
-  private void previewStop()
-  {
+  private void previewStop() {
     timer.stop();
     isPreviewPlaying = false;
     bPreviewPlay.setText("Play");
@@ -3306,14 +3262,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns whether playback is active. */
-  private boolean previewIsPlaying()
-  {
+  private boolean previewIsPlaying() {
     return isPreviewPlaying;
   }
 
   /** Action for "Next cycle" button: selects next cycle index if available. */
-  private void previewCycleUp()
-  {
+  private void previewCycleUp() {
     if (bamControlPreview.cycleGet() < bamControlPreview.cycleCount() - 1) {
       bamControlPreview.cycleSet(bamControlPreview.cycleGet() + 1);
       bamControlPreview.cycleSetFrameIndex(0);
@@ -3322,8 +3276,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Previous cycle" button: selects previous cycle index if available. */
-  private void previewCycleDown()
-  {
+  private void previewCycleDown() {
     if (bamControlPreview.cycleGet() > 0) {
       bamControlPreview.cycleSet(bamControlPreview.cycleGet() - 1);
       bamControlPreview.cycleSetFrameIndex(0);
@@ -3332,8 +3285,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Next frame" button: selects next frame index if available. */
-  private void previewFrameUp()
-  {
+  private void previewFrameUp() {
     if (bamControlPreview.cycleGetFrameIndex() < bamControlPreview.cycleFrameCount() - 1) {
       bamControlPreview.cycleSetFrameIndex(bamControlPreview.cycleGetFrameIndex() + 1);
       updatePreview();
@@ -3341,8 +3293,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for "Previous frame" button: selects previous frame index if available. */
-  private void previewFrameDown()
-  {
+  private void previewFrameDown() {
     if (bamControlPreview.cycleGetFrameIndex() > 0) {
       bamControlPreview.cycleSetFrameIndex(bamControlPreview.cycleGetFrameIndex() - 1);
       updatePreview();
@@ -3350,52 +3301,45 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns the current playback mode. */
-  private int previewGetMode()
-  {
+  private int previewGetMode() {
     return cbPreviewMode.getSelectedIndex();
   }
 
   /** Sets the current playback mode. */
-  private void previewSetMode(int mode)
-  {
+  private void previewSetMode(int mode) {
     if (mode >= 0 && mode < cbPreviewMode.getItemCount()) {
       cbPreviewMode.setSelectedIndex(mode);
     }
   }
 
   /** Sets a new frame rate. */
-  private void previewSetFrameRate(double fps)
-  {
+  private void previewSetFrameRate(double fps) {
     try {
       sPreviewFps.setValue(Double.valueOf(fps));
-      currentFps = (Double)sPreviewFps.getValue();
-      timer.setDelay((int)(1000.0 / currentFps));
+      currentFps = (Double) sPreviewFps.getValue();
+      timer.setDelay((int) (1000.0 / currentFps));
     } catch (IllegalArgumentException e) {
     }
   }
 
   /** Returns whether the preview is in zoom mode. */
-  private boolean previewIsZoomed()
-  {
+  private boolean previewIsZoomed() {
     return cbPreviewZoom.isSelected();
   }
 
   /** Sets the zoom mode of the preview. */
-  private void previewSetZoom(boolean set)
-  {
+  private void previewSetZoom(boolean set) {
     cbPreviewZoom.setSelected(set);
     previewPrepare(false);
   }
 
   /** Returns whether markers are visible. */
-  private boolean previewIsMarkerVisible()
-  {
+  private boolean previewIsMarkerVisible() {
     return cbPreviewShowMarker.isSelected();
   }
 
   /** Sets the visibility state of markers. */
-  private void previewSetMarkerVisible(boolean set)
-  {
+  private void previewSetMarkerVisible(boolean set) {
     cbPreviewShowMarker.setSelected(set);
     previewPrepare(false);
   }
@@ -3405,8 +3349,7 @@ public class ConvertToBam extends ChildFrame
    *
    * @return {@code false} if no more advancements can be done.
    */
-  private boolean previewAdvanceAnimation()
-  {
+  private boolean previewAdvanceAnimation() {
     boolean retVal = true;
     int retries = bamControlPreview.cycleCount();
     // advancing frame depends on current playback mode
@@ -3450,15 +3393,13 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Resets the current animation (can used as a reaction to the IsModified flag). */
-  private void previewValidate()
-  {
+  private void previewValidate() {
     previewPrepare(true);
     updatePreview();
   }
 
   /** Updates the BAM control instance for previews. */
-  private void previewInitControl()
-  {
+  private void previewInitControl() {
     if (bamControlPreview == null) {
       bamControlPreview = bamDecoderFinal.createControl();
       bamControlPreview.setMode(BamDecoder.BamControl.Mode.SHARED);
@@ -3476,8 +3417,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Initializes the preview. */
-  private void previewPrepare(boolean update)
-  {
+  private void previewPrepare(boolean update) {
     if (update) {
       // updating finalized BAM structure
       try {
@@ -3491,22 +3431,20 @@ public class ConvertToBam extends ChildFrame
 
     int zoom = previewIsZoomed() ? 2 : 1;
     Dimension dim = bamControlPreview.getSharedDimension();
-    if (previewCanvas == null ||
-        previewCanvas.getWidth() != dim.width||
-        previewCanvas.getHeight() != dim.height) {
+    if (previewCanvas == null || previewCanvas.getWidth() != dim.width || previewCanvas.getHeight() != dim.height) {
       previewCanvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     }
     boolean sizeChanged = false;
-    dim.width += 2; dim.height += 2;    // adjusting for preview markers
-    if (rcPreview.getImage() == null ||
-        rcPreview.getImage().getWidth(null) != dim.width ||
-        rcPreview.getImage().getHeight(null) != dim.height) {
+    dim.width += 2;
+    dim.height += 2; // adjusting for preview markers
+    if (rcPreview.getImage() == null || rcPreview.getImage().getWidth(null) != dim.width
+        || rcPreview.getImage().getHeight(null) != dim.height) {
       rcPreview.setImage(ColorConvert.createCompatibleImage(dim.width, dim.height, true));
       sizeChanged = true;
     }
-    if (rcPreview.getPreferredSize().width != dim.width*zoom ||
-        rcPreview.getPreferredSize().height != dim.height*zoom) {
-      rcPreview.setPreferredSize(new Dimension(dim.width*zoom, dim.height*zoom));
+    if (rcPreview.getPreferredSize().width != dim.width * zoom
+        || rcPreview.getPreferredSize().height != dim.height * zoom) {
+      rcPreview.setPreferredSize(new Dimension(dim.width * zoom, dim.height * zoom));
       rcPreview.setMinimumSize(rcPreview.getPreferredSize());
       rcPreview.setSize(rcPreview.getPreferredSize());
       sizeChanged = true;
@@ -3521,8 +3459,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Displays the current frame on screen. */
-  private synchronized void previewDisplay()
-  {
+  private synchronized void previewDisplay() {
     if (bamControlPreview != null && previewCanvas != null && rcPreview.getImage() != null) {
       // clearing old content
       Graphics2D g = previewCanvas.createGraphics();
@@ -3539,7 +3476,7 @@ public class ConvertToBam extends ChildFrame
       bamControlPreview.cycleGetFrame(previewCanvas);
 
       // drawing markers
-      g = (Graphics2D)rcPreview.getImage().getGraphics();
+      g = (Graphics2D) rcPreview.getImage().getGraphics();
       try {
         // clearing old content
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
@@ -3565,8 +3502,12 @@ public class ConvertToBam extends ChildFrame
 
           // drawing center marker (if frame is big enough)
           int msize = 8;
-          if (msize > imgWidth) msize = imgWidth;
-          if (imgWidth > imgHeight) msize = imgHeight;
+          if (msize > imgWidth) {
+            msize = imgWidth;
+          }
+          if (imgWidth > imgHeight) {
+            msize = imgHeight;
+          }
           if (imgWidth > 3 && imgHeight > 3) {
             x = -origin.x + 1;
             y = -origin.y + 1;
@@ -3589,11 +3530,9 @@ public class ConvertToBam extends ChildFrame
     rcPreview.repaint();
   }
 
-
   /** Inserts a new filter into the filters list. */
-  private BamFilterBase filterAdd()
-  {
-    BamFilterFactory.FilterInfo fi = (BamFilterFactory.FilterInfo)cbFiltersAdd.getSelectedItem();
+  private BamFilterBase filterAdd() {
+    BamFilterFactory.FilterInfo fi = (BamFilterFactory.FilterInfo) cbFiltersAdd.getSelectedItem();
     if (fi != null) {
       return filterAdd(fi);
     }
@@ -3601,8 +3540,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Inserts the specified filter into the filters list. */
-  private BamFilterBase filterAdd(BamFilterFactory.FilterInfo info)
-  {
+  private BamFilterBase filterAdd(BamFilterFactory.FilterInfo info) {
     if (info != null) {
       int idx = listFilters.getSelectedIndex();
 
@@ -3622,8 +3560,8 @@ public class ConvertToBam extends ChildFrame
       BamFilterBase filter = BamFilterFactory.createInstance(this, filterClass);
       if (filter != null) {
         filter.addChangeListener(this);
-        modelFilters.add(idx+1, filter);
-        listFilters.setSelectedIndex(idx+1);
+        modelFilters.add(idx + 1, filter);
+        listFilters.setSelectedIndex(idx + 1);
         outputSetModified(true);
       } else {
         JOptionPane.showMessageDialog(this, "Unable to create selected filter.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -3634,14 +3572,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Removes the currently selected filter. */
-  private void filterRemove()
-  {
+  private void filterRemove() {
     filterRemove(listFilters.getSelectedIndex());
   }
 
   /** Removes the specified filter from the filters list. */
-  private void filterRemove(int index)
-  {
+  private void filterRemove(int index) {
     if (index >= 0 && index < modelFilters.size()) {
       BamFilterBase filter = modelFilters.get(index);
       filter.close();
@@ -3657,8 +3593,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Removes all filters from the filters list. */
-  private void filterRemoveAll()
-  {
+  private void filterRemoveAll() {
     listFilters.setSelectedIndex(-1);
     for (int i = modelFilters.size() - 1; i >= 0; i--) {
       BamFilterBase filter = modelFilters.get(i);
@@ -3670,8 +3605,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Moves the currently selected filter up. */
-  private void filterMoveUp()
-  {
+  private void filterMoveUp() {
     int index = listFilters.getSelectedIndex();
     if (index > 0 && index < modelFilters.size()) {
       BamFilterBase filter = modelFilters.get(index - 1);
@@ -3685,8 +3619,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Moves the currently selected filter down. */
-  private void filterMoveDown()
-  {
+  private void filterMoveDown() {
     int index = listFilters.getSelectedIndex();
     if (index >= 0 && index < modelFilters.size() - 1) {
       BamFilterBase filter = modelFilters.get(index + 1);
@@ -3700,22 +3633,19 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns whether preview markers have been enabled. */
-  private boolean filterIsMarkerVisible()
-  {
+  private boolean filterIsMarkerVisible() {
     return cbFiltersShowMarker.isSelected();
   }
 
   /** Returns the currently selected frame index. */
-  private int filterGetPreviewFrameIndex()
-  {
-    return ((Integer)sFiltersPreviewFrame.getValue()).intValue();
+  private int filterGetPreviewFrameIndex() {
+    return ((Integer) sFiltersPreviewFrame.getValue());
   }
 
-  private void filterUpdatePreviewFrameIndex()
-  {
-    SpinnerNumberModel model = (SpinnerNumberModel)sFiltersPreviewFrame.getModel();
-    int max = ((Integer)model.getMaximum()).intValue();
-    int cur = ((Integer)model.getValue()).intValue();
+  private void filterUpdatePreviewFrameIndex() {
+    SpinnerNumberModel model = (SpinnerNumberModel) sFiltersPreviewFrame.getModel();
+    int max = ((Integer) model.getMaximum());
+    int cur = ((Integer) model.getValue());
     if (max != listFrameEntries.get(BAM_ORIGINAL).size()) {
       max = listFrameEntries.get(BAM_ORIGINAL).size();
       if (cur >= max) {
@@ -3727,28 +3657,25 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Prepares the specified frame for quick preview. */
-  private void filterSetPreviewFrame(int frameIdx, boolean complete)
-  {
+  private void filterSetPreviewFrame(int frameIdx, boolean complete) {
     PseudoBamFrameEntry entry = getFilteredBamFrame(getBamVersion(), filterGetPreviewFrameIndex(), complete);
-    if (entry.getFrame().getWidth() != (rcFiltersPreview.getImage().getWidth(null) - 2) ||
-        entry.getFrame().getHeight() != (rcFiltersPreview.getImage().getHeight(null) - 2)) {
-      rcFiltersPreview.setImage(new BufferedImage(entry.getFrame().getWidth() + 2,
-                                                  entry.getFrame().getHeight() + 2,
-                                                  BufferedImage.TYPE_INT_ARGB));
+    if (entry.getFrame().getWidth() != (rcFiltersPreview.getImage().getWidth(null) - 2)
+        || entry.getFrame().getHeight() != (rcFiltersPreview.getImage().getHeight(null) - 2)) {
+      rcFiltersPreview.setImage(new BufferedImage(entry.getFrame().getWidth() + 2, entry.getFrame().getHeight() + 2,
+          BufferedImage.TYPE_INT_ARGB));
     }
     filterDisplay(entry);
   }
 
   /** Displays the specified entry in the filters quick preview. */
-  private void filterDisplay(PseudoBamFrameEntry entry)
-  {
+  private void filterDisplay(PseudoBamFrameEntry entry) {
     if (rcFiltersPreview.getImage() != null && entry != null && entry.getFrame() != null) {
       int canvasWidth = rcFiltersPreview.getImage().getWidth(null);
       int canvasHeight = rcFiltersPreview.getImage().getHeight(null);
       int centerX = entry.getCenterX();
       int centerY = entry.getCenterY();
 
-      Graphics2D g = (Graphics2D)rcFiltersPreview.getImage().getGraphics();
+      Graphics2D g = (Graphics2D) rcFiltersPreview.getImage().getGraphics();
       try {
         // clearing old content
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
@@ -3765,8 +3692,12 @@ public class ConvertToBam extends ChildFrame
 
           // drawing center marker (if frame is big enough)
           int msize = 8;
-          if (msize > canvasWidth) msize = canvasWidth;
-          if (canvasWidth > canvasHeight) msize = canvasHeight;
+          if (msize > canvasWidth) {
+            msize = canvasWidth;
+          }
+          if (canvasWidth > canvasHeight) {
+            msize = canvasHeight;
+          }
           if (canvasWidth > 3 && canvasHeight > 3) {
             g.setStroke(new BasicStroke(3.0f));
             g.setColor(Color.BLACK);
@@ -3787,34 +3718,29 @@ public class ConvertToBam extends ChildFrame
   }
 
   /**
-   * Triggers the update function for each filter in the list, enabling them to react to the
-   * current state of the converter.
+   * Triggers the update function for each filter in the list, enabling them to react to the current state of the
+   * converter.
    */
-  private void filterUpdateControls()
-  {
+  private void filterUpdateControls() {
     for (int i = 0; i < modelFilters.size(); i++) {
       modelFilters.get(i).updateControls();
     }
   }
 
-
   /**
    * A helper method that performs a given operation on selected list items after optional user confirmation.
    *
-   * @param <T> List item type.
-   * @param list {@code JList} instance to perform the operation on.
-   * @param operation The operation to perform if selected list items are available.
-   * @param confirm whether to ask for confirmation before performing the operation on the list.
-   * @param msgPromptSingle Confirmation string if a single list item is selected.
-   *                        May contain a {@code %d} placeholder for the number of selected list items.
-   * @param msgPromptMultiple Confirmation string if multiple list items are selected.
-   *                          May contain a {@code %d} placeholder for the number of selected list items.
+   * @param <T>               List item type.
+   * @param list              {@code JList} instance to perform the operation on.
+   * @param operation         The operation to perform if selected list items are available.
+   * @param confirm           whether to ask for confirmation before performing the operation on the list.
+   * @param msgPromptSingle   Confirmation string if a single list item is selected. May contain a {@code %d}
+   *                          placeholder for the number of selected list items.
+   * @param msgPromptMultiple Confirmation string if multiple list items are selected. May contain a {@code %d}
+   *                          placeholder for the number of selected list items.
    */
-  private <T> void doWithSelectedListItems(JList<T> list,
-                                           Consumer<JList<T>> operation,
-                                           boolean confirm,
-                                           String msgPromptSingle,
-                                           String msgPromptMultiple) {
+  private <T> void doWithSelectedListItems(JList<T> list, Consumer<JList<T>> operation, boolean confirm,
+      String msgPromptSingle, String msgPromptMultiple) {
     if (list == null || operation == null) {
       return;
     }
@@ -3841,7 +3767,7 @@ public class ConvertToBam extends ChildFrame
       }
 
       int retVal = JOptionPane.showConfirmDialog(this, message, "Question", JOptionPane.YES_NO_OPTION,
-                                                 JOptionPane.QUESTION_MESSAGE);
+          JOptionPane.QUESTION_MESSAGE);
       accepted = (retVal == JOptionPane.YES_OPTION);
     }
 
@@ -3851,8 +3777,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for selecting BAM version in export section: 0=BAM v1, 1=BAM v2. */
-  private void setBamVersion(int index)
-  {
+  private void setBamVersion(int index) {
     String s;
     switch (index) {
       case VERSION_BAMV1:
@@ -3867,7 +3792,7 @@ public class ConvertToBam extends ChildFrame
     if (s != null) {
       cbVersion.setSelectedIndex(index);
       // setting BAM version-specific export controls
-      CardLayout cl = (CardLayout)pFramesOptionsVersion.getLayout();
+      CardLayout cl = (CardLayout) pFramesOptionsVersion.getLayout();
       cl.show(pFramesOptionsVersion, s);
       // setting enabled state of frame compression flag in info box
       cbCompressFrame.setEnabled(index == 0);
@@ -3876,47 +3801,41 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Action for BAM version help: Displays a message dialog with information. */
-  private void showVersionHelp()
-  {
-    final String helpMsg =
-        "\"Legacy (v1)\" is the old and proven BAM format supported by all available\n" +
-        "Infinity Engine games. It uses a global 256 color table for all frames\n" +
-        "and supports simple bitmasked transparency.\n\n" +
-        "\"PVRZ-based (v2)\" uses a new BAM format introduced by BG:EE. Graphics data\n" +
-        "is stored separately in PVRZ files. Each frame supports interpolated alpha\n" +
-        "transitions and is not limited to a global 256 color table.\n" +
-        "It is only supported by the Enhanced Editions of the Baldur's Gate series.";
+  private void showVersionHelp() {
+    final String helpMsg = "\"Legacy (v1)\" is the old and proven BAM format supported by all available\n"
+        + "Infinity Engine games. It uses a global 256 color table for all frames\n"
+        + "and supports simple bitmasked transparency.\n\n"
+        + "\"PVRZ-based (v2)\" uses a new BAM format introduced by BG:EE. Graphics data\n"
+        + "is stored separately in PVRZ files. Each frame supports interpolated alpha\n"
+        + "transitions and is not limited to a global 256 color table.\n"
+        + "It is only supported by the Enhanced Editions of the Baldur's Gate series.";
     JOptionPane.showMessageDialog(this, helpMsg, "About BAM versions", JOptionPane.INFORMATION_MESSAGE);
   }
 
   /** Action for BAM v2 compression help: Displays a message dialog with information. */
-  private void showCompressionHelp()
-  {
-    final String helpMsg =
-        "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n" +
-        "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n" +
-        "\"DXT5\" provides an average compression ratio. It features interpolated\n" +
-        "alpha transitions and is the preferred type for BAM resources.\n\n" +
-        "\"Auto\" selects the most appropriate compression type based on the input data.";
+  private void showCompressionHelp() {
+    final String helpMsg = "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n"
+        + "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n"
+        + "\"DXT5\" provides an average compression ratio. It features interpolated\n"
+        + "alpha transitions and is the preferred type for BAM resources.\n\n"
+        + "\"Auto\" selects the most appropriate compression type based on the input data.";
     JOptionPane.showMessageDialog(this, helpMsg, "About compression types", JOptionPane.INFORMATION_MESSAGE);
   }
 
   /** Action for "Compress BAM" in BAM v1 export. */
-  private void updateCompressBam()
-  {
-    Boolean b = Boolean.valueOf(cbCompressBam.isSelected());
+  private void updateCompressBam() {
+    Boolean b = cbCompressBam.isSelected();
     getBamDecoder(BAM_ORIGINAL).setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, b);
   }
 
   /** Specify a BAM output file. */
-  private Path setBamOutput()
-  {
+  private Path setBamOutput() {
     Path rootPath = null;
     if (bamOutputFile != null) {
       rootPath = FileManager.resolve(bamOutputFile);
     }
     Path outFile = getSaveFileName(this, "Specify output file", rootPath,
-                                   new FileNameExtensionFilter[]{getBamFilter()}, 0);
+        new FileNameExtensionFilter[] { getBamFilter() }, 0);
     if (outFile != null) {
       outFile = StreamUtils.replaceFileExtension(outFile, "BAM");
       bamOutputFile = outFile;
@@ -3925,20 +3844,18 @@ public class ConvertToBam extends ChildFrame
     return outFile;
   }
 
-
   /** Returns the min/max values from the specified array of indices in a Pair object. */
-  private Couple<Integer, Integer> getIndexBounds(int[] indices)
-  {
-    Couple<Integer, Integer> retVal = Couple.with(Integer.valueOf(-1), Integer.valueOf(-1));
+  private Couple<Integer, Integer> getIndexBounds(int[] indices) {
+    Couple<Integer, Integer> retVal = Couple.with(-1, -1);
     if (indices != null && indices.length > 0) {
-      retVal.setValue0(Integer.valueOf(Integer.MAX_VALUE));
-      retVal.setValue1(Integer.valueOf(Integer.MIN_VALUE));
-      for (int i = 0; i < indices.length; i++) {
-        if (indices[i] < retVal.getValue0()) {
-          retVal.setValue0(Integer.valueOf(indices[i]));
+      retVal.setValue0(Integer.MAX_VALUE);
+      retVal.setValue1(Integer.MIN_VALUE);
+      for (int index : indices) {
+        if (index < retVal.getValue0()) {
+          retVal.setValue0(index);
         }
-        if (indices[i] > retVal.getValue1()) {
-          retVal.setValue1(Integer.valueOf(indices[i]));
+        if (index > retVal.getValue1()) {
+          retVal.setValue1(index);
         }
       }
     }
@@ -3946,8 +3863,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Attempts to find the most appropriate DXT compression type based on the source frames. */
-  private DxtEncoder.DxtType getAutoDxtType()
-  {
+  private DxtEncoder.DxtType getAutoDxtType() {
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
 
     PseudoBamControl control = bamDecoder.createControl();
@@ -3970,10 +3886,10 @@ public class ConvertToBam extends ChildFrame
       bamDecoder.frameGet(control, i, canvas);
       dim.width = bamDecoder.getFrameInfo(i).getWidth();
       dim.height = bamDecoder.getFrameInfo(i).getHeight();
-      int[] buffer = ((DataBufferInt)canvas.getRaster().getDataBuffer()).getData();
+      int[] buffer = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
       if (buffer != null) {
         for (int y = 0; y < dim.height; y++) {
-          int ofs = y*canvas.getWidth();
+          int ofs = y * canvas.getWidth();
           for (int x = 0; x < dim.width; x++, ofs++) {
             if ((buffer[ofs] & 0xff000000) != 0xff000000 && (buffer[ofs] & 0xff000000) != 0) {
               dxtType = DxtEncoder.DxtType.DXT5;
@@ -3981,11 +3897,15 @@ public class ConvertToBam extends ChildFrame
               break;
             }
           }
-          if (typeFound) break;
+          if (typeFound) {
+            break;
+          }
         }
       }
       buffer = null;
-      if (typeFound) break;
+      if (typeFound) {
+        break;
+      }
     }
     canvas.flush();
     canvas = null;
@@ -3994,17 +3914,15 @@ public class ConvertToBam extends ChildFrame
     return dxtType;
   }
 
-
-  private List<String> convert()
-  {
+  private List<String> convert() {
     List<String> result = new Vector<>(2);
     try {
       updateFilteredBamDecoder(getBamVersion(), false);
       List<BamFilterBaseOutput> outList = createOutputFilterList();
       if (outList != null && !outList.isEmpty()) {
-        for (int idx = 0; idx < outList.size(); idx++) {
+        for (BamFilterBaseOutput element : outList) {
           // processing output filter
-          if (!outList.get(idx).process(bamDecoderFinal)) {
+          if (!element.process(bamDecoderFinal)) {
             throw new Exception("Conversion failed.");
           }
         }
@@ -4020,23 +3938,18 @@ public class ConvertToBam extends ChildFrame
     return result;
   }
 
-
   /** Returns whether the output/preview BAM has been modified. */
-  private boolean outputIsModified()
-  {
+  private boolean outputIsModified() {
     return isPreviewModified;
   }
 
   /** Defines whether the internal BAM structure has changed in any way. */
-  private void outputSetModified(boolean isModified)
-  {
+  private void outputSetModified(boolean isModified) {
     isPreviewModified = isModified;
   }
 
-
   /** Returns a single filtered BAM frame. Set "complete" to recreate the whole filter chain. */
-  private PseudoBamFrameEntry getFilteredBamFrame(int bamVersion, int frameIdx, boolean complete)
-  {
+  private PseudoBamFrameEntry getFilteredBamFrame(int bamVersion, int frameIdx, boolean complete) {
     int curFilterIdx = listFilters.getSelectedIndex();
 
     // recreating filtered preview
@@ -4060,8 +3973,7 @@ public class ConvertToBam extends ChildFrame
     PseudoBamFrameEntry entry = entryFilterPreview;
     if (curFilterIdx >= 0 && curFilterIdx < modelFilters.size()) {
       entry = new PseudoBamFrameEntry(ColorConvert.cloneImage(entryFilterPreview.getFrame()),
-                                      entryFilterPreview.getCenterX(),
-                                      entryFilterPreview.getCenterY());
+          entryFilterPreview.getCenterX(), entryFilterPreview.getCenterY());
       BamFilterBase filter = modelFilters.get(curFilterIdx);
       if (filter != null) {
         entry = filter.updatePreview(entry);
@@ -4071,10 +3983,8 @@ public class ConvertToBam extends ChildFrame
     return entry;
   }
 
-
   /** Updates the final BAM structure in bamDecoderFinal. */
-  private void updateFilteredBamDecoder(int bamVersion, boolean force) throws Exception
-  {
+  private void updateFilteredBamDecoder(int bamVersion, boolean force) throws Exception {
     if (outputIsModified() || force) {
       outputSetModified(false);
 
@@ -4087,11 +3997,11 @@ public class ConvertToBam extends ChildFrame
           if (filters.get(idx) instanceof BamFilterBaseColor) {
             // processing color filter
             try {
-              BamFilterBaseColor filter = (BamFilterBaseColor)filters.get(idx);
-              for (int frameIdx = 0; frameIdx < listFrameEntries.get(BAM_FINAL).size(); frameIdx++) {
-                BufferedImage image = filter.process(listFrameEntries.get(BAM_FINAL).get(frameIdx).getFrame());
+              BamFilterBaseColor filter = (BamFilterBaseColor) filters.get(idx);
+              for (PseudoBamFrameEntry element : listFrameEntries.get(BAM_FINAL)) {
+                BufferedImage image = filter.process(element.getFrame());
                 if (image != null) {
-                  listFrameEntries.get(BAM_FINAL).get(frameIdx).setFrame(image);
+                  element.setFrame(image);
                   image = null;
                 } else {
                   throw new Exception();
@@ -4104,7 +4014,7 @@ public class ConvertToBam extends ChildFrame
           } else if (filters.get(idx) instanceof BamFilterBaseTransform) {
             // processing transform filter
             try {
-              BamFilterBaseTransform filter = (BamFilterBaseTransform)filters.get(idx);
+              BamFilterBaseTransform filter = (BamFilterBaseTransform) filters.get(idx);
               for (int frameIdx = 0; frameIdx < listFrameEntries.get(BAM_FINAL).size(); frameIdx++) {
                 PseudoBamFrameEntry entry = filter.process(listFrameEntries.get(BAM_FINAL).get(frameIdx));
                 if (entry != null) {
@@ -4133,10 +4043,8 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
   /** Creates a sorted list including all selected filters in the post-processing tab. */
-  private List<BamFilterBase> createFilterList(boolean includeOutputFilters)
-  {
+  private List<BamFilterBase> createFilterList(boolean includeOutputFilters) {
     List<BamFilterBase> retVal = new ArrayList<>();
     List<BamFilterBase> outFilters = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
@@ -4161,27 +4069,24 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Creates a list of selected output filters only. */
-  private List<BamFilterBaseOutput> createOutputFilterList()
-  {
+  private List<BamFilterBaseOutput> createOutputFilterList() {
     List<BamFilterBaseOutput> retVal = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
       if (modelFilters.get(i) instanceof BamFilterBaseOutput) {
-        retVal.add((BamFilterBaseOutput)modelFilters.get(i));
+        retVal.add((BamFilterBaseOutput) modelFilters.get(i));
       }
     }
     if (retVal.isEmpty()) {
-      retVal.add((BamFilterBaseOutput)BamFilterFactory.createInstance(this, BamFilterOutputDefault.class));
+      retVal.add((BamFilterBaseOutput) BamFilterFactory.createInstance(this, BamFilterOutputDefault.class));
     }
 
     return retVal;
   }
 
   /**
-   * Creates a new BAM structure from the existing structure that is compatible with the
-   * specified target BAM version.
+   * Creates a new BAM structure from the existing structure that is compatible with the specified target BAM version.
    */
-  private void updateFinalBamDecoder(int bamVersion) throws Exception
-  {
+  private void updateFinalBamDecoder(int bamVersion) throws Exception {
     listFrameEntries.get(BAM_FINAL).clear();
 
     if (bamVersion == VERSION_BAMV1 || bamVersion == VERSION_BAMV2) {
@@ -4190,8 +4095,8 @@ public class ConvertToBam extends ChildFrame
 
       // copying global options
       String[] options = bamDecoder.getOptionNames();
-      for (int i = 0; i < options.length; i++) {
-        bamDecoderFinal.setOption(options[i], bamDecoder.getOption(options[i]));
+      for (String option : options) {
+        bamDecoderFinal.setOption(option, bamDecoder.getOption(option));
       }
 
       if (bamVersion == VERSION_BAMV1) {
@@ -4199,10 +4104,8 @@ public class ConvertToBam extends ChildFrame
         paletteDialog.updateGeneratedPalette();
 
         final int Green = 0x0000ff00;
-        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-                                  Integer.valueOf(paletteDialog.getRleIndex()));
-        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED,
-                                  Boolean.valueOf(isBamV1Compressed()));
+        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, Integer.valueOf(paletteDialog.getRleIndex()));
+        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(isBamV1Compressed()));
         // preparing palette
         int[] palette = paletteDialog.getPalette(paletteDialog.getPaletteType());
         int threshold = getUseAlpha() ? -1 : getTransparencyThreshold();
@@ -4220,7 +4123,7 @@ public class ConvertToBam extends ChildFrame
         HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
-            colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
+            colorCache.put(palette[i], (byte) i);
           }
         }
 
@@ -4229,26 +4132,28 @@ public class ConvertToBam extends ChildFrame
         for (int i = 0; i < srcListFrames.size(); i++) {
           PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
           BufferedImage srcImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
-          int[] srcBuf = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+          int[] srcBuf = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
           BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(), srcEntry.getHeight(),
-                                                     BufferedImage.TYPE_BYTE_INDEXED, cm);
-          byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+              BufferedImage.TYPE_BYTE_INDEXED, cm);
+          byte[] dstBuf = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
 
           for (int ofs = 0; ofs < srcBuf.length; ofs++) {
             int c = srcBuf[ofs];
             if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
-              dstBuf[ofs] = (byte)transIndex;
+              dstBuf[ofs] = (byte) transIndex;
             } else {
               Byte colIdx = colorCache.get(Integer.valueOf(c));
               if (colIdx != null) {
                 int ci = colIdx.intValue() & 0xff;
-                if (ci >= transIndex) ci++;
-                dstBuf[ofs] = colIdx.byteValue();//(byte)ci;
+                if (ci >= transIndex) {
+                  ci++;
+                }
+                dstBuf[ofs] = colIdx;// (byte)ci;
               } else {
                 double weight = getUseAlpha() ? 1.0 : 0.0;
-                byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
-                dstBuf[ofs] = color;//(byte)ci;
-                colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
+                byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
+                dstBuf[ofs] = color;// (byte)ci;
+                colorCache.put(c, color);
               }
             }
           }
@@ -4258,11 +4163,11 @@ public class ConvertToBam extends ChildFrame
           dstBuf = null;
 
           PseudoBamFrameEntry dstEntry = new PseudoBamFrameEntry(dstImage, srcEntry.getCenterX(),
-                                                                 srcEntry.getCenterY());
+              srcEntry.getCenterY());
           // adding frame-specific options
           options = srcEntry.getOptionNames();
-          for (int j = 0; j < options.length; j++) {
-            dstEntry.setOption(options[j], srcEntry.getOption(options[j]));
+          for (String option : options) {
+            dstEntry.setOption(option, srcEntry.getOption(option));
           }
           dstListFrames.add(dstEntry);
         }
@@ -4272,11 +4177,11 @@ public class ConvertToBam extends ChildFrame
           PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
           BufferedImage dstImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           PseudoBamFrameEntry dstEntry = new PseudoBamFrameEntry(dstImage, srcEntry.getCenterX(),
-                                                                 srcEntry.getCenterY());
+              srcEntry.getCenterY());
           // adding frame-specific options
           options = srcEntry.getOptionNames();
-          for (int j = 0; j < options.length; j++) {
-            dstEntry.setOption(options[j], srcEntry.getOption(options[j]));
+          for (String option : options) {
+            dstEntry.setOption(option, srcEntry.getOption(option));
           }
           dstListFrames.add(dstEntry);
         }
@@ -4287,8 +4192,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Creates a new single frame that is compatible with the specified BAM version. */
-  private void updateFinalBamFrame(int bamVersion, int frameIdx)
-  {
+  private void updateFinalBamFrame(int bamVersion, int frameIdx) {
     if (frameIdx >= 0 && frameIdx < listFrameEntries.get(BAM_ORIGINAL).size()) {
       PseudoBamFrameEntry srcEntry = listFrameEntries.get(BAM_ORIGINAL).get(frameIdx);
       BufferedImage srcImage = srcEntry.getFrame();
@@ -4315,33 +4219,34 @@ public class ConvertToBam extends ChildFrame
         HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
-            colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
+            colorCache.put(palette[i], (byte) i);
           }
         }
         IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
 
         // converting frame
         srcImage = ColorConvert.toBufferedImage(srcImage, true, true);
-        int[] srcBuf = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-        dstImage = new BufferedImage(srcImage.getWidth(), srcImage.getHeight(),
-                                     BufferedImage.TYPE_BYTE_INDEXED, cm);
-        byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        int[] srcBuf = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+        dstImage = new BufferedImage(srcImage.getWidth(), srcImage.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+        byte[] dstBuf = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
 
         for (int ofs = 0; ofs < srcBuf.length; ofs++) {
           int c = srcBuf[ofs];
           if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
-            dstBuf[ofs] = (byte)transIndex;
+            dstBuf[ofs] = (byte) transIndex;
           } else {
             Byte colIdx = colorCache.get(Integer.valueOf(c));
             if (colIdx != null) {
               int ci = colIdx.intValue() & 0xff;
-              if (ci >= transIndex) ci++;
-              dstBuf[ofs] = colIdx.byteValue();
+              if (ci >= transIndex) {
+                ci++;
+              }
+              dstBuf[ofs] = colIdx;
             } else {
               double weight = getUseAlpha() ? 1.0 : 0.0;
-              byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
-              dstBuf[ofs] = color;//(byte)ci;
-              colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
+              byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
+              dstBuf[ofs] = color;// (byte)ci;
+              colorCache.put(c, color);
             }
           }
         }
@@ -4363,8 +4268,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Updates current BAM session path list. */
-  private void updateRecentSession(Path session)
-  {
+  private void updateRecentSession(Path session) {
     if (session != null) {
       BamOptionsDialog.updateRecentSession(session);
       initSessionEntries();
@@ -4372,22 +4276,21 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** (Re-)creates a list of recently accessed BAM session paths. */
-  private void initSessionEntries()
-  {
+  private void initSessionEntries() {
     if (miSessionHistory == null) {
       miSessionHistory = new JMenu("Load recent sessions");
     } else {
       Component[] comp = miSessionHistory.getComponents();
-      for (final Component c: comp) {
+      for (final Component c : comp) {
         if (c instanceof DataMenuItem) {
-          ((DataMenuItem)c).removeActionListener(this);
+          ((DataMenuItem) c).removeActionListener(this);
         }
       }
       miSessionHistory.removeAll();
     }
 
     List<Path> recentSessions = BamOptionsDialog.getRecentSessions();
-    for (final Path item: recentSessions) {
+    for (final Path item : recentSessions) {
       DataMenuItem dmi = new DataMenuItem(item.getFileName().toString(), -1, item);
       dmi.setToolTipText(item.toString());
       dmi.addActionListener(this);
@@ -4397,11 +4300,13 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Initializes a new ProgressMonitor instance. */
-  void initProgressMonitor(Component parent, String msg, String note, int maxProgress,
-                                   int msDecide, int msWait)
-  {
-    if (parent == null) parent = NearInfinity.getInstance();
-    if (maxProgress <= 0) maxProgress = 1;
+  protected void initProgressMonitor(Component parent, String msg, String note, int maxProgress, int msDecide, int msWait) {
+    if (parent == null) {
+      parent = NearInfinity.getInstance();
+    }
+    if (maxProgress <= 0) {
+      maxProgress = 1;
+    }
 
     releaseProgressMonitor();
     pmMax = maxProgress;
@@ -4413,8 +4318,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Closes an active instance of the ProgressMonitor. */
-  void releaseProgressMonitor()
-  {
+  protected void releaseProgressMonitor() {
     if (progress != null) {
       progress.close();
       progress = null;
@@ -4422,8 +4326,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Advances the active ProgressMonitor instance by one step. */
-  void advanceProgressMonitor(String note)
-  {
+  protected void advanceProgressMonitor(String note) {
     if (progress != null) {
       if (pmCur < pmMax) {
         pmCur++;
@@ -4436,8 +4339,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns the current progress of the active ProgressMonitor instance. */
-  int getProgressMonitorStage()
-  {
+  protected int getProgressMonitorStage() {
     if (progress != null) {
       return pmCur;
     } else {
@@ -4446,18 +4348,20 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Sets the current stage of the active ProgressMonitor instance. */
-  void setProgressMonitorState(int stage)
-  {
+  protected void setProgressMonitorState(int stage) {
     if (progress != null) {
-      if (stage < progress.getMinimum()) stage = progress.getMinimum();
-      if (stage > progress.getMaximum()) stage = progress.getMaximum();
+      if (stage < progress.getMinimum()) {
+        stage = progress.getMinimum();
+      }
+      if (stage > progress.getMaximum()) {
+        stage = progress.getMaximum();
+      }
       progress.setProgress(stage);
     }
   }
 
   /** Returns the max. stage of the active ProgressMonitor instance. */
-  int getProgressMonitorMax()
-  {
+  protected int getProgressMonitorMax() {
     if (progress != null) {
       return pmMax;
     } else {
@@ -4466,8 +4370,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Sets a new max. stage to the active ProgressMonitor instance. */
-  void setProgressMonitorMax(int max)
-  {
+  protected void setProgressMonitorMax(int max) {
     if (progress != null) {
       if (max >= 0) {
         progress.setMaximum(max);
@@ -4476,16 +4379,14 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Sets a new note to the active ProgressMonitor instance. */
-  void setProgressMonitorNote(String note)
-  {
+  protected void setProgressMonitorNote(String note) {
     if (progress != null) {
       progress.setNote(note);
     }
   }
 
   /** Returns whether the active ProgressMonitor instance has been cancelled by the user. */
-  boolean isProgressMonitorCancelled()
-  {
+  protected boolean isProgressMonitorCancelled() {
     if (isProgressMonitorActive()) {
       return progress.isCanceled();
     }
@@ -4493,46 +4394,40 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns whether a ProgressMonitor instance is active. */
-  boolean isProgressMonitorActive()
-  {
+  protected boolean isProgressMonitorActive() {
     return (progress != null);
   }
 
   /** Returns the ProgressMonitor instance, or null if not active. */
-  ProgressMonitor getProgressMonitor()
-  {
+  protected ProgressMonitor getProgressMonitor() {
     return progress;
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /** Drag&Drop handler for dragging external files or folders to the frames list. */
-  private class ListFileTransferHandler extends TransferHandler
-  {
+  private class ListFileTransferHandler extends TransferHandler {
     @Override
-    public boolean canImport(TransferSupport support)
-    {
+    public boolean canImport(TransferSupport support) {
       return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
     }
 
     @Override
-    public boolean importData(TransferSupport support)
-    {
+    public boolean importData(TransferSupport support) {
       if (!support.isDrop()) {
         return false;
       }
 
       if (support.getComponent() == listFrames) {
         try {
-          List<?> fileList = (List<?>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-          JList.DropLocation dl = (JList.DropLocation)support.getDropLocation();
+          List<?> fileList = (List<?>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+          JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
 
           Path[] filePath = new Path[1];
           boolean retVal = false;
           for (int i = fileList.size() - 1; i >= 0; i--) {
             if (fileList.get(i) instanceof File) {
-              final File f = (File)fileList.get(i);
+              final File f = (File) fileList.get(i);
               // Mixed list of files and folders is supported
               if (f.isFile()) {
                 filePath[0] = f.toPath();
@@ -4554,15 +4449,12 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
   /** Manages the frames aspect of BAM resources. */
-  private static class BamFramesListModel extends AbstractListModel<PseudoBamFrameEntry>
-  {
+  private static class BamFramesListModel extends AbstractListModel<PseudoBamFrameEntry> {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
 
-    public BamFramesListModel(ConvertToBam converter)
-    {
+    public BamFramesListModel(ConvertToBam converter) {
       if (converter == null) {
         throw new NullPointerException();
       }
@@ -4571,38 +4463,34 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns the parent converter object. */
-    public ConvertToBam getConverter()
-    {
+    public ConvertToBam getConverter() {
       return converter;
     }
 
     /** Returns the associated BamDecoder object. */
-    public PseudoBamDecoder getDecoder()
-    {
+    public PseudoBamDecoder getDecoder() {
       return decoder;
     }
 
-//    /** Adds a new frame to the global frames list. */
-//    public void add(BufferedImage image, Point center)
-//    {
-//      insert(getDecoder().frameCount(), new BufferedImage[]{image}, new Point[]{center});
-//    }
+    // /** Adds a new frame to the global frames list. */
+    // public void add(BufferedImage image, Point center)
+    // {
+    // insert(getDecoder().frameCount(), new BufferedImage[]{image}, new Point[]{center});
+    // }
 
-//    /** Adds an array of images to the global frames list. */
-//    public void add(BufferedImage[] images, Point[] centers)
-//    {
-//      insert(getDecoder().frameCount(), images, centers);
-//    }
+    // /** Adds an array of images to the global frames list. */
+    // public void add(BufferedImage[] images, Point[] centers)
+    // {
+    // insert(getDecoder().frameCount(), images, centers);
+    // }
 
     /** Inserts the image into the global frames list. */
-    public void insert(int pos, BufferedImage image, Point center)
-    {
-      insert(pos, new BufferedImage[]{image}, new Point[]{center});
+    public void insert(int pos, BufferedImage image, Point center) {
+      insert(pos, new BufferedImage[] { image }, new Point[] { center });
     }
 
     /** Inserts the array of images into the global frames list. */
-    public void insert(int pos, BufferedImage[] images, Point[] centers)
-    {
+    public void insert(int pos, BufferedImage[] images, Point[] centers) {
       if (images != null && pos >= 0 && pos <= getDecoder().frameCount()) {
         int count = 0;
         PseudoBamControl control = getDecoder().createControl();
@@ -4611,7 +4499,7 @@ public class ConvertToBam extends ChildFrame
           if (images[i] != null) {
             // adding frame to global list
             Point center = (centers.length > i && centers[i] != null) ? centers[i] : null;
-            getDecoder().frameInsert(pos+i, images[i], center);
+            getDecoder().frameInsert(pos + i, images[i], center);
             // registering colors values in global HashMap
             BufferedImage image = ColorConvert.toBufferedImage(images[i], true, false);
             PseudoBamDecoder.registerColors(getConverter().paletteDialog.getColorMap(), image);
@@ -4620,7 +4508,7 @@ public class ConvertToBam extends ChildFrame
           }
         }
         if (count > 0) {
-          fireIntervalAdded(this, pos, pos+count-1);
+          fireIntervalAdded(this, pos, pos + count - 1);
         }
       }
     }
@@ -4628,19 +4516,21 @@ public class ConvertToBam extends ChildFrame
     /**
      * Removes a single entry from the global frames list.
      */
-    public void remove(int pos)
-    {
+    public void remove(int pos) {
       remove(pos, 1);
     }
 
     /**
      * Removes a number of entries from the global frames list.
      */
-    public void remove(int pos, int count)
-    {
+    public void remove(int pos, int count) {
       if (count > 0) {
-        if (pos < 0) pos = 0;
-        if (pos >= getDecoder().frameCount()) pos = getDecoder().frameCount() - 1;
+        if (pos < 0) {
+          pos = 0;
+        }
+        if (pos >= getDecoder().frameCount()) {
+          pos = getDecoder().frameCount() - 1;
+        }
         if (pos + count > getDecoder().frameCount()) {
           count = getDecoder().frameCount() - pos;
         }
@@ -4648,20 +4538,19 @@ public class ConvertToBam extends ChildFrame
         control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
         // unregistering color values in global color map
         for (int i = 0; i < count; i++) {
-          BufferedImage image = ColorConvert.toBufferedImage(getDecoder().frameGet(control, pos+i), true, false);
+          BufferedImage image = ColorConvert.toBufferedImage(getDecoder().frameGet(control, pos + i), true, false);
           PseudoBamDecoder.unregisterColors(getConverter().paletteDialog.getColorMap(), image);
           getConverter().paletteDialog.setPaletteModified();
         }
         getDecoder().frameRemove(pos, count);
-        fireIntervalRemoved(this, pos, pos+count-1);
+        fireIntervalRemoved(this, pos, pos + count - 1);
       }
     }
 
     /**
      * Removes all entries from the global frame list.
      */
-    public void clear()
-    {
+    public void clear() {
       int count;
       count = getDecoder().frameCount();
       PseudoBamControl control = getDecoder().createControl();
@@ -4671,17 +4560,17 @@ public class ConvertToBam extends ChildFrame
       getConverter().paletteDialog.setPaletteModified();
       getDecoder().frameClear();
       if (count > 0) {
-        fireIntervalRemoved(this, 0, count-1);
+        fireIntervalRemoved(this, 0, count - 1);
       }
     }
 
     /**
      * Moves the specified entry within the list by {@code offset}.
-     * @param index The index of the frame.
+     *
+     * @param index  The index of the frame.
      * @param offset The number of positions to move.
      */
-    public void move(int index, int offset)
-    {
+    public void move(int index, int offset) {
       int retVal, pos1 = index, pos2 = index;
 
       // moving positions
@@ -4703,20 +4592,17 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns {@code true} if, and only if {@code getDecoder().getFrameCount()} is 0. */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
       return getDecoder().isEmpty();
     }
 
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return getDecoder().frameCount();
     }
 
     @Override
-    public PseudoBamFrameEntry getElementAt(int index)
-    {
+    public PseudoBamFrameEntry getElementAt(int index) {
       if (index >= 0 && index < getDecoder().frameCount()) {
         return getDecoder().getFrameInfo(index);
       } else {
@@ -4725,16 +4611,13 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
   /** Manages frames within a cycle. */
-  private static class BamCycleFramesListModel extends AbstractListModel<PseudoBamFrameEntry>
-  {
+  private static class BamCycleFramesListModel extends AbstractListModel<PseudoBamFrameEntry> {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
     private final PseudoBamDecoder.PseudoBamControl control;
 
-    public BamCycleFramesListModel(ConvertToBam converter)
-    {
+    public BamCycleFramesListModel(ConvertToBam converter) {
       if (converter == null) {
         throw new NullPointerException();
       }
@@ -4744,33 +4627,32 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns the parent converter object. */
-    public ConvertToBam getConverter()
-    {
+    public ConvertToBam getConverter() {
       return converter;
     }
 
     /** Returns the associated BamDecoder object. */
-    public PseudoBamDecoder getDecoder()
-    {
+    public PseudoBamDecoder getDecoder() {
       return decoder;
     }
 
     /** Returns the associated BamDecoder control. */
-    public PseudoBamDecoder.PseudoBamControl getControl()
-    {
+    public PseudoBamDecoder.PseudoBamControl getControl() {
       return control;
     }
 
     /** Returns the active cycle. */
-    public int getCycle()
-    {
+    public int getCycle() {
       return getControl().cycleGet();
     }
 
     /** Sets a new active cycle. */
-    public void setCycle(int cycle)
-    {
-      if (cycle < 0) cycle = 0; else if (cycle >= getControl().cycleCount()) cycle = getControl().cycleCount() - 1;
+    public void setCycle(int cycle) {
+      if (cycle < 0) {
+        cycle = 0;
+      } else if (cycle >= getControl().cycleCount()) {
+        cycle = getControl().cycleCount() - 1;
+      }
       if (cycle != getControl().cycleGet()) {
         int oldCount = getControl().cycleFrameCount();
         getControl().cycleSet(cycle);
@@ -4792,73 +4674,68 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-//    /** Adds one frame index to the current cycle. */
-//    public void add(int index)
-//    {
-//      insert(getControl().cycleFrameCount(), new int[]{index});
-//    }
+    // /** Adds one frame index to the current cycle. */
+    // public void add(int index)
+    // {
+    // insert(getControl().cycleFrameCount(), new int[]{index});
+    // }
 
     /** Adds the specified array of frame indices to the current cycle. */
-    public void add(int[] indices)
-    {
+    public void add(int[] indices) {
       insert(getControl().cycleFrameCount(), indices);
     }
 
     /** Inserts one frame index into the current cycle. */
-    public void insert(int pos, int index)
-    {
-      insert(pos, new int[]{index});
+    public void insert(int pos, int index) {
+      insert(pos, new int[] { index });
     }
 
     /** Inserts the array of frame indices into the current cycle. */
-    public void insert(int pos, int[] indices)
-    {
+    public void insert(int pos, int[] indices) {
       if (indices != null && pos >= 0 && pos <= getControl().cycleFrameCount()) {
         int count = indices.length;
         getControl().cycleInsertFrames(getControl().cycleGet(), pos, indices);
-        fireIntervalAdded(this, pos, pos+count-1);
+        fireIntervalAdded(this, pos, pos + count - 1);
       }
     }
 
-//    /** Removes one entry from the current cycle. */
-//    public void remove(int pos)
-//    {
-//      remove(pos, 1);
-//    }
+    // /** Removes one entry from the current cycle. */
+    // public void remove(int pos)
+    // {
+    // remove(pos, 1);
+    // }
 
     /**
      * Removes a number of entries from the current cycle.
      */
-    public void remove(int pos, int count)
-    {
+    public void remove(int pos, int count) {
       if (count > 0 && pos >= 0 && pos < getControl().cycleFrameCount()) {
         if (pos + count > getControl().cycleFrameCount()) {
           count = getControl().cycleFrameCount() - pos;
         }
         getControl().cycleRemoveFrames(getControl().cycleGet(), pos, count);
-        fireIntervalRemoved(this, pos, pos+count-1);
+        fireIntervalRemoved(this, pos, pos + count - 1);
       }
     }
 
     /**
      * Removes all entries from the current cycle.
      */
-    public void clear()
-    {
+    public void clear() {
       int count = getControl().cycleFrameCount();
       getControl().cycleClearFrames();
       if (count > 0) {
-        fireIntervalRemoved(this, 0, count-1);
+        fireIntervalRemoved(this, 0, count - 1);
       }
     }
 
     /**
      * Moves the specified entry within the list by {@code offset}.
-     * @param index The index of the frame.
+     *
+     * @param index  The index of the frame.
      * @param offset The number of positions to move.
      */
-    public void move(int index, int offset)
-    {
+    public void move(int index, int offset) {
 
       // moving positions
       int retVal = getControl().cycleMoveFrame(index, offset);
@@ -4880,21 +4757,17 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns {@code true} if, and only if {@code getControl().cycleFrameCount()} is 0. */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
       return (getControl().cycleFrameCount() == 0);
     }
 
-
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return getControl().cycleFrameCount();
     }
 
     @Override
-    public PseudoBamFrameEntry getElementAt(int index)
-    {
+    public PseudoBamFrameEntry getElementAt(int index) {
       if (index >= 0 && index < getControl().cycleFrameCount()) {
         return getDecoder().getFrameInfo(getControl().cycleGetFrameIndexAbsolute(index));
       } else {
@@ -4903,17 +4776,13 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
-
   /** Manages the cycles aspect of BAM resources. */
-  private static class BamCyclesListModel extends AbstractListModel<PseudoBamCycleEntry>
-  {
+  private static class BamCyclesListModel extends AbstractListModel<PseudoBamCycleEntry> {
     private final ConvertToBam converter;
     private final PseudoBamDecoder decoder;
     private final PseudoBamDecoder.PseudoBamControl control;
 
-    public BamCyclesListModel(ConvertToBam converter)
-    {
+    public BamCyclesListModel(ConvertToBam converter) {
       if (converter == null) {
         throw new NullPointerException();
       }
@@ -4923,100 +4792,92 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns the parent converter object. */
-    public ConvertToBam getConverter()
-    {
+    public ConvertToBam getConverter() {
       return converter;
     }
 
     /** Returns the associated BamDecoder object. */
-    public PseudoBamDecoder getDecoder()
-    {
+    public PseudoBamDecoder getDecoder() {
       return decoder;
     }
 
     /** Returns the associated BamDecoder control. */
-    public PseudoBamDecoder.PseudoBamControl getControl()
-    {
+    public PseudoBamDecoder.PseudoBamControl getControl() {
       return control;
     }
 
+    // /** Adds a new empty cycle to the cycles list. */
+    // public void add()
+    // {
+    // insert(getControl().cycleCount(), new int[0]);
+    // }
 
-//    /** Adds a new empty cycle to the cycles list. */
-//    public void add()
-//    {
-//      insert(getControl().cycleCount(), new int[0]);
-//    }
-
-//    /** Adds a new cycle with the specified frame index to the cycles list. */
-//    public void add(int index)
-//    {
-//      insert(getControl().cycleCount(), new int[]{index});
-//    }
+    // /** Adds a new cycle with the specified frame index to the cycles list. */
+    // public void add(int index)
+    // {
+    // insert(getControl().cycleCount(), new int[]{index});
+    // }
 
     /** Adds a new cycle with the specified frame indices to the cycles list. */
-    public void add(int[] indices)
-    {
+    public void add(int[] indices) {
       insert(getControl().cycleCount(), indices);
     }
 
-//    /** Insert an empty cycle at the specified cycle position. */
-//    public void insert(int pos)
-//    {
-//      insert(pos, new int[0]);
-//    }
+    // /** Insert an empty cycle at the specified cycle position. */
+    // public void insert(int pos)
+    // {
+    // insert(pos, new int[0]);
+    // }
 
-//    /** Inserts a cycle with one frame index at the specified cycle position. */
-//    public void insert(int pos, int index)
-//    {
-//      insert(pos, new int[]{index});
-//    }
+    // /** Inserts a cycle with one frame index at the specified cycle position. */
+    // public void insert(int pos, int index)
+    // {
+    // insert(pos, new int[]{index});
+    // }
 
     /** Inserts a cycle with the specified frame indices at the specified cycle position. */
-    public void insert(int pos, int[] indices)
-    {
+    public void insert(int pos, int[] indices) {
       if (pos >= 0 && pos <= getControl().cycleCount() && indices != null) {
         getControl().cycleInsert(pos, indices);
         fireIntervalAdded(this, pos, pos);
       }
     }
 
-//    /** Removes one cycle at the specified cycle position. */
-//    public void remove(int pos)
-//    {
-//      remove(pos, 1);
-//    }
+    // /** Removes one cycle at the specified cycle position. */
+    // public void remove(int pos)
+    // {
+    // remove(pos, 1);
+    // }
 
     /** Removes a number of cycles at the specified cycle position. */
-    public void remove(int pos, int count)
-    {
+    public void remove(int pos, int count) {
       if (pos >= 0 && pos < getControl().cycleCount() && count > 0) {
         if (pos + count > getControl().cycleCount()) {
           count = getControl().cycleCount() - pos;
         }
         getControl().cycleRemove(pos, count);
         if (count > 0) {
-          fireIntervalRemoved(this, pos, pos+count-1);
+          fireIntervalRemoved(this, pos, pos + count - 1);
         }
       }
     }
 
     /** Removes all cycles from the cycles list. */
-    public void clear()
-    {
+    public void clear() {
       int count = getControl().cycleCount();
       getControl().cycleClear();
       if (count > 0) {
-        fireIntervalRemoved(this, 0, count-1);
+        fireIntervalRemoved(this, 0, count - 1);
       }
     }
 
     /**
      * Moves the specified cycle entry within the cycles list by {@code offset}.
+     *
      * @param cycleIdx The index of the cycle.
-     * @param offset The number of positions to move.
+     * @param offset   The number of positions to move.
      */
-    public void move(int cycleIdx, int offset)
-    {
+    public void move(int cycleIdx, int offset) {
       if (cycleIdx >= 0 && cycleIdx < getControl().cycleCount()) {
         int pos1 = cycleIdx, pos2 = cycleIdx;
         int retVal = getControl().cycleMove(cycleIdx, offset);
@@ -5034,16 +4895,13 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Fires a change event for the cycle at the specified index. */
-    public void contentChanged(int index)
-    {
+    public void contentChanged(int index) {
       contentsChanged(index, index);
     }
 
     /** Fires a change event for the cycle range defined by the specified indices. */
-    public void contentsChanged(int index0, int index1)
-    {
-      if (index0 >= 0 && index0 < getControl().cycleCount() &&
-          index1 >= 0 && index1 < getControl().cycleCount()) {
+    public void contentsChanged(int index0, int index1) {
+      if (index0 >= 0 && index0 < getControl().cycleCount() && index1 >= 0 && index1 < getControl().cycleCount()) {
         if (index0 > index1) {
           int tmp = index0;
           index0 = index1;
@@ -5054,20 +4912,17 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns {@code true} if, and only if {@code getControl().cycleCount()} is 0. */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
       return getControl().isEmpty();
     }
 
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return getControl().cycleCount();
     }
 
     @Override
-    public PseudoBamDecoder.PseudoBamCycleEntry getElementAt(int index)
-    {
+    public PseudoBamDecoder.PseudoBamCycleEntry getElementAt(int index) {
       if (index >= 0 && index < getControl().cycleCount()) {
         return getControl().getCycleInfo(index);
       } else {
@@ -5076,35 +4931,28 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
-
   /** Adds a prefix to the cell's visual output. */
-  private static class IndexedCellRenderer extends DefaultListCellRenderer
-  {
-    public IndexedCellRenderer()
-    {
+  private static class IndexedCellRenderer extends DefaultListCellRenderer {
+    public IndexedCellRenderer() {
       super();
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-        boolean isSelected, boolean cellHasFocus)
-    {
-      String template = "%0" +
-                        String.format("%d", Integer.toString(list.getModel().getSize()).length()) +
-                        "d - %s";
-      return super.getListCellRendererComponent(list, String.format(template, index, value),
-                                                index, isSelected, cellHasFocus);
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
+      String template = "%0" + String.format("%d", Integer.toString(list.getModel().getSize()).length()) + "d - %s";
+      return super.getListCellRendererComponent(list, String.format(template, index, value), index, isSelected,
+          cellHasFocus);
     }
   }
 
-
   /**
-   * Provides methods for importing or exporting BAM configuration data via INI file, such as
-   * frame sources, center position data or cycle definitions.
+   * Provides methods for importing or exporting BAM configuration data via INI file, such as frame sources, center
+   * position data or cycle definitions.
    */
-  private static class Exporter extends JDialog implements ActionListener
-  {
+  private static class Exporter extends JDialog implements ActionListener {
     /*
+     * @formatter:off
      * INI format:
      * 1. Section "[Global]" (mandatory)
      *  - contains a single entry "version" with a version number
@@ -5135,18 +4983,19 @@ public class ConvertToBam extends ChildFrame
      *  - Example:
      *      name_0=Brightness/Contrast/Gamma
      *      config_0=25;100;128;[0,18,19,20,192,193,194,195]
+     * @formatter:on
      */
-    private static final String SECTION_GLOBAL    = "Global";   // global section name
-    private static final String SECTION_FRAMES    = "Frames";   // frames section name
-    private static final String SECTION_CENTER    = "Center";   // center point section name
-    private static final String SECTION_CYCLES    = "Cycles";   // cycles section name
-    private static final String SECTION_FILTERS   = "Filters";  // filters section name
-    private static final String KEY_VERSION       = "version";  // key in global section
-    private static final String KEY_FILTER_NAME   = "name_";  // key in global section
-    private static final String KEY_FILTER_CONFIG = "config_";  // key in global section
-    private static final char SEPARATOR_FRAME     = ':';        // used in frame source definition to separate frame name from index
-    private static final char SEPARATOR_NUMBER    = ',';        // number separator for cycle definitions or center point data
-    private static final int VERSION              = 1;          // supported file version
+    private static final String SECTION_GLOBAL    = "Global"; // global section name
+    private static final String SECTION_FRAMES    = "Frames"; // frames section name
+    private static final String SECTION_CENTER    = "Center"; // center point section name
+    private static final String SECTION_CYCLES    = "Cycles"; // cycles section name
+    private static final String SECTION_FILTERS   = "Filters"; // filters section name
+    private static final String KEY_VERSION       = "version"; // key in global section
+    private static final String KEY_FILTER_NAME   = "name_"; // key in global section
+    private static final String KEY_FILTER_CONFIG = "config_"; // key in global section
+    private static final char SEPARATOR_FRAME     = ':'; // used in frame source definition to separate frame name from index
+    private static final char SEPARATOR_NUMBER    = ','; // number separator for cycle definitions or center point data
+    private static final int VERSION              = 1; // supported file version
     private static final String QUESTION_EXPORT   = "What do you want to export?";
     private static final String QUESTION_IMPORT   = "What do you want to import?";
 
@@ -5159,57 +5008,54 @@ public class ConvertToBam extends ChildFrame
     private final JButton bCancel = new JButton("Cancel");
     private final ConvertToBam bam;
 
-    private IniMapSection sectionFrames, sectionCenter, sectionCycles, sectionFilters;
+    private IniMapSection sectionFrames;
+    private IniMapSection sectionCenter;
+    private IniMapSection sectionCycles;
+    private IniMapSection sectionFilters;
     private boolean accepted;
 
     /** Returns a extension filter for INI files. */
-    private static FileNameExtensionFilter getIniFilter()
-    {
+    private static FileNameExtensionFilter getIniFilter() {
       return new FileNameExtensionFilter("INI files (*.ini)", "ini");
     }
 
-    public Exporter(ConvertToBam bam)
-    {
+    public Exporter(ConvertToBam bam) {
       super(bam, true);
       this.bam = bam;
       init();
     }
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent event)
-    {
+    public void actionPerformed(ActionEvent event) {
       if (event.getSource() == bAccept) {
         acceptDialog();
       } else if (event.getSource() == bCancel) {
         cancel();
       } else if (event.getSource() instanceof JCheckBox) {
-        bAccept.setEnabled(cbFrames.isSelected() || cbCenter.isSelected() ||
-                           cbCycles.isSelected() || cbFilters.isSelected());
+        bAccept.setEnabled(
+            cbFrames.isSelected() || cbCenter.isSelected() || cbCycles.isSelected() || cbFilters.isSelected());
       }
     }
 
-    //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
     /** Must be called at the end to clean up dialog resources. */
-    public void close()
-    {
+    public void close() {
       dispose();
     }
 
     /**
-     * Opens dialog to choose what to export and exports selected data.
-     * Returns whether export was successful.
+     * Opens dialog to choose what to export and exports selected data. Returns whether export was successful.
      */
-    public boolean exportData(boolean silent)
-    {
+    public boolean exportData(boolean silent) {
       resetData();
 
       // trying to determine default output filename
       Path root = getDefaultIniName("data.ini");
-      Path outFile = getSaveFileName(bam, "Export BAM session", root,
-                                     new FileNameExtensionFilter[]{getIniFilter()}, 0);
+      Path outFile = getSaveFileName(bam, "Export BAM session", root, new FileNameExtensionFilter[] { getIniFilter() },
+          0);
       if (outFile != null) {
         outFile = StreamUtils.replaceFileExtension(outFile, "ini");
         bam.updateRecentSession(outFile);
@@ -5226,15 +5072,13 @@ public class ConvertToBam extends ChildFrame
     }
 
     /**
-     * Opens dialog to choose what to import and imports selected data.
-     * Returns whether import was successful.
+     * Opens dialog to choose what to import and imports selected data. Returns whether import was successful.
      */
-    public boolean importData(boolean silent)
-    {
+    public boolean importData(boolean silent) {
       resetData();
 
       Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
-                                     new FileNameExtensionFilter[]{getIniFilter()}, 0);
+          new FileNameExtensionFilter[] { getIniFilter() }, 0);
       if (files != null && files.length > 0) {
         if (!FileEx.create(files[0]).isFile()) {
           files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
@@ -5255,11 +5099,9 @@ public class ConvertToBam extends ChildFrame
     }
 
     /**
-     * Imports selected data from the specified session file.
-     * Returns whether import was successful.
+     * Imports selected data from the specified session file. Returns whether import was successful.
      */
-    public boolean importData(Path session, boolean silent)
-    {
+    public boolean importData(Path session, boolean silent) {
       if (session != null) {
         resetData();
         if (loadData(session, silent)) {
@@ -5278,15 +5120,13 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Loads data from the specified file without user-interaction and optionally without feedback. */
-    private boolean loadData(Path inFile, boolean silent)
-    {
+    private boolean loadData(Path inFile, boolean silent) {
       if (inFile != null) {
         IniMap ini = new IniMap(new FileResourceEntry(inFile));
 
         try {
           // checking integrity
-          if (ini.getSection(SECTION_GLOBAL) == null ||
-              ini.getSection(SECTION_GLOBAL).getEntry(KEY_VERSION) == null) {
+          if (ini.getSection(SECTION_GLOBAL) == null || ini.getSection(SECTION_GLOBAL).getEntry(KEY_VERSION) == null) {
             throw new Exception("Invalid BAM session file.");
           }
           if (Misc.toNumber(ini.getSection(SECTION_GLOBAL).getEntry(KEY_VERSION).getValue(), -1) != VERSION) {
@@ -5329,8 +5169,7 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean loadFrameData(IniMapSection frames) throws Exception
-    {
+    private boolean loadFrameData(IniMapSection frames) throws Exception {
       if (frames != null && frames.getName().equalsIgnoreCase(SECTION_FRAMES)) {
         for (final IniMapEntry entry : frames) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
@@ -5368,8 +5207,7 @@ public class ConvertToBam extends ChildFrame
       return true;
     }
 
-    private boolean loadCenterData(IniMapSection centers) throws Exception
-    {
+    private boolean loadCenterData(IniMapSection centers) throws Exception {
       if (centers != null && centers.getName().equalsIgnoreCase(SECTION_CENTER)) {
         for (final IniMapEntry entry : centers) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
@@ -5385,8 +5223,7 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean loadCycleData(IniMapSection cycles) throws Exception
-    {
+    private boolean loadCycleData(IniMapSection cycles) throws Exception {
       if (cycles != null && cycles.getName().equalsIgnoreCase(SECTION_CYCLES)) {
         for (final IniMapEntry entry : cycles) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
@@ -5402,17 +5239,15 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean loadFilterData(IniMapSection filters) throws Exception
-    {
+    private boolean loadFilterData(IniMapSection filters) throws Exception {
       if (filters != null && filters.getName().equalsIgnoreCase(SECTION_FILTERS)) {
         for (final IniMapEntry entry : filters) {
           String key = entry.getKey().trim();
           String value = entry.getValue().trim();
           if (key.matches(KEY_FILTER_NAME + "\\d+")) {
             if (BamFilterFactory.getFilterInfo(value) == null) {
-              throw new Exception("BAM filter \"" +
-                                  value.substring(0, Math.min(value.length(), 256)) +
-                                  "\" does not exist.");
+              throw new Exception(
+                  "BAM filter \"" + value.substring(0, Math.min(value.length(), 256)) + "\" does not exist.");
             }
           } else if (!key.matches(KEY_FILTER_CONFIG + "\\d+")) {
             throw new Exception("Invalid key value found at line " + (entry.getLine() + 1));
@@ -5424,10 +5259,8 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-
     /** Applies available data to the converter without user-interaction and optionally without feedback. */
-    private boolean applyData(boolean silent)
-    {
+    private boolean applyData(boolean silent) {
       bam.previewStop();
       bam.outputSetModified(true);
 
@@ -5463,15 +5296,13 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean applyFramesData(boolean silent) throws Exception
-    {
+    private boolean applyFramesData(boolean silent) throws Exception {
       /** Storage for ResourceEntry and frame index for convenience. */
       class SourceFrame {
         public final ResourceEntry entry;
         public final int index;
 
-        public SourceFrame(ResourceEntry entry, int index)
-        {
+        public SourceFrame(ResourceEntry entry, int index) {
           this.entry = entry;
           this.index = index;
         }
@@ -5487,14 +5318,13 @@ public class ConvertToBam extends ChildFrame
         // image-specific
         public final Path file;
 
-        public SourceData(BamDecoder decoder)
-        {
+        public SourceData(BamDecoder decoder) {
           this.isBam = true;
           this.decoder = decoder;
           this.control = this.decoder.createControl();
           if (this.decoder instanceof BamV1Decoder) {
-            int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
-            int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
+            int[] palette = ((BamV1Decoder.BamV1Control) control).getPalette();
+            int transColor = ((BamV1Decoder.BamV1Control) control).getTransparencyIndex();
             this.cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
           } else {
             this.cm = null;
@@ -5502,8 +5332,7 @@ public class ConvertToBam extends ChildFrame
           this.file = null;
         }
 
-        public SourceData(Path image)
-        {
+        public SourceData(Path image) {
           this.isBam = false;
           this.decoder = null;
           this.control = null;
@@ -5520,7 +5349,8 @@ public class ConvertToBam extends ChildFrame
           // checking list indices
           int listIndex = Misc.toNumber(entry.getKey(), -1);
           if (listIndex < 0 || listIndex >= entryCount) {
-            throw new Exception("Target frame index out of range [: " + listIndex + "] at line " + (entry.getLine() + 1));
+            throw new Exception(
+                "Target frame index out of range [: " + listIndex + "] at line " + (entry.getLine() + 1));
           }
 
           // checking frame source paths and indices
@@ -5532,7 +5362,8 @@ public class ConvertToBam extends ChildFrame
             value = value.substring(0, sepIdx);
           }
           if (frameIndex < 0 || value.isEmpty()) {
-            throw new Exception("Source frame index out of range [: " + listIndex + "] at line " + (entry.getLine() + 1));
+            throw new Exception(
+                "Source frame index out of range [: " + listIndex + "] at line " + (entry.getLine() + 1));
           }
 
           ResourceEntry resource = null;
@@ -5589,8 +5420,7 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean applyCenterData(boolean silent) throws Exception
-    {
+    private boolean applyCenterData(boolean silent) throws Exception {
       if (sectionCenter != null) {
         for (final IniMapEntry entry : sectionCenter) {
           int listIndex = Misc.toNumber(entry.getKey(), -1);
@@ -5613,8 +5443,7 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean applyCycleData(boolean silent) throws Exception
-    {
+    private boolean applyCycleData(boolean silent) throws Exception {
       if (sectionCycles != null) {
         if (bam.modelFrames.getSize() == 0) {
           throw new Exception("Unable to add cycle definitions. No frames available.");
@@ -5634,7 +5463,7 @@ public class ConvertToBam extends ChildFrame
               n = Math.max(0, Math.min(bam.modelFrames.getSize() - 1, n));
               cycleList[j] = n;
             }
-            cycles.put(Integer.valueOf(cycleIndex), cycleList);
+            cycles.put(cycleIndex, cycleList);
             maxCycle = Math.max(maxCycle, cycleIndex);
           }
         }
@@ -5665,13 +5494,13 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    private boolean applyFilterData(boolean silent) throws Exception
-    {
+    private boolean applyFilterData(boolean silent) throws Exception {
       class Config {
         public String name;
         public String param;
 
-        public Config() {}
+        public Config() {
+        }
       }
 
       if (sectionFilters != null) {
@@ -5748,8 +5577,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Saves data to specified INI file without user-interaction and optionally without feedback. */
-    private boolean saveData(Path outFile, boolean silent)
-    {
+    private boolean saveData(Path outFile, boolean silent) {
       boolean retVal = false;
       if (outFile != null) {
         StringBuilder sb = new StringBuilder();
@@ -5765,7 +5593,7 @@ public class ConvertToBam extends ChildFrame
           for (int i = 0; i < bam.modelFrames.getSize(); i++) {
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
             String path = entry.getOption(BAM_FRAME_OPTION_PATH).toString();
-            int index = ((Number)entry.getOption(BAM_FRAME_OPTION_SOURCE_INDEX)).intValue();
+            int index = ((Number) entry.getOption(BAM_FRAME_OPTION_SOURCE_INDEX)).intValue();
             sb.append(Integer.toString(i)).append('=').append(path);
             sb.append(SEPARATOR_FRAME).append(Integer.toString(index));
             sb.append(Misc.LINE_SEPARATOR);
@@ -5808,7 +5636,8 @@ public class ConvertToBam extends ChildFrame
           for (int i = 0; i < bam.modelFilters.getSize(); i++) {
             BamFilterBase filter = bam.modelFilters.getElementAt(i);
             sb.append(KEY_FILTER_NAME).append(i).append('=').append(filter.getName()).append(Misc.LINE_SEPARATOR);
-            sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration()).append(Misc.LINE_SEPARATOR);
+            sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration())
+                .append(Misc.LINE_SEPARATOR);
           }
           sb.append(Misc.LINE_SEPARATOR);
         }
@@ -5817,15 +5646,13 @@ public class ConvertToBam extends ChildFrame
         try (BufferedWriter bw = Files.newBufferedWriter(outFile)) {
           bw.write(sb.toString());
           if (!silent) {
-            JOptionPane.showMessageDialog(bam, "Export completed.", "Message",
-                                          JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(bam, "Export completed.", "Message", JOptionPane.INFORMATION_MESSAGE);
           }
           retVal = true;
         } catch (IOException e) {
           e.printStackTrace();
           if (!silent) {
-            JOptionPane.showMessageDialog(bam, "Error exporting BAM session.", "Error",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(bam, "Error exporting BAM session.", "Error", JOptionPane.ERROR_MESSAGE);
           }
         }
       }
@@ -5833,8 +5660,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Clears all BAM session data. */
-    private void resetData()
-    {
+    private void resetData() {
       sectionFrames = null;
       sectionCenter = null;
       sectionCycles = null;
@@ -5842,8 +5668,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Shows options dialog and returns whether user selected "Accept" or "Cancel". */
-    private boolean getSelection(boolean isExport)
-    {
+    private boolean getSelection(boolean isExport) {
       if (isExport) {
         setTitle("Export BAM session");
         lSelect.setText(QUESTION_EXPORT);
@@ -5872,8 +5697,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Attempts to determine a fitting default name for the ini file. */
-    private Path getDefaultIniName(String defaultName)
-    {
+    private Path getDefaultIniName(String defaultName) {
       Path retVal = null;
       if (bam.modelFrames.getSize() > 0) {
         String name = bam.modelFrames.getElementAt(0).getOption(PseudoBamDecoder.OPTION_STRING_LABEL).toString();
@@ -5896,119 +5720,111 @@ public class ConvertToBam extends ChildFrame
     }
 
     /** Returns whether the dialog options have been accepted. */
-    private boolean isAccepted()
-    {
+    private boolean isAccepted() {
       return accepted;
     }
 
     /** Returns whether the frames option has been selected. */
-    private boolean isFramesSelected()
-    {
+    private boolean isFramesSelected() {
       return (cbFrames.isEnabled() && cbFrames.isSelected());
     }
 
     /** Returns whether the center position option has been selected. */
-    private boolean isCenterSelected()
-    {
+    private boolean isCenterSelected() {
       return (cbCenter.isEnabled() && cbCenter.isSelected());
     }
 
     /** Returns whether the cycle definition option has been selected. */
-    private boolean isCyclesSelected()
-    {
+    private boolean isCyclesSelected() {
       return (cbCycles.isEnabled() && cbCycles.isSelected());
     }
 
     /** Returns whether the filter configuration option has been selected. */
-    private boolean isFiltersSelected()
-    {
+    private boolean isFiltersSelected() {
       return (cbFilters.isEnabled() && cbFilters.isSelected());
     }
 
     /** Disposes the dialog and marks it as accepted. */
-    private void acceptDialog()
-    {
+    private void acceptDialog() {
       setVisible(false);
       accepted = true;
     }
 
     /** Disposes the dialog and marks it as cancelled. */
-    private void cancel()
-    {
+    private void cancel() {
       setVisible(false);
       accepted = false;
     }
 
     /** Initializes the basic dialog layout. */
-    private void init()
-    {
+    private void init() {
       setLayout(new BorderLayout());
       GridBagConstraints c = new GridBagConstraints();
 
       bAccept.addActionListener(this);
       bCancel.addActionListener(this);
 
-      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), bCancel);
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+          bCancel);
       getRootPane().getActionMap().put(bCancel, new AbstractAction() {
         @Override
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e) {
           cancel();
         }
       });
-      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), bAccept);
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+          bAccept);
       getRootPane().getActionMap().put(bAccept, new AbstractAction() {
         @Override
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e) {
           acceptDialog();
         }
       });
 
       JPanel pList = new JPanel(new GridBagLayout());
       lSelect.setText(QUESTION_EXPORT);
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 0, 0, 0), 0, 0);
       pList.add(lSelect, c);
-      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 0), 0, 0);
       pList.add(cbFrames, c);
-      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 0, 0, 0), 0, 0);
       pList.add(cbCenter, c);
-      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 0, 0, 0), 0, 0);
       pList.add(cbCycles, c);
-      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 0, 0, 0), 0, 0);
       pList.add(cbFilters, c);
 
       JPanel pBottom = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(new JPanel(), c);
-      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(bAccept, c);
-      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 8, 0, 0), 0, 0);
       pBottom.add(bCancel, c);
-      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
       pBottom.add(new JPanel(), c);
 
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 16, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+          new Insets(8, 8, 16, 8), 0, 0);
       pMain.add(pList, c);
-      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+          new Insets(8, 8, 8, 8), 0, 0);
       pMain.add(pBottom, c);
 
       add(pMain, BorderLayout.CENTER);
       pack();
       setMinimumSize(getPreferredSize());
-      setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+      setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
     }
   }
 }

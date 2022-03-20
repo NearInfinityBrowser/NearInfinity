@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -54,44 +55,42 @@ import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class StringUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, SearchClient, ActionListener
-{
+public final class StringUseChecker extends AbstractSearcher
+    implements Runnable, ListSelectionListener, SearchClient, ActionListener {
   private ChildFrame resultFrame;
   private JTextArea textArea;
+
   /** List of the {@link UnusedStringTableItem} objects. */
   private SortableTable table;
+
   private boolean[] strUsed;
   private JMenuItem save;
 
-  public StringUseChecker(Component parent)
-  {
+  public StringUseChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     final int row = table.getSelectedRow();
     if (row == -1) {
       textArea.setText(null);
     } else {
-      final UnusedStringTableItem item = (UnusedStringTableItem)table.getTableItemAt(row);
+      final UnusedStringTableItem item = (UnusedStringTableItem) table.getTableItemAt(row);
       textArea.setText(item.string);
     }
     textArea.setCaretPosition(0);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
@@ -108,9 +107,8 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         return;
       }
 
-      table = new SortableTable(new String[]{"String", "StrRef"},
-                                new Class<?>[]{String.class, Integer.class},
-                                new Integer[]{450, 20});
+      table = new SortableTable(new String[] { "String", "StrRef" }, new Class<?>[] { String.class, Integer.class },
+          new Integer[] { 450, 20 });
       for (int i = 0; i < strUsed.length; i++) {
         if (!strUsed[i]) {
           table.addTableItem(new UnusedStringTableItem(i));
@@ -118,8 +116,8 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
       }
       if (table.getRowCount() == 0) {
         resultFrame.close();
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found", "Info",
+            JOptionPane.INFORMATION_MESSAGE);
       } else {
         table.tableComplete(1);
         textArea = new JTextArea(10, 40);
@@ -136,11 +134,11 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         menuBar.add(fileMenu);
         resultFrame.setJMenuBar(menuBar);
         resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
-        JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
-        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+        JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", SwingConstants.CENTER);
+        count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
         JScrollPane scrollTable = new JScrollPane(table);
         scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel)resultFrame.getContentPane();
+        JPanel pane = (JPanel) resultFrame.getContentPane();
         pane.setLayout(new BorderLayout(0, 3));
         pane.add(count, BorderLayout.NORTH);
         pane.add(scrollTable, BorderLayout.CENTER);
@@ -162,65 +160,60 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
-        checkDialog((DlgResource)resource);
+        checkDialog((DlgResource) resource);
       } else if (resource instanceof BcsResource) {
-        checkScript((BcsResource)resource);
+        checkScript((BcsResource) resource);
       } else if (resource instanceof PlainTextResource) {
-        checkTextfile((PlainTextResource)resource);
+        checkTextfile((PlainTextResource) resource);
       } else if (resource instanceof AbstractStruct) {
-        checkStruct((AbstractStruct)resource);
+        checkStruct((AbstractStruct) resource);
       }
       advanceProgress();
     };
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == save) {
       table.saveCheckResult(resultFrame, "Unused strings (maximum " + strUsed.length + ")");
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-// --------------------- Begin Interface SearchClient ---------------------
+  // --------------------- Begin Interface SearchClient ---------------------
 
   @Override
-  public String getText(int nr)
-  {
-    if (nr < 0 || nr >= table.getRowCount())
+  public String getText(int nr) {
+    if (nr < 0 || nr >= table.getRowCount()) {
       return null;
+    }
     return table.getTableItemAt(nr).toString();
   }
 
   @Override
-  public void hitFound(int nr)
-  {
+  public void hitFound(int nr) {
     table.getSelectionModel().addSelectionInterval(nr, nr);
     table.scrollRectToVisible(table.getCellRect(table.getSelectionModel().getMinSelectionIndex(), 0, true));
   }
 
-// --------------------- End Interface SearchClient ---------------------
+  // --------------------- End Interface SearchClient ---------------------
 
-  private void checkDialog(DlgResource dialog)
-  {
+  private void checkDialog(DlgResource dialog) {
     for (final StructEntry entry : dialog.getFlatFields()) {
       if (entry instanceof StringRef) {
-        checkStringRef((StringRef)entry);
-      }
-      else if (entry instanceof AbstractCode) {
-        final AbstractCode code = (AbstractCode)entry;
+        checkStringRef((StringRef) entry);
+      } else if (entry instanceof AbstractCode) {
+        final AbstractCode code = (AbstractCode) entry;
         try {
           final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
           final Compiler compiler = new Compiler(code.getText(), type);
@@ -233,8 +226,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
-  private void checkScript(BcsResource script)
-  {
+  private void checkScript(BcsResource script) {
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
@@ -242,41 +234,36 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
-  private void checkStruct(AbstractStruct struct)
-  {
+  private void checkStruct(AbstractStruct struct) {
     for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof StringRef) {
-        checkStringRef((StringRef)entry);
+        checkStringRef((StringRef) entry);
       }
     }
   }
 
-  private void checkTextfile(PlainTextResource text)
-  {
+  private void checkTextfile(PlainTextResource text) {
     final Matcher m = StringReferenceSearcher.NUMBER_PATTERN.matcher(text.getText());
     while (m.find()) {
       final long nr = Long.parseLong(m.group());
       if (nr >= 0 && nr < strUsed.length) {
         synchronized (strUsed) {
-          strUsed[(int)nr] = true;
+          strUsed[(int) nr] = true;
         }
       }
     }
   }
 
   /**
-   * Mark all strings from {@link StringTable string table} to which the script
-   * code refers, as used.
+   * Mark all strings from {@link StringTable string table} to which the script code refers, as used.
    * <p>
    * This method can be called from several threads
    *
-   * @param compiledCode Compiled code from BCS, dialog action or trigger.
-   *        Must not be {@code null}
+   * @param compiledCode Compiled code from BCS, dialog action or trigger. Must not be {@code null}
    *
    * @throws Exception If {@code compiledCode} contains invalid code
    */
-  private void checkCode(String compiledCode, ScriptType type) throws Exception
-  {
+  private void checkCode(String compiledCode, ScriptType type) throws Exception {
     final Decompiler decompiler = new Decompiler(compiledCode, type, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
@@ -284,7 +271,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
 
     synchronized (strUsed) {
       for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-        final int index = stringRef.intValue();
+        final int index = stringRef;
         if (index >= 0 && index < strUsed.length) {
           strUsed[index] = true;
         }
@@ -299,8 +286,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
    *
    * @param ref Rererence to string in the {@link StringTable string table}
    */
-  private void checkStringRef(StringRef ref)
-  {
+  private void checkStringRef(StringRef ref) {
     final int index = ref.getValue();
     if (index >= 0 && index < strUsed.length) {
       synchronized (strUsed) {
@@ -309,30 +295,27 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class UnusedStringTableItem implements TableItem
-  {
+  private static final class UnusedStringTableItem implements TableItem {
     private final Integer strRef;
     final String string;
 
-    private UnusedStringTableItem(Integer strRef)
-    {
+    private UnusedStringTableItem(Integer strRef) {
       this.strRef = strRef;
-      string = StringTable.getStringRef(strRef.intValue(), StringTable.Format.NONE);
+      string = StringTable.getStringRef(strRef, StringTable.Format.NONE);
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
-      if (columnIndex == 1)
+    public Object getObjectAt(int columnIndex) {
+      if (columnIndex == 1) {
         return strRef;
+      }
       return string;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return "StringRef: " + strRef + " /* " + string.replace("\r\n", Misc.LINE_SEPARATOR) + " */";
     }
   }

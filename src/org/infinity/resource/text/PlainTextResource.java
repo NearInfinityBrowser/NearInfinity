@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text;
@@ -49,31 +49,36 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
 
-public class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
-                                          DocumentListener, Closeable, Referenceable
-{
+public class PlainTextResource
+    implements TextResource, Writeable, ActionListener, ItemListener, DocumentListener, Closeable, Referenceable {
   private final ResourceEntry entry;
+
   protected final String text;
+
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
-  private JMenuItem ifindall, ifindthis;
-  private JMenuItem miFormatTrim, miFormatAlign, miFormatSort;
+  private JMenuItem iFindAll;
+  private JMenuItem iFindThis;
+  private JMenuItem miFormatTrim;
+  private JMenuItem miFormatAlign;
+  private JMenuItem miFormatSort;
   private JPanel panel;
+
   /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
   protected InfinityTextArea editor;
+
   private boolean resourceChanged;
   private int highlightedLine = -1;
 
   /** Returns description for INI resources linked to ARE resources or listed in ANIMATE.IDS. */
-  public static String getSearchString(ResourceEntry entry)
-  {
+  public static String getSearchString(ResourceEntry entry) {
     String retVal = null;
     if (entry != null && "INI".equalsIgnoreCase(entry.getExtension())) {
       try {
@@ -83,8 +88,9 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
           IdsMap idsMap = IdsMapCache.get("ANIMATE.IDS");
           if (idsMap != null) {
             IdsMapEntry idsEntry = idsMap.get(animId);
-            if (idsEntry != null)
+            if (idsEntry != null) {
               retVal = idsEntry.getSymbol();
+            }
           }
         }
       } catch (NumberFormatException e) {
@@ -92,15 +98,15 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
       if (retVal == null) {
         ResourceEntry areEntry = ResourceFactory.getResourceEntry(entry.getResourceRef() + ".ARE");
-        if (areEntry != null)
+        if (areEntry != null) {
           retVal = AreResource.getSearchString(areEntry);
+        }
       }
     }
     return retVal;
   }
 
-  public PlainTextResource(ResourceEntry entry) throws Exception
-  {
+  public PlainTextResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
@@ -115,14 +121,14 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
         resourceChanged = false;
+      }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
@@ -132,72 +138,63 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     if (resourceChanged) {
       ResourceFactory.closeResource(this, entry, panel);
     }
   }
 
-// --------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new ReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-// --------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent event)
-  {
+  public void insertUpdate(DocumentEvent event) {
     resourceChanged = true;
   }
 
   @Override
-  public void removeUpdate(DocumentEvent event)
-  {
+  public void removeUpdate(DocumentEvent event) {
     resourceChanged = true;
   }
 
   @Override
-  public void changedUpdate(DocumentEvent event)
-  {
+  public void changedUpdate(DocumentEvent event) {
     resourceChanged = true;
   }
 
-// --------------------- End Interface DocumentListener ---------------------
+  // --------------------- End Interface DocumentListener ---------------------
 
-
-// --------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU);
-    ButtonPopupMenu bpmFormat = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.CUSTOM_1);
+  public void itemStateChanged(ItemEvent event) {
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu) buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU);
+    ButtonPopupMenu bpmFormat = (ButtonPopupMenu) buttonPanel.getControlByType(ButtonPanel.Control.CUSTOM_1);
     if (event.getSource() == bpmFind) {
-      if (bpmFind.getSelectedItem() == ifindall) {
+      if (bpmFind.getSelectedItem() == iFindAll) {
         final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
-      } else if (bpmFind.getSelectedItem() == ifindthis) {
+      } else if (bpmFind.getSelectedItem() == iFindThis) {
         new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
       }
     } else if (event.getSource() == bpmFormat) {
@@ -211,31 +208,26 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
   }
 
-// --------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-
-// --------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-// --------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-
-// --------------------- Begin Interface TextResource ---------------------
+  // --------------------- Begin Interface TextResource ---------------------
 
   @Override
-  public String getText()
-  {
+  public String getText() {
     return text;
   }
 
   @Override
-  public void highlightText(int linenr, String highlightText)
-  {
+  public void highlightText(int linenr, String highlightText) {
     try {
       int startOfs = editor.getLineStartOffset(linenr - 1);
       int endOfs = editor.getLineEndOffset(linenr - 1);
@@ -254,8 +246,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
   }
 
   @Override
-  public void highlightText(int startOfs, int endOfs)
-  {
+  public void highlightText(int startOfs, int endOfs) {
     try {
       editor.setCaretPosition(startOfs);
       editor.moveCaretPosition(endOfs - 1);
@@ -264,14 +255,12 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
   }
 
-// --------------------- End Interface TextResource ---------------------
+  // --------------------- End Interface TextResource ---------------------
 
-
-// --------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     editor = new InfinityTextArea(text, true);
     InfinityScrollPane pane = new InfinityScrollPane(editor, true);
     setSyntaxHighlightingEnabled(editor, pane);
@@ -288,33 +277,33 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       editor.setWrapStyleWord(true);
     }
 
-    ifindall  = new JMenuItem("in all " + ext + " files");
-    ifindthis = new JMenuItem("in this file only");
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
-    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    iFindAll = new JMenuItem("in all " + ext + " files");
+    iFindThis = new JMenuItem("in this file only");
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
+    bpmFind.setMenuItems(new JMenuItem[] { iFindAll, iFindThis });
     bpmFind.addItemListener(this);
     if ("2DA".equals(ext)) {
       miFormatTrim = new JMenuItem("Trim spaces");
       miFormatAlign = new JMenuItem("Align table");
       miFormatAlign.setToolTipText("Align table columns to improve readability.");
-      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[]{miFormatTrim, miFormatAlign});
+      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[] { miFormatTrim, miFormatAlign });
       bpmFormat.addItemListener(this);
       buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
     } else if ("IDS".equals(ext)) {
       miFormatTrim = new JMenuItem("Trim spaces");
       miFormatSort = new JMenuItem("Sort entries");
       miFormatSort.setToolTipText("Sort entries in ascending order.");
-      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[]{miFormatTrim, miFormatSort});
+      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[] { miFormatTrim, miFormatSort });
       bpmFormat.addItemListener(this);
       buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
     } else {
-      ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+      ((JButton) buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
     }
     if ("2DA".equals(ext)) {
-      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+      ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
@@ -330,14 +319,12 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     return panel;
   }
 
-// --------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     if (editor == null) {
       StreamUtils.writeString(os, text, text.length());
     } else {
@@ -345,44 +332,42 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-  public void setHighlightedLine(int highlightedLine)
-  {
+  public void setHighlightedLine(int highlightedLine) {
     this.highlightedLine = highlightedLine;
     if (panel != null) {
       highlightText(highlightedLine, null);
     }
   }
 
-  public int getHighlightedLine()
-  {
+  public int getHighlightedLine() {
     return highlightedLine;
   }
 
-  public List<String> extract2DAHeaders()
-  {
+  public List<String> extract2DAHeaders() {
     StringTokenizer st = new StringTokenizer(getText(), "\n");
     st.nextToken();
     st.nextToken();
     String header = st.nextToken();
     st = new StringTokenizer(header);
     final List<String> strings = new ArrayList<>();
-    while (st.hasMoreTokens())
+    while (st.hasMoreTokens()) {
       strings.add(st.nextToken().toUpperCase(Locale.ENGLISH));
+    }
     return strings;
   }
 
   /**
    * Removes trailing whitespace from every line of the text. Ensures that text ends with a newline.
    */
-  public void trimSpaces()
-  {
+  public void trimSpaces() {
     String input = editor.getText();
     String[] lines = input.split("\n");
     StringBuilder newText = new StringBuilder();
-    for (int i = 0; i < lines.length; i++)
-      newText.append(Misc.trimEnd(lines[i])).append('\n');
+    for (String line : lines) {
+      newText.append(Misc.trimEnd(line)).append('\n');
+    }
     String output = newText.toString();
 
     if (input.compareTo(output) != 0) {
@@ -393,14 +378,14 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
   /**
    * Aligns table columns to improve readability.
-   * @param spaces Min. number of spaces between columns.
-   * @param alignPerColumn specify {@code true} to calculate max width on a per column basis,
-   *                       or {@code false} to calculate for the whole table.
-   * @param multipleOf ensures that column position is always a multiple of the specified value.
-   *                   (e.g. specify 2 to have every column start at an even horizontal position.)
+   *
+   * @param spaces         Min. number of spaces between columns.
+   * @param alignPerColumn specify {@code true} to calculate max width on a per column basis, or {@code false} to
+   *                       calculate for the whole table.
+   * @param multipleOf     ensures that column position is always a multiple of the specified value. (e.g. specify 2 to
+   *                       have every column start at an even horizontal position.)
    */
-  public void alignTableColumns(int spaces, boolean alignPerColumn, int multipleOf)
-  {
+  public void alignTableColumns(int spaces, boolean alignPerColumn, int multipleOf) {
     spaces = Math.max(1, spaces);
     multipleOf = Math.max(1, multipleOf);
 
@@ -416,15 +401,19 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       String[] tokens = lines[i].split("\\s+");
       if (tokens.length > 0) {
         matrix.add(new ArrayList<>(tokens.length));
-        if (matrix.size() == 3) matrix.get(matrix.size() - 1).add("");
-        for (int j = 0; j < tokens.length; j++) {
-          if (!tokens[j].isEmpty())
-            matrix.get(i).add(tokens[j]);
+        if (matrix.size() == 3) {
+          matrix.get(matrix.size() - 1).add("");
+        }
+        for (String token : tokens) {
+          if (!token.isEmpty()) {
+            matrix.get(i).add(token);
+          }
         }
         if (matrix.size() > 2) {
           maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
-          for (int j = 0; j < tokens.length; j++)
-            maxTokenLength = Math.max(maxTokenLength, tokens[j].length());
+          for (String token : tokens) {
+            maxTokenLength = Math.max(maxTokenLength, token.length());
+          }
         }
       }
     }
@@ -435,8 +424,9 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       int maxLen = 0;
       if (alignPerColumn) {
         for (int row = 2; row < matrix.size(); row++) {
-          if (col < matrix.get(row).size())
+          if (col < matrix.get(row).size()) {
             maxLen = Math.max(maxLen, matrix.get(row).get(col).length());
+          }
         }
       } else {
         maxLen = maxTokenLength;
@@ -481,26 +471,27 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
   /**
    * Sorts IDS entries by key values. Special entry at line 1 is excluded.
+   *
    * @param ascending {@code true} to sort in ascending order, {@code false} to sort in descending order.
    */
-  public void sortTable(boolean ascending)
-  {
+  public void sortTable(boolean ascending) {
     String input = editor.getText();
     String[] lines = input.split("\n");
 
     // dividing lines into fixed entries and (sortable) ids entries
-    List<String> header = new ArrayList<>();  // contains fixed lines to be placed at the top
+    List<String> header = new ArrayList<>(); // contains fixed lines to be placed at the top
     List<String> entries = new ArrayList<>(); // contains ids entries
-    for (int i = 0, cnt = lines.length; i < cnt; i++) {
-      String[] items = lines[i].trim().split("\\s+", 2);
+    for (String line : lines) {
+      String[] items = line.trim().split("\\s+", 2);
       if (items.length < 2 || items[0].equalsIgnoreCase("IDS")) {
-        header.add(lines[i]);
+        header.add(line);
       } else {
-        entries.add(lines[i]);
+        entries.add(line);
       }
     }
-    if (entries.isEmpty())
+    if (entries.isEmpty()) {
       return;
+    }
 
     // sorting ids entries
     final Pattern patKey = Pattern.compile("\\s*(\\S+).*");
@@ -513,34 +504,46 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       if (m.find()) {
         String s = m.groupCount() > 0 ? m.group(1) : "";
         radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
-        if (radix == 16)
+        if (radix == 16) {
           s = s.substring(2);
-        try { v1 = Long.parseLong(s, radix); } catch (NumberFormatException ex) { }
+        }
+        try {
+          v1 = Long.parseLong(s, radix);
+        } catch (NumberFormatException ex) {
+        }
       }
 
       m = patKey.matcher(c2);
       if (m.find()) {
         String s = m.groupCount() > 0 ? m.group(1) : "";
         radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
-        if (radix == 16)
+        if (radix == 16) {
           s = s.substring(2);
-        try { v2 = Long.parseLong(s, radix); } catch (NumberFormatException ex) { }
+        }
+        try {
+          v2 = Long.parseLong(s, radix);
+        } catch (NumberFormatException ex) {
+        }
       }
 
       int retVal = (v1 < v2) ? -1 : ((v1 > v2) ? 1 : 0);
-      if (!ascending)
+      if (!ascending) {
         retVal = -retVal;
+      }
       return retVal;
     });
 
     // building output string
     StringBuilder sb = new StringBuilder();
-    for (String s : header)
+    for (String s : header) {
       sb.append(s).append('\n');
-    for (String s : entries)
+    }
+    for (String s : entries) {
       sb.append(s).append('\n');
-    if (input.charAt(input.length() - 1) != '\n')
+    }
+    if (input.charAt(input.length() - 1) != '\n') {
       sb.deleteCharAt(sb.length() - 1);
+    }
 
     String output = sb.toString();
     if (!input.equals(output)) {
@@ -549,41 +552,33 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
   }
 
-  private void setSyntaxHighlightingEnabled(InfinityTextArea edit, InfinityScrollPane pane)
-  {
+  private void setSyntaxHighlightingEnabled(InfinityTextArea edit, InfinityScrollPane pane) {
     InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
       if ("SQL".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("LUA".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getLuaSyntaxHighlightingEnabled()) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getLuaSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.LUA;
         }
       } else if (Profile.isEnhancedEdition() && "BALDUR.INI".equalsIgnoreCase(entry.getResourceName())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("GLSL".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getGlslSyntaxHighlightingEnabled()) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getGlslSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.GLSL;
         }
-      } else if ("BCS".equalsIgnoreCase(entry.getExtension()) ||
-                 "BS".equalsIgnoreCase(entry.getExtension()) ||
-                 "BAF".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+      } else if ("BCS".equalsIgnoreCase(entry.getExtension()) || "BS".equalsIgnoreCase(entry.getExtension())
+          || "BAF".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.BCS;
         }
-      } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName()) ||
-                 "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
-        if (BrowserMenuBar.getInstance() == null ||
-            BrowserMenuBar.getInstance().getWeiDUSyntaxHighlightingEnabled()) {
+      } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName())
+          || "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
+        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getWeiDUSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.WEIDU;
         }
       }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -36,33 +36,34 @@ import org.infinity.util.Misc;
 /**
  * Output filter: Exports each frame as separate image.
  */
-public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemListener, ChangeListener
-{
-  private static final String FilterName = "Image output";
-  private static final String FilterDesc = "This filter exports all frames of the BAM as individual images.\n" +
-                                           "Notes: Output filters will always be processed last.";
+public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemListener, ChangeListener {
+  private static final String FILTER_NAME = "Image output";
+  private static final String FILTER_DESC = "This filter exports all frames of the BAM as individual images.\n"
+                                            + "Notes: Output filters will always be processed last.";
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
+
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
 
   private JComboBox<String> cbImageType;
   private JSpinner spinnerDigits;
   private JCheckBox cbTransparent;
 
-  public BamFilterOutputImage(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public BamFilterOutputImage(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public boolean process(PseudoBamDecoder decoder) throws Exception
-  {
+  public boolean process(PseudoBamDecoder decoder) throws Exception {
     return applyEffect(decoder);
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(cbImageType.getSelectedIndex()).append(';');
     sb.append(spinnerDigits.getValue()).append(';');
@@ -71,8 +72,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -89,8 +89,8 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
         }
 
         if (params.length > 1) {
-          int min = ((Number)((SpinnerNumberModel)spinnerDigits.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerDigits.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerDigits.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerDigits.getModel()).getMaximum()).intValue();
           digits = decodeNumber(params[1], min, max, Integer.MIN_VALUE);
           if (digits == Integer.MIN_VALUE) {
             return false;
@@ -121,21 +121,20 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
     return frame;
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Image output format:");
     JLabel l2 = new JLabel("Digits for frame index:");
-    cbImageType = new JComboBox<>(new String[]{"PNG", "BMP"});
+    cbImageType = new JComboBox<>(new String[] { "PNG", "BMP" });
     cbImageType.setEditable(false);
-    cbImageType.setPreferredSize(new Dimension(cbImageType.getPreferredSize().width + 16, cbImageType.getPreferredSize().height));
+    cbImageType.setPreferredSize(
+        new Dimension(cbImageType.getPreferredSize().width + 16, cbImageType.getPreferredSize().height));
     cbImageType.setSelectedIndex(0);
     cbImageType.addItemListener(this);
     spinnerDigits = new JSpinner(new SpinnerNumberModel(5, 1, 9, 1));
@@ -144,54 +143,51 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
     cbTransparent = new JCheckBox("Transparent background (BAM v1 only)", true);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     panel.add(cbImageType, c);
 
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel.add(l2, c);
-    ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     panel.add(spinnerDigits, c);
 
-    ViewerUtil.setGBC(c, 0, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel.add(cbTransparent, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (event.getSource() == cbImageType) {
       cbTransparent.setEnabled(cbImageType.getSelectedIndex() == 0);
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == spinnerDigits) {
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception
-  {
+  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception {
     if (getConverter() != null && decoder != null) {
       if (!getConverter().isBamV1Selected() && cbImageType.getSelectedIndex() == 1) {
         throw new Exception("BMP output format supports BAM v1 only.");
@@ -201,12 +197,12 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
       String fileName = getConverter().getBamOutput().toString();
       int idx = fileName.lastIndexOf('.');
       if (idx >= 0) {
-        if (Character.isLowerCase(fileName.charAt(idx+1))) {
+        if (Character.isLowerCase(fileName.charAt(idx + 1))) {
           fileExt = fileExt.toLowerCase(Locale.ENGLISH);
         }
         fileName = fileName.substring(0, idx);
       }
-      int digits = ((Integer)spinnerDigits.getValue()).intValue();
+      int digits = ((Integer) spinnerDigits.getValue());
       String fmt = fileName + "%0" + digits + "d." + fileExt;
       boolean transparent = cbTransparent.isSelected() || fileExt.equalsIgnoreCase("bmp");
 
@@ -220,9 +216,9 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
         BufferedImage image = entry.getFrame();
         try {
           // remove transparent palette entry
-          if (!transparent && image.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
-              image.getColorModel() instanceof IndexColorModel) {
-            IndexColorModel cm = (IndexColorModel)image.getColorModel();
+          if (!transparent && image.getType() == BufferedImage.TYPE_BYTE_INDEXED
+              && image.getColorModel() instanceof IndexColorModel) {
+            IndexColorModel cm = (IndexColorModel) image.getColorModel();
             int index = cm.getTransparentPixel();
             if (index >= 0) {
               byte[] r = new byte[cm.getMapSize()];
@@ -238,7 +234,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
               Hashtable<String, Object> table = null;
               if (names != null) {
                 table = new Hashtable<>();
-                for (String name: names) {
+                for (String name : names) {
                   table.put(name, image.getProperty(name));
                 }
               }

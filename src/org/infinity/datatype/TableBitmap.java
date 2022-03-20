@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -11,11 +11,10 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
 /** A general-purpose Bitmap type for creating lists of 2DA table entries. */
-public class TableBitmap extends Bitmap
-{
+public class TableBitmap extends Bitmap {
   /**
-   * Constructs a list control from the first column of the specified 2DA resource. List entries
-   * will be normalized (i.e. underscores to spaces, each word starts with capital letter).
+   * Constructs a list control from the first column of the specified 2DA resource. List entries will be normalized
+   * (i.e. underscores to spaces, each word starts with capital letter).
    *
    * @param buffer
    * @param offset
@@ -23,14 +22,11 @@ public class TableBitmap extends Bitmap
    * @param name
    * @param tableName 2DA resource name
    */
-  public TableBitmap(ByteBuffer buffer, int offset, int length, String name,
-                     String tableName)
-  {
+  public TableBitmap(ByteBuffer buffer, int offset, int length, String name, String tableName) {
     super(buffer, offset, length, name, generateList(tableName, 0, true));
   }
 
-  private static String[] generateList(String tableName, int column, boolean normalize)
-  {
+  private static String[] generateList(String tableName, int column, boolean normalize) {
     String[] retVal = null;
 
     Table2da table = Table2daCache.get(tableName);
@@ -56,8 +52,7 @@ public class TableBitmap extends Bitmap
     return retVal;
   }
 
-  private static String normalizeString(String s)
-  {
+  private static String normalizeString(String s) {
     if (s != null && !s.isEmpty()) {
       StringBuilder sb = new StringBuilder(s.replace('_', ' ').toLowerCase(Locale.ENGLISH));
 
@@ -67,8 +62,8 @@ public class TableBitmap extends Bitmap
       int idx = 0;
       while (idx >= 0) {
         idx = sb.indexOf(" ", idx + 1);
-        if (idx > 0 && idx+1 < len) {
-          sb.setCharAt(idx+1, Character.toUpperCase(sb.charAt(idx+1)));
+        if (idx > 0 && idx + 1 < len) {
+          sb.setCharAt(idx + 1, Character.toUpperCase(sb.charAt(idx + 1)));
         }
       }
 

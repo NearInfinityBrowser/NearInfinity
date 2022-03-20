@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -27,24 +27,26 @@ import org.infinity.search.FileTypeSelector;
  *
  * @author Mingun
  */
-public abstract class AbstractChecker extends AbstractSearcher implements ActionListener, Runnable
-{
+public abstract class AbstractChecker extends AbstractSearcher implements ActionListener, Runnable {
   /** The window with checkboxes allowing to configure operation settings before its start. */
   private final ChildFrame settingsWindow;
+
   /** Selector of file types in which search must be performed. */
   private final FileTypeSelector selector;
+
   /** Button that begins check with specified settings. */
-  private final JButton bStart  = new JButton("Check", Icons.ICON_FIND_16.getIcon());
+  private final JButton bStart = new JButton("Check", Icons.ICON_FIND_16.getIcon());
+
   /** Button that closes start check dialog. */
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
 
   /** Key used to save and restore checkbox selection. */
   private final String key;
+
   /** Resources, selected for check. */
   protected List<ResourceEntry> files;
 
-  public AbstractChecker(String title, String key, String[] filetypes)
-  {
+  public AbstractChecker(String title, String key, String[] filetypes) {
     super(CHECK_MULTI_TYPE_FORMAT, NearInfinity.getInstance());
     settingsWindow = new ChildFrame(title, true);
     settingsWindow.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
@@ -55,7 +57,7 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
     bpanel.add(bStart);
     bpanel.add(bCancel);
 
-    final JPanel pane = (JPanel)settingsWindow.getContentPane();
+    final JPanel pane = (JPanel) settingsWindow.getContentPane();
     pane.setLayout(new BorderLayout());
     pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     pane.add(selector, BorderLayout.CENTER);
@@ -73,30 +75,25 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   }
 
   /**
-   * Runs check that {@link #newWorker spawns} working items that performs actual
-   * checking.
+   * Runs check that {@link #newWorker spawns} working items that performs actual checking.
    *
-   * @param entries Entries for check. Any {@code null} values will be ignored,
-   *        any other will be checked in several threads
-   *
+   * @param entries Entries for check. Any {@code null} values will be ignored, any other will be checked in several
+   *                threads
    * @return {@code true}, if check cancelled, {@code false} otherwise
    */
-  protected boolean runCheck(List<ResourceEntry> entries)
-  {
+  protected boolean runCheck(List<ResourceEntry> entries) {
     return runSearch("Checking", entries);
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bStart) {
       settingsWindow.setVisible(false);
       files = selector.getResources(key);
       if (!files.isEmpty()) {
         new Thread(this).start();
       }
-    }
-    else if (event.getSource() == bCancel) {
+    } else if (event.getSource() == bCancel) {
       settingsWindow.setVisible(false);
     }
   }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.itm;
@@ -17,6 +17,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
@@ -31,24 +32,22 @@ import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
-final class Viewer extends JPanel
-{
-  Viewer(ItmResource itm)
-  {
-    JComponent iconPanel1 = ViewerUtil.makeBamPanel((ResourceRef)itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
-    JComponent iconPanel2 = ViewerUtil.makeBamPanel((ResourceRef)itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
+final class Viewer extends JPanel {
+  Viewer(ItmResource itm) {
+    JComponent iconPanel1 = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
+    JComponent iconPanel2 = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
     JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", itm, Effect.class, EffectType.EFFECT_TYPE);
     JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", itm, Ability.class, AbstractAbility.ABILITY_TYPE);
     JPanel fieldPanel = makeFieldPanel(itm);
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)itm.getAttribute(ItmResource.ITM_FLAGS), 1);
+    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_FLAGS), 1);
 
     StructEntry descGeneral = itm.getAttribute(ItmResource.ITM_DESCRIPTION_GENERAL);
     StructEntry descIdentified = itm.getAttribute(ItmResource.ITM_DESCRIPTION_IDENTIFIED);
-    JTabbedPane tabbedDescPanel = new JTabbedPane(JTabbedPane.TOP);
+    JTabbedPane tabbedDescPanel = new JTabbedPane(SwingConstants.TOP);
     tabbedDescPanel.addTab(descGeneral.getName(), ViewerUtil.makeTextAreaPanel(descGeneral, false));
-    tabbedDescPanel.setEnabledAt(0, StringTable.isValidStringRef(((IsNumeric)descGeneral).getValue()));
+    tabbedDescPanel.setEnabledAt(0, StringTable.isValidStringRef(((IsNumeric) descGeneral).getValue()));
     tabbedDescPanel.addTab(descIdentified.getName(), ViewerUtil.makeTextAreaPanel(descIdentified, false));
-    tabbedDescPanel.setEnabledAt(1, StringTable.isValidStringRef(((IsNumeric)descIdentified).getValue()));
+    tabbedDescPanel.setEnabledAt(1, StringTable.isValidStringRef(((IsNumeric) descIdentified).getValue()));
     if (tabbedDescPanel.isEnabledAt(1)) {
       tabbedDescPanel.setSelectedIndex(1);
     }
@@ -79,8 +78,7 @@ final class Viewer extends JPanel
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
   }
 
-  private JPanel makeFieldPanel(ItmResource itm)
-  {
+  private JPanel makeFieldPanel(ItmResource itm) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldPanel = new JPanel(gbl);
@@ -114,23 +112,21 @@ final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_ENCHANTMENT), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_WEIGHT), gbl, gbc, true);
     if (Profile.getEngine() == Profile.Engine.PST) {
-      if (((Flag)itm.getAttribute(ItmResource.ITM_FLAGS)).isFlagSet(11)) {
+      if (((Flag) itm.getAttribute(ItmResource.ITM_FLAGS)).isFlagSet(11)) {
         ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_DIALOG), gbl, gbc, true);
       }
     } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       String resref = getItemDialog(itm);
       if (resref != null) {
-        ViewerUtil.addLabelFieldPair(fieldPanel, new ResourceRef(ByteBuffer.wrap(resref.getBytes()),
-                                                                 0, ItmResource.ITM_DIALOG, "DLG"),
-                                     gbl, gbc, true);
+        ViewerUtil.addLabelFieldPair(fieldPanel,
+            new ResourceRef(ByteBuffer.wrap(resref.getBytes()), 0, ItmResource.ITM_DIALOG, "DLG"), gbl, gbc, true);
       }
     }
     return fieldPanel;
   }
 
   // Returns the associated dialog resref (from itemdial.2da), or null if not available.
-  private static String getItemDialog(ItmResource itm)
-  {
+  private static String getItemDialog(ItmResource itm) {
     String retVal = null;
     Table2da table = Table2daCache.get("itemdial.2da");
     if (table != null && table.getColCount() > 2) {
@@ -151,4 +147,3 @@ final class Viewer extends JPanel
     return retVal;
   }
 }
-

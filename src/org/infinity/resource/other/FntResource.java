@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -22,29 +22,25 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
 
-public final class FntResource extends AbstractStruct implements Resource, HasViewerTabs
-{
+public final class FntResource extends AbstractStruct implements Resource, HasViewerTabs {
   // FNT-specific field labels
-  public static final String FNT_NUM_EXTRA_LETTERS = "# extra letters";
-  public static final String FNT_LETTERS = "Letters";
-  public static final String FNT_EXTRA_LETTERS = "Extra letters";
+  public static final String FNT_NUM_EXTRA_LETTERS  = "# extra letters";
+  public static final String FNT_LETTERS            = "Letters";
+  public static final String FNT_EXTRA_LETTERS      = "Extra letters";
 
   private StructHexViewer hexViewer;
 
-  public FntResource(ResourceEntry entry) throws Exception
-  {
+  public FntResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     // don't save changes
   }
 
   @Override
-  public int read(ByteBuffer buffer, int startoffset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int startoffset) throws Exception {
     String resName = getResourceEntry().getResourceRef();
 
     byte[] b = new byte[8];
@@ -56,45 +52,40 @@ public final class FntResource extends AbstractStruct implements Resource, HasVi
     return buffer.limit();
   }
 
-  //--------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       hexViewer = new StructHexViewer(this, new BasicColorMap(this, true),
-                                new ResourceDataProvider(getResourceEntry()));
+          new ResourceDataProvider(getResourceEntry()));
     }
     return hexViewer;
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
-//--------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
 
     // disabling 'Save' button
-    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE);
+    JButton bSave = (JButton) viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE);
     if (bSave != null) {
       bSave.setEnabled(false);
     }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -57,16 +57,16 @@ import org.infinity.util.io.StreamUtils;
  * A dialog for managing BAM v1 palette entries.
  */
 class BamPaletteDialog extends JDialog
-    implements FocusListener, ActionListener, ChangeListener, ColorGrid.MouseOverListener
-{
+    implements FocusListener, ActionListener, ChangeListener, ColorGrid.MouseOverListener {
   /** Specifies generated palette type */
   public static final int TYPE_GENERATED  = 0;
+
   /** Specifies external palette type */
   public static final int TYPE_EXTERNAL   = 1;
 
-  private static final String[] PaletteTypeInfo = {"Generated palette", "External palette"};
-  private static final String FmtInfoRGB    = "%d  %d  %d  %d";
-  private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
+  private static final String[] PALETTE_TYPE_INFO = { "Generated palette", "External palette" };
+  private static final String FMT_INFO_RGB = "%d  %d  %d  %d";
+  private static final String FMT_INFO_HEX_RGB = "#%02X%02X%02X%02X";
 
   // Stores all available color values of the current BAM and their number of occurence for faster palette creation
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<>();
@@ -74,25 +74,39 @@ class BamPaletteDialog extends JDialog
 
   private ConvertToBam converter;
   private ColorGrid cgPalette;
-  private JLabel lInfoType, lInfoIndex, lInfoRGB, lInfoHexRGB, lColorIndex;
-  private JTextField tfColorRed, tfColorGreen, tfColorBlue, tfColorAlpha, tfCompressedColor;
-  private JMenuItem miPaletteSet, miPaletteClear;
+  private JLabel lInfoType;
+  private JLabel lInfoIndex;
+  private JLabel lInfoRGB;
+  private JLabel lInfoHexRGB;
+  private JLabel lColorIndex;
+  private JTextField tfColorRed;
+  private JTextField tfColorGreen;
+  private JTextField tfColorBlue;
+  private JTextField tfColorAlpha;
+  private JTextField tfCompressedColor;
+  private JMenuItem miPaletteSet;
+  private JMenuItem miPaletteClear;
   private ButtonPopupMenu bpmPalette;
   private JCheckBox cbLockPalette;
   private JButton bClose;
-  private int currentPaletteType, currentRed, currentGreen, currentBlue, currentAlpha, rleIndex;
-  private boolean lockedPalette, hasExternalPalette, paletteModified;
+  private int currentPaletteType;
+  private int currentRed;
+  private int currentGreen;
+  private int currentBlue;
+  private int currentAlpha;
+  private int rleIndex;
+  private boolean lockedPalette;
+  private boolean hasExternalPalette;
+  private boolean paletteModified;
 
-  public BamPaletteDialog(ConvertToBam parent)
-  {
+  public BamPaletteDialog(ConvertToBam parent) {
     super(parent, "Palette", Dialog.ModalityType.DOCUMENT_MODAL);
     this.converter = parent;
     init();
   }
 
   /** Shows the dialog. */
-  public void open()
-  {
+  public void open() {
     if (!isVisible()) {
       updateGeneratedPalette();
       setLocationRelativeTo(getOwner());
@@ -103,16 +117,14 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Hides the dialog */
-  public void close()
-  {
+  public void close() {
     if (isVisible()) {
       setVisible(false);
     }
   }
 
   /** Resets the current palette dialog state. */
-  public void clear()
-  {
+  public void clear() {
     Arrays.fill(palettes[TYPE_GENERATED], 0);
     Arrays.fill(palettes[TYPE_EXTERNAL], 0);
 
@@ -133,44 +145,37 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Returns the associated ConverToBam instance. */
-  public ConvertToBam getConverter()
-  {
+  public ConvertToBam getConverter() {
     return converter;
   }
 
   /** Returns the index of the RLE-compressed color. */
-  public int getRleIndex()
-  {
+  public int getRleIndex() {
     return rleIndex;
   }
 
   /** Returns the global color map for the current BAM structure. */
-  public HashMap<Integer, Integer> getColorMap()
-  {
+  public HashMap<Integer, Integer> getColorMap() {
     return colorMap;
   }
 
   /** Indicates whether to prevent updating the current palette automatically. */
-  public boolean isPaletteLocked()
-  {
+  public boolean isPaletteLocked() {
     return isExternalPalette() || lockedPalette;
   }
 
   /** A convenience method for determining the current type of the palette. */
-  public boolean isExternalPalette()
-  {
+  public boolean isExternalPalette() {
     return (currentPaletteType == TYPE_EXTERNAL);
   }
 
   /** Returns the currently active palette. (Either one of TYPE_GENERATED or TYPE_EXTERNAL.) */
-  public int getPaletteType()
-  {
+  public int getPaletteType() {
     return currentPaletteType;
   }
 
   /** Specify the new active palette. (Either one of TYPE_GENERATED or TYPE_EXTERNAL.) */
-  public void setPaletteType(int type)
-  {
+  public void setPaletteType(int type) {
     switch (type) {
       case TYPE_EXTERNAL:
         if (!hasExternalPalette()) {
@@ -180,22 +185,20 @@ class BamPaletteDialog extends JDialog
         if (type != currentPaletteType) {
           currentPaletteType = type;
           applyPalette(currentPaletteType);
-          lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
+          lInfoType.setText(PALETTE_TYPE_INFO[currentPaletteType]);
         }
         break;
     }
   }
 
   /** Returns the specified palette if available. Returns {@code null} if palette is not available. */
-  public int[] getPalette(int type)
-  {
+  public int[] getPalette(int type) {
     switch (type) {
       case TYPE_EXTERNAL:
         if (!hasExternalPalette()) {
           break;
         }
-      case TYPE_GENERATED:
-      {
+      case TYPE_GENERATED: {
         return palettes[type];
       }
     }
@@ -205,16 +208,15 @@ class BamPaletteDialog extends JDialog
 
   /**
    * Defines the colors of a specific palette.
-   * @param type either one of TYPE_GENERATED or TYPE_EXTERNAL.
+   *
+   * @param type    either one of TYPE_GENERATED or TYPE_EXTERNAL.
    * @param palette The palette data to assign.
    */
-  public void setPalette(int type, int[] palette)
-  {
+  public void setPalette(int type, int[] palette) {
     switch (type) {
       case TYPE_EXTERNAL:
         hasExternalPalette = (palette != null);
-      case TYPE_GENERATED:
-      {
+      case TYPE_GENERATED: {
         if (!isPaletteLocked() || type == TYPE_EXTERNAL) {
           if (palette != null) {
             // loading palette data
@@ -236,14 +238,12 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Returns whether an external palette has been defined. */
-  public boolean hasExternalPalette()
-  {
+  public boolean hasExternalPalette() {
     return hasExternalPalette;
   }
 
   /** Loads the palette from the specified file resource into the specified palette slot. */
-  public void loadExternalPalette(int type, Path paletteFile) throws Exception
-  {
+  public void loadExternalPalette(int type, Path paletteFile) throws Exception {
     if (type != TYPE_EXTERNAL && type != TYPE_GENERATED) {
       throw new Exception("Internal error: Invalid palette slot specified!");
     }
@@ -261,8 +261,7 @@ class BamPaletteDialog extends JDialog
       int[] palette = null;
       if ("BM".equals(new String(signature, 0, 2))) {
         palette = ColorConvert.loadPaletteBMP(paletteFile);
-      } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4),
-                               new byte[]{(byte)0x89, 0x50, 0x4e, 0x47})) {
+      } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4), new byte[] { (byte) 0x89, 0x50, 0x4e, 0x47 })) {
         // PNG supports palette with alpha channel
         palette = ColorConvert.loadPalettePNG(paletteFile, ConvertToBam.getUseAlpha());
       } else if ("RIFF".equals(new String(signature, 0, 4))) {
@@ -294,8 +293,7 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Removes the currently assigned external palette. */
-  public void clearExternalPalette()
-  {
+  public void clearExternalPalette() {
     setPaletteType(TYPE_GENERATED);
     if (hasExternalPalette()) {
       Arrays.fill(palettes[TYPE_EXTERNAL], 0xff000000);
@@ -304,35 +302,30 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Returns whether the palette has been modified after the last call to {@link #updatePalette()}. */
-  public boolean isPaletteModified()
-  {
+  public boolean isPaletteModified() {
     return paletteModified;
   }
 
   /** Marks generated palette as modified. */
-  public void setPaletteModified()
-  {
+  public void setPaletteModified() {
     paletteModified = true;
   }
 
   /**
-   * Calculates a new palette based on the currently registered colors and stores it in the
-   * PaletteDialog instance.
+   * Calculates a new palette based on the currently registered colors and stores it in the PaletteDialog instance.
    */
-  public void updateGeneratedPalette()
-  {
+  public void updateGeneratedPalette() {
     if (isPaletteModified() && !lockedPalette) {
       if (colorMap.size() <= 256) {
         // checking whether all frames share the same palette
         boolean sharedPalette = true;
-        List<PseudoBamFrameEntry> listFrames =
-            getConverter().getBamDecoder(ConvertToBam.BAM_ORIGINAL).getFramesList();
+        List<PseudoBamFrameEntry> listFrames = getConverter().getBamDecoder(ConvertToBam.BAM_ORIGINAL).getFramesList();
         int[] palette = null;
         int[] tmpPalette = new int[256];
-        for (int i = 0; i < listFrames.size(); i++) {
-          BufferedImage image = listFrames.get(i).getFrame();
+        for (PseudoBamFrameEntry listFrame : listFrames) {
+          BufferedImage image = listFrame.getFrame();
           if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-            IndexColorModel cm = (IndexColorModel)image.getColorModel();
+            IndexColorModel cm = (IndexColorModel) image.getColorModel();
             if (palette == null) {
               palette = new int[256];
               cm.getRGBs(palette);
@@ -390,7 +383,7 @@ class BamPaletteDialog extends JDialog
       }
 
       if (colorMap.size() > 256) {
-        boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
+        boolean ignoreAlpha = !(Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
         int startIdx = (palettes[TYPE_GENERATED][0] & 0xffffff) == 0x00ff00 ? 1 : 0;
         ColorConvert.sortPalette(palettes[TYPE_GENERATED], startIdx, BamOptionsDialog.getSortPalette(), ignoreAlpha);
       }
@@ -403,11 +396,10 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bClose) {
       close();
     } else if (event.getSource() == cgPalette) {
@@ -417,9 +409,10 @@ class BamPaletteDialog extends JDialog
       cbLockPalette.setEnabled(true);
       cbLockPalette.setSelected(lockedPalette);
       miPaletteClear.setEnabled(false);
-      lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
+      lInfoType.setText(PALETTE_TYPE_INFO[currentPaletteType]);
     } else if (event.getSource() == miPaletteSet) {
-      Path[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false, ConvertToBam.getPaletteFilters(), 0);
+      Path[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false,
+          ConvertToBam.getPaletteFilters(), 0);
       if (files != null && files.length > 0) {
         try {
           loadExternalPalette(TYPE_EXTERNAL, files[0]);
@@ -437,33 +430,30 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == cgPalette) {
       updatePalette();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent event)
-  {
+  public void focusGained(FocusEvent event) {
     if (event.getSource() instanceof JTextField) {
-      ((JTextField)event.getSource()).selectAll();
+      ((JTextField) event.getSource()).selectAll();
     }
   }
 
   @Override
-  public void focusLost(FocusEvent event)
-  {
+  public void focusLost(FocusEvent event) {
     if (event.getSource() == tfColorRed) {
       currentRed = ConvertToBam.numberValidator(tfColorRed.getText(), 0, 255, currentRed);
       tfColorRed.setText(Integer.toString(currentRed));
@@ -486,22 +476,20 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
-//--------------------- Begin Interface MouseOverListener ---------------------
+  // --------------------- Begin Interface MouseOverListener ---------------------
 
   @Override
-  public void mouseOver(ColorGrid.MouseOverEvent event)
-  {
+  public void mouseOver(ColorGrid.MouseOverEvent event) {
     if (event.getSource() == cgPalette) {
       updateInfoBox(event.getColorIndex());
     }
   }
 
-//--------------------- End Interface MouseOverListener ---------------------
+  // --------------------- End Interface MouseOverListener ---------------------
 
-  private void init()
-  {
+  private void init() {
     // first-time initializations
     palettes[TYPE_GENERATED] = new int[256];
     palettes[TYPE_EXTERNAL] = new int[256];
@@ -524,42 +512,42 @@ class BamPaletteDialog extends JDialog
     cgPalette.addActionListener(this);
     cgPalette.addMouseOverListener(this);
     cgPalette.addChangeListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 2, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 2, 4), 0, 0);
     pPalette.add(cgPalette, c);
 
     // creating information panel
     JPanel pInfo = new JPanel(new GridBagLayout());
     pInfo.setBorder(BorderFactory.createTitledBorder("Information "));
-    lInfoType = new JLabel(PaletteTypeInfo[currentPaletteType]);
+    lInfoType = new JLabel(PALETTE_TYPE_INFO[currentPaletteType]);
     JLabel lInfoIndexTitle = new JLabel("Index:");
     JLabel lInfoRGBTitle = new JLabel("RGBA:");
     JLabel lInfoHexRGBTitle = new JLabel("Hex:");
     lInfoIndex = new JLabel("255");
     lInfoIndex.setMinimumSize(lInfoIndex.getPreferredSize());
-    lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255, 255));
-    lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255, 255));
+    lInfoRGB = new JLabel(String.format(FMT_INFO_RGB, 255, 255, 255, 255));
+    lInfoHexRGB = new JLabel(String.format(FMT_INFO_HEX_RGB, 255, 255, 255, 255));
     lInfoHexRGB.setMinimumSize(lInfoHexRGB.getPreferredSize());
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pInfo.add(lInfoType, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pInfo.add(lInfoIndexTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 4), 0, 0);
     pInfo.add(lInfoIndex, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pInfo.add(lInfoRGBTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 4), 0, 0);
     pInfo.add(lInfoRGB, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 0), 0, 0);
     pInfo.add(lInfoHexRGBTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 4, 4), 0, 0);
     pInfo.add(lInfoHexRGB, c);
 
     // creating color edit panel
@@ -579,35 +567,35 @@ class BamPaletteDialog extends JDialog
     tfColorBlue.addFocusListener(this);
     tfColorAlpha = new JTextField(4);
     tfColorAlpha.addFocusListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pColor.add(lColorIndexTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 10, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 10, 0, 4), 0, 0);
     pColor.add(lColorIndex, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorRedTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorRed, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorGreenTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorGreen, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorBlueTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorBlue, c);
-    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 0), 0, 0);
     pColor.add(lColorAlphaTitle, c);
-    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 4, 4), 0, 0);
     pColor.add(tfColorAlpha, c);
     pColor.setMinimumSize(pColor.getPreferredSize());
 
@@ -619,60 +607,61 @@ class BamPaletteDialog extends JDialog
     miPaletteClear = new JMenuItem("Clear palette");
     miPaletteClear.addActionListener(this);
     miPaletteClear.setEnabled(currentPaletteType == TYPE_EXTERNAL);
-    bpmPalette = new ButtonPopupMenu("External palette", new JMenuItem[]{miPaletteClear, miPaletteSet});
+    bpmPalette = new ButtonPopupMenu("External palette", new JMenuItem[] { miPaletteClear, miPaletteSet });
     bpmPalette.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmPalette.setIconTextGap(8);
     cbLockPalette = new JCheckBox("Lock palette");
-    cbLockPalette.setToolTipText("Selecting this option prevents automatic palette generation when modifying the global frames list");
+    cbLockPalette.setToolTipText(
+        "Selecting this option prevents automatic palette generation when modifying the global frames list");
     cbLockPalette.addActionListener(this);
     JLabel lCompressedColor = new JLabel("Compressed color:");
     tfCompressedColor = new JTextField(4);
     tfCompressedColor.setText("0");
     tfCompressedColor.setToolTipText("The compressed color index for RLE encoded frames");
     tfCompressedColor.addFocusListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 4), 0, 0);
     pOptions.add(bpmPalette, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 4), 0, 0);
     pOptions.add(cbLockPalette, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 0), 0, 0);
     pOptions.add(lCompressedColor, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 4, 4), 0, 0);
     pOptions.add(tfCompressedColor, c);
 
     // putting right sidebar together
     JPanel pSideBar = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pSideBar.add(pInfo, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(pColor, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pSideBar.add(pOptions, c);
 
     JPanel pBottom = new JPanel(new GridBagLayout());
     bClose = new JButton("Close");
     bClose.addActionListener(this);
     bClose.setMargin(new Insets(4, bClose.getInsets().left, 4, bClose.getInsets().right));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pBottom.add(bClose, c);
 
     // putting all together
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 0), 0, 0);
     pMain.add(pPalette, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 4, 4), 0, 0);
     pMain.add(pSideBar, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 8, 0), 0, 0);
     pMain.add(pBottom, c);
 
     setLayout(new BorderLayout());
@@ -683,11 +672,13 @@ class BamPaletteDialog extends JDialog
     // "Closing" the dialog only makes it invisible
     setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
     getRootPane().setDefaultButton(bClose);
-    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), getRootPane());
+    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+        getRootPane());
     getRootPane().getActionMap().put(getRootPane(), new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent event) { close(); }
+      public void actionPerformed(ActionEvent event) {
+        close();
+      }
     });
 
     updateInfoBox(cgPalette.getSelectedIndex());
@@ -695,12 +686,10 @@ class BamPaletteDialog extends JDialog
   }
 
   // Applies the specified palette to the color grid control and updates the edit box
-  private void applyPalette(int paletteType)
-  {
+  private void applyPalette(int paletteType) {
     switch (paletteType) {
       case TYPE_GENERATED:
-      case TYPE_EXTERNAL:
-      {
+      case TYPE_EXTERNAL: {
         for (int i = 0; i < palettes[paletteType].length; i++) {
           cgPalette.setColor(i, new Color(palettes[paletteType][i], true));
         }
@@ -711,16 +700,15 @@ class BamPaletteDialog extends JDialog
   }
 
   // Updates the information panel
-  private void updateInfoBox(int index)
-  {
+  private void updateInfoBox(int index) {
     if (index >= 0 && index < cgPalette.getColorCount()) {
       Color c = cgPalette.getColor(index);
-      lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
+      lInfoType.setText(PALETTE_TYPE_INFO[currentPaletteType]);
       lInfoIndex.setText(Integer.toString(index));
-      lInfoRGB.setText(String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
-      lInfoHexRGB.setText(String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
+      lInfoRGB.setText(String.format(FMT_INFO_RGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
+      lInfoHexRGB.setText(String.format(FMT_INFO_HEX_RGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
     } else {
-      lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
+      lInfoType.setText(PALETTE_TYPE_INFO[currentPaletteType]);
       lInfoIndex.setText("");
       lInfoRGB.setText("");
       lInfoHexRGB.setText("");
@@ -728,8 +716,7 @@ class BamPaletteDialog extends JDialog
   }
 
   // Applies the color values specified in the color edit controls to the currently selected color
-  private void updateCurrentColor()
-  {
+  private void updateCurrentColor() {
     if (cgPalette.getSelectedIndex() >= 0) {
       Color c = new Color(currentRed, currentGreen, currentBlue, currentAlpha);
       cgPalette.setColor(cgPalette.getSelectedIndex(), c);
@@ -738,16 +725,14 @@ class BamPaletteDialog extends JDialog
   }
 
   // Applies all colors of the color grid to the currently active palette
-  private void updatePalette()
-  {
+  private void updatePalette() {
     for (int i = 0; i < palettes[currentPaletteType].length; i++) {
       palettes[currentPaletteType][i] = cgPalette.getColor(i).getRGB();
     }
   }
 
   // Updates the color edit panel with the selected color data
-  private void updateColorBox(int index, Color color)
-  {
+  private void updateColorBox(int index, Color color) {
     boolean isValid = (index >= 0 && index < cgPalette.getColorCount());
     if (isValid) {
       lColorIndex.setText(Integer.toString(index));

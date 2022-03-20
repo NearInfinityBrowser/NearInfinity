@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io;
@@ -20,64 +20,58 @@ import org.infinity.util.io.zip.DlcFileSystemProvider;
 /**
  * Manages available DLCs used by the current game.
  */
-public class DlcManager
-{
+public class DlcManager {
   // list of supported KEY files
-  private static final String[] KEY_FILES = {"mod.key", "chitin.key"};
+  private static final String[] KEY_FILES = { "mod.key", "chitin.key" };
 
   private static DlcManager instance;
 
   private final HashMap<Path, FileSystem> fileSystems;
 
-
   /**
-   * Checks whether the specified file is a valid DLC and registers it internally if not yet done.
-   * Returns the {@code FileSystem} object created from the file.
+   * Checks whether the specified file is a valid DLC and registers it internally if not yet done. Returns the
+   * {@code FileSystem} object created from the file.
+   *
    * @param dlcFile The {@link Path} object pointing to a DLC archive.
-   * @return The {@link FileSystem} object created from the file or fetched from the cache
-   *         if it had been already registered. Returns {@code null} if the file does not point to
-   *         a valid DLC archive.
+   * @return The {@link FileSystem} object created from the file or fetched from the cache if it had been already
+   *         registered. Returns {@code null} if the file does not point to a valid DLC archive.
    * @throws IOException on error.
    */
-  public static FileSystem register(Path dlcFile) throws IOException
-  {
+  public static FileSystem register(Path dlcFile) throws IOException {
     return getInstance()._register(dlcFile);
   }
 
   /**
    * Returns the FileSystem object created from the specified file if available.
+   *
    * @param dlcFile The file used to create a FileSystem object from.
    * @return A {@link FileSystem} object when available, {@code null} otherwise.
    */
-  public static FileSystem getDlc(Path dlcFile)
-  {
+  public static FileSystem getDlc(Path dlcFile) {
     return getInstance()._getDlc(dlcFile);
   }
 
   /**
    * Attempts to find the {@code mod.key} in the specified {@code path}.
-   * @param path Either a {@code DlcPath} object pointing to the root of the DLC filesystem or
-   *             the path to the DLC archive on the default filesystem.
+   *
+   * @param path Either a {@code DlcPath} object pointing to the root of the DLC filesystem or the path to the DLC
+   *             archive on the default filesystem.
    * @return {@code DlcPath} object pointing to the {@code mod.key} or {@code null} if not available.
    */
-  public static Path queryKey(Path path)
-  {
+  public static Path queryKey(Path path) {
     return getInstance()._queryKey(path);
   }
 
   /** Closes all available {@link FileSystem} objects and removes them from the cache. */
-  public static void close()
-  {
+  public static void close() {
     getInstance()._close();
   }
 
-  private DlcManager()
-  {
+  private DlcManager() {
     this.fileSystems = new HashMap<>();
   }
 
-  private FileSystem _register(Path dlcFile)
-  {
+  private FileSystem _register(Path dlcFile) {
     FileSystem fs = _getDlc(dlcFile);
     if (fs == null) {
       fs = _validateDlc(dlcFile);
@@ -88,16 +82,14 @@ public class DlcManager
     return fs;
   }
 
-  private FileSystem _getDlc(Path dlcFile)
-  {
+  private FileSystem _getDlc(Path dlcFile) {
     if (dlcFile != null && FileEx.create(dlcFile).isFile()) {
       return fileSystems.get(dlcFile);
     }
     return null;
   }
 
-  private Path _queryKey(Path path)
-  {
+  private Path _queryKey(Path path) {
     if (path != null) {
       FileSystem fs = path.getFileSystem();
       if (!(fs instanceof DlcFileSystem)) {
@@ -105,7 +97,7 @@ public class DlcManager
       }
 
       if (fs != null) {
-        for (final String keyFile: KEY_FILES) {
+        for (final String keyFile : KEY_FILES) {
           Path key = fs.getPath(keyFile);
           if (key != null && FileEx.create(key).isFile()) {
             try (InputStream is = StreamUtils.getInputStream(key)) {
@@ -124,8 +116,7 @@ public class DlcManager
     return null;
   }
 
-  private FileSystem _validateDlc(Path dlcFile)
-  {
+  private FileSystem _validateDlc(Path dlcFile) {
     if (dlcFile == null || !FileEx.create(dlcFile).isFile()) {
       return null;
     }
@@ -139,19 +130,14 @@ public class DlcManager
           return null;
         }
         buffer.flip();
-        if (buffer.getInt(0) != 0x04034b50) {   // signature
-          return null;
-        }
-        if ((buffer.getShort(4) & 0xffff) > 20) { // version
-          return null;
-        }
-        if ((buffer.getShort(8) & 0xffff) != 0) { // compression
+        if ((buffer.getInt(0) != 0x04034b50) || ((buffer.getShort(4) & 0xffff) > 20)
+            || ((buffer.getShort(8) & 0xffff) != 0)) { // compression
           return null;
         }
         if (buffer.getInt(18) == -1 || buffer.getInt(22) == -1) { // contains zip64 header?
           return null;
         }
-        long skip = (long)buffer.getInt(18) & 0xffffffffL;
+        long skip = buffer.getInt(18) & 0xffffffffL;
         skip += (buffer.getShort(26) & 0xffff);
         skip += (buffer.getShort(28) & 0xffff);
         ch.position(ch.position() + skip);
@@ -181,9 +167,8 @@ public class DlcManager
     return null;
   }
 
-  private void _close()
-  {
-    for (final FileSystem fs: fileSystems.values()) {
+  private void _close() {
+    for (final FileSystem fs : fileSystems.values()) {
       try {
         fs.close();
       } catch (IOException e) {
@@ -192,8 +177,7 @@ public class DlcManager
     fileSystems.clear();
   }
 
-  private static DlcManager getInstance()
-  {
+  private static DlcManager getInstance() {
     if (instance == null) {
       instance = new DlcManager();
     }

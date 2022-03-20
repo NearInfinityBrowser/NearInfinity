@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.ui;
@@ -17,14 +17,13 @@ import org.infinity.resource.key.ResourceEntry;
  *
  * @author Mingun
  */
-public class ResourceCellRenderer extends DefaultListCellRenderer
-{
+public class ResourceCellRenderer extends DefaultListCellRenderer {
   @Override
-  public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-  {
+  public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+      boolean cellHasFocus) {
     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-    final ResourceEntry entry = (ResourceEntry)value;
+    final ResourceEntry entry = (ResourceEntry) value;
     if (entry != null) {
       setText(BrowserMenuBar.getInstance().getResRefMode().format(entry));
     } else {

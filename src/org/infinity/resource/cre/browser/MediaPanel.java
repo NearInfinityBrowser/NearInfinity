@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -43,8 +43,7 @@ import org.infinity.resource.cre.decoder.util.Sequence;
 /**
  * This panel provides controls for animation playback and related visual options.
  */
-public class MediaPanel extends JPanel
-{
+public class MediaPanel extends JPanel {
   private static boolean isLoop;
 
   static {
@@ -56,33 +55,42 @@ public class MediaPanel extends JPanel
   private final Listeners listeners = new Listeners();
   private final CreatureBrowser browser;
 
-  private JButton bHome, bEnd, bStepBack, bStepForward, bPlay, bStop;
+  private JButton bHome;
+  private JButton bEnd;
+  private JButton bStepBack;
+  private JButton bStepForward;
+  private JButton bPlay;
+  private JButton bStop;
   private DefaultComboBoxModel<Sequence> modelSequences;
   private JComboBox<Sequence> cbSequences;
   private JCheckBox cbLoop;
   private JSlider slDirection;
   private JLabel lDirection;
-  private JLabel lFrameCur, lFrameMax;
+  private JLabel lFrameCur;
+  private JLabel lFrameMax;
   private SpriteBamControl controller;
   private Timer timer;
-  private int curFrame, curCycle;
+  private int curFrame;
+  private int curCycle;
 
-  public MediaPanel(CreatureBrowser browser)
-  {
+  public MediaPanel(CreatureBrowser browser) {
     super();
     this.browser = Objects.requireNonNull(browser);
     init();
   }
 
   /** Returns the associated {@code CreatureBrowser} instance. */
-  public CreatureBrowser getBrowser() { return browser; }
+  public CreatureBrowser getBrowser() {
+    return browser;
+  }
 
   /**
    * Discards the current animation state and initializes a new animation.
-   * @param preserveState whether current media control states (sequence, frame index, ...) should be preserved if possible.
+   *
+   * @param preserveState whether current media control states (sequence, frame index, ...) should be preserved if
+   *                      possible.
    */
-  public void reset(boolean preserveState)
-  {
+  public void reset(boolean preserveState) {
     Sequence oldSequence = preserveState ? getSequence() : null;
     Direction oldDir = preserveState ? getDirection(getCurrentDirection()) : null;
     int oldFrameIdx = preserveState ? getCurrentFrame() : 0;
@@ -130,13 +138,14 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the currently assigned BAM controller for the creature animation. */
-  public SpriteBamControl getController() { return controller; }
+  public SpriteBamControl getController() {
+    return controller;
+  }
 
   /** Sets the BAM controller for the creature animation. */
-  protected void setController(SpriteBamControl controller)
-  {
-    if (this.controller == null && controller != null ||
-        this.controller != null && !this.controller.equals(controller)) {
+  protected void setController(SpriteBamControl controller) {
+    if (this.controller == null && controller != null
+        || this.controller != null && !this.controller.equals(controller)) {
       pause();
       this.controller = controller;
       if (this.controller != null) {
@@ -147,8 +156,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the current frame rate. Rounding errors may occur. */
-  public int getFrameRate()
-  {
+  public int getFrameRate() {
     int retVal = 0;
     if (timer != null && timer.getDelay() > 0) {
       retVal = 1000 / timer.getDelay();
@@ -158,11 +166,11 @@ public class MediaPanel extends JPanel
 
   /**
    * Sets the frame rate for playback.
+   *
    * @param fps the frame rate in frames per seconds.
    * @throws IllegalArgumentException if frame rate lies outside of supported range [1, 60].
    */
-  public void setFrameRate(int fps) throws IllegalArgumentException
-  {
+  public void setFrameRate(int fps) throws IllegalArgumentException {
     if (fps < 1 || fps > 60) {
       throw new IllegalArgumentException("Unsupported frame rate: " + fps + " fps");
     }
@@ -175,8 +183,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the currently displayed BAM frame. */
-  public int getCurrentFrame()
-  {
+  public int getCurrentFrame() {
     if (getController() != null) {
       return getController().cycleGetFrameIndex();
     }
@@ -185,10 +192,11 @@ public class MediaPanel extends JPanel
 
   /**
    * Sets the current BAM frame and updates display accordingly. Does nothing if no BAM controller is available.
-   * @param frameIdx the new frame index in the current cycle. Frame index is capped to the available range of cycle frames.
+   *
+   * @param frameIdx the new frame index in the current cycle. Frame index is capped to the available range of cycle
+   *                 frames.
    */
-  public void setCurrentFrame(int frameIdx)
-  {
+  public void setCurrentFrame(int frameIdx) {
     if (getController() != null) {
       if (curFrame != frameIdx || curCycle != getController().cycleGet()) {
         frameIdx = Math.max(0, Math.min(getController().cycleFrameCount() - 1, frameIdx));
@@ -202,8 +210,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the total number of frames in the current cycle. */
-  public int getMaxFrame()
-  {
+  public int getMaxFrame() {
     if (getController() != null) {
       return getController().cycleFrameCount();
     }
@@ -211,8 +218,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the selected cycle index. */
-  public int getCurrentCycle()
-  {
+  public int getCurrentCycle() {
     if (getController() != null) {
       return getController().cycleGet();
     }
@@ -221,11 +227,11 @@ public class MediaPanel extends JPanel
 
   /**
    * Sets the active cycle and updates display accordingly.
+   *
    * @param cycleIdx the new cycle index.
    * @throws IndexOutOfBoundsException if the cycle index does not exist.
    */
-  public void setCurrentCycle(int cycleIdx) throws IndexOutOfBoundsException
-  {
+  public void setCurrentCycle(int cycleIdx) throws IndexOutOfBoundsException {
     if (getController() != null) {
       if (curCycle != cycleIdx) {
         if (!getController().cycleSet(cycleIdx)) {
@@ -238,11 +244,12 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the current direction slider position as numeric value. */
-  public int getCurrentDirection() { return slDirection.getValue(); }
+  public int getCurrentDirection() {
+    return slDirection.getValue();
+  }
 
   /** Sets the specified direction index if available. Throws an {@code IndexOutOfBoundsException} otherwise. */
-  public void setCurrentDirection(int pos) throws IndexOutOfBoundsException
-  {
+  public void setCurrentDirection(int pos) throws IndexOutOfBoundsException {
     if (pos >= slDirection.getMinimum() && pos <= slDirection.getMaximum()) {
       slDirection.setValue(pos);
     } else {
@@ -251,8 +258,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Sets the specified direction if available. Throws an {@code IllegalArgumentException} otherwise. */
-  public void setCurrentDirection(Direction dir) throws IllegalArgumentException
-  {
+  public void setCurrentDirection(Direction dir) throws IllegalArgumentException {
     if (dir != null) {
       for (int i = 0; i < slDirection.getMaximum(); i++) {
         if (dir.equals(getDirection(i))) {
@@ -267,14 +273,12 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the currently selected animation sequence. Returns {@code null} if no sequence is active. */
-  public Sequence getSequence()
-  {
+  public Sequence getSequence() {
     return modelSequences.getElementAt(cbSequences.getSelectedIndex());
   }
 
   /** Sets the specified sequence and loads the associated animation. */
-  public void setSequence(Sequence seq) throws IllegalArgumentException
-  {
+  public void setSequence(Sequence seq) throws IllegalArgumentException {
     int oldIdx = cbSequences.getSelectedIndex();
     int idx = modelSequences.getIndexOf(seq);
     if (idx >= 0) {
@@ -287,8 +291,7 @@ public class MediaPanel extends JPanel
     }
   }
 
-  public void loadSequence(Sequence seq) throws IllegalArgumentException
-  {
+  public void loadSequence(Sequence seq) throws IllegalArgumentException {
     SpriteDecoder decoder = getBrowser().getDecoder();
     RenderPanel renderer = getBrowser().getRenderPanel();
     Direction oldDir = getDirection(getCurrentDirection());
@@ -320,11 +323,12 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns whether playback is repeated when the end of the animation is reached. */
-  public boolean isLooping() { return cbLoop.isSelected(); }
+  public boolean isLooping() {
+    return cbLoop.isSelected();
+  }
 
   /** Returns whether playback is enabled. */
-  public boolean isRunning()
-  {
+  public boolean isRunning() {
     if (timer != null) {
       return timer.isRunning();
     }
@@ -332,8 +336,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Enables or disables playback of the currently active animation sequence. */
-  public void setRunning(boolean b)
-  {
+  public void setRunning(boolean b) {
     if (b != isRunning()) {
       if (b) {
         timer.start();
@@ -347,8 +350,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Advances current animation by one frame. Takes loop into account. Updates controls. */
-  public void advanceFrame()
-  {
+  public void advanceFrame() {
     if (getMaxFrame() > 0) {
       int frameIdx = getCurrentFrame() + 1;
       if (isLooping()) {
@@ -364,8 +366,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Starts playback of the active BAM cycle. Does nothing if playback is already enabled. */
-  public void play()
-  {
+  public void play() {
     if (!isRunning()) {
       setRunning(true);
       updateControls();
@@ -373,11 +374,10 @@ public class MediaPanel extends JPanel
   }
 
   /**
-   * Stops playback of the active BAM cycle without resetting frame position.
-   * Does nothing if playback is already disabled.
+   * Stops playback of the active BAM cycle without resetting frame position. Does nothing if playback is already
+   * disabled.
    */
-  public void pause()
-  {
+  public void pause() {
     if (isRunning()) {
       setRunning(false);
       updateControls();
@@ -387,15 +387,13 @@ public class MediaPanel extends JPanel
   /**
    * Stops playback of the active BAM cycle and resets frame position.
    */
-  public void stop()
-  {
+  public void stop() {
     setRunning(false);
     setCurrentFrame(0);
     updateControls();
   }
 
-  private void init()
-  {
+  private void init() {
     GridBagConstraints c = new GridBagConstraints();
 
     // frame info
@@ -405,25 +403,24 @@ public class MediaPanel extends JPanel
     lFrameMax = new JLabel("0");
 
     JPanel pRow1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(l1, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(lFrameCur, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(l2, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(lFrameMax, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(new JPanel(), c);
-
 
     // playback controls
     bHome = new JButton(Icons.getIcon(Icons.ICON_HOME));
@@ -438,32 +435,31 @@ public class MediaPanel extends JPanel
     bStop = new JButton(Icons.getIcon(Icons.ICON_STOP));
     bStop.addActionListener(listeners);
 
-    bStepForward= new JButton(Icons.getIcon(Icons.ICON_STEP_FORWARD));
+    bStepForward = new JButton(Icons.getIcon(Icons.ICON_STEP_FORWARD));
     bStepForward.addActionListener(listeners);
 
     bEnd = new JButton(Icons.getIcon(Icons.ICON_END));
     bEnd.addActionListener(listeners);
 
     JPanel pRow2 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow2.add(bHome, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(bStepBack, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(bPlay, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(bStop, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(bStepForward, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(bEnd, c);
-
 
     // direction controls
     slDirection = new JSlider(SwingConstants.HORIZONTAL);
@@ -476,35 +472,33 @@ public class MediaPanel extends JPanel
     lDirection = new JLabel("S");
 
     JPanel pRow3 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow3.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     pRow3.add(l1, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
     pRow3.add(lDirection, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow3.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 1, 4, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 4, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pRow3.add(slDirection, c);
-
 
     // combining all rows
     JPanel pColumn1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pColumn1.add(pRow1, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(pRow2, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(pRow3, c);
-
 
     // sequence selection, loop option
     l1 = new JLabel("Sequence:");
@@ -516,30 +510,29 @@ public class MediaPanel extends JPanel
     cbLoop = new JCheckBox("Loop", isLoop);
 
     JPanel pColumn2 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pColumn2.add(l1, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn2.add(cbSequences, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn2.add(cbLoop, c);
-
 
     // combining panels
     JPanel panelMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelMain.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 8, 0), 0, 0);
     panelMain.add(pColumn1, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 32, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 32, 8, 0), 0, 0);
     panelMain.add(pColumn2, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelMain.add(new JPanel(), c);
 
     JScrollPane scrollMedia = new JScrollPane(panelMain);
@@ -555,8 +548,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Updates media controls based on the current animation state. */
-  private void updateControls()
-  {
+  private void updateControls() {
     boolean loaded = getSequence() != null;
     boolean running = isRunning();
     bHome.setEnabled(running || loaded && getCurrentFrame() > 0);
@@ -572,8 +564,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Updates labels bvased on current control and animation state. */
-  private void updateLabels()
-  {
+  private void updateLabels() {
     lFrameCur.setText(Integer.toString(getCurrentFrame()));
     lFrameMax.setText(Integer.toString(getMaxFrame() - 1));
     Direction dir = getDirection(getCurrentDirection());
@@ -587,8 +578,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Initializes the sequence list with available animation sequences and preselects a suitable default sequence. */
-  private void initSequences(SpriteDecoder decoder, Sequence defSeq)
-  {
+  private void initSequences(SpriteDecoder decoder, Sequence defSeq) {
     modelSequences.removeAllElements();
     if (decoder != null) {
       for (final Sequence seq : Sequence.values()) {
@@ -623,8 +613,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Initializes the direction slider and label with available directions. */
-  private void initDirection(SpriteDecoder decoder, Direction defDir)
-  {
+  private void initDirection(SpriteDecoder decoder, Direction defDir) {
     // discarding old data
     slDirection.setMinimum(0);
     slDirection.setMaximum(0);
@@ -634,7 +623,7 @@ public class MediaPanel extends JPanel
       // collecting directions
       List<Integer> directions = new ArrayList<>(Direction.values().length * 2 + 1);
       for (final Direction dir : decoder.getDirectionMap().keySet()) {
-        directions.add(Integer.valueOf(dir.getValue()));
+        directions.add(dir.getValue());
       }
 
       // sorting in descending order: maps relative slider positions to more natural directions
@@ -658,7 +647,7 @@ public class MediaPanel extends JPanel
       for (int i = min; i <= max; i++) {
         int dirVal = directions.get(i - min);
         Direction dir = Direction.from(dirVal);
-        directionMap.put(Integer.valueOf(i), dir);
+        directionMap.put(i, dir);
       }
 
       // initializing slider
@@ -684,7 +673,7 @@ public class MediaPanel extends JPanel
       for (int i = min; i <= max; i++) {
         Direction dir = getDirection(i);
         if (dir != null && (dir.getValue() % 4) == 0) {
-          labels.put(Integer.valueOf(i), new JLabel(dir.toString()));
+          labels.put(i, new JLabel(dir.toString()));
         }
       }
       slDirection.setLabelTable(labels);
@@ -705,68 +694,57 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the {@code Direction} of the specified direction slider position. Defaults to {@code Direction.S}. */
-  private Direction getDirection(int index)
-  {
+  private Direction getDirection(int index) {
     return directionMap.getOrDefault(Integer.valueOf(index), Direction.S);
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
    * Listeners are outsourced to this class for cleaner code.
    */
-  private class Listeners implements ActionListener, ChangeListener, ItemListener
-  {
-    public Listeners()
-    {
+  private class Listeners implements ActionListener, ChangeListener, ItemListener {
+    public Listeners() {
     }
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == timer) {
         advanceFrame();
-      }
-      else if (e.getSource() == bHome) {
+      } else if (e.getSource() == bHome) {
         setCurrentFrame(0);
         updateControls();
-      }
-      else if (e.getSource() == bEnd) {
+      } else if (e.getSource() == bEnd) {
         setCurrentFrame(getMaxFrame() - 1);
         updateControls();
-      }
-      else if (e.getSource() == bStepBack) {
+      } else if (e.getSource() == bStepBack) {
         if (getCurrentFrame() > 0) {
           setCurrentFrame(getCurrentFrame() - 1);
           updateControls();
         }
-      }
-      else if (e.getSource() == bStepForward) {
+      } else if (e.getSource() == bStepForward) {
         if (getCurrentFrame() < getMaxFrame() - 1) {
           setCurrentFrame(getCurrentFrame() + 1);
           updateControls();
         }
-      }
-      else if (e.getSource() == bPlay) {
+      } else if (e.getSource() == bPlay) {
         setRunning(!isRunning());
-      }
-      else if (e.getSource() == bStop) {
+      } else if (e.getSource() == bStop) {
         stop();
       }
     }
 
-    //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
-    //--------------------- Begin Interface ChangeListener ---------------------
+    // --------------------- Begin Interface ChangeListener ---------------------
     @Override
-    public void stateChanged(ChangeEvent e)
-    {
+    public void stateChanged(ChangeEvent e) {
       if (e.getSource() == slDirection) {
         Direction dir = getDirection(slDirection.getValue());
         lDirection.setText(dir.toString());
-        int cycle = getBrowser().getDecoder().getDirectionMap().getOrDefault(dir, -1).intValue();
+        int cycle = getBrowser().getDecoder().getDirectionMap().getOrDefault(dir, -1);
         if (cycle >= 0) {
           setCurrentCycle(cycle);
         }
@@ -774,16 +752,14 @@ public class MediaPanel extends JPanel
       }
     }
 
-    //--------------------- End Interface ChangeListener ---------------------
+    // --------------------- End Interface ChangeListener ---------------------
 
-    //--------------------- Begin Interface ItemListener ---------------------
+    // --------------------- Begin Interface ItemListener ---------------------
     @Override
-    public void itemStateChanged(ItemEvent e)
-    {
+    public void itemStateChanged(ItemEvent e) {
       if (e.getSource() == cbSequences) {
-        if (e.getStateChange() == ItemEvent.SELECTED &&
-            e.getItem() instanceof Sequence) {
-          final Sequence seq = (Sequence)e.getItem();
+        if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof Sequence) {
+          final Sequence seq = (Sequence) e.getItem();
           try {
             WindowBlocker.blockWindow(getBrowser(), true);
             loadSequence(seq);
@@ -797,6 +773,6 @@ public class MediaPanel extends JPanel
       }
     }
 
-    //--------------------- End Interface ItemListener ---------------------
+    // --------------------- End Interface ItemListener ---------------------
   }
 }

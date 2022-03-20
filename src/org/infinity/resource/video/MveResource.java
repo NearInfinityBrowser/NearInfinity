@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
@@ -58,19 +58,18 @@ import org.monte.media.avi.AVIWriter;
 import org.monte.media.math.Rational;
 
 /**
- * This resource describes the movies played during the game. Movies can only be
- * played by the engine when they are stored in a {@link BIFFResourceEntry BIFF} file.
+ * This resource describes the movies played during the game. Movies can only be played by the engine when they are
+ * stored in a {@link BIFFResourceEntry BIFF} file.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm</a>
  */
-public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable
-{
+public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable {
   private static final int VIDEO_BUFFERS = 3;
 
-  private static final ButtonPanel.Control CtrlPlay   = ButtonPanel.Control.CUSTOM_1;
-  private static final ButtonPanel.Control CtrlPause  = ButtonPanel.Control.CUSTOM_2;
-  private static final ButtonPanel.Control CtrlStop   = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CTRL_PLAY   = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CTRL_PAUSE  = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CTRL_STOP   = ButtonPanel.Control.CUSTOM_3;
 
   private static boolean isZoom = true;
   private static boolean isFilter = true;
@@ -81,12 +80,13 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private MveDecoder decoder;
   private ImageRenderer renderer;
   private MvePlayer player;
-  private JMenuItem miExport, miExportAvi;
+  private JMenuItem miExport;
+  private JMenuItem miExportAvi;
   private JPanel panel;
-  private JCheckBox cbZoom, cbFilter;
+  private JCheckBox cbZoom;
+  private JCheckBox cbFilter;
 
-  public MveResource(ResourceEntry entry) throws Exception
-  {
+  public MveResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     player = new MvePlayer();
     try {
@@ -98,62 +98,53 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     } catch (Exception e) {
       decoder = null;
       e.printStackTrace();
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    "Error opening " + entry, "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error opening " + entry, "Error",
+          JOptionPane.ERROR_MESSAGE);
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (miExport == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (miExportAvi == event.getSource()) {
-      new Thread(new Runnable() {
-        @Override
-        public void run()
-        {
-          exportAsAvi(entry, (Window)panel.getTopLevelAncestor());
-        }
-      }).start();
-    } else if (buttonPanel.getControlByType(CtrlPlay) == event.getSource()) {
+      new Thread(() -> exportAsAvi(entry, (Window) panel.getTopLevelAncestor())).start();
+    } else if (buttonPanel.getControlByType(CTRL_PLAY) == event.getSource()) {
       if (player.isStopped()) {
         new Thread(this).start();
       } else {
         if (player.isPaused()) {
           player.continuePlay();
-          buttonPanel.getControlByType(CtrlPlay).setEnabled(player.isPaused());
-          buttonPanel.getControlByType(CtrlPause).setEnabled(!player.isPaused());
+          buttonPanel.getControlByType(CTRL_PLAY).setEnabled(player.isPaused());
+          buttonPanel.getControlByType(CTRL_PAUSE).setEnabled(!player.isPaused());
         }
       }
-    } else if (buttonPanel.getControlByType(CtrlPause) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(CTRL_PAUSE) == event.getSource()) {
       if (!player.isStopped()) {
         if (!player.isPaused()) {
           player.pausePlay();
-          buttonPanel.getControlByType(CtrlPlay).setEnabled(player.isPaused());
-          buttonPanel.getControlByType(CtrlPause).setEnabled(!player.isPaused());
+          buttonPanel.getControlByType(CTRL_PLAY).setEnabled(player.isPaused());
+          buttonPanel.getControlByType(CTRL_PAUSE).setEnabled(!player.isPaused());
         }
       }
-    } else if (buttonPanel.getControlByType(CtrlStop) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(CTRL_STOP) == event.getSource()) {
       player.stopPlay();
-      buttonPanel.getControlByType(CtrlStop).setEnabled(false);
-      buttonPanel.getControlByType(CtrlPause).setEnabled(false);
-      buttonPanel.getControlByType(CtrlPlay).setEnabled(true);
+      buttonPanel.getControlByType(CTRL_STOP).setEnabled(false);
+      buttonPanel.getControlByType(CTRL_PAUSE).setEnabled(false);
+      buttonPanel.getControlByType(CTRL_PLAY).setEnabled(true);
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (event.getSource() == cbZoom) {
       if (renderer != null) {
         isZoom = cbZoom.isSelected();
@@ -168,23 +159,21 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     }
   }
 
-//--------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     if (player != null) {
       player.stopPlay();
     }
@@ -194,43 +183,39 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     }
   }
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new ReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-//--------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     if (!decoder.isOpen()) {
       try {
         decoder.open(entry);
       } catch (Exception e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(panel, "Error starting video playback", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(panel, "Error starting video playback", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
     }
 
-    buttonPanel.getControlByType(CtrlPlay).setEnabled(false);
-    buttonPanel.getControlByType(CtrlPause).setEnabled(true);
-    buttonPanel.getControlByType(CtrlStop).setEnabled(true);
+    buttonPanel.getControlByType(CTRL_PLAY).setEnabled(false);
+    buttonPanel.getControlByType(CTRL_PAUSE).setEnabled(true);
+    buttonPanel.getControlByType(CTRL_STOP).setEnabled(true);
     try {
       renderer.clearBuffers();
       player.play(renderer, decoder);
@@ -240,18 +225,17 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
     }
     decoder.close();
-    buttonPanel.getControlByType(CtrlPlay).setEnabled(true);
-    buttonPanel.getControlByType(CtrlPause).setEnabled(false);
-    buttonPanel.getControlByType(CtrlStop).setEnabled(false);
+    buttonPanel.getControlByType(CTRL_PLAY).setEnabled(true);
+    buttonPanel.getControlByType(CTRL_PAUSE).setEnabled(false);
+    buttonPanel.getControlByType(CTRL_STOP).setEnabled(false);
   }
 
-//--------------------- End Interface Runable ---------------------
+  // --------------------- End Interface Runable ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     if (decoder != null) {
       renderer = new ImageRenderer(VIDEO_BUFFERS, decoder.getVideoWidth(), decoder.getVideoHeight());
       renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -298,13 +282,13 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     miExport.addActionListener(this);
     miExportAvi = new JMenuItem("as AVI");
     miExportAvi.addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportAvi});
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
+    bpmExport.setMenuItems(new JMenuItem[] { miExport, miExportAvi });
 
-    buttonPanel.addControl(bPlay, CtrlPlay);
-    buttonPanel.addControl(bPause, CtrlPause);
-    buttonPanel.addControl(bStop, CtrlStop);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    buttonPanel.addControl(bPlay, CTRL_PLAY);
+    buttonPanel.addControl(bPause, CTRL_PAUSE);
+    buttonPanel.addControl(bStop, CTRL_STOP);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.EXPORT_MENU);
     buttonPanel.addControl(optionsPanel);
 
@@ -316,10 +300,9 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     return panel;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-  private static void exportAsAvi(ResourceEntry inEntry, Window parent)
-  {
+  private static void exportAsAvi(ResourceEntry inEntry, Window parent) {
     if (inEntry != null) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Export MVE as AVI");
@@ -330,12 +313,11 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
         boolean cancelled = false;
         if (fc.getSelectedFile().isFile()) {
-          final String[] options = {"Overwrite", "Cancel"};
+          final String[] options = { "Overwrite", "Cancel" };
           final String msg = fc.getSelectedFile().toString() + " exists. Overwrite?";
           final String title = "Export MVE to AVI";
           int ret = JOptionPane.showOptionDialog(parent, msg, title, JOptionPane.YES_NO_OPTION,
-                                                 JOptionPane.WARNING_MESSAGE, null,
-                                                 options, options[0]);
+              JOptionPane.WARNING_MESSAGE, null, options, options[0]);
           cancelled = (ret != JOptionPane.YES_OPTION);
         }
         if (!cancelled) {
@@ -351,18 +333,15 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     }
   }
 
-  public static boolean convertAvi(ResourceEntry inEntry, Path outFile, Window parent, boolean silent)
-  {
+  public static boolean convertAvi(ResourceEntry inEntry, Path outFile, Window parent, boolean silent) {
     if (inEntry == null || outFile == null) {
       if (!silent) {
-        JOptionPane.showMessageDialog(parent, "No input or output file specified.", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(parent, "No input or output file specified.", "Error", JOptionPane.ERROR_MESSAGE);
       }
       return false;
     }
-    Format videoFormat = new Format(VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_MJPG,
-                                    VideoFormatKeys.DepthKey, 24,
-                                    VideoFormatKeys.QualityKey, 1.0f);
+    Format videoFormat = new Format(FormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_MJPG, VideoFormatKeys.DepthKey,
+        24, VideoFormatKeys.QualityKey, 1.0f);
     try {
       MveDecoder decoder = null;
       ProgressMonitor pm = null;
@@ -398,16 +377,18 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         // initializing video track
         int rate = 1000000;
         int scale = decoder.getFrameDelay();
-        if (scale == 0) { scale = 66728; }   // assuming default frame rate
+        if (scale == 0) {
+          scale = 66728;
+        } // assuming default frame rate
         final int[] prim = { 29, 23, 19, 17, 13, 11, 7, 5, 3, 2 };
         boolean divisible;
         do {
           divisible = false;
-          for (int i = 0; i < prim.length; i++) {
-            if (rate % prim[i] == 0 && scale % prim[i] == 0) {
+          for (int element : prim) {
+            if (rate % element == 0 && scale % element == 0) {
               divisible = true;
-              rate /= prim[i];
-              scale /= prim[i];
+              rate /= element;
+              scale /= element;
             }
           }
         } while (divisible);
@@ -415,29 +396,24 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         int width = decoder.getVideoWidth();
         int height = decoder.getVideoHeight();
         decoder.setVideoOutput(new BasicVideoBuffer(1, width, height, false));
-        videoFormat = videoFormat.prepend(VideoFormatKeys.MediaTypeKey, FormatKeys.MediaType.VIDEO,
-                                          VideoFormatKeys.FrameRateKey, new Rational(rate, scale),
-                                          VideoFormatKeys.WidthKey, width,
-                                          VideoFormatKeys.HeightKey, height);
+        videoFormat = videoFormat.prepend(FormatKeys.MediaTypeKey, FormatKeys.MediaType.VIDEO, FormatKeys.FrameRateKey,
+            new Rational(rate, scale), VideoFormatKeys.WidthKey, width, VideoFormatKeys.HeightKey, height);
         int trackVideo = writer.addTrack(videoFormat);
 
         // initializing audio track
         Format audioFormat = null;
         int channels = decoder.getAudioFormat().getChannels();
-        int sampleRate = (int)decoder.getAudioFormat().getSampleRate();
+        int sampleRate = (int) decoder.getAudioFormat().getSampleRate();
         int sampleBits = decoder.getAudioFormat().getSampleSizeInBits();
         int frameSize = decoder.getAudioFormat().getFrameSize();
-        audioFormat = new Format(AudioFormatKeys.EncodingKey, AudioFormatKeys.ENCODING_PCM_SIGNED,
-                                 AudioFormatKeys.ByteOrderKey, ByteOrder.LITTLE_ENDIAN,
-                                 AudioFormatKeys.ChannelsKey, channels,
-                                 AudioFormatKeys.SampleRateKey, new Rational(sampleRate),
-                                 AudioFormatKeys.SampleSizeInBitsKey, sampleBits,
-                                 AudioFormatKeys.FrameSizeKey, frameSize,
-                                 AudioFormatKeys.SignedKey, true);
+        audioFormat = new Format(FormatKeys.EncodingKey, AudioFormatKeys.ENCODING_PCM_SIGNED,
+            AudioFormatKeys.ByteOrderKey, ByteOrder.LITTLE_ENDIAN, AudioFormatKeys.ChannelsKey, channels,
+            AudioFormatKeys.SampleRateKey, new Rational(sampleRate), AudioFormatKeys.SampleSizeInBitsKey, sampleBits,
+            AudioFormatKeys.FrameSizeKey, frameSize, AudioFormatKeys.SignedKey, true);
         int trackAudio = writer.addTrack(audioFormat);
 
         // default audio buffer for one frame
-        int bufferSize = (int)Math.ceil((double)(sampleRate)*(double)scale/(double)rate) * frameSize;
+        int bufferSize = (int) Math.ceil((double) (sampleRate) * (double) scale / rate) * frameSize;
         byte[] defaultBuffer = new byte[bufferSize];
 
         if (!silent) {
@@ -458,7 +434,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
           }
 
           if (decoder.frameHasVideo()) {
-            BufferedImage image = (BufferedImage)decoder.getVideoOutput().frontBuffer();
+            BufferedImage image = (BufferedImage) decoder.getVideoOutput().frontBuffer();
             adjustColorSpace(image);
             writer.write(trackVideo, image, 1);
             image = null;
@@ -484,8 +460,8 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
                 e.printStackTrace();
               }
             }
-            JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.",
-                                          "Information", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.", "Information",
+                JOptionPane.INFORMATION_MESSAGE);
             return true;
           }
         } while (decoder.processNextFrame());
@@ -508,27 +484,26 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         }
       }
       if (!silent) {
-        JOptionPane.showMessageDialog(parent, "Resource has been converted successfully: " + inEntry,
-                                      "Information", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parent, "Resource has been converted successfully: " + inEntry, "Information",
+            JOptionPane.INFORMATION_MESSAGE);
       }
       return true;
     } catch (Exception e) {
       e.printStackTrace();
     }
     if (!silent) {
-      JOptionPane.showMessageDialog(parent, "Error while exporting " + inEntry + " as AVI file.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(parent, "Error while exporting " + inEntry + " as AVI file.", "Error",
+          JOptionPane.ERROR_MESSAGE);
     }
     return false;
   }
 
   /** Reduces color range from [0, 255] to [16, 235] to conform to CCIR-601 standard. */
-  private static void adjustColorSpace(BufferedImage image)
-  {
+  private static void adjustColorSpace(BufferedImage image) {
     if (image != null) {
       if (image.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
         // true color image
-        int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] data = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         for (int i = 0; i < data.length; i++) {
           int b = data[i] & 0xff;
           b = (16 + ((b * 220) >>> 8)) & 0xff;

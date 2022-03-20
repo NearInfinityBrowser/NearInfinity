@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -43,6 +43,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -64,14 +65,21 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public class ConvertToMos extends ChildFrame
-    implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener
-{
+    implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener {
   private static String currentDir = Profile.getGameRoot().toString();
 
   private JTabbedPane tabPane;
-  private JTextField tfInputV1, tfOutputV1, tfInputV2, tfOutputV2;
-  private JButton bInputV1, bOutputV1, bInputV2, bOutputV2, bCompressionHelp;
-  private JButton bConvert, bCancel;
+  private JTextField tfInputV1;
+  private JTextField tfOutputV1;
+  private JTextField tfInputV2;
+  private JTextField tfOutputV2;
+  private JButton bInputV1;
+  private JButton bOutputV1;
+  private JButton bInputV2;
+  private JButton bOutputV2;
+  private JButton bCompressionHelp;
+  private JButton bConvert;
+  private JButton bCancel;
   private JSpinner sPvrzIndex;
   private JLabel lPvrzInfo;
   private JComboBox<String> cbCompression;
@@ -81,19 +89,19 @@ public class ConvertToMos extends ChildFrame
 
   /**
    * Converts an image into a MOS V1 resource.
-   * @param parent This parameter is needed for the progress monitor only.
-   * @param img The source image to convert into a MOS resource.
-   * @param mosFileName The name of the resulting MOS file.
-   * @param compressed If {@code true}, converts into a compressed BAMC file.
-   * @param fastConvert If {@code true}, uses a fast but less accurate color reduction algorith.
-   * @param result Returns more specific information about the conversion process. Data placed in the
-   *               first item indicates success, data in the second item indicates failure.
+   *
+   * @param parent       This parameter is needed for the progress monitor only.
+   * @param img          The source image to convert into a MOS resource.
+   * @param mosFileName  The name of the resulting MOS file.
+   * @param compressed   If {@code true}, converts into a compressed BAMC file.
+   * @param fastConvert  If {@code true}, uses a fast but less accurate color reduction algorith.
+   * @param result       Returns more specific information about the conversion process. Data placed in the first item
+   *                     indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
-  public static boolean convertV1(Component parent, BufferedImage img, String mosFileName,
-                                  boolean compressed, List<String> result, boolean showProgress)
-  {
+  public static boolean convertV1(Component parent, BufferedImage img, String mosFileName, boolean compressed,
+      List<String> result, boolean showProgress) {
     // checking parameters
     if (result == null) {
       return false;
@@ -116,14 +124,14 @@ public class ConvertToMos extends ChildFrame
     int rows = (height + 63) / 64;
     int tileCount = cols * rows;
     int palOfs = 24;
-    int tableOfs = palOfs + tileCount*1024;
-    int dataOfs = tableOfs + tileCount*4;
-    byte[] dst = new byte[dataOfs + width*height];
+    int tableOfs = palOfs + tileCount * 1024;
+    int dataOfs = tableOfs + tileCount * 4;
+    byte[] dst = new byte[dataOfs + width * height];
     System.arraycopy("MOS V1  ".getBytes(), 0, dst, 0, 8);
-    DynamicArray.putShort(dst, 8, (short)width);
-    DynamicArray.putShort(dst, 10, (short)height);
-    DynamicArray.putShort(dst, 12, (short)cols);
-    DynamicArray.putShort(dst, 14, (short)rows);
+    DynamicArray.putShort(dst, 8, (short) width);
+    DynamicArray.putShort(dst, 10, (short) height);
+    DynamicArray.putShort(dst, 12, (short) cols);
+    DynamicArray.putShort(dst, 14, (short) rows);
     DynamicArray.putInt(dst, 16, 64);
     DynamicArray.putInt(dst, 20, palOfs);
 
@@ -132,21 +140,21 @@ public class ConvertToMos extends ChildFrame
       String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       if (showProgress) {
-        progress = new ProgressMonitor(parent, "Converting MOS...",
-                                       String.format(note, progressIndex, progressMax), 0, progressMax);
+        progress = new ProgressMonitor(parent, "Converting MOS...", String.format(note, progressIndex, progressMax), 0,
+            progressMax);
         progress.setMillisToDecideToPopup(250);
         progress.setMillisToPopup(500);
       }
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols * rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
           int tileY = y * 64;
           int tileW = (tileX + 64 < width) ? 64 : (width - tileX);
           int tileH = (tileY + 64 < height) ? 64 : (height - tileY);
-          int[] rgbArray = new int[tileW*tileH];
+          int[] rgbArray = new int[tileW * tileH];
           img.getRGB(tileX, tileY, tileW, tileH, rgbArray, 0, tileW);
           tileList.add(rgbArray);
         }
@@ -155,9 +163,9 @@ public class ConvertToMos extends ChildFrame
       // applying color reduction to each tile
       int[] palette = new int[255];
       byte[] tilePalette = new byte[1024];
-      byte[] tileData = new byte[64*64];
+      byte[] tileData = new byte[64 * 64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536); // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
         colorCache.clear();
         if (showProgress) {
@@ -178,13 +186,14 @@ public class ConvertToMos extends ChildFrame
         if (ColorConvert.medianCut(pixels, 255, palette, true)) {
           // filling palette
           // first palette entry denotes transparency
-          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
+          tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
-            tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
-            tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
+            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
+            tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
-            colorCache.put(palette[i - 1], (byte)(i - 1));
+            colorCache.put(palette[i - 1], (byte) (i - 1));
           }
           // filling pixel data
           for (int i = 0; i < pixels.length; i++) {
@@ -193,10 +202,10 @@ public class ConvertToMos extends ChildFrame
             } else {
               Byte palIndex = colorCache.get(pixels[i]);
               if (palIndex != null) {
-                tileData[i] = (byte)(palIndex + 1);
+                tileData[i] = (byte) (palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
-                tileData[i] = (byte)(color + 1);
+                byte color = (byte) ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
+                tileData[i] = (byte) (color + 1);
                 colorCache.put(pixels[i], color);
               }
             }
@@ -216,8 +225,11 @@ public class ConvertToMos extends ChildFrame
         System.arraycopy(tileData, 0, dst, curDataOfs, pixels.length);
         curDataOfs += pixels.length;
       }
-      tileList.clear(); tileList = null;
-      tileData = null; tilePalette = null; /*hclPalette = null;*/ palette = null;
+      tileList.clear();
+      tileList = null;
+      tileData = null;
+      tilePalette = null;
+      /* hclPalette = null; */ palette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {
@@ -249,20 +261,19 @@ public class ConvertToMos extends ChildFrame
 
   /**
    * Converts an image into a MOS V2 resource.
-   * @param parent This parameter is needed for the progress monitor only.
-   * @param img The source image to convert into a MOS resource.
-   * @param mosFileName The name of the resulting MOS file.
-   * @param dxtType The desired compression type.
-   * @param pvrzIndex The starting index for PVRZ files.
-   * @param result Returns more specific information about the conversion process. Data placed in the
-   *               first item indicates success, data in the second item indicates failure.
+   *
+   * @param parent       This parameter is needed for the progress monitor only.
+   * @param img          The source image to convert into a MOS resource.
+   * @param mosFileName  The name of the resulting MOS file.
+   * @param dxtType      The desired compression type.
+   * @param pvrzIndex    The starting index for PVRZ files.
+   * @param result       Returns more specific information about the conversion process. Data placed in the first item
+   *                     indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
-  public static boolean convertV2(Component parent, BufferedImage img, String mosFileName,
-                                  DxtEncoder.DxtType dxtType, int pvrzIndex,
-                                  List<String> result, boolean showProgress)
-  {
+  public static boolean convertV2(Component parent, BufferedImage img, String mosFileName, DxtEncoder.DxtType dxtType,
+      int pvrzIndex, List<String> result, boolean showProgress) {
     // checking parameters
     if (result == null) {
       return false;
@@ -304,10 +315,10 @@ public class ConvertToMos extends ChildFrame
       final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
       int x = 0, y = 0, pOfs = 0;
-      while (pOfs < width*height) {
+      while (pOfs < width * height) {
         int w = Math.min(pageDim, width - x);
         int h = Math.min(pageDim, height - y);
-        Dimension space = new Dimension((w+3) & ~3, (h+3) & ~3);
+        Dimension space = new Dimension((w + 3) & ~3, (h + 3) & ~3);
         int pageIdx = -1;
         Rectangle rectMatch = null;
         for (int i = 0; i < pageList.size(); i++) {
@@ -328,9 +339,7 @@ public class ConvertToMos extends ChildFrame
         }
 
         // register page entry
-        MosEntry entry = new MosEntry(pvrzIndex + pageIdx,
-                                      new Point(rectMatch.x, rectMatch.y),
-                                      w, h, new Point(x, y));
+        MosEntry entry = new MosEntry(pvrzIndex + pageIdx, new Point(rectMatch.x, rectMatch.y), w, h, new Point(x, y));
         entryList.add(entry);
 
         // advance scanning
@@ -340,19 +349,18 @@ public class ConvertToMos extends ChildFrame
         } else {
           x += pageDim;
         }
-        pOfs = y*width + x;
+        pOfs = y * width + x;
       }
 
       // check PVRZ index again
       if (pvrzIndex + pageList.size() > 100000) {
         result.add(null);
-        result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n" +
-                                 "Please choose a start index smaller than or equal to %d.",
-                                 100000 - pageList.size()));
+        result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n"
+            + "Please choose a start index smaller than or equal to %d.", 100000 - pageList.size()));
         return false;
       }
 
-      byte[] dst = new byte[24 + entryList.size()*28];   // header + tiles
+      byte[] dst = new byte[24 + entryList.size() * 28]; // header + tiles
       int dstOfs = 0;
 
       // writing MOS header and data
@@ -386,8 +394,7 @@ public class ConvertToMos extends ChildFrame
       dst = null;
 
       // generating PVRZ files
-      if (!createPvrzPages(mosFile.getParent(), img, dxtType, pageList, entryList,
-                           result, progress)) {
+      if (!createPvrzPages(mosFile.getParent(), img, dxtType, pageList, entryList, result, progress)) {
         return false;
       }
     } finally {
@@ -405,23 +412,18 @@ public class ConvertToMos extends ChildFrame
   }
 
   // Returns a list of supported graphics file formats
-  private static FileNameExtensionFilter[] getInputFilters()
-  {
+  private static FileNameExtensionFilter[] getInputFilters() {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bam", "bmp", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
-        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
-    };
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
     return filters;
   }
 
   // generates PVRZ textures
   private static boolean createPvrzPages(Path path, BufferedImage img, DxtEncoder.DxtType dxtType,
-                                         List<BinPack2D> gridList, List<MosEntry> entryList,
-                                         List<String> result, ProgressMonitor progress)
-  {
+      List<BinPack2D> gridList, List<MosEntry> entryList, List<String> result, ProgressMonitor progress) {
     // preparing variables
     if (path == null) {
       path = FileManager.resolve("").toAbsolutePath();
@@ -430,7 +432,7 @@ public class ConvertToMos extends ChildFrame
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
     int pageMin = Integer.MAX_VALUE;
     int pageMax = -1;
-    for (final MosEntry e: entryList) {
+    for (final MosEntry e : entryList) {
       pageMin = Math.min(pageMin, e.page);
       pageMax = Math.max(pageMax, e.page);
     }
@@ -467,19 +469,19 @@ public class ConvertToMos extends ChildFrame
       g.setComposite(AlphaComposite.Src);
       g.setColor(new Color(0, true));
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-      for (final MosEntry entry: entryList) {
+      for (final MosEntry entry : entryList) {
         if (entry.page == i) {
           int sx = entry.dstLocation.x, sy = entry.dstLocation.y;
           int dx = entry.srcLocation.x, dy = entry.srcLocation.y;
           int w = entry.width, h = entry.height;
           g.clearRect(dx, dy, w, h);
-          g.drawImage(img, dx, dy, dx+w, dy+h, sx, sy, sx+w, sy+h, null);
+          g.drawImage(img, dx, dy, dx + w, dy + h, sx, sy, sx + w, sy + h, null);
         }
       }
       g.dispose();
 
       // compressing PVRZ
-      int[] textureData = ((DataBufferInt)texture.getRaster().getDataBuffer()).getData();
+      int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
       try {
         int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
         DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType);
@@ -511,29 +513,25 @@ public class ConvertToMos extends ChildFrame
     return true;
   }
 
-
-  public ConvertToMos()
-  {
+  public ConvertToMos() {
     super("Convert to MOS", true);
     init();
   }
 
-//--------------------- Begin Class ChildFrame ---------------------
+  // --------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     clear();
     return super.windowClosing(forced);
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  // --------------------- End Class ChildFrame ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "MOS output file already exists. Overwrite?";
@@ -545,15 +543,12 @@ public class ConvertToMos extends ChildFrame
             file = FileManager.resolve(tfOutputV2.getText());
           }
           if (file != null) {
-            if (!FileEx.create(file).exists() ||
-                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                        JOptionPane.YES_NO_OPTION,
-                                                                        JOptionPane.QUESTION_MESSAGE)) {
+            if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
+                "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
               file = null;
               workerConvert = new SwingWorker<List<String>, Void>() {
                 @Override
-                public List<String> doInBackground()
-                {
+                public List<String> doInBackground() {
                   return convert();
                 }
               };
@@ -594,26 +589,23 @@ public class ConvertToMos extends ChildFrame
       }
       bConvert.setEnabled(isReady());
     } else if (event.getSource() == bCompressionHelp) {
-      final String helpMsg =
-          "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n" +
-          "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n" +
-          "\"DXT5\" provides an average compression ratio. It features interpolated\n" +
-          "alpha transitions and is the preferred type for BAM resources.\n\n" +
-          "\"Auto\" selects the most appropriate compression type based on the input data.";
+      final String helpMsg = "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n"
+          + "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n"
+          + "\"DXT5\" provides an average compression ratio. It features interpolated\n"
+          + "alpha transitions and is the preferred type for BAM resources.\n\n"
+          + "\"Auto\" selects the most appropriate compression type based on the input data.";
       JOptionPane.showMessageDialog(this, helpMsg, "About Compression Types", JOptionPane.INFORMATION_MESSAGE);
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerConvert) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         if (blocker != null) {
           blocker.setBlocked(false);
           blocker = null;
@@ -654,31 +646,28 @@ public class ConvertToMos extends ChildFrame
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == sPvrzIndex) {
       lPvrzInfo.setText(pvrzInfoString(sPvrzIndex.getValue()));
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent event)
-  {
+  public void focusGained(FocusEvent event) {
     // nothing to do
   }
 
   @Override
-  public void focusLost(FocusEvent event)
-  {
+  public void focusLost(FocusEvent event) {
     if (event.getSource() == tfInputV1) {
       tfInputV2.setText(tfInputV1.getText());
       bConvert.setEnabled(isReady());
@@ -694,10 +683,9 @@ public class ConvertToMos extends ChildFrame
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
-  private void init()
-  {
+  private void init() {
     setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     GridBagConstraints c = new GridBagConstraints();
 
@@ -714,23 +702,23 @@ public class ConvertToMos extends ChildFrame
     bInputV1.addActionListener(this);
     bOutputV1 = new JButton("...");
     bOutputV1.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilesV1.add(lInputV1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFilesV1.add(tfInputV1, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFilesV1.add(bInputV1, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 4, 0), 0, 0);
     pFilesV1.add(lOutputV1, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 4, 0), 0, 0);
     pFilesV1.add(tfOutputV1, c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 4, 4), 0, 0);
     pFilesV1.add(bOutputV1, c);
 
     // setting up input/output section (PVRZ-based V2)
@@ -746,37 +734,37 @@ public class ConvertToMos extends ChildFrame
     bInputV2.addActionListener(this);
     bOutputV2 = new JButton("...");
     bOutputV2.addActionListener(this);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilesV2.add(lInputV2, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFilesV2.add(tfInputV2, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFilesV2.add(bInputV2, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 4, 0), 0, 0);
     pFilesV2.add(lOutputV2, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 4, 0), 0, 0);
     pFilesV2.add(tfOutputV2, c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 4, 4), 0, 0);
     pFilesV2.add(bOutputV2, c);
 
     // setting up options section (legacy V1)
     JPanel pOptionsV1 = new JPanel(new GridBagLayout());
     pOptionsV1.setBorder(BorderFactory.createTitledBorder("Options "));
     cbCompress = new JCheckBox("Compressed (MOSC)", false);
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     pOptionsV1.add(cbCompress, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pOptionsV1.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOptionsV1.add(new JPanel(), c);
 
     // setting up options section (PVRZ-based V2)
@@ -787,53 +775,52 @@ public class ConvertToMos extends ChildFrame
     sPvrzIndex = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     sPvrzIndex.setToolTipText("Enter a number from 0 to 99999");
     sPvrzIndex.addChangeListener(this);
-    cbCompression = new JComboBox<>(new String[]{"Auto", "DXT1", "DXT5"});
+    cbCompression = new JComboBox<>(new String[] { "Auto", "DXT1", "DXT5" });
     cbCompression.setSelectedIndex(0);
     bCompressionHelp = new JButton("?");
     bCompressionHelp.setToolTipText("About compression types");
     bCompressionHelp.addActionListener(this);
-    bCompressionHelp.setMargin(new Insets(bCompressionHelp.getInsets().top, 4,
-                                          bCompressionHelp.getInsets().bottom, 4));
+    bCompressionHelp.setMargin(new Insets(bCompressionHelp.getInsets().top, 4, bCompressionHelp.getInsets().bottom, 4));
     lPvrzInfo = new JLabel(pvrzInfoString(sPvrzIndex.getValue()));
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pOptionsV2.add(lPvrzIndex, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pOptionsV2.add(sPvrzIndex, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pOptionsV2.add(lCompression, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pOptionsV2.add(cbCompression, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pOptionsV2.add(bCompressionHelp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 5, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 5, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 4, 4), 0, 0);
     pOptionsV2.add(lPvrzInfo, c);
 
     // setting up tabbed pane
-    tabPane = new JTabbedPane(JTabbedPane.TOP);
+    tabPane = new JTabbedPane(SwingConstants.TOP);
 
     JPanel pTabV1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 2, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 2, 4), 0, 0);
     pTabV1.add(pFilesV1, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(2, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(2, 4, 4, 4), 0, 0);
     pTabV1.add(pOptionsV1, c);
     tabPane.addTab("Legacy (V1)", pTabV1);
     tabPane.setMnemonicAt(0, KeyEvent.VK_1);
 
     JPanel pTabV2 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 2, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 2, 4), 0, 0);
     pTabV2.add(pFilesV2, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(2, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 4, 4), 0, 0);
     pTabV2.add(pOptionsV2, c);
     tabPane.addTab("PVRZ-based (V2)", pTabV2);
     tabPane.setMnemonicAt(1, KeyEvent.VK_2);
@@ -852,29 +839,29 @@ public class ConvertToMos extends ChildFrame
     bCancel.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
 
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     // putting all together
     setLayout(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 8), 0, 0);
     add(tabPane, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 8), 0, 0);
     add(pButtons, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     add(new JPanel(), c);
 
     // finalizing dialog initialization
@@ -884,16 +871,13 @@ public class ConvertToMos extends ChildFrame
     setVisible(true);
   }
 
-
-  private void hideWindow()
-  {
+  private void hideWindow() {
     clear();
     setVisible(false);
   }
 
   // resetting dialog state
-  private void clear()
-  {
+  private void clear() {
     tfInputV1.setText("");
     tfInputV2.setText("");
     tfOutputV1.setText("");
@@ -902,8 +886,7 @@ public class ConvertToMos extends ChildFrame
   }
 
   // got enough data to start conversion?
-  private boolean isReady()
-  {
+  private boolean isReady() {
     boolean ret = false;
     if (!tfInputV1.getText().isEmpty() && !tfOutputV1.getText().isEmpty()) {
       Path file = FileManager.resolve(tfInputV1.getText());
@@ -912,13 +895,12 @@ public class ConvertToMos extends ChildFrame
     return ret;
   }
 
-  private int getPvrzIndex(Object o)
-  {
+  private int getPvrzIndex(Object o) {
     int index = 0;
     if (o != null) {
       try {
         if (o instanceof Integer) {
-          index = ((Integer)o).intValue();
+          index = ((Integer) o);
         } else {
           index = Integer.parseInt(o.toString());
         }
@@ -928,20 +910,18 @@ public class ConvertToMos extends ChildFrame
     return index;
   }
 
-  private String pvrzInfoString(Object o)
-  {
+  private String pvrzInfoString(Object o) {
     int index = getPvrzIndex(o);
-    return String.format("Resulting in MOS%04d.PVRZ, MOS%04d.PVRZ, ...", index, index+1);
+    return String.format("Resulting in MOS%04d.PVRZ, MOS%04d.PVRZ, ...", index, index + 1);
   }
 
-  private String getImageFileName(Path path)
-  {
+  private String getImageFileName(Path path) {
     JFileChooser fc = new JFileChooser(path.toFile());
     fc.setDialogTitle("Select input graphics file");
     fc.setDialogType(JFileChooser.OPEN_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter[] filters = getInputFilters();
-    for (final FileNameExtensionFilter filter: filters) {
+    for (final FileNameExtensionFilter filter : filters) {
       fc.addChoosableFileFilter(filter);
     }
     fc.setFileFilter(filters[0]);
@@ -953,8 +933,7 @@ public class ConvertToMos extends ChildFrame
     }
   }
 
-  private String getMosFileName(Path path)
-  {
+  private String getMosFileName(Path path) {
     JFileChooser fc = new JFileChooser(path.toFile());
     fc.setDialogTitle("Specify output filename");
     fc.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -970,8 +949,7 @@ public class ConvertToMos extends ChildFrame
     }
   }
 
-  private List<String> convert()
-  {
+  private List<String> convert() {
     List<String> result = new Vector<>(2);
 
     // validating input file
@@ -1000,9 +978,9 @@ public class ConvertToMos extends ChildFrame
       if (cbCompression.getSelectedIndex() == 2) {
         dxtType = DxtEncoder.DxtType.DXT5;
       } else {
-        int[] pixels = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-        for (int i = 0; i < pixels.length; i++) {
-          int alpha = pixels[i] >>> 24;
+        int[] pixels = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+        for (int pixel : pixels) {
+          int alpha = pixel >>> 24;
           if (alpha > 0x20 && alpha < 0xe0) {
             dxtType = DxtEncoder.DxtType.DXT5;
             break;
@@ -1028,23 +1006,21 @@ public class ConvertToMos extends ChildFrame
     return result;
   }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-//-------------------------- INNER CLASSES --------------------------
+  private static class MosEntry {
+    public int page;
+    public int width;
+    public int height;
+    public Point srcLocation;
+    public Point dstLocation;
 
- private static class MosEntry
- {
-   public int page;
-   public int width, height;
-   public Point srcLocation;
-   public Point dstLocation;
-
-   public MosEntry(int page, Point srcLocation, int width, int height, Point dstLocation)
-   {
-     this.page = page;
-     this.srcLocation = srcLocation;
-     this.width = width;
-     this.height = height;
-     this.dstLocation = dstLocation;
-   }
- }
+    public MosEntry(int page, Point srcLocation, int width, int height, Point dstLocation) {
+      this.page = page;
+      this.srcLocation = srcLocation;
+      this.width = width;
+      this.height = height;
+      this.dstLocation = dstLocation;
+    }
+  }
 }

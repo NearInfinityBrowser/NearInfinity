@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -27,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.JTextComponent;
@@ -47,10 +48,9 @@ import org.infinity.util.Misc;
 /**
  * This panel provides controls for customizing various aspects of a CRE resource.
  */
-public class CreatureControlPanel extends JPanel
-{
-  private static final String[] defaultColorLabels = { "Metal color", "Minor color", "Major color", "Skin color",
-                                                       "Leather color", "Armor color", "Hair color" };
+public class CreatureControlPanel extends JPanel {
+  private static final String[] DEFAULT_COLOR_LABELS = { "Metal color", "Minor color", "Major color", "Skin color",
+      "Leather color", "Armor color", "Hair color" };
 
   // Labels for color selection lists
   private final List<JLabel> colorLabels = new ArrayList<>();
@@ -73,26 +73,28 @@ public class CreatureControlPanel extends JPanel
   private JScrollPane scrollShown;
   private CardLayout layoutMain;
 
-  public CreatureControlPanel(CreatureBrowser browser)
-  {
+  public CreatureControlPanel(CreatureBrowser browser) {
     super();
     this.browser = browser;
     init();
   }
 
   /** Returns the associated {@code CreatureBrowser} instance. */
-  public CreatureBrowser getBrowser() { return browser; }
+  public CreatureBrowser getBrowser() {
+    return browser;
+  }
 
-  public CreatureControlModel getControlModel() { return model; }
+  public CreatureControlModel getControlModel() {
+    return model;
+  }
 
   /**
-   * Sets color labels to the specified values. Empty strings are considered as "unused".
-   * Specify empty array to set default labels.
+   * Sets color labels to the specified values. Empty strings are considered as "unused". Specify empty array to set
+   * default labels.
    */
-  public void setColorLabels(String[] labels)
-  {
+  public void setColorLabels(String[] labels) {
     if (labels == null) {
-      labels = defaultColorLabels;
+      labels = DEFAULT_COLOR_LABELS;
     }
     for (int i = 0; i < colorLabels.size(); i++) {
       JLabel l = colorLabels.get(i);
@@ -107,27 +109,26 @@ public class CreatureControlPanel extends JPanel
   }
 
   /** Resets all CRE-related settings to the values provided by the selected CRE resource. */
-  public void resetSettings()
-  {
+  public void resetSettings() {
     getControlModel().reset();
   }
 
   /** Applies the current CRE-related settings to the creature animation. */
-  public void applySettings()
-  {
+  public void applySettings() {
     CreResource cre = getControlModel().getDecoder().getCreResource();
     CreUtils.setAnimation(cre, getControlModel().getSelectedAnimation().getValue());
     CreUtils.setAllegiance(cre, getControlModel().getSelectedAllegiance().getValue());
-    CreUtils.setStatusPanic(cre, getControlModel().getSelectedAllegiance().getStatus() == CreatureStatusModel.Status.PANICKED);
+    CreUtils.setStatusPanic(cre,
+        getControlModel().getSelectedAllegiance().getStatus() == CreatureStatusModel.Status.PANICKED);
     CreUtils.setEquipmentHelmet(cre, getControlModel().getSelectedHelmet(getControlModel().getModelHelmet()));
     CreUtils.setEquipmentArmor(cre, getControlModel().getSelectedArmor(getControlModel().getModelArmor()));
     CreUtils.setEquipmentWeapon(cre, getControlModel().getSelectedWeapon(getControlModel().getModelWeapon()));
     CreUtils.setEquipmentShield(cre, getControlModel().getSelectedShield(getControlModel().getModelShield()));
     int idx = 0;
-    for (final Iterator<ColorSelectionModel> iter = getControlModel().getColorModelIterator(); iter.hasNext(); ) {
+    for (final Iterator<ColorSelectionModel> iter = getControlModel().getColorModelIterator(); iter.hasNext();) {
       ColorSelectionModel cm = iter.next();
       if (cm.getSelectedItem() instanceof ColorSelectionModel.ColorEntry) {
-        ColorSelectionModel.ColorEntry ce = (ColorSelectionModel.ColorEntry)cm.getSelectedItem();
+        ColorSelectionModel.ColorEntry ce = (ColorSelectionModel.ColorEntry) cm.getSelectedItem();
         CreUtils.setColor(cre, idx, ce.getIndex());
       }
       idx++;
@@ -145,14 +146,12 @@ public class CreatureControlPanel extends JPanel
   }
 
   /** Called whenever a setting has been changed by the user. */
-  public void fireSettingsChanged()
-  {
+  public void fireSettingsChanged() {
     bReset.setEnabled(getControlModel().canReset());
     bApply.setEnabled(getControlModel().canApply());
   }
 
-  private void init()
-  {
+  private void init() {
     model = new CreatureControlModel(this);
 
     GridBagConstraints c = new GridBagConstraints();
@@ -163,30 +162,30 @@ public class CreatureControlPanel extends JPanel
     // this is a good default width for all selection controls in this panel
     cbCreSelection.setPrototypeDisplayValue(CreatureItem.getDefault());
     int defWidth = cbCreSelection.getPreferredSize().width * 5 / 4;
-//    setPreferredWidth(cbCreSelection, defWidth);
+    // setPreferredWidth(cbCreSelection, defWidth);
     cbCreSelection.addActionListener(listeners);
     updateToolTip(cbCreSelection);
 
     JLabel l2 = new JLabel("Creature animation:");
-    l2.setToolTipText("Supports manually entered numbers. Add \"0x\" prefix or \"h\" suffix to specify a hexadecimal number.");
+    l2.setToolTipText(
+        "Supports manually entered numbers. Add \"0x\" prefix or \"h\" suffix to specify a hexadecimal number.");
     cbCreAnimation = new JComboBox<>(model.getModelAnimation());
     cbCreAnimation.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
       @Override
-      public void focusGained(FocusEvent e)
-      {
+      public void focusGained(FocusEvent e) {
         if (e.getSource() instanceof JTextComponent) {
-          ((JTextComponent)e.getSource()).selectAll();
+          ((JTextComponent) e.getSource()).selectAll();
         }
       }
     });
-//    setPreferredWidth(cbCreAnimation, defWidth);
+    // setPreferredWidth(cbCreAnimation, defWidth);
     cbCreAnimation.setEditable(true);
     cbCreAnimation.addActionListener(listeners);
     updateToolTip(cbCreAnimation);
 
     JLabel l3 = new JLabel("Status:");
     cbCreAllegiance = new JComboBox<>(model.getModelAllegiance());
-//    setPreferredWidth(cbCreAllegiance, defWidth);
+    // setPreferredWidth(cbCreAllegiance, defWidth);
     cbCreAllegiance.addActionListener(listeners);
     updateToolTip(cbCreAllegiance);
 
@@ -215,55 +214,54 @@ public class CreatureControlPanel extends JPanel
     updateToolTip(cbItemWeapon);
 
     JPanel pColumn1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pColumn1.add(l1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreSelection, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l2, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreAnimation, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l3, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreAllegiance, c);
 
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(24, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(24, 0, 0, 0), 0, 0);
     pColumn1.add(l4, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(24, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(24, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemHelmet, c);
 
-    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l5, c);
-    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemArmor, c);
 
-    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l6, c);
-    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemShield, c);
 
-    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l7, c);
-    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemWeapon, c);
-
 
     // second column: color selection
     JComboBox<ColorSelectionModel.ColorEntry> cb;
@@ -278,8 +276,8 @@ public class CreatureControlPanel extends JPanel
       }
     }
 
-    final String[] labels = {"Metal color:", "Minor color:", "Major color:", "Skin color:",
-                             "Leather color:", "Armor color:", "Hair color:"};
+    final String[] labels = { "Metal color:", "Minor color:", "Major color:", "Skin color:", "Leather color:",
+        "Armor color:", "Hair color:" };
     for (int i = 0; i < labels.length; i++) {
       l1 = new JLabel(labels[i]);
       colorLabels.add(l1);
@@ -290,7 +288,7 @@ public class CreatureControlPanel extends JPanel
         cb.setPrototypeDisplayValue(ce);
         defWidth = cb.getPreferredSize().width;
       } else {
-        cb.setPrototypeDisplayValue((ColorSelectionModel.ColorEntry)cm.getSelectedItem());
+        cb.setPrototypeDisplayValue((ColorSelectionModel.ColorEntry) cm.getSelectedItem());
       }
       setPreferredWidth(cb, defWidth);
       cb.addActionListener(listeners);
@@ -302,14 +300,13 @@ public class CreatureControlPanel extends JPanel
     JPanel pColumn2 = new JPanel(new GridBagLayout());
     for (int i = 0; i < colorControls.size(); i++) {
       int top = (i == 0) ? 0 : 8;
-      c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                            GridBagConstraints.NONE, new Insets(top, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+          new Insets(top, 0, 0, 0), 0, 0);
       pColumn2.add(colorLabels.get(i), c);
-      c = ViewerUtil.setGBC(c, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(top, 8, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(top, 8, 0, 0), 0, 0);
       pColumn2.add(colorControls.get(i), c);
     }
-
 
     // third column: buttons
     Insets margin;
@@ -317,70 +314,74 @@ public class CreatureControlPanel extends JPanel
     Font fnt = bApply.getFont().deriveFont(bApply.getFont().getSize2D() * 1.25f);
     bApply.setFont(fnt);
     margin = bApply.getMargin();
-    margin.top += 4;  margin.bottom += 4;
+    margin.top += 4;
+    margin.bottom += 4;
     bApply.setMargin(margin);
     bApply.addActionListener(listeners);
     bReset = new JButton("Reset", Icons.ICON_UNDO_16.getIcon());
     margin = bReset.getMargin();
-    margin.top += 4; margin.bottom += 4;
+    margin.top += 4;
+    margin.bottom += 4;
     bReset.setMargin(margin);
     bReset.setToolTipText("Revert to creature defaults");
     bReset.addActionListener(listeners);
 
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bApply, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     pButtons.add(bReset, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
-
 
     // fourth column: show/hide panel button
     bHidePanel = new JButton("Hide panel");
     margin = bHidePanel.getMargin();
-    margin.top += 4; margin.bottom += 4;
+    margin.top += 4;
+    margin.bottom += 4;
     bHidePanel.setMargin(margin);
     defWidth = bHidePanel.getPreferredSize().width;
     bHidePanel.addActionListener(listeners);
 
     JPanel pColumn4 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pColumn4.add(bHidePanel, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_END,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_END, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pColumn4.add(new JPanel(), c);
 
     // combining columns
     JPanel panelShown = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelShown.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 8, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 8, 8, 0), 0, 0);
     panelShown.add(pColumn1, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 8, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 8, 8, 0), 0, 0);
     panelShown.add(pButtons, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 32, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 32, 8, 0), 0, 0);
     panelShown.add(pColumn2, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 16, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 16, 8, 8), 0, 0);
     panelShown.add(pColumn4, c);
 
-    scrollShown = new JScrollPane(panelShown, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollShown = new JScrollPane(panelShown, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollShown.getHorizontalScrollBar().setUnitIncrement(32);
     scrollShown.setBorder(panelShown.getBorder());
 
     // hidden panel
     bShowPanel = new JButton("Show panel");
     margin = bShowPanel.getMargin();
-    margin.top += 4; margin.bottom += 4;
+    margin.top += 4;
+    margin.bottom += 4;
     bShowPanel.setMargin(margin);
     defWidth = Math.max(defWidth, bShowPanel.getPreferredSize().width);
     bShowPanel.setPreferredSize(new Dimension(defWidth, bShowPanel.getPreferredSize().height));
@@ -389,8 +390,8 @@ public class CreatureControlPanel extends JPanel
     bHidePanel.setPreferredSize(new Dimension(defWidth, bHidePanel.getPreferredSize().height));
 
     panelHidden = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_END,
-                          GridBagConstraints.NONE, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_END, GridBagConstraints.NONE,
+        new Insets(8, 8, 8, 8), 0, 0);
     panelHidden.add(bShowPanel, c);
 
     layoutMain = new CardLayout();
@@ -408,28 +409,24 @@ public class CreatureControlPanel extends JPanel
   /**
    * Returns {@code true} if the pending reset can be performed. Shows a confirmation dialog if changes were made.
    */
-  private boolean confirmReset()
-  {
+  private boolean confirmReset() {
     boolean retVal = true;
     if (getControlModel().canReset()) {
       retVal = (JOptionPane.showConfirmDialog(getBrowser(),
-                                              "Creature settings have been modified. Do you want to revert these changes?",
-                                              "Revert changes",
-                                              JOptionPane.YES_NO_OPTION,
-                                              JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
+          "Creature settings have been modified. Do you want to revert these changes?", "Revert changes",
+          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
     }
     return retVal;
   }
 
   /**
-   * Generates an array of color location labels based on the creature animation provided
-   * by the specified {@code SpriteDecoder}.
+   * Generates an array of color location labels based on the creature animation provided by the specified
+   * {@code SpriteDecoder}.
    */
-  public static String[] createColorLabels(SpriteDecoder decoder)
-  {
+  public static String[] createColorLabels(SpriteDecoder decoder) {
     String[] retVal = null;
     if (decoder != null && decoder instanceof MonsterPlanescapeDecoder) {
-      MonsterPlanescapeDecoder mpd = (MonsterPlanescapeDecoder)decoder;
+      MonsterPlanescapeDecoder mpd = (MonsterPlanescapeDecoder) decoder;
       IdsMap map = IdsMapCache.get("CLOWNRGE.IDS");
       if (map != null) {
         retVal = new String[mpd.getColorLocationCount()];
@@ -446,15 +443,14 @@ public class CreatureControlPanel extends JPanel
     }
 
     if (retVal == null) {
-      retVal = Arrays.copyOf(defaultColorLabels, defaultColorLabels.length);
+      retVal = Arrays.copyOf(DEFAULT_COLOR_LABELS, DEFAULT_COLOR_LABELS.length);
     }
 
     return retVal;
   }
 
   /** Helper method: Updates preferred width of the specified {@code JComponent} instance. */
-  private static void setPreferredWidth(JComponent c, int width)
-  {
+  private static void setPreferredWidth(JComponent c, int width) {
     if (c != null) {
       Dimension dim = c.getPreferredSize();
       dim.width = width;
@@ -462,11 +458,12 @@ public class CreatureControlPanel extends JPanel
     }
   }
 
-  /** Helper method: Updates the tooltip of the specified {@code JComboBox} object with the label of the selected item. */
-  private static void updateToolTip(Object o)
-  {
+  /**
+   * Helper method: Updates the tooltip of the specified {@code JComboBox} object with the label of the selected item.
+   */
+  private static void updateToolTip(Object o) {
     if (o instanceof JComboBox<?>) {
-      JComboBox<?> cb = (JComboBox<?>)o;
+      JComboBox<?> cb = (JComboBox<?>) o;
       Object s = cb.getSelectedItem();
       if (s != null) {
         cb.setToolTipText(s.toString());
@@ -476,31 +473,26 @@ public class CreatureControlPanel extends JPanel
     }
   }
 
-  //-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
    * Listeners are outsourced to this class for cleaner code.
    */
-  private class Listeners implements ActionListener, ListDataListener
-  {
-    private Listeners()
-    {
+  private class Listeners implements ActionListener, ListDataListener {
+    private Listeners() {
     }
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == bApply) {
         applySettings();
-      }
-      else if (e.getSource() == bReset) {
+      } else if (e.getSource() == bReset) {
         if (confirmReset()) {
           resetSettings();
         }
-      }
-      else if (e.getSource() == cbCreSelection) {
+      } else if (e.getSource() == cbCreSelection) {
         try {
           getControlModel().creSelectionChanged();
           updateToolTip(cbCreSelection);
@@ -508,47 +500,39 @@ public class CreatureControlPanel extends JPanel
           ex.printStackTrace();
           getBrowser().showErrorMessage(ex.getMessage(), "Creature selection");
         }
-      }
-      else if (e.getSource() == cbCreAnimation) {
+      } else if (e.getSource() == cbCreAnimation) {
         if (cbCreAnimation.getSelectedItem() != null) {
           // find matching list entry
           int idx = getControlModel().getModelAnimation().getIndexOf(cbCreAnimation.getSelectedItem());
           if (idx != -1) {
-            getControlModel().getModelAnimation().setSelectedItem(getControlModel().getModelAnimation().getElementAt(idx));
+            getControlModel().getModelAnimation()
+                .setSelectedItem(getControlModel().getModelAnimation().getElementAt(idx));
           }
         }
         getControlModel().creAnimationChanged();
         updateToolTip(cbCreAnimation);
-      }
-      else if (e.getSource() == cbCreAllegiance) {
+      } else if (e.getSource() == cbCreAllegiance) {
         getControlModel().creAllegianceChanged();
         updateToolTip(cbCreAllegiance);
-      }
-      else if (e.getSource() == cbItemHelmet) {
+      } else if (e.getSource() == cbItemHelmet) {
         getControlModel().itemHelmetChanged();
         updateToolTip(cbItemHelmet);
-      }
-      else if (e.getSource() == cbItemArmor) {
+      } else if (e.getSource() == cbItemArmor) {
         getControlModel().itemArmorChanged();
         updateToolTip(cbItemArmor);
-      }
-      else if (e.getSource() == cbItemShield) {
+      } else if (e.getSource() == cbItemShield) {
         getControlModel().itemShieldChanged();
         updateToolTip(cbItemShield);
-      }
-      else if (e.getSource() == cbItemWeapon) {
+      } else if (e.getSource() == cbItemWeapon) {
         getControlModel().itemWeaponChanged();
         updateToolTip(cbItemWeapon);
-      }
-      else if (e.getSource() == bHidePanel) {
+      } else if (e.getSource() == bHidePanel) {
         layoutMain.last(panelMain);
         panelMain.setPreferredSize(panelHidden.getPreferredSize());
-      }
-      else if (e.getSource() == bShowPanel) {
+      } else if (e.getSource() == bShowPanel) {
         layoutMain.first(panelMain);
         panelMain.setPreferredSize(scrollShown.getPreferredSize());
-      }
-      else {
+      } else {
         // color selection
         int idx = colorControls.indexOf(e.getSource());
         if (idx >= 0) {
@@ -558,51 +542,48 @@ public class CreatureControlPanel extends JPanel
       }
     }
 
-    //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
-    //--------------------- Begin Interface ListDataListener ---------------------
+    // --------------------- Begin Interface ListDataListener ---------------------
 
     @Override
-    public void intervalAdded(ListDataEvent e)
-    {
+    public void intervalAdded(ListDataEvent e) {
     }
 
     @Override
-    public void intervalRemoved(ListDataEvent e)
-    {
+    public void intervalRemoved(ListDataEvent e) {
     }
 
     @Override
-    public void contentsChanged(ListDataEvent e)
-    {
-//      if (e.getSource() == getControlModel().getModelCreature()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelAnimation()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelAllegiance()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelHelmet()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelArmor()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelShield()) {
-//      }
-//      else if (e.getSource() == getControlModel().getModelWeapon()) {
-//      }
-//      else {
-        // color selections may be unused in PST/PSTEE
-        for (int idx = 0, cnt = colorControls.size(); idx < cnt; idx++) {
-          final JComboBox<ColorEntry> cb = colorControls.get(idx);
-          if (e.getSource() == colorControls.get(idx).getModel()) {
-            boolean enabled = (colorControls.get(idx).getSelectedItem() != null);
-            cb.setEnabled(enabled);
-            colorLabels.get(idx).setEnabled(enabled);
-            break;
-          }
+    public void contentsChanged(ListDataEvent e) {
+      // if (e.getSource() == getControlModel().getModelCreature()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelAnimation()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelAllegiance()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelHelmet()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelArmor()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelShield()) {
+      // }
+      // else if (e.getSource() == getControlModel().getModelWeapon()) {
+      // }
+      // else {
+      // color selections may be unused in PST/PSTEE
+      for (int idx = 0, cnt = colorControls.size(); idx < cnt; idx++) {
+        final JComboBox<ColorEntry> cb = colorControls.get(idx);
+        if (e.getSource() == colorControls.get(idx).getModel()) {
+          boolean enabled = (colorControls.get(idx).getSelectedItem() != null);
+          cb.setEnabled(enabled);
+          colorLabels.get(idx).setEnabled(enabled);
+          break;
         }
-//      }
+      }
+      // }
     }
 
-    //--------------------- End Interface ListDataListener ---------------------
+    // --------------------- End Interface ListDataListener ---------------------
   }
 }

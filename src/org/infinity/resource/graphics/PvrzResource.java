@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -39,46 +39,42 @@ import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * This resource is used to store graphics data that can be directly utilised by
- * the video hardware.
+ * This resource is used to store graphics data that can be directly utilised by the video hardware.
  * <p>
- * PVRZ files are basically ZLIB-compressed PVR files. The file format is primarily
- * used in conjunction with {@link BamResource BAM V2}, {@link MosResource MOS V2}
- * and PVRZ-based {@link TisResource TIS} resources. Texture compression for the
- * desktop versions of the games is limited to DXT1 (BC1) and DXT5 (BC3).
- * Compression supported by the mobile versions can vary. Width and height of
- * textures are usually a power of 2, up to a maximum of 1024 pixels.
+ * PVRZ files are basically ZLIB-compressed PVR files. The file format is primarily used in conjunction with
+ * {@link BamResource BAM V2}, {@link MosResource MOS V2} and PVRZ-based {@link TisResource TIS} resources. Texture
+ * compression for the desktop versions of the games is limited to DXT1 (BC1) and DXT5 (BC3). Compression supported by
+ * the mobile versions can vary. Width and height of textures are usually a power of 2, up to a maximum of 1024 pixels.
  * <p>
- * The PVR File Format Specification is available for download from © Imagination
- * Technologies: <a href="https://community.imgtec.com/developers/powervr/documentation/">PowerVR Documentation</a>
+ * The PVR File Format Specification is available for download from © Imagination Technologies:
+ * <a href="https://community.imgtec.com/developers/powervr/documentation/">PowerVR Documentation</a>
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pvrz.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pvrz.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pvrz.htm</a>
  */
-public class PvrzResource implements Resource, ActionListener, Closeable, Referenceable
-{
-  private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
+public class PvrzResource implements Resource, ActionListener, Closeable, Referenceable {
+  private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
-  private JMenuItem miExport, miPNG, miPVR;
+  private JMenuItem miExport;
+  private JMenuItem miPNG;
+  private JMenuItem miPVR;
   private RenderCanvas rcImage;
   private JPanel panel;
 
-  public PvrzResource(ResourceEntry entry) throws Exception
-  {
+  public PvrzResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
       showProperties();
     } else if (event.getSource() == miExport) {
       // export as original PVRZ
@@ -95,21 +91,19 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PVR");
         ResourceFactory.exportResource(entry, decompressed, fileName, panel.getTopLevelAncestor());
       } else {
-        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                      "Error while exporting " + entry, "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     } else if (event.getSource() == miPNG) {
       try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
         BufferedImage image = getImage();
         if (ImageIO.write(image, "png", os)) {
-          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
-                                         fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName,
+              panel.getTopLevelAncestor());
         } else {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Error while exporting " + entry, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -117,52 +111,47 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     panel.removeAll();
     rcImage.setImage(null);
     rcImage = null;
   }
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
-    new ReferenceSearcher(entry, new String[]{"BAM", "MOS", "TIS"}, parent);
+  public void searchReferences(Component parent) {
+    new ReferenceSearcher(entry, new String[] { "BAM", "MOS", "TIS" }, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    JButton btn = ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES));
+  public JComponent makeViewer(ViewableContainer container) {
+    JButton btn = ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES));
     btn.addActionListener(this);
     btn.setEnabled(Profile.isEnhancedEdition());
 
@@ -172,12 +161,12 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     miPNG.addActionListener(this);
     miPVR = new JMenuItem("as PVR (uncompressed)");
     miPVR.addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miPVR, miPNG});
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
+    bpmExport.setMenuItems(new JMenuItem[] { miExport, miPVR, miPNG });
 
     JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
-    buttonPanel.addControl(bProperties, Properties);
+    buttonPanel.addControl(bProperties, PROPERTIES);
 
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
@@ -202,10 +191,9 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     return panel;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-  public BufferedImage getImage()
-  {
+  public BufferedImage getImage() {
     if (rcImage != null) {
       return ColorConvert.toBufferedImage(rcImage.getImage(), false);
     } else if (entry != null) {
@@ -214,8 +202,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     return null;
   }
 
-  private void showProperties()
-  {
+  private void showProperties() {
     PvrDecoder decoder = null;
     try {
       decoder = PvrDecoder.loadPvr(entry);
@@ -231,8 +218,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
       sb.append("Width:&nbsp;&nbsp;").append(width).append(br);
       sb.append("Height:&nbsp;").append(height).append(br);
       sb.append("</code></html>");
-      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
-	                                      JOptionPane.INFORMATION_MESSAGE);
+      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -240,8 +226,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     }
   }
 
-  private BufferedImage loadImage()
-  {
+  private BufferedImage loadImage() {
     BufferedImage image = null;
     PvrDecoder decoder = null;
     if (entry != null) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -48,9 +48,9 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
-public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable
-{
-  private static final SearchFrame searchframe = null;
+public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
+//  private static final SearchFrame SEARCH_FRAME = null;
+
   private final CardLayout cards = new CardLayout();
   private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
   private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
@@ -65,18 +65,16 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JRadioButton rbsto = new JRadioButton("Stores");
   private final JTextField tfield = new JTextField(10);
 
-  public static void clearCache()
-  {
-    if (searchframe != null) {
-      searchframe.list.setListData(new String[0]);
-      searchframe.bopen.setEnabled(false);
-      searchframe.bopennew.setEnabled(false);
-      searchframe.binsert.setEnabled(false);
-    }
-  }
+//  public static void clearCache() {
+//    if (SEARCH_FRAME != null) {
+//      SEARCH_FRAME.list.setListData(new String[0]);
+//      SEARCH_FRAME.bopen.setEnabled(false);
+//      SEARCH_FRAME.bopennew.setEnabled(false);
+//      SEARCH_FRAME.binsert.setEnabled(false);
+//    }
+//  }
 
-  public SearchFrame()
-  {
+  public SearchFrame() {
     super("Find");
     setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     getRootPane().setDefaultButton(bsearch);
@@ -111,11 +109,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.addActionListener(this);
     bopennew.addActionListener(this);
     binsert.addActionListener(this);
-    list.addMouseListener(new MouseAdapter()
-    {
+    list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
           String selected = list.getSelectedValue();
           String resname = selected.substring(0, selected.indexOf(" - "));
@@ -124,11 +120,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
         }
       }
     });
-    addWindowListener(new WindowAdapter()
-    {
+    addWindowListener(new WindowAdapter() {
       @Override
-      public void windowOpened(WindowEvent event)
-      {
+      public void windowOpened(WindowEvent event) {
         tfield.requestFocus();
       }
     });
@@ -152,9 +146,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     rbpanel.add(rbspl);
     rbpanel.add(rbsto);
     rbpanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Find:"),
-                                                         BorderFactory.createEmptyBorder(3, 6, 3, 3)));
+        BorderFactory.createEmptyBorder(3, 6, 3, 3)));
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -178,8 +172,8 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.SOUTH;
     gbc.insets.left = 3;
-    tfield.setPreferredSize(new Dimension((int)tfield.getPreferredSize().getWidth(),
-                                          (int)bsearch.getPreferredSize().getHeight()));
+    tfield.setPreferredSize(
+        new Dimension((int) tfield.getPreferredSize().getWidth(), (int) bsearch.getPreferredSize().getHeight()));
     gbl.setConstraints(tfield, gbc);
     pane.add(tfield);
 
@@ -214,61 +208,54 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
-      if (tfield.getText() == null || tfield.getText().equals(""))
+      if (tfield.getText() == null || tfield.getText().equals("")) {
         return;
+      }
       new Thread(this).start();
-    }
-    else if (event.getSource() == bopen) {
+    } else if (event.getSource() == bopen) {
       String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
       ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
       NearInfinity.getInstance().showResourceEntry(entry);
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf(" - "));
       new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
-    }
-    else if (event.getSource() == binsert) {
+    } else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
       if (viewable == null || !(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         return;
       }
       String selected = list.getSelectedValue();
       String resname = selected.substring(0, selected.indexOf("."));
-      ((BcsResource)viewable).insertString('\"' + resname + '\"');
+      ((BcsResource) viewable).insertString('\"' + resname + '\"');
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
     binsert.setEnabled(true);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     list.setEnabled(false);
     tfield.setEnabled(false);
     list.clearSelection();
@@ -276,21 +263,22 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
     binsert.setEnabled(false);
-    list.setListData(new String[]{});
+    list.setListData(new String[] {});
     rbcre.setEnabled(false);
     rbitm.setEnabled(false);
     rbspl.setEnabled(false);
     rbsto.setEnabled(false);
 
     String selectedtype = "";
-    if (rbcre.isSelected())
+    if (rbcre.isSelected()) {
       selectedtype = "CRE";
-    else if (rbitm.isSelected())
+    } else if (rbitm.isSelected()) {
       selectedtype = "ITM";
-    else if (rbspl.isSelected())
+    } else if (rbspl.isSelected()) {
       selectedtype = "SPL";
-    else if (rbsto.isSelected())
+    } else if (rbsto.isSelected()) {
       selectedtype = "STO";
+    }
 
     List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
     String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
@@ -300,8 +288,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     for (int i = 0; i < resources.size(); i++) {
       ResourceEntry entry = resources.get(i);
       String string = entry.getSearchString();
-      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1)
+      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1) {
         found.add(entry.toString() + " - " + string);
+      }
       progress.setValue(i + 1);
     }
     cards.show(bpanel, "Button");
@@ -322,6 +311,5 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bsearch.setEnabled(true);
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 }
-

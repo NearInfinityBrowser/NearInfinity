@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -22,8 +22,6 @@ import java.util.function.BiFunction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
@@ -34,10 +32,10 @@ import org.infinity.util.Misc;
 
 /**
  * Common base class for fields that represent an integer enumeration of some values.
+ *
  * @param <T> type of the symbolic representation of the numeric value
  */
-public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
-{
+public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   /** Default formatter object if none are specified as constructor arguments. */
   public final BiFunction<Long, T, String> formatterDefault = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
@@ -62,8 +60,8 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   };
 
   /**
-   * This formatter object uses the same format as the {@link #formatterHashBitmap}
-   * but displays label and numeric value in reversed order.
+   * This formatter object uses the same format as the {@link #formatterHashBitmap} but displays label and numeric value
+   * in reversed order.
    */
   public final BiFunction<Long, T, String> formatterHashBitmapReverse = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
@@ -75,8 +73,8 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   };
 
   /**
-   * This formatter object uses the same format as the {@link #formatterBitmap}
-   * but displays label and numeric value in reversed order.
+   * This formatter object uses the same format as the {@link #formatterBitmap} but displays label and numeric value in
+   * reversed order.
    */
   public final BiFunction<Long, T, String> formatterBitmapReverse = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
@@ -99,49 +97,49 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   private boolean showAsHex;
 
   /**
-   * Constructs a new field that represents an integer enumeration using a default formatter.
-   * By default value is treated as unsigned and shown in decimal notation. List is sorted by value.
+   * Constructs a new field that represents an integer enumeration using a default formatter. By default value is
+   * treated as unsigned and shown in decimal notation. List is sorted by value.
+   *
    * @param buffer the buffer object
    * @param offset offset of data in the buffer
    * @param length size of data object in bytes
-   * @param name field name
-   * @param items a collection of number-to-symbol mappings
+   * @param name   field name
+   * @param items  a collection of number-to-symbol mappings
    */
-  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items)
-  {
+  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items) {
     this(buffer, offset, length, name, items, null, false);
   }
 
   /**
-   * Constructs a new field that represents an integer enumeration.
-   * By default value is treated as unsigned and shown in decimal notation. List is sorted by value.
-   * @param buffer the buffer object
-   * @param offset offset of data in the buffer
-   * @param length size of data object in bytes
-   * @param name field name
-   * @param items a collection of number-to-symbol mappings
+   * Constructs a new field that represents an integer enumeration. By default value is treated as unsigned and shown in
+   * decimal notation. List is sorted by value.
+   *
+   * @param buffer    the buffer object
+   * @param offset    offset of data in the buffer
+   * @param length    size of data object in bytes
+   * @param name      field name
+   * @param items     a collection of number-to-symbol mappings
    * @param formatter a function that is used to produce the textual output
    */
   public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items,
-      BiFunction<Long, T, String> formatter)
-  {
+      BiFunction<Long, T, String> formatter) {
     this(buffer, offset, length, name, items, formatter, false);
   }
 
   /**
-   * Constructs a new field that represents an integer enumeration.
-   * By default value is shown in decimal notation. List is sorted by value.
-   * @param buffer the buffer object
-   * @param offset offset of data in the buffer
-   * @param length size of data object in bytes
-   * @param name field name
-   * @param items a collection of number-to-symbol mappings
+   * Constructs a new field that represents an integer enumeration. By default value is shown in decimal notation. List
+   * is sorted by value.
+   *
+   * @param buffer    the buffer object
+   * @param offset    offset of data in the buffer
+   * @param length    size of data object in bytes
+   * @param name      field name
+   * @param items     a collection of number-to-symbol mappings
    * @param formatter a function that is used to produce the textual output
-   * @param signed indicates whether numeric value is treated as a signed value
+   * @param signed    indicates whether numeric value is treated as a signed value
    */
   public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items,
-                        BiFunction<Long, T, String> formatter, boolean signed)
-  {
+      BiFunction<Long, T, String> formatter, boolean signed) {
     super(offset, length, name);
     this.itemMap = (items != null) ? items : new TreeMap<>();
     this.signed = signed;
@@ -153,21 +151,19 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     read(buffer, offset);
   }
 
-  //--------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     writeLong(os, value);
   }
 
-  //--------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-  //--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     switch (getSize()) {
       case 1:
@@ -182,33 +178,30 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
       default:
         throw new IllegalArgumentException();
     }
-    setValue(value);  // called to ensure correct signedness
+    setValue(value); // called to ensure correct signedness
     return offset + getSize();
   }
 
-  //--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
-  //--------------------- Begin Interface IsNumeric ---------------------
+  // --------------------- Begin Interface IsNumeric ---------------------
 
   @Override
-  public long getLongValue()
-  {
+  public long getLongValue() {
     return value;
   }
 
   @Override
-  public int getValue()
-  {
-    return (int)value;
+  public int getValue() {
+    return (int) value;
   }
 
-  //--------------------- End Interface IsNumeric ---------------------
+  // --------------------- End Interface IsNumeric ---------------------
 
-  //--------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     FormattedData<T> selected = null;
     final List<FormattedData<T>> items = new ArrayList<>(itemMap.size());
     for (final Long key : itemMap.keySet()) {
@@ -222,20 +215,15 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     list = new TextListPanel<>(items, sortByName);
     list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
           container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
         }
       }
     });
-    list.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent event)
-      {
-        if (!event.getValueIsAdjusting()) {
-          listItemChanged();
-        }
+    list.addListSelectionListener(event -> {
+      if (!event.getValueIsAdjusting()) {
+        listItemChanged();
       }
     });
 
@@ -251,19 +239,19 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     GridBagConstraints c = new GridBagConstraints();
 
     c = ViewerUtil.setGBC(c, 0, 0, 1, buttonList.size() + 2, 1.0, 1.0, GridBagConstraints.CENTER,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(list, c);
 
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(new JPanel(), c);
     for (int i = 0; i < buttonList.size(); i++) {
-      c = ViewerUtil.setGBC(c, 1, 1 + i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 6, 8, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1 + i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 6, 8, 0), 0, 0);
       panel.add(buttonList.get(i), c);
     }
     c = ViewerUtil.setGBC(c, 1, 1 + buttonList.size(), 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(new JPanel(), c);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
@@ -271,20 +259,18 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
     list.ensureIndexIsVisible(list.getSelectedIndex());
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     long oldValue = getLongValue();
 
     // updating value
     FormattedData<T> item = list.getSelectedValue();
     if (item != null) {
-      setValue(item.getValue().longValue());
+      setValue(item.getValue());
     } else {
       return false;
     }
@@ -297,17 +283,15 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     return true;
   }
 
-  //--------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return toString(value);
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int hash = super.hashCode();
 
     // taking care of signedness
@@ -318,12 +302,11 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (!super.equals(o) || !(o instanceof AbstractBitmap<?>)) {
       return false;
     }
-    AbstractBitmap<?> other = (AbstractBitmap<?>)o;
+    AbstractBitmap<?> other = (AbstractBitmap<?>) o;
 
     // taking care of signedness
     long mask = (1L << (getSize() * 8)) - 1L;
@@ -333,25 +316,22 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   /** Returns the TextListPanel control used by this datatype. */
-  public JComponent getUiControl()
-  {
+  public JComponent getUiControl() {
     return list;
   }
 
   /**
    * Returns the bitmap table used to associated numeric values with symbolic data.
    */
-  public TreeMap<Long, T> getBitmap()
-  {
+  public TreeMap<Long, T> getBitmap() {
     return itemMap;
   }
 
   /**
-   * Returns the numeric value of the selected entry in the list control.
-   * Returns {@code null} if no valid list item is selected.
+   * Returns the numeric value of the selected entry in the list control. Returns {@code null} if no valid list item is
+   * selected.
    */
-  public Long getSelectedValue()
-  {
+  public Long getSelectedValue() {
     Long retVal = null;
     FormattedData<T> item = list.getSelectedValue();
     if (item != null) {
@@ -362,38 +342,37 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
 
   /**
    * Returns the data object associated with the specified argument.
+   *
    * @param value a numeric value
    * @return the data object associated with the numeric value, {@code null} otherwise.
    */
-  public T getDataOf(long value)
-  {
+  public T getDataOf(long value) {
     return itemMap.get(Long.valueOf(value));
   }
 
   /**
    * Calls the formatter on the data associated with the specified argument and returns the result.
+   *
    * @param value a numeric value
    * @return a {@code String} based on the data associated with the specified argument
    */
-  public String toString(long value)
-  {
-    Long number = Long.valueOf(value);
+  public String toString(long value) {
+    Long number = value;
     T data = itemMap.get(Long.valueOf(value));
     return formatter.apply(number, data);
   }
 
   /** Returns the function object that is used to create the return value of the {@link #toString()} method. */
-  public BiFunction<Long, T, String> getFormatter()
-  {
+  public BiFunction<Long, T, String> getFormatter() {
     return formatter;
   }
 
   /**
    * Assigns a new formatter function object that is used to create the textual representation of the field value.
+   *
    * @param formatter the new formatter function object. Specify {@code null} too use the default formatter.
    */
-  public void setFormatter(BiFunction<Long, T, String> formatter)
-  {
+  public void setFormatter(BiFunction<Long, T, String> formatter) {
     if (formatter == null) {
       formatter = formatterDefault;
     }
@@ -401,14 +380,12 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   /** Returns whether the value is treated as a signed number. */
-  public boolean isSigned()
-  {
+  public boolean isSigned() {
     return signed;
   }
 
   /** Sets whether the value is treated as a signed number. The current value is converted accordingly. */
-  public void setSigned(boolean b)
-  {
+  public void setSigned(boolean b) {
     if (signed != b) {
       signed = b;
       setValue(getLongValue());
@@ -416,45 +393,42 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   /** Returns whether whether entries are sorted by name instead of value. */
-  public boolean isSortByName()
-  {
+  public boolean isSortByName() {
     return sortByName;
   }
 
-  /** Sets whether whether entries are sorted by name instead of value.
-   * Does nothing if this method is called after the UI control is created. */
-  public void setSortByName(boolean b)
-  {
+  /**
+   * Sets whether whether entries are sorted by name instead of value. Does nothing if this method is called after the
+   * UI control is created.
+   */
+  public void setSortByName(boolean b) {
     if (list == null) {
       sortByName = b;
     }
   }
 
   /** Returns whether numeric value is shown in hexadecimal notation. */
-  public boolean isShowAsHex()
-  {
+  public boolean isShowAsHex() {
     return showAsHex;
   }
 
   /** Sets whether numeric value is shown in hexadecimal notation. */
-  public void setShowAsHex(boolean b)
-  {
+  public void setShowAsHex(boolean b) {
     showAsHex = b;
   }
 
   /**
    * Adds the specified data to the item list. Existing entries will be overwritten.
+   *
    * @param value the numeric value
-   * @param data data associated with the value
+   * @param data  data associated with the value
    */
-  protected void putItem(long value, T data)
-  {
-    itemMap.put(Long.valueOf(value), data);
+  protected void putItem(long value, T data) {
+    itemMap.put(value, data);
   }
 
   /** Assigns a new value. */
-  protected void setValue(long newValue)
-  {
+  protected void setValue(long newValue) {
     final long oldValue = getLongValue();
 
     // ensure correct signedness
@@ -477,11 +451,10 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   /**
-   * Allows derived classes to add custom buttons to the UI control.
-   * Only effective if called before the UI control is created.
+   * Allows derived classes to add custom buttons to the UI control. Only effective if called before the UI control is
+   * created.
    */
-  protected void addButtons(JButton... buttons)
-  {
+  protected void addButtons(JButton... buttons) {
     // It makes no sense to register new buttons if the list panel has already been created
     if (list == null) {
       for (final JButton btn : buttons) {
@@ -493,18 +466,17 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   }
 
   /** Called whenever the user selects a new list item. */
-  protected void listItemChanged()
-  {
+  protected void listItemChanged() {
   }
 
   /**
    * Helper method: returns the specified number in hexadecimal notation.
+   *
    * @param value the value to return as hexadecimal representation.
-   * @param size size of the value in bytes.
+   * @param size  size of the value in bytes.
    * @return String containing hexadecimal notation of the specified value.
    */
-  protected String getHexValue(long value)
-  {
+  protected String getHexValue(long value) {
     switch (getSize()) {
       case 1:
         return String.format("0x%02X", value);
@@ -517,33 +489,36 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     }
   }
 
-  //-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
    * A helper class used to encapsulate the formatter function object.
    */
-  protected static class FormattedData<T>
-  {
+  protected static class FormattedData<T> {
     private final Long value;
     private final T data;
     private final BiFunction<Long, T, String> formatter;
 
-    public FormattedData(long value, T data, BiFunction<Long, T, String> formatter)
-    {
-      this.value = Long.valueOf(value);
+    public FormattedData(long value, T data, BiFunction<Long, T, String> formatter) {
+      this.value = value;
       this.data = data;
       this.formatter = formatter;
     }
 
-    public Long getValue() { return value; }
+    public Long getValue() {
+      return value;
+    }
 
-    public T getData() { return data; }
+    public T getData() {
+      return data;
+    }
 
-    public BiFunction<Long, T, String> getFormatter() { return formatter; }
+    public BiFunction<Long, T, String> getFormatter() {
+      return formatter;
+    }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       if (formatter != null) {
         return formatter.apply(value, data);
       } else if (data != null) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -34,10 +34,8 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
-public final class Viewer extends JPanel
-{
-  private static JPanel makeMiscPanel(CreResource cre)
-  {
+public final class Viewer extends JPanel {
+  private static JPanel makeMiscPanel(CreResource cre) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -49,8 +47,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
-    if (Profile.getGame() != Profile.Game.PSTEE &&
-        ResourceFactory.resourceExists("KIT.IDS")) {
+    if (Profile.getGame() != Profile.Game.PSTEE && ResourceFactory.resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
     } else {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MAGE_TYPE), gbl, gbc, true);
@@ -79,8 +76,7 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  private static JPanel makeMiscPanelIWD2(CreResource cre)
-  {
+  private static JPanel makeMiscPanelIWD2(CreResource cre) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -92,7 +88,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENERAL), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
+    // ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALIGNMENT), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
@@ -105,7 +101,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ATTACKS_PER_ROUND), gbl, gbc, true);
 
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_NAME), gbl, gbc, true);
-//    gbc.insets = new Insets(4, 3, 4, 0);
+    // gbc.insets = new Insets(4, 3, 4, 0);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_SPECIAL_1), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_TEAM), gbl, gbc, true);
@@ -117,8 +113,7 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  public Viewer(CreResource cre)
-  {
+  public Viewer(CreResource cre) {
     JTabbedPane tabs = new JTabbedPane();
     JScrollPane scroll = new JScrollPane(makeMainPanel(cre));
     scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -129,32 +124,29 @@ public final class Viewer extends JPanel
     if (version.toString().equalsIgnoreCase("V2.2")) {
       tabs.addTab("Feats/Skills", makeFeatsPanel(cre));
       tabs.addTab("Items/Spells", makeItemSpellsPanelIWD2(cre));
-    }
-    else if (version != null)
+    } else if (version != null) {
       tabs.addTab("Items/Spells", makeItemSpellsPanel(cre));
+    }
     setLayout(new BorderLayout());
     add(tabs, BorderLayout.CENTER);
   }
 
-  private JPanel makeFeatsPanel(CreResource cre)
-  {
+  private JPanel makeFeatsPanel(CreResource cre) {
     JPanel p = new JPanel(new BorderLayout());
-    p.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_3), 1), BorderLayout.NORTH);
+    p.add(ViewerUtil.makeCheckPanel((Flag) cre.getAttribute(CreResource.CRE_FEATS_3), 1), BorderLayout.NORTH);
     p.add(makeSkillPanelIWD2(cre), BorderLayout.CENTER);
 
     JPanel panel = new JPanel(new GridLayout(1, 6, 6, 0));
-    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_1), 1));
-    panel.add(ViewerUtil.makeCheckPanel((Flag)cre.getAttribute(CreResource.CRE_FEATS_2), 1));
+    panel.add(ViewerUtil.makeCheckPanel((Flag) cre.getAttribute(CreResource.CRE_FEATS_1), 1));
+    panel.add(ViewerUtil.makeCheckPanel((Flag) cre.getAttribute(CreResource.CRE_FEATS_2), 1));
     panel.add(p);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     return panel;
   }
 
-  private JPanel makeItemSpellsPanel(CreResource cre)
-  {
+  private JPanel makeItemSpellsPanel(CreResource cre) {
     JPanel rightPanel = new JPanel(new GridLayout(2, 1, 0, 6));
-    rightPanel.add(
-            ViewerUtil.makeListPanel("Known spells", cre, KnownSpells.class, KnownSpells.CRE_KNOWN_RESREF));
+    rightPanel.add(ViewerUtil.makeListPanel("Known spells", cre, KnownSpells.class, KnownSpells.CRE_KNOWN_RESREF));
     rightPanel.add(new ViewerSpells(cre));
     JPanel panel = new JPanel(new GridLayout(1, 2, 6, 0));
     panel.add(new ViewerItems(cre));
@@ -163,33 +155,30 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  private JPanel makeItemSpellsPanelIWD2(CreResource cre)
-  {
+  private JPanel makeItemSpellsPanelIWD2(CreResource cre) {
     JPanel panel = new JPanel(new GridLayout(1, 2, 6, 0));
     panel.add(new ViewerItems(cre));
     panel.add(ViewerUtil.makeListPanel("Spells/abilities (# known)", cre, Iwd2Struct.class, null,
-                                       new SpellListRendererIWD2()));
+        new SpellListRendererIWD2()));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     return panel;
   }
 
-  private JPanel makeMainPanel(CreResource cre)
-  {
+  private JPanel makeMainPanel(CreResource cre) {
     JPanel effectPanel;
-    IsNumeric effectVersion = (IsNumeric)cre.getAttribute(CreResource.CRE_EFFECT_VERSION);
+    IsNumeric effectVersion = (IsNumeric) cre.getAttribute(CreResource.CRE_EFFECT_VERSION);
     if (effectVersion == null) {
       return new JPanel();
     } else {
       effectPanel = ViewerUtil.makeListPanel("Effects", cre,
-                                            (effectVersion.getValue() == 1) ? Effect2.class : Effect.class,
-                                            EffectType.EFFECT_TYPE);
+          (effectVersion.getValue() == 1) ? Effect2.class : Effect.class, EffectType.EFFECT_TYPE);
     }
-    ResourceRef imageRef = (ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
+    ResourceRef imageRef = (ResourceRef) cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
     JComponent imagePanel;
     if (ResourceFactory.resourceExists(imageRef.getResourceName(), true)) {
       imagePanel = ViewerUtil.makeImagePanel(imageRef, true);
     } else {
-      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL), true);
+      imagePanel = ViewerUtil.makeImagePanel((ResourceRef) cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL), true);
     }
 
     GridBagLayout gbl = new GridBagLayout();
@@ -212,8 +201,7 @@ public final class Viewer extends JPanel
     if (version.equalsIgnoreCase("V2.2")) {
       panel.add(makeStatsPanelIWD2(cre));
       panel.add(makeMiscPanelIWD2(cre));
-    }
-    else {
+    } else {
       panel.add(makeStatsPanel(cre));
       panel.add(makeMiscPanel(cre));
     }
@@ -221,8 +209,7 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  private JPanel makeSkillPanelIWD2(CreResource cre)
-  {
+  private JPanel makeSkillPanelIWD2(CreResource cre) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -249,8 +236,7 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  private JPanel makeStatsPanel(CreResource cre)
-  {
+  private JPanel makeStatsPanel(CreResource cre) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -327,7 +313,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MOVE_SILENTLY), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_FIND_TRAPS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_PICK_POCKETS), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Tracking"), gbl, gbc, true);
+    // ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Tracking"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_NAME), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_CLASS), gbl, gbc, true);
@@ -339,8 +325,7 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-  private JPanel makeStatsPanelIWD2(CreResource cre)
-  {
+  private JPanel makeStatsPanelIWD2(CreResource cre) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -389,29 +374,24 @@ public final class Viewer extends JPanel
     return panel;
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class SpellListRendererIWD2 extends DefaultListCellRenderer
-      implements ListValueRenderer
-  {
-    private SpellListRendererIWD2()
-    {
+  private static final class SpellListRendererIWD2 extends DefaultListCellRenderer implements ListValueRenderer {
+    private SpellListRendererIWD2() {
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                                                  boolean cellHasFocus)
-    {
-      JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        boolean cellHasFocus) {
+      JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setText(getListValue(value));
       return label;
     }
 
     @Override
-    public String getListValue(Object value)
-    {
+    public String getListValue(Object value) {
       if (value instanceof AbstractStruct) {
-        AbstractStruct struct = (AbstractStruct)value;
+        AbstractStruct struct = (AbstractStruct) value;
         return struct.getName() + " (" + (struct.getFields().size() - 2) + ')';
       }
       if (value != null) {

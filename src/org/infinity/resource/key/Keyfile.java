@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import javax.swing.ImageIcon;
@@ -30,8 +31,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
-public class Keyfile
-{
+public class Keyfile {
   public static final ImageIcon ICON_STRUCT = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
 
   public static final int TYPE_BMP    = 0x001;
@@ -91,10 +91,11 @@ public class Keyfile
   private static final ImageIcon ICON_BUNDLE = Icons.ICON_BUNDLE_16.getIcon();
 
   private static final String KEY_SIGNATURE = "KEY ";
-  private static final String KEY_VERSION   = "V1  ";
+  private static final String KEY_VERSION = "V1  ";
 
   /** Path to primary key file (usually {@code chitin.key}). */
   private final Path keyFile;
+
   /** List of additional DLC key files. */
   private final List<Path> keyList;
 
@@ -107,9 +108,7 @@ public class Keyfile
   /** Sorted map of effective BIFFResourceEntry objects. */
   private final TreeMap<String, BIFFResourceEntry> resourceEntries = new TreeMap<>(Misc.getIgnoreCaseComparator());
 
-
-  public Keyfile(Path keyFile) throws FileNotFoundException
-  {
+  public Keyfile(Path keyFile) throws FileNotFoundException {
     if (keyFile == null) {
       throw new NullPointerException("No keyfile specified");
     }
@@ -223,55 +222,48 @@ public class Keyfile
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = 7;
-    hash = 31 * hash + ((keyFile == null) ? 0 : keyFile.hashCode());
-    hash = 31 * hash + ((keyList == null) ? 0 : keyList.hashCode());
-    hash = 31 * hash + ((extMap == null) ? 0 : extMap.hashCode());
-    hash = 31 * hash + ((resourceIcons == null) ? 0 : resourceIcons.hashCode());
-    hash = 31 * hash + ((biffEntries == null) ? 0 : biffEntries.hashCode());
-    hash = 31 * hash + ((resourceEntries == null) ? 0 : resourceEntries.hashCode());
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object o)
-  {
-    if (o == this) {
-      return true;
-    }
-    if (o instanceof Keyfile) {
-      Keyfile other = (Keyfile)o;
-      return (keyFile.equals(other.keyFile));
-    }
-    return false;
-  }
-
-  @Override
-  public String toString()
-  {
+  public String toString() {
     return keyFile.toString();
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(biffEntries, extMap, keyFile, keyList, resourceEntries, resourceIcons);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Keyfile other = (Keyfile) obj;
+    return Objects.equals(biffEntries, other.biffEntries) && Objects.equals(extMap, other.extMap)
+        && Objects.equals(keyFile, other.keyFile) && Objects.equals(keyList, other.keyList)
+        && Objects.equals(resourceEntries, other.resourceEntries) && Objects.equals(resourceIcons, other.resourceIcons);
+  }
+
   /** Returns the file path to the primary key file. */
-  public Path getKeyfile()
-  {
+  public Path getKeyfile() {
     return keyFile;
   }
 
   /** Returns all available DLC key files as unmodifiable list. */
-  public List<Path> getDlcKeyfiles()
-  {
+  public List<Path> getDlcKeyfiles() {
     return Collections.unmodifiableList(keyList);
   }
 
   /**
    * Overrides current key file mapping with data from the specified key file.
+   *
    * @param keyFile The key file containing new entries.
    */
-  public void addKeyfile(Path keyFile)
-  {
+  public void addKeyfile(Path keyFile) {
     if (keyFile == null) {
       throw new NullPointerException("No DLC keyfile specified");
     }
@@ -280,12 +272,11 @@ public class Keyfile
     }
   }
 
-  public void populateResourceTree(ResourceTreeModel treeModel) throws Exception
-  {
+  public void populateResourceTree(ResourceTreeModel treeModel) throws Exception {
     if (treeModel != null) {
       init();
 
-      resourceEntries.values().forEach((entry) -> treeModel.addResourceEntry(entry, entry.getExtension(), true));
+      resourceEntries.values().forEach(entry -> treeModel.addResourceEntry(entry, entry.getExtension(), true));
 
       cacheBIFFs();
     }
@@ -297,8 +288,7 @@ public class Keyfile
    * @param type One of the {@code TYPE_} constants
    * @return Extension (in upper case) for that type or null, if type is unknown
    */
-  public String getExtension(int type)
-  {
+  public String getExtension(int type) {
     return extMap.get(type);
   }
 
@@ -307,20 +297,18 @@ public class Keyfile
    *
    * @param extension Extension string, that can be in any case
    */
-  public int getExtensionType(String extension)
-  {
+  public int getExtensionType(String extension) {
     if (extension != null) {
       for (final Map.Entry<Integer, String> e : extMap.entrySet()) {
         if (e.getValue().equalsIgnoreCase(extension)) {
-          return e.getKey().intValue();
+          return e.getKey();
         }
       }
     }
     return -1;
   }
 
-  public ImageIcon getIcon(String extension)
-  {
+  public ImageIcon getIcon(String extension) {
     ImageIcon icon = resourceIcons.get(extension);
     if (icon == null) {
       icon = resourceIcons.get("???");
@@ -328,78 +316,74 @@ public class Keyfile
     return icon;
   }
 
-  public void closeBIFFFiles()
-  {
+  public void closeBIFFFiles() {
     AbstractBIFFReader.resetCache();
   }
 
-  public void addBIFFEntry(BIFFEntry entry)
-  {
+  public void addBIFFEntry(BIFFEntry entry) {
     if (entry != null) {
       List<BIFFEntry> biffList = getBIFFList(getKeyfile(), false);
-      if(biffList != null) {
+      if (biffList != null) {
         biffList.add(entry);
         entry.setIndex(biffList.size() - 1);
       }
     }
   }
 
-//  public boolean cleanUp()
-//  {
-//    try {
-//      closeBIFFFiles();
-//      List<BIFFEntry> biffList = biffEntries.get(getKeyfile());
-//      Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffList);
-//      // Determine BIFFs with no files in them
-//      List<BIFFResourceEntry> resourceEntries = loadResourceEntries(getKeyfile());
-//      resourceEntries.forEach((entry) -> toRemove.remove(entry.getBIFFEntry()));
-//
-//      // Delete these BIFFs
-//      toRemove.forEach((entry) -> {
-//        Path file = entry.getPath();
-//        System.out.println("Deleting " + file);
-//        if (file != null) {
-//          try {
-//            Files.deleteIfExists(file);
-//          } catch (IOException e) {
-//            e.printStackTrace();
-//          }
-//        }
-//      });
-//
-//      // Determine non-existant BIFFs
-//      biffList.forEach((entry) -> {
-//        if (entry.getPath() == null) {
-//          toRemove.add(entry);
-//        }
-//      });
-//      if (toRemove.isEmpty()) {
-//        return false;
-//      }
-//
-//      // Remove bogus BIFFs from keyfile
-//      toRemove.forEach((entry) -> removeBIFFEntry(getKeyfile(), entry));
-//
-//      return true;
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//
-//    return false;
-//  }
+  // public boolean cleanUp()
+  // {
+  // try {
+  // closeBIFFFiles();
+  // List<BIFFEntry> biffList = biffEntries.get(getKeyfile());
+  // Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffList);
+  // // Determine BIFFs with no files in them
+  // List<BIFFResourceEntry> resourceEntries = loadResourceEntries(getKeyfile());
+  // resourceEntries.forEach((entry) -> toRemove.remove(entry.getBIFFEntry()));
+  //
+  // // Delete these BIFFs
+  // toRemove.forEach((entry) -> {
+  // Path file = entry.getPath();
+  // System.out.println("Deleting " + file);
+  // if (file != null) {
+  // try {
+  // Files.deleteIfExists(file);
+  // } catch (IOException e) {
+  // e.printStackTrace();
+  // }
+  // }
+  // });
+  //
+  // // Determine non-existant BIFFs
+  // biffList.forEach((entry) -> {
+  // if (entry.getPath() == null) {
+  // toRemove.add(entry);
+  // }
+  // });
+  // if (toRemove.isEmpty()) {
+  // return false;
+  // }
+  //
+  // // Remove bogus BIFFs from keyfile
+  // toRemove.forEach((entry) -> removeBIFFEntry(getKeyfile(), entry));
+  //
+  // return true;
+  // } catch (IOException e) {
+  // e.printStackTrace();
+  // }
+  //
+  // return false;
+  // }
 
-  public BIFFEntry[] getBIFFEntriesSorted()
-  {
+  public BIFFEntry[] getBIFFEntriesSorted() {
     List<BIFFEntry> biffList = new ArrayList<>();
-    for (final List<BIFFEntry> list: biffEntries.values()) {
+    for (final List<BIFFEntry> list : biffEntries.values()) {
       biffList.addAll(list);
     }
     Collections.sort(biffList);
     return biffList.toArray(new BIFFEntry[biffList.size()]);
   }
 
-  public BIFFEntry getBIFFEntry(Path keyFile, int index)
-  {
+  public BIFFEntry getBIFFEntry(Path keyFile, int index) {
     List<BIFFEntry> biffs = getBIFFList(keyFile, false);
     if (biffs != null) {
       return biffs.get(index);
@@ -407,8 +391,7 @@ public class Keyfile
     return null;
   }
 
-  public AbstractBIFFReader getBIFFFile(BIFFEntry entry) throws Exception
-  {
+  public AbstractBIFFReader getBIFFFile(BIFFEntry entry) throws Exception {
     if (entry == null) {
       return null;
     } else if (entry.getPath() == null) {
@@ -418,8 +401,7 @@ public class Keyfile
     }
   }
 
-  public BIFFResourceEntry getResourceEntry(String resourceName)
-  {
+  public BIFFResourceEntry getResourceEntry(String resourceName) {
     BIFFResourceEntry retVal = null;
     if (resourceName != null) {
       retVal = resourceEntries.get(resourceName.toUpperCase(Locale.ENGLISH));
@@ -427,16 +409,15 @@ public class Keyfile
     return retVal;
   }
 
-  public void write() throws IOException
-  {
+  public void write() throws IOException {
     List<BIFFEntry> biffs = getBIFFList(getKeyfile(), false);
     if (biffs == null) {
       throw new IOException("Error loading BIFF entry table");
     }
     try (OutputStream os = StreamUtils.getOutputStream(getKeyfile())) {
       int bifoff = 0x18;
-      int offset = bifoff + 0x0c*biffs.size();
-      for (final BIFFEntry biff: biffs) {
+      int offset = bifoff + 0x0c * biffs.size();
+      for (final BIFFEntry biff : biffs) {
         offset += biff.updateOffset(offset);
       }
       int resoff = offset;
@@ -450,89 +431,80 @@ public class Keyfile
       StreamUtils.writeInt(os, bifoff);
       StreamUtils.writeInt(os, resoff);
 
-      for (final BIFFEntry biff: biffs) {
+      for (final BIFFEntry biff : biffs) {
         biff.write(os);
       }
 
-      for (final BIFFEntry biff: biffs) {
+      for (final BIFFEntry biff : biffs) {
         biff.writeString(os);
       }
 
-      for (final BIFFResourceEntry entry: entries) {
+      for (final BIFFResourceEntry entry : entries) {
         entry.write(os);
       }
     }
   }
 
   /** Caches all BIFF files referenced in the current KEY file. */
-  private void cacheBIFFs()
-  {
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        biffEntries.values().forEach((biffList) -> {
-          biffList.forEach((entry) -> {
-            if (entry != null) {
-              Path biffPath = entry.getPath();
-              if (biffPath != null && FileEx.create(biffPath).isFile()) {
-                try {
-                  AbstractBIFFReader.open(biffPath);
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-              }
+  private void cacheBIFFs() {
+    SwingUtilities.invokeLater(() -> biffEntries.values().forEach(biffList -> {
+      biffList.forEach((entry) -> {
+        if (entry != null) {
+          Path biffPath = entry.getPath();
+          if (biffPath != null && FileEx.create(biffPath).isFile()) {
+            try {
+              AbstractBIFFReader.open(biffPath);
+            } catch (Exception e) {
+              e.printStackTrace();
             }
-          });
-        });
-      }
-    });
+          }
+        }
+      });
+    }));
   }
 
   // Creates a list of ResourceEntry objects from the specified key file
-//  private List<BIFFResourceEntry> loadResourceEntries(Path keyFile) throws IOException
-//  {
-//    if (keyFile == null) {
-//      throw new NullPointerException();
-//    }
-//    if (!FileEx.fromPath(keyFile).isFile()) {
-//      throw new IOException("Key file not found: " + keyFile);
-//    }
-//
-//    try (SeekableByteChannel ch = Files.newByteChannel(keyFile, StandardOpenOption.READ)) {
-//      ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
-//      if (ch.read(buffer) < ch.size()) {
-//        throw new IOException("Error loading key file");
-//      }
-//
-//      String sig = StreamUtils.readString(buffer, 0, 4);
-//      String ver = StreamUtils.readString(buffer, 4, 4);
-//      if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
-//        throw new IOException("Unsupported key file: " + keyFile.toString());
-//      }
-//
-//      int numRes = buffer.getInt(0x0c);
-//      int ofsRes = buffer.getInt(0x14);
-//
-//      List<BIFFResourceEntry> retVal = new ArrayList<>(numRes);
-//      for (int i = 0; i < numRes; i++) {
-//        retVal.add(new BIFFResourceEntry(keyFile, buffer, ofsRes + i*14, 8));
-//      }
-//      return retVal;
-//    }
-//  }
-
+  // private List<BIFFResourceEntry> loadResourceEntries(Path keyFile) throws IOException
+  // {
+  // if (keyFile == null) {
+  // throw new NullPointerException();
+  // }
+  // if (!FileEx.fromPath(keyFile).isFile()) {
+  // throw new IOException("Key file not found: " + keyFile);
+  // }
+  //
+  // try (SeekableByteChannel ch = Files.newByteChannel(keyFile, StandardOpenOption.READ)) {
+  // ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
+  // if (ch.read(buffer) < ch.size()) {
+  // throw new IOException("Error loading key file");
+  // }
+  //
+  // String sig = StreamUtils.readString(buffer, 0, 4);
+  // String ver = StreamUtils.readString(buffer, 4, 4);
+  // if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
+  // throw new IOException("Unsupported key file: " + keyFile.toString());
+  // }
+  //
+  // int numRes = buffer.getInt(0x0c);
+  // int ofsRes = buffer.getInt(0x14);
+  //
+  // List<BIFFResourceEntry> retVal = new ArrayList<>(numRes);
+  // for (int i = 0; i < numRes; i++) {
+  // retVal.add(new BIFFResourceEntry(keyFile, buffer, ofsRes + i*14, 8));
+  // }
+  // return retVal;
+  // }
+  // }
 
   /** Creates or updates cached biff maps and entry tables. */
-  private void init() throws IOException
-  {
+  private void init() throws IOException {
     if (getKeyfile() == null) {
       throw new NullPointerException();
     }
     if (!FileEx.create(getKeyfile()).isFile()) {
       throw new IOException("Key file not found: " + getKeyfile());
     }
-    for (final Path file: keyList) {
+    for (final Path file : keyList) {
       if (file != null && !FileEx.create(file).isFile()) {
         throw new IOException("Key file not found: " + file);
       }
@@ -546,9 +518,9 @@ public class Keyfile
     keyFiles.add(getKeyfile());
     keyFiles.addAll(keyList);
 
-    for (final Path file: keyFiles) {
+    for (final Path file : keyFiles) {
       try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
-        ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
+        ByteBuffer buffer = StreamUtils.getByteBuffer((int) ch.size());
         if (ch.read(buffer) < ch.size()) {
           throw new IOException("Error loading key file");
         }
@@ -587,8 +559,7 @@ public class Keyfile
   }
 
   /** Returns the list of BIFFEntry objects for the specified key file, optionally removes it. */
-  private List<BIFFEntry> getBIFFList(Path keyFile, boolean remove)
-  {
+  private List<BIFFEntry> getBIFFList(Path keyFile, boolean remove) {
     if (keyFile != null) {
       if (remove) {
         return biffEntries.remove(keyFile);
@@ -600,8 +571,7 @@ public class Keyfile
   }
 
   /** Adds the specified resource entry to the list, overwrites existing entries of same name. */
-  private BIFFResourceEntry addResourceEntry(BIFFResourceEntry entry)
-  {
+  private BIFFResourceEntry addResourceEntry(BIFFResourceEntry entry) {
     BIFFResourceEntry retVal = null;
     if (entry != null) {
       final String key = entry.getResourceName().toUpperCase(Locale.ENGLISH);
@@ -611,30 +581,30 @@ public class Keyfile
   }
 
   // Removes the specified BIFF entry and associated resource entries from cache and resource tree
-//  private void removeBIFFEntry(Path keyFile, BIFFEntry entry)
-//  {
-//    System.out.println("Removing " + entry);
-//    List<BIFFEntry> biffList = biffEntries.get(keyFile);
-//    int index = biffList.indexOf(entry);
-//
-//    // Remove bogus BIFFResourceEntries
-//    ResourceTreeModel resources = ResourceFactory.getResources();
-//    resources.getBIFFResourceEntries(keyFile).forEach((resourceEntry) -> {
-//      if (resourceEntry.getBIFFEntry() == entry) {
-//        resources.removeResourceEntry(resourceEntry);
-//        resourceEntries.remove(resourceEntry);
-//      } else {
-//        resourceEntry.adjustSourceIndex(index);     // Update relevant BIFFResourceEntries
-//      }
-//    });
-//
-//    // Remove BIFFEntry
-//    biffList.remove(entry);
-//
-//    // Update relevant BIFFEntries
-//    for (int i = index; i < biffList.size(); i++) {
-//      BIFFEntry e = biffList.get(i);
-//      e.setIndex(i);
-//    }
-//  }
+  // private void removeBIFFEntry(Path keyFile, BIFFEntry entry)
+  // {
+  // System.out.println("Removing " + entry);
+  // List<BIFFEntry> biffList = biffEntries.get(keyFile);
+  // int index = biffList.indexOf(entry);
+  //
+  // // Remove bogus BIFFResourceEntries
+  // ResourceTreeModel resources = ResourceFactory.getResources();
+  // resources.getBIFFResourceEntries(keyFile).forEach((resourceEntry) -> {
+  // if (resourceEntry.getBIFFEntry() == entry) {
+  // resources.removeResourceEntry(resourceEntry);
+  // resourceEntries.remove(resourceEntry);
+  // } else {
+  // resourceEntry.adjustSourceIndex(index); // Update relevant BIFFResourceEntries
+  // }
+  // });
+  //
+  // // Remove BIFFEntry
+  // biffList.remove(entry);
+  //
+  // // Update relevant BIFFEntries
+  // for (int i = index; i < biffList.size(); i++) {
+  // BIFFEntry e = biffList.get(i);
+  // e.setIndex(i);
+  // }
+  // }
 }

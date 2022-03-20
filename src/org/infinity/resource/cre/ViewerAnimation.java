@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -51,10 +51,9 @@ import org.infinity.resource.cre.decoder.util.SpriteUtils;
 /**
  * A basic creature animation viewer.
  */
-public class ViewerAnimation extends JComponent implements ActionListener
-{
-  private static final Color COLOR_TRANSPARENT = new Color(0, true);
-  private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
+public class ViewerAnimation extends JComponent implements ActionListener {
+  private static final Color COLOR_TRANSPARENT  = new Color(0, true);
+  private static final int ANIM_DELAY           = 1000 / 15; // 15 fps in milliseconds
 
   private static boolean zoom = false;
   private static boolean showSelectionCircle = false;
@@ -68,52 +67,54 @@ public class ViewerAnimation extends JComponent implements ActionListener
   private SpriteBamControl bamControl;
   private BufferedImage tmpImage;
   private RenderCanvas rcDisplay;
-  private int curCycle, curFrame;
+  private int curCycle;
+  private int curFrame;
   private Timer timer;
   private Sequence sequence;
-  private JButton bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser;
+  private JButton bNextCycle;
+  private JButton bPrevCycle;
+  private JButton bNextFrame;
+  private JButton bPrevFrame;
+  private JButton bOpenBrowser;
   private JToggleButton bPlay;
-  private JLabel lCurCycle, lCurFrame;
+  private JLabel lCurCycle;
+  private JLabel lCurFrame;
   private JComboBox<Sequence> cbSequences;
-  private JCheckBox cbShowCircle, cbShowSpace, cbShowBorders, cbZoom;
+  private JCheckBox cbShowCircle;
+  private JCheckBox cbShowSpace;
+  private JCheckBox cbShowBorders;
+  private JCheckBox cbZoom;
 
-  public ViewerAnimation(CreResource cre)
-  {
+  public ViewerAnimation(CreResource cre) {
     this.cre = Objects.requireNonNull(cre);
     init();
   }
 
-  public CreResource getCre()
-  {
+  public CreResource getCre() {
     return cre;
   }
 
   /** Returns the associated {@code SpriteDecoder} instance. */
-  public SpriteDecoder getDecoder()
-  {
+  public SpriteDecoder getDecoder() {
     return decoder;
   }
 
   /** Returns the {@code BamControl} instance linked to the {@code SpriteDecoder}. */
-  public SpriteBamControl getController()
-  {
+  public SpriteBamControl getController() {
     return bamControl;
   }
 
-  private void setController(SpriteBamControl ctrl)
-  {
+  private void setController(SpriteBamControl ctrl) {
     this.bamControl = Objects.requireNonNull(ctrl, "BamControl cannot be null");
   }
 
   /** Returns the selected animation sequence. */
-  public Sequence getAnimationSequence()
-  {
+  public Sequence getAnimationSequence() {
     return sequence;
   }
 
   /** Loads a new animation sequence. */
-  private void setAnimationSequence(Sequence seq) throws Exception
-  {
+  private void setAnimationSequence(Sequence seq) throws Exception {
     if (seq != null && seq != getAnimationSequence()) {
       sequence = seq;
       curFrame = 0;
@@ -123,8 +124,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     }
   }
 
-  private void resetAnimationSequence() throws Exception
-  {
+  private void resetAnimationSequence() throws Exception {
     setController(getDecoder().createControl());
     getController().setMode(SpriteBamControl.Mode.SHARED);
     getController().setSharedPerCycle(false);
@@ -140,12 +140,12 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Ensures that the canvas is big enough to contain the current creature animation sequence. */
-  public void updateCanvasSize()
-  {
+  public void updateCanvasSize() {
     int zoom = isZoomed() ? 2 : 1;
     Dimension dim = getController().getSharedDimension();
     Dimension dimDisplay = new Dimension(dim.width * zoom, dim.height * zoom);
-    boolean imageChanged = !dim.equals(new Dimension(rcDisplay.getImage().getWidth(null), rcDisplay.getImage().getHeight(null)));
+    boolean imageChanged = !dim
+        .equals(new Dimension(rcDisplay.getImage().getWidth(null), rcDisplay.getImage().getHeight(null)));
     boolean sizeChanged = !dimDisplay.equals(rcDisplay.getPreferredSize());
     if (imageChanged || sizeChanged) {
       tmpImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -164,8 +164,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Updates display with content of the current animation frame. */
-  public void updateCanvas()
-  {
+  public void updateCanvas() {
     // pre-rendering new frame
     Graphics2D g = tmpImage.createGraphics();
     try {
@@ -178,7 +177,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     }
     getController().cycleGetFrame(tmpImage);
 
-    g = (Graphics2D)rcDisplay.getImage().getGraphics();
+    g = (Graphics2D) rcDisplay.getImage().getGraphics();
     try {
       // clearing old content
       g.setComposite(AlphaComposite.Src);
@@ -200,14 +199,12 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Returns whether animation is zoomed. */
-  public boolean isZoomed()
-  {
+  public boolean isZoomed() {
     return cbZoom.isSelected();
   }
 
   /** Returns whether the animation is played back. */
-  public boolean isPlaying()
-  {
+  public boolean isPlaying() {
     if (timer == null) {
       timer = new Timer(ANIM_DELAY, this);
     }
@@ -215,8 +212,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Toggles playback between "play" and "pause". */
-  public void togglePlay()
-  {
+  public void togglePlay() {
     if (isPlaying()) {
       pause();
     } else {
@@ -225,31 +221,27 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Starts playback. Does nothing if animation is already played back. */
-  public void play()
-  {
+  public void play() {
     if (!isPlaying()) {
       timer.restart();
     }
   }
 
   /** Stops playback. Does nothing if animation is already stopped. */
-  public void pause()
-  {
+  public void pause() {
     if (isPlaying()) {
       timer.stop();
     }
   }
 
   /** Rewinds animation of current cycle to first frame. */
-  public void rewind()
-  {
+  public void rewind() {
     curFrame = 0;
     showFrame();
   }
 
   /** Loads the creature animation associated with the current CRE resource. */
-  public void open()
-  {
+  public void open() {
     // loading animation on demand
     if (!isInitialized()) {
       try {
@@ -259,8 +251,8 @@ public class ViewerAnimation extends JComponent implements ActionListener
         ex.printStackTrace();
         WindowBlocker.blockWindow(false);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                      "Creature animation could not be loaded.\nError message: " + ex.getMessage(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+            "Creature animation could not be loaded.\nError message: " + ex.getMessage(), "Error",
+            JOptionPane.ERROR_MESSAGE);
       } finally {
         WindowBlocker.blockWindow(false);
       }
@@ -268,8 +260,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Cleans up resources. */
-  public void close()
-  {
+  public void close() {
     pause();
     setInitialized(false);
     if (getDecoder() != null) {
@@ -280,18 +271,16 @@ public class ViewerAnimation extends JComponent implements ActionListener
     this.decoder = null;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (timer == event.getSource()) {
       if (getController().cycleFrameCount() > 0) {
         curFrame = (curFrame + 1) % getController().cycleFrameCount();
       }
       showFrame();
-    }
-    else if (cbSequences == event.getSource()) {
+    } else if (cbSequences == event.getSource()) {
       Sequence seq = cbSequences.getModel().getElementAt(cbSequences.getSelectedIndex());
       try {
         WindowBlocker.blockWindow(true);
@@ -304,8 +293,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
       } finally {
         WindowBlocker.blockWindow(false);
       }
-    }
-    else if (cbZoom == event.getSource()) {
+    } else if (cbZoom == event.getSource()) {
       try {
         WindowBlocker.blockWindow(true);
         zoom = cbZoom.isSelected();
@@ -313,18 +301,15 @@ public class ViewerAnimation extends JComponent implements ActionListener
       } finally {
         WindowBlocker.blockWindow(false);
       }
-    }
-    else if (cbShowCircle == event.getSource()) {
+    } else if (cbShowCircle == event.getSource()) {
       showSelectionCircle = cbShowCircle.isSelected();
       getDecoder().setSelectionCircleEnabled(showSelectionCircle);
       updateCanvas();
-    }
-    else if (cbShowSpace == event.getSource()) {
+    } else if (cbShowSpace == event.getSource()) {
       showPersonalSpace = cbShowSpace.isSelected();
       getDecoder().setPersonalSpaceVisible(showPersonalSpace);
       updateCanvas();
-    }
-    else if (cbShowBorders == event.getSource()) {
+    } else if (cbShowBorders == event.getSource()) {
       try {
         WindowBlocker.blockWindow(true);
         showOverlayBorders = cbShowBorders.isSelected();
@@ -335,8 +320,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
       } finally {
         WindowBlocker.blockWindow(false);
       }
-    }
-    else if (bPrevCycle == event.getSource()) {
+    } else if (bPrevCycle == event.getSource()) {
       if (curCycle > 0) {
         curCycle--;
         getController().cycleSet(curCycle);
@@ -347,8 +331,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
         rewind();
         showFrame();
       }
-    }
-    else if (bNextCycle == event.getSource()) {
+    } else if (bNextCycle == event.getSource()) {
       if (curCycle < getController().cycleCount() - 1) {
         curCycle++;
         getController().cycleSet(curCycle);
@@ -359,28 +342,24 @@ public class ViewerAnimation extends JComponent implements ActionListener
         rewind();
         showFrame();
       }
-    }
-    else if (bPrevFrame == event.getSource()) {
+    } else if (bPrevFrame == event.getSource()) {
       if (curFrame > 0) {
         curFrame--;
         showFrame();
       }
-    }
-    else if (bNextFrame == event.getSource()) {
+    } else if (bNextFrame == event.getSource()) {
       if (curFrame < getController().cycleFrameCount() - 1) {
         curFrame++;
         showFrame();
       }
-    }
-    else if (bPlay == event.getSource()) {
+    } else if (bPlay == event.getSource()) {
       if (bPlay.isSelected()) {
         play();
       } else {
         pause();
       }
       updateControls();
-    }
-    else if (bOpenBrowser == event.getSource()) {
+    } else if (bOpenBrowser == event.getSource()) {
       CreatureBrowser cv = ChildFrame.show(CreatureBrowser.class, () -> new CreatureBrowser(getCre()));
       if (cv != null) {
         pause();
@@ -392,23 +371,23 @@ public class ViewerAnimation extends JComponent implements ActionListener
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-  private void init()
-  {
+  private void init() {
     tmpImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     rcDisplay = new RenderCanvas(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
     rcDisplay.setInterpolationType(RenderCanvas.TYPE_NEAREST_NEIGHBOR);
     rcDisplay.setScalingEnabled(true);
-    JScrollPane scrollDisplay = new JScrollPane(rcDisplay, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane scrollDisplay = new JScrollPane(rcDisplay, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     scrollDisplay.setBorder(BorderFactory.createEmptyBorder());
 
     bPlay = new JToggleButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
 
-    lCurCycle = new JLabel("", JLabel.CENTER);
+    lCurCycle = new JLabel("", SwingConstants.CENTER);
     bPrevCycle = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
@@ -416,7 +395,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
-    lCurFrame = new JLabel("", JLabel.CENTER);
+    lCurFrame = new JLabel("", SwingConstants.CENTER);
     bPrevFrame = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevFrame.setMargin(new Insets(bPrevFrame.getMargin().top, 2, bPrevFrame.getMargin().bottom, 2));
     bPrevFrame.addActionListener(this);
@@ -444,79 +423,78 @@ public class ViewerAnimation extends JComponent implements ActionListener
     GridBagConstraints c = new GridBagConstraints();
     // first row of controls: animation controls, sequence selection and browser button
     JPanel pRow1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(lCurCycle, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow1.add(bPrevCycle, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(bNextCycle, c);
 
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pRow1.add(lCurFrame, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow1.add(bPrevFrame, c);
-    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(bNextFrame, c);
 
-    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pRow1.add(bPlay, c);
 
-    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pRow1.add(lSequence, c);
-    c = ViewerUtil.setGBC(c, 9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRow1.add(cbSequences, c);
 
-    c = ViewerUtil.setGBC(c, 10, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 10, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pRow1.add(bOpenBrowser, c);
 
-    c = ViewerUtil.setGBC(c, 11, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 11, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow1.add(new JPanel(), c);
 
     // second row of controls: various checkboxes
     JPanel pRow2 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow2.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow2.add(cbZoom, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(cbShowCircle, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(cbShowSpace, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(cbShowBorders, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRow2.add(new JPanel(), c);
-
 
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(scrollDisplay, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     pMain.add(pRow1, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-        GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 8, 0), 0, 0);
     pMain.add(pRow2, c);
 
     setLayout(new BorderLayout());
@@ -526,23 +504,21 @@ public class ViewerAnimation extends JComponent implements ActionListener
 
     addComponentListener(new ComponentAdapter() {
       @Override
-      public void componentShown(ComponentEvent e)
-      {
+      public void componentShown(ComponentEvent e) {
         // loading animation on demand
         open();
       }
     });
   }
 
-  private void initAnimation() throws Exception
-  {
+  private void initAnimation() throws Exception {
     this.decoder = SpriteDecoder.importSprite(getCre());
     getDecoder().setBoundingBoxVisible(showOverlayBorders);
     getDecoder().setSelectionCircleEnabled(showSelectionCircle);
     getDecoder().setPersonalSpaceVisible(showPersonalSpace);
 
     // preparing sequence list
-    DefaultComboBoxModel<Sequence> modelSequences = (DefaultComboBoxModel<Sequence>)cbSequences.getModel();
+    DefaultComboBoxModel<Sequence> modelSequences = (DefaultComboBoxModel<Sequence>) cbSequences.getModel();
     for (final Sequence seq : Sequence.values()) {
       if (getDecoder().isSequenceAvailable(seq)) {
         modelSequences.addElement(seq);
@@ -555,7 +531,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     if (cbSequences.isEnabled()) {
       int seqIdx = 0;
       for (final Sequence sequence : Sequence.getDefaultSequences()) {
-        int idx = ((DefaultComboBoxModel<?>)cbSequences.getModel()).getIndexOf(sequence);
+        int idx = ((DefaultComboBoxModel<?>) cbSequences.getModel()).getIndexOf(sequence);
         if (idx >= 0) {
           seqIdx = idx;
           break;
@@ -569,18 +545,14 @@ public class ViewerAnimation extends JComponent implements ActionListener
     setInitialized(true);
   }
 
-  private boolean isInitialized()
-  {
+  private boolean isInitialized() {
     return initialized;
   }
 
-  private void setInitialized(boolean b)
-  {
+  private void setInitialized(boolean b) {
     initialized = b;
-    JComponent[] controls = new JComponent[] {
-        bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser, bPlay,
-        lCurCycle, lCurFrame, cbSequences, cbShowCircle, cbShowSpace, cbShowBorders, cbZoom
-    };
+    JComponent[] controls = new JComponent[] { bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser, bPlay,
+        lCurCycle, lCurFrame, cbSequences, cbShowCircle, cbShowSpace, cbShowBorders, cbZoom };
     for (final JComponent c : controls) {
       if (c != null) {
         c.setEnabled(initialized);
@@ -588,8 +560,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     }
   }
 
-  private void showFrame()
-  {
+  private void showFrame() {
     if (getController() == null) {
       return;
     }
@@ -606,8 +577,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     updateControls();
   }
 
-  private void updateControls()
-  {
+  private void updateControls() {
     if (getController() != null) {
       bPrevFrame.setEnabled(curFrame > 0);
       bPrevCycle.setEnabled(curCycle > 0);

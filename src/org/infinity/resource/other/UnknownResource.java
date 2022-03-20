@@ -1,11 +1,8 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
-
-import tv.porst.jhexview.DataChangedEvent;
-import tv.porst.jhexview.IDataChangedListener;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -49,17 +46,18 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
-public final class UnknownResource implements Resource, Closeable, Writeable, ActionListener,
-                                              ChangeListener, DocumentListener, CaretListener,
-                                              IDataChangedListener
-{
+import tv.porst.jhexview.DataChangedEvent;
+import tv.porst.jhexview.IDataChangedListener;
+
+public final class UnknownResource implements Resource, Closeable, Writeable, ActionListener, ChangeListener,
+    DocumentListener, CaretListener, IDataChangedListener {
   private static final int TAB_VIEW = 0;
   private static final int TAB_TEXT = 1;
   private static final int TAB_RAW  = 2;
 
-  private static final int MIN_SIZE_WARN        =   4 * 1024 * 1024;  // Show warning for files >= size
-  private static final int MIN_SIZE_BLOCK_TEXT  = 128 * 1024 * 1024;  // Block text edit >= size
-  private static final int MIN_SIZE_BLOCK_RAW   = 256 * 1024 * 1024;  // Block raw edit >= size
+  private static final int MIN_SIZE_WARN        =   4 * 1024 * 1024; // Show warning for files >= size
+  private static final int MIN_SIZE_BLOCK_TEXT  = 128 * 1024 * 1024; // Block text edit >= size
+  private static final int MIN_SIZE_BLOCK_RAW   = 256 * 1024 * 1024; // Block raw edit >= size
 
   private final ResourceEntry entry;
   private final long entrySize;
@@ -69,12 +67,13 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   private InfinityTextArea editor;
   private GenericHexViewer hexViewer;
   private JButton bShowEditor;
-  private JPanel panelMain, panelRaw;
-  private boolean textModified, dataSynced;
+  private JPanel panelMain;
+  private JPanel panelRaw;
+  private boolean textModified;
+  private boolean dataSynced;
   private Charset textCharset;
 
-  public UnknownResource(ResourceEntry entry) throws Exception
-  {
+  public UnknownResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     int[] data = this.entry.getResourceInfo();
     if (data != null && data.length > 0) {
@@ -87,8 +86,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 //--------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     if (isTextModified() || isRawModified()) {
       ResourceFactory.closeResource(this, entry, panelMain);
     }
@@ -98,29 +96,25 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
 // --------------------- Begin Interface ChangeListener ---------------------
 
- @Override
- public void stateChanged(ChangeEvent e)
- {
-   if (e.getSource() == tabbedPane) {
-     synchronizeData(tabbedPane.getSelectedIndex());
-     updateStatusBar();
-   }
- }
+  @Override
+  public void stateChanged(ChangeEvent e) {
+    if (e.getSource() == tabbedPane) {
+      synchronizeData(tabbedPane.getSelectedIndex());
+      updateStatusBar();
+    }
+  }
 
 // --------------------- End Interface ChangeListener ---------------------
 
 // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bShowEditor) {
       openTextEditor(true);
-    }
-    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON)) {
+    } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON)) {
       ResourceFactory.exportResource(entry, panelMain.getTopLevelAncestor());
-    }
-    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE)) {
+    } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE)) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
         setTextModified(false);
         setRawModified(false);
@@ -133,20 +127,17 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent e)
-  {
+  public void insertUpdate(DocumentEvent e) {
     setTextModified(true);
   }
 
   @Override
-  public void removeUpdate(DocumentEvent e)
-  {
+  public void removeUpdate(DocumentEvent e) {
     setTextModified(true);
   }
 
   @Override
-  public void changedUpdate(DocumentEvent e)
-  {
+  public void changedUpdate(DocumentEvent e) {
     setTextModified(true);
   }
 
@@ -155,8 +146,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 // --------------------- Begin Interface CaretListener ---------------------
 
   @Override
-  public void caretUpdate(CaretEvent e)
-  {
+  public void caretUpdate(CaretEvent e) {
     if (e.getSource() == editor) {
       updateStatusBar();
     }
@@ -167,8 +157,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 // --------------------- Begin Interface IDataChangedListener ---------------------
 
   @Override
-  public void dataChanged(DataChangedEvent event)
-  {
+  public void dataChanged(DataChangedEvent event) {
     setRawModified(true);
   }
 
@@ -177,21 +166,18 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
 // --------------------- End Interface Resource ---------------------
 
-
 // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+  public JComponent makeViewer(ViewableContainer container) {
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
 
     GridBagConstraints gbc = new GridBagConstraints();
@@ -202,17 +188,17 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     JLabel label = new JLabel("Unsupported file format", JLabel.CENTER);
     bShowEditor = new JButton("Edit as text");
     bShowEditor.addActionListener(this);
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelView.add(new JLabel(), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelView.add(label, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     panelView.add(bShowEditor, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     panelView.add(new JLabel(), gbc);
 
     // creating (empty) Edit tab
@@ -246,8 +232,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 //--------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     if (tabbedPane.getSelectedIndex() == TAB_TEXT) {
       StreamUtils.writeString(os, editor.getText(), editor.getText().length(), textCharset);
     } else {
@@ -257,13 +242,11 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
 //--------------------- End Interface Writeable ---------------------
 
-  private boolean isEditorActive()
-  {
+  private boolean isEditorActive() {
     return tabbedPane.isEnabledAt(TAB_TEXT);
   }
 
-  private void setEditorActive(boolean activate)
-  {
+  private void setEditorActive(boolean activate) {
     if (tabbedPane.isEnabledAt(TAB_TEXT) != activate) {
       if (!activate && tabbedPane.getSelectedIndex() == TAB_TEXT) {
         tabbedPane.setSelectedIndex(TAB_VIEW);
@@ -273,23 +256,19 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   }
 
   // Returns file size of ResourceEntry
-  private long getEntrySize()
-  {
+  private long getEntrySize() {
     return entrySize;
   }
 
-  private boolean isRawActive()
-  {
+  private boolean isRawActive() {
     return (hexViewer != null);
   }
 
-  private boolean isTextModified()
-  {
+  private boolean isTextModified() {
     return (isEditorActive() && textModified);
   }
 
-  private void setTextModified(boolean modified)
-  {
+  private void setTextModified(boolean modified) {
     if (isEditorActive()) {
       textModified = modified;
       setDataInSync(!modified);
@@ -297,13 +276,11 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     }
   }
 
-  private boolean isRawModified()
-  {
+  private boolean isRawModified() {
     return (isRawActive() && hexViewer.isModified());
   }
 
-  private void setRawModified(boolean modified)
-  {
+  private void setRawModified(boolean modified) {
     if (isRawActive()) {
       if (!modified) {
         hexViewer.clearModified();
@@ -314,8 +291,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   }
 
   // Returns true if content in one of the editors has been modified by the user
-  private boolean isDataInSync()
-  {
+  private boolean isDataInSync() {
     if (isEditorActive() && isRawActive()) {
       return dataSynced;
     } else {
@@ -324,17 +300,14 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   }
 
   // Mark data as (not) synchronized
-  private void setDataInSync(boolean b)
-  {
+  private void setDataInSync(boolean b) {
     dataSynced = b;
   }
 
   // Synchronizes data in text and raw tabs. Sync target is specified by the tabIndex parameter.
-  private void synchronizeData(int tabIndex)
-  {
+  private void synchronizeData(int tabIndex) {
     switch (tabIndex) {
-      case TAB_TEXT:
-      {
+      case TAB_TEXT: {
         if (!isDataInSync()) {
           int pos = editor.getCaretPosition();
           editor.setText(hexViewer.getText(textCharset));
@@ -345,8 +318,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
         editor.requestFocusInWindow();
         break;
       }
-      case TAB_RAW:
-      {
+      case TAB_RAW: {
         // lazy initialization
         if (getEntrySize() < MIN_SIZE_BLOCK_RAW) {
           if (!isRawActive()) {
@@ -373,13 +345,11 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     }
   }
 
-  private void setSaveButtonEnabled(boolean enable)
-  {
+  private void setSaveButtonEnabled(boolean enable) {
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(enable);
   }
 
-  private void updateStatusBar()
-  {
+  private void updateStatusBar() {
     if (isEditorActive() && tabbedPane.getSelectedIndex() == TAB_TEXT) {
       int row = editor.getCaretLineNumber() + 1;
       int col = editor.getCaretOffsetFromLineStart() + 1;
@@ -392,8 +362,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   }
 
   // Opens resource in text editor, optionally trigger safeguard mechanisms if file is big
-  private void openTextEditor(boolean confirmSize)
-  {
+  private void openTextEditor(boolean confirmSize) {
     if (isEditorActive()) {
       tabbedPane.setSelectedIndex(TAB_TEXT);
       return;
@@ -402,17 +371,13 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     // Confirm loading big files
     if (confirmSize && entry instanceof FileResourceEntry) {
       if (getEntrySize() >= MIN_SIZE_BLOCK_TEXT) {
-        JOptionPane.showMessageDialog(panelMain,
-                                      "File is too big for the text editor (" + getEntrySize() + " bytes).",
-                                      "File size error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(panelMain, "File is too big for the text editor (" + getEntrySize() + " bytes).",
+            "File size error", JOptionPane.ERROR_MESSAGE);
         return;
       } else if (getEntrySize() >= MIN_SIZE_WARN) {
         if (JOptionPane.showConfirmDialog(panelMain,
-                                          "File size is " + getEntrySize() + " bytes. " +
-                                              "Do you really want to load the file into the text editor?",
-                                          "Show as text?",
-                                          JOptionPane.YES_NO_OPTION,
-                                          JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+            "File size is " + getEntrySize() + " bytes. " + "Do you really want to load the file into the text editor?",
+            "Show as text?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
           return;
         }
       }
@@ -421,8 +386,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     WindowBlocker.blockWindow(true);
     new SwingWorker<Void, Void>() {
       @Override
-      protected Void doInBackground() throws Exception
-      {
+      protected Void doInBackground() throws Exception {
         try {
           boolean success = false;
           try {
@@ -431,7 +395,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
             textCharset = Misc.detectCharset(data);
             editor.setText(new String(data, textCharset));
             editor.setCaretPosition(0);
-            editor.discardAllEdits();   // don't undo loading operation
+            editor.discardAllEdits(); // don't undo loading operation
             success = true;
           } catch (Exception e) {
             e.printStackTrace();
@@ -442,9 +406,8 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
             tabbedPane.setSelectedIndex(TAB_TEXT);
             editor.requestFocusInWindow();
           } else {
-            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                          "Error reading file data.",
-                                          "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading file data.", "Error",
+                JOptionPane.ERROR_MESSAGE);
           }
         } finally {
           WindowBlocker.blockWindow(false);
@@ -454,4 +417,3 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     }.execute();
   }
 }
-

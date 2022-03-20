@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -27,26 +27,27 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.StringTable;
 
-public final class NewResSettings extends NewAbstractSettings implements KeyListener
-{
-  private enum GameType { UNKNOWN, BG2, IWD, IWD2, IWDEE }
+public final class NewResSettings extends NewAbstractSettings implements KeyListener {
+  private enum GameType {
+    UNKNOWN, BG2, IWD, IWD2, IWDEE
+  }
 
-  private static final EnumMap<GameType, Vector<StrrefItem>> STRREF_ITEM  =
-      new EnumMap<>(GameType.class);
+  private static final EnumMap<GameType, Vector<StrrefItem>> STRREF_ITEM = new EnumMap<>(GameType.class);
+
   static {
     Vector<StrrefItem> list;
     // creating maps for unknown, BG2, IWD and IWD2
     // initializing 'unknown' items
     STRREF_ITEM.put(GameType.UNKNOWN, (list = new Vector<>()));
-    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(-1, "User-defined biography"));
     // initializing BG2 items
     STRREF_ITEM.put(GameType.BG2, (list = new Vector<>()));
-    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(-1, "User-defined biography"));
     list.add(new StrrefItem(33347, "Biography of the protagonist"));
     list.add(new StrrefItem(15882, "Biography of a generic NPC"));
     // initializing IWD items
     STRREF_ITEM.put(GameType.IWD, (list = new Vector<>()));
-    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(-1, "User-defined biography"));
     list.add(new StrrefItem(19423, "Biography of a fighter"));
     list.add(new StrrefItem(19429, "Biography of a ranger"));
     list.add(new StrrefItem(19427, "Biography of a paladin"));
@@ -57,7 +58,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     list.add(new StrrefItem(19425, "Biography of a bard"));
     // initializing IWD2 items
     STRREF_ITEM.put(GameType.IWD2, (list = new Vector<>()));
-    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(-1, "User-defined biography"));
     list.add(new StrrefItem(27862, "Biography of a barbarian"));
     list.add(new StrrefItem(19425, "Biography of a bard"));
     list.add(new StrrefItem(19422, "Biography of a cleric"));
@@ -71,7 +72,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     list.add(new StrrefItem(19430, "Biography of a wizard"));
     // initializing IWDEE items
     STRREF_ITEM.put(GameType.IWDEE, (list = new Vector<>()));
-    list.add(new StrrefItem(-1,    "User-defined biography"));
+    list.add(new StrrefItem(-1, "User-defined biography"));
     list.add(new StrrefItem(19423, "Biography of a fighter"));
     list.add(new StrrefItem(19429, "Biography of a ranger"));
     list.add(new StrrefItem(19427, "Biography of a paladin"));
@@ -87,22 +88,20 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
   private JComboBox<StrrefItem> cbStrref;
   private JButton updateButton;
-  private GameType gameType;   // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
+  private GameType gameType; // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
 
   private InfinityTextArea taText;
   private ResConfig config;
 
-  public NewResSettings(Window parent)
-  {
+  public NewResSettings(Window parent) {
     super(parent, "Biography settings");
     initGame();
     config = new ResConfig();
     initDialog(parent);
   }
 
-  public NewResSettings(Window parent, String bio)
-  {
+  public NewResSettings(Window parent, String bio) {
     super(parent, "Biography settings");
     initGame();
     config = new ResConfig(bio);
@@ -110,21 +109,18 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   }
 
   @Override
-  public ResConfig getConfig()
-  {
+  public ResConfig getConfig() {
     return config;
   }
 
   @Override
-  protected void accept()
-  {
+  protected void accept() {
     config.setText(taText.getText());
     super.accept();
   }
 
-  private void initDialog(Window parent)
-  {
-    getRootPane().setDefaultButton(null);   // prevent accidental file creation
+  private void initDialog(Window parent) {
+    getRootPane().setDefaultButton(null); // prevent accidental file creation
 
     cbStrref = new JComboBox<>(STRREF_ITEM.get(gameType));
     cbStrref.addKeyListener(this);
@@ -142,7 +138,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     taText.setWrapStyleWord(true);
     taText.setLineWrap(true);
     if (cbStrref.getSelectedItem() instanceof StrrefItem) {
-      taText.setText(((StrrefItem)cbStrref.getSelectedItem()).getString());
+      taText.setText(((StrrefItem) cbStrref.getSelectedItem()).getString());
       taText.setCaretPosition(0);
     }
 
@@ -193,12 +189,11 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     pack();
     setMinimumSize(new Dimension(200, 100));
     setLocationRelativeTo(parent);
-    taText.requestFocusInWindow();    // text area receives initial focus
+    taText.requestFocusInWindow(); // text area receives initial focus
     setVisible(true);
   }
 
-  private void initGame()
-  {
+  private void initGame() {
     switch (Profile.getGame()) {
       case BG2SoA:
       case BG2ToB:
@@ -226,108 +221,99 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == updateButton) {
-      if (lastStrref == -1)
+      if (lastStrref == -1) {
         config.setText(taText.getText());
+      }
       if (cbStrref.getSelectedItem() instanceof StrrefItem) {
-        StrrefItem obj = (StrrefItem)cbStrref.getSelectedItem();
+        StrrefItem obj = (StrrefItem) cbStrref.getSelectedItem();
         taText.setText((obj.getStringId() == -1) ? config.getText() : obj.getString());
         taText.requestFocusInWindow();
         taText.setCaretPosition(0);
         lastStrref = obj.getStringId();
-      } else
+      } else {
         taText.setText("");
+      }
     }
     super.actionPerformed(event);
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface KeyListener ---------------------
+  // --------------------- Begin Interface KeyListener ---------------------
 
   @Override
-  public void keyPressed(KeyEvent event)
-  {
-    if (event.getSource() == cbStrref && event.getKeyCode() == KeyEvent.VK_ENTER)
+  public void keyPressed(KeyEvent event) {
+    if (event.getSource() == cbStrref && event.getKeyCode() == KeyEvent.VK_ENTER) {
       updateButton.doClick();
+    }
   }
 
   @Override
-  public void keyReleased(KeyEvent event)
-  {
+  public void keyReleased(KeyEvent event) {
   }
 
   @Override
-  public void keyTyped(KeyEvent event)
-  {
+  public void keyTyped(KeyEvent event) {
   }
 
-//---------------------- End Interface KeyListener ----------------------
+  // ---------------------- End Interface KeyListener ----------------------
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public class ResConfig
-  {
-    private String desc;    // field at offset 0x08
+  public class ResConfig {
+    private String desc; // field at offset 0x08
 
-    public ResConfig()
-    {
+    public ResConfig() {
       setText("");
     }
 
-    public ResConfig(String newText)
-    {
+    public ResConfig(String newText) {
       setText(newText);
     }
 
-    public String getText()
-    {
+    public String getText() {
       return desc;
     }
 
-    private void setText(String newText)
-    {
-      if (newText != null)
-        desc = newText.replace("\r", "");    // not sure if CR is supported
-      else
+    private void setText(String newText) {
+      if (newText != null) {
+        desc = newText.replace("\r", ""); // not sure if CR is supported
+      } else {
         desc = "";
+      }
     }
   }
 
-  private static class StrrefItem
-  {
+  private static class StrrefItem {
     private final int stringId;
     private final String desc;
     private final String defaultString;
 
-    public StrrefItem(int strref, String description)
-    {
+    public StrrefItem(int strref, String description) {
       this.stringId = strref;
       this.desc = description;
       this.defaultString = "";
     }
 
-    public int getStringId()
-    {
+    public int getStringId() {
       return stringId;
     }
 
-    public String getString()
-    {
-      if (stringId >= 0 && stringId < StringTable.getNumEntries())
+    public String getString() {
+      if (stringId >= 0 && stringId < StringTable.getNumEntries()) {
         return StringTable.getStringRef(stringId);
-      else
+      } else {
         return defaultString;
+      }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return desc;
     }
   }

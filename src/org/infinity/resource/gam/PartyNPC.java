@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -30,8 +30,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.io.StreamUtils;
 
-public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable
-{
+public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable {
   // GAM/PartyNPC-specific field labels
   public static final String GAM_NPC                            = "Party member";
   public static final String GAM_NPC_SELECTION_STATE            = "Selection state";
@@ -85,117 +84,104 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  public static final TreeMap<Long, String> m_partyOrder = new TreeMap<>();
-//  private static final TreeMap<Long, String> m_selected = new TreeMap<>();
+  public static final TreeMap<Long, String> PARTY_ORDER_MAP = new TreeMap<>();
+  // private static final TreeMap<Long, String> SELECTED_MAP = new TreeMap<>();
 
-  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null,
-                                              null, null, null, null, null, null, null, "Dead" };
+  private static final String[] SELECTED_ARRAY = { "Not selected", "Selected", null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, "Dead" };
 
   static {
-    m_partyOrder.put(0L, "Slot 1");
-    m_partyOrder.put(1L, "Slot 2");
-    m_partyOrder.put(2L, "Slot 3");
-    m_partyOrder.put(3L, "Slot 4");
-    m_partyOrder.put(4L, "Slot 5");
-    m_partyOrder.put(5L, "Slot 6");
-    m_partyOrder.put(-1L, "Not in party");
+    PARTY_ORDER_MAP.put(0L, "Slot 1");
+    PARTY_ORDER_MAP.put(1L, "Slot 2");
+    PARTY_ORDER_MAP.put(2L, "Slot 3");
+    PARTY_ORDER_MAP.put(3L, "Slot 4");
+    PARTY_ORDER_MAP.put(4L, "Slot 5");
+    PARTY_ORDER_MAP.put(5L, "Slot 6");
+    PARTY_ORDER_MAP.put(-1L, "Not in party");
 
-//    m_selected.put(0L, "Not selected");
-//    m_selected.put(1L, "Selected");
-//    m_selected.put(0x8000L, "Dead");
+    // SELECTED_MAP.put(0L, "Not selected");
+    // SELECTED_MAP.put(1L, "Selected");
+    // SELECTED_MAP.put(0x8000L, "Dead");
   }
 
-  PartyNPC() throws Exception
-  {
+  PartyNPC() throws Exception {
     super(null, GAM_NPC, createEmptyBuffer(), 0);
   }
 
-  PartyNPC(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
-  {
+  PartyNPC(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, GAM_NPC + " " + nr, buffer, offset);
   }
 
-  PartyNPC(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
-  {
+  PartyNPC(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception {
     super(superStruct, name, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_VIEW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     return new ViewerNPC(this);
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return true;
   }
 
-// --------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     final StructEntry last = getFields().get(getFields().size() - 1);
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
+    ((DecNumber) getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeAddedInChild(child, datatype);
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (datatype instanceof CreResource) {
-      ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(0);
-      ((HexNumber)getAttribute(GAM_NPC_OFFSET_CRE)).setValue(0);
+      ((DecNumber) getAttribute(GAM_NPC_CRE_SIZE)).setValue(0);
+      ((HexNumber) getAttribute(GAM_NPC_OFFSET_CRE)).setValue(0);
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     final StructEntry last = getFields().get(getFields().size() - 1);
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
+    ((DecNumber) getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeRemovedInChild(child, datatype);
   }
 
-  void updateCREOffset()
-  {
+  void updateCREOffset() {
     final StructEntry entry = getFields().get(getFields().size() - 1);
-    if (entry instanceof CreResource)
-      ((HexNumber)getAttribute(GAM_NPC_OFFSET_CRE)).setValue(entry.getOffset());
+    if (entry instanceof CreResource) {
+      ((HexNumber) getAttribute(GAM_NPC_OFFSET_CRE)).setValue(entry.getOffset());
+    }
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
-    addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, s_selected));
-    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder, true, true));
+  public int read(ByteBuffer buffer, int offset) throws Exception {
+    addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, SELECTED_ARRAY));
+    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, PARTY_ORDER_MAP, true, true));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));
@@ -219,38 +205,36 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       addField(new Unknown(buffer, offset + 44, 96, COMMON_UNUSED));
       for (int i = 0; i < 4; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 148 + (i * 2), 2, String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new ResourceRef(buffer, offset + 156 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 156 + (i * 8), String.format(GAM_NPC_QUICK_SPELL_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
-        addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 186 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 192, 32, GAM_NPC_NAME));
       addField(new DecNumber(buffer, offset + 224, 4, GAM_NPC_NUM_TIMES_TALKED_TO));
       offset = readCharStats(buffer, offset + 228);
       addField(new TextString(buffer, offset, 8, GAM_NPC_VOICE_SET));
       offset += 8;
-    }
-    else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+    } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new IdsBitmap(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE, "MODAL.IDS"));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
       int size = (Profile.getGame() == Profile.Game.PSTEE) ? 88 : 96;
       addField(new Unknown(buffer, offset + 44, size, COMMON_UNUSED));
-      if (size == 88) {  // PSTEE
+      if (size == 88) { // PSTEE
         // TODO: confirm fields
         addField(new DecNumber(buffer, offset + 132, 2, GAM_NPC_QUICK_ITEMS));
         addField(new DecNumber(buffer, offset + 134, 2, GAM_NPC_ITEM_ABILITIES));
@@ -259,86 +243,79 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       }
       for (int i = 0; i < 4; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 148 + (i * 2), 2, String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new ResourceRef(buffer, offset + 156 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 156 + (i * 8), String.format(GAM_NPC_QUICK_SPELL_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
-        addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 186 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 192, 32, GAM_NPC_NAME));
       addField(new DecNumber(buffer, offset + 224, 4, GAM_NPC_NUM_TIMES_TALKED_TO));
       offset = readCharStats(buffer, offset + 228);
       addField(new TextString(buffer, offset, 8, GAM_NPC_VOICE_SET));
       offset += 8;
-    }
-    else if (Profile.getEngine() == Profile.Engine.PST) {
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
       addField(new Unknown(buffer, offset + 44, 96, COMMON_UNUSED));
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 140 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1)));
+        addField(new DecNumber(buffer, offset + 140 + (i * 2), 2, String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i + 1)));
       }
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 148 + (i * 2), 2, String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new ResourceRef(buffer, offset + 156 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 156 + (i * 8), String.format(GAM_NPC_QUICK_SPELL_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 5; i++) {
-        addField(new DecNumber(buffer, offset + 180 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1)));
+        addField(new DecNumber(buffer, offset + 180 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i + 1)));
       }
       for (int i = 0; i < 5; i++) {
-        addField(new DecNumber(buffer, offset + 190 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 190 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 200, 32, GAM_NPC_NAME));
       addField(new DecNumber(buffer, offset + 232, 4, GAM_NPC_NUM_TIMES_TALKED_TO));
       offset = readCharStats(buffer, offset + 236);
       addField(new Unknown(buffer, offset, 8));
       offset += 8;
-    }
-    else if (Profile.getEngine() == Profile.Engine.IWD) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new Unknown(buffer, offset + 42, 98));
       for (int i = 0; i < 4; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 148 + (i * 2), 2, String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new ResourceRef(buffer, offset + 156 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 156 + (i * 8), String.format(GAM_NPC_QUICK_SPELL_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
-        addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 186 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 192, 32, GAM_NPC_NAME));
       addField(new Unknown(buffer, offset + 224, 4));
@@ -346,53 +323,49 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       addField(new TextString(buffer, offset, 8, GAM_NPC_VOICE_SET_PREFIX));
       addField(new TextString(buffer, offset + 8, 32, GAM_NPC_VOICE_SET));
       offset += 40;
-    }
-    else if (Profile.getEngine() == Profile.Engine.IWD2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new Unknown(buffer, offset + 42, 98));
       for (int i = 0; i < 4; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 4), 2,
-                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
         bitmap = addField(new IdsBitmap(buffer, offset + 142 + (i * 4), 2,
-                                        String.format(GAM_NPC_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_SHIELD_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
-        addField(new DecNumber(buffer, offset + 156 + (i * 4), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i+1)));
-        addField(new DecNumber(buffer, offset + 158 + (i * 4), 2,
-                               String.format(GAM_NPC_QUICK_SHIELD_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 156 + (i * 4), 2, String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i + 1)));
+        addField(
+            new DecNumber(buffer, offset + 158 + (i * 4), 2, String.format(GAM_NPC_QUICK_SHIELD_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 9; i++) {
-        addField(new ResourceRef(buffer, offset + 172 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 172 + (i * 8), String.format(GAM_NPC_QUICK_SPELL_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 9; i++) {
-        addField(new IdsBitmap(buffer, offset + 244 + i, 1,
-                               String.format(GAM_NPC_QUICK_SPELL_CLASS_FMT, i+1), "CLASS.IDS"));
+        addField(new IdsBitmap(buffer, offset + 244 + i, 1, String.format(GAM_NPC_QUICK_SPELL_CLASS_FMT, i + 1),
+            "CLASS.IDS"));
       }
       addField(new Unknown(buffer, offset + 253, 1));
       for (int i = 0; i < 3; i++) {
         bitmap = addField(new IdsBitmap(buffer, offset + 254 + (i * 2), 2,
-                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+            String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
         bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
-        addField(new DecNumber(buffer, offset + 260 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i+1)));
+        addField(
+            new DecNumber(buffer, offset + 260 + (i * 2), 2, String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i + 1)));
       }
       for (int i = 0; i < 9; i++) {
-        addField(new ResourceRef(buffer, offset + 266 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_ABILITY_FMT, i+1), "SPL"));
+        addField(
+            new ResourceRef(buffer, offset + 266 + (i * 8), String.format(GAM_NPC_QUICK_ABILITY_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 9; i++) {
-        addField(new ResourceRef(buffer, offset + 338 + (i * 8),
-                                 String.format(GAM_NPC_QUICK_SONG_FMT, i+1), "SPL"));
+        addField(new ResourceRef(buffer, offset + 338 + (i * 8), String.format(GAM_NPC_QUICK_SONG_FMT, i + 1), "SPL"));
       }
       for (int i = 0; i < 9; i++) {
-        addField(new DecNumber(buffer, offset + 410 + (i * 4), 4,
-                               String.format(GAM_NPC_QUICK_BUTTON_FMT, i+1)));
+        addField(new DecNumber(buffer, offset + 410 + (i * 4), 4, String.format(GAM_NPC_QUICK_BUTTON_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 446, 32, GAM_NPC_NAME));
       addField(new Unknown(buffer, offset + 478, 4));
@@ -416,8 +389,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     return offset;
   }
 
-  private int readCharStats(ByteBuffer buffer, int offset)
-  {
+  private int readCharStats(ByteBuffer buffer, int offset) {
     addField(new StringRef(buffer, offset, GAM_NPC_STAT_FOE_VANQUISHED));
     addField(new DecNumber(buffer, offset + 4, 4, GAM_NPC_STAT_XP_FOE_VANQUISHED));
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_STAT_TIME_IN_PARTY));
@@ -430,30 +402,27 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     addField(new DecNumber(buffer, offset + 28, 4, GAM_NPC_STAT_KILLS_XP_GAME));
     addField(new DecNumber(buffer, offset + 32, 4, GAM_NPC_STAT_NUM_KILLS_GAME));
     for (int i = 0; i < 4; i++) {
-      addField(new ResourceRef(buffer, offset + 36 + (i * 8),
-                               String.format(GAM_NPC_STAT_FAV_SPELL_FMT, i+1), "SPL"));
+      addField(new ResourceRef(buffer, offset + 36 + (i * 8), String.format(GAM_NPC_STAT_FAV_SPELL_FMT, i + 1), "SPL"));
     }
     for (int i = 0; i < 4; i++) {
       addField(new UnsignDecNumber(buffer, offset + 68 + (i * 2), 2,
-                                   String.format(GAM_NPC_STAT_FAV_SPELL_COUNT_FMT, i+1)));
+          String.format(GAM_NPC_STAT_FAV_SPELL_COUNT_FMT, i + 1)));
     }
     for (int i = 0; i < 4; i++) {
-      addField(new ResourceRef(buffer, offset + 76 + (i * 8),
-                               String.format(GAM_NPC_STAT_FAV_WEAPON_FMT, i+1), "ITM"));
+      addField(
+          new ResourceRef(buffer, offset + 76 + (i * 8), String.format(GAM_NPC_STAT_FAV_WEAPON_FMT, i + 1), "ITM"));
     }
     for (int i = 0; i < 4; i++) {
       addField(new UnsignDecNumber(buffer, offset + 108 + (i * 2), 2,
-                                   String.format(GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT, i+1)));
+          String.format(GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT, i + 1)));
     }
     return offset + 116;
   }
 
-  protected static ByteBuffer createEmptyBuffer()
-  {
+  protected static ByteBuffer createEmptyBuffer() {
     int size = 0;
-    if (Profile.getEngine() == Profile.Engine.BG1 ||
-        Profile.getEngine() == Profile.Engine.BG2 ||
-        Profile.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.BG2
+        || Profile.isEnhancedEdition()) {
       size = 352;
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       size = 360;

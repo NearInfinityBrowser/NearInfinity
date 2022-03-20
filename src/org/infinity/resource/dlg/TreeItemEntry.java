@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -12,16 +12,14 @@ import org.infinity.resource.StructEntry;
  *
  * @author Mingun
  */
-public interface TreeItemEntry extends StructEntry
-{
+public interface TreeItemEntry extends StructEntry {
   @Override
   DlgResource getParent();
 
   /**
    * Determines has this entry text or not, even if it contains some string reference.
    *
-   * @return {@code true}, if {@link #getAssociatedText()} returns used reference,
-   *         {@code false} otherwise
+   * @return {@code true}, if {@link #getAssociatedText()} returns used reference, {@code false} otherwise
    */
   boolean hasAssociatedText();
 

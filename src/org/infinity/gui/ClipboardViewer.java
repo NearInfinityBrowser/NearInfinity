@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -19,13 +19,11 @@ import org.infinity.icon.Icons;
 import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
 
-final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
-{
+final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener {
   private final JButton bclearclipboard = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
   private final InfinityTextArea taClipBoard = new InfinityTextArea(false);
 
-  ClipboardViewer()
-  {
+  ClipboardViewer() {
     super("Clipboard");
     setIconImage(Icons.ICON_PASTE_16.getIcon().getImage());
     bclearclipboard.setMnemonic('c');
@@ -37,7 +35,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     lowerpanel.add(bclearclipboard);
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(new InfinityScrollPane(taClipBoard, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
@@ -47,28 +45,24 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
     taClipBoard.setText(StructClipboard.getInstance().toString());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bclearclipboard) {
       StructClipboard.getInstance().clear();
       taClipBoard.setText(StructClipboard.getInstance().toString());
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     taClipBoard.setText(StructClipboard.getInstance().toString());
   }
 
-// --------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 }
-

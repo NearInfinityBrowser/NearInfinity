@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -40,14 +40,13 @@ import java.util.zip.ZipError;
 /**
  * Signals that an unrecoverable error has occurred.
  */
-public class DlcError extends ZipError
-{
+public class DlcError extends ZipError {
   /**
    * Constructs a DlcError with the given detail message.
+   *
    * @param s the {@code String} containing a detail message.
    */
-  public DlcError(String s)
-  {
+  public DlcError(String s) {
     super(s);
   }
 }

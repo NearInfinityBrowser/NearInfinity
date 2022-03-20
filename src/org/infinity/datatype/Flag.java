@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -12,9 +12,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -31,70 +33,67 @@ import org.infinity.util.Misc;
 /**
  * Field that represents several numerical values as flags.
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@code long}</li>
  * <li>Value meaning: the set flags of this field</li>
  * </ul>
  */
-public class Flag extends Datatype implements Editable, IsNumeric, ActionListener
-{
+public class Flag extends Datatype implements Editable, IsNumeric, ActionListener {
   public static final String DESC_NONE = "No flags set";
 
   /** The description of sense when any of flags is not set. */
   private String nodesc;
+
   /** Labels of each flag. */
   private String[] table;
+
   /** Tooltips of each flag. */
   private String[] toolTable;
+
   private ActionListener container;
   private JButton bAll, bNone;
   private JCheckBox[] checkBoxes;
   private long value;
 
-  Flag(ByteBuffer buffer, int offset, int length, String name)
-  {
+  Flag(ByteBuffer buffer, int offset, int length, String name) {
     super(offset, length, name);
     read(buffer, offset);
   }
 
   /**
-   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
-   *               Optionally you can combine flag descriptions with tool tips, using the
-   *               separator char ';'.
+   * @param stable Contains default value when no flag is selected and a list of flag descriptions. Optionally you can
+   *               combine flag descriptions with tool tips, using the separator char ';'.
    */
-  public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable)
-  {
+  public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable) {
     this(buffer, offset, length, name);
     setEmptyDesc((stable == null || stable.length == 0) ? null : stable[0]);
     setFlagDescriptions(length, stable, 1);
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bAll) {
-      for (final JCheckBox checkBox : checkBoxes)
+      for (final JCheckBox checkBox : checkBoxes) {
         checkBox.setSelected(true);
-    }
-    else if (event.getSource() == bNone) {
-      for (final JCheckBox checkBox : checkBoxes)
+      }
+    } else if (event.getSource() == bNone) {
+      for (final JCheckBox checkBox : checkBoxes) {
         checkBox.setSelected(false);
+      }
     }
     container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
   }
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     this.container = container;
-    Color colBright = (Color)UIManager.get("Label.disabledForeground");
-    if (colBright == null)
+    Color colBright = (Color) UIManager.get("Label.disabledForeground");
+    if (colBright == null) {
       colBright = Color.GRAY;
+    }
     checkBoxes = new JCheckBox[table.length];
     for (int i = 0; i < table.length; i++) {
       if (table[i] == null || table[i].isEmpty()) {
@@ -130,12 +129,12 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
       for (int row = 0; row < 8; row++) {
         int idx = (col * 8) + row;
         c = ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         colPanel.add(checkBoxes[idx], c);
         checkBoxes[idx].setSelected(isFlagSet(idx));
       }
-      c = ViewerUtil.setGBC(c, col, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-          GridBagConstraints.BOTH, new Insets(0, 8, 0, 8), 0, 0);
+      c = ViewerUtil.setGBC(c, col, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+          new Insets(0, 8, 0, 8), 0, 0);
       boxPanel.add(colPanel, c);
     }
 
@@ -149,13 +148,11 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     long oldValue = getLongValue();
 
     // updating value
@@ -170,14 +167,12 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   }
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     writeLong(os, value);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     switch (getSize()) {
       case 1:
@@ -197,40 +192,43 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final StringBuilder sb = new StringBuilder("( ");
-    if (value == 0)
+    if (value == 0) {
       sb.append(nodesc).append(' ');
-    else {
-      for (int i = 0; i < 8 * getSize(); i++)
+    } else {
+      for (int i = 0; i < 8 * getSize(); i++) {
         if (isFlagSet(i)) {
           final String label = getString(i);
-          sb.append(label == null ? "Unknown" : label)
-            .append('(').append(i).append(") ");
+          sb.append(label == null ? "Unknown" : label).append('(').append(i).append(") ");
         }
+      }
     }
     sb.append(')');
     return sb.toString();
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + Long.hashCode(value);
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(value);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof Flag)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    Flag other = (Flag)o;
-    boolean retVal = (value == other.value);
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Flag other = (Flag) obj;
+    return value == other.value;
   }
 
   /**
@@ -239,31 +237,26 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    * @param i Number of flag (counting from 0)
    * @return Label of flag or {@code null}, if no such flag.
    */
-  public String getString(int i)
-  {
+  public String getString(int i) {
     return i < 0 || i > table.length ? null : table[i];
   }
 
-  public boolean isFlagSet(int i)
-  {
+  public boolean isFlagSet(int i) {
     long bitnr = 1L << i;
     return (value & bitnr) == bitnr;
   }
 
   @Override
-  public long getLongValue()
-  {
+  public long getLongValue() {
     return value;
   }
 
   @Override
-  public int getValue()
-  {
-    return (int)value;
+  public int getValue() {
+    return (int) value;
   }
 
-  public void setValue(long newValue)
-  {
+  public void setValue(long newValue) {
     final long oldValue = value;
     value = newValue;
     if (oldValue != newValue) {
@@ -271,8 +264,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     }
   }
 
-  private long calcValue()
-  {
+  private long calcValue() {
     long val = 0L;
     for (int i = 0; i < checkBoxes.length; ++i) {
       if (checkBoxes[i].isSelected()) {
@@ -287,29 +279,27 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *
    * @param desc If {@code null}, then {@link #DESC_NONE} will be used as description
    */
-  public void setEmptyDesc(String desc)
-  {
+  public void setEmptyDesc(String desc) {
     nodesc = (desc != null) ? desc : DESC_NONE;
   }
 
   /**
-   * Sets labels and optional tooltips for each flag. Label and tooltip separated
-   * by {@code ';'}
+   * Sets labels and optional tooltips for each flag. Label and tooltip separated by {@code ';'}
    *
-   * @param size Size of flag field in bytes. Count of flags equals {@code size * 8}
-   * @param stable Table with labels and optional tooltips of each flag. If table
-   *        size if less then count of flags, then remaining flags will be without
-   *        labels and tooltips
+   * @param size     Size of flag field in bytes. Count of flags equals {@code size * 8}
+   * @param stable   Table with labels and optional tooltips of each flag. If table size if less then count of flags,
+   *                 then remaining flags will be without labels and tooltips
    * @param startOfs Offset to {@code stable} from which data begins
    */
-  public void setFlagDescriptions(int size, String[] stable, int startOfs)
-  {
-    table = new String[8*size];
-    toolTable = new String[8*size];
+  public void setFlagDescriptions(int size, String[] stable, int startOfs) {
+    table = new String[8 * size];
+    toolTable = new String[8 * size];
     if (stable != null) {
       for (int i = startOfs, j = 0; i < stable.length; ++i, ++j) {
         final String desc = stable[i];
-        if (desc == null) continue;
+        if (desc == null) {
+          continue;
+        }
 
         final int sep = desc.indexOf(';');
         if (sep < 0) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -12,8 +12,7 @@ import org.infinity.util.StringBufferStream;
 /**
  * Handles BCS object (OB) byte code structures.
  */
-public class BcsObject extends BcsStructureBase
-{
+public class BcsObject extends BcsStructureBase {
 
   private static final BcsObject EMPTY_OBJECT = new BcsObject();
 
@@ -44,8 +43,7 @@ public class BcsObject extends BcsStructureBase
   public String name;
 
   /** Constructs an empty object structure. */
-  public BcsObject()
-  {
+  public BcsObject() {
     this.target = new long[12];
     this.identifier = new long[5];
     this.region = new Rectangle(-1, -1, -1, -1);
@@ -53,84 +51,78 @@ public class BcsObject extends BcsStructureBase
   }
 
   /** Constructs a fully initialized object structure from the data of the specified stream. */
-  public BcsObject(StringBufferStream sbs) throws Exception
-  {
+  public BcsObject(StringBufferStream sbs) throws Exception {
     this();
     init(sbs);
   }
 
   /** Returns an empty target object. */
-  public static BcsObject getEmptyObject()
-  {
+  public static BcsObject getEmptyObject() {
     return EMPTY_OBJECT;
   }
 
   /** Returns the correctly ordered list of target IDS resources (without extension). */
-  public static String[] getTargetList()
-  {
+  public static String[] getTargetList() {
     return getTargetList(Profile.getEngine());
   }
 
   /**
-   * Returns the correctly ordered list of target IDS resources (without extension)
-   * for the specified game engine.
+   * Returns the correctly ordered list of target IDS resources (without extension) for the specified game engine.
    */
-  public static String[] getTargetList(Profile.Engine engine)
-  {
+  public static String[] getTargetList(Profile.Engine engine) {
     return ScriptInfo.getInfo().getObjectIdsList();
   }
 
   /** Returns {@code true} if list of target values is empty. */
-  public boolean isEmptyTarget()
-  {
+  public boolean isEmptyTarget() {
     boolean empty = true;
-    for (long l: target) {
+    for (long l : target) {
       empty &= (l == 0L);
-      if (!empty) break;
+      if (!empty) {
+        break;
+      }
     }
     return empty;
   }
 
   /** Returns {@code true} if list of identifier values is empty. */
-  public boolean isEmptyIdentifier()
-  {
+  public boolean isEmptyIdentifier() {
     boolean empty = true;
-    for (long l: identifier) {
+    for (long l : identifier) {
       empty &= (l == 0L);
-      if (!empty) break;
+      if (!empty) {
+        break;
+      }
     }
     return empty;
   }
 
   /** Returns {@code true} if rectangle parameter is empty. */
-  public boolean isEmptyRect()
-  {
+  public boolean isEmptyRect() {
     return (region.x == -1) && (region.y == -1) && (region.width == -1) && (region.height == -1);
   }
 
   /** Returns {@code true} if string parameter is empty. */
-  public boolean isEmptyString()
-  {
+  public boolean isEmptyString() {
     return name.isEmpty();
   }
 
   /** Returns {@code true} only if all parameters contain default values. */
-  public boolean isEmpty()
-  {
+  public boolean isEmpty() {
     return isEmptyTarget() && isEmptyIdentifier() && isEmptyRect() && isEmptyString();
   }
 
   /**
    * Sets the specified IDS target value.
+   *
    * @param index A zero-based index that is relative to the IDS sequence of the current game.
    * @param value The value to set
    * @throws IllegalArgumentException if {@code index} is out of range.
    */
-  public void setTargetValue(int index, long value)
-  {
+  public void setTargetValue(int index, long value) {
     String[] parseCode = getParseCode();
     int counter = 0;
-    for (String code: parseCode) {
+    for (String code : parseCode) {
       char type = code.charAt(0);
       if (type == 'T') {
         if (index == counter) {
@@ -148,12 +140,12 @@ public class BcsObject extends BcsStructureBase
 
   /**
    * Sets the specified target identifier value.
+   *
    * @param index Nesting level of identifier
    * @param value Identifier value to set
    * @throws IllegalArgumentException if {@code index} is out of range.
    */
-  public void setIdentifierValue(int index, long value)
-  {
+  public void setIdentifierValue(int index, long value) {
     if (index >= 0 && index < identifier.length) {
       identifier[index] = value;
     } else {
@@ -163,34 +155,32 @@ public class BcsObject extends BcsStructureBase
 
   /**
    * Returns the bytecode representation of the object.
+   *
    * @return The bytecode representation of the object.
    * @throws Exception on unresolvable error.
    */
-  public String toByteCode() throws Exception
-  {
+  public String toByteCode() throws Exception {
     String[] parseCode = getParseCode();
     StringBuilder sb = new StringBuilder();
     sb.append("OB\n");
     char type = 0;
-    for (String code: parseCode) {
+    for (String code : parseCode) {
       type = code.charAt(0);
       char param = code.charAt(1);
       int index = (param >= 'A') ? (10 + (param - 'A')) : (param - '0');
       switch (type) {
         case 'T':
-          sb.append((int)target[index]);
+          sb.append((int) target[index]);
           break;
         case 'I':
-          sb.append((int)identifier[index]);
+          sb.append((int) identifier[index]);
           break;
         case 'S':
           sb.append('"').append(name).append('"');
           break;
         case 'R':
-          sb.append('[')
-            .append(region.x).append('.').append(region.y).append('.')
-            .append(region.width).append('.').append(region.height)
-            .append(']');
+          sb.append('[').append(region.x).append('.').append(region.y).append('.').append(region.width).append('.')
+              .append(region.height).append(']');
           break;
         default:
           throw new Exception("Internal bytecode error (" + type + name + ")");
@@ -205,21 +195,23 @@ public class BcsObject extends BcsStructureBase
     return sb.toString();
   }
 
-  private String[] getParseCode()
-  {
+  private String[] getParseCode() {
     switch (Profile.getEngine()) {
-      case PST: return PARSE_CODE_PST;
-      case IWD: return PARSE_CODE_IWD;
-      case IWD2: return PARSE_CODE_IWD2;
-      default: return PARSE_CODE_BG;
+      case PST:
+        return PARSE_CODE_PST;
+      case IWD:
+        return PARSE_CODE_IWD;
+      case IWD2:
+        return PARSE_CODE_IWD2;
+      default:
+        return PARSE_CODE_BG;
     }
   }
 
-  private void init(StringBufferStream sbs) throws Exception
-  {
+  private void init(StringBufferStream sbs) throws Exception {
     StringBuilder paramTypes = new StringBuilder();
     long[] num = new long[target.length + identifier.length];
-    int cntNums= 0, posRect = -1, posName = -1;
+    int cntNums = 0, posRect = -1, posName = -1;
     for (int cnt = 0; !sbs.eos() && !sbs.skip("OB"); cnt++) {
       char ch = determineParamType(sbs);
       switch (ch) {
@@ -242,7 +234,10 @@ public class BcsObject extends BcsStructureBase
         case 'P':
           try {
             Rectangle r = parseRectangle(sbs);
-            region.x = r.x; region.y = r.y; region.width = r.width; region.height = r.height;
+            region.x = r.x;
+            region.y = r.y;
+            region.width = r.width;
+            region.height = r.height;
             posRect = cnt;
           } catch (Exception e) {
           }

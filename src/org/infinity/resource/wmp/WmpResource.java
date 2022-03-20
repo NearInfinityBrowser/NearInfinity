@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -27,45 +27,38 @@ import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
- * This resource describes the top-level map structure of the game. It details the
- * x/y coordinate location of areas, the graphics used to represent the area on the
- * map (both {@link MosResource MOS} and {@link BamResource BAM}) and stores flag
- * information used to decide how the map icon is displayed (visable, reachable,
- * already visited etc.)
+ * This resource describes the top-level map structure of the game. It details the x/y coordinate location of areas, the
+ * graphics used to represent the area on the map (both {@link MosResource MOS} and {@link BamResource BAM}) and stores
+ * flag information used to decide how the map icon is displayed (visable, reachable, already visited etc.)
  * <p>
  * Engine specific notes: Areas may be also displayed on the WorldMap in ToB using 2DA files:
  * <ul>
  * <li>{@code XNEWAREA.2DA} (Area entries section of wmp)</li>
- * <li>2DA file specified in {@code XNEWAREA.2DA} (Area links section) for example
- *     {@code XL3000.2DA}</li>
+ * <li>2DA file specified in {@code XNEWAREA.2DA} (Area links section) for example {@code XL3000.2DA}</li>
  * </ul>
  * <p>
  * A WMP resource must have at least one area entry, and one area link to be considered valid.
-*/
-public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs
-{
+ */
+public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs {
   // WMP-specific field labels
   public static final String WMP_NUM_MAPS     = "# maps";
   public static final String WMP_OFFSET_MAPS  = "Maps offset";
 
   private StructHexViewer hexViewer;
 
-  public WmpResource(ResourceEntry entry) throws Exception
-  {
+  public WmpResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
-// --------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 2;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     switch (index) {
       case 0:
         return StructViewer.TAB_VIEW;
@@ -76,21 +69,18 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     switch (index) {
-      case 0:
-      {
+      case 0: {
         JTabbedPane tabbedPane = new JTabbedPane();
-        int count = ((IsNumeric)getAttribute(WMP_NUM_MAPS)).getValue();
+        int count = ((IsNumeric) getAttribute(WMP_NUM_MAPS)).getValue();
         for (int i = 0; i < count; i++) {
-          MapEntry entry = (MapEntry)getAttribute(MapEntry.WMP_MAP + " " + i);
+          MapEntry entry = (MapEntry) getAttribute(MapEntry.WMP_MAP + " " + i);
           tabbedPane.addTab(entry.getName(), entry.getViewerTab(0));
         }
         return tabbedPane;
       }
-      case 1:
-      {
+      case 1: {
         if (hexViewer == null) {
           hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
@@ -101,35 +91,31 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return (index == 0);
   }
 
-// --------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
-
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     super.writeFlatFields(os);
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
-    SectionCount entry_count = new SectionCount(buffer, offset + 8, 4, WMP_NUM_MAPS, MapEntry.class);
-    addField(entry_count);
-    SectionOffset entry_offset = new SectionOffset(buffer, offset + 12, WMP_OFFSET_MAPS, MapEntry.class);
-    addField(entry_offset);
-    offset = entry_offset.getValue();
-    for (int i = 0; i < entry_count.getValue(); i++) {
+    SectionCount entryCount = new SectionCount(buffer, offset + 8, 4, WMP_NUM_MAPS, MapEntry.class);
+    addField(entryCount);
+    SectionOffset entryOffset = new SectionOffset(buffer, offset + 12, WMP_OFFSET_MAPS, MapEntry.class);
+    addField(entryOffset);
+    offset = entryOffset.getValue();
+    for (int i = 0; i < entryCount.getValue(); i++) {
       MapEntry entry = new MapEntry(this, buffer, offset, i);
       offset = entry.getEndOffset();
       addField(entry);
@@ -138,22 +124,19 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -161,16 +144,14 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();

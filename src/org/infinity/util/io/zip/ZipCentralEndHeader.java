@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
@@ -40,8 +40,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Storage class for the end of central directory entry.
  */
-public class ZipCentralEndHeader extends ZipBaseHeader
-{
+public class ZipCentralEndHeader extends ZipBaseHeader {
   /** Number of disk where this structure is located. */
   public int idxDisk;
 
@@ -63,9 +62,7 @@ public class ZipCentralEndHeader extends ZipBaseHeader
   /** Zip file comment. (Is never {@code null}) */
   public byte[] comment;
 
-
-  public ZipCentralEndHeader(ByteBuffer buffer, long absOffset)
-  {
+  public ZipCentralEndHeader(ByteBuffer buffer, long absOffset) {
     super(absOffset, buffer.getInt());
     long headerStart = buffer.position() - 4L;
     this.idxDisk = buffer.getShort();
@@ -79,13 +76,11 @@ public class ZipCentralEndHeader extends ZipBaseHeader
     if (commentLength > 0) {
       buffer.get(this.comment);
     }
-    this.size = (int)(buffer.position() - headerStart);
+    this.size = (int) (buffer.position() - headerStart);
   }
 
-
   // Attempts to find the CEN end header in the specified file
-  static ZipCentralEndHeader findZipEndHeader(SeekableByteChannel ch) throws IOException
-  {
+  protected static ZipCentralEndHeader findZipEndHeader(SeekableByteChannel ch) throws IOException {
     if (ch == null) {
       throw new NullPointerException();
     }
@@ -104,8 +99,8 @@ public class ZipCentralEndHeader extends ZipBaseHeader
       int off = 0;
       if (pos < 0) {
         // Pretend there are some NUL bytes before start of file
-        off = (int)-pos;
-        Arrays.fill(buf, 0, off, (byte)0);
+        off = (int) -pos;
+        Arrays.fill(buf, 0, off, (byte) 0);
       }
       int len = buf.length - off;
       if (readFullyAt(ch, buf, off, len, pos + off) != len) {
@@ -195,7 +190,7 @@ public class ZipCentralEndHeader extends ZipBaseHeader
         // end64 found, re-calculate everything.
         end.sizeCentral = ZIP64_ENDSIZ(end64buf);
         end.ofsCentral = ZIP64_ENDOFF(end64buf);
-        end.numEntries = (int)ZIP64_ENDTOT(end64buf); // assume total < 2g
+        end.numEntries = (int) ZIP64_ENDTOT(end64buf); // assume total < 2g
         end.offset = end64pos;
       }
       return end;

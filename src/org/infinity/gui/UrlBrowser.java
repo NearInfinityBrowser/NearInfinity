@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -19,13 +19,11 @@ import org.infinity.NearInfinity;
  *
  * @author Fredrik Lindgren
  */
-class UrlBrowser implements MouseListener
-{
+class UrlBrowser implements MouseListener {
   private final URI url;
 
   /** Opens the specified URL in the system's default browser. */
-  static boolean openUrl(String url)
-  {
+  static boolean openUrl(String url) {
     boolean retVal = false;
     Desktop desktop = Desktop.getDesktop();
     if (desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
@@ -39,24 +37,20 @@ class UrlBrowser implements MouseListener
     return retVal;
   }
 
-  UrlBrowser(String urlText)
-  {
+  UrlBrowser(String urlText) {
     url = URI.create(urlText);
   }
 
-  private void showErrorMessage()
-  {
+  private void showErrorMessage() {
     final String errorMessage = "I can't open an url on this system";
     final String errorTitle = "Attention";
-    JOptionPane.showMessageDialog(NearInfinity.getInstance(), errorMessage,
-                                  errorTitle, JOptionPane.PLAIN_MESSAGE);
+    JOptionPane.showMessageDialog(NearInfinity.getInstance(), errorMessage, errorTitle, JOptionPane.PLAIN_MESSAGE);
   }
 
-// --------------------- Begin Interface MouseListener ---------------------
+  // --------------------- Begin Interface MouseListener ---------------------
 
   @Override
-  public void mouseClicked(MouseEvent event)
-  {
+  public void mouseClicked(MouseEvent event) {
 
     if (!Desktop.isDesktopSupported()) {
       showErrorMessage();
@@ -75,25 +69,21 @@ class UrlBrowser implements MouseListener
   }
 
   @Override
-  public void mousePressed(MouseEvent e)
-  {
+  public void mousePressed(MouseEvent e) {
   }
 
   @Override
-  public void mouseReleased(MouseEvent e)
-  {
+  public void mouseReleased(MouseEvent e) {
   }
 
   @Override
-  public void mouseEntered(MouseEvent e)
-  {
+  public void mouseEntered(MouseEvent e) {
   }
 
   @Override
-  public void mouseExited(MouseEvent e)
-  {
+  public void mouseExited(MouseEvent e) {
   }
 
-// --------------------- End Interface MouseListener ---------------------
+  // --------------------- End Interface MouseListener ---------------------
 
 }

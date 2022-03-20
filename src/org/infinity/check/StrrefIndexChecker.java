@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -50,8 +51,7 @@ import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
-{
+public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener {
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
   private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
   private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
@@ -59,33 +59,31 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
+
   /** Count of strings in the {@link StringTable talk table}. */
   private int strrefCount;
 
-  public StrrefIndexChecker()
-  {
+  public StrrefIndexChecker() {
     super("Find illegal strrefs", "StrrefIndexChecker", StringReferenceSearcher.FILE_TYPES);
 
-    table = new SortableTable(new String[]{"File", "Offset / Line:Pos", "Strref"},
-                              new Class<?>[]{StrrefEntry.class, String.class, Integer.class},
-                              new Integer[]{200, 100, 100});
+    table = new SortableTable(new String[] { "File", "Offset / Line:Pos", "Strref" },
+        new Class<?>[] { StrrefEntry.class, String.class, Integer.class }, new Integer[] { 200, 100, 100 });
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row >= 0) {
-        ResourceEntry entry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry entry = (ResourceEntry) table.getValueAt(row, 0);
         NearInfinity.getInstance().showResourceEntry(entry);
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row >= 0) {
-        ResourceEntry entry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry entry = (ResourceEntry) table.getValueAt(row, 0);
         new ViewFrame(resultFrame, ResourceFactory.getResource(entry));
       }
     } else if (event.getSource() == bsave) {
@@ -95,24 +93,22 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
   }
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-//--------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     strrefCount = StringTable.getNumEntries();
     if (runCheck(files)) {
       resultFrame.close();
@@ -120,13 +116,13 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
 
     if (table.getRowCount() == 0) {
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
     } else {
       table.tableComplete();
       resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-      JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
-      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+      JLabel count = new JLabel(table.getRowCount() + " error(s) found", SwingConstants.CENTER);
+      count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
       bsave.setMnemonic('s');
@@ -137,7 +133,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       panel.add(bsave);
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
-      JPanel pane = (JPanel)resultFrame.getContentPane();
+      JPanel pane = (JPanel) resultFrame.getContentPane();
       pane.setLayout(new BorderLayout(0, 3));
       pane.add(count, BorderLayout.NORTH);
       pane.add(scrollTable, BorderLayout.CENTER);
@@ -147,22 +143,20 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
-      table.addMouseListener(new MouseAdapter()
-      {
+      table.addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseReleased(MouseEvent event)
-        {
+        public void mouseReleased(MouseEvent event) {
           if (event.getClickCount() == 2) {
             final int row = table.getSelectedRow();
             if (row != -1) {
-              final ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+              final ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
               final Resource resource = ResourceFactory.getResource(resourceEntry);
               new ViewFrame(resultFrame, resource);
-              final StrrefEntry item = (StrrefEntry)table.getTableItemAt(row);
+              final StrrefEntry item = (StrrefEntry) table.getTableItemAt(row);
               if (item.isText && resource instanceof TextResource) {
-                ((TextResource)resource).highlightText(item.line, Integer.toString(item.strref));
+                ((TextResource) resource).highlightText(item.line, Integer.toString(item.strref));
               } else if (resource instanceof AbstractStruct) {
-                ((AbstractStruct)resource).getViewer().selectEntry(item.offset);
+                ((AbstractStruct) resource).getViewer().selectEntry(item.offset);
               }
             }
           }
@@ -178,38 +172,36 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-//--------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
-        checkDialog((DlgResource)resource);
+        checkDialog((DlgResource) resource);
       } else if (resource instanceof BcsResource) {
-        checkScript((BcsResource)resource);
+        checkScript((BcsResource) resource);
       } else if (resource instanceof PlainTextResource) {
-        checkText((PlainTextResource)resource);
+        checkText((PlainTextResource) resource);
       } else if (resource instanceof AbstractStruct) {
-        checkStruct((AbstractStruct)resource);
+        checkStruct((AbstractStruct) resource);
       }
       advanceProgress();
     };
   }
 
-  private void checkDialog(DlgResource dialog)
-  {
+  private void checkDialog(DlgResource dialog) {
     for (final StructEntry entry : dialog.getFlatFields()) {
       if (entry instanceof StringRef) {
-        final int strref = ((StringRef)entry).getValue();
+        final int strref = ((StringRef) entry).getValue();
         if (strref < -1 || strref >= strrefCount) {
           synchronized (table) {
             table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
           }
         }
       } else if (entry instanceof AbstractCode) {
-        final AbstractCode code = (AbstractCode)entry;
+        final AbstractCode code = (AbstractCode) entry;
         try {
           final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
           final Compiler compiler = new Compiler(code.getText(), type);
@@ -219,7 +211,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           decompiler.setGenerateResourcesUsed(true);
           decompiler.decompile();
           for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-            final int strref = stringRef.intValue();
+            final int strref = stringRef;
             if (strref < -1 || strref >= strrefCount) {
               synchronized (table) {
                 table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
@@ -233,15 +225,14 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-  private void checkScript(BcsResource script)
-  {
+  private void checkScript(BcsResource script) {
     final Decompiler decompiler = new Decompiler(script.getCode(), true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
     try {
       decompiler.decompile();
       for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-        final int strref = stringRef.intValue();
+        final int strref = stringRef;
         if (strref < -1 || strref >= strrefCount) {
           // XXX: search routine may produce false positives
           final String strrefString = stringRef.toString();
@@ -267,14 +258,13 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-  private void checkStruct(AbstractStruct struct)
-  {
+  private void checkStruct(AbstractStruct struct) {
     for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof StringRef) {
-        final int strref = ((StringRef)entry).getValue();
+        final int strref = ((StringRef) entry).getValue();
         if (strref < -1 || strref >= strrefCount) {
-          if (strref >= 3000000 &&
-              (entry.getParent() instanceof AutomapNote || entry.getParent() instanceof JournalEntry)) {
+          if (strref >= 3000000
+              && (entry.getParent() instanceof AutomapNote || entry.getParent() instanceof JournalEntry)) {
             // skip talk override entries
             continue;
           }
@@ -286,8 +276,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-  private void checkText(PlainTextResource text)
-  {
+  private void checkText(PlainTextResource text) {
     final String[] lines = text.getText().split("\r?\n");
     for (int i = 0; i < lines.length; i++) {
       final Matcher matcher = StringReferenceSearcher.NUMBER_PATTERN.matcher(lines[i]);
@@ -301,7 +290,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
             if (strref < -1 || strref > strrefCount) {
               synchronized (table) {
-                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, (int)strref));
+                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, (int) strref));
               }
             }
           }
@@ -312,10 +301,9 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class StrrefEntry implements TableItem
-  {
+  private static final class StrrefEntry implements TableItem {
     private final boolean isText;
     private final ResourceEntry entry;
     private final int offset;
@@ -323,8 +311,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     private final int strref;
 
     /** Constructor for text resources (2DA, BCS, ...). */
-    public StrrefEntry(ResourceEntry entry, int line, int pos, int strref)
-    {
+    public StrrefEntry(ResourceEntry entry, int line, int pos, int strref) {
       this.isText = true;
       this.entry = entry;
       this.line = line;
@@ -334,8 +321,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
 
     /** Constructor for structured resources. */
-    public StrrefEntry(ResourceEntry entry, int offset, int strref)
-    {
+    public StrrefEntry(ResourceEntry entry, int offset, int strref) {
       this.isText = false;
       this.entry = entry;
       this.offset = offset;
@@ -344,18 +330,19 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
+    public Object getObjectAt(int columnIndex) {
       switch (columnIndex) {
-        case 0: return entry;
-        case 1: return isText ? (line + ":" + pos) : Integer.toHexString(offset) + 'h';
-        default: return Integer.toString(strref);
+        case 0:
+          return entry;
+        case 1:
+          return isText ? (line + ":" + pos) : Integer.toHexString(offset) + 'h';
+        default:
+          return Integer.toString(strref);
       }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       StringBuilder sb = new StringBuilder("File: ");
       sb.append(entry.getResourceName());
       if (isText) {

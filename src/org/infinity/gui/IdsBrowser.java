@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -29,14 +29,12 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 
-public final class IdsBrowser extends ChildFrame implements ActionListener
-{
+public final class IdsBrowser extends ChildFrame implements ActionListener {
   private final JButton binsert;
   private final JComboBox<ResourceEntry> idsfiles;
   private final TextListPanel<IdsMapEntry> list;
 
-  public IdsBrowser()
-  {
+  public IdsBrowser() {
     super("IDS Browser");
     setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
@@ -54,17 +52,16 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
 
     final IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
     list = new TextListPanel<>(idsMap.getAllValues());
-    list.addMouseListener(new MouseAdapter()
-    {
+    list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent e)
-      {
-        if (e.getClickCount() == 2)
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
           insertString(list.getSelectedValue().getSymbol());
+        }
       }
     });
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -91,33 +88,30 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == idsfiles)
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == idsfiles) {
       refreshList();
-    else if (event.getSource() == binsert)
+    } else if (event.getSource() == binsert) {
       insertString(list.getSelectedValue().getSymbol());
+    }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-  public void refreshList()
-  {
+  public void refreshList() {
     final IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
     list.setValues(idsMap.getAllValues());
   }
 
-  private void insertString(String s)
-  {
+  private void insertString(String s) {
     Viewable viewable = NearInfinity.getInstance().getViewable();
-    if (viewable == null || !(viewable instanceof BcsResource))
-      JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-    else
-      ((BcsResource)viewable).insertString(s);
+    if (viewable == null || !(viewable instanceof BcsResource)) {
+      JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error", JOptionPane.ERROR_MESSAGE);
+    } else {
+      ((BcsResource) viewable).insertString(s);
+    }
   }
 }
-

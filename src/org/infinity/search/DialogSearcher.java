@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -42,8 +42,7 @@ import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.key.ResourceEntry;
 
-public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener
-{
+public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;
   private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_AGAIN_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
@@ -56,13 +55,13 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   private Pattern regPattern;
   private ReferenceHitFrame resultFrame;
 
-  public DialogSearcher(List<ResourceEntry> files, Component parent)
-  {
+  public DialogSearcher(List<ResourceEntry> files, Component parent) {
     super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.files = files;
     String title = "Find: DLG files";
-    if (files.size() == 1)
+    if (files.size() == 1) {
       title = "Find: " + files.get(0).toString();
+    }
     inputFrame = new ChildFrame(title, true);
     inputFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
@@ -116,25 +115,22 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     inputFrame.setVisible(true);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
       inputFrame.setVisible(false);
       new Thread(this).start();
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
       term = Pattern.quote(term);
@@ -172,15 +168,14 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
-        final Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
+        final Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct) resource);
         for (final Map.Entry<StructEntry, StructEntry> e : searchMap.entrySet()) {
           final StructEntry searchEntry = e.getKey();
           String s = null;
@@ -188,7 +183,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
             s = searchEntry.toString();
           } else if (searchEntry instanceof AbstractCode) {
             try {
-              final AbstractCode code = (AbstractCode)searchEntry;
+              final AbstractCode code = (AbstractCode) searchEntry;
               final ScriptType type = searchEntry instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
               final Compiler compiler = new Compiler(code.getText(), type);
 
@@ -222,22 +217,21 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     };
   }
 
-  private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
-  {
+  private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct) {
     final SortedMap<StructEntry, StructEntry> map = new TreeMap<>();
     for (final StructEntry entry : struct.getFields()) {
-      if (entry instanceof AbstractStruct)
-        map.putAll(makeSearchMap((AbstractStruct)entry));
-      else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)
+      if (entry instanceof AbstractStruct) {
+        map.putAll(makeSearchMap((AbstractStruct) entry));
+      } else if (cbsearchcode.isSelected() && entry instanceof AbstractCode) {
         map.put(entry, entry);
-      else if (entry instanceof StringRef)
+      } else if (entry instanceof StringRef) {
         map.put(entry, struct);
+      }
     }
     return map;
   }
 
-  private synchronized void addResult(ResourceEntry entry, String line, StructEntry ref)
-  {
+  private synchronized void addResult(ResourceEntry entry, String line, StructEntry ref) {
     if (resultFrame != null) {
       resultFrame.addHit(entry, line, ref);
     }

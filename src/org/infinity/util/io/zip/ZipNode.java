@@ -1,10 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
 
-import static org.infinity.util.io.zip.ZipConstants.*;
+import static org.infinity.util.io.zip.ZipConstants.ENDSIG;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -19,29 +19,26 @@ import java.util.List;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * Represents a single zip entry in a memory mapped zip file.
- * Can be used to form a complete file tree. Provides methods for adressing specific
- * files in the zip archive.
+ * Represents a single zip entry in a memory mapped zip file. Can be used to form a complete file tree. Provides methods
+ * for adressing specific files in the zip archive.
  */
-public class ZipNode
-{
+public class ZipNode {
   private static final byte[] ROOT_NAME = "/".getBytes();
 
   private final List<ZipNode> children = new ArrayList<>();
 
-  private ZipCentralHeader header;        // only available for non-root nodes
-  private ZipCentralEndHeader endHeader;  // only available for root node
-  private byte[] name;                    // last segment of filename from header structure
+  private ZipCentralHeader header; // only available for non-root nodes
+  private ZipCentralEndHeader endHeader; // only available for root node
+  private byte[] name; // last segment of filename from header structure
   private ZipNode parent;
 
   /**
-   * Returns the root of a fully initialized zip file tree based on data retrieved from the
-   * specified file.
+   * Returns the root of a fully initialized zip file tree based on data retrieved from the specified file.
+   *
    * @param ch A byte channel that is connected to a zip archive.
    * @return The virtual root node of the file tree.
    */
-  public static ZipNode createRoot(SeekableByteChannel ch) throws IOException
-  {
+  public static ZipNode createRoot(SeekableByteChannel ch) throws IOException {
     if (ch == null) {
       throw new NullPointerException();
     }
@@ -54,10 +51,10 @@ public class ZipNode
 
   /**
    * Returns the absolute path string from root to this node as byte array.
+   *
    * @return Byte array representation of absolute path.
    */
-  public byte[] getPath()
-  {
+  public byte[] getPath() {
     List<byte[]> list = new ArrayList<>();
     int len = 0;
     ZipNode node = this;
@@ -70,7 +67,7 @@ public class ZipNode
 
     byte[] path = new byte[len];
     int p = 0;
-    for (final byte[] name: list) {
+    for (final byte[] name : list) {
       System.arraycopy(name, 0, path, p, name.length);
       p += name.length;
     }
@@ -79,20 +76,17 @@ public class ZipNode
   }
 
   /** Returns the parent zip node if available. The root node will always return {@code null}. */
-  public ZipNode getParent()
-  {
+  public ZipNode getParent() {
     return parent;
   }
 
   /** Returns whether the current node is the root node. */
-  public boolean isRoot()
-  {
+  public boolean isRoot() {
     return (parent == null);
   }
 
   /** Returns the root node */
-  public ZipNode getRoot()
-  {
+  public ZipNode getRoot() {
     ZipNode retVal = this;
     int counter = 0;
     while (retVal.getParent() != null && counter > 100) {
@@ -102,71 +96,64 @@ public class ZipNode
 
     if (retVal.getParent() != null) {
       throw new InvalidPathException(ZipCoder.get("CP437").toString(retVal.getName()),
-                                     "Path may contain a recursive loop");
+          "Path may contain a recursive loop");
     } else {
       return retVal;
     }
   }
 
   /** Returns the filename part of the path as byte array. */
-  public byte[] getName()
-  {
+  public byte[] getName() {
     return name;
   }
 
   /**
-   * Attempts to find the node specified by "path" and returns it.
-   * Absolute path names will be searched starting at root.
-   * Relative path names will be searched starting from this node.
-   * @param path A byte array representation of the path in normalized form
-   *             (i.e. a valid path without excess path separators or placeholders).
+   * Attempts to find the node specified by "path" and returns it. Absolute path names will be searched starting at
+   * root. Relative path names will be searched starting from this node.
+   *
+   * @param path A byte array representation of the path in normalized form (i.e. a valid path without excess path
+   *             separators or placeholders).
    * @return A ZipNode object of the leaf node if found, {@code null} otherwise.
    */
-  public ZipNode getNode(byte[] path)
-  {
+  public ZipNode getNode(byte[] path) {
     return getNode(path, 0);
   }
 
   /** Returns whether the current node is a directory. */
-  public boolean isDirectory()
-  {
+  public boolean isDirectory() {
     if (isRoot()) {
       // root is always considered a directory
       return true;
     } else {
       int flen = header.fileName.length;
       if (flen > 0) {
-        return (header.fileName[flen - 1] == (byte)'/');
+        return (header.fileName[flen - 1] == (byte) '/');
       }
     }
     return false;
   }
 
   /** Returns whether the current node contains one or more direct child nodes. */
-  public boolean hasChildren()
-  {
+  public boolean hasChildren() {
     return !children.isEmpty();
   }
 
   /** Returns the number of direct children of this node. */
-  public int getChildCount()
-  {
+  public int getChildCount() {
     return children.size();
   }
 
   /** Attempts to find a child by the specified name. Returns {@code null} if not found. */
-  public ZipNode getChild(byte[] name)
-  {
+  public ZipNode getChild(byte[] name) {
     if (name != null) {
       byte[] match2 = null;
-      if (name.length > 0 && name[name.length - 1] != (byte)'/') {
+      if (name.length > 0 && name[name.length - 1] != (byte) '/') {
         match2 = new byte[name.length + 1];
         System.arraycopy(name, 0, match2, 0, name.length);
-        match2[match2.length - 1] = (byte)'/';
+        match2[match2.length - 1] = (byte) '/';
       }
-      for (final ZipNode child: children) {
-        if (Arrays.equals(child.name, name) ||
-            (match2 != null && Arrays.equals(child.name, match2))) {
+      for (final ZipNode child : children) {
+        if (Arrays.equals(child.name, name) || (match2 != null && Arrays.equals(child.name, match2))) {
           return child;
         }
       }
@@ -175,20 +162,17 @@ public class ZipNode
   }
 
   /** Returns all children as unmodifiable list. */
-  public List<ZipNode> getChildren()
-  {
+  public List<ZipNode> getChildren() {
     return Collections.unmodifiableList(children);
   }
 
   /** Returns an iterator over all children of this node. */
-  public Iterator<ZipNode> getChildIterator()
-  {
+  public Iterator<ZipNode> getChildIterator() {
     return getChildren().iterator();
   }
 
   /** Removes the specified child from this node. */
-  public boolean removeChild(ZipNode child)
-  {
+  public boolean removeChild(ZipNode child) {
     if (child != null) {
       int index = children.indexOf(child);
       if (index >= 0) {
@@ -200,14 +184,12 @@ public class ZipNode
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return new String(getName());
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int hash = 7;
     hash = 31 * hash + ((children == null) ? 0 : children.hashCode());
     hash = 31 * hash + ((header == null) ? 0 : header.hashCode());
@@ -217,34 +199,30 @@ public class ZipNode
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (o == this) {
       return true;
     } else if (o instanceof ZipNode) {
-      ZipNode n = (ZipNode)o;
-      return (isRoot() && n.isRoot() && endHeader.equals(n.endHeader)) ||
-             (!isRoot() && !n.isRoot() && header.equals(n.header));
+      ZipNode n = (ZipNode) o;
+      return (isRoot() && n.isRoot() && endHeader.equals(n.endHeader))
+          || (!isRoot() && !n.isRoot() && header.equals(n.header));
     } else {
       return false;
     }
   }
 
   /** Returns the central directory structure of this node. */
-  ZipCentralHeader getCentral()
-  {
+  ZipCentralHeader getCentral() {
     return header;
   }
 
   /** Returns the central end structure of this node (root node only). */
-  ZipCentralEndHeader getCentralEnd()
-  {
+  ZipCentralEndHeader getCentralEnd() {
     return endHeader;
   }
 
   // Constructor for non-root nodes
-  private ZipNode(ZipNode parent, byte[] name, ZipCentralHeader header)
-  {
+  private ZipNode(ZipNode parent, byte[] name, ZipCentralHeader header) {
     if (parent == null || header == null) {
       throw new NullPointerException();
     }
@@ -256,8 +234,7 @@ public class ZipNode
   }
 
   // Constructor for virtual root node
-  private ZipNode(ZipCentralEndHeader endHeader)
-  {
+  private ZipNode(ZipCentralEndHeader endHeader) {
     this.header = null;
     this.endHeader = endHeader;
     this.name = ROOT_NAME;
@@ -265,8 +242,7 @@ public class ZipNode
   }
 
   // Adds the specified child to this node.
-  private boolean addChild(ZipNode child)
-  {
+  private boolean addChild(ZipNode child) {
     if (child != null) {
       if (!children.contains(child)) {
         return children.add(child);
@@ -277,8 +253,7 @@ public class ZipNode
 
   // Call recursivelely. Find matching node based on path.
   // Expected: Valid and normalized path
-  private ZipNode getNode(byte[] path, int offset)
-  {
+  private ZipNode getNode(byte[] path, int offset) {
     if (path == null) {
       throw new NullPointerException();
     }
@@ -287,7 +262,7 @@ public class ZipNode
       return this;
     }
 
-    if (path[offset] == (byte)'/') {
+    if (path[offset] == (byte) '/') {
       // absolute path starts at root
       return getRoot().getNode(path, offset + 1);
     } else {
@@ -296,7 +271,7 @@ public class ZipNode
       int cur = start;
       int end = path.length;
       while (cur < end) {
-        if (path[cur++] == (byte)'/') {
+        if (path[cur++] == (byte) '/') {
           break;
         }
       }
@@ -314,8 +289,7 @@ public class ZipNode
   }
 
   // Constructs a folder tree from the central directory data of the specified zip archive
-  private static ZipNode initZip(SeekableByteChannel ch) throws IOException
-  {
+  private static ZipNode initZip(SeekableByteChannel ch) throws IOException {
     ZipCentralEndHeader cend = ZipCentralEndHeader.findZipEndHeader(ch);
     ZipNode root = new ZipNode(cend);
 
@@ -326,7 +300,7 @@ public class ZipNode
     }
 
     // constructing nodes
-    ByteBuffer cenBuf = StreamUtils.getByteBuffer((int)cend.sizeCentral);
+    ByteBuffer cenBuf = StreamUtils.getByteBuffer((int) cend.sizeCentral);
     if (ZipBaseHeader.readFullyAt(ch, cenBuf, startOffset) != cend.sizeCentral) {
       ZipBaseHeader.zerror("read CEN tables failed");
     }
@@ -347,7 +321,7 @@ public class ZipNode
       while (cur < end) {
         while (cur < end) {
           byte b = header.fileName[cur++];
-          if (b == (byte)'/') {
+          if (b == (byte) '/') {
             break;
           }
         }

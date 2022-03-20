@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -15,8 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
-public final class ProTrap extends AbstractStruct implements AddRemovable
-{
+public final class ProTrap extends AbstractStruct implements AddRemovable {
   // ARE/Projectile Trap-specific field labels
   public static final String ARE_PROTRAP                      = "Projectile trap";
   public static final String ARE_PROTRAP_TRAP                 = "Trap";
@@ -31,29 +30,25 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
   public static final String ARE_PROTRAP_TARGET               = "Target";
   public static final String ARE_PROTRAP_PORTRAIT             = "Portrait";
 
-  ProTrap() throws Exception
-  {
+  ProTrap() throws Exception {
     super(null, ARE_PROTRAP, StreamUtils.getByteBuffer(28), 0);
   }
 
-  ProTrap(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  ProTrap(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, ARE_PROTRAP + " " + number, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new ResourceRef(buffer, offset, ARE_PROTRAP_TRAP, "PRO"));
     SectionOffset ofsEffects = new SectionOffset(buffer, offset + 8, ARE_PROTRAP_OFFSET_EFFECTS, ProEffect.class);
     addField(ofsEffects);

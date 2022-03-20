@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io;
@@ -11,21 +11,18 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
 /**
- * A simple OutputStream implementation which uses one or  more {@link ByteBuffer} objects as backend.
+ * A simple OutputStream implementation which uses one or more {@link ByteBuffer} objects as backend.
  */
-public class ByteBufferOutputStream extends OutputStream
-{
+public class ByteBufferOutputStream extends OutputStream {
   private final ByteBuffer[] bufs;
 
   private int curBuf;
 
-  public ByteBufferOutputStream(ByteBuffer buf)
-  {
-    this(new ByteBuffer[]{buf});
+  public ByteBufferOutputStream(ByteBuffer buf) {
+    this(new ByteBuffer[] { buf });
   }
 
-  public ByteBufferOutputStream(ByteBuffer... bufs)
-  {
+  public ByteBufferOutputStream(ByteBuffer... bufs) {
     if (bufs == null) {
       throw new NullPointerException();
     }
@@ -45,8 +42,7 @@ public class ByteBufferOutputStream extends OutputStream
   }
 
   @Override
-  public void write(int b) throws IOException
-  {
+  public void write(int b) throws IOException {
     if (!isOpen()) {
       throw new IOException("Stream not open");
     }
@@ -54,16 +50,15 @@ public class ByteBufferOutputStream extends OutputStream
     if (!buf.hasRemaining()) {
       throw new BufferOverflowException();
     }
-    buf.put((byte)b);
+    buf.put((byte) b);
   }
 
   @Override
-  public void write(byte[] bytes, int off, int len) throws IOException
-  {
+  public void write(byte[] bytes, int off, int len) throws IOException {
     if (bytes == null) {
       throw new NullPointerException();
     }
-    if(off < 0 || len < 0 || off + len > bytes.length) {
+    if (off < 0 || len < 0 || off + len > bytes.length) {
       throw new IndexOutOfBoundsException();
     }
     if (!isOpen()) {
@@ -83,12 +78,11 @@ public class ByteBufferOutputStream extends OutputStream
   }
 
   @Override
-  public void close() throws IOException
-  {
+  public void close() throws IOException {
     if (curBuf >= 0) {
-      for (final ByteBuffer buf: bufs) {
+      for (final ByteBuffer buf : bufs) {
         if (buf instanceof MappedByteBuffer) {
-          ((MappedByteBuffer)buf).force();
+          ((MappedByteBuffer) buf).force();
         }
       }
       synchronized (this) {
@@ -97,13 +91,11 @@ public class ByteBufferOutputStream extends OutputStream
     }
   }
 
-  private boolean isOpen()
-  {
+  private boolean isOpen() {
     return (curBuf >= 0);
   }
 
-  private void updateBuffer()
-  {
+  private void updateBuffer() {
     if (isOpen()) {
       if (curBuf < bufs.length) {
         if (bufs[curBuf].remaining() <= 0) {
@@ -115,8 +107,7 @@ public class ByteBufferOutputStream extends OutputStream
     }
   }
 
-  private ByteBuffer getBuffer(boolean update)
-  {
+  private ByteBuffer getBuffer(boolean update) {
     if (isOpen()) {
       if (update) {
         updateBuffer();

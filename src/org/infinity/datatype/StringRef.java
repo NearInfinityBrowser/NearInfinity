@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -17,6 +17,7 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -45,123 +46,117 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 /**
- * A struct field that represents reference to string in a talk table file (dialog.tlk
- * or dialogF.tlk).
+ * A struct field that represents reference to string in a talk table file (dialog.tlk or dialogF.tlk).
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@code int}</li>
  * <li>Value meaning: number of the string in the TLK</li>
  * </ul>
  */
-public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener, ChangeListener
-{
+public final class StringRef extends Datatype
+    implements Editable, IsNumeric, IsTextual, ActionListener, ChangeListener {
   /**
-   * Button that opens dialog with sound associated with this reference if that
-   * sound exists. If no sound assotiated with this string entry, button is disabled.
+   * Button that opens dialog with sound associated with this reference if that sound exists. If no sound assotiated
+   * with this string entry, button is disabled.
    */
   private JButton bPlay;
+
   /** Button that opens editor of the talk table(s) of the game (dialog.tlk and dialogF.tlk). */
   private JButton bEdit;
+
   /**
-   * Button that used to update reference in parent struct if editor of this string
-   * reference opened in embedded mode. Hidden if editor opened not in embedded mode
+   * Button that used to update reference in parent struct if editor of this string reference opened in embedded mode.
+   * Hidden if editor opened not in embedded mode
    */
   private JButton bUpdate;
+
   /**
-   * Button that opens dialog with settings for searching usage of this string
-   * in another game files.
+   * Button that opens dialog with settings for searching usage of this string in another game files.
    */
   private JButton bSearch;
+
   /** Text area that contains content of string from main talk table (dialog.tlk). */
   private InfinityTextArea taRefText;
+
   /** Editor for numerical index in talk table for this string reference. */
   private JSpinner sRefNr;
+
   /** Index of this string in the talk table (TLK file). */
   private int value;
 
   /**
    * Constructs field description.
    *
-   * @param name Name of field in parent struct that has {@code StringRef} type
+   * @param name  Name of field in parent struct that has {@code StringRef} type
    * @param value Index of the string in the talk table (TLK file)
    */
-  public StringRef(String name, int value)
-  {
+  public StringRef(String name, int value) {
     super(0, 4, name);
     this.value = value;
   }
 
   /**
-   * Constructs field description and reads its value from {@code buffer} starting
-   * with offset {@code offset}. Method reads 4 bytes from {@code buffer}.
+   * Constructs field description and reads its value from {@code buffer} starting with offset {@code offset}. Method
+   * reads 4 bytes from {@code buffer}.
    *
    * @param buffer Storage from which value of this field is readed
    * @param offset Offset of this field in the {@code buffer}
-   * @param name Name of field
+   * @param name   Name of field
    */
-  public StringRef(ByteBuffer buffer, int offset, String name)
-  {
+  public StringRef(ByteBuffer buffer, int offset, String name) {
     super(offset, 4, name);
     read(buffer, offset);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bUpdate) {
       taRefText.setText(StringTable.getStringRef(value));
       enablePlay(value);
-    }
-    else if (event.getSource() == bEdit) {
+    } else if (event.getSource() == bEdit) {
       StringEditor.edit(value);
-    }
-    else if (event.getSource() == bPlay) {
+    } else if (event.getSource() == bPlay) {
       final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(value) + ".WAV", true);
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
-    }
-    else if (event.getSource() == bSearch) {
+    } else if (event.getSource() == bSearch) {
       new StringReferenceSearcher(value, bSearch.getTopLevelAncestor());
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-// --------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
+  public void stateChanged(ChangeEvent e) {
     value = getValueFromEditor();
     taRefText.setText(StringTable.getStringRef(value));
     enablePlay(value);
   }
 
-// --------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-// --------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     if (sRefNr == null) {
-      sRefNr = new JSpinner(new SpinnerNumberModel((long)value, -0x80000000L, 0xFFFFFFFFL, 1L));
+      sRefNr = new JSpinner(new SpinnerNumberModel(value, -0x80000000L, 0xFFFFFFFFL, 1L));
       sRefNr.setEditor(new JSpinner.NumberEditor(sRefNr, "#")); // no special formatting
 
       // Restore click events for text field in JSpinner component
       if (sRefNr.getEditor() instanceof DefaultEditor) {
-        DefaultEditor edit = (DefaultEditor)sRefNr.getEditor();
+        DefaultEditor edit = (DefaultEditor) sRefNr.getEditor();
         edit.getTextField().addMouseListener(new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
             if (SwingUtilities.isLeftMouseButton(e) && e.getSource() instanceof JTextField) {
-              JTextField edit = (JTextField)e.getSource();
+              JTextField edit = (JTextField) e.getSource();
               // Invoke later to circumvent content validation (may not work correctly on every platform)
               if (e.getClickCount() == 2) {
                 SwingUtilities.invokeLater(() -> edit.selectAll());
@@ -254,13 +249,11 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     long oldValue = getLongValue();
     setValue(getValueFromEditor());
 
@@ -272,40 +265,35 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     return true;
   }
 
-// --------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     writeInt(os, value);
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-//--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     value = buffer.getInt();
 
     return offset + getSize();
   }
 
-//--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return toString(StringTable.Format.NONE);
   }
 
-  public String toString(StringTable.Format fmt)
-  {
+  public String toString(StringTable.Format fmt) {
     if (fmt == null) {
       fmt = StringTable.Format.NONE;
     }
@@ -313,52 +301,52 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + Integer.hashCode(value);
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(value);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof StringRef)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    StringRef other = (StringRef)o;
-    boolean retVal = (value == other.value);
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    StringRef other = (StringRef) obj;
+    return value == other.value;
   }
 
-//--------------------- Begin Interface IsNumeric ---------------------
+  // --------------------- Begin Interface IsNumeric ---------------------
 
   @Override
-  public long getLongValue()
-  {
-    return (long)value & 0xffffffffL;
+  public long getLongValue() {
+    return value & 0xffffffffL;
   }
 
   @Override
-  public int getValue()
-  {
+  public int getValue() {
     return value;
   }
 
-//--------------------- End Interface IsNumeric ---------------------
+  // --------------------- End Interface IsNumeric ---------------------
 
-//--------------------- Begin Interface IsTextual ---------------------
+  // --------------------- Begin Interface IsTextual ---------------------
 
   @Override
-  public String getText()
-  {
+  public String getText() {
     return StringTable.getStringRef(value);
   }
 
-//--------------------- End Interface IsTextual ---------------------
+  // --------------------- End Interface IsTextual ---------------------
 
-  public void setValue(int newValue)
-  {
+  public void setValue(int newValue) {
     final int oldValue = value;
     value = newValue;
     taRefText.setText(StringTable.getStringRef(newValue));
@@ -375,18 +363,16 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
    *
    * @param value Value of string reference
    */
-  private void enablePlay(int value)
-  {
+  private void enablePlay(int value) {
     final String resname = StringTable.getSoundResource(value);
     bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV", true));
   }
+
   /**
-   * Extracts current value of string reference from editor. This value may not
-   * be saved yet in string field of {@link #getParent() owner structure}, it is
-   * value of current string that editor is display.
+   * Extracts current value of string reference from editor. This value may not be saved yet in string field of
+   * {@link #getParent() owner structure}, it is value of current string that editor is display.
    */
-  private int getValueFromEditor()
-  {
-    return ((Number)sRefNr.getValue()).intValue();
+  private int getValueFromEditor() {
+    return ((Number) sRefNr.getValue()).intValue();
   }
 }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -20,12 +20,10 @@ import org.infinity.search.SearchMaster;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class StringLookup extends ChildFrame implements SearchClient
-{
+public final class StringLookup extends ChildFrame implements SearchClient {
   private final StringRef strref;
 
-  public StringLookup()
-  {
+  public StringLookup() {
     super("StringRef Lookup");
     setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     strref = new StringRef("StringRef:", 0);
@@ -34,7 +32,7 @@ public final class StringLookup extends ChildFrame implements SearchClient
     JPanel findpanel = SearchMaster.createAsPanel(this, this);
     findpanel.setBorder(BorderFactory.createTitledBorder("Find: StringRef"));
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -56,20 +54,13 @@ public final class StringLookup extends ChildFrame implements SearchClient
     Center.center(this, NearInfinity.getInstance().getBounds());
 
     // pre-caching string table to significantly reduce search time
-    new Thread(new Runnable() {
-      @Override
-      public void run()
-      {
-        StringTable.ensureFullyLoaded();
-      }
-    }).start();
+    new Thread(() -> StringTable.ensureFullyLoaded()).start();
   }
 
-// --------------------- Begin Interface SearchClient ---------------------
+  // --------------------- Begin Interface SearchClient ---------------------
 
   @Override
-  public String getText(int index)
-  {
+  public String getText(int index) {
     if (index < 0 || index >= StringTable.getNumEntries()) {
       return null;
     }
@@ -77,11 +68,9 @@ public final class StringLookup extends ChildFrame implements SearchClient
   }
 
   @Override
-  public void hitFound(int index)
-  {
+  public void hitFound(int index) {
     strref.setValue(index);
   }
 
-// --------------------- End Interface SearchClient ---------------------
+  // --------------------- End Interface SearchClient ---------------------
 }
-

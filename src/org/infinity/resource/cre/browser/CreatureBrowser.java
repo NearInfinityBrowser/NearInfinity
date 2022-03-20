@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -31,8 +31,7 @@ import org.infinity.resource.cre.decoder.util.SpriteUtils;
 /**
  * The Creature Browser implements a highly customizable browser and viewer for creature animations.
  */
-public class CreatureBrowser extends ChildFrame
-{
+public class CreatureBrowser extends ChildFrame {
   private final ConcurrentLinkedQueue<TaskInfo> actionQueue = new ConcurrentLinkedQueue<>();
   private final Listeners listeners = new Listeners();
 
@@ -46,62 +45,69 @@ public class CreatureBrowser extends ChildFrame
   /**
    * Creates an instance of the creature browser with a (virtual) default creature.
    */
-  public CreatureBrowser()
-  {
+  public CreatureBrowser() {
     this(null);
   }
 
   /**
    * Creates an instance of the creature browser and loads the specified CRE resource.
+   *
    * @param cre the CRE resource to load
    */
-  public CreatureBrowser(CreResource cre)
-  {
+  public CreatureBrowser(CreResource cre) {
     super("");
     init();
     setCreResource(cre);
   }
 
   /** Returns the currently active CRE resource. */
-  public CreResource getCreResource()
-  {
+  public CreResource getCreResource() {
     return cre;
   }
 
   /**
    * Discards the current creature data and loads the specified creature.
+   *
    * @param cre the CRE resource to load. Specify {@code null} to load the (virtual) default creature.
    */
-  public void setCreResource(CreResource cre)
-  {
-    if ((this.cre == null && cre != null) ||
-        this.cre != null && !this.cre.equals(cre) ||
-        cre == null) {
+  public void setCreResource(CreResource cre) {
+    if ((this.cre == null && cre != null) || this.cre != null && !this.cre.equals(cre) || cre == null) {
       this.cre = cre;
       performBackgroundTask(this::taskSetCreResource, this::postTaskDefault, true);
     }
   }
 
   /** Returns the active {@code SpriteDecoder} instance. Returns {@code null} otherwise. */
-  public SpriteDecoder getDecoder() { return getControlPanel().getControlModel().getDecoder(); }
+  public SpriteDecoder getDecoder() {
+    return getControlPanel().getControlModel().getDecoder();
+  }
 
   /** Returns the attached {@code CreatureControlPanel} instance. */
-  public CreatureControlPanel getControlPanel() { return panelCreature; }
+  public CreatureControlPanel getControlPanel() {
+    return panelCreature;
+  }
 
   /** Returns the attached {@code SettingsPanel} instance. */
-  public SettingsPanel getSettingsPanel() { return panelSettings; }
+  public SettingsPanel getSettingsPanel() {
+    return panelSettings;
+  }
 
-  public AttributesPanel getAttributesPanel() { return getSettingsPanel().getAttributesPanel(); }
+  public AttributesPanel getAttributesPanel() {
+    return getSettingsPanel().getAttributesPanel();
+  }
 
   /** Returns the attached {@code MediaPanel} instance. */
-  public MediaPanel getMediaPanel() { return panelMedia; }
+  public MediaPanel getMediaPanel() {
+    return panelMedia;
+  }
 
   /** Returns the attached {@code RenderPanel} instance. */
-  public RenderPanel getRenderPanel() { return panelCanvas; }
+  public RenderPanel getRenderPanel() {
+    return panelCanvas;
+  }
 
   /** Shows an error dialog with the specified message. */
-  public void showErrorMessage(String msg, String title)
-  {
+  public void showErrorMessage(String msg, String title) {
     if (msg == null || msg.isEmpty()) {
       msg = "An error has occurred.";
     }
@@ -111,20 +117,18 @@ public class CreatureBrowser extends ChildFrame
     JOptionPane.showMessageDialog(this, msg, title, JOptionPane.ERROR_MESSAGE);
   }
 
-//--------------------- Begin Class ChildFrame ---------------------
+  // --------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     getMediaPanel().pause();
     cleanup();
     return true;
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  // --------------------- End Class ChildFrame ---------------------
 
-  private void init()
-  {
+  private void init() {
     setIconImages(NearInfinity.getInstance().getIconImages());
 
     // *** CRE customization panel ***
@@ -170,14 +174,12 @@ public class CreatureBrowser extends ChildFrame
     setVisible(true);
   }
 
-  private void cleanup()
-  {
+  private void cleanup() {
     SpriteUtils.clearCache();
   }
 
   /** Background task: Loads the selected creature and initializes the browser. */
-  private Object taskSetCreResource() throws Exception
-  {
+  private Object taskSetCreResource() throws Exception {
     ProgressMonitor pm = new ProgressMonitor(this, "Initializing controls...", " ", 0, 2);
     pm.setMillisToDecideToPopup(0);
     pm.setMillisToPopup(0);
@@ -195,8 +197,7 @@ public class CreatureBrowser extends ChildFrame
   }
 
   /** A generic catch-all operation that can be used to evaluate exceptions thrown in a background task. */
-  private void postTaskDefault(Object o, Exception e)
-  {
+  private void postTaskDefault(Object o, Exception e) {
     if (e != null) {
       e.printStackTrace();
       JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -205,26 +206,24 @@ public class CreatureBrowser extends ChildFrame
 
   /**
    * A method that performs a lengthy GUI-interaction task in a background thread.
-   * @param action a {@link Task} to execute in the background.
-   * @param postAction an optional {@link PostTask} that is executed when the
-   *                   background task is completed. Return value of the {@code Task} as well as
-   *                   unhandled exceptions thrown in "action" are passed to the {@code PostTask}.
-   * @param block whether user interaction in the window is blocked during execution of the background thread.
+   *
+   * @param action     a {@link Task} to execute in the background.
+   * @param postAction an optional {@link PostTask} that is executed when the background task is completed. Return value
+   *                   of the {@code Task} as well as unhandled exceptions thrown in "action" are passed to the
+   *                   {@code PostTask}.
+   * @param block      whether user interaction in the window is blocked during execution of the background thread.
    */
-  public synchronized void performBackgroundTask(Task action, PostTask postAction, boolean block)
-  {
+  public synchronized void performBackgroundTask(Task action, PostTask postAction, boolean block) {
     actionQueue.add(new TaskInfo(Objects.requireNonNull(action), postAction, block));
     performBackgroundTask();
   }
 
-  private synchronized void performBackgroundTask()
-  {
+  private synchronized void performBackgroundTask() {
     final TaskInfo taskInfo = actionQueue.poll();
     if (worker == null && taskInfo != null) {
       worker = new SwingWorker<TaskInfo, Void>() {
         @Override
-        protected TaskInfo doInBackground() throws Exception
-        {
+        protected TaskInfo doInBackground() throws Exception {
           TaskInfo retVal = taskInfo;
           WindowBlocker blocker = null;
           try {
@@ -253,22 +252,18 @@ public class CreatureBrowser extends ChildFrame
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements PropertyChangeListener, ComponentListener
-  {
-    public Listeners()
-    {
+  private class Listeners implements PropertyChangeListener, ComponentListener {
+    public Listeners() {
     }
 
-    //--------------------- Begin Interface PropertyChangeListener ---------------------
+    // --------------------- Begin Interface PropertyChangeListener ---------------------
 
     @Override
-    public void propertyChange(PropertyChangeEvent event)
-    {
+    public void propertyChange(PropertyChangeEvent event) {
       if (event.getSource() == worker) {
-        if ("state".equals(event.getPropertyName()) &&
-            SwingWorker.StateValue.DONE == event.getNewValue()) {
+        if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
           TaskInfo retVal = null;
           try {
             retVal = worker.get();
@@ -285,83 +280,77 @@ public class CreatureBrowser extends ChildFrame
       }
     }
 
-    //--------------------- End Interface PropertyChangeListener ---------------------
+    // --------------------- End Interface PropertyChangeListener ---------------------
 
-    //--------------------- Begin Interface ComponentListener ---------------------
+    // --------------------- Begin Interface ComponentListener ---------------------
 
     @Override
-    public void componentResized(ComponentEvent e)
-    {
+    public void componentResized(ComponentEvent e) {
     }
 
     @Override
-    public void componentMoved(ComponentEvent e)
-    {
+    public void componentMoved(ComponentEvent e) {
     }
 
     @Override
-    public void componentShown(ComponentEvent e)
-    {
+    public void componentShown(ComponentEvent e) {
     }
 
     @Override
-    public void componentHidden(ComponentEvent e)
-    {
+    public void componentHidden(ComponentEvent e) {
       getMediaPanel().pause();
     }
 
-    //--------------------- End Interface ComponentListener ---------------------
+    // --------------------- End Interface ComponentListener ---------------------
   }
 
   /** Represents a supplier of results. */
-  public static interface Task
-  {
+  public static interface Task {
     /** Gets a result. */
     Object get() throws Exception;
   }
 
   /**
-   * Represents an operation that accepts two arguments:
-   * {@code Object} returned by and potential {@code Exception} thrown in the previous {@code Task} operation.
+   * Represents an operation that accepts two arguments: {@code Object} returned by and potential {@code Exception}
+   * thrown in the previous {@code Task} operation.
    */
-  public static interface PostTask
-  {
+  public static interface PostTask {
     void accept(Object o, Exception e);
 
     default PostTask andThen(PostTask after) {
       Objects.requireNonNull(after);
 
       return (o, e) -> {
-          accept(o, e);
-          after.accept(o, e);
+        accept(o, e);
+        after.accept(o, e);
       };
-  }
+    }
 
   }
 
   /**
    * Helper structure for data related to executing tasks in the background.
    */
-  private static class TaskInfo
-  {
+  private static class TaskInfo {
     /** Task executed in background thread. */
     public final Task action;
+
     /**
-     * Optional task executed when {@code action} thread completed.
-     * Parameters: {@code Object} is the result of the {@code action} task,
-     *             {@code Exception} is an exception thrown in the {@code action} task.
+     * Optional task executed when {@code action} thread completed. Parameters: {@code Object} is the result of the
+     * {@code action} task, {@code Exception} is an exception thrown in the {@code action} task.
      */
     public final PostTask postAction;
+
     /** Indicates whether window should be blocked during background thread execution. */
     public final boolean blockWindow;
 
     /** The return value of {@code action}. */
     public Object result;
+
     /** Unhandled exceptions thrown in the background task are forwarded to the post action task. */
     public Exception exception;
 
-    public TaskInfo(Task action, PostTask postAction, boolean block)
-    {
+    public TaskInfo(Task action, PostTask postAction, boolean block) {
       this.action = Objects.requireNonNull(action);
       this.postAction = postAction;
       this.blockWindow = block;

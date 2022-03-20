@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -38,22 +39,18 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.Misc;
 
-
 /**
  * Implements a RGB color picker control.
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@code int}</li>
  * <li>Value meaning: components of the color in format determined by field</li>
  * </ul>
  */
-public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseListener, FocusListener
-{
+public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseListener, FocusListener {
   /** Supported color formats. */
   public enum Format {
     /** Byte order: {unused, red, green, blue} */
@@ -65,24 +62,31 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     /** Byte order: {unused, blue, green, red} */
     XBGR(24, 16, 8);
 
-    private final int shiftRed, shiftGreen, shiftBlue;
+    private final int shiftRed;
+    private final int shiftGreen;
+    private final int shiftBlue;
 
-    private Format(int shiftRed, int shiftGreen, int shiftBlue)
-    {
+    private Format(int shiftRed, int shiftGreen, int shiftBlue) {
       this.shiftRed = shiftRed;
       this.shiftGreen = shiftGreen;
       this.shiftBlue = shiftBlue;
     }
 
-    int getRgb(int red, int green, int blue)
-    {
-      return ((red   & 0xFF) << shiftRed  )
-           | ((green & 0xFF) << shiftGreen)
-           | ((blue  & 0xFF) << shiftBlue );
+    int getRgb(int red, int green, int blue) {
+      return ((red & 0xFF) << shiftRed) | ((green & 0xFF) << shiftGreen) | ((blue & 0xFF) << shiftBlue);
     }
-    int getRed(int color)   { return (color >>> shiftRed  ) & 0xFF; }
-    int getGreen(int color) { return (color >>> shiftGreen) & 0xFF; }
-    int getBlue(int color)  { return (color >>> shiftBlue ) & 0xFF; }
+
+    int getRed(int color) {
+      return (color >>> shiftRed) & 0xFF;
+    }
+
+    int getGreen(int color) {
+      return (color >>> shiftGreen) & 0xFF;
+    }
+
+    int getBlue(int color) {
+      return (color >>> shiftBlue) & 0xFF;
+    }
   }
 
   private final Format format;
@@ -93,60 +97,57 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   private int value;
 
   /** Initializing color picker with the most commonly used color format {@link Format#XRGB}. */
-  public ColorPicker(ByteBuffer buffer, int offset, String name)
-  {
+  public ColorPicker(ByteBuffer buffer, int offset, String name) {
     this(buffer, offset, name, Format.XRGB);
   }
 
-  public ColorPicker(ByteBuffer buffer, int offset, String name, Format fmt)
-  {
+  public ColorPicker(ByteBuffer buffer, int offset, String name, Format fmt) {
     super(offset, 4, name);
     format = fmt;
     read(buffer, offset);
   }
 
-//--------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
-    rcMainPreview = new RenderCanvas();    // use H as x and B as y
+  public JComponent edit(ActionListener container) {
+    rcMainPreview = new RenderCanvas(); // use H as x and B as y
     rcMainPreview.setSize(Misc.getScaledValue(256), Misc.getScaledValue(128));
     rcMainPreview.setScalingEnabled(true);
     rcMainPreview.setPreferredSize(rcMainPreview.getSize());
     rcMainPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcMainPreview.addMouseListener(this);
-    rcMainPreview.setImage(ColorConvert.createCompatibleImage(rcMainPreview.getWidth(),
-                                                              rcMainPreview.getHeight(), false));
+    rcMainPreview
+        .setImage(ColorConvert.createCompatibleImage(rcMainPreview.getWidth(), rcMainPreview.getHeight(), false));
 
-    rcSecondPreview = new RenderCanvas();  // use S
+    rcSecondPreview = new RenderCanvas(); // use S
     rcSecondPreview.setSize(Misc.getScaledValue(32), Misc.getScaledValue(128));
     rcSecondPreview.setScalingEnabled(true);
     rcSecondPreview.setPreferredSize(rcSecondPreview.getSize());
     rcSecondPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcSecondPreview.addMouseListener(this);
-    rcSecondPreview.setImage(ColorConvert.createCompatibleImage(rcSecondPreview.getWidth(),
-                                                                rcSecondPreview.getHeight(), false));
+    rcSecondPreview
+        .setImage(ColorConvert.createCompatibleImage(rcSecondPreview.getWidth(), rcSecondPreview.getHeight(), false));
 
     JLabel lPreview = new JLabel("Preview");
-    rcColorPreview = new RenderCanvas();   // shows currently defined color
+    rcColorPreview = new RenderCanvas(); // shows currently defined color
     rcColorPreview.setSize(Misc.getScaledValue(64), Misc.getScaledValue(32));
     rcColorPreview.setScalingEnabled(true);
     rcColorPreview.setPreferredSize(rcColorPreview.getSize());
     rcColorPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcColorPreview.setBackground(Color.BLACK);
-    rcColorPreview.setImage(ColorConvert.createCompatibleImage(rcColorPreview.getWidth(),
-                                                               rcColorPreview.getHeight(), false));
+    rcColorPreview
+        .setImage(ColorConvert.createCompatibleImage(rcColorPreview.getWidth(), rcColorPreview.getHeight(), false));
 
     JLabel lHue = new JLabel("H:");
     JLabel lSat = new JLabel("S:");
     JLabel lBri = new JLabel("B:");
 
-    tfHue = new JTextField(4);    // range: [0..359]
+    tfHue = new JTextField(4); // range: [0..359]
     tfHue.addFocusListener(this);
-    tfSat = new JTextField(4);    // range: [0..100]
+    tfSat = new JTextField(4); // range: [0..100]
     tfSat.addFocusListener(this);
-    tfBri = new JTextField(4);    // range: [0..100]
+    tfBri = new JTextField(4); // range: [0..100]
     tfBri.addFocusListener(this);
 
     JLabel lHue2 = new JLabel("\u00B0");
@@ -157,11 +158,11 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     JLabel lG = new JLabel("G:");
     JLabel lB = new JLabel("B:");
 
-    tfRed = new JTextField(4);    // range: [0..255]
+    tfRed = new JTextField(4); // range: [0..255]
     tfRed.addFocusListener(this);
-    tfGreen = new JTextField(4);  // range: [0..255]
+    tfGreen = new JTextField(4); // range: [0..255]
     tfGreen.addFocusListener(this);
-    tfBlue = new JTextField(4);   // range: [0..255]
+    tfBlue = new JTextField(4); // range: [0..255]
     tfBlue.addFocusListener(this);
 
     JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
@@ -173,105 +174,103 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     // Setting up HSB controls
     JPanel pHSB = new JPanel(new GridBagLayout());
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pHSB.add(lHue, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pHSB.add(tfHue, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pHSB.add(lHue2, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 0, 0, 0), 0, 0);
     pHSB.add(lSat, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pHSB.add(tfSat, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pHSB.add(lSat2, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 0, 0, 0), 0, 0);
     pHSB.add(lBri, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pHSB.add(tfBri, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pHSB.add(lBri2, gbc);
-
 
     // Setting up RGB controls
     JPanel pRGB = new JPanel(new GridBagLayout());
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRGB.add(lR, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     pRGB.add(tfRed, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 0, 0, 0), 0, 0);
     pRGB.add(lG, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pRGB.add(tfGreen, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 0, 0, 0), 0, 0);
     pRGB.add(lB, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(2, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 4, 0, 0), 0, 0);
     pRGB.add(tfBlue, gbc);
-
 
     // Setting up color preview
     JPanel pPreview = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pPreview.add(lPreview, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pPreview.add(rcColorPreview, gbc);
 
     // Setting up main controls
     JPanel pControls = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(pHSB, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(pRGB, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LAST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(new JPanel(), gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LAST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(pPreview, gbc);
 
     JPanel pMain = new JPanel(new GridBagLayout());
     pMain.setBorder(BorderFactory.createEtchedBorder());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 0), 0, 0);
     pMain.add(rcMainPreview, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 0), 0, 0);
     pMain.add(rcSecondPreview, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(8, 16, 8, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(8, 16, 8, 8), 0, 0);
     pMain.add(pControls, gbc);
 
     // Setting up main panel
     JPanel panel = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(pMain, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     panel.add(bUpdate, gbc);
 
     panel.setMinimumSize(panel.getPreferredSize());
@@ -281,15 +280,13 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
     updateColorValues(value);
     updateColor();
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     setValue(getInputRgbValue());
 
     // notifying listeners
@@ -298,49 +295,45 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     return true;
   }
 
-//--------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-//--------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     writeInt(os, value);
   }
 
-//--------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-//--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     value = buffer.getInt();
-    tmpRed   = format.getRed(value);
+    tmpRed = format.getRed(value);
     tmpGreen = format.getGreen(value);
-    tmpBlue  = format.getBlue(value);
-    float[] hsb = {0.0f, 0.0f, 0.0f};
+    tmpBlue = format.getBlue(value);
+    float[] hsb = { 0.0f, 0.0f, 0.0f };
     Color.RGBtoHSB(tmpRed, tmpGreen, tmpBlue, hsb);
-    tmpHue = Math.round(hsb[0]*360.0f);
-    tmpSat = Math.round(hsb[1]*100.0f);
-    tmpBri = Math.round(hsb[2]*100.0f);
+    tmpHue = Math.round(hsb[0] * 360.0f);
+    tmpSat = Math.round(hsb[1] * 100.0f);
+    tmpBri = Math.round(hsb[2] * 100.0f);
 
     return offset + getSize();
   }
 
-//--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
-//--------------------- Begin Interface MouseListener ---------------------
+  // --------------------- Begin Interface MouseListener ---------------------
 
   @Override
-  public void mouseClicked(MouseEvent e)
-  {
+  public void mouseClicked(MouseEvent e) {
   }
 
   @Override
-  public void mousePressed(MouseEvent e)
-  {
+  public void mousePressed(MouseEvent e) {
     if (e.getSource() == rcMainPreview && e.getButton() == MouseEvent.BUTTON1) {
       updateMainPreviewValue(e.getX(), e.getY());
       updateRgbFromHsb();
@@ -353,35 +346,30 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   @Override
-  public void mouseReleased(MouseEvent e)
-  {
+  public void mouseReleased(MouseEvent e) {
   }
 
   @Override
-  public void mouseEntered(MouseEvent e)
-  {
+  public void mouseEntered(MouseEvent e) {
   }
 
   @Override
-  public void mouseExited(MouseEvent e)
-  {
+  public void mouseExited(MouseEvent e) {
   }
 
-//--------------------- End Interface MouseListener ---------------------
+  // --------------------- End Interface MouseListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent e)
-  {
+  public void focusGained(FocusEvent e) {
     if (e.getSource() instanceof JTextField) {
-      ((JTextField)e.getSource()).selectAll();
+      ((JTextField) e.getSource()).selectAll();
     }
   }
 
   @Override
-  public void focusLost(FocusEvent e)
-  {
+  public void focusLost(FocusEvent e) {
     if (e.getSource() == tfRed) {
       int v = validateNumberInput(tfRed, tmpRed, 0, 255);
       if (v != tmpRed) {
@@ -433,102 +421,125 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
   @Override
-  public String toString()
-  {
-    return String.format("Red: %d, Green: %d, Blue: %d",
-                         format.getRed(value), format.getGreen(value), format.getBlue(value));
+  public String toString() {
+    return String.format("Red: %d, Green: %d, Blue: %d", format.getRed(value), format.getGreen(value),
+        format.getBlue(value));
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + Integer.hashCode(value);
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(value);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof ColorPicker)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    ColorPicker other = (ColorPicker)o;
-    boolean retVal = (value == other.value);
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    ColorPicker other = (ColorPicker) obj;
+    return value == other.value;
   }
 
-//--------------------- Begin Interface IsNumeric ---------------------
+  // --------------------- Begin Interface IsNumeric ---------------------
 
   @Override
-  public long getLongValue()
-  {
-    return (long)value & 0xffffffffL;
+  public long getLongValue() {
+    return value & 0xffffffffL;
   }
 
   @Override
-  public int getValue()
-  {
+  public int getValue() {
     return value;
   }
 
-//--------------------- End Interface IsNumeric ---------------------
+  // --------------------- End Interface IsNumeric ---------------------
 
-  private void setValue(int newValue)
-  {
+  private void setValue(int newValue) {
     final int oldValue = value;
     value = newValue;
     if (oldValue != newValue) {
       firePropertyChange(oldValue, newValue);
     }
   }
+
   // h, s, b in range [0..1]
-  private int getHsbValue(float h, float s, float b)
-  {
-    if (h < 0.0f) h = 0.0f; else if (h > 1.0f) h = 1.0f;
-    if (s < 0.0f) s = 0.0f; else if (s > 1.0f) s = 1.0f;
-    if (b < 0.0f) b = 0.0f; else if (b > 1.0f) b = 1.0f;
+  private int getHsbValue(float h, float s, float b) {
+    if (h < 0.0f) {
+      h = 0.0f;
+    } else if (h > 1.0f) {
+      h = 1.0f;
+    }
+    if (s < 0.0f) {
+      s = 0.0f;
+    } else if (s > 1.0f) {
+      s = 1.0f;
+    }
+    if (b < 0.0f) {
+      b = 0.0f;
+    } else if (b > 1.0f) {
+      b = 1.0f;
+    }
     final Color c = new Color(Color.HSBtoRGB(h, s, b));
     return format.getRgb(c.getRed(), c.getGreen(), c.getBlue());
   }
 
   /** Returns a color value based on the RGB input fields. */
-  private int getInputRgbValue() throws NumberFormatException
-  {
+  private int getInputRgbValue() throws NumberFormatException {
     return format.getRgb(getInputRed(), getInputGreen(), getInputBlue());
   }
 
-  private int getInputRed() throws NumberFormatException
-  {
+  private int getInputRed() throws NumberFormatException {
     int v = Integer.parseInt(tfRed.getText());
-    if (v < 0) v = 0; else if (v > 255) v = 255;
+    if (v < 0) {
+      v = 0;
+    } else if (v > 255) {
+      v = 255;
+    }
     return v;
   }
 
-  private int getInputGreen() throws NumberFormatException
-  {
+  private int getInputGreen() throws NumberFormatException {
     int v = Integer.parseInt(tfGreen.getText());
-    if (v < 0) v = 0; else if (v > 255) v = 255;
+    if (v < 0) {
+      v = 0;
+    } else if (v > 255) {
+      v = 255;
+    }
     return v;
   }
 
-  private int getInputBlue() throws NumberFormatException
-  {
+  private int getInputBlue() throws NumberFormatException {
     int v = Integer.parseInt(tfBlue.getText());
-    if (v < 0) v = 0; else if (v > 255) v = 255;
+    if (v < 0) {
+      v = 0;
+    } else if (v > 255) {
+      v = 255;
+    }
     return v;
   }
 
   /** Checks and returns either the number fetched from the input field or oldVal on error. */
-  private int validateNumberInput(JTextField tf, int oldVal, int min, int max)
-  {
+  private int validateNumberInput(JTextField tf, int oldVal, int min, int max) {
     if (tf != null) {
       try {
         oldVal = Integer.parseInt(tf.getText());
-        if (oldVal < min) oldVal = min; else if (oldVal > max) oldVal = max;
+        if (oldVal < min) {
+          oldVal = min;
+        } else if (oldVal > max) {
+          oldVal = max;
+        }
       } catch (NumberFormatException nfe) {
       }
       tf.setText(Integer.toString(oldVal));
@@ -537,78 +548,92 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   /**
-   * Returns color value based on the main preview coordinates and the saturation
-   * value from the input field.
+   * Returns color value based on the main preview coordinates and the saturation value from the input field.
    */
-  private void updateMainPreviewValue(int x, int y)
-  {
-    if (x < 0) x = 0; else if (x >= rcMainPreview.getWidth()) x = rcMainPreview.getWidth() - 1;
-    if (y < 0) y = 0; else if (y >= rcMainPreview.getHeight()) y = rcMainPreview.getHeight() - 1;
+  private void updateMainPreviewValue(int x, int y) {
+    if (x < 0) {
+      x = 0;
+    } else if (x >= rcMainPreview.getWidth()) {
+      x = rcMainPreview.getWidth() - 1;
+    }
+    if (y < 0) {
+      y = 0;
+    } else if (y >= rcMainPreview.getHeight()) {
+      y = rcMainPreview.getHeight() - 1;
+    }
     tmpHue = x * 360 / rcMainPreview.getWidth();
     tmpBri = 100 - (y * 100 / rcMainPreview.getHeight());
   }
 
   /**
-   * Returns color value based on the secondary preview coordinate and the
-   * hue/brightness values from the input fields.
+   * Returns color value based on the secondary preview coordinate and the hue/brightness values from the input fields.
    */
-  private void updateSecondPreviewValue(int y)
-  {
-    if (y < 0) y = 0; else if (y >= rcSecondPreview.getHeight()) y = rcSecondPreview.getHeight() - 1;
+  private void updateSecondPreviewValue(int y) {
+    if (y < 0) {
+      y = 0;
+    } else if (y >= rcSecondPreview.getHeight()) {
+      y = rcSecondPreview.getHeight() - 1;
+    }
     tmpSat = 100 - (y * 100 / rcSecondPreview.getHeight());
   }
 
-  private void updateRgbFromHsb()
-  {
+  private void updateRgbFromHsb() {
     final Color c = new Color(Color.HSBtoRGB(tmpHue / 360.0f, tmpSat / 100.0f, tmpBri / 100.0f));
-    tmpRed   = c.getRed();
+    tmpRed = c.getRed();
     tmpGreen = c.getGreen();
-    tmpBlue  = c.getBlue();
+    tmpBlue = c.getBlue();
   }
 
-  private void updateHsbFromRgb()
-  {
-    float[] hsb = {0.0f, 0.0f, 0.0f};
+  private void updateHsbFromRgb() {
+    float[] hsb = { 0.0f, 0.0f, 0.0f };
     Color.RGBtoHSB(tmpRed, tmpGreen, tmpBlue, hsb);
-    tmpHue = Math.round(hsb[0]*360.0f);
-    tmpSat = Math.round(hsb[1]*100.0f);
-    tmpBri = Math.round(hsb[2]*100.0f);
+    tmpHue = Math.round(hsb[0] * 360.0f);
+    tmpSat = Math.round(hsb[1] * 100.0f);
+    tmpBri = Math.round(hsb[2] * 100.0f);
   }
 
   /** Updates all temporary values for each color component. */
-  private void updateColorValues(int value)
-  {
-    tmpRed   = format.getRed(value);
+  private void updateColorValues(int value) {
+    tmpRed = format.getRed(value);
     tmpGreen = format.getGreen(value);
-    tmpBlue  = format.getBlue(value);
+    tmpBlue = format.getBlue(value);
     updateHsbFromRgb();
   }
 
   /** Update RGB input controls only. */
-  private void updateInputRgb()
-  {
+  private void updateInputRgb() {
     tfRed.setText(Integer.toString(tmpRed));
-    if (tfRed.hasFocus()) tfRed.selectAll();
+    if (tfRed.hasFocus()) {
+      tfRed.selectAll();
+    }
     tfGreen.setText(Integer.toString(tmpGreen));
-    if (tfGreen.hasFocus()) tfGreen.selectAll();
+    if (tfGreen.hasFocus()) {
+      tfGreen.selectAll();
+    }
     tfBlue.setText(Integer.toString(tmpBlue));
-    if (tfBlue.hasFocus()) tfBlue.selectAll();
+    if (tfBlue.hasFocus()) {
+      tfBlue.selectAll();
+    }
   }
 
   /** Update HSB input controls only. */
-  private void updateInputHsb()
-  {
+  private void updateInputHsb() {
     tfHue.setText(Integer.toString(tmpHue));
-    if (tfHue.hasFocus()) tfHue.selectAll();
+    if (tfHue.hasFocus()) {
+      tfHue.selectAll();
+    }
     tfSat.setText(Integer.toString(tmpSat));
-    if (tfSat.hasFocus()) tfSat.selectAll();
+    if (tfSat.hasFocus()) {
+      tfSat.selectAll();
+    }
     tfBri.setText(Integer.toString(tmpBri));
-    if (tfBri.hasFocus()) tfBri.selectAll();
+    if (tfBri.hasFocus()) {
+      tfBri.selectAll();
+    }
   }
 
   /** Update preview controls only. */
-  private void updatePreview()
-  {
+  private void updatePreview() {
     // update main preview
     updateMainPreview();
 
@@ -620,21 +645,19 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   /** Update controls with given color value. */
-  private void updateColor()
-  {
+  private void updateColor() {
     updateInputRgb();
     updateInputHsb();
     updatePreview();
   }
 
   /** Update main (hue/brightness) preview. */
-  private void updateMainPreview()
-  {
+  private void updateMainPreview() {
     // drawing background
     initMainPreviewMap();
 
     // drawing marker
-    BufferedImage image = (BufferedImage)rcMainPreview.getImage();
+    BufferedImage image = (BufferedImage) rcMainPreview.getImage();
     if (image != null) {
       Graphics2D g = image.createGraphics();
       if (g != null) {
@@ -656,24 +679,23 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   /** Update secondary (saturation) preview. */
-  private void updateSecondPreview()
-  {
-    BufferedImage image = (BufferedImage)rcSecondPreview.getImage();
+  private void updateSecondPreview() {
+    BufferedImage image = (BufferedImage) rcSecondPreview.getImage();
     if (image != null) {
       int width = image.getWidth();
       int height = image.getHeight();
       int type = image.getRaster().getDataBuffer().getDataType();
       if (type == DataBuffer.TYPE_INT) {
-        final int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        final int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
         // drawing gradient and marker
         final float h = tmpHue / 360.0f;
         final float b = tmpBri / 100.0f;
         int marker = (100 - tmpSat) * height / 100;
         for (int y = 0; y < height; y++) {
-          float sat = 1.0f - (y / (float)height);
+          float sat = 1.0f - (y / (float) height);
           int rgb = (y == marker) ? 0xffffff : Color.HSBtoRGB(h, sat, b);
-          int ofs = y*width;
+          int ofs = y * width;
           for (int x = 0; x < width; x++, ofs++) {
             buffer[ofs] = rgb;
           }
@@ -684,13 +706,12 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   /** Update color preview box. */
-  private void updateColorPreview()
-  {
-    BufferedImage image = (BufferedImage)rcColorPreview.getImage();
+  private void updateColorPreview() {
+    BufferedImage image = (BufferedImage) rcColorPreview.getImage();
     if (image != null) {
       int type = image.getRaster().getDataBuffer().getDataType();
       if (type == DataBuffer.TYPE_INT) {
-        int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         int rgb = (tmpRed << 16) | (tmpGreen << 8) | tmpBlue;
         Arrays.fill(buffer, rgb);
       }
@@ -699,21 +720,20 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   }
 
   /** Update main preview background map. */
-  private void initMainPreviewMap()
-  {
-    BufferedImage image = (BufferedImage)rcMainPreview.getImage();
+  private void initMainPreviewMap() {
+    BufferedImage image = (BufferedImage) rcMainPreview.getImage();
     if (image != null) {
       int width = image.getWidth();
       int height = image.getHeight();
-      int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
       if (buffer != null) {
         final float s = tmpSat / 100.0f;
         for (int y = 0; y < height; y++) {
-          final float b = 1.0f - (y / (float)height);
+          final float b = 1.0f - (y / (float) height);
           for (int x = 0; x < width; x++) {
             final float h = x / (float) width;
             final int rgb = getHsbValue(h, s, b);
-            buffer[y*width + x] = (format.getRed(rgb) << 16) | (format.getGreen(rgb) << 8) | format.getBlue(rgb);
+            buffer[y * width + x] = (format.getRed(rgb) << 16) | (format.getGreen(rgb) << 8) | format.getBlue(rgb);
           }
         }
       }

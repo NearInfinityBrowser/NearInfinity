@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -16,10 +16,9 @@ import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 /**
  * Manages global area viewer settings.
  */
-public class Settings
-{
+public class Settings {
   // Default layer order on map
-  public static final ViewerConstants.LayerStackingType[] DefaultLayerOrder = {
+  public static final ViewerConstants.LayerStackingType[] DEFAULT_LAYER_ORDER = {
       ViewerConstants.LayerStackingType.ACTOR,
       ViewerConstants.LayerStackingType.ENTRANCE,
       ViewerConstants.LayerStackingType.AMBIENT,
@@ -35,18 +34,18 @@ public class Settings
       ViewerConstants.LayerStackingType.AMBIENT_RANGE,
       ViewerConstants.LayerStackingType.TRANSITION
   };
-  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "67%", "75%",
-                                                  "100%", "150%", "200%", "300%", "400%", "Custom"};
-  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
-                                                 1.0, 1.5, 2.0, 3.0, 4.0, -1.0};
-  public static final double[] WheelZoomFactor = {0.1, 0.2, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
-                                                  1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
-  public static final double ZoomFactorAuto = 0.0;      // the auto-fit zoom factor
-  public static final double ZoomFactorDefault = 1.0;   // the default zoom factor
-  public static final double ZoomFactorMax = 10.0;      // maximum allowed zoom factor
+  public static final String[] LABEL_ZOOM_FACTOR = { "Auto-fit", "25%", "33%", "50%", "67%", "75%", "100%", "150%",
+                                                   "200%", "300%", "400%", "Custom" };
+  public static final double[] ITEM_ZOOM_FACTOR = { 0.0, 0.25, 1.0 / 3.0, 0.5, 2.0 / 3.0, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, -1.0 };
+  public static final double[] WHEEL_ZOOM_FACTOR = { 0.1, 0.2, 0.25, 1.0 / 3.0, 0.5, 2.0 / 3.0, 0.75, 1.0, 1.5, 2.0, 2.5,
+                                                   3.0, 3.5, 4.0 };
+  public static final double ZOOM_FACTOR_AUTO = 0.0; // the auto-fit zoom factor
+  public static final double ZOOM_FACTOR_DEFAULT = 1.0; // the default zoom factor
+  public static final double ZOOM_FACTOR_MAX = 10.0; // maximum allowed zoom factor
 
   // Defines stacking order of layer items on the map
-  public static final List<ViewerConstants.LayerStackingType> ListLayerOrder = getDefaultLayerOrder();
+  public static final List<ViewerConstants.LayerStackingType> LIST_LAYER_ORDER = getDefaultLayerOrder();
+
   // Indicates whether to store settings on disk
   public static boolean StoreVisualSettings = getDefaultStoreVisualSettings();
   // Indicates whether to use different color shades to distinguish between region types
@@ -104,11 +103,11 @@ public class Settings
   // Show label for various layer item types
   public static boolean ShowLabelActorsAre = getDefaultLabelActorsAre();
   public static boolean ShowLabelActorsIni = getDefaultLabelActorsIni();
-//  public static boolean ShowLabelRegions = getDefaultLabelRegions();
+  // public static boolean ShowLabelRegions = getDefaultLabelRegions();
   public static boolean ShowLabelEntrances = getDefaultLabelEntrances();
-//  public static boolean ShowLabelContainers = getDefaultLabelContainers();
+  // public static boolean ShowLabelContainers = getDefaultLabelContainers();
   public static boolean ShowLabelSounds = getDefaultLabelSounds();
-//  public static boolean ShowLabelDoors = getDefaultLabelDoors();
+  // public static boolean ShowLabelDoors = getDefaultLabelDoors();
   public static boolean ShowLabelAnimations = getDefaultLabelAnimations();
   public static boolean ShowLabelMapNotes = getDefaultLabelMapNotes();
   public static boolean ShowLabelSpawnPoints = getDefaultLabelSpawnPoints();
@@ -157,18 +156,18 @@ public class Settings
 
   /**
    * Loads stored viewer settings from disk if available and the store settings flag is enabled.
+   *
    * @param force If true, overrides the store settings flag and always loads settings from disk.
    */
-  public static void loadSettings(boolean force)
-  {
+  public static void loadSettings(boolean force) {
     if (!SettingsLoaded || force) {
       Preferences prefs = Preferences.userNodeForPackage(AreaViewer.class);
 
       // loading required settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
       UseColorShades = prefs.getBoolean(PREFS_USECOLORSHADES, getDefaultUseColorShades());
-      ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS,getDefaultExportLayers());
-      MouseWheelZoom = prefs.getBoolean(PREFS_MOUSEWHEELZOOM,getDefaultMouseWheelZoom());
+      ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS, getDefaultExportLayers());
+      MouseWheelZoom = prefs.getBoolean(PREFS_MOUSEWHEELZOOM, getDefaultMouseWheelZoom());
       OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
       ShowActorFrame = prefs.getInt(PREFS_SHOWACTORFRAME, getDefaultShowActorFrame());
       ShowActorSelectionCircle = prefs.getBoolean(PREFS_SHOWACTORSELECTION, getDefaultActorSelectionCircle());
@@ -182,23 +181,23 @@ public class Settings
       MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
       ShowLabelActorsAre = prefs.getBoolean(PREFS_LABEL_ACTOR_ARE, getDefaultLabelActorsAre());
       ShowLabelActorsIni = prefs.getBoolean(PREFS_LABEL_ACTOR_INI, getDefaultLabelActorsIni());
-//      ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
+      // ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
       ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
-//      ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
+      // ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
       ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
-//      ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
+      // ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
       ShowLabelAnimations = prefs.getBoolean(PREFS_LABEL_ANIMATIONS, getDefaultLabelAnimations());
       ShowLabelMapNotes = prefs.getBoolean(PREFS_LABEL_MAPNOTES, getDefaultLabelMapNotes());
       ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
 
       // loading layer z-order
-      ListLayerOrder.clear();
+      LIST_LAYER_ORDER.clear();
       for (int i = 0; i < ViewerConstants.LayerStackingType.values().length; i++) {
         int idx = prefs.getInt(String.format(PREFS_LAYERZORDER_FMT, i), -1);
         if (idx >= 0 && idx < ViewerConstants.LayerStackingType.values().length) {
-          ListLayerOrder.add(ViewerConstants.LayerStackingType.values()[idx]);
+          LIST_LAYER_ORDER.add(ViewerConstants.LayerStackingType.values()[idx]);
         } else {
-          ListLayerOrder.add(DefaultLayerOrder[i]);
+          LIST_LAYER_ORDER.add(DEFAULT_LAYER_ORDER[i]);
         }
       }
 
@@ -224,10 +223,10 @@ public class Settings
 
   /**
    * Stores current global viewer settings on disk only if storing settings is enabled.
+   *
    * @param force If true, always stores settings to disk, ignoring the store settings flag.
    */
-  public static void storeSettings(boolean force)
-  {
+  public static void storeSettings(boolean force) {
     validateSettings();
     Preferences prefs = Preferences.userNodeForPackage(AreaViewer.class);
 
@@ -249,18 +248,18 @@ public class Settings
     prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
     prefs.putBoolean(PREFS_LABEL_ACTOR_ARE, ShowLabelActorsAre);
     prefs.putBoolean(PREFS_LABEL_ACTOR_INI, ShowLabelActorsIni);
-//    prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
+    // prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
     prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
-//    prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
+    // prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
     prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
-//    prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
+    // prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
     prefs.putBoolean(PREFS_LABEL_ANIMATIONS, ShowLabelAnimations);
     prefs.putBoolean(PREFS_LABEL_MAPNOTES, ShowLabelMapNotes);
     prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
 
     // storing layer z-order
-    for (int i = 0; i < ListLayerOrder.size(); i++) {
-      prefs.putInt(String.format(PREFS_LAYERZORDER_FMT, i), getLayerStackingTypeIndex(ListLayerOrder.get(i)));
+    for (int i = 0; i < LIST_LAYER_ORDER.size(); i++) {
+      prefs.putInt(String.format(PREFS_LAYERZORDER_FMT, i), getLayerStackingTypeIndex(LIST_LAYER_ORDER.get(i)));
     }
 
     // storing optional settings
@@ -286,24 +285,22 @@ public class Settings
   }
 
   // Makes sure that all settings are valid
-  private static void validateSettings()
-  {
+  private static void validateSettings() {
     int mask = (1 << LayerManager.getLayerTypeCount()) - 1;
     LayerFlags &= mask;
 
-    SidebarControls &= (ViewerConstants.SIDEBAR_VISUALSTATE |
-                        ViewerConstants.SIDEBAR_LAYERS |
-                        ViewerConstants.SIDEBAR_MINIMAPS);
+    SidebarControls &= (ViewerConstants.SIDEBAR_VISUALSTATE | ViewerConstants.SIDEBAR_LAYERS
+        | ViewerConstants.SIDEBAR_MINIMAPS);
     ShowActorSprites = Math.min(Math.max(ShowActorSprites, ViewerConstants.ANIM_SHOW_NONE),
-                                ViewerConstants.ANIM_SHOW_ANIMATED);
+        ViewerConstants.ANIM_SHOW_ANIMATED);
     ShowRealAnimations = Math.min(Math.max(ShowRealAnimations, ViewerConstants.ANIM_SHOW_NONE),
-                                  ViewerConstants.ANIM_SHOW_ANIMATED);
+        ViewerConstants.ANIM_SHOW_ANIMATED);
     TimeOfDay = Math.min(Math.max(TimeOfDay, ViewerConstants.TIME_0), ViewerConstants.TIME_23);
-    ZoomFactor = Math.min(Math.max(ZoomFactor, 0.0), ZoomFactorMax);
+    ZoomFactor = Math.min(Math.max(ZoomFactor, 0.0), ZOOM_FACTOR_MAX);
     InterpolationMap = Math.min(Math.max(InterpolationMap, ViewerConstants.FILTERING_AUTO),
-                                ViewerConstants.FILTERING_BILINEAR);
+        ViewerConstants.FILTERING_BILINEAR);
     InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.FILTERING_AUTO),
-                                 ViewerConstants.FILTERING_BILINEAR);
+        ViewerConstants.FILTERING_BILINEAR);
     FrameRateOverlays = Math.min(Math.max(FrameRateOverlays, 1.0), 30.0);
     FrameRateAnimations = Math.min(Math.max(FrameRateAnimations, 1.0), 30.0);
     MiniMapAlpha = Math.min(Math.max(MiniMapAlpha, 0.0), 1.0);
@@ -313,10 +310,10 @@ public class Settings
     mask = 0;
     // 1. checking for duplicates
     int i = 0;
-    while (i < ListLayerOrder.size()) {
-      int bit = 1 << getLayerStackingTypeIndex(ListLayerOrder.get(i));
+    while (i < LIST_LAYER_ORDER.size()) {
+      int bit = 1 << getLayerStackingTypeIndex(LIST_LAYER_ORDER.get(i));
       if ((mask & bit) != 0) {
-        ListLayerOrder.remove(i);
+        LIST_LAYER_ORDER.remove(i);
         continue;
       } else {
         mask |= bit;
@@ -327,240 +324,202 @@ public class Settings
     for (i = 0; i < ViewerConstants.LayerStackingType.values().length; i++) {
       int bit = 1 << i;
       if ((mask & bit) == 0) {
-        ListLayerOrder.add(ViewerConstants.LayerStackingType.values()[i]);
+        LIST_LAYER_ORDER.add(ViewerConstants.LayerStackingType.values()[i]);
       }
     }
   }
 
-  public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder()
-  {
+  public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder() {
     List<ViewerConstants.LayerStackingType> list = new ArrayList<>();
-    Collections.addAll(list, DefaultLayerOrder);
+    Collections.addAll(list, DEFAULT_LAYER_ORDER);
     return list;
   }
 
-  public static boolean getDefaultStoreVisualSettings()
-  {
+  public static boolean getDefaultStoreVisualSettings() {
     return false;
   }
 
-  public static boolean getDefaultUseColorShades()
-  {
+  public static boolean getDefaultUseColorShades() {
     return true;
   }
 
-  public static boolean getDefaultExportLayers()
-  {
+  public static boolean getDefaultExportLayers() {
     return true;
   }
 
-  public static boolean getDefaultMouseWheelZoom()
-  {
+  public static boolean getDefaultMouseWheelZoom() {
     return false;
   }
 
-  public static boolean getDefaultDrawClosed()
-  {
+  public static boolean getDefaultDrawClosed() {
     return false;
   }
 
-  public static boolean getDefaultDrawOverlays()
-  {
+  public static boolean getDefaultDrawOverlays() {
     return true;
   }
 
-  public static boolean getDefaultDrawGrid()
-  {
+  public static boolean getDefaultDrawGrid() {
     return false;
   }
 
-  public static boolean getDefaultAmbientRanges()
-  {
+  public static boolean getDefaultAmbientRanges() {
     return false;
   }
 
-  public static boolean getDefaultEnableSchedules()
-  {
+  public static boolean getDefaultEnableSchedules() {
     return false;
   }
 
-  public static boolean getDefaultOverrideAnimVisibility()
-  {
+  public static boolean getDefaultOverrideAnimVisibility() {
     return false;
   }
 
-  public static boolean getDefaultActorSelectionCircle()
-  {
+  public static boolean getDefaultActorSelectionCircle() {
     return true;
   }
 
-  public static boolean getDefaultActorPersonalSpace()
-  {
+  public static boolean getDefaultActorPersonalSpace() {
     return false;
   }
 
-  public static boolean getDefaultActorAccurateBlending()
-  {
+  public static boolean getDefaultActorAccurateBlending() {
     return true;
   }
 
-  public static int getDefaultSidebarControls()
-  {
+  public static int getDefaultSidebarControls() {
     return ViewerConstants.SIDEBAR_VISUALSTATE | ViewerConstants.SIDEBAR_LAYERS | ViewerConstants.SIDEBAR_MINIMAPS;
   }
 
-  public static int getDefaultShowActorFrame()
-  {
+  public static int getDefaultShowActorFrame() {
     return ViewerConstants.FRAME_AUTO;
   }
 
-  public static int getDefaultShowAnimationFrame()
-  {
+  public static int getDefaultShowAnimationFrame() {
     return ViewerConstants.FRAME_AUTO;
   }
 
-  public static int getDefaultInterpolationMap()
-  {
+  public static int getDefaultInterpolationMap() {
     return ViewerConstants.FILTERING_AUTO;
   }
 
-  public static int getDefaultInterpolationAnim()
-  {
+  public static int getDefaultInterpolationAnim() {
     return ViewerConstants.FILTERING_AUTO;
   }
 
-  public static int getDefaultLayerFlags()
-  {
+  public static int getDefaultLayerFlags() {
     return 0;
   }
 
-  public static int getDefaultShowRealActors()
-  {
+  public static int getDefaultShowRealActors() {
     return ViewerConstants.ANIM_SHOW_NONE;
   }
 
-  public static int getDefaultShowRealAnimations()
-  {
+  public static int getDefaultShowRealAnimations() {
     return ViewerConstants.ANIM_SHOW_NONE;
   }
 
-  public static int getDefaultTimeOfDay()
-  {
+  public static int getDefaultTimeOfDay() {
     return ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY);
   }
 
-  public static double getDefaultZoomFactor()
-  {
-    return ZoomFactorDefault;
+  public static double getDefaultZoomFactor() {
+    return ZOOM_FACTOR_DEFAULT;
   }
 
-  public static int getZoomLevelIndex(double value)
-  {
+  public static int getZoomLevelIndex(double value) {
     if (value == 0.0) {
       return 0;
     } else {
-      for (int idx = 0; idx < ItemZoomFactor.length; ++idx) {
-        if (value == ItemZoomFactor[idx]) {
+      for (int idx = 0; idx < ITEM_ZOOM_FACTOR.length; ++idx) {
+        if (value == ITEM_ZOOM_FACTOR[idx]) {
           return idx;
         }
       }
-      return ItemZoomFactor.length - 1;
+      return ITEM_ZOOM_FACTOR.length - 1;
     }
   }
 
-  public static double getNextZoomFactor(double curValue, boolean increment)
-  {
+  public static double getNextZoomFactor(double curValue, boolean increment) {
     double retVal = curValue;
     double distMin = Double.MAX_VALUE;
-    for (int i = 0; i < WheelZoomFactor.length; i++) {
+    for (double element : WHEEL_ZOOM_FACTOR) {
       double dist = Double.MAX_VALUE;
-      if (increment && WheelZoomFactor[i] > curValue) {
-        dist = WheelZoomFactor[i] - curValue;
-      } else if (!increment && curValue > WheelZoomFactor[i]) {
-        dist = curValue - WheelZoomFactor[i];
+      if (increment && element > curValue) {
+        dist = element - curValue;
+      } else if (!increment && curValue > element) {
+        dist = curValue - element;
       }
       if (dist < distMin) {
         distMin = dist;
-        retVal = WheelZoomFactor[i];
+        retVal = element;
       }
     }
 
     return retVal;
   }
 
-  public static double getDefaultFrameRateOverlays()
-  {
+  public static double getDefaultFrameRateOverlays() {
     return 7.5;
   }
 
-  public static double getDefaultFrameRateAnimations()
-  {
+  public static double getDefaultFrameRateAnimations() {
     return 15.0;
   }
 
-  public static double getDefaultMiniMapAlpha()
-  {
+  public static double getDefaultMiniMapAlpha() {
     return 0.5;
   }
 
-  public static int getDefaultMiniMap()
-  {
+  public static int getDefaultMiniMap() {
     return ViewerConstants.MAP_NONE;
   }
 
-  public static boolean getDefaultLabelActorsAre()
-  {
+  public static boolean getDefaultLabelActorsAre() {
     return true;
   }
 
-  public static boolean getDefaultLabelActorsIni()
-  {
+  public static boolean getDefaultLabelActorsIni() {
     return true;
   }
 
-//  public static boolean getDefaultLabelRegions()
-//  {
-//    return false;
-//  }
+  // public static boolean getDefaultLabelRegions()
+  // {
+  // return false;
+  // }
 
-  public static boolean getDefaultLabelEntrances()
-  {
+  public static boolean getDefaultLabelEntrances() {
     return false;
   }
 
-//  public static boolean getDefaultLabelContainers()
-//  {
-//    return false;
-//  }
+  // public static boolean getDefaultLabelContainers()
+  // {
+  // return false;
+  // }
 
-  public static boolean getDefaultLabelSounds()
-  {
+  public static boolean getDefaultLabelSounds() {
     return false;
   }
 
-//  public static boolean getDefaultLabelDoors()
-//  {
-//    return false;
-//  }
+  // public static boolean getDefaultLabelDoors()
+  // {
+  // return false;
+  // }
 
-  public static boolean getDefaultLabelAnimations()
-  {
+  public static boolean getDefaultLabelAnimations() {
     return false;
   }
 
-  public static boolean getDefaultLabelMapNotes()
-  {
+  public static boolean getDefaultLabelMapNotes() {
     return false;
   }
 
-  public static boolean getDefaultLabelSpawnPoints()
-  {
+  public static boolean getDefaultLabelSpawnPoints() {
     return false;
   }
 
   // Converts values from LayerStackingType to LayerType
-  public static LayerType stackingToLayer(LayerStackingType type)
-  {
+  public static LayerType stackingToLayer(LayerStackingType type) {
     switch (type) {
       case ACTOR:
         return LayerType.ACTOR;
@@ -595,10 +554,8 @@ public class Settings
   }
 
   // Converts values from LayerType to LayerStackingType (ignoring AmbientRange)
-  public static LayerStackingType layerToStacking(LayerType type)
-  {
-    switch (type)
-    {
+  public static LayerStackingType layerToStacking(LayerType type) {
+    switch (type) {
       case ACTOR:
         return LayerStackingType.ACTOR;
       case AMBIENT:
@@ -631,8 +588,7 @@ public class Settings
   }
 
   // Returns the index of the specified enum type
-  public static int getLayerStackingTypeIndex(ViewerConstants.LayerStackingType type)
-  {
+  public static int getLayerStackingTypeIndex(ViewerConstants.LayerStackingType type) {
     for (int i = 0; i < ViewerConstants.LayerStackingType.values().length; i++) {
       if (type == ViewerConstants.LayerStackingType.values()[i]) {
         return i;

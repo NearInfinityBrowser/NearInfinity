@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -25,13 +25,12 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Viewable;
 
-final class ViewerArea extends JPanel implements ActionListener
-{
+final class ViewerArea extends JPanel implements ActionListener {
   private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
+
   private JList<Object> list;
 
-  private static JPanel makeInfoPanel(AreaEntry areaEntry)
-  {
+  private static JPanel makeInfoPanel(AreaEntry areaEntry) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
@@ -42,20 +41,21 @@ final class ViewerArea extends JPanel implements ActionListener
     return panel;
   }
 
-  ViewerArea(AreaEntry areaEntry)
-  {
-    JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag)areaEntry.getAttribute(AreaEntry.WMP_AREA_FLAGS), 1);
+  ViewerArea(AreaEntry areaEntry) {
+    JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag) areaEntry.getAttribute(AreaEntry.WMP_AREA_FLAGS), 1);
     JPanel infoPane = makeInfoPanel(areaEntry);
-    JComponent icon = ViewerUtil.makeBamPanel(
-            (ResourceRef)areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),
-            ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(),
-            0);
-    JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
-    JPanel linkPanelS = ViewerUtil.makeListPanel("South links", areaEntry, AreaLinkSouth.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
-    JPanel linkPanelW = ViewerUtil.makeListPanel("West links", areaEntry, AreaLinkWest.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
-    JPanel linkPanelE = ViewerUtil.makeListPanel("East links", areaEntry, AreaLinkEast.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
+    JComponent icon = ViewerUtil.makeBamPanel((ResourceRef) areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),
+        ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(), 0);
+    JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class,
+        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+    JPanel linkPanelS = ViewerUtil.makeListPanel("South links", areaEntry, AreaLinkSouth.class,
+        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+    JPanel linkPanelW = ViewerUtil.makeListPanel("West links", areaEntry, AreaLinkWest.class,
+        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+    JPanel linkPanelE = ViewerUtil.makeListPanel("East links", areaEntry, AreaLinkEast.class,
+        AreaLink.WMP_LINK_TARGET_ENTRANCE);
 
-    JPanel linkPanel = new JPanel(new GridLayout(2,2,6,6));
+    JPanel linkPanel = new JPanel(new GridLayout(2, 2, 6, 6));
     linkPanel.add(linkPanelN);
     linkPanel.add(linkPanelE);
     linkPanel.add(linkPanelS);
@@ -88,14 +88,14 @@ final class ViewerArea extends JPanel implements ActionListener
     add(linkPanel);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == bOpen)
-      new ViewFrame(getTopLevelAncestor(), (Viewable)list.getSelectedValue());
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == bOpen) {
+      new ViewFrame(getTopLevelAncestor(), (Viewable) list.getSelectedValue());
+    }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 }

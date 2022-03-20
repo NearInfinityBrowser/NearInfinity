@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -24,8 +24,7 @@ import org.infinity.util.IdsMapEntry;
 /**
  * Provides a button that opens the associated INI or 2DA resource of the selected animation slot.
  */
-public class AnimateBitmap extends IdsBitmap implements ActionListener
-{
+public class AnimateBitmap extends IdsBitmap implements ActionListener {
   private final BiFunction<Long, IdsMapEntry, String> formatterAnimateBitmap = (value, item) -> {
     String number;
     if (isShowAsHex()) {
@@ -41,11 +40,11 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   };
 
   private final JButton showIni;
+
   private IdsMap idsMap;
   private boolean useIni;
 
-  public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name)
-  {
+  public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name) {
     super(buffer, offset, length, name, "ANIMATE.IDS", true, true, false);
     setFormatter(formatterAnimateBitmap);
 
@@ -69,11 +68,10 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     }
   }
 
-  //--------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     if (getDataOf(getLongValue()) == null) {
       putItem(getLongValue(), new IdsMapEntry(getLongValue(), "UNKNOWN"));
     }
@@ -81,16 +79,15 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     return super.edit(container);
   }
 
-  //--------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-  //--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == showIni) {
       final Long value = getSelectedValue();
-      String animRes = value == null ? null : getAnimResource(value.longValue());
+      String animRes = value == null ? null : getAnimResource(value);
       if (animRes != null) {
         ResourceEntry entry = ResourceFactory.getResourceEntry(animRes);
         if (entry != null) {
@@ -100,11 +97,10 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     }
   }
 
-  //--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
   @Override
-  protected void listItemChanged()
-  {
+  protected void listItemChanged() {
     if (showIni != null) {
       boolean b = false;
       final Long value = getSelectedValue();
@@ -115,8 +111,7 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     }
   }
 
-  private String getAnimResource(long value)
-  {
+  private String getAnimResource(long value) {
     String animRes = null;
 
     if (useIni) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -59,48 +59,46 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public class ConvertToBmp extends ChildFrame
-    implements ActionListener, FocusListener, PropertyChangeListener
-{
+public class ConvertToBmp extends ChildFrame implements ActionListener, FocusListener, PropertyChangeListener {
   private static Path currentPath = Profile.getGameRoot();
 
   private SimpleListModel<String> modelInputFiles;
   private JList<String> listInputFiles;
-  private JButton bAdd, bAddFolder, bRemove, bRemoveAll;
+  private JButton bAdd;
+  private JButton bAddFolder;
+  private JButton bRemove;
+  private JButton bRemoveAll;
   private JTextField tfOutput;
   private JButton bOutput;
-  private JButton bConvert, bCancel;
-  private JCheckBox cbCloseOnExit, cbEnableAlpha, cbFixPremultipliedAlpha;
+  private JButton bConvert;
+  private JButton bCancel;
+  private JCheckBox cbCloseOnExit;
+  private JCheckBox cbEnableAlpha;
+  private JCheckBox cbFixPremultipliedAlpha;
   private JComboBox<String> cbOverwrite;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
 
-
   // Returns a list of supported graphics file formats
-  private static FileNameExtensionFilter[] getGraphicsFilters()
-  {
+  private static FileNameExtensionFilter[] getGraphicsFilters() {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                    "bmp", "png", "jpg", "jpeg"),
-            new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
-            new FileNameExtensionFilter("PNG files (*.png)", "png"),
-            new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
-    };
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("PNG files (*.png)", "png"),
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
     return filters;
   }
 
   // returns a selection of files
-  private static Path[] getOpenFileName(Component parent, String title, Path rootPath,
-                                        boolean selectMultiple,
-                                        FileNameExtensionFilter[] filters, int filterIndex)
-  {
+  private static Path[] getOpenFileName(Component parent, String title, Path rootPath, boolean selectMultiple,
+      FileNameExtensionFilter[] filters, int filterIndex) {
     if (rootPath == null) {
       rootPath = currentPath;
     }
     Path file = FileManager.resolve(rootPath);
     JFileChooser fc = new JFileChooser(file.toFile());
     if (!FileEx.create(file).isDirectory()) {
-        fc.setSelectedFile(file.toFile());
+      fc.setSelectedFile(file.toFile());
     }
     if (title == null) {
       title = selectMultiple ? "Select file(s)" : "Select file";
@@ -110,7 +108,7 @@ public class ConvertToBmp extends ChildFrame
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     fc.setMultiSelectionEnabled(selectMultiple);
     if (filters != null) {
-      for (final FileNameExtensionFilter filter: filters) {
+      for (final FileNameExtensionFilter filter : filters) {
         fc.addChoosableFileFilter(filter);
       }
       if (filterIndex >= 0 && filterIndex < filters.length) {
@@ -131,7 +129,7 @@ public class ConvertToBmp extends ChildFrame
       } else {
         file = fc.getSelectedFile().toPath();
         currentPath = file.getParent();
-        return new Path[]{file.getFileName()};
+        return new Path[] { file.getFileName() };
       }
     } else {
       return null;
@@ -139,8 +137,7 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // returns a path name
-  private static Path getOpenPathName(Component parent, String title, Path rootPath)
-  {
+  private static Path getOpenPathName(Component parent, String title, Path rootPath) {
     if (rootPath == null) {
       rootPath = currentPath;
     }
@@ -159,34 +156,29 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-
-  public ConvertToBmp()
-  {
+  public ConvertToBmp() {
     super("Convert to BMP", true);
     init();
   }
 
-//--------------------- Begin Class ChildFrame ---------------------
+  // --------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     clear();
     return super.windowClosing(forced);
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  // --------------------- End Class ChildFrame ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bConvert) {
       workerConvert = new SwingWorker<List<String>, Void>() {
         @Override
-        public List<String> doInBackground()
-        {
+        public List<String> doInBackground() {
           return convert();
         }
       };
@@ -211,16 +203,14 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerConvert) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
 
         if (blocker != null) {
           blocker.setBlocked(false);
@@ -263,29 +253,25 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent event)
-  {
+  public void focusGained(FocusEvent event) {
     // nothing to do
   }
 
   @Override
-  public void focusLost(FocusEvent event)
-  {
+  public void focusLost(FocusEvent event) {
     if (event.getSource() == tfOutput) {
-//      bConvert.setEnabled(isReady());
+      // bConvert.setEnabled(isReady());
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
-
-  private void init()
-  {
+  private void init() {
     setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     GridBagConstraints c = new GridBagConstraints();
 
@@ -294,11 +280,11 @@ public class ConvertToBmp extends ChildFrame
     bAddFolder = new JButton("Add folder...");
     bAddFolder.addActionListener(this);
     JPanel pAdd = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pAdd.add(bAdd, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pAdd.add(bAddFolder, c);
 
     bRemove = new JButton("Remove");
@@ -306,39 +292,39 @@ public class ConvertToBmp extends ChildFrame
     bRemoveAll = new JButton("Remove all");
     bRemoveAll.addActionListener(this);
     JPanel pRemove = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pRemove.add(bRemove, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pRemove.add(bRemoveAll, c);
 
     JPanel pInputButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pAdd, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pRemove, c);
 
     modelInputFiles = new SimpleListModel<>();
     listInputFiles = new JList<>(modelInputFiles);
     JScrollPane scroll = new JScrollPane(listInputFiles);
     JPanel pInputFrame = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pInputFrame.add(scroll, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pInputFrame.add(pInputButtons, c);
 
     JPanel pInput = new JPanel(new GridBagLayout());
     pInput.setBorder(BorderFactory.createTitledBorder("Input "));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pInput.add(pInputFrame, c);
 
     JLabel lOutput = new JLabel("Directory:");
@@ -347,56 +333,55 @@ public class ConvertToBmp extends ChildFrame
     bOutput = new JButton("...");
     bOutput.addActionListener(this);
     JLabel lOverwrite = new JLabel("Overwrite:");
-    cbOverwrite = new JComboBox<>(new String[]{"Ask", "Replace", "Skip"});
+    cbOverwrite = new JComboBox<>(new String[] { "Ask", "Replace", "Skip" });
     cbOverwrite.setSelectedIndex(1);
     cbEnableAlpha = new JCheckBox("Enable transparency support", true);
     cbEnableAlpha.setToolTipText("Activate to create bitmap files with alpha channel");
     cbEnableAlpha.addActionListener(this);
     cbFixPremultipliedAlpha = new JCheckBox("Fix premultiplied alpha", false);
     cbFixPremultipliedAlpha.setEnabled(cbEnableAlpha.isSelected());
-    cbFixPremultipliedAlpha.setToolTipText("Activate if the resulting BMP image " +
-                                           "differs from the source image");
+    cbFixPremultipliedAlpha.setToolTipText("Activate if the resulting BMP image " + "differs from the source image");
 
     JPanel pOutputDir = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOutputDir.add(lOutput, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pOutputDir.add(tfOutput, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pOutputDir.add(bOutput, c);
 
     JPanel pOutputOptions = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOutputOptions.add(lOverwrite, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 4, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 4, 0);
     pOutputOptions.add(cbOverwrite, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pOutputOptions.add(cbEnableAlpha, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOutputOptions.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 16, 0, 0), 0, 0);
     pOutputOptions.add(cbFixPremultipliedAlpha, c);
 
     JPanel pOutputFrame = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOutputFrame.add(pOutputDir, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pOutputFrame.add(pOutputOptions, c);
 
     JPanel pOutput = new JPanel(new GridBagLayout());
     pOutput.setBorder(BorderFactory.createTitledBorder("Output "));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 4, 4), 0, 0);
     pOutput.add(pOutputFrame, c);
 
     cbCloseOnExit = new JCheckBox("Close dialog after conversion", true);
@@ -409,28 +394,28 @@ public class ConvertToBmp extends ChildFrame
     i = bCancel.getInsets();
     bCancel.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     setLayout(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     add(pInput, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 8), 0, 0);
     add(pOutput, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 8, 8), 0, 0);
     add(pButtons, c);
 
-    setPreferredSize(new Dimension(getPreferredSize().width+50, getPreferredSize().height + 50));
+    setPreferredSize(new Dimension(getPreferredSize().width + 50, getPreferredSize().height + 50));
     setMinimumSize(getPreferredSize());
     pack();
     setLocationRelativeTo(getParent());
@@ -438,28 +423,24 @@ public class ConvertToBmp extends ChildFrame
     setVisible(true);
   }
 
-  private void clear()
-  {
+  private void clear() {
     inputRemoveAll();
     updateStatus();
   }
 
-  private void hideWindow()
-  {
+  private void hideWindow() {
     clear();
     setVisible(false);
   }
 
-  private void updateStatus()
-  {
+  private void updateStatus() {
     boolean enabled = (!modelInputFiles.isEmpty() && !tfOutput.getText().isEmpty());
 
     bConvert.setEnabled(enabled);
   }
 
   // checks for valid graphics file
-  private boolean isValidInput(Path file)
-  {
+  private boolean isValidInput(Path file) {
     boolean result = false;
     if (file != null) {
       try (ImageInputStream iis = ImageIO.createImageInputStream(file.toFile())) {
@@ -474,8 +455,7 @@ public class ConvertToBmp extends ChildFrame
     return result;
   }
 
-  private void inputAdd()
-  {
+  private void inputAdd() {
     Path rootPath = null;
     if (!modelInputFiles.isEmpty()) {
       rootPath = FileManager.resolve(modelInputFiles.get(modelInputFiles.size() - 1));
@@ -484,7 +464,7 @@ public class ConvertToBmp extends ChildFrame
     if (files != null) {
       List<String> skippedFiles = new ArrayList<>();
       int idx = listInputFiles.getSelectedIndex() + 1;
-      for (final Path file: files) {
+      for (final Path file : files) {
         if (isValidInput(file)) {
           modelInputFiles.addElement(file.toString());
           idx++;
@@ -514,8 +494,7 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-  private void inputAddFolder()
-  {
+  private void inputAddFolder() {
     Path rootPath = null;
     if (!modelInputFiles.isEmpty()) {
       rootPath = FileManager.resolve(modelInputFiles.get(modelInputFiles.size() - 1));
@@ -527,8 +506,8 @@ public class ConvertToBmp extends ChildFrame
       List<String> skippedFiles = new ArrayList<>();
       int idx = listInputFiles.getSelectedIndex() + 1;
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
-        for (final Path file: dstream) {
-          for (final FileNameExtensionFilter filter: filters) {
+        for (final Path file : dstream) {
+          for (final FileNameExtensionFilter filter : filters) {
             if (FileEx.create(file).isFile() && filter.accept(file.toFile())) {
               if (isValidInput(file)) {
                 modelInputFiles.addElement(file.toString());
@@ -541,8 +520,8 @@ public class ConvertToBmp extends ChildFrame
           }
         }
       } catch (IOException e) {
-        JOptionPane.showMessageDialog(this, "Unable to read files from the specified folder.",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Unable to read files from the specified folder.", "Error",
+            JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
         return;
       }
@@ -568,8 +547,7 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-  private void inputRemove()
-  {
+  private void inputRemove() {
     int curIdx = Integer.MAX_VALUE;
     int indices[] = listInputFiles.getSelectedIndices();
     if (indices != null && indices.length > 0) {
@@ -586,8 +564,7 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-  private void inputRemoveAll()
-  {
+  private void inputRemoveAll() {
     if (!modelInputFiles.isEmpty()) {
       modelInputFiles.clear();
       listInputFiles.requestFocus();
@@ -595,8 +572,7 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-  private void setOutput()
-  {
+  private void setOutput() {
     Path rootPath = null;
     if (!tfOutput.getText().isEmpty()) {
       rootPath = FileManager.resolve(tfOutput.getText());
@@ -608,8 +584,7 @@ public class ConvertToBmp extends ChildFrame
     }
   }
 
-  private List<String> convert()
-  {
+  private List<String> convert() {
     List<String> result = new ArrayList<>(2);
     final String progressMsg = "Converting file %d / %d";
     int progressIdx = 0, progressMax = modelInputFiles.size() + 1;
@@ -633,9 +608,10 @@ public class ConvertToBmp extends ChildFrame
 
         // 1. prepare data
         Path inFile = FileManager.resolve(modelInputFiles.get(i));
-        Path outFile = FileManager.resolve(outPath, StreamUtils.replaceFileExtension(inFile.getFileName().toString(), "BMP"));
+        Path outFile = FileManager.resolve(outPath,
+            StreamUtils.replaceFileExtension(inFile.getFileName().toString(), "BMP"));
         if (FileEx.create(outFile).exists()) {
-          if (cbOverwrite.getSelectedIndex() == 0) {          // ask
+          if (cbOverwrite.getSelectedIndex() == 0) { // ask
             String msg = String.format("File %s already exists. Overwrite?", outFile.getFileName());
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_CANCEL_OPTION);
             if (ret == JOptionPane.NO_OPTION) {
@@ -647,7 +623,7 @@ public class ConvertToBmp extends ChildFrame
               result.add("Conversion cancelled.");
               return result;
             }
-          } else if (cbOverwrite.getSelectedIndex() == 2) {   // skip
+          } else if (cbOverwrite.getSelectedIndex() == 2) { // skip
             skipped++;
             continue;
           }
@@ -674,15 +650,15 @@ public class ConvertToBmp extends ChildFrame
     }
 
     // creating summary
-    if (failed+skipped > 0) {
+    if (failed + skipped > 0) {
       if (failed > 0) {
         result.add(null);
       }
       String msg = null;
-      if (failed+skipped == 1) {
+      if (failed + skipped == 1) {
         msg = "1 input file has been skipped.";
       } else {
-        msg = String.format("%d input files have been skipped.", failed+skipped);
+        msg = String.format("%d input files have been skipped.", failed + skipped);
       }
       result.add(msg);
     } else {
@@ -693,24 +669,29 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // creates a 32-bit BMP files that is compatible with BG(2)EE
-  private boolean writeBMP(Image srcImage, Path file, boolean hasAlpha)
-  {
+  private boolean writeBMP(Image srcImage, Path file, boolean hasAlpha) {
     if (srcImage != null && file != null) {
       BufferedImage image = ColorConvert.toBufferedImage(srcImage, true);
 
       // "fixing" premultiplied alpha format
       if (hasAlpha && cbFixPremultipliedAlpha.isSelected()) {
-        int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         if (pixels != null) {
           for (int i = 0; i < pixels.length; i++) {
-            float anorm = (float)((pixels[i] >>> 24) & 0xff) / 255.0f;
+            float anorm = ((pixels[i] >>> 24) & 0xff) / 255.0f;
             anorm = (anorm > 0.0f) ? 1.0f / anorm : 0.0f;
-            int r = (int)(((float)((pixels[i] >>> 16) & 0xff) * anorm) + 0.5f);
-            if (r > 255) r = 255;
-            int g = (int)(((float)((pixels[i] >>> 8) & 0xff) * anorm) + 0.5f);
-            if (g > 255) g = 255;
-            int b = (int)(((float)(pixels[i] & 0xff) * anorm) + 0.5f);
-            if (b > 255) b = 255;
+            int r = (int) ((((pixels[i] >>> 16) & 0xff) * anorm) + 0.5f);
+            if (r > 255) {
+              r = 255;
+            }
+            int g = (int) ((((pixels[i] >>> 8) & 0xff) * anorm) + 0.5f);
+            if (g > 255) {
+              g = 255;
+            }
+            int b = (int) (((pixels[i] & 0xff) * anorm) + 0.5f);
+            if (b > 255) {
+              b = 255;
+            }
             pixels[i] = (pixels[i] & 0xff000000) | (r << 16) | (g << 8) | b;
           }
         }
@@ -718,7 +699,7 @@ public class ConvertToBmp extends ChildFrame
 
       int bpp = hasAlpha ? 32 : 24;
       int bytesPerPixel = bpp / 8;
-      int bytesPerLine = image.getWidth()*bytesPerPixel;
+      int bytesPerLine = image.getWidth() * bytesPerPixel;
       int fillBytes = (4 - (bytesPerLine & 3)) & 3;
 
       // writing BMP header
@@ -726,35 +707,35 @@ public class ConvertToBmp extends ChildFrame
       int sizeFileHeader = 14;
       int sizeBitmapHeader = hasAlpha ? 124 : 40;
       int headerSize = sizeFileHeader + sizeBitmapHeader;
-      int fileSize = headerSize + (bytesPerLine + fillBytes)*image.getHeight();
+      int fileSize = headerSize + (bytesPerLine + fillBytes) * image.getHeight();
       ByteBuffer buffer = StreamUtils.getByteBuffer(headerSize);
 
       // file header
-      buffer.put("BM".getBytes());          // File type ("BM")
-      buffer.putInt(fileSize);              // total file size
-      buffer.putInt(0);                     // reserved
-      buffer.putInt(sizeFileHeader+sizeBitmapHeader);   // start of pixel data
+      buffer.put("BM".getBytes()); // File type ("BM")
+      buffer.putInt(fileSize); // total file size
+      buffer.putInt(0); // reserved
+      buffer.putInt(sizeFileHeader + sizeBitmapHeader); // start of pixel data
       // bitmap header
-      buffer.putInt(sizeBitmapHeader);      // bitmap header size
-      buffer.putInt(image.getWidth());      // image width
-      buffer.putInt(image.getHeight());     // image height
-      buffer.putShort((short)1);            // color planes
-      buffer.putShort((short)bpp);          // bits per pixel
-      buffer.putInt(comression);            // compression (0=uncompressed, 3=bitfield)
-      buffer.putInt(image.getWidth()*image.getHeight()*4);    // size of bitmap in bytes
-      buffer.putInt(0xb12);                 // pixels per meter
-      buffer.putInt(0xb12);                 // pixels per meter
-      buffer.putInt(0);                     // colors used (palette only)
-      buffer.putInt(0);                     // important colors (palette only)
+      buffer.putInt(sizeBitmapHeader); // bitmap header size
+      buffer.putInt(image.getWidth()); // image width
+      buffer.putInt(image.getHeight()); // image height
+      buffer.putShort((short) 1); // color planes
+      buffer.putShort((short) bpp); // bits per pixel
+      buffer.putInt(comression); // compression (0=uncompressed, 3=bitfield)
+      buffer.putInt(image.getWidth() * image.getHeight() * 4); // size of bitmap in bytes
+      buffer.putInt(0xb12); // pixels per meter
+      buffer.putInt(0xb12); // pixels per meter
+      buffer.putInt(0); // colors used (palette only)
+      buffer.putInt(0); // important colors (palette only)
       if (hasAlpha) {
-        buffer.putInt(0x00ff0000);          // red bitmask
-        buffer.putInt(0x0000ff00);          // green bitmask
-        buffer.putInt(0x000000ff);          // blue bitmask
-        buffer.putInt(0xff000000);          // alpha bitmask
-        buffer.put("BGRs".getBytes());      // color space type
-        byte[] zero = new byte[16*4];
-        Arrays.fill(zero, (byte)0);
-        buffer.put(zero);                   // remaining fields are empty
+        buffer.putInt(0x00ff0000); // red bitmask
+        buffer.putInt(0x0000ff00); // green bitmask
+        buffer.putInt(0x000000ff); // blue bitmask
+        buffer.putInt(0xff000000); // alpha bitmask
+        buffer.put("BGRs".getBytes()); // color space type
+        byte[] zero = new byte[16 * 4];
+        Arrays.fill(zero, (byte) 0);
+        buffer.put(zero); // remaining fields are empty
         zero = null;
       }
 
@@ -765,23 +746,23 @@ public class ConvertToBmp extends ChildFrame
 
         // writing pixel data
         final int transThreshold = 0x20;
-        byte[] row = new byte[bytesPerLine+fillBytes];
-        int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-        for(int y = image.getHeight() - 1; y >= 0; y--) {
-          for (int i = 0, idx = y*image.getWidth(); i < bytesPerLine; i += bytesPerPixel, idx++) {
+        byte[] row = new byte[bytesPerLine + fillBytes];
+        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        for (int y = image.getHeight() - 1; y >= 0; y--) {
+          for (int i = 0, idx = y * image.getWidth(); i < bytesPerLine; i += bytesPerPixel, idx++) {
             if (!hasAlpha && (pixels[idx] >>> 24) < transThreshold) {
-              pixels[idx] = 0x00ff00;   // transparent pixels are translated into RGB(0, 255, 0)
+              pixels[idx] = 0x00ff00; // transparent pixels are translated into RGB(0, 255, 0)
             }
-            row[i+0] = (byte)(pixels[idx] & 0xff);
-            row[i+1] = (byte)((pixels[idx] >>> 8) & 0xff);
-            row[i+2] = (byte)((pixels[idx] >>> 16) & 0xff);
+            row[i + 0] = (byte) (pixels[idx] & 0xff);
+            row[i + 1] = (byte) ((pixels[idx] >>> 8) & 0xff);
+            row[i + 2] = (byte) ((pixels[idx] >>> 16) & 0xff);
             if (hasAlpha) {
-              row[i+3] = (byte)((pixels[idx] >>> 24) & 0xff);
+              row[i + 3] = (byte) ((pixels[idx] >>> 24) & 0xff);
             }
           }
           // adding alignment bytes
           for (int i = 0; i < fillBytes; i++) {
-            row[bytesPerLine+i] = (byte)0;
+            row[bytesPerLine + i] = (byte) 0;
           }
           os.write(row);
         }

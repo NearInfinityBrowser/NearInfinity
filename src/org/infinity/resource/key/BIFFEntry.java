@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -10,9 +10,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import org.infinity.resource.Writeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Writeable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -20,8 +21,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Provides information about the location of resource data within BIFF archives.
  */
-public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
-{
+public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
   // Location: Indicates where file might be found
   // Bit 0: Root folder (where the KEY file is located)
   // Bit 1: Cache directory
@@ -43,138 +43,107 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 
   /**
    * Constructs a new BIFF entry.
-   * @param keyFile The associated key file.
+   *
+   * @param keyFile  The associated key file.
    * @param fileName Name and relative path to the BIFF file
    */
-  public BIFFEntry(Path keyFile, String fileName)
-  {
+  public BIFFEntry(Path keyFile, String fileName) {
     if (fileName == null) {
       throw new NullPointerException();
     }
     this.separatorChar = '/';
     this.fileName = fileName.replaceAll("[\\:]", "/"); // (normalized) relative path
-    this.location = 1;        // put into root folder
-    this.index = -1;          // not yet associated with KEY file
+    this.location = 1; // put into root folder
+    this.index = -1; // not yet associated with KEY file
   }
 
-  public BIFFEntry(Path keyFile, int index, ByteBuffer buffer, int offset)
-  {
+  public BIFFEntry(Path keyFile, int index, ByteBuffer buffer, int offset) {
     updateBIFF(keyFile, index, buffer, offset);
   }
 
-//--------------------- Begin Interface Comparable ---------------------
+  // --------------------- Begin Interface Comparable ---------------------
 
   @Override
-  public int compareTo(BIFFEntry o)
-  {
+  public int compareTo(BIFFEntry o) {
     return fileName.compareTo(o.fileName);
   }
 
-//--------------------- End Interface Comparable ---------------------
+  // --------------------- End Interface Comparable ---------------------
 
-
-//--------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     StreamUtils.writeInt(os, fileSize);
     StreamUtils.writeInt(os, stringOffset);
     StreamUtils.writeShort(os, getFileNameLength());
-    StreamUtils.writeShort(os, (short)location);
+    StreamUtils.writeShort(os, (short) location);
   }
 
-//--------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public int hashCode()
-  {
-    int hash = 7;
-    hash = 31 * hash + location;
-    hash = 31 * hash + ((keyFile == null) ? 0 : keyFile.hashCode());
-    hash = 31 * hash + ((biffFile == null) ? 0 : biffFile.hashCode());
-    hash = 31 * hash + ((fileName == null) ? 0 : fileName.hashCode());
-    hash = 31 * hash + index;
-    hash = 31 * hash + fileSize;
-    hash = 31 * hash + stringOffset;
-    hash = 31 * hash + (int)separatorChar;
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object o)
-  {
-    if (this == o) {
-      return true;
-    }
-
-    if (!(o instanceof BIFFEntry)) {
-      return false;
-    }
-
-    BIFFEntry other = (BIFFEntry)o;
-    boolean retVal = (location == other.location);
-    retVal &= (keyFile == null && other.keyFile == null) ||
-              (keyFile != null && keyFile.equals(other.keyFile));
-    retVal &= (biffFile == null && other.biffFile == null) ||
-              (biffFile != null && biffFile.equals(other.biffFile));
-    retVal &= (fileName == null && other.fileName == null) ||
-              (fileName != null && fileName.equals(other.fileName));
-    retVal &= (index == other.index);
-    retVal &= (fileSize == other.fileSize);
-    retVal &= (stringOffset == other.stringOffset);
-    retVal &= (separatorChar == other.separatorChar);
-    return retVal;
-  }
-
-  @Override
-  public String toString()
-  {
+  public String toString() {
     return fileName;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(biffFile, fileName, fileSize, index, keyFile, location, separatorChar, stringOffset);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    BIFFEntry other = (BIFFEntry) obj;
+    return Objects.equals(biffFile, other.biffFile) && Objects.equals(fileName, other.fileName)
+        && fileSize == other.fileSize && index == other.index && Objects.equals(keyFile, other.keyFile)
+        && location == other.location && separatorChar == other.separatorChar && stringOffset == other.stringOffset;
+  }
+
   /** Returns the KEY file containing this BIFF archive. */
-  public Path getKeyFile()
-  {
+  public Path getKeyFile() {
     return keyFile;
   }
 
   /** Returns the relative file path to the BIFF file. */
-  public String getFileName()
-  {
+  public String getFileName() {
     return fileName;
   }
 
   /** Returns whether the referenced BIFF file exists in the game. */
-  public boolean exists()
-  {
+  public boolean exists() {
     return (biffFile != null && FileEx.create(biffFile).isFile());
   }
 
   /** Returns the absolute path to the BIFF file if it exists. */
-  public Path getPath()
-  {
+  public Path getPath() {
     return biffFile;
   }
 
-  public int getIndex()
-  {
+  public int getIndex() {
     return index;
   }
 
-  void setIndex(int newIndex)
-  {
+  void setIndex(int newIndex) {
     this.index = newIndex;
   }
 
   /**
    * Returns the relative BIFF file path as found in the KEY file.
-   * @param normalized Specify {@code true} to return the filename with default path separator
-   *                   {@code '/'} or {@code false} to return the filename with the original
-   *                   path separators.
+   *
+   * @param normalized Specify {@code true} to return the filename with default path separator {@code '/'} or
+   *                   {@code false} to return the filename with the original path separators.
    */
-  public String getFileName(boolean normalized)
-  {
+  public String getFileName(boolean normalized) {
     if (normalized || separatorChar == '/') {
       return fileName;
     } else {
@@ -182,30 +151,27 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
     }
   }
 
-  public short getFileNameLength()
-  {
-    return (short)(fileName.length() + 1);
+  public short getFileNameLength() {
+    return (short) (fileName.length() + 1);
   }
 
-  public int getFileSize()
-  {
+  public int getFileSize() {
     return fileSize;
   }
 
-  public void setFileSize(int fileSize)
-  {
+  public void setFileSize(int fileSize) {
     this.fileSize = fileSize;
   }
 
   /**
    * Replaces the current data by the specified data.
+   *
    * @param keyFile KEY file containing this BIFF archive.
-   * @param index BIFF entry index in KEY file.
-   * @param buffer Buffered KEY file.
-   * @param offset Start offset of BIFF entry data in KEY file.
+   * @param index   BIFF entry index in KEY file.
+   * @param buffer  Buffered KEY file.
+   * @param offset  Start offset of BIFF entry data in KEY file.
    */
-  public void updateBIFF(Path keyFile, int index, ByteBuffer buffer, int offset)
-  {
+  public void updateBIFF(Path keyFile, int index, ByteBuffer buffer, int offset) {
     if (keyFile == null || buffer == null) {
       throw new NullPointerException();
     }
@@ -230,21 +196,17 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
     this.biffFile = findBiffFile(this.keyFile.getParent(), this.location, this.fileName);
   }
 
-
-  public int updateOffset(int newOffset)
-  {
+  public int updateOffset(int newOffset) {
     this.stringOffset = newOffset;
     return getFileNameLength();
   }
 
-  public void writeString(OutputStream os) throws IOException
-  {
+  public void writeString(OutputStream os) throws IOException {
     StreamUtils.writeString(os, getFileName(false), getFileNameLength());
   }
 
   // Searches for the specified BIFF file based on root
-  private static Path findBiffFile(Path root, int location, String fileName)
-  {
+  private static Path findBiffFile(Path root, int location, String fileName) {
     Path retVal = null;
     if (root != null && fileName != null) {
       List<Path> biffFolders = new ArrayList<>(Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS));
@@ -262,7 +224,7 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
       }
       if (biffFolders.isEmpty()) {
         final String[] baseFolders = { "", "cache", "cd1", "cd2", "cd3", "cd4", "cd5", "cd6", "cd7", "cdall" };
-        for (final String folderName: baseFolders) {
+        for (final String folderName : baseFolders) {
           Path path = FileManager.resolve(root.resolve(folderName));
           if (FileEx.create(path).isDirectory()) {
             biffFolders.add(path);
@@ -271,8 +233,8 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
       }
       // Note: BIFF file may have extension ".cbf"
       String[] fileNames = { fileName, StreamUtils.replaceFileExtension(fileName, "cbf") };
-      for (final Path path: biffFolders) {
-        for (final String biffName: fileNames) {
+      for (final Path path : biffFolders) {
+        for (final String biffName : fileNames) {
           retVal = FileManager.queryExisting(path, biffName);
           if (retVal != null) {
             break;

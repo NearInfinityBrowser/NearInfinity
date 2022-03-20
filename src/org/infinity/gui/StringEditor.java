@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -60,14 +60,13 @@ import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
-public class StringEditor extends ChildFrame implements SearchClient
-{
-  public static final String TLK_FLAGS  = "Flags";
-  public static final String TLK_SOUND  = "Associated sound";
+public class StringEditor extends ChildFrame implements SearchClient {
+  public static final String TLK_FLAGS = "Flags";
+  public static final String TLK_SOUND = "Associated sound";
   public static final String TLK_VOLUME = "Volume variance";
-  public static final String TLK_PITCH  = "Pitch variance";
+  public static final String TLK_PITCH = "Pitch variance";
 
-  public static final String[] s_flags = { "None", "Has text", "Has sound", "Has token" };
+  public static final String[] FLAGS = { "None", "Has text", "Has sound", "Has token" };
 
   private final ArrayDeque<UndoAction> undoStack = new ArrayDeque<>();
 
@@ -87,7 +86,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   private final JMenuItem miExportTxt = new JMenuItem("as TXT file");
   private final JMenuItem miRevertLast = new JMenuItem("last operation");
   private final JMenuItem miRevertAll = new JMenuItem("all");
-  private final JPanel pTabMain = new JPanel();  // contains whole tab content
+  private final JPanel pTabMain = new JPanel(); // contains whole tab content
   private final JPanel pAttribEdit = new JPanel();
   private final JSlider slider = new JSlider(0, 100, 0);
   private final JTable table = new JTable();
@@ -98,9 +97,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   private int selectedIndex = -1;
   private StringTable.StringEntry selectedEntry = null;
 
-
-  public StringEditor()
-  {
+  public StringEditor() {
     super(getWindowTitle(StringTable.Type.MALE));
 
     String msg = "Make sure you have a backup of ";
@@ -116,21 +113,19 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     boolean retVal = true;
     updateEntry(getSelectedEntry());
     if (StringTable.isModified()) {
       setVisible(true);
       int optionType = forced ? JOptionPane.YES_NO_OPTION : JOptionPane.YES_NO_CANCEL_OPTION;
       int result = JOptionPane.showConfirmDialog(this, "String table has been modified. Save changes to disk?",
-                                                 "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
+          "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
 
       if (result == JOptionPane.YES_OPTION) {
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
           @Override
-          protected Void doInBackground() throws Exception
-          {
+          protected Void doInBackground() throws Exception {
             WindowBlocker blocker = new WindowBlocker(StringEditor.this);
             try {
               blocker.setBlocked(true);
@@ -155,11 +150,10 @@ public class StringEditor extends ChildFrame implements SearchClient
     return retVal;
   }
 
-//--------------------- Begin Interface SearchClient ---------------------
+  // --------------------- Begin Interface SearchClient ---------------------
 
   @Override
-  public String getText(int index)
-  {
+  public String getText(int index) {
     if (index >= 0 && index < StringTable.getNumEntries(getSelectedDialogType())) {
       return StringTable.getStringRef(index, StringTable.Format.NONE);
     }
@@ -167,25 +161,22 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   @Override
-  public void hitFound(int index)
-  {
+  public void hitFound(int index) {
     showEntry(index);
   }
 
-//--------------------- End Interface SearchClient ---------------------
+  // --------------------- End Interface SearchClient ---------------------
 
-  private static String getWindowTitle(StringTable.Type dlgType)
-  {
+  private static String getWindowTitle(StringTable.Type dlgType) {
     if (dlgType != null) {
-      return "Edit: " + StringTable.getPath(dlgType).toString() +
-                    " (" + StringTable.getNumEntries(dlgType) + " entries)";
+      return "Edit: " + StringTable.getPath(dlgType).toString() + " (" + StringTable.getNumEntries(dlgType)
+          + " entries)";
     } else {
       return "String Editor";
     }
   }
 
-  private void initUI()
-  {
+  private void initUI() {
     setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
 
     table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
@@ -209,19 +200,19 @@ public class StringEditor extends ChildFrame implements SearchClient
     taText.getDocument().addDocumentListener(listeners);
 
     miFindAttribute.setEnabled(false);
-    bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindString, miFindRef}, false);
+    bpmFind.setMenuItems(new JMenuItem[] { miFindAttribute, miFindString, miFindRef }, false);
     bpmFind.setIcon(Icons.ICON_FIND_16.getIcon());
     bpmFind.addItemListener(listeners);
     miExportTra.setToolTipText("Exports male and female string table into WeiDU TRA file");
     miExportTxt.setToolTipText("Exports selected string table into text file");
-    bpmExport.setMenuItems(new JMenuItem[]{miExportTxt, miExportTra}, false);
+    bpmExport.setMenuItems(new JMenuItem[] { miExportTxt, miExportTra }, false);
     bpmExport.setIcon(Icons.ICON_EXPORT_16.getIcon());
     bpmExport.addItemListener(listeners);
     miRevertAll.setEnabled(false);
     miRevertAll.setToolTipText("Reverts all changes");
     miRevertLast.setEnabled(false);
     miRevertLast.setToolTipText("Reverts most recent add/delete operation");
-    bpmRevert.setMenuItems(new JMenuItem[]{miRevertLast, miRevertAll}, false);
+    bpmRevert.setMenuItems(new JMenuItem[] { miRevertLast, miRevertAll }, false);
     bpmRevert.setIcon(Icons.ICON_UNDO_16.getIcon());
     bpmRevert.addItemListener(listeners);
     bAdd.addActionListener(listeners);
@@ -256,7 +247,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     // constructing tab content
     JLabel l = new JLabel("Strref: ");
     l.setLabelFor(tfStrref);
-    l.setFont(l.getFont().deriveFont((float)l.getFont().getSize() + 2.0f));
+    l.setFont(l.getFont().deriveFont(l.getFont().getSize() + 2.0f));
     JPanel pTopLeft = new JPanel(new FlowLayout());
     pTopLeft.add(l);
     pTopLeft.add(tfStrref);
@@ -298,7 +289,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     pBottomMain.add(bSave);
 
     // putting all together
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout(3, 3));
     pane.add(tabPane, BorderLayout.CENTER);
     pane.add(pBottomMain, BorderLayout.SOUTH);
@@ -317,8 +308,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     splitAttrib.setDividerLocation(splitAttrib.getHeight() / 3);
   }
 
-  private void updateStringTableUI(int tabIndex)
-  {
+  private void updateStringTableUI(int tabIndex) {
     if (tabIndex < 0 || tabIndex >= tabPane.getTabCount()) {
       return;
     }
@@ -337,16 +327,16 @@ public class StringEditor extends ChildFrame implements SearchClient
     pTabMain.repaint();
   }
 
-  private void updateUI(StringTable.Type dlgType)
-  {
-    if (dlgType == null) { dlgType = StringTable.Type.MALE; }
+  private void updateUI(StringTable.Type dlgType) {
+    if (dlgType == null) {
+      dlgType = StringTable.Type.MALE;
+    }
 
     setTitle(getWindowTitle(dlgType));
     slider.setMaximum(StringTable.getNumEntries(dlgType));
   }
 
-  private void updateModifiedUI(StringTable.Type dlgType)
-  {
+  private void updateModifiedUI(StringTable.Type dlgType) {
     if (dlgType == null) {
       updateModifiedUI(StringTable.Type.MALE);
       if (StringTable.hasFemaleTable()) {
@@ -371,45 +361,45 @@ public class StringEditor extends ChildFrame implements SearchClient
     miRevertAll.setEnabled(modified);
   }
 
-  private StringTable.Type getSelectedDialogType()
-  {
+  private StringTable.Type getSelectedDialogType() {
     return (tabPane.getSelectedIndex() == 1) ? StringTable.Type.FEMALE : StringTable.Type.MALE;
   }
 
-  public void selectDialogType(StringTable.Type type)
-  {
+  public void selectDialogType(StringTable.Type type) {
     if (tabPane.getTabCount() > 0) {
-      if (type == null) { type = StringTable.Type.MALE; }
+      if (type == null) {
+        type = StringTable.Type.MALE;
+      }
       if (type == StringTable.Type.FEMALE && !StringTable.hasFemaleTable()) {
         type = StringTable.Type.MALE;
       }
 
       switch (type) {
-        case MALE:   tabPane.setSelectedIndex(0); break;
-        case FEMALE: tabPane.setSelectedIndex(1); break;
+        case MALE:
+          tabPane.setSelectedIndex(0);
+          break;
+        case FEMALE:
+          tabPane.setSelectedIndex(1);
+          break;
       }
       updateStringTableUI(tabPane.getSelectedIndex());
     }
   }
 
-  public int getSelectedIndex()
-  {
+  public int getSelectedIndex() {
     return selectedIndex;
   }
 
-  public StringTable.StringEntry getSelectedEntry()
-  {
+  public StringTable.StringEntry getSelectedEntry() {
     return selectedEntry;
   }
 
-  public void showEntry(StringTable.Type dlgType, int index)
-  {
+  public void showEntry(StringTable.Type dlgType, int index) {
     selectDialogType(dlgType);
     showEntry(index);
   }
 
-  public void showEntry(int index)
-  {
+  public void showEntry(int index) {
     index = Math.max(Math.min(index, StringTable.getNumEntries(getSelectedDialogType()) - 1), 0);
 
     if (selectedEntry != null) {
@@ -440,31 +430,26 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   /**
-   * If string editor window already opened, focus it and show specified value in
-   * it, otherwise creates new window and show specified value.
+   * If string editor window already opened, focus it and show specified value in it, otherwise creates new window and
+   * show specified value.
    *
    * @param value String index to show in the editor
    */
-  public static void edit(int value)
-  {
-    final StringEditor editor = ChildFrame.show(StringEditor.class, () -> new StringEditor());
+  public static void edit(int value) {
+    final StringEditor editor = ChildFrame.show(StringEditor.class, StringEditor::new);
     editor.showEntry(StringTable.Type.MALE, StringTable.getTranslatedIndex(value));
   }
 
-  private void updateEntry(StringTable.StringEntry entry)
-  {
+  private void updateEntry(StringTable.StringEntry entry) {
     if (entry != null) {
       entry.setText(taText.getText());
       updateModifiedUI(entry.getTableType());
     }
   }
 
-  private void syncEntry(int index)
-  {
-    if (!StringTable.hasFemaleTable() ||
-        index < 0 ||
-        index >= StringTable.getNumEntries(StringTable.Type.MALE) ||
-        index >= StringTable.getNumEntries(StringTable.Type.FEMALE)) {
+  private void syncEntry(int index) {
+    if (!StringTable.hasFemaleTable() || index < 0 || index >= StringTable.getNumEntries(StringTable.Type.MALE)
+        || index >= StringTable.getNumEntries(StringTable.Type.FEMALE)) {
       return;
     }
 
@@ -472,9 +457,8 @@ public class StringEditor extends ChildFrame implements SearchClient
     StringTable.StringEntry entryFemale = StringTable.getStringEntry(StringTable.Type.FEMALE, index);
     boolean allow = true;
     if (!entryFemale.getText().isEmpty()) {
-      allow = (JOptionPane.showConfirmDialog(this, "Female string entry is not empty. Continue?",
-                                             "Synchronize entries", JOptionPane.YES_NO_OPTION,
-                                             JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
+      allow = (JOptionPane.showConfirmDialog(this, "Female string entry is not empty. Continue?", "Synchronize entries",
+          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
     }
 
     if (allow) {
@@ -493,8 +477,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private void syncTables()
-  {
+  private void syncTables() {
     if (!StringTable.hasFemaleTable()) {
       return;
     }
@@ -521,8 +504,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private int addEntry(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale, boolean undoable)
-  {
+  private int addEntry(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale, boolean undoable) {
     if (entryMale == null) {
       entryMale = new StringTable.StringEntry(null);
     }
@@ -554,8 +536,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     return (tabPane.getSelectedIndex() == 1) ? index2 : index;
   }
 
-  private void deleteEntry(boolean undoable)
-  {
+  private void deleteEntry(boolean undoable) {
     StringTable.StringEntry entry1 = null;
     StringTable.StringEntry entry2 = null;
 
@@ -588,15 +569,14 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private void updateAttributePanel(ListSelectionModel model)
-  {
+  private void updateAttributePanel(ListSelectionModel model) {
     if (model != null) {
       miFindAttribute.setEnabled(!model.isSelectionEmpty());
       pAttribEdit.removeAll();
       if (!model.isSelectionEmpty()) {
         Object selected = table.getModel().getValueAt(model.getMinSelectionIndex(), 1);
         if (selected instanceof Editable) {
-          editable = (Editable)selected;
+          editable = (Editable) selected;
           pAttribEdit.add(editable.edit(listeners), BorderLayout.CENTER);
           editable.select();
         }
@@ -606,8 +586,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private void updateTableItem(int row)
-  {
+  private void updateTableItem(int row) {
     // tracking changes made to table entries
     Object cellName = table.getModel().getValueAt(row, 0).toString();
     Object cellValue = table.getModel().getValueAt(row, 1);
@@ -615,21 +594,20 @@ public class StringEditor extends ChildFrame implements SearchClient
     if (cellName != null && cellValue != null && entry != null) {
       String name = cellName.toString();
       if (StringEditor.TLK_FLAGS.equals(name)) {
-        entry.setFlags((short)((IsNumeric)cellValue).getValue());
+        entry.setFlags((short) ((IsNumeric) cellValue).getValue());
       } else if (StringEditor.TLK_SOUND.equals(name)) {
-        ResourceRef ref = (ResourceRef)cellValue;
+        ResourceRef ref = (ResourceRef) cellValue;
         entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
       } else if (StringEditor.TLK_VOLUME.equals(name)) {
-        entry.setVolume(((IsNumeric)cellValue).getValue());
+        entry.setVolume(((IsNumeric) cellValue).getValue());
       } else if (StringEditor.TLK_PITCH.equals(name)) {
-        entry.setPitch(((IsNumeric)cellValue).getValue());
+        entry.setPitch(((IsNumeric) cellValue).getValue());
       }
       updateModifiedUI(getSelectedDialogType());
     }
   }
 
-  private boolean addUndo(UndoAction action)
-  {
+  private boolean addUndo(UndoAction action) {
     if (action == null) {
       return false;
     }
@@ -641,8 +619,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   /** Undoes the last add/remove action if available. */
-  private boolean undo()
-  {
+  private boolean undo() {
     if (!undoStack.isEmpty()) {
       undoStack.pop().undo();
       updateUndoMenu();
@@ -651,14 +628,12 @@ public class StringEditor extends ChildFrame implements SearchClient
     return false;
   }
 
-  private void clearUndo()
-  {
+  private void clearUndo() {
     undoStack.clear();
     updateUndoMenu();
   }
 
-  private void updateUndoMenu()
-  {
+  private void updateUndoMenu() {
     if (undoStack.isEmpty()) {
       miRevertLast.setText("last operation");
       miRevertLast.setEnabled(false);
@@ -669,8 +644,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private void revertAll()
-  {
+  private void revertAll() {
     StringTable.resetModified(StringTable.Type.MALE);
     StringTable.ensureFullyLoaded(StringTable.Type.MALE);
 
@@ -699,8 +673,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   /** Save changes to all available string tables. */
-  private void save(boolean interactive)
-  {
+  private void save(boolean interactive) {
     boolean isSync = bSync.isEnabled();
     boolean isAdd = bAdd.isEnabled();
     boolean isDelete = bDelete.isEnabled();
@@ -721,10 +694,10 @@ public class StringEditor extends ChildFrame implements SearchClient
         if (!interactive) {
           return;
         }
-        String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive." +
-                     "\nDo you want to export it to another location instead?";
-        int result = JOptionPane.showConfirmDialog(this, msg, "Save resource",
-                                                   JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive."
+            + "\nDo you want to export it to another location instead?";
+        int result = JOptionPane.showConfirmDialog(this, msg, "Save resource", JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
           JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
           fc.setDialogTitle("Select output folder");
@@ -737,8 +710,7 @@ public class StringEditor extends ChildFrame implements SearchClient
             }
             outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName().toString());
           } else {
-            JOptionPane.showMessageDialog(this, "Operation cancelled.", "Information",
-                                          JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Operation cancelled.", "Information", JOptionPane.INFORMATION_MESSAGE);
             return;
           }
         }
@@ -748,7 +720,7 @@ public class StringEditor extends ChildFrame implements SearchClient
       ProgressTracker pt = null;
       if (interactive) {
         pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-                                 "Error writing " + outFile.getFileName().toString());
+            "Error writing " + outFile.getFileName().toString());
       }
       if (!StringTable.write(StringTable.Type.MALE, outFile, pt)) {
         return;
@@ -758,7 +730,7 @@ public class StringEditor extends ChildFrame implements SearchClient
         outFile = outPath.resolve(StringTable.getPath(StringTable.Type.FEMALE).getFileName());
         if (interactive) {
           pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-                                   "Error writing " + outFile.getFileName().toString());
+              "Error writing " + outFile.getFileName().toString());
         }
         if (!StringTable.write(StringTable.Type.FEMALE, outFile, pt)) {
           return;
@@ -768,7 +740,7 @@ public class StringEditor extends ChildFrame implements SearchClient
       updateModifiedUI(null);
       if (interactive) {
         JOptionPane.showMessageDialog(this, "File(s) written successfully.", "Save complete",
-                                      JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.INFORMATION_MESSAGE);
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -781,9 +753,10 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
-  private void exportText(StringTable.Type dlgType)
-  {
-    if (dlgType == null) { dlgType = StringTable.Type.MALE; }
+  private void exportText(StringTable.Type dlgType) {
+    if (dlgType == null) {
+      dlgType = StringTable.Type.MALE;
+    }
 
     String dlgFile = StringTable.getPath(dlgType).getFileName().toString();
 
@@ -798,12 +771,11 @@ public class StringEditor extends ChildFrame implements SearchClient
 
     Path outFile = fc.getSelectedFile().toPath();
     ProgressTracker pt = new ProgressTracker("Exporting " + dlgFile, "File exported successfully",
-                                             "Error while exporting " + dlgFile);
+        "Error while exporting " + dlgFile);
     StringTable.exportText(dlgType, outFile, pt);
   }
 
-  private void exportTra()
-  {
+  private void exportTra() {
     String dlgFile = StringTable.getPath().getFileName().toString();
 
     JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
@@ -817,33 +789,30 @@ public class StringEditor extends ChildFrame implements SearchClient
 
     Path outFile = fc.getSelectedFile().toPath();
     ProgressTracker pt = new ProgressTracker("Exporting " + dlgFile, "File exported successfully",
-                                             "Error while exporting " + dlgFile);
+        "Error while exporting " + dlgFile);
     StringTable.exportTra(outFile, pt);
   }
 
-  //-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements ActionListener, ListSelectionListener, ItemListener,
-                                     ChangeListener, TableModelListener, DocumentListener
-  {
-    protected Listeners() {}
+  private class Listeners implements ActionListener, ListSelectionListener, ItemListener, ChangeListener,
+      TableModelListener, DocumentListener {
+    protected Listeners() {
+    }
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals(StructViewer.UPDATE_VALUE)) {
         if (editable.updateValue(StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex()))) {
           updateTableItem(table.getSelectedRow());
         } else {
-          JOptionPane.showMessageDialog(StringEditor.this, "Error updating value.", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(StringEditor.this, "Error updating value.", "Error", JOptionPane.ERROR_MESSAGE);
         }
         table.repaint();
       } else if (e.getSource() == bAdd) {
         new SwingWorker<Void, Void>() {
           @Override
-          protected Void doInBackground() throws Exception
-          {
+          protected Void doInBackground() throws Exception {
             WindowBlocker blocker = new WindowBlocker(StringEditor.this);
             try {
               blocker.setBlocked(true);
@@ -858,8 +827,7 @@ public class StringEditor extends ChildFrame implements SearchClient
         if (getSelectedIndex() == StringTable.getNumEntries(getSelectedDialogType()) - 1) {
           new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws Exception
-            {
+            protected Void doInBackground() throws Exception {
               WindowBlocker blocker = new WindowBlocker(StringEditor.this);
               try {
                 blocker.setBlocked(true);
@@ -872,15 +840,14 @@ public class StringEditor extends ChildFrame implements SearchClient
             }
           }.execute();
         } else {
-          JOptionPane.showMessageDialog(StringEditor.this, "You can only delete the last entry.",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(StringEditor.this, "You can only delete the last entry.", "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       } else if (e.getSource() == bSave) {
         updateEntry(getSelectedEntry());
         new SwingWorker<Void, Void>() {
           @Override
-          protected Void doInBackground() throws Exception
-          {
+          protected Void doInBackground() throws Exception {
             WindowBlocker blocker = new WindowBlocker(StringEditor.this);
             try {
               blocker.setBlocked(true);
@@ -899,42 +866,40 @@ public class StringEditor extends ChildFrame implements SearchClient
           if (i >= 0 && i < StringTable.getNumEntries(getSelectedDialogType())) {
             showEntry(i);
           } else {
-            JOptionPane.showMessageDialog(StringEditor.this, "Entry not found.", "Error",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(StringEditor.this, "Entry not found.", "Error", JOptionPane.ERROR_MESSAGE);
           }
-        }  catch (NumberFormatException nfe) {
-          JOptionPane.showMessageDialog(StringEditor.this, "Not a number.", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException nfe) {
+          JOptionPane.showMessageDialog(StringEditor.this, "Not a number.", "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
     }
 
     @Override
-    public void valueChanged(ListSelectionEvent e)
-    {
-      if (e.getValueIsAdjusting()) { return; }
-      updateAttributePanel((ListSelectionModel)e.getSource());
+    public void valueChanged(ListSelectionEvent e) {
+      if (e.getValueIsAdjusting()) {
+        return;
+      }
+      updateAttributePanel((ListSelectionModel) e.getSource());
     }
 
     @Override
-    public void itemStateChanged(ItemEvent e)
-    {
+    public void itemStateChanged(ItemEvent e) {
       if (e.getSource() instanceof ButtonPopupMenu) {
-        JMenuItem item = ((ButtonPopupMenu)e.getSource()).getSelectedItem();
+        JMenuItem item = ((ButtonPopupMenu) e.getSource()).getSelectedItem();
         if (item == miFindString) {
           SearchMaster.createAsFrame(StringEditor.this, "StringRef", StringEditor.this);
         } else if (item == miFindAttribute) {
           SearchMaster.createAsFrame(new AttributeSearcher(table.getSelectedRow()),
-                                     StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex()).getValueAt(table.getSelectedRow(), 0).toString(),
-                                     StringEditor.this);
+              StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex())
+                  .getValueAt(table.getSelectedRow(), 0).toString(),
+              StringEditor.this);
         } else if (item == miFindRef) {
           new StringReferenceSearcher(getSelectedIndex(), StringEditor.this);
         } else if (item == miExportTxt) {
           updateEntry(getSelectedEntry());
           new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws Exception
-            {
+            protected Void doInBackground() throws Exception {
               WindowBlocker blocker = new WindowBlocker(StringEditor.this);
               try {
                 blocker.setBlocked(true);
@@ -949,8 +914,7 @@ public class StringEditor extends ChildFrame implements SearchClient
           updateEntry(getSelectedEntry());
           new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws Exception
-            {
+            protected Void doInBackground() throws Exception {
               WindowBlocker blocker = new WindowBlocker(StringEditor.this);
               try {
                 blocker.setBlocked(true);
@@ -966,8 +930,7 @@ public class StringEditor extends ChildFrame implements SearchClient
         } else if (item == miRevertAll) {
           new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() throws Exception
-            {
+            protected Void doInBackground() throws Exception {
               WindowBlocker blocker = new WindowBlocker(StringEditor.this);
               try {
                 blocker.setBlocked(true);
@@ -983,8 +946,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public void stateChanged(ChangeEvent e)
-    {
+    public void stateChanged(ChangeEvent e) {
       if (e.getSource() == tabPane) {
         updateStringTableUI(tabPane.getSelectedIndex());
       } else if (e.getSource() == slider) {
@@ -995,8 +957,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public void tableChanged(TableModelEvent e)
-    {
+    public void tableChanged(TableModelEvent e) {
       if (e.getType() == TableModelEvent.UPDATE) {
         // tracking changes made to table entries
         updateTableItem(e.getFirstRow());
@@ -1004,40 +965,34 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public void insertUpdate(DocumentEvent e)
-    {
+    public void insertUpdate(DocumentEvent e) {
       if (e.getDocument() == taText.getDocument()) {
         updateEntry(getSelectedEntry());
       }
     }
 
     @Override
-    public void removeUpdate(DocumentEvent e)
-    {
+    public void removeUpdate(DocumentEvent e) {
       if (e.getDocument() == taText.getDocument()) {
         updateEntry(getSelectedEntry());
       }
     }
 
     @Override
-    public void changedUpdate(DocumentEvent e)
-    {
+    public void changedUpdate(DocumentEvent e) {
       // unused
     }
   }
 
-  private class AttributeSearcher implements SearchClient
-  {
+  private class AttributeSearcher implements SearchClient {
     private final int selectedRow;
 
-    public AttributeSearcher(int row)
-    {
+    public AttributeSearcher(int row) {
       this.selectedRow = row;
     }
 
     @Override
-    public String getText(int index)
-    {
+    public String getText(int index) {
       if (index < 0 || index > StringTable.getNumEntries(getSelectedDialogType())) {
         return null;
       }
@@ -1048,38 +1003,32 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public void hitFound(int index)
-    {
+    public void hitFound(int index) {
       showEntry(index);
     }
   }
 
   /** A simple structure for holding data needed to undo an add/remove operation. */
-  private final class UndoAction
-  {
+  private final class UndoAction {
     private final StringTable.StringEntry entryMale;
     private final StringTable.StringEntry entryFemale;
 
-    public UndoAction()
-    {
+    public UndoAction() {
       this(null, null);
     }
 
-    public UndoAction(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale)
-    {
+    public UndoAction(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale) {
       this.entryMale = entryMale;
       this.entryFemale = entryFemale;
     }
 
     /** Returns whether this action undoes an 'Add' operation. */
-    public boolean isUndoAdd()
-    {
+    public boolean isUndoAdd() {
       return (entryMale == null);
     }
 
     /** Undo this action. */
-    public void undo()
-    {
+    public void undo() {
       if (entryMale == null) {
         deleteEntry(false);
       } else {
@@ -1089,8 +1038,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   }
 
   /** A general-purpose progress monitor. */
-  private final class ProgressTracker extends StringTable.ProgressCallback
-  {
+  private final class ProgressTracker extends StringTable.ProgressCallback {
     private final String title;
     private final String msgSuccess;
     private final String msgFailed;
@@ -1098,16 +1046,14 @@ public class StringEditor extends ChildFrame implements SearchClient
     private ProgressMonitor pm;
     private int count, step;
 
-    public ProgressTracker(String title, String successMessage, String failedMessage)
-    {
+    public ProgressTracker(String title, String successMessage, String failedMessage) {
       this.title = (title != null) ? title : "";
       this.msgSuccess = successMessage;
       this.msgFailed = failedMessage;
     }
 
     @Override
-    public void init(int numEntries)
-    {
+    public void init(int numEntries) {
       count = numEntries;
       if (count < 50000) {
         step = 500;
@@ -1124,8 +1070,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public void done(boolean success)
-    {
+    public void done(boolean success) {
       pm.close();
       if (success && msgSuccess != null) {
         JOptionPane.showMessageDialog(StringEditor.this, msgSuccess, "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -1135,8 +1080,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
 
     @Override
-    public boolean progress(int index)
-    {
+    public boolean progress(int index) {
       if ((index % step) == 0) {
         pm.setNote(index + " of " + count);
         pm.setProgress(index);

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -23,23 +23,21 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Provides read operations for block-compressed BIFC V1.0 archives.
  */
-public class BIFCReader extends AbstractBIFFReader
-{
+public class BIFCReader extends AbstractBIFFReader {
   private final WindowBlocker blocker;
 
   private int uncSize;
-  private int numFiles, numTilesets;
+  private int numFiles;
+  private int numTilesets;
 
-  protected BIFCReader(Path file) throws Exception
-  {
+  protected BIFCReader(Path file) throws Exception {
     super(file);
     this.blocker = new WindowBlocker(NearInfinity.getInstance());
     open();
   }
 
   @Override
-  public synchronized void open() throws Exception
-  {
+  public synchronized void open() throws Exception {
     try (FileChannel channel = FileChannel.open(getFile(), StandardOpenOption.READ)) {
       String sigver = StreamUtils.readString(channel, 8);
       if (!"BIFCV1.0".equals(sigver)) {
@@ -55,32 +53,27 @@ public class BIFCReader extends AbstractBIFFReader
   }
 
   @Override
-  public Type getType()
-  {
+  public Type getType() {
     return Type.BIFC;
   }
 
   @Override
-  public int getFileCount()
-  {
+  public int getFileCount() {
     return numFiles;
   }
 
   @Override
-  public int getTilesetCount()
-  {
+  public int getTilesetCount() {
     return numTilesets;
   }
 
   @Override
-  public int getBIFFSize()
-  {
+  public int getBIFFSize() {
     return uncSize;
   }
 
   @Override
-  public ByteBuffer getResourceBuffer(int locator) throws IOException
-  {
+  public ByteBuffer getResourceBuffer(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry == null) {
       throw new IOException("Resource not found");
@@ -90,9 +83,9 @@ public class BIFCReader extends AbstractBIFFReader
     ByteBuffer buffer;
     if (entry.isTile) {
       ByteBuffer header = getTisHeader(entry.count, entry.size);
-      buffer = StreamUtils.getByteBuffer(entry.count*entry.size + header.limit());
+      buffer = StreamUtils.getByteBuffer(entry.count * entry.size + header.limit());
       StreamUtils.copyBytes(header, buffer, header.limit());
-      size = entry.count*entry.size;
+      size = entry.count * entry.size;
     } else {
       buffer = StreamUtils.getByteBuffer(entry.size);
       size = entry.size;
@@ -103,9 +96,7 @@ public class BIFCReader extends AbstractBIFFReader
     }
 
     try (InputStream is = new BifcInputStream(
-        new BufferedInputStream(
-            Files.newInputStream(getFile(), StandardOpenOption.READ)),
-        entry.offset, size)) {
+        new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)), entry.offset, size)) {
       StreamUtils.readBytes(is, buffer);
     } finally {
       blocker.setBlocked(false);
@@ -116,8 +107,7 @@ public class BIFCReader extends AbstractBIFFReader
   }
 
   @Override
-  public InputStream getResourceAsStream(int locator) throws IOException
-  {
+  public InputStream getResourceAsStream(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry == null) {
       throw new IOException("Resource not found");
@@ -128,25 +118,19 @@ public class BIFCReader extends AbstractBIFFReader
       InputStream is1 = new ByteBufferInputStream(header);
       @SuppressWarnings("resource")
       InputStream is2 = new BifcInputStream(
-          new BufferedInputStream(
-              Files.newInputStream(getFile(), StandardOpenOption.READ)),
-          entry.offset, entry.count*entry.size);
+          new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)), entry.offset,
+          entry.count * entry.size);
       InputStream is = new SequenceInputStream(is1, is2);
       return is;
     } else {
-      return new BifcInputStream(
-          new BufferedInputStream(
-              Files.newInputStream(getFile(), StandardOpenOption.READ)),
+      return new BifcInputStream(new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)),
           entry.offset, entry.size);
     }
   }
 
-
-  private void init() throws Exception
-  {
+  private void init() throws Exception {
     try (InputStream is = new BifcInputStream(
-        new BufferedInputStream(
-            Files.newInputStream(getFile(), StandardOpenOption.READ)), 0, -1)) {
+        new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)), 0, -1)) {
       int curOfs = 0;
       String sigver = StreamUtils.readString(is, 8);
       if (!"BIFFV1  ".equals(sigver)) {
@@ -188,30 +172,27 @@ public class BIFCReader extends AbstractBIFFReader
     }
   }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-//-------------------------- INNER CLASSES --------------------------
-
-  private static class BifcInputStream extends InputStream
-  {
+  private static class BifcInputStream extends InputStream {
     private final Inflater inflater;
 
-    private InputStream input;  // BIFC archive as input stream
-    private int endOffset;      // the end-of-stream offset for this InputStream in decompressed data
-    private int position;       // current absolute position in decompressed data
-    private byte[] inBuffer;    // buffer for compressed data of current block
-    private byte[] outBuffer;   // buffer for decompressed data of current block
-    private int bufOfs;         // contains relative offset in current outBuffer
-    private int bufLen;         // contains actual number of bytes of data in current outBuffer
+    private InputStream input; // BIFC archive as input stream
+    private int endOffset; // the end-of-stream offset for this InputStream in decompressed data
+    private int position; // current absolute position in decompressed data
+    private byte[] inBuffer; // buffer for compressed data of current block
+    private byte[] outBuffer; // buffer for decompressed data of current block
+    private int bufOfs; // contains relative offset in current outBuffer
+    private int bufLen; // contains actual number of bytes of data in current outBuffer
 
     /**
      * Constructs an InputStream over a specific section of a BIFC archive.
-     * @param is The BIFC archive as input stream.
+     *
+     * @param is     The BIFC archive as input stream.
      * @param offset Start offset in decompressed BIFF data.
-     * @param size Size of decompressed BIFF data to map.
-     *             Specify -1 to map until the end of decompressed data.
+     * @param size   Size of decompressed BIFF data to map. Specify -1 to map until the end of decompressed data.
      */
-    public BifcInputStream(InputStream is, int offset, int size) throws IOException
-    {
+    public BifcInputStream(InputStream is, int offset, int size) throws IOException {
       if (is == null) {
         throw new NullPointerException();
       }
@@ -227,7 +208,7 @@ public class BIFCReader extends AbstractBIFFReader
       if (size < 0) {
         size = uncSize - offset;
       }
-      if (size < 0 || offset+size > uncSize) {
+      if (size < 0 || offset + size > uncSize) {
         throw new IOException("Size is out of bounds");
       }
       this.endOffset = offset + size;
@@ -239,10 +220,9 @@ public class BIFCReader extends AbstractBIFFReader
     }
 
     @Override
-    public int read() throws IOException
-    {
+    public int read() throws IOException {
       if (available() > 0) {
-        final byte[] b = {0};
+        final byte[] b = { 0 };
         if (getData(b, 0, 1) == 1) {
           return b[0] & 0xff;
         }
@@ -251,8 +231,7 @@ public class BIFCReader extends AbstractBIFFReader
     }
 
     @Override
-    public int read(byte b[], int off, int len) throws IOException
-    {
+    public int read(byte b[], int off, int len) throws IOException {
       if (available() > 0) {
         return getData(b, off, len);
       }
@@ -260,20 +239,17 @@ public class BIFCReader extends AbstractBIFFReader
     }
 
     @Override
-    public long skip(long n) throws IOException
-    {
-      return Math.max(0, skipData((int)n));
+    public long skip(long n) throws IOException {
+      return Math.max(0, skipData((int) n));
     }
 
     @Override
-    public int available() throws IOException
-    {
+    public int available() throws IOException {
       return endOffset - position;
     }
 
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
       if (isOpen()) {
         try {
           input.close();
@@ -285,19 +261,16 @@ public class BIFCReader extends AbstractBIFFReader
       }
     }
 
-    private boolean isOpen()
-    {
+    private boolean isOpen() {
       return (input != null);
     }
 
     // Writes decompressed data into "buf". Returns actual number of decompressed bytes.
     // Updates internal data position. Returns -1 on error or end-of-stream.
-    private synchronized int getData(byte[] buf, int ofs, int len) throws IOException
-    {
+    private synchronized int getData(byte[] buf, int ofs, int len) throws IOException {
       ofs = Math.max(0, ofs);
       len = Math.max(0, Math.min(len, endOffset - position));
-      if (!isOpen() || position >= endOffset ||
-          buf == null || ofs > buf.length || ofs+len > buf.length) {
+      if (!isOpen() || position >= endOffset || buf == null || ofs > buf.length || ofs + len > buf.length) {
         return -1;
       }
 
@@ -322,8 +295,7 @@ public class BIFCReader extends AbstractBIFFReader
     }
 
     // Skips the specified number of decompressed bytes. Returns -1 on error or end-of-stream.
-    private synchronized int skipData(int len) throws IOException
-    {
+    private synchronized int skipData(int len) throws IOException {
       len = Math.max(0, Math.min(len, endOffset - position));
       if (!isOpen() || position >= endOffset) {
         return -1;
@@ -348,9 +320,8 @@ public class BIFCReader extends AbstractBIFFReader
 
     // Decompress next block of data.
     // if skipOnly == true, then the next compressed block is skipped if
-    //   (condition < 0) || (condition >= uncompressed block size)
-    private boolean updateBuffer(boolean skipOnly, int condition) throws Exception
-    {
+    // (condition < 0) || (condition >= uncompressed block size)
+    private boolean updateBuffer(boolean skipOnly, int condition) throws Exception {
       if (bufLen == 0 || bufOfs >= bufLen) {
         int uncSize = StreamUtils.readInt(input);
         int compSize = StreamUtils.readInt(input);

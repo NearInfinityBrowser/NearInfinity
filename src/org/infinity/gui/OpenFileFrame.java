@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -48,9 +48,9 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
-public final class OpenFileFrame extends ChildFrame implements ActionListener
-{
-  private static final JFileChooser fc = new JFileChooser(".");
+public final class OpenFileFrame extends ChildFrame implements ActionListener {
+  private static final JFileChooser FC = new JFileChooser(".");
+
   private final JButton bExternalBrowse = new JButton("Browse...");
   private final JButton bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
   private final JButton bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
@@ -61,8 +61,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
   private final JTextField tfExternalName = new JTextField(20);
   private final TextListPanel<ResourceEntry> lpInternal;
 
-  OpenFileFrame()
-  {
+  OpenFileFrame() {
     super("Open File");
     setIconImage(Icons.ICON_OPEN_16.getIcon().getImage());
     rbExternal.addActionListener(this);
@@ -73,29 +72,25 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     ButtonGroup gb = new ButtonGroup();
     gb.add(rbExternal);
     gb.add(rbInternal);
-    fc.setDialogTitle("Open external file");
+    FC.setDialogTitle("Open external file");
     tfExternalName.addActionListener(this);
     bExternalBrowse.setMnemonic('b');
     bExternalBrowse.addActionListener(this);
-    tfExternalName.setMinimumSize(
-            new Dimension(tfExternalName.getMinimumSize().width, bExternalBrowse.getMinimumSize().height));
-    tfExternalName.getDocument().addDocumentListener(new DocumentListener()
-    {
+    tfExternalName
+        .setMinimumSize(new Dimension(tfExternalName.getMinimumSize().width, bExternalBrowse.getMinimumSize().height));
+    tfExternalName.getDocument().addDocumentListener(new DocumentListener() {
       @Override
-      public void insertUpdate(DocumentEvent e)
-      {
+      public void insertUpdate(DocumentEvent e) {
         bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
       }
 
       @Override
-      public void removeUpdate(DocumentEvent e)
-      {
+      public void removeUpdate(DocumentEvent e) {
         bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
       }
 
       @Override
-      public void changedUpdate(DocumentEvent e)
-      {
+      public void changedUpdate(DocumentEvent e) {
         bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
       }
     });
@@ -111,18 +106,16 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     bOpen.setEnabled(false);
     getRootPane().setDefaultButton(bOpenNew);
     lpInternal.setEnabled(false);
-    lpInternal.addMouseListener(new MouseAdapter()
-    {
+    lpInternal.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
           actionPerformed(new ActionEvent(lpInternal, 0, "View"));
         }
       }
     });
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -188,39 +181,35 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == rbExternal) {
       bOpen.setEnabled(false);
       bOpenNew.setEnabled(tfExternalName.getText().length() > 0);
       lpInternal.setEnabled(false);
       tfExternalName.setEnabled(true);
       bExternalBrowse.setEnabled(true);
-    }
-    else if (event.getSource() == rbInternal) {
+    } else if (event.getSource() == rbInternal) {
       bOpen.setEnabled(true);
       bOpenNew.setEnabled(true);
       lpInternal.setEnabled(true);
       tfExternalName.setEnabled(false);
       bExternalBrowse.setEnabled(false);
-    }
-    else if (event.getSource() == tfExternalName) {
+    } else if (event.getSource() == tfExternalName) {
       openExternalFile(this, FileManager.resolve(tfExternalName.getText()));
-    }
-    else if (event.getSource() == bExternalBrowse) {
-      if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
-        tfExternalName.setText(fc.getSelectedFile().toString());
-    }
-    else if (event.getSource() == bOpen || event.getSource() == lpInternal) {
-      if (!cbStayOpen.isSelected())
+    } else if (event.getSource() == bExternalBrowse) {
+      if (FC.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        tfExternalName.setText(FC.getSelectedFile().toString());
+      }
+    } else if (event.getSource() == bOpen || event.getSource() == lpInternal) {
+      if (!cbStayOpen.isSelected()) {
         setVisible(false);
+      }
       final ResourceEntry entry = lpInternal.getSelectedValue();
       NearInfinity.getInstance().showResourceEntry(entry);
-    }
-    else if (event.getSource() == bOpenNew) {
+    } else if (event.getSource() == bOpenNew) {
       if (!cbStayOpen.isSelected()) {
         setVisible(false);
       }
@@ -235,60 +224,52 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
   /** Attempts to open the specified external game resource. */
-  public static void openExternalFile(Component parent, Path file)
-  {
+  public static void openExternalFile(Component parent, Path file) {
     if (!FileEx.create(file).exists()) {
-      JOptionPane.showMessageDialog(parent, '\"' + file.toString() + "\" not found",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(parent, '\"' + file.toString() + "\" not found", "Error",
+          JOptionPane.ERROR_MESSAGE);
     } else {
       new ViewFrame(parent, ResourceFactory.getResource(new FileResourceEntry(file)));
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private final class MyDropTargetListener implements DropTargetListener, Runnable
-  {
+  private final class MyDropTargetListener implements DropTargetListener, Runnable {
     private List<File> files;
 
-    private MyDropTargetListener()
-    {
+    private MyDropTargetListener() {
     }
 
     @Override
-    public void dragEnter(DropTargetDragEvent event)
-    {
+    public void dragEnter(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dragOver(DropTargetDragEvent event)
-    {
+    public void dragOver(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dropActionChanged(DropTargetDragEvent event)
-    {
+    public void dropActionChanged(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dragExit(DropTargetEvent event)
-    {
+    public void dragExit(DropTargetEvent event) {
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void drop(DropTargetDropEvent event)
-    {
+    public void drop(DropTargetDropEvent event) {
       if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
         event.rejectDrop();
         return;
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);
@@ -299,10 +280,9 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
       if (files != null) {
-        for (final File file: files) {
+        for (final File file : files) {
           if (file != null && !file.isDirectory()) {
             openExternalFile(OpenFileFrame.this, file.toPath());
           }
@@ -311,4 +291,3 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     }
   }
 }
-

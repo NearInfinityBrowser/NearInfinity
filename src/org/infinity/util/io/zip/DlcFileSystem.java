@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
@@ -50,19 +50,15 @@ import java.util.regex.Pattern;
 import org.infinity.util.io.ByteBufferInputStream;
 
 /**
- * FileSystem implementation for DLC archives in zip format inspired by
- * Oracles example code for virtual filesystems.
+ * FileSystem implementation for DLC archives in zip format inspired by Oracles example code for virtual filesystems.
  *
- * Provides methods for read-only operations on zip archives created with the
- * "store" compression method.
+ * Provides methods for read-only operations on zip archives created with the "store" compression method.
  *
- * Supported filesystem properties:
- * - encoding: Specifies the filename encoding (Default: CP437)
+ * Supported filesystem properties: - encoding: Specifies the filename encoding (Default: CP437)
  */
-public class DlcFileSystem extends FileSystem
-{
-  private static final Set<String> supportedFileAttributeViews = Collections.unmodifiableSet(
-      new HashSet<>(Arrays.asList(DlcFileAttributeView.VIEW_BASIC, DlcFileAttributeView.VIEW_ZIP)));
+public class DlcFileSystem extends FileSystem {
+  private static final Set<String> SUPPORTED_FILE_ATTRIBUTE_VIEWS = Collections
+      .unmodifiableSet(new HashSet<>(Arrays.asList(DlcFileAttributeView.VIEW_BASIC, DlcFileAttributeView.VIEW_ZIP)));
 
   private static final String GLOB_SYNTAX = "glob";
   private static final String REGEX_SYNTAX = "regex";
@@ -71,7 +67,7 @@ public class DlcFileSystem extends FileSystem
   private final Set<InputStream> streams = Collections.synchronizedSet(new HashSet<InputStream>());
 
   // configurable by env map
-  private final String  nameEncoding;  // default encoding for name/comment
+  private final String nameEncoding; // default encoding for name/comment
 
   // guarantees read/write access without having concurrency issues
   private final ReadWriteLock rwlock = new ReentrantReadWriteLock();
@@ -86,10 +82,7 @@ public class DlcFileSystem extends FileSystem
 
   private volatile boolean isOpen = true;
 
-
-
-  DlcFileSystem(DlcFileSystemProvider provider, Path dfpath, Map<String, ?> env) throws IOException
-  {
+  protected DlcFileSystem(DlcFileSystemProvider provider, Path dfpath, Map<String, ?> env) throws IOException {
     // configurable env setup
     if (env != null) {
       this.nameEncoding = env.containsKey("encoding") ? (String) env.get("encoding") : "CP437";
@@ -111,14 +104,12 @@ public class DlcFileSystem extends FileSystem
   }
 
   @Override
-  public FileSystemProvider provider()
-  {
+  public FileSystemProvider provider() {
     return provider;
   }
 
   @Override
-  public void close() throws IOException
-  {
+  public void close() throws IOException {
     if (!isOpen) {
       return;
     }
@@ -135,48 +126,41 @@ public class DlcFileSystem extends FileSystem
   }
 
   @Override
-  public boolean isOpen()
-  {
+  public boolean isOpen() {
     return isOpen;
   }
 
   @Override
-  public boolean isReadOnly()
-  {
+  public boolean isReadOnly() {
     return readOnly;
   }
 
   @Override
-  public String getSeparator()
-  {
+  public String getSeparator() {
     return "/";
   }
 
   @Override
-  public Iterable<Path> getRootDirectories()
-  {
+  public Iterable<Path> getRootDirectories() {
     ArrayList<Path> pathArr = new ArrayList<>();
     pathArr.add(new DlcPath(this, new byte[] { '/' }));
     return pathArr;
   }
 
   @Override
-  public Iterable<FileStore> getFileStores()
-  {
+  public Iterable<FileStore> getFileStores() {
     ArrayList<FileStore> list = new ArrayList<>(1);
-    list.add(new DlcFileStore(new DlcPath(this, new byte[]{ '/' })));
+    list.add(new DlcFileStore(new DlcPath(this, new byte[] { '/' })));
     return list;
   }
 
   @Override
-  public Set<String> supportedFileAttributeViews()
-  {
-    return supportedFileAttributeViews;
+  public Set<String> supportedFileAttributeViews() {
+    return SUPPORTED_FILE_ATTRIBUTE_VIEWS;
   }
 
   @Override
-  public Path getPath(String first, String... more)
-  {
+  public Path getPath(String first, String... more) {
     String path;
     if (more.length == 0) {
       path = first;
@@ -197,8 +181,7 @@ public class DlcFileSystem extends FileSystem
   }
 
   @Override
-  public PathMatcher getPathMatcher(String syntaxAndPattern)
-  {
+  public PathMatcher getPathMatcher(String syntaxAndPattern) {
     int pos = syntaxAndPattern.indexOf(':');
     if (pos <= 0 || pos == syntaxAndPattern.length()) {
       throw new IllegalArgumentException();
@@ -209,63 +192,49 @@ public class DlcFileSystem extends FileSystem
     if (syntax.equals(GLOB_SYNTAX)) {
       expr = toRegexPattern(input);
     } else if (syntax.equals(REGEX_SYNTAX)) {
-        expr = input;
+      expr = input;
     } else {
       throw new UnsupportedOperationException("Syntax '" + syntax + "' not recognized");
     }
 
     // return matcher
     final Pattern pattern = Pattern.compile(expr);
-    return new PathMatcher() {
-      @Override
-      public boolean matches(Path path)
-      {
-        return pattern.matcher(path.toString()).matches();
-      }
-    };
+    return path -> pattern.matcher(path.toString()).matches();
   }
 
   @Override
-  public UserPrincipalLookupService getUserPrincipalLookupService()
-  {
+  public UserPrincipalLookupService getUserPrincipalLookupService() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public WatchService newWatchService() throws IOException
-  {
+  public WatchService newWatchService() throws IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return dfpath.toString();
   }
 
   @Override
-  protected void finalize() throws IOException
-  {
+  protected void finalize() throws IOException {
     close();
   }
 
-  Path getDlcFile()
-  {
+  protected Path getDlcFile() {
     return dfpath;
   }
 
-  DlcPath getDefaultDir()
-  {
+  protected DlcPath getDefaultDir() {
     return defaultDir;
   }
 
-  FileStore getFileStore(DlcPath path)
-  {
+  protected FileStore getFileStore(DlcPath path) {
     return new DlcFileStore(path);
   }
 
-  DlcFileAttributes getFileAttributes(byte[] path)
-  {
+  protected DlcFileAttributes getFileAttributes(byte[] path) {
     ZipNode folder = null;
     beginRead();
     try {
@@ -281,8 +250,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  boolean exists(byte[] path)
-  {
+  protected boolean exists(byte[] path) {
     beginRead();
     try {
       ensureOpen();
@@ -292,8 +260,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  boolean isDirectory(byte[] path)
-  {
+  protected boolean isDirectory(byte[] path) {
     beginRead();
     try {
       ZipNode folder = root.getNode(path);
@@ -303,8 +270,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  private DlcPath toDlcPath(byte[] path)
-  {
+  private DlcPath toDlcPath(byte[] path) {
     // make it absolute
     byte[] p = new byte[path.length + 1];
     p[0] = '/';
@@ -313,8 +279,7 @@ public class DlcFileSystem extends FileSystem
   }
 
   // returns the list of child paths of "path"
-  Iterator<Path> iteratorOf(byte[] path, DirectoryStream.Filter<? super Path> filter) throws IOException
-  {
+  protected Iterator<Path> iteratorOf(byte[] path, DirectoryStream.Filter<? super Path> filter) throws IOException {
     beginRead(); // iteration of inodes needs exclusive lock
     try {
       ensureOpen();
@@ -325,7 +290,7 @@ public class DlcFileSystem extends FileSystem
 
       List<ZipNode> children = folder.getChildren();
       List<Path> pathList = new ArrayList<>();
-      for (final ZipNode child: children) {
+      for (final ZipNode child : children) {
         pathList.add(toDlcPath(child.getPath()));
       }
       return Collections.unmodifiableList(pathList).iterator();
@@ -335,20 +300,17 @@ public class DlcFileSystem extends FileSystem
   }
 
   // Returns the byte array representation of the specified string
-  final byte[] getBytes(String name)
-  {
+  protected final byte[] getBytes(String name) {
     return zc.getBytes(name);
   }
 
   // Returns the string representation of the specified byte array using the current character encoding.
-  final String getString(byte[] name)
-  {
+  protected final String getString(byte[] name) {
     return zc.toString(name);
   }
 
   // Returns an input stream for reading the contents of the specified file entry.
-  InputStream newInputStream(byte[] path) throws IOException
-  {
+  protected InputStream newInputStream(byte[] path) throws IOException {
     beginRead();
     try {
       ensureOpen();
@@ -366,9 +328,8 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  SeekableByteChannel newByteChannel(byte[] path, Set<? extends OpenOption> options,
-                                     FileAttribute<?>... attrs) throws IOException
-  {
+  protected SeekableByteChannel newByteChannel(byte[] path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
+      throws IOException {
     checkOptions(options);
     if (options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.APPEND)) {
       checkWritable();
@@ -391,44 +352,38 @@ public class DlcFileSystem extends FileSystem
       sbc.position(basePos);
       return new SeekableByteChannel() {
         @Override
-        public boolean isOpen()
-        {
+        public boolean isOpen() {
           return sbc.isOpen();
         }
 
         @Override
-        public void close() throws IOException
-        {
+        public void close() throws IOException {
           sbc.close();
         }
 
         @Override
-        public int write(ByteBuffer src) throws IOException
-        {
+        public int write(ByteBuffer src) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public SeekableByteChannel truncate(long size) throws IOException
-        {
+        public SeekableByteChannel truncate(long size) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public long size() throws IOException
-        {
+        public long size() throws IOException {
           return baseSize;
         }
 
         @Override
-        public int read(ByteBuffer dst) throws IOException
-        {
+        public int read(ByteBuffer dst) throws IOException {
           checkOpen();
-          if (sbc.position() >= basePos+baseSize) {
+          if (sbc.position() >= basePos + baseSize) {
             return -1;
           }
           ByteBuffer buffer = ByteBuffer.allocate(65536);
-          int remaining = (int)(baseSize - position());
+          int remaining = (int) (baseSize - position());
           remaining = Math.min(dst.remaining(), remaining);
           int processed = 0;
           while (remaining > 0) {
@@ -447,8 +402,7 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public SeekableByteChannel position(long newPosition) throws IOException
-        {
+        public SeekableByteChannel position(long newPosition) throws IOException {
           checkOpen();
           if (newPosition < 0) {
             throw new IOException("Negative position");
@@ -458,14 +412,12 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public long position() throws IOException
-        {
+        public long position() throws IOException {
           checkOpen();
           return sbc.position() - basePos;
         }
 
-        private void checkOpen() throws IOException
-        {
+        private void checkOpen() throws IOException {
           if (sbc == null || !sbc.isOpen()) {
             throw new IOException("Channel not open");
           }
@@ -476,9 +428,8 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  FileChannel newFileChannel(byte[] path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-      throws IOException
-  {
+  protected FileChannel newFileChannel(byte[] path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
+      throws IOException {
     checkOptions(options);
     if (options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.APPEND)) {
       checkWritable();
@@ -501,32 +452,27 @@ public class DlcFileSystem extends FileSystem
       fch.position(basePos);
       return new FileChannel() {
         @Override
-        protected void implCloseChannel() throws IOException
-        {
+        protected void implCloseChannel() throws IOException {
           fch.close();
         }
 
         @Override
-        public long write(ByteBuffer[] srcs, int offset, int length) throws IOException
-        {
+        public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public int write(ByteBuffer src, long position) throws IOException
-        {
+        public int write(ByteBuffer src, long position) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public int write(ByteBuffer src) throws IOException
-        {
+        public int write(ByteBuffer src) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public FileLock tryLock(long position, long size, boolean shared) throws IOException
-        {
+        public FileLock tryLock(long position, long size, boolean shared) throws IOException {
           checkOpen();
           if (position < 0) {
             throw new IOException("Position is negative");
@@ -537,36 +483,31 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public FileChannel truncate(long size) throws IOException
-        {
+        public FileChannel truncate(long size) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public long transferTo(long position, long count, WritableByteChannel target) throws IOException
-        {
+        public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
           checkOpen();
           return fch.transferTo(basePos + position, Math.min(count, baseSize - position), target);
         }
 
         @Override
-        public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException
-        {
+        public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException {
           throw new UnsupportedOperationException();
         }
 
         @Override
-        public long size() throws IOException
-        {
+        public long size() throws IOException {
           checkOpen();
           return baseSize;
         }
 
         @Override
-        public long read(ByteBuffer[] dsts, int offset, int length) throws IOException
-        {
+        public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
           checkOpen();
-          if (fch.position() >= basePos+baseSize) {
+          if (fch.position() >= basePos + baseSize) {
             return -1L;
           }
 
@@ -579,7 +520,7 @@ public class DlcFileSystem extends FileSystem
             long toRead = Math.min(dsts[idx].remaining(), remaining);
             while (toRead > 0) {
               buffer.compact().position(0);
-              buffer.limit(Math.min((int)toRead, buffer.remaining()));
+              buffer.limit(Math.min((int) toRead, buffer.remaining()));
               int nread = fch.read(buffer);
               if (nread < 0) {
                 idx = maxIdx;
@@ -597,10 +538,9 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public int read(ByteBuffer dst, long position) throws IOException
-        {
+        public int read(ByteBuffer dst, long position) throws IOException {
           checkOpen();
-          if (position >= basePos+baseSize) {
+          if (position >= basePos + baseSize) {
             return -1;
           } else if (position < 0) {
             throw new IOException("Negative position");
@@ -609,22 +549,20 @@ public class DlcFileSystem extends FileSystem
           long curPosition = fch.position();
           try {
             fch.position(basePos + position);
-            long retVal = read(new ByteBuffer[]{dst}, 0, 1);
-            return (int)retVal;
+            long retVal = read(new ByteBuffer[] { dst }, 0, 1);
+            return (int) retVal;
           } finally {
             fch.position(curPosition);
           }
         }
 
         @Override
-        public int read(ByteBuffer dst) throws IOException
-        {
-          return (int)read(new ByteBuffer[]{dst}, 0, 1);
+        public int read(ByteBuffer dst) throws IOException {
+          return (int) read(new ByteBuffer[] { dst }, 0, 1);
         }
 
         @Override
-        public FileChannel position(long newPosition) throws IOException
-        {
+        public FileChannel position(long newPosition) throws IOException {
           checkOpen();
           if (newPosition < 0) {
             throw new IOException("Negative position");
@@ -634,15 +572,13 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public long position() throws IOException
-        {
+        public long position() throws IOException {
           checkOpen();
           return fch.position() - basePos;
         }
 
         @Override
-        public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException
-        {
+        public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException {
           checkOpen();
           if (position < 0) {
             throw new IOException("Negative position");
@@ -657,8 +593,7 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public FileLock lock(long position, long size, boolean shared) throws IOException
-        {
+        public FileLock lock(long position, long size, boolean shared) throws IOException {
           checkOpen();
           if (position < 0) {
             throw new IOException("Position is negative");
@@ -669,14 +604,12 @@ public class DlcFileSystem extends FileSystem
         }
 
         @Override
-        public void force(boolean metaData) throws IOException
-        {
+        public void force(boolean metaData) throws IOException {
           checkOpen();
           // do nothing
         }
 
-        private void checkOpen() throws IOException
-        {
+        private void checkOpen() throws IOException {
           if (fch == null || !fch.isOpen()) {
             throw new IOException("Channel not open");
           }
@@ -687,13 +620,11 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  private void checkWritable()
-  {
+  private void checkWritable() {
     throw new ReadOnlyFileSystemException();
   }
 
-  private void checkOptions(Set<? extends OpenOption> options)
-  {
+  private void checkOptions(Set<? extends OpenOption> options) {
     // check for options of null type and option is an intance of
     // StandardOpenOption
     for (OpenOption option : options) {
@@ -706,25 +637,21 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  private final void beginRead()
-  {
+  private final void beginRead() {
     rwlock.readLock().lock();
   }
 
-  private final void endRead()
-  {
+  private final void endRead() {
     rwlock.readLock().unlock();
   }
 
-  private void ensureOpen()
-  {
+  private void ensureOpen() {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
   }
 
-  private InputStream getInputStream(ZipNode folder) throws IOException
-  {
+  private InputStream getInputStream(ZipNode folder) throws IOException {
     InputStream is = null;
 
     if (folder == null) {

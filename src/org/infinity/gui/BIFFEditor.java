@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -46,58 +46,54 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public final class BIFFEditor implements ActionListener, ListSelectionListener, Runnable
-{
-  private static boolean firstrun = true;
+public final class BIFFEditor implements ActionListener, ListSelectionListener, Runnable {
+  private static boolean firstRun = true;
+
   private final BIFFEditorTable biftable = new BIFFEditorTable();
   private final BIFFEditorTable overridetable = new BIFFEditorTable();
   private final List<BIFFResourceEntry> origbiflist = new ArrayList<>();
+
   private BIFFEntry bifentry;
   private ChildFrame editframe;
 
-  private JButton bcancel, bsave, btobif, bfrombif;
+  private JButton bcancel;
+  private JButton bsave;
+  private JButton btobif;
+  private JButton bfrombif;
   private JComboBox<AbstractBIFFReader.Type> cbformat;
   private AbstractBIFFReader.Type format;
 
-  public BIFFEditor()
-  {
-    if (firstrun) {
+  public BIFFEditor() {
+    if (firstRun) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    "Make sure you have a backup of " +
-                                    Profile.getChitinKey().toString(),
-                                    "Warning", JOptionPane.WARNING_MESSAGE);
+          "Make sure you have a backup of " + Profile.getChitinKey().toString(), "Warning",
+          JOptionPane.WARNING_MESSAGE);
     }
-    firstrun = false;
+    firstRun = false;
     new ChooseBIFFrame(this);
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bcancel) {
       editframe.close();
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       editframe.close();
-      format = (AbstractBIFFReader.Type)cbformat.getSelectedItem();
+      format = (AbstractBIFFReader.Type) cbformat.getSelectedItem();
       new Thread(this).start();
-    }
-    else if (event.getSource() == btobif) {
+    } else if (event.getSource() == btobif) {
       overridetable.moveSelectedTo(biftable);
       bsave.setEnabled(!biftable.isEmpty());
-    }
-    else if (event.getSource() == bfrombif) {
+    } else if (event.getSource() == bfrombif) {
       biftable.moveSelectedTo(overridetable);
       bsave.setEnabled(!biftable.isEmpty());
-    }
-    else if (event.getSource() == cbformat) {
+    } else if (event.getSource() == cbformat) {
       bsave.setEnabled(!biftable.isEmpty());
     }
   }
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     if (!event.getValueIsAdjusting()) {
       bfrombif.setEnabled(biftable.getSelectedValues().length != 0);
       btobif.setEnabled(overridetable.getSelectedValues().length != 0);
@@ -105,8 +101,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
   }
 
   @Override
-  public void run()
-  {
+  public void run() {
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     BifSaveProgress progress = new BifSaveProgress();
     blocker.setBlocked(true);
@@ -124,8 +119,8 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
         StreamUtils.writeBytes(os, entry.getResourceBuffer(true));
       } catch (Exception e) {
         progress.setProgress(2, false);
-        JOptionPane.showMessageDialog(editframe, "Error while extracting files from " + bifentry,
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(editframe, "Error while extracting files from " + bifentry, "Error",
+            JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
         blocker.setBlocked(false);
         return;
@@ -151,8 +146,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       progress.setProgress(3, true);
     } catch (Exception e) {
       progress.setProgress(3, false);
-      JOptionPane.showMessageDialog(editframe, "Error while saving " + bifentry,
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(editframe, "Error while saving " + bifentry, "Error", JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
       blocker.setBlocked(false);
       return;
@@ -160,8 +154,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     // 4: Delete old files from override
     for (final ResourceEntry entry : tobif) {
-      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
-                                    entry.getResourceName());
+      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.getResourceName());
       if (file != null && FileEx.create(file).isFile()) {
         try {
           Files.delete(file);
@@ -176,8 +169,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     origbiflist.removeAll(biftable.getValueList(BIFFEditorTable.State.BIF));
     origbiflist.removeAll(overridetable.getValueList(BIFFEditorTable.State.BIF));
     for (final ResourceEntry entry : origbiflist) {
-      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
-                                    entry.getResourceName());
+      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.getResourceName());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
       ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolderName(), true);
     }
@@ -189,16 +181,14 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       progress.setProgress(6, true);
     } catch (IOException e) {
       progress.setProgress(6, false);
-      JOptionPane.showMessageDialog(editframe, "Error while saving keyfile", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(editframe, "Error while saving keyfile", "Error", JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
     }
     ResourceFactory.getResourceTreeModel().sort();
     blocker.setBlocked(false);
   }
 
-  public void makeEditor(BIFFEntry bifentry, AbstractBIFFReader.Type format)
-  {
+  public void makeEditor(BIFFEntry bifentry, AbstractBIFFReader.Type format) {
     this.bifentry = bifentry;
     this.format = format;
     editframe = new ChildFrame("Edit BIFF", true);
@@ -209,13 +199,12 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     pane.setLayout(gbl);
 
     for (final ResourceEntry entry : ResourceFactory.getResourceTreeModel().getResourceEntries()) {
-      if ((entry instanceof FileResourceEntry || entry.hasOverride()) &&
-          StreamUtils.splitFileName(entry.getResourceName())[1].length() <= 8 &&
-          ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1) {
+      if ((entry instanceof FileResourceEntry || entry.hasOverride())
+          && StreamUtils.splitFileName(entry.getResourceName())[1].length() <= 8
+          && ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1) {
         overridetable.addEntry(entry, BIFFEditorTable.State.NEW);
-      }
-      else if (bifentry.getIndex() != -1 && entry instanceof BIFFResourceEntry) {
-        BIFFResourceEntry bentry = (BIFFResourceEntry)entry;
+      } else if (bifentry.getIndex() != -1 && entry instanceof BIFFResourceEntry) {
+        BIFFResourceEntry bentry = (BIFFResourceEntry) entry;
         if (bentry.getBIFFEntry() == bifentry) {
           biftable.addEntry(bentry, BIFFEditorTable.State.BIF);
           origbiflist.add(bentry);
@@ -250,10 +239,10 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     final Vector<AbstractBIFFReader.Type> formats = new Vector<>();
     formats.add(AbstractBIFFReader.Type.BIFF);
-    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF)) {
+    if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF)) {
       formats.add(AbstractBIFFReader.Type.BIF);
     }
-    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC)) {
+    if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC)) {
       formats.add(AbstractBIFFReader.Type.BIFC);
     }
     cbformat = new JComboBox<>(formats);
@@ -266,7 +255,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     JPanel bpanel3 = new JPanel(new FlowLayout(FlowLayout.LEFT));
     bpanel3.add(new JLabel("Format: "));
     bpanel3.add(cbformat);
-//    cbformat.setEnabled(false); // Temporary while I figure things out
+    // cbformat.setEnabled(false); // Temporary while I figure things out
 
     btobif.addActionListener(this);
     bfrombif.addActionListener(this);
@@ -312,16 +301,14 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     editframe.setVisible(true);
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class BifSaveProgress extends JFrame implements ActionListener
-  {
+  private static final class BifSaveProgress extends JFrame implements ActionListener {
     private final JCheckBox[] boxes = new JCheckBox[6];
     private final JLabel[] labels = new JLabel[6];
     private final JButton bok = new JButton("Ok");
 
-    private BifSaveProgress()
-    {
+    private BifSaveProgress() {
       super("Progress");
       labels[0] = new JLabel("Remove old entries");
       labels[1] = new JLabel("Extract files");
@@ -361,20 +348,20 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       setVisible(true);
     }
 
-    private void setProgress(int level, boolean ok)
-    {
-      if (ok)
+    private void setProgress(int level, boolean ok) {
+      if (ok) {
         boxes[level - 1].setSelected(true);
-      else
+      } else {
         boxes[level - 1].setForeground(Color.RED);
+      }
       bok.setEnabled(level == boxes.length || !ok);
     }
 
     @Override
-    public void actionPerformed(ActionEvent event)
-    {
-      if (event.getSource() == bok)
+    public void actionPerformed(ActionEvent event) {
+      if (event.getSource() == bok) {
         setVisible(false);
+      }
     }
   }
 }

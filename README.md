@@ -1,7 +1,6 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Argent77/NearInfinity?color=darkred&include_prereleases&label=latest%20release)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
 [![GitHub release date (latest by date)](https://img.shields.io/github/release-date/Argent77/NearInfinity?color=gold)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
 [![Github downloads (total)](https://img.shields.io/github/downloads/Argent77/NearInfinity/total.svg?color=blueviolet)](https://GitHub.com/Argent77/NearInfinity/releases)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b5d10ca2684c4e30b6632e34584f1241)](https://www.codacy.com/manual/Mingun/NearInfinity)
 
 # Near Infinity
 
@@ -12,7 +11,7 @@ the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wik
 
 **Required tools:**
 - [Oracle's Java SE Development Kit 8 or later](https://www.oracle.com/java/technologies/downloads/), or [OpenJDK 8 or later](https://adoptium.net/releases.html)
-- [Apache Ant](http://ant.apache.org/)
+- [Apache Ant](https://ant.apache.org/)
 
 If you wish to compile Near Infinity from source, the easiest way to do so is
 by using the included Ant build script. The default target builds the `NearInfinity.jar`.
@@ -22,7 +21,7 @@ cd NearInfinity
 ant
 ```
 
-The sources also contain configuration files for the [Eclipse IDE](http://www.eclipse.org/).
+The sources also contain configuration files for the [Eclipse IDE](https://www.eclipse.org/).
 It is preferred to use `Apache Ant` for compiling Near Infinity, however.
 
 ### Recreate parse tree
@@ -37,17 +36,6 @@ ant parser-generate
 ```
 
 The JavaCC executable is already included in the Near Infinity sources.
-
-### Unit Tests
-
-The unit tests (that currently have far from complete coverage) can be run by
-passing `test` as the target parameter to ant:
-
-```bash
-cd NearInfinity
-ant test
-```
-(This will compile the tests and run the tests on the last compiled build)
 
 ## Contributors
 
@@ -85,7 +73,7 @@ GitHub. The existing code is not always well-behaved in this regard,
 however.
 
 When in doubt, refer to the official
-[Java conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) (outdated)
+[Java conventions](https://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) (outdated)
 or [Google's Java Style](https://google.github.io/styleguide/javaguide.html).
 
 ### Workflow

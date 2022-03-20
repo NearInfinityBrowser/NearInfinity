@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -43,8 +43,7 @@ import org.infinity.util.Misc;
 /**
  * Implements a search panel for quickly finding specific resources.
  */
-public class QuickSearch extends JPanel implements Runnable
-{
+public class QuickSearch extends JPanel implements Runnable {
   // Internally used to control actions in the background task
   private enum Command {
     IDLE, UPDATE, DESTROY
@@ -58,37 +57,36 @@ public class QuickSearch extends JPanel implements Runnable
   private final ButtonPopupWindow parent;
   private final ResourceTree tree;
   private final MapTree<Character, List<ResourceEntry>> resourceTree;
-  private final Object monitor = new Object();  // synchronization object
+  private final Object monitor = new Object(); // synchronization object
   private final JPanel mainPanel = new JPanel(new GridBagLayout());
 
   private JLabel lSearch;
   private JComboBox<ResourceEntry> cbSearch;
   private JTextComponent tcEdit;
-  private JButton bOk, bOkNew, bCancel;
+  private JButton bOk;
+  private JButton bOkNew;
+  private JButton bCancel;
   private String keyword;
   private Command command;
 
-  public QuickSearch(ButtonPopupWindow parent, ResourceTree tree)
-  {
+  public QuickSearch(ButtonPopupWindow parent, ResourceTree tree) {
     super();
     if (parent == null || tree == null) {
       throw new NullPointerException("parent and tree must not be null!");
     }
     this.parent = parent;
     this.tree = tree;
-    this.resourceTree = new MapTree<>(Character.valueOf('\0'), null);
+    this.resourceTree = new MapTree<>('\0', null);
     this.command = Command.IDLE;
-    new Thread(this).start();   // updating list of matching resources is done in the background
+    new Thread(this).start(); // updating list of matching resources is done in the background
     init();
   }
 
-  private void init()
-  {
+  private void init() {
     // Action for pressing "Enter"
     final Action acceptAction = new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         close(Result.OPEN);
       }
     };
@@ -96,8 +94,7 @@ public class QuickSearch extends JPanel implements Runnable
     // Action for pressing "Enter"
     final Action acceptNewAction = new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         close(Result.OPEN_NEW);
       }
     };
@@ -105,8 +102,7 @@ public class QuickSearch extends JPanel implements Runnable
     // Action for pressing "Escape"
     final Action rejectAction = new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         close(Result.CANCEL);
       }
     };
@@ -114,8 +110,7 @@ public class QuickSearch extends JPanel implements Runnable
     // Action for changing text in search field
     final KeyListener keyListener = new KeyListener() {
       @Override
-      public void keyReleased(KeyEvent event)
-      {
+      public void keyReleased(KeyEvent event) {
         switch (event.getKeyCode()) {
           case KeyEvent.VK_ESCAPE:
             event.consume();
@@ -136,16 +131,22 @@ public class QuickSearch extends JPanel implements Runnable
         }
       }
 
-      @Override public void keyTyped(KeyEvent e) {}
-      @Override public void keyPressed(KeyEvent e) {}
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+      }
     };
 
     final PopupWindowListener popupListener = new PopupWindowListener() {
-      @Override public void popupWindowWillBecomeVisible(PopupWindowEvent event) {}
+      @Override
+      public void popupWindowWillBecomeVisible(PopupWindowEvent event) {
+      }
 
       @Override
-      public void popupWindowWillBecomeInvisible(PopupWindowEvent event)
-      {
+      public void popupWindowWillBecomeInvisible(PopupWindowEvent event) {
         cbSearch.hidePopup();
 
         synchronized (monitor) {
@@ -164,9 +165,9 @@ public class QuickSearch extends JPanel implements Runnable
     lSearch = new JLabel("Search:", SwingConstants.LEFT);
 
     cbSearch = new JComboBox<>();
-    cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW"));    // space for at least 8.4 characters
+    cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW")); // space for at least 8.4 characters
     cbSearch.setEditable(true);
-    tcEdit = (JTextComponent)cbSearch.getEditor().getEditorComponent();
+    tcEdit = (JTextComponent) cbSearch.getEditor().getEditorComponent();
     tcEdit.addKeyListener(keyListener);
 
     bOk = new JButton(Icons.ICON_CHECK_16.getIcon());
@@ -183,36 +184,34 @@ public class QuickSearch extends JPanel implements Runnable
     bCancel.addActionListener(rejectAction);
 
     GridBagConstraints gbc = new GridBagConstraints();
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     mainPanel.add(lSearch, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     mainPanel.add(cbSearch, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     mainPanel.add(bOk, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     mainPanel.add(bOkNew, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 4, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.VERTICAL, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 4, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     mainPanel.add(bCancel, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     add(mainPanel, gbc);
   }
 
   @Override
-  public boolean requestFocusInWindow()
-  {
+  public boolean requestFocusInWindow() {
     return cbSearch.requestFocusInWindow();
   }
 
   // Updates the list of resources matching the specified text
-  private void updateSuggestions(String text)
-  {
+  private void updateSuggestions(String text) {
     synchronized (monitor) {
       keyword = (text != null) ? text : "";
       command = Command.UPDATE;
@@ -221,14 +220,12 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Returns the text field content of the combobox
-  private String getSearchString()
-  {
+  private String getSearchString() {
     return tcEdit.getText();
   }
 
   // Executed when accepting current input
-  private void close(Result result)
-  {
+  private void close(Result result) {
     if (result != Result.CANCEL) {
       Object item = cbSearch.getSelectedItem();
       if (!(item instanceof ResourceEntry)) {
@@ -237,9 +234,9 @@ public class QuickSearch extends JPanel implements Runnable
 
       if (item instanceof ResourceEntry) {
         if (result == Result.OPEN) {
-          tree.select((ResourceEntry)item);
+          tree.select((ResourceEntry) item);
         } else if (result == Result.OPEN_NEW) {
-          Resource res = ResourceFactory.getResource((ResourceEntry)item);
+          Resource res = ResourceFactory.getResource((ResourceEntry) item);
           if (res != null) {
             new ViewFrame(NearInfinity.getInstance(), res);
           }
@@ -251,8 +248,7 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Generates root list of resource entries
-  private void generateRootNode()
-  {
+  private void generateRootNode() {
     // removing old list (if any)
     List<ResourceEntry> list = resourceTree.getValue();
     if (list != null) {
@@ -273,15 +269,14 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Returns a set of resource entries from the resource tree
-  private SortedSet<ResourceEntry> generateResourceList(ResourceTreeFolder folder, SortedSet<ResourceEntry> set)
-  {
+  private SortedSet<ResourceEntry> generateResourceList(ResourceTreeFolder folder, SortedSet<ResourceEntry> set) {
     if (set == null) {
       set = new TreeSet<>();
     }
 
     if (folder != null) {
       set.addAll(folder.getResourceEntries());
-      for (final ResourceTreeFolder subFolder: folder.getFolders()) {
+      for (final ResourceTreeFolder subFolder : folder.getFolders()) {
         generateResourceList(subFolder, set);
       }
     }
@@ -289,13 +284,11 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Creates a new node with a list of matching resources based on the specified node and the new character
-  private MapTree<Character, List<ResourceEntry>> generateNode(MapTree<Character, List<ResourceEntry>> node, char ch)
-  {
+  private MapTree<Character, List<ResourceEntry>> generateNode(MapTree<Character, List<ResourceEntry>> node, char ch) {
     // determining node level (0 = first level)
     int index = 0;
-    for (MapTree<Character, List<ResourceEntry>> curNode = node;
-         curNode.getParent() != null;
-         curNode = curNode.getParent()) {
+    for (MapTree<Character, List<ResourceEntry>> curNode = node; curNode.getParent() != null; curNode = curNode
+        .getParent()) {
       index++;
     }
 
@@ -303,7 +296,7 @@ public class QuickSearch extends JPanel implements Runnable
     ch = Character.toUpperCase(ch);
 
     // preparing child node
-    MapTree<Character, List<ResourceEntry>> retVal = node.getChild(Character.valueOf(ch));
+    MapTree<Character, List<ResourceEntry>> retVal = node.getChild(ch);
     if (retVal != null) {
       if (retVal.getValue() != null) {
         retVal.getValue().clear();
@@ -311,15 +304,14 @@ public class QuickSearch extends JPanel implements Runnable
         retVal.setValue(new Vector<ResourceEntry>());
       }
     } else {
-      retVal = new MapTree<>(Character.valueOf(ch), new Vector<ResourceEntry>());
+      retVal = new MapTree<>(ch, new Vector<ResourceEntry>());
     }
     node.addChild(retVal);
 
     // generating filtered list of resource entries
     List<ResourceEntry> parentList = node.getValue();
     List<ResourceEntry> curList = retVal.getValue();
-    for (Iterator<ResourceEntry> iter = parentList.iterator(); iter.hasNext();) {
-      final ResourceEntry entry = iter.next();
+    for (ResourceEntry entry : parentList) {
       final String resName = entry.getResourceName();
       if (resName.length() > index && (ch == '?' || Character.toUpperCase(resName.charAt(index)) == ch)) {
         curList.add(entry);
@@ -330,28 +322,27 @@ public class QuickSearch extends JPanel implements Runnable
   }
 
   // Removes all child nodes and their values recursively
-//  private void clearResourceTree(MapTree<Character, List<ResourceEntry>> node)
-//  {
-//    if (node != null) {
-//      for (Iterator<MapTree<Character, List<ResourceEntry>>> iter = node.getChildren().iterator();
-//           iter.hasNext();) {
-//        MapTree<Character, List<ResourceEntry>> curNode = iter.next();
-//        clearResourceTree(curNode);
-//      }
-//      node.removeAllChildren();
-//      List<ResourceEntry> list = node.setValue(null);
-//      if (list != null) {
-//        list.clear();
-//        list = null;
-//      }
-//    }
-//  }
+  // private void clearResourceTree(MapTree<Character, List<ResourceEntry>> node)
+  // {
+  // if (node != null) {
+  // for (Iterator<MapTree<Character, List<ResourceEntry>>> iter = node.getChildren().iterator();
+  // iter.hasNext();) {
+  // MapTree<Character, List<ResourceEntry>> curNode = iter.next();
+  // clearResourceTree(curNode);
+  // }
+  // node.removeAllChildren();
+  // List<ResourceEntry> list = node.setValue(null);
+  // if (list != null) {
+  // list.clear();
+  // list = null;
+  // }
+  // }
+  // }
 
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     // main loop
     while (true) {
       if (command == Command.DESTROY) {
@@ -373,7 +364,7 @@ public class QuickSearch extends JPanel implements Runnable
             keyword = keyword.toUpperCase(Locale.ENGLISH);
             MapTree<Character, List<ResourceEntry>> node = resourceTree;
             for (int i = 0, size = keyword.length(); i < size; i++) {
-              MapTree<Character, List<ResourceEntry>> newNode = node.getChild(Character.valueOf(keyword.charAt(i)));
+              MapTree<Character, List<ResourceEntry>> newNode = node.getChild(keyword.charAt(i));
               if (newNode == null) {
                 node = generateNode(node, keyword.charAt(i));
               } else {
@@ -382,7 +373,7 @@ public class QuickSearch extends JPanel implements Runnable
             }
 
             // setting matching resource entries
-            DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
+            DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>) cbSearch.getModel();
 
             // Deactivating listeners to prevent autoselecting items
             ListDataListener[] listeners = cbModel.getListDataListeners();
@@ -390,7 +381,7 @@ public class QuickSearch extends JPanel implements Runnable
               cbModel.removeListDataListener(listeners[i]);
             }
 
-            cbSearch.hidePopup();   // XXX: work-around to force visual update of file list
+            cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
             cbModel.removeAllElements();
             if (!keyword.isEmpty() && node != null && node.getValue() != null) {
               List<ResourceEntry> list = node.getValue();
@@ -400,8 +391,8 @@ public class QuickSearch extends JPanel implements Runnable
             }
 
             // Reactivating listeners
-            for (int i = 0; i < listeners.length; i++) {
-              cbModel.addListDataListener(listeners[i]);
+            for (ListDataListener listener : listeners) {
+              cbModel.addListDataListener(listener);
             }
 
             cbSearch.setMaximumRowCount(Math.min(8, cbModel.getSize()));
@@ -411,17 +402,17 @@ public class QuickSearch extends JPanel implements Runnable
               cbSearch.hidePopup();
             }
           }
-//      } else if (command == Command.Clear) {
-//        // reset data
-//        synchronized(monitor) {
-//          command = Command.Idle;
-//          clearResourceTree(resourceTree);
-//          ((DefaultComboBoxModel)cbSearch.getModel()).removeAllElements();
-//          ((JTextComponent)cbSearch.getEditor().getEditorComponent()).setText("");
+          // } else if (command == Command.Clear) {
+          // // reset data
+          // synchronized(monitor) {
+          // command = Command.Idle;
+          // clearResourceTree(resourceTree);
+          // ((DefaultComboBoxModel)cbSearch.getModel()).removeAllElements();
+          // ((JTextComponent)cbSearch.getEditor().getEditorComponent()).setText("");
         }
       } else {
         // nothing else to do?
-        synchronized(monitor) {
+        synchronized (monitor) {
           try {
             monitor.wait();
           } catch (InterruptedException e) {
@@ -431,5 +422,5 @@ public class QuickSearch extends JPanel implements Runnable
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 }

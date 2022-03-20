@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -45,8 +45,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Useful zip methods.
  */
-class ZipUtils
-{
+class ZipUtils {
   private static final long TIME_BASE;
 
   static {
@@ -58,8 +57,7 @@ class ZipUtils
   /*
    * Writes a 16-bit short to the output stream in little-endian byte order.
    */
-  public static void writeShort(OutputStream os, int v) throws IOException
-  {
+  public static void writeShort(OutputStream os, int v) throws IOException {
     os.write(v & 0xff);
     os.write((v >>> 8) & 0xff);
   }
@@ -67,8 +65,7 @@ class ZipUtils
   /*
    * Writes a 32-bit int to the output stream in little-endian byte order.
    */
-  public static void writeInt(OutputStream os, long v) throws IOException
-  {
+  public static void writeInt(OutputStream os, long v) throws IOException {
     os.write((int) (v & 0xff));
     os.write((int) ((v >>> 8) & 0xff));
     os.write((int) ((v >>> 16) & 0xff));
@@ -78,8 +75,7 @@ class ZipUtils
   /*
    * Writes a 64-bit int to the output stream in little-endian byte order.
    */
-  public static void writeLong(OutputStream os, long v) throws IOException
-  {
+  public static void writeLong(OutputStream os, long v) throws IOException {
     os.write((int) (v & 0xff));
     os.write((int) ((v >>> 8) & 0xff));
     os.write((int) ((v >>> 16) & 0xff));
@@ -93,24 +89,21 @@ class ZipUtils
   /*
    * Writes an array of bytes to the output stream.
    */
-  public static void writeBytes(OutputStream os, byte[] b) throws IOException
-  {
+  public static void writeBytes(OutputStream os, byte[] b) throws IOException {
     os.write(b, 0, b.length);
   }
 
   /*
    * Writes an array of bytes to the output stream.
    */
-  public static void writeBytes(OutputStream os, byte[] b, int off, int len) throws IOException
-  {
+  public static void writeBytes(OutputStream os, byte[] b, int off, int len) throws IOException {
     os.write(b, off, len);
   }
 
   /*
    * Append a slash at the end, if it does not have one yet
    */
-  public static byte[] toDirectoryPath(byte[] dir)
-  {
+  public static byte[] toDirectoryPath(byte[] dir) {
     if (dir.length != 0 && dir[dir.length - 1] != '/') {
       dir = Arrays.copyOf(dir, dir.length + 1);
       dir[dir.length - 1] = '/';
@@ -121,90 +114,71 @@ class ZipUtils
   /*
    * Converts DOS time to Java time (number of milliseconds since epoch).
    */
-  public static long dosToJavaTime(long dtime)
-  {
+  public static long dosToJavaTime(long dtime) {
     Calendar cal = Calendar.getInstance();
-    cal.set((int)(((dtime >> 25) & 0x7f) + 1980),
-            (int)(((dtime >> 21) & 0x0f) - 1),
-            (int)((dtime >> 16) & 0x1f),
-            (int)((dtime >> 11) & 0x1f),
-            (int)((dtime >> 5) & 0x3f),
-            (int)((dtime << 1) & 0x3e));
+    cal.set((int) (((dtime >> 25) & 0x7f) + 1980), (int) (((dtime >> 21) & 0x0f) - 1), (int) ((dtime >> 16) & 0x1f),
+        (int) ((dtime >> 11) & 0x1f), (int) ((dtime >> 5) & 0x3f), (int) ((dtime << 1) & 0x3e));
     return cal.getTimeInMillis() - TIME_BASE;
-//    Date d = new Date((int) (((dtime >> 25) & 0x7f) + 80), (int) (((dtime >> 21) & 0x0f) - 1),
-//        (int) ((dtime >> 16) & 0x1f), (int) ((dtime >> 11) & 0x1f), (int) ((dtime >> 5) & 0x3f),
-//        (int) ((dtime << 1) & 0x3e));
-//    return d.getTime();
+    // Date d = new Date((int) (((dtime >> 25) & 0x7f) + 80), (int) (((dtime >> 21) & 0x0f) - 1),
+    // (int) ((dtime >> 16) & 0x1f), (int) ((dtime >> 11) & 0x1f), (int) ((dtime >> 5) & 0x3f),
+    // (int) ((dtime << 1) & 0x3e));
+    // return d.getTime();
   }
 
   /*
    * Converts Java time to DOS time.
    */
-  public static long javaToDosTime(long time)
-  {
+  public static long javaToDosTime(long time) {
     Calendar cal = Calendar.getInstance();
     cal.setTimeInMillis(time + TIME_BASE);
     int year = cal.get(Calendar.YEAR);
     if (year < 1980) {
       return (1 << 21) | (1 << 16);
     }
-    return ((year - 1980) << 25) |
-           ((cal.get(Calendar.MONTH) + 1) << 21) |
-           (cal.get(Calendar.DAY_OF_MONTH) << 16) |
-           (cal.get(Calendar.HOUR_OF_DAY) << 11) |
-           (cal.get(Calendar.MINUTE) << 5) |
-           (cal.get(Calendar.SECOND) >> 1);
-//    Date d = new Date(time);
-//    int year = d.getYear() + 1900;
-//    if (year < 1980) {
-//      return (1 << 21) | (1 << 16);
-//    }
-//    return (year - 1980) << 25 | (d.getMonth() + 1) << 21 | d.getDate() << 16 | d.getHours() << 11
-//        | d.getMinutes() << 5 | d.getSeconds() >> 1;
+    return ((year - 1980) << 25) | ((cal.get(Calendar.MONTH) + 1) << 21) | (cal.get(Calendar.DAY_OF_MONTH) << 16)
+        | (cal.get(Calendar.HOUR_OF_DAY) << 11) | (cal.get(Calendar.MINUTE) << 5) | (cal.get(Calendar.SECOND) >> 1);
+    // Date d = new Date(time);
+    // int year = d.getYear() + 1900;
+    // if (year < 1980) {
+    // return (1 << 21) | (1 << 16);
+    // }
+    // return (year - 1980) << 25 | (d.getMonth() + 1) << 21 | d.getDate() << 16 | d.getHours() << 11
+    // | d.getMinutes() << 5 | d.getSeconds() >> 1;
   }
 
   // used to adjust values between Windows and java epoch
   private static final long WINDOWS_EPOCH_IN_MICROSECONDS = -11644473600000000L;
 
-  public static final long winToJavaTime(long wtime)
-  {
-    return TimeUnit.MILLISECONDS.convert(wtime / 10 + WINDOWS_EPOCH_IN_MICROSECONDS,
-        TimeUnit.MICROSECONDS);
+  public static final long winToJavaTime(long wtime) {
+    return TimeUnit.MILLISECONDS.convert(wtime / 10 + WINDOWS_EPOCH_IN_MICROSECONDS, TimeUnit.MICROSECONDS);
   }
 
-  public static final long javaToWinTime(long time)
-  {
-    return (TimeUnit.MICROSECONDS.convert(time, TimeUnit.MILLISECONDS)
-        - WINDOWS_EPOCH_IN_MICROSECONDS) * 10;
+  public static final long javaToWinTime(long time) {
+    return (TimeUnit.MICROSECONDS.convert(time, TimeUnit.MILLISECONDS) - WINDOWS_EPOCH_IN_MICROSECONDS) * 10;
   }
 
-  public static final long unixToJavaTime(long utime)
-  {
+  public static final long unixToJavaTime(long utime) {
     return TimeUnit.MILLISECONDS.convert(utime, TimeUnit.SECONDS);
   }
 
-  public static final long javaToUnixTime(long time)
-  {
+  public static final long javaToUnixTime(long time) {
     return TimeUnit.SECONDS.convert(time, TimeUnit.MILLISECONDS);
   }
 
   private static final String regexMetaChars = ".^$+{[]|()";
   private static final String globMetaChars = "\\*?[{";
 
-  private static boolean isRegexMeta(char c)
-  {
+  private static boolean isRegexMeta(char c) {
     return regexMetaChars.indexOf(c) != -1;
   }
 
-  private static boolean isGlobMeta(char c)
-  {
+  private static boolean isGlobMeta(char c) {
     return globMetaChars.indexOf(c) != -1;
   }
 
   private static char EOL = 0; // TBD
 
-  private static char next(String glob, int i)
-  {
+  private static char next(String glob, int i) {
     if (i < glob.length()) {
       return glob.charAt(i);
     }
@@ -216,8 +190,7 @@ class ZipUtils
    *
    * @throws PatternSyntaxException
    */
-  public static String toRegexPattern(String globPattern)
-  {
+  public static String toRegexPattern(String globPattern) {
     boolean inGroup = false;
     StringBuilder regex = new StringBuilder("^");
 
@@ -246,8 +219,7 @@ class ZipUtils
             // escape the regex negation char if it appears
             regex.append("\\^");
             i++;
-          }
-          else {
+          } else {
             // negation
             if (next(globPattern, i) == '!') {
               regex.append('^');
@@ -267,8 +239,7 @@ class ZipUtils
               break;
             }
             if (c == '/') {
-              throw new PatternSyntaxException("Explicit 'name separator' in class", globPattern,
-                  i - 1);
+              throw new PatternSyntaxException("Explicit 'name separator' in class", globPattern, i - 1);
             }
             // TBD: how to specify ']' in a class?
             if (c == '\\' || c == '[' || c == '&' && next(globPattern, i) == '&') {
@@ -289,8 +260,7 @@ class ZipUtils
               }
               regex.append(c);
               hasRangeStart = false;
-            }
-            else {
+            } else {
               hasRangeStart = true;
               last = c;
             }
@@ -311,16 +281,14 @@ class ZipUtils
           if (inGroup) {
             regex.append("))");
             inGroup = false;
-          }
-          else {
+          } else {
             regex.append('}');
           }
           break;
         case ',':
           if (inGroup) {
             regex.append(")|(?:");
-          }
-          else {
+          } else {
             regex.append(',');
           }
           break;
@@ -329,8 +297,7 @@ class ZipUtils
             // crosses directory boundaries
             regex.append(".*");
             i++;
-          }
-          else {
+          } else {
             // within directory boundary
             regex.append("[^/]*");
           }
@@ -350,5 +317,4 @@ class ZipUtils
     }
     return regex.append('$').toString();
   }
-
 }

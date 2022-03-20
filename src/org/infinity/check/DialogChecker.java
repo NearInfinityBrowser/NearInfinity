@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -52,94 +52,92 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link DlgResource DLG} resources. */
-public final class DialogChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
-{
+public final class DialogChecker extends AbstractSearcher
+    implements Runnable, ActionListener, ListSelectionListener, ChangeListener {
   private final boolean checkOnlyOverride;
+
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew, bsave;
+  private JButton bopen;
+  private JButton bopennew;
+  private JButton bsave;
   private JTabbedPane tabbedPane;
+
   /** List of the {@link Problem} objects with compiler errors in dialog actions. */
   private SortableTable errorTable;
+
   /** List of the {@link Problem} objects with compiler warnings in dialog actions. */
   private SortableTable warningTable;
 
-  public DialogChecker(boolean checkOnlyOverride, Component parent)
-  {
+  public DialogChecker(boolean checkOnlyOverride, Component parent) {
     super(CHECK_ONE_TYPE_FORMAT, parent);
     this.checkOnlyOverride = checkOnlyOverride;
     new Thread(this).start();
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     SortableTable table = errorTable;
-    if (tabbedPane.getSelectedIndex() == 1)
+    if (tabbedPane.getSelectedIndex() == 1) {
       table = warningTable;
+    }
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((AbstractStruct)NearInfinity.getInstance().getViewable()).getViewer().selectEntry(
-                (String)table.getValueAt(row, 1));
+        ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
+            .selectEntry((String) table.getValueAt(row, 1));
       }
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         Resource resource = ResourceFactory.getResource(resourceEntry);
         new ViewFrame(resultFrame, resource);
-        ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+        ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
       }
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       final String type = table == errorTable ? "Errors" : "Warnings";
       table.saveCheckResult(resultFrame, type + " in dialogues");
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (tabbedPane.getSelectedIndex() == 0)
+  public void stateChanged(ChangeEvent event) {
+    if (tabbedPane.getSelectedIndex() == 0) {
       bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    else
+    } else {
       bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
+    }
     bopennew.setEnabled(bopen.isEnabled());
   }
 
-// --------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
-    if (tabbedPane.getSelectedIndex() == 0)
+  public void valueChanged(ListSelectionEvent event) {
+    if (tabbedPane.getSelectedIndex() == 0) {
       bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    else
+    } else {
       bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
+    }
     bopennew.setEnabled(bopen.isEnabled());
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
@@ -147,28 +145,25 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
       if (checkOnlyOverride) {
         for (Iterator<ResourceEntry> i = dlgFiles.iterator(); i.hasNext();) {
           ResourceEntry resourceEntry = i.next();
-          if (!resourceEntry.hasOverride())
+          if (!resourceEntry.hasOverride()) {
             i.remove();
+          }
         }
       }
 
-      final Class<?>[] colClasses = {ResourceEntry.class, String.class, String.class, Integer.class};
-      errorTable = new SortableTable(
-          new String[]{"Dialogue", "Field", "Error message", "Line"},
-          colClasses,
-          new Integer[]{50, 100, 350, 10});
-      warningTable = new SortableTable(
-          new String[]{"Dialogue", "Field", "Warning", "Line"},
-          colClasses,
-          new Integer[]{50, 100, 350, 10});
+      final Class<?>[] colClasses = { ResourceEntry.class, String.class, String.class, Integer.class };
+      errorTable = new SortableTable(new String[] { "Dialogue", "Field", "Error message", "Line" }, colClasses,
+          new Integer[] { 50, 100, 350, 10 });
+      warningTable = new SortableTable(new String[] { "Dialogue", "Field", "Warning", "Line" }, colClasses,
+          new Integer[] { 50, 100, 350, 10 });
 
       if (runSearch("Checking dialogues", dlgFiles)) {
         return;
       }
 
       if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found", "Info",
+                                      JOptionPane.INFORMATION_MESSAGE);
       } else {
         errorTable.tableComplete();
         warningTable.tableComplete();
@@ -193,7 +188,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
         panel.add(bopen);
         panel.add(bopennew);
         panel.add(bsave);
-        JPanel pane = (JPanel)resultFrame.getContentPane();
+        JPanel pane = (JPanel) resultFrame.getContentPane();
         pane.setLayout(new BorderLayout(0, 3));
         pane.add(tabbedPane, BorderLayout.CENTER);
         pane.add(panel, BorderLayout.SOUTH);
@@ -205,19 +200,17 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
         warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
-        MouseListener listener = new MouseAdapter()
-        {
+        MouseListener listener = new MouseAdapter() {
           @Override
-          public void mouseReleased(MouseEvent event)
-          {
+          public void mouseReleased(MouseEvent event) {
             if (event.getClickCount() == 2) {
-              SortableTable table = (SortableTable)event.getSource();
+              SortableTable table = (SortableTable) event.getSource();
               int row = table.getSelectedRow();
               if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
                 Resource resource = ResourceFactory.getResource(resourceEntry);
                 new ViewFrame(resultFrame, resource);
-                ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+                ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
               }
             }
           }
@@ -237,20 +230,18 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       try {
         final DlgResource dialog = new DlgResource(entry);
         for (final StructEntry o : dialog.getFields()) {
           if (o instanceof AbstractCode) {
-            checkCode(entry, (AbstractCode)o);
-          } else
-          if (o instanceof State) {
-            checkState(dialog, (State)o);
+            checkCode(entry, (AbstractCode) o);
+          } else if (o instanceof State) {
+            checkState(dialog, (State) o);
           }
         }
       } catch (Exception e) {
@@ -266,7 +257,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
    * Performs code checking. This method can be called from several threads
    *
    * @param entry Pointer to dialog resource for check. Never {@code null}
-   * @param code Code of action or trigger in dialog. Never {@code null}
+   * @param code  Code of action or trigger in dialog. Never {@code null}
    */
   private void checkCode(ResourceEntry entry, AbstractCode code) {
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
@@ -274,16 +265,12 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     compiler.compile();
     synchronized (errorTable) {
       for (final ScriptMessage sm : compiler.getErrors()) {
-        errorTable.addTableItem(new Problem(
-          entry, code, sm.getLine(), sm.getMessage(), Problem.Type.ERROR
-        ));
+        errorTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.ERROR));
       }
     }
     synchronized (warningTable) {
       for (final ScriptMessage sm : compiler.getWarnings()) {
-        warningTable.addTableItem(new Problem(
-          entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING
-        ));
+        warningTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING));
       }
     }
   }
@@ -295,40 +282,43 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
    * <li>has response without associated text</li>
    * <li>has another response without trigger</li>
    * </ol>
-   * Error reported because responses without text not shown in the dialogue and
-   * not available to select by PC from one hand, and from another hand if more
-   * that 2 responses not filtered by triggers, dialogue stops and requires PC
-   * to select one... even if all of them without text (in that case there just
-   * no options to select).
+   * Error reported because responses without text not shown in the dialogue and not available to select by PC from one
+   * hand, and from another hand if more that 2 responses not filtered by triggers, dialogue stops and requires PC to
+   * select one... even if all of them without text (in that case there just no options to select).
    * <p>
    * Original PS:T files contains at least 4 errors of this type
    *
-   * @param dlg Dialogue that owns {@code state}
+   * @param dlg   Dialogue that owns {@code state}
    * @param state State for checking. Never {@code null}
    */
-  private void checkState(DlgResource dlg, State state)
-  {
+  private void checkState(DlgResource dlg, State state) {
     final int count = state.getTransCount();
-    if (count < 2) return;
+    if (count < 2) {
+      return;
+    }
 
     final int start = state.getFirstTrans();
     for (int i = start; i < start + count; ++i) {
       final Transition trans = dlg.getTransition(i);
-      if (trans.hasAssociatedText()) continue;
+      if (trans.hasAssociatedText()) {
+        continue;
+      }
 
       final String message = String.format(
-        "Response has no trigger, but parent state %d has response %d without text - this response won't be accessible to the player",
-        state.getNumber(),
-        trans.getNumber()
-      );
+          "Response has no trigger, but parent state %d has response %d without text - this response won't be accessible to the player",
+          state.getNumber(), trans.getNumber());
 
       // If state has response without associated text, trigger error on all responses
       // without triggers (excludes response without text)
       for (int j = start; j < start + count; ++j) {
-        if (i == j) continue;
+        if (i == j) {
+          continue;
+        }
 
         final Transition t = dlg.getTransition(j);
-        if (t.getTriggerIndex() >= 0) continue;
+        if (t.getTriggerIndex() >= 0) {
+          continue;
+        }
 
         synchronized (errorTable) {
           errorTable.addTableItem(new Problem(dlg.getResourceEntry(), t, null, message, Problem.Type.ERROR));
@@ -337,13 +327,11 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class Problem implements TableItem
-  {
+  private static final class Problem implements TableItem {
     public enum Type {
-      ERROR,
-      WARNING,
+      ERROR, WARNING,
     }
 
     /** Resource in which problem is found. */
@@ -357,9 +345,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     /** Problem severity. */
     private final Type type;
 
-    private Problem(ResourceEntry resourceEntry, StructEntry problemEntry, Integer lineNr,
-                                  String message, Type type)
-    {
+    private Problem(ResourceEntry resourceEntry, StructEntry problemEntry, Integer lineNr, String message, Type type) {
       this.resourceEntry = resourceEntry;
       this.problemEntry = problemEntry;
       this.lineNr = lineNr;
@@ -368,26 +354,28 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
+    public Object getObjectAt(int columnIndex) {
       switch (columnIndex) {
-        case 0: return resourceEntry;
-        case 1: return problemEntry.getName();
-        case 2: return message;
-        default: return lineNr;
+        case 0:
+          return resourceEntry;
+        case 1:
+          return problemEntry.getName();
+        case 2:
+          return message;
+        default:
+          return lineNr;
       }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       final String type = (this.type == Type.ERROR) ? "Error" : "Warning";
       if (lineNr == null) {
-        return String.format("File: %s, Owner: %s, %s: %s",
-                             resourceEntry.getResourceName(), problemEntry.getName(), type, message);
+        return String.format("File: %s, Owner: %s, %s: %s", resourceEntry.getResourceName(), problemEntry.getName(),
+            type, message);
       }
-      return String.format("File: %s, Line: %d, Owner: %s, %s: %s",
-                           resourceEntry.getResourceName(), lineNr, problemEntry.getName(), type, message);
+      return String.format("File: %s, Line: %d, Owner: %s, %s: %s", resourceEntry.getResourceName(), lineNr,
+          problemEntry.getName(), type, message);
     }
   }
 }

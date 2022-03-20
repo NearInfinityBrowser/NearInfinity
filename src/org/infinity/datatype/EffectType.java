@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -13,34 +13,30 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.EffectFactory;
 import org.infinity.resource.StructEntry;
 
-public final class EffectType extends Bitmap implements UpdateListener
-{
+public final class EffectType extends Bitmap implements UpdateListener {
   // EffectType-specific field labels
   public static final String EFFECT_TYPE        = "Type";
   public static final String EFFECT_TYPE_TARGET = "Target";
   public static final String EFFECT_TYPE_POWER  = "Power";
 
-  private static final String s_target[] = {"None", "Self", "Preset target",
-                                            "Party", "Everyone", "Everyone except party",
-                                            "Caster group", "Target group", "Everyone except self", "Original caster"};
-  private int attr_length;
+  private static final String[] TARGET_ARRAY = { "None", "Self", "Preset target", "Party", "Everyone",
+      "Everyone except party", "Caster group", "Target group", "Everyone except self", "Original caster" };
 
-  public EffectType(ByteBuffer buffer, int offset, int length)
-  {
+  private int attrLength;
+
+  public EffectType(ByteBuffer buffer, int offset, int length) {
     super(buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
   }
 
-// --------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     super.updateValue(struct);
     try {
       final List<StructEntry> list = new ArrayList<>();
-      readAttributes(struct.removeFromList(this, attr_length), 0, list);
-      for (int i = 0; i < list.size(); i++) {
-        StructEntry entry = list.get(i);
+      readAttributes(struct.removeFromList(this, attrLength), 0, list);
+      for (StructEntry entry : list) {
         entry.setOffset(entry.getOffset() + getOffset() + getSize());
       }
       struct.addFields(this, list);
@@ -51,13 +47,12 @@ public final class EffectType extends Bitmap implements UpdateListener
     return false;
   }
 
-// --------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-// --------------------- Begin Interface UpdateListener ---------------------
+  // --------------------- Begin Interface UpdateListener ---------------------
 
   @Override
-  public boolean valueUpdated(UpdateEvent event)
-  {
+  public boolean valueUpdated(UpdateEvent event) {
     try {
       return EffectFactory.updateOpcode(event.getStructure());
     } catch (Exception e) {
@@ -66,21 +61,19 @@ public final class EffectType extends Bitmap implements UpdateListener
     return false;
   }
 
-// --------------------- End Interface UpdateListener ---------------------
+  // --------------------- End Interface UpdateListener ---------------------
 
-  public int readAttributes(ByteBuffer buffer, int off, List<StructEntry> list)
-  {
-    attr_length = off;
+  public int readAttributes(ByteBuffer buffer, int off, List<StructEntry> list) {
+    attrLength = off;
     boolean isV1 = (getSize() == 2);
     if (isV1) {
       // EFF V1.0
-      list.add(new Bitmap(buffer, off, 1, EFFECT_TYPE_TARGET, s_target));
+      list.add(new Bitmap(buffer, off, 1, EFFECT_TYPE_TARGET, TARGET_ARRAY));
       list.add(new DecNumber(buffer, off + 1, 1, EFFECT_TYPE_POWER));
       off += 2;
-    }
-    else {
+    } else {
       // EFF V2.0
-      list.add(new Bitmap(buffer, off, 4, EFFECT_TYPE_TARGET, s_target));
+      list.add(new Bitmap(buffer, off, 4, EFFECT_TYPE_TARGET, TARGET_ARRAY));
       list.add(new DecNumber(buffer, off + 4, 4, EFFECT_TYPE_POWER));
       off += 8;
     }
@@ -89,7 +82,7 @@ public final class EffectType extends Bitmap implements UpdateListener
     } catch (Exception e) {
       e.printStackTrace();
     }
-    attr_length = off - attr_length;
+    attrLength = off - attrLength;
     return off;
   }
 }

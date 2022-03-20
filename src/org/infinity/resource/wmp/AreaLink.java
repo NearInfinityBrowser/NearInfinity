@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -14,8 +14,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.io.StreamUtils;
 
-abstract class AreaLink extends AbstractStruct
-{
+abstract class AreaLink extends AbstractStruct {
   // WMP/AreaLink-specific field labels
   public static final String WMP_LINK_TARGET_AREA                   = "Target area";
   public static final String WMP_LINK_TARGET_ENTRANCE               = "Target entrance";
@@ -24,32 +23,28 @@ abstract class AreaLink extends AbstractStruct
   public static final String WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT     = "Random encounter area %d";
   public static final String WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY  = "Random encounter probability";
 
-  public static final String[] s_entrance = {"No default set", "North", "East", "South", "West"};
+  public static final String[] ENTRANCE_ARRAY = { "No default set", "North", "East", "South", "West" };
 
-  AreaLink(String name) throws Exception
-  {
+  AreaLink(String name) throws Exception {
     super(null, name, StreamUtils.getByteBuffer(216), 0);
   }
 
-  AreaLink(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception
-  {
+  AreaLink(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception {
     super(superStruct, name, buffer, offset);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new DecNumber(buffer, offset, 4, WMP_LINK_TARGET_AREA));
     addField(new TextString(buffer, offset + 4, 32, WMP_LINK_TARGET_ENTRANCE));
     addField(new DecNumber(buffer, offset + 36, 4, WMP_LINK_DISTANCE_SCALE));
-    addField(new Flag(buffer, offset + 40, 4, WMP_LINK_DEFAULT_ENTRANCE, s_entrance));
+    addField(new Flag(buffer, offset + 40, 4, WMP_LINK_DEFAULT_ENTRANCE, ENTRANCE_ARRAY));
     for (int i = 0; i < 5; i++) {
-      addField(new ResourceRef(buffer, offset + 44 + (i * 8),
-                               String.format(WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, i+1), "ARE"));
+      addField(new ResourceRef(buffer, offset + 44 + (i * 8), String.format(WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, i + 1),
+          "ARE"));
     }
     addField(new DecNumber(buffer, offset + 84, 4, WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY));
     addField(new Unknown(buffer, offset + 88, 128));
     return offset + 216;
   }
 }
-

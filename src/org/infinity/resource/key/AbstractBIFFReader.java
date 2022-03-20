@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -16,8 +16,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Abstract base class for specifialized BIFF readers.
  */
-public abstract class AbstractBIFFReader //implements AutoCloseable
-{
+public abstract class AbstractBIFFReader {  // implements AutoCloseable
   /** Supported BIFF archive types. */
   public enum Type {
     /** Uncompressed BIFF V1 */
@@ -37,39 +36,36 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
   protected final Path file;
 
   /**
-   * Opens the specified BIFF file (of any supported type) and returns it fully initialized and
-   * ready for read operations as a BIFFReader object.
+   * Opens the specified BIFF file (of any supported type) and returns it fully initialized and ready for read
+   * operations as a BIFFReader object.
+   *
    * @param file Path to the BIFF file.
    * @return A BIFFReader object for accessing the BIFF archive.
    * @throws IOException On error.
    */
-  public static synchronized AbstractBIFFReader open(Path file) throws Exception
-  {
+  public static synchronized AbstractBIFFReader open(Path file) throws Exception {
     return queryBIFFReader(file);
   }
 
   /** Returns a fully initialized TIS header as {@link ByteBuffer} object. */
-  public static ByteBuffer getTisHeader(int tileCount, int tileSize)
-  {
+  public static ByteBuffer getTisHeader(int tileCount, int tileSize) {
     ByteBuffer bb = StreamUtils.getByteBuffer(24);
     bb.put("TIS V1  ".getBytes());
     bb.putInt(tileCount);
     bb.putInt(tileSize);
-    bb.putInt(0x18);  // data offset
-    bb.putInt(0x40);  // tile dimension
+    bb.putInt(0x18); // data offset
+    bb.putInt(0x40); // tile dimension
     bb.position(0);
     return bb;
   }
 
   /** Removes all {@code AbstractBIFFReader} entries from the cache. */
-  public static void resetCache()
-  {
+  public static void resetCache() {
     BIFF_CACHE.clear();
   }
 
   // Fetches a cached AbstractBIFFReader associated of the specified path or creates a new one
-  private static AbstractBIFFReader queryBIFFReader(Path file) throws Exception
-  {
+  private static AbstractBIFFReader queryBIFFReader(Path file) throws Exception {
     AbstractBIFFReader retVal = null;
     if (file != null) {
       // get and remove an available cached entry
@@ -95,33 +91,29 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
     return retVal;
   }
 
-
   /** Returns whether the BIFF file uses any kind of compression. */
-  public boolean isCompressed()
-  {
+  public boolean isCompressed() {
     return (getType() == Type.BIF || getType() == Type.BIFC);
   }
 
   /** Returns the {@link Path} to the BIFF file. */
-  public Path getFile()
-  {
+  public Path getFile() {
     return file;
   }
 
   /**
-   * Returns a ResourceInfo array containing size for regular resources
-   * and tile count and size for TIS resources.
+   * Returns a ResourceInfo array containing size for regular resources and tile count and size for TIS resources.
+   *
    * @param locator The unmodified locator of the desired resource as found in the KEY file.
    */
-  public int[] getResourceInfo(int locator) throws IOException
-  {
+  public int[] getResourceInfo(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry != null) {
       int[] retVal = null;
       if (entry.isTile) {
-        retVal = new int[]{entry.count, entry.size};
+        retVal = new int[] { entry.count, entry.size };
       } else {
-        retVal = new int[]{entry.size};
+        retVal = new int[] { entry.size };
       }
       return retVal;
     } else {
@@ -130,7 +122,7 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
   }
 
   /** Returns whether the BIFF file is open and ready for read operations. */
-//  public abstract boolean isOpen();
+  // public abstract boolean isOpen();
 
   /** Re-opens the BIFF file if it had been {@code close}d before. Does nothing if the BIFF file is open. */
   public abstract void open() throws Exception;
@@ -149,18 +141,19 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
 
   /**
    * Returns a {@link ByteBuffer} object of the requested (TIS or regular) resource.
+   *
    * @param locator The unmodified locator of the desired resource as found in the KEY file.
    */
   public abstract ByteBuffer getResourceBuffer(int locator) throws IOException;
 
   /**
    * Returns an {@link InputStream} object of the requested (TIS or regular) resource.
+   *
    * @param locator The unmodified locator of the desired resource as found in the KEY file.
    */
   public abstract InputStream getResourceAsStream(int locator) throws IOException;
 
-  protected AbstractBIFFReader(Path file) throws Exception
-  {
+  protected AbstractBIFFReader(Path file) throws Exception {
     if (file == null) {
       throw new NullPointerException();
     }
@@ -169,27 +162,23 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
   }
 
   // Internally used to store BIFF entry information
-  protected void addEntry(Entry entry)
-  {
+  protected void addEntry(Entry entry) {
     if (entry != null) {
-      mapEntries.put(Integer.valueOf(entry.locator & 0xfffff), entry);
+      mapEntries.put(entry.locator & 0xfffff, entry);
     }
   }
 
   // Internally used to retrieve stored BIFF entry information
-  protected Entry getEntry(int locator)
-  {
+  protected Entry getEntry(int locator) {
     return mapEntries.get(Integer.valueOf(locator & 0xfffff));
   }
 
   // Internally used to remove all entries from the map
-  protected void resetEntries()
-  {
+  protected void resetEntries() {
     mapEntries.clear();
   }
 
-  private static Type detectBiffType(Path file) throws Exception
-  {
+  private static Type detectBiffType(Path file) throws Exception {
     if (file == null) {
       throw new NullPointerException();
     }
@@ -208,27 +197,29 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
     }
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /** File or tileset entry definition. */
-  protected static class Entry
-  {
+  protected static class Entry {
     /** Resource locator. */
     public final int locator;
+
     /** Offset to resource data. */
     public final int offset;
+
     /** File size or size of each tile. */
     public final int size;
+
     /** Number of tiles in the resource (if {@code isTile == true}). */
     public final int count;
+
     /** Resource type. */
     public final short type;
+
     /** Indicates whether this is a file or tileset. */
     public final boolean isTile;
 
-    public Entry(int locator, int offset, int size, short type)
-    {
+    public Entry(int locator, int offset, int size, short type) {
       this.locator = locator;
       this.offset = offset;
       this.size = size;
@@ -237,8 +228,7 @@ public abstract class AbstractBIFFReader //implements AutoCloseable
       this.isTile = (type == Keyfile.TYPE_TIS);
     }
 
-    public Entry(int locator, int offset, int count, int size, short type)
-    {
+    public Entry(int locator, int offset, int count, int size, short type) {
       this.locator = locator;
       this.offset = offset;
       this.size = size;

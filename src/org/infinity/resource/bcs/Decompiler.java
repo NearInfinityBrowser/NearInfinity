@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -27,10 +27,9 @@ import org.infinity.util.StringBufferStream;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
-public final class Decompiler
-{
+public final class Decompiler {
   // List of IDS resources containing bitwise entries
-  private static final HashSet<String> BitwiseIds = new HashSet<String>() {{
+  private static final HashSet<String> BITWISE_IDS = new HashSet<String>() {{
     add("areatype");  add("areaflag");  add("bits");      add("classmsk");
     add("crearefl");  add("damages");   add("doorflag");  add("dmgtype");
     add("extstate");  add("invitem");   add("itemflag");  add("jourtype");
@@ -40,22 +39,24 @@ public final class Decompiler
   private final Set<Integer> strrefsUsed = new HashSet<>();
   private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
   private final SortedMap<Integer, String> idsErrors = new TreeMap<>();
-  private String code;    // byte code
-  private String source;  // decompiled sources
+
+  private String code; // byte code
+  private String source; // decompiled sources
   private ScriptType scriptType;
   private String indent = "\t";
-  private boolean generateErrors, generateComments, generateResUsed;
+  private boolean generateErrors;
+  private boolean generateComments;
+  private boolean generateResUsed;
   private int lineNr;
-  private Signatures triggers, actions;
+  private Signatures triggers;
+  private Signatures actions;
   private boolean triggerOverrideEnabled;
 
-  public Decompiler(String code, boolean generateErrors)
-  {
+  public Decompiler(String code, boolean generateErrors) {
     this(code, ScriptType.BCS, generateErrors);
   }
 
-  public Decompiler(String code, ScriptType type, boolean generateErrors)
-  {
+  public Decompiler(String code, ScriptType type, boolean generateErrors) {
     if (BrowserMenuBar.getInstance() != null) {
       if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
         indent = BrowserMenuBar.getInstance().getBcsIndent();
@@ -72,20 +73,17 @@ public final class Decompiler
   }
 
   /** Returns the unprocessed BCS byte code. */
-  public String getCode()
-  {
+  public String getCode() {
     return code;
   }
 
   /** Sets new BCS byte code to compile. */
-  public void setCode(String code)
-  {
+  public void setCode(String code) {
     this.code = (code != null) ? code : "";
     reset();
   }
 
-  public void setCode(ResourceEntry bcs) throws Exception
-  {
+  public void setCode(ResourceEntry bcs) throws Exception {
     if (bcs == null) {
       throw new NullPointerException();
     }
@@ -95,8 +93,7 @@ public final class Decompiler
   }
 
   /** Returns the decompiled script source. Executes {@code decompile()} if needed. */
-  public String getSource() throws Exception
-  {
+  public String getSource() throws Exception {
     if (source == null) {
       decompile();
     }
@@ -104,18 +101,16 @@ public final class Decompiler
   }
 
   /** Returns currently used script type. */
-  public ScriptType getScriptType()
-  {
+  public ScriptType getScriptType() {
     return scriptType;
   }
 
   /**
-   * Specifies new script type.
-   * <b>Note:</b> Automatically invalidates previously decompiled script code.
+   * Specifies new script type. <b>Note:</b> Automatically invalidates previously decompiled script code.
+   *
    * @param type Type of Script
    */
-  public void setScriptType(ScriptType type)
-  {
+  public void setScriptType(ScriptType type) {
     if (type != scriptType) {
       reset();
       scriptType = type;
@@ -124,17 +119,15 @@ public final class Decompiler
   }
 
   /** Returns whether to generate compiler errors. */
-  public boolean isGenerateErrors()
-  {
+  public boolean isGenerateErrors() {
     return generateErrors;
   }
 
   /**
-   * Specify whether to generate decompile errors.
-   * <b>Note:</b> Automatically invalidates previously decompiled script code.
+   * Specify whether to generate decompile errors. <b>Note:</b> Automatically invalidates previously decompiled script
+   * code.
    */
-  public void setGenerateErrors(boolean enable)
-  {
+  public void setGenerateErrors(boolean enable) {
     if (enable != generateErrors) {
       reset();
       generateErrors = enable;
@@ -142,14 +135,12 @@ public final class Decompiler
   }
 
   /** Returns whether function-specific comments are generated. */
-  public boolean isGenerateComments()
-  {
+  public boolean isGenerateComments() {
     return generateComments;
   }
 
   /** Specify whether function-specific comments should be generated. */
-  public void setGenerateComments(boolean enable)
-  {
+  public void setGenerateComments(boolean enable) {
     if (enable != generateComments) {
       reset();
       generateComments = enable;
@@ -157,14 +148,12 @@ public final class Decompiler
   }
 
   /** Returns currently used string for a single level of indentation. */
-  public String getIndent()
-  {
+  public String getIndent() {
     return indent;
   }
 
   /** Applies the indentation string defined in the currently selected item in the Options menu. */
-  public void setIndent()
-  {
+  public void setIndent() {
     if (BrowserMenuBar.getInstance() != null) {
       if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
         indent = BrowserMenuBar.getInstance().getBcsIndent();
@@ -175,94 +164,89 @@ public final class Decompiler
   }
 
   /** Applies the specified string for a single level of indentation. */
-  public void setIndent(String newIndent)
-  {
+  public void setIndent(String newIndent) {
     if (newIndent != null && !indent.equals(newIndent)) {
       indent = newIndent;
     }
   }
 
   /**
-   * Returns whether the artificial construct TriggerOverride() will be used.
-   * <b>Note:</b> This flag is automatically updated whenever a new script type is set.
+   * Returns whether the artificial construct TriggerOverride() will be used. <b>Note:</b> This flag is automatically
+   * updated whenever a new script type is set.
    */
-  public boolean isTriggerOverrideEnabled()
-  {
+  public boolean isTriggerOverrideEnabled() {
     return triggerOverrideEnabled;
   }
 
   /**
-   * Sets whether the artificial construct TriggerOverride() will be used.
-   * <b>Note:</b> This flag is automatically updated whenever a new script type is set.
+   * Sets whether the artificial construct TriggerOverride() will be used. <b>Note:</b> This flag is automatically
+   * updated whenever a new script type is set.
    */
-  public void setTriggerOverrideEnabled(boolean set)
-  {
+  public void setTriggerOverrideEnabled(boolean set) {
     triggerOverrideEnabled = set;
   }
 
-  public SortedMap<Integer, String> getIdsErrors()
-  {
+  public SortedMap<Integer, String> getIdsErrors() {
     return idsErrors;
   }
 
   /** Returns whether a used resources map is generated. */
-  public boolean isGenerateResourcesUsed()
-  {
+  public boolean isGenerateResourcesUsed() {
     return generateResUsed;
   }
 
   /** Specify whether a used resources map should be generated. */
-  public void setGenerateResourcesUsed(boolean enable)
-  {
+  public void setGenerateResourcesUsed(boolean enable) {
     if (enable != generateResUsed) {
       reset();
       generateResUsed = enable;
     }
   }
 
-  public Set<ResourceEntry> getResourcesUsed()
-  {
+  public Set<ResourceEntry> getResourcesUsed() {
     return resourcesUsed;
   }
 
-  public Set<Integer> getStringRefsUsed()
-  {
+  public Set<Integer> getStringRefsUsed() {
     return strrefsUsed;
   }
 
   /**
-   * Decompiles the currently loaded script code into human-readable source.
-   * Uses {@link #getScriptType()} to determine the correct decompile action.
+   * Decompiles the currently loaded script code into human-readable source. Uses {@link #getScriptType()} to determine
+   * the correct decompile action.
+   *
    * @return The decompiled script source.
    * @throws Exception Thrown if script type is {@code Custom}.
    */
-  public String decompile() throws Exception
-  {
+  public String decompile() throws Exception {
     return decompile(scriptType);
   }
 
   /**
    * Decompiles the currently loaded script code into human-readable source.
+   *
    * @param type Specifies the decompile action.
    * @return The decompiled script source.
    * @throws Exception Thrown if script type is {@code Custom}.
    */
-  public String decompile(ScriptType type) throws Exception
-  {
+  public String decompile(ScriptType type) throws Exception {
     if (type != getScriptType()) {
       reset();
     }
 
     switch (type) {
-      case BCS:     return decompileScript();
-      case TRIGGER: return decompileTriggers();
-      case ACTION:  return decompileActions();
-      default:      throw new IllegalArgumentException("Could not determine script type");
+      case BCS:
+        return decompileScript();
+      case TRIGGER:
+        return decompileTriggers();
+      case ACTION:
+        return decompileActions();
+      default:
+        throw new IllegalArgumentException("Could not determine script type");
     }
   }
 
-  public String decompileScript() throws Exception
-  {
+  public String decompileScript() throws Exception {
     reset();
     init();
     StringBuilder sb = new StringBuilder(code.length() * 2);
@@ -281,8 +265,7 @@ public final class Decompiler
     return source;
   }
 
-  public String decompileTriggers() throws Exception
-  {
+  public String decompileTriggers() throws Exception {
     // Note: majority of code is identical with decompileCO()
     String curIndent = indent;
     try {
@@ -297,9 +280,8 @@ public final class Decompiler
         if (sbs.skip("TR")) {
           // decoding next trigger
           BcsTrigger trigger = new BcsTrigger(sbs, triggers);
-          if (isTriggerOverrideEnabled() &&
-              override == null && trigger.isOverride()) {
-            override = trigger;   // save for later
+          if (isTriggerOverrideEnabled() && override == null && trigger.isOverride()) {
+            override = trigger; // save for later
           } else {
             if (override != null) {
               // prepare for combining trigger with previous NextTriggerObject() into TriggerOverride()
@@ -339,8 +321,7 @@ public final class Decompiler
     return source;
   }
 
-  public String decompileActions() throws Exception
-  {
+  public String decompileActions() throws Exception {
     String curIndent = indent;
     try {
       reset();
@@ -364,8 +345,7 @@ public final class Decompiler
     return source;
   }
 
-  private void reset()
-  {
+  private void reset() {
     strrefsUsed.clear();
     resourcesUsed.clear();
     idsErrors.clear();
@@ -373,15 +353,12 @@ public final class Decompiler
     source = null;
   }
 
-  private void init()
-  {
+  private void init() {
     triggers = Signatures.getTriggers();
     actions = Signatures.getActions();
   }
 
-
-  private void decompileCR(StringBuilder sb, StringBufferStream sbs) throws Exception
-  {
+  private void decompileCR(StringBuilder sb, StringBufferStream sbs) throws Exception {
     while (!sbs.eos() && !sbs.skip("CR")) {
       if (sbs.skip("CO")) {
         decompileCO(sb, sbs);
@@ -395,8 +372,7 @@ public final class Decompiler
     lineNr += 2;
   }
 
-  private void decompileCO(StringBuilder sb, StringBufferStream sbs) throws Exception
-  {
+  private void decompileCO(StringBuilder sb, StringBufferStream sbs) throws Exception {
     // Note: majority of code is identical with decompileTriggers()
     sb.append("IF\n");
     lineNr++;
@@ -406,9 +382,8 @@ public final class Decompiler
       if (sbs.skip("TR")) {
         // decoding next trigger
         BcsTrigger trigger = new BcsTrigger(sbs, triggers);
-        if (isTriggerOverrideEnabled() &&
-            override == null && trigger.isOverride()) {
-          override = trigger;   // save for later
+        if (isTriggerOverrideEnabled() && override == null && trigger.isOverride()) {
+          override = trigger; // save for later
         } else {
           if (override != null) {
             // prepare for combining trigger with previous NextTriggerObject() into TriggerOverride()
@@ -442,8 +417,7 @@ public final class Decompiler
     }
   }
 
-  private void decompileRS(StringBuilder sb, StringBufferStream sbs) throws Exception
-  {
+  private void decompileRS(StringBuilder sb, StringBufferStream sbs) throws Exception {
     sb.append("THEN\n");
     lineNr++;
     while (!sbs.eos() && !sbs.skip("RS")) {
@@ -455,8 +429,7 @@ public final class Decompiler
     }
   }
 
-  private void decompileRE(StringBuilder sb, StringBufferStream sbs) throws Exception
-  {
+  private void decompileRE(StringBuilder sb, StringBufferStream sbs) throws Exception {
     String weight = sbs.getMatch("[0-9]+");
     if (weight != null) {
       try {
@@ -480,8 +453,7 @@ public final class Decompiler
     }
   }
 
-  private String decompileTrigger(BcsTrigger trigger) throws Exception
-  {
+  private String decompileTrigger(BcsTrigger trigger) throws Exception {
     StringBuilder sb = new StringBuilder();
 
     Signatures.Function[] functions = trigger.signatures.getFunction(trigger.id);
@@ -494,9 +466,8 @@ public final class Decompiler
     }
     if (functions == null) {
       if (isGenerateErrors()) {
-        idsErrors.put(Integer.valueOf(lineNr),
-                      String.format("0x%04X not found in %s",
-                          trigger.id, trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+        idsErrors.put(lineNr, String.format("0x%04X not found in %s", trigger.id,
+            trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
       }
       return String.format("// Error - Could not find trigger 0x%04X", trigger.id);
     }
@@ -504,9 +475,8 @@ public final class Decompiler
     Signatures.Function function = trigger.getMatchingFunction();
     if (function == null) {
       if (isGenerateErrors()) {
-        idsErrors.put(Integer.valueOf(lineNr),
-                      String.format("No matching signature found for 0x%04X in %s",
-                          trigger.id, trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+        idsErrors.put(lineNr, String.format("No matching signature found for 0x%04X in %s", trigger.id,
+            trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
       }
       return String.format("// Error - Could not find matching signature for trigger 0x%04X", trigger.id);
     }
@@ -535,15 +505,14 @@ public final class Decompiler
 
       Signatures.Function.Parameter p = function.getParameter(i);
       switch (p.getType()) {
-        case Signatures.Function.Parameter.TYPE_INTEGER:
-        {
+        case Signatures.Function.Parameter.TYPE_INTEGER: {
           long value;
           try {
             value = trigger.getNumericParam(curNum);
           } catch (IllegalArgumentException e) {
             value = 0;
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for number at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for number at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompileNumber(value, p);
@@ -555,15 +524,14 @@ public final class Decompiler
           curNum++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_STRING:
-        {
+        case Signatures.Function.Parameter.TYPE_STRING: {
           String value;
           try {
             value = trigger.getStringParam(function, curString);
           } catch (IllegalArgumentException e) {
             value = "";
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for string at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for string at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompileString(value, p);
@@ -575,18 +543,17 @@ public final class Decompiler
           curString++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_OBJECT:
-        {
+        case Signatures.Function.Parameter.TYPE_OBJECT: {
           BcsObject value;
           try {
             value = trigger.getObjectParam(curObj);
           } catch (IllegalArgumentException e) {
             value = BcsObject.getEmptyObject();
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for object at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for object at parameter " + i + ". Using defaults.");
             }
           }
-          String s = decompileObject(value);  // defaults to "[ANYONE]"
+          String s = decompileObject(value); // defaults to "[ANYONE]"
           sb.append(s);
           String c = generateObjectComment(value, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
           if (comment == null && !c.isEmpty()) {
@@ -595,15 +562,14 @@ public final class Decompiler
           curObj++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_POINT:
-        {
+        case Signatures.Function.Parameter.TYPE_POINT: {
           Point value;
           try {
             value = trigger.getPointParam(curPoint);
           } catch (IllegalArgumentException e) {
             value = new Point();
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for point at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for point at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompilePoint(value);
@@ -613,7 +579,7 @@ public final class Decompiler
         }
         default:
           if (isGenerateErrors()) {
-            idsErrors.put(Integer.valueOf(lineNr), "Unknown type for parameter " + i + ".");
+            idsErrors.put(lineNr, "Unknown type for parameter " + i + ".");
           }
           return String.format("// Error - %s: Unknown type for parameter %d", function.getName(), i);
       }
@@ -632,16 +598,14 @@ public final class Decompiler
     return sb.toString();
   }
 
-  private String decompileAction(BcsAction action) throws Exception
-  {
+  private String decompileAction(BcsAction action) throws Exception {
     StringBuilder sb = new StringBuilder();
 
     Signatures.Function[] functions = action.signatures.getFunction(action.id);
     if (functions == null) {
       if (isGenerateErrors()) {
-        idsErrors.put(Integer.valueOf(lineNr),
-                      String.format("%d not found in %s",
-                          action.id, action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+        idsErrors.put(lineNr, String.format("%d not found in %s", action.id,
+            action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
       }
       return String.format("// Error - Could not find action %d", action.id);
     }
@@ -649,16 +613,15 @@ public final class Decompiler
     Signatures.Function function = action.getMatchingFunction();
     if (function == null) {
       if (isGenerateErrors()) {
-        idsErrors.put(Integer.valueOf(lineNr),
-                      String.format("No matching signature found for %d in %s",
-                          action.id, action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+        idsErrors.put(lineNr, String.format("No matching signature found for %d in %s", action.id,
+            action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
       }
       return String.format("// Error - Could not find matching signature for action %d", action.id);
     }
 
     BcsObject override = action.getObjectParam(0);
     String comment = null;
-    int curNum = 0, curObj = 1, curString = 0, curPoint = 0;  // curObj: skipping ActionOverride
+    int curNum = 0, curObj = 1, curString = 0, curPoint = 0; // curObj: skipping ActionOverride
 
     // constructing action
     sb.append(function.getName()).append('(');
@@ -670,15 +633,14 @@ public final class Decompiler
 
       Signatures.Function.Parameter param = function.getParameter(i);
       switch (param.getType()) {
-        case Signatures.Function.Parameter.TYPE_INTEGER:
-        {
+        case Signatures.Function.Parameter.TYPE_INTEGER: {
           long value;
           try {
             value = action.getNumericParam(curNum);
           } catch (IllegalArgumentException e) {
             value = 0;
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for number at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for number at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompileNumber(value, param);
@@ -690,15 +652,14 @@ public final class Decompiler
           curNum++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_STRING:
-        {
+        case Signatures.Function.Parameter.TYPE_STRING: {
           String value;
           try {
             value = action.getStringParam(function, curString);
           } catch (IllegalArgumentException e) {
             value = "";
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for string at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for string at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompileString(value, param);
@@ -710,15 +671,14 @@ public final class Decompiler
           curString++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_POINT:
-        {
+        case Signatures.Function.Parameter.TYPE_POINT: {
           Point value;
           try {
             value = action.getPointParam(curPoint);
           } catch (IllegalArgumentException e) {
             value = new Point();
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for point at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for point at parameter " + i + ". Using defaults.");
             }
           }
           String s = decompilePoint(value);
@@ -726,18 +686,17 @@ public final class Decompiler
           curPoint++;
           break;
         }
-        case Signatures.Function.Parameter.TYPE_OBJECT:
-        {
+        case Signatures.Function.Parameter.TYPE_OBJECT: {
           BcsObject value = null;
           try {
             value = action.getObjectParam(curObj);
           } catch (IllegalArgumentException e) {
             value = BcsObject.getEmptyObject();
             if (isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), "No value defined for object at parameter " + i + ". Using defaults.");
+              idsErrors.put(lineNr, "No value defined for object at parameter " + i + ". Using defaults.");
             }
           }
-          String s = decompileObject(value);  // defaults to "[ANYONE]"
+          String s = decompileObject(value); // defaults to "[ANYONE]"
           sb.append(s);
           String c = generateObjectComment(value, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
           if (comment == null && !c.isEmpty()) {
@@ -758,10 +717,9 @@ public final class Decompiler
     if (!override.isEmpty()) {
       String funcName = null;
       functions = action.signatures.getFunction(1);
-      for (Signatures.Function f: functions) {
-        if (f.getNumParameters() == 2 &&
-            f.getParameter(0).getType() == Signatures.Function.Parameter.TYPE_OBJECT &&
-            f.getParameter(1).getType() == Signatures.Function.Parameter.TYPE_ACTION) {
+      for (Signatures.Function f : functions) {
+        if (f.getNumParameters() == 2 && f.getParameter(0).getType() == Signatures.Function.Parameter.TYPE_OBJECT
+            && f.getParameter(1).getType() == Signatures.Function.Parameter.TYPE_ACTION) {
           funcName = f.getName();
           break;
         }
@@ -784,8 +742,7 @@ public final class Decompiler
   }
 
   // Returns fully qualified object specifier.
-  private String decompileObject(BcsObject object)
-  {
+  private String decompileObject(BcsObject object) {
     StringBuilder sb = new StringBuilder();
 
     if (object == null) {
@@ -808,7 +765,7 @@ public final class Decompiler
         listIdentifiers = new ArrayList<>();
         IdsMap map = IdsMapCache.get("OBJECT.IDS");
         if (map == null && isGenerateErrors()) {
-          idsErrors.put(Integer.valueOf(lineNr), "Could not retrieve values from OBJECT.IDS");
+          idsErrors.put(lineNr, "Could not retrieve values from OBJECT.IDS");
         }
         boolean found = false;
         for (int i = object.identifier.length - 1; i >= 0; i--) {
@@ -877,8 +834,7 @@ public final class Decompiler
   }
 
   // Decompiles a target ([EA.GENERAL.RACE...]). Returns "[ANYONE]" if useDefault is true, null otherwise.
-  private String decompileObjectTarget(BcsObject object, boolean useDefault)
-  {
+  private String decompileObjectTarget(BcsObject object, boolean useDefault) {
     String retVal = null;
 
     if (object != null && !object.isEmptyTarget()) {
@@ -922,7 +878,7 @@ public final class Decompiler
               }
             }
             if (symbol == null && isGenerateErrors()) {
-              idsErrors.put(Integer.valueOf(lineNr), idsValues[i] + " not found in " + idsNames[i] + ".IDS");
+              idsErrors.put(lineNr, idsValues[i] + " not found in " + idsNames[i] + ".IDS");
             }
           }
 
@@ -949,8 +905,7 @@ public final class Decompiler
   }
 
   // Returns point structure formatted as [x.y]
-  private String decompilePoint(Point value)
-  {
+  private String decompilePoint(Point value) {
     StringBuilder sb = new StringBuilder();
 
     if (value != null) {
@@ -963,8 +918,7 @@ public final class Decompiler
   }
 
   // Returns symbolic names or binary combination of symbols if available, returns number otherwise.
-  private String decompileNumber(long value, Signatures.Function.Parameter param)
-  {
+  private String decompileNumber(long value, Signatures.Function.Parameter param) {
     String retVal = null;
 
     String ids = param.getIdsRef();
@@ -977,8 +931,8 @@ public final class Decompiler
         }
         if (entry != null) {
           retVal = getNormalizedSymbol(entry.getSymbol());
-        } else if (BitwiseIds.contains(ids.toLowerCase())) {
-          value &= 0xffffffffL;   // converted into unsigned value
+        } else if (BITWISE_IDS.contains(ids.toLowerCase())) {
+          value &= 0xffffffffL; // converted into unsigned value
           StringBuilder combi = new StringBuilder();
           for (int bit = 0; bit < 32 && value > 0; bit++) {
             long mask = 1L << bit;
@@ -1000,23 +954,22 @@ public final class Decompiler
           }
           retVal = combi.toString();
         } else if (isGenerateErrors()) {
-          idsErrors.put(Integer.valueOf(lineNr), value + " not found in " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
+          idsErrors.put(lineNr, value + " not found in " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
         }
       } else if (isGenerateErrors()) {
-        idsErrors.put(Integer.valueOf(lineNr), "Could not find " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
+        idsErrors.put(lineNr, "Could not find " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
       }
     }
 
     if (retVal == null) {
-      retVal = Long.toString((int)value); // treat as signed 32-bit integer
+      retVal = Long.toString((int) value); // treat as signed 32-bit integer
     }
 
     return retVal;
   }
 
   // Returns complete string with enclosing double quotes.
-  private String decompileString(String value, Signatures.Function.Parameter param)
-  {
+  private String decompileString(String value, Signatures.Function.Parameter param) {
     StringBuilder sb = new StringBuilder();
 
     sb.append('"');
@@ -1029,25 +982,24 @@ public final class Decompiler
   }
 
   // Returns a descriptive comment without comment tag, returns empty string otherwise.
-  private String generateNumberComment(long value, Signatures.Function.Parameter param, boolean enable)
-  {
+  private String generateNumberComment(long value, Signatures.Function.Parameter param, boolean enable) {
     StringBuilder sb = new StringBuilder();
 
     if (enable && (isGenerateComments() || isGenerateResourcesUsed())) {
       ResourceEntry entry = null;
       String[] types = param.getResourceType();
-      for (String type: types) {
+      for (String type : types) {
         if (type.equals("TLK")) {
-          int intValue = (int)value;
+          int intValue = (int) value;
           if (isGenerateComments()) {
             sb.append(getNormalizedString(StringTable.getStringRef(intValue)));
           }
           if (isGenerateResourcesUsed()) {
-            strrefsUsed.add(Integer.valueOf(intValue));
+            strrefsUsed.add(intValue);
           }
           break;
         } else if (type.equals("SPL")) {
-          String resRef = org.infinity.resource.spl.Viewer.getResourceName((int)value, true);
+          String resRef = org.infinity.resource.spl.Viewer.getResourceName((int) value, true);
           entry = ResourceFactory.getResourceEntry(resRef, true);
           if (entry != null) {
             if (isGenerateResourcesUsed()) {
@@ -1066,15 +1018,13 @@ public final class Decompiler
   }
 
   // Returns a descriptive comment without comment tag, returns empty string otherwise.
-  private String generateStringComment(String value, Signatures.Function.Parameter param, boolean enable)
-  {
+  private String generateStringComment(String value, Signatures.Function.Parameter param, boolean enable) {
     StringBuilder sb = new StringBuilder();
 
     if (enable && (isGenerateComments() || isGenerateResourcesUsed()) && !value.isEmpty()) {
       String[] types = param.getResourceType();
-      for (String type: types) {
-        if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT) &&
-            isGenerateComments()) {
+      for (String type : types) {
+        if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT) && isGenerateComments()) {
           // resolving script name
           Set<ResourceEntry> set = CreMapCache.getCreForScriptName(value);
           if (set != null && !set.isEmpty()) {
@@ -1088,19 +1038,18 @@ public final class Decompiler
             }
             break;
           }
-        } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST) &&
-                   isGenerateComments()) {
+        } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST) && isGenerateComments()) {
           // resolving list of marked spells
           sb.append('[');
           for (int i = 0, cnt = value.length() / 4; i < cnt; i++) {
             if (i > 0) {
               sb.append(", ");
             }
-            String snum = value.substring(i*4, i*4 + 4);
+            String snum = value.substring(i * 4, i * 4 + 4);
             String result = null;
             try {
-               long number = Long.parseLong(snum);
-               result = getNormalizedSymbol(IdsMapCache.getIdsSymbol("SPELL.IDS", number));
+              long number = Long.parseLong(snum);
+              result = getNormalizedSymbol(IdsMapCache.getIdsSymbol("SPELL.IDS", number));
             } catch (NumberFormatException e) {
             }
             if (result == null) {
@@ -1110,8 +1059,8 @@ public final class Decompiler
           }
           sb.append(']');
           break;
-        } else if ((Character.isUpperCase(type.charAt(0)) || Character.isDigit(type.charAt(0))) &&
-                   value.length() <= 8) {
+        } else if ((Character.isUpperCase(type.charAt(0)) || Character.isDigit(type.charAt(0)))
+            && value.length() <= 8) {
           if (!type.equals("ARE") || !ScriptInfo.getInfo().isGlobalScope(value)) {
             // resolving resource name
             String resRef = value + '.' + type;
@@ -1136,8 +1085,7 @@ public final class Decompiler
     return sb.toString();
   }
 
-  private String generateObjectComment(BcsObject object, boolean enable)
-  {
+  private String generateObjectComment(BcsObject object, boolean enable) {
     StringBuilder sb = new StringBuilder();
 
     if (enable && isGenerateComments()) {
@@ -1160,8 +1108,7 @@ public final class Decompiler
   }
 
   // Symbols with invalid characters are enclosed in five consecutive double quotes
-  private String getNormalizedSymbol(String symbol)
-  {
+  private String getNormalizedSymbol(String symbol) {
     String retVal = null;
 
     if (symbol != null) {
@@ -1177,8 +1124,7 @@ public final class Decompiler
   }
 
   // Removes line breaks from strings to prevent parsing errors
-  private String getNormalizedString(String string)
-  {
+  private String getNormalizedString(String string) {
     String retVal = null;
 
     if (string != null) {

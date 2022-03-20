@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -34,17 +34,14 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@link String}</li>
  * </ul>
  */
-public final class TextEdit extends Datatype implements Editable, IsTextual
-{
+public final class TextEdit extends Datatype implements Editable, IsTextual {
   public static enum EOLType {
     UNIX, WINDOWS
   }
@@ -54,6 +51,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   }
 
   private static final EnumMap<EOLType, String> EOL = new EnumMap<>(EOLType.class);
+
   static {
     EOL.put(EOLType.UNIX, "\n");
     EOL.put(EOLType.WINDOWS, "\r\n");
@@ -61,14 +59,14 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
   private InfinityTextArea textArea;
   private final ByteBuffer buffer;
+
   private String text;
   private EOLType eolType = EOLType.UNIX;
   private Charset charset = Charset.defaultCharset();
   private boolean terminateString;
   private boolean editable = true;
 
-  public TextEdit(ByteBuffer buffer, int offset, int length, String name)
-  {
+  public TextEdit(ByteBuffer buffer, int offset, int length, String name) {
     super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(getSize());
     read(buffer, offset);
@@ -77,8 +75,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     JButton bUpdate;
     if (textArea == null) {
       textArea = new InfinityTextArea(1, 200, true);
@@ -106,12 +103,12 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
     int curGridX = 0;
     int curGridY = 0;
-    gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(scroll, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, curGridX + 1, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
+        GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
     panel.add(bUpdate, gbc);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
@@ -120,13 +117,11 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     String oldString = getText();
     setValue(textArea.getText());
 
@@ -140,33 +135,29 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
   // --------------------- End Interface Editable ---------------------
 
-
   // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     StreamUtils.writeBytes(os, toBuffer());
   }
 
   // --------------------- End Interface Writeable ---------------------
 
-//--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     return offset + getSize();
   }
 
-//--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
-//--------------------- Begin Interface IsTextual ---------------------
+  // --------------------- Begin Interface IsTextual ---------------------
 
   @Override
-  public String getText()
-  {
+  public String getText() {
     if (text == null) {
       buffer.position(0);
       String s = StreamUtils.readString(buffer, buffer.limit(), charset);
@@ -175,37 +166,37 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     return text;
   }
 
-//--------------------- End Interface IsTextual ---------------------
+  // --------------------- End Interface IsTextual ---------------------
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return getText();
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((text == null) ? 0 : text.hashCode());
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(text);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof TextEdit)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    TextEdit other = (TextEdit)o;
-    boolean retVal = (text == null && other.text == null) ||
-                     (text != null && text.equals(other.text));
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TextEdit other = (TextEdit) obj;
+    return Objects.equals(text, other.text);
   }
 
-
-  public ByteBuffer toBuffer()
-  {
+  public ByteBuffer toBuffer() {
     if (text != null) {
       byte[] buf = eolConvert(text).getBytes();
       if (buf != null) {
@@ -213,45 +204,40 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
         buffer.position(0);
         buffer.put(buf, 0, imax);
         while (buffer.remaining() > 0) {
-          buffer.put((byte)0);
+          buffer.put((byte) 0);
         }
         if (terminateString) {
           buffer.position(buffer.position() - 1);
-          buffer.put((byte)0);
+          buffer.put((byte) 0);
         }
       }
     }
     return buffer;
   }
 
-  public EOLType getEolType()
-  {
+  public EOLType getEolType() {
     return eolType;
   }
 
-  public void setEolType(EOLType type)
-  {
-    if (type != null)
+  public void setEolType(EOLType type) {
+    if (type != null) {
       eolType = type;
+    }
   }
 
-  public boolean getStringTerminated()
-  {
+  public boolean getStringTerminated() {
     return terminateString;
   }
 
-  public void setStringTerminated(boolean terminated)
-  {
+  public void setStringTerminated(boolean terminated) {
     terminateString = terminated;
   }
 
-  public Charset getCharset()
-  {
+  public Charset getCharset() {
     return charset;
   }
 
-  public boolean setCharset(String charsetName)
-  {
+  public boolean setCharset(String charsetName) {
     if (Charset.isSupported(charsetName)) {
       this.charset = Charset.forName(charsetName);
       return true;
@@ -260,34 +246,31 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     }
   }
 
-  public boolean getEditable()
-  {
+  public boolean getEditable() {
     return editable;
   }
 
-  public void setEditable(boolean edit)
-  {
+  public void setEditable(boolean edit) {
     editable = edit;
   }
 
-  private String eolConvert(String s)
-  {
-    if (s != null && s.length() > 0)
+  private String eolConvert(String s) {
+    if (s != null && s.length() > 0) {
       return s.replaceAll("(\r\n|\n)", EOL.get(eolType));
-    else
+    } else {
       return s;
+    }
   }
 
-  private String eolConvert(String s, String eol)
-  {
-    if (s != null && s.length() > 0 && eol != null && eol.length() > 0)
+  private String eolConvert(String s, String eol) {
+    if (s != null && s.length() > 0 && eol != null && eol.length() > 0) {
       return s.replaceAll("(\r\n|\n)", eol);
-    else
+    } else {
       return s;
+    }
   }
 
-  private void setValue(String newValue)
-  {
+  private void setValue(String newValue) {
     final String oldValue = getText();
     text = newValue;
     if (!Objects.equals(oldValue, newValue)) {
@@ -295,27 +278,25 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   // Ensures a size limit on byte level
-  private class FixedDocument extends RSyntaxDocument
-  {
+  private class FixedDocument extends RSyntaxDocument {
     private int maxLength;
     private RTextArea textArea;
 
-    FixedDocument(RTextArea text, int length)
-    {
+    FixedDocument(RTextArea text, int length) {
       super(null);
       textArea = text;
       maxLength = length >= 0 ? length : 0;
     }
 
     @Override
-    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
-    {
-      if (str == null || textArea == null ||
-          eolConvert(textArea.getText()).getBytes().length + eolConvert(str).getBytes().length > maxLength)
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+      if (str == null || textArea == null
+          || eolConvert(textArea.getText()).getBytes().length + eolConvert(str).getBytes().length > maxLength) {
         return;
+      }
       super.insertString(offs, str, a);
     }
   }

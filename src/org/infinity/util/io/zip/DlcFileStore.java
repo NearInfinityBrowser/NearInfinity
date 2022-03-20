@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -47,69 +47,57 @@ import java.nio.file.attribute.FileStoreAttributeView;
 /**
  * FileStore implementation for DLC archives in zip format.
  */
-public class DlcFileStore extends FileStore
-{
-  static final String STORE_TYPE = "dlcfs";
+public class DlcFileStore extends FileStore {
+  private static final String STORE_TYPE = "dlcfs";
 
   private final DlcFileSystem dfs;
 
-  DlcFileStore(DlcPath dpath)
-  {
+  protected DlcFileStore(DlcPath dpath) {
     this.dfs = dpath.getFileSystem();
   }
 
   @Override
-  public String name()
-  {
+  public String name() {
     return dfs.toString() + "/";
   }
 
   @Override
-  public String type()
-  {
+  public String type() {
     return STORE_TYPE;
   }
 
   @Override
-  public boolean isReadOnly()
-  {
+  public boolean isReadOnly() {
     return dfs.isReadOnly();
   }
 
   @Override
-  public long getTotalSpace() throws IOException
-  {
+  public long getTotalSpace() throws IOException {
     return new DlcFileStoreAttributes(this).totalSpace();
   }
 
   @Override
-  public long getUsableSpace() throws IOException
-  {
+  public long getUsableSpace() throws IOException {
     return new DlcFileStoreAttributes(this).usableSpace();
   }
 
   @Override
-  public long getUnallocatedSpace() throws IOException
-  {
+  public long getUnallocatedSpace() throws IOException {
     return new DlcFileStoreAttributes(this).unallocatedSpace();
   }
 
   @Override
-  public boolean supportsFileAttributeView(Class<? extends FileAttributeView> type)
-  {
+  public boolean supportsFileAttributeView(Class<? extends FileAttributeView> type) {
     return (type == BasicFileAttributeView.class || type == DlcFileAttributeView.class);
   }
 
   @Override
-  public boolean supportsFileAttributeView(String name)
-  {
-    return name.equals(DlcFileAttributeView.VIEW_BASIC) ||
-           name.equals(DlcFileAttributeView.VIEW_ZIP);
+  public boolean supportsFileAttributeView(String name) {
+    return name.equals(DlcFileAttributeView.VIEW_BASIC) || name.equals(DlcFileAttributeView.VIEW_ZIP);
   }
 
   @Override
-  public <V extends FileStoreAttributeView> V getFileStoreAttributeView(Class<V> type)
-  {
+  public <V extends FileStoreAttributeView> V getFileStoreAttributeView(Class<V> type) {
     if (type == null) {
       throw new NullPointerException();
     }
@@ -117,8 +105,7 @@ public class DlcFileStore extends FileStore
   }
 
   @Override
-  public Object getAttribute(String attribute) throws IOException
-  {
+  public Object getAttribute(String attribute) throws IOException {
     if (attribute.equals("totalSpace")) {
       return getTotalSpace();
     }
@@ -131,36 +118,30 @@ public class DlcFileStore extends FileStore
     throw new UnsupportedOperationException("does not support the given attribute");
   }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-//-------------------------- INNER CLASSES --------------------------
+  private static class DlcFileStoreAttributes {
+    private final FileStore fstore;
+    private final long size;
 
-  private static class DlcFileStoreAttributes
-  {
-    final FileStore fstore;
-    final long size;
-
-    public DlcFileStoreAttributes(DlcFileStore fileStore) throws IOException
-    {
+    public DlcFileStoreAttributes(DlcFileStore fileStore) throws IOException {
       Path path = FileSystems.getDefault().getPath(fileStore.name());
       this.size = Files.size(path);
       this.fstore = Files.getFileStore(path);
     }
 
-    public long totalSpace()
-    {
+    public long totalSpace() {
       return size;
     }
 
-    public long usableSpace() throws IOException
-    {
+    public long usableSpace() throws IOException {
       if (!fstore.isReadOnly()) {
         return fstore.getUsableSpace();
       }
       return 0;
     }
 
-    public long unallocatedSpace() throws IOException
-    {
+    public long unallocatedSpace() throws IOException {
       if (!fstore.isReadOnly()) {
         return fstore.getUnallocatedSpace();
       }

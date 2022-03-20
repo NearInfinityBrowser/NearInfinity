@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -12,8 +12,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.infinity.datatype.StringRef;
 
-public class IniMapEntry
-{
+public class IniMapEntry {
   /** Regular expression that can be used to split position values in {@link #splitValues(String, String)}. */
   public static final String REGEX_POSITION = "\\[[-0-9]+\\.[-0-9]+(:[0-9]+)?\\]";
   /** Regular expression that can be used to split object values in {@link #splitValues(String, String)}. */
@@ -21,52 +20,71 @@ public class IniMapEntry
 
   private final String key;
   private final String value;
+
   /** Line number of ini entry. */
   private final int line;
 
-  public IniMapEntry(String key, String value, int line)
-  {
+  public IniMapEntry(String key, String value, int line) {
     this.key = (key != null) ? key : "";
     this.value = (value != null) ? value : "";
     this.line = line;
   }
 
-  public boolean hasKey() { return key != null; }
-  public String getKey() { return key; }
+  public boolean hasKey() {
+    return key != null;
+  }
 
-  public boolean hasValue() { return value != null; }
-  public String getValue() { return value; }
+  public String getKey() {
+    return key;
+  }
 
-  public Integer getIntValue() { return value == null ? null : Integer.valueOf(value); }
-  public int getIntValue(int defValue) { return value == null ? defValue : Integer.valueOf(value); }
+  public boolean hasValue() {
+    return value != null;
+  }
 
-  public Double getDoubleValue() { return value == null ? null : Double.valueOf(value); }
-  public double getDoubleValue(double defValue) { return value == null ? defValue : Double.valueOf(value); }
+  public String getValue() {
+    return value;
+  }
+
+  public Integer getIntValue() {
+    return value == null ? null : Integer.valueOf(value);
+  }
+
+  public int getIntValue(int defValue) {
+    return value == null ? defValue : Integer.valueOf(value);
+  }
+
+  public Double getDoubleValue() {
+    return value == null ? null : Double.valueOf(value);
+  }
+
+  public double getDoubleValue(double defValue) {
+    return value == null ? defValue : Double.valueOf(value);
+  }
 
   public StringRef getStringRefValue() {
     return value == null ? null : new StringRef(key, Integer.valueOf(value));
   }
 
-  public int getLine() { return line; }
+  public int getLine() {
+    return line;
+  }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return key + " = " + value;
   }
 
   /**
-   * Helper routine: Splits values and returns them as array of individual values.
-   * Using default separator "{@code ,}" (comma).
+   * Helper routine: Splits values and returns them as array of individual values. Using default separator "{@code ,}"
+   * (comma).
    */
-  public static String[] splitValues(String value)
-  {
+  public static String[] splitValues(String value) {
     return splitValues(value, ',');
   }
 
   /** Helper routine: Splits values and returns them as array of individual values. */
-  public static String[] splitValues(String value, char separator)
-  {
+  public static String[] splitValues(String value, char separator) {
     String[] retVal = null;
     if (value != null) {
       retVal = value.split(Character.toString(separator));
@@ -77,11 +95,10 @@ public class IniMapEntry
   }
 
   /**
-   * Helper routine: Splits values matching the specified regular expression pattern
-   * and returns them as array of individual values.
+   * Helper routine: Splits values matching the specified regular expression pattern and returns them as array of
+   * individual values.
    */
-  public static String[] splitValues(String value, String pattern)
-  {
+  public static String[] splitValues(String value, String pattern) {
     String[] retVal = null;
     if (value != null) {
       List<String> results = new ArrayList<>();
@@ -105,11 +122,9 @@ public class IniMapEntry
 
   /**
    * Helper routine: Extracts the object identifiers from a string of the format
-   * "{@code [ea.general.race.class.specific.gender.align]}" where identifiers after
-   * "{@code ea}" are optional.
+   * "{@code [ea.general.race.class.specific.gender.align]}" where identifiers after "{@code ea}" are optional.
    */
-  public static int[] splitObjectValue(String value)
-  {
+  public static int[] splitObjectValue(String value) {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[(-?\\d+\\.?)+\\]$", value)) {
       List<String> results = new ArrayList<>();
@@ -134,11 +149,9 @@ public class IniMapEntry
   }
 
   /**
-   * Helper routine: Extracts the coordinates of an Infinity Engine position value in the format
-   * "{@code [x.y:dir]}".
+   * Helper routine: Extracts the coordinates of an Infinity Engine position value in the format "{@code [x.y:dir]}".
    */
-  public static int[] splitPositionValue(String value)
-  {
+  public static int[] splitPositionValue(String value) {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[[-0-9]+\\.[-0-9]+(:[0-9]+)?\\]$", value)) {
       List<String> results = new ArrayList<>();

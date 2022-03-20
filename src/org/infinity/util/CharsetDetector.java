@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -18,18 +18,16 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * This class provides methods to determine character sets and conversions for selected
- * games and languages.
+ * This class provides methods to determine character sets and conversions for selected games and languages.
  */
-public class CharsetDetector
-{
+public class CharsetDetector {
   // Static list of dialog.tlk samples and associated character sets
-  private static final List<Sample> samples = new ArrayList<>();
+  private static final List<Sample> SAMPLES = new ArrayList<>();
 
   // Only samples of non-standard codepages should be listed (i.e. all except windows-1252 and utf-8)
   static {
     // Polish BG1 (requires extra translation)
-    samples.add(new Sample("windows-1250", 7, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 7, new byte[]{
         (byte)0x44, (byte)0x6F, (byte)0x73, (byte)0x6B, (byte)0x6F, (byte)0x6E,
         (byte)0x61, (byte)0x6C, (byte)0x65, (byte)0x2C, (byte)0x20, (byte)0x77,
         (byte)0x79, (byte)0xF6, (byte)0x79, (byte)0x77, (byte)0x61, (byte)0x6A,
@@ -49,28 +47,28 @@ public class CharsetDetector
                                              (byte)0xb3, (byte)0xf1, (byte)0x9c, (byte)0x9f, (byte)0xbf}, Charset.forName("windows-1250")),
                        new int[]{10249, 20186, 20714})));
     // Polish BG2
-    samples.add(new Sample("windows-1250", 2, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 2, new byte[]{
         (byte)0x47, (byte)0x72, (byte)0x61, (byte)0xB3, (byte)0x65, (byte)0x9C,
         (byte)0x20, (byte)0x45, (byte)0x6C, (byte)0x6D, (byte)0x69, (byte)0x6E,
         (byte)0x73, (byte)0x74, (byte)0x65, (byte)0x72, (byte)0x61, (byte)0x3F}, null));
     // Polish IWD
-    samples.add(new Sample("windows-1250", 9, new byte[]{(
+    SAMPLES.add(new Sample("windows-1250", 9, new byte[]{(
         byte)0x53, (byte)0x74, (byte)0x72, (byte)0x61, (byte)0xBF, (byte)0x6E,
         (byte)0x69, (byte)0x6B}, null));
     // Polish IWD2
-    samples.add(new Sample("windows-1250", 9, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 9, new byte[]{
         (byte)0x43, (byte)0x68, (byte)0x61, (byte)0x68, (byte)0x6F, (byte)0x70,
         (byte)0x65, (byte)0x6B, (byte)0x20, (byte)0x53, (byte)0x74, (byte)0x72,
         (byte)0x61, (byte)0xBF, (byte)0x6E, (byte)0x69, (byte)0x6B}, null));
     // Polish PST
-    samples.add(new Sample("windows-1250", 8, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 8, new byte[]{
         (byte)0x4E, (byte)0x69, (byte)0x65, (byte)0x73, (byte)0x6B, (byte)0x61,
         (byte)0x6C, (byte)0x61, (byte)0x6E, (byte)0x79, (byte)0x20, (byte)0x67,
         (byte)0x6F, (byte)0x72, (byte)0x73, (byte)0x65, (byte)0x74, (byte)0x20,
         (byte)0x4E, (byte)0x69, (byte)0x65, (byte)0x2D, (byte)0x53, (byte)0xB3,
         (byte)0x61, (byte)0x77, (byte)0x79}, null));
     // Czech BG1 (TODO: Confirm!)
-    samples.add(new Sample("windows-1250", 1, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 1, new byte[]{
         (byte)0x44, (byte)0x6F, (byte)0x73, (byte)0x6B, (byte)0x6F, (byte)0x6E,
         (byte)0x61, (byte)0x6C, (byte)0x65, (byte)0x2C, (byte)0x20, (byte)0x77,
         (byte)0x79, (byte)0xF6, (byte)0x79, (byte)0x77, (byte)0x61, (byte)0x6A,
@@ -83,13 +81,13 @@ public class CharsetDetector
         (byte)0x0A}, null));
     // TODO: Czech BG2
     // Czech IWD (TODO: Confirm!)
-    samples.add(new Sample("windows-1250", 10, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 10, new byte[]{
         (byte)0x52, (byte)0x6F, (byte)0x68, (byte)0xE1, (byte)0xE8, (byte)0x20,
         (byte)0x6F, (byte)0x62, (byte)0xF8, (byte)0xED}, null));
     // TODO: Czech IWD2
     // TODO: Czech PST
     // Hungarian BG1 (TODO: Confirm!)
-    samples.add(new Sample("windows-1250", 6, new byte[]{
+    SAMPLES.add(new Sample("windows-1250", 6, new byte[]{
         (byte)0x44, (byte)0x65, (byte)0x20, (byte)0xE9, (byte)0x6E, (byte)0x20,
         (byte)0x73, (byte)0x65, (byte)0x6D, (byte)0x6D, (byte)0x69, (byte)0x20,
         (byte)0x72, (byte)0x6F, (byte)0x73, (byte)0x73, (byte)0x7A, (byte)0x61,
@@ -99,7 +97,7 @@ public class CharsetDetector
         (byte)0x74, (byte)0x20, (byte)0x76, (byte)0xE1, (byte)0x64, (byte)0x6F,
         (byte)0x6C, (byte)0x73, (byte)0x7A, (byte)0x3F}, null));
     // Russian BG1 (TODO: Confirm!)
-    samples.add(new Sample("windows-1251", 6, new byte[]{
+    SAMPLES.add(new Sample("windows-1251", 6, new byte[]{
         (byte)0xCD, (byte)0xEE, (byte)0x20, (byte)0xFF, (byte)0x20, (byte)0xED,
         (byte)0xE5, (byte)0x20, (byte)0xF1, (byte)0xE4, (byte)0xE5, (byte)0xEB,
         (byte)0xE0, (byte)0xEB, (byte)0x20, (byte)0xED, (byte)0xE8, (byte)0xF7,
@@ -113,13 +111,13 @@ public class CharsetDetector
         (byte)0xEE, (byte)0xEC, (byte)0x3F}, null));
     // TODO: Russian BG2
     // Russian IWD (TODO: Confirm!)
-    samples.add(new Sample("windows-1251", 10, new byte[]{
+    SAMPLES.add(new Sample("windows-1251", 10, new byte[]{
         (byte)0xC6, (byte)0xF3, (byte)0xEA, (byte)0x2D, (byte)0xED, (byte)0xEE,
         (byte)0xF1, (byte)0xEE, (byte)0xF0, (byte)0xEE, (byte)0xE3}, null));
     // TODO: Russian IWD2
     // TODO: Russian PST
     // Turkish BG1 (TODO: Confirm!)
-    samples.add(new Sample("windows-1254", 14, new byte[]{
+    SAMPLES.add(new Sample("windows-1254", 14, new byte[]{
         (byte)0x42, (byte)0x69, (byte)0x7A, (byte)0x65, (byte)0x20, (byte)0x79,
         (byte)0x61, (byte)0x72, (byte)0x64, (byte)0xFD, (byte)0x6D, (byte)0x20,
         (byte)0x65, (byte)0x74, (byte)0x74, (byte)0x69, (byte)0xF0, (byte)0x69,
@@ -133,23 +131,23 @@ public class CharsetDetector
   private static CharLookup lookup = null;
 
   // not needed
-  protected CharsetDetector() {}
+  protected CharsetDetector() {
+  }
 
   /** Resets autodetection of character set */
-  public static void clearCache()
-  {
+  public static void clearCache() {
     charset = null;
     lookup = null;
   }
 
   /**
    * Attempts to determine the right character set used by the current game.
-   * @param detect {@code false} to return the default charset based on EE or non-EE.
-   *               {@code true} to determine charset from the dialog.tlk based on sample data.
+   *
+   * @param detect {@code false} to return the default charset based on EE or non-EE. {@code true} to determine charset
+   *               from the dialog.tlk based on sample data.
    * @return the assumed or detected character set.
    */
-  public static String guessCharset(boolean detect)
-  {
+  public static String guessCharset(boolean detect) {
     if (charset != null) {
       return charset;
     }
@@ -171,7 +169,7 @@ public class CharsetDetector
             int ofsStrings = StreamUtils.readInt(ch);
 
             // cycling through all available string samples to find a match
-            for (final Sample sample: samples) {
+            for (final Sample sample : SAMPLES) {
               if (sample.strref < numEntries) {
                 int ofs = 0x12 + (sample.strref * 0x1a);
                 int lenString = StreamUtils.readInt(ch.position(ofs + 0x16));
@@ -201,11 +199,11 @@ public class CharsetDetector
 
   /**
    * Marks the specified charset as active charset.
+   *
    * @param charsetName The charset to activate.
    * @return Charset name.
    */
-  public static String setCharset(String charsetName)
-  {
+  public static String setCharset(String charsetName) {
     if (charset == null) {
       try {
         Charset.forName(charsetName);
@@ -219,13 +217,12 @@ public class CharsetDetector
   }
 
   /**
-   * Returns the translation table needed for the current dialog.tlk data. This method will only
-   * return a meaningful translation table for Polish BG1. Any other game and language uses an
-   * official character set.
+   * Returns the translation table needed for the current dialog.tlk data. This method will only return a meaningful
+   * translation table for Polish BG1. Any other game and language uses an official character set.
+   *
    * @return A translation table to convert characters to and from an official character set.
    */
-  public static CharLookup getLookup()
-  {
+  public static CharLookup getLookup() {
     if (lookup == null) {
       guessCharset(true);
       lookup = new CharLookup();
@@ -236,28 +233,30 @@ public class CharsetDetector
 //-------------------------- INNER CLASSES --------------------------
 
   // Handles character decoding and encoding
-  public static class CharLookup
-  {
-    private final String encoded, decoded;
+  public static class CharLookup {
+    private final String encoded;
+    private final String decoded;
     private final int[] excluded;
 
     /** Initializes an empty {@code CharLookup} object. */
-    public CharLookup()
-    {
+    public CharLookup() {
       this(null, null, null);
     }
 
     /**
      * Initializes translation tables.
-     * @param encoded Contains sequence of characters to decode.
-     * @param decoded Contains sequence of corresponding decoded characters.
+     *
+     * @param encoded         Contains sequence of characters to decode.
+     * @param decoded         Contains sequence of corresponding decoded characters.
      * @param excludedStrrefs List of strrefs that should not be decoded.
      */
-    public CharLookup(String encoded, String decoded, int[] excludedStrrefs)
-    {
-      if (encoded == null) encoded = "";
-      if (decoded == null) decoded = "";
-      if (excludedStrrefs == null) excludedStrrefs = new int[]{};
+    public CharLookup(String encoded, String decoded, int[] excludedStrrefs) {
+      if (encoded == null)
+        encoded = "";
+      if (decoded == null)
+        decoded = "";
+      if (excludedStrrefs == null)
+        excludedStrrefs = new int[] {};
       if (decoded.length() < encoded.length()) {
         encoded = encoded.substring(0, decoded.length());
       } else if (encoded.length() < decoded.length()) {
@@ -269,8 +268,7 @@ public class CharsetDetector
     }
 
     /** Returns whether the specified string is excluded from the encoding process. */
-    public boolean isExcluded(int strref)
-    {
+    public boolean isExcluded(int strref) {
       for (int i = 0; i < excluded.length; i++) {
         if (excluded[i] == strref) {
           return true;
@@ -280,8 +278,7 @@ public class CharsetDetector
     }
 
     /** Decodes the specified string into an official charset. */
-    public String decodeString(String text)
-    {
+    public String decodeString(String text) {
       if (!encoded.isEmpty()) {
         StringBuilder sb = new StringBuilder(text);
         for (int idx = 0, cnt = sb.length(); idx < cnt; idx++) {
@@ -293,8 +290,7 @@ public class CharsetDetector
     }
 
     /** Encodes the specified string with the character translation table. */
-    public String encodeString(String text)
-    {
+    public String encodeString(String text) {
       if (!decoded.isEmpty()) {
         StringBuilder sb = new StringBuilder(text);
         for (int idx = 0, cnt = sb.length(); idx < cnt; idx++) {
@@ -306,8 +302,7 @@ public class CharsetDetector
     }
 
     /** Decodes a single character. */
-    public char decode(char ch)
-    {
+    public char decode(char ch) {
       int idx = encoded.indexOf(ch);
       if (idx >= 0) {
         ch = decoded.charAt(idx);
@@ -316,8 +311,7 @@ public class CharsetDetector
     }
 
     /** Encodes a single character. */
-    public char encode(char ch)
-    {
+    public char encode(char ch) {
       int idx = decoded.indexOf(ch);
       if (idx >= 0) {
         ch = encoded.charAt(idx);
@@ -328,15 +322,13 @@ public class CharsetDetector
   }
 
   // Stores a single string -> charset pair
-  private static class Sample
-  {
+  private static class Sample {
     public CharLookup lookup;
     public String charset;
     public int strref;
     public byte[] data;
 
-    public Sample(String charset, int strref, byte[] data, CharLookup lookup)
-    {
+    public Sample(String charset, int strref, byte[] data, CharLookup lookup) {
       this.charset = charset;
       this.strref = strref;
       this.data = data;

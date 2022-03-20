@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -17,43 +17,36 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.StringTable;
 
-public final class WavReferenceSearcher extends AbstractReferenceSearcher
-{
-  public WavReferenceSearcher(ResourceEntry targetEntry, Component parent)
-  {
+public final class WavReferenceSearcher extends AbstractReferenceSearcher {
+  public WavReferenceSearcher(ResourceEntry targetEntry, Component parent) {
     super(targetEntry, AbstractReferenceSearcher.FILE_TYPES, parent);
   }
 
   @Override
-  protected void search(ResourceEntry entry, Resource resource)
-  {
+  protected void search(ResourceEntry entry, Resource resource) {
     if (resource instanceof AbstractStruct) {
-      searchStruct(entry, (AbstractStruct)resource);
+      searchStruct(entry, (AbstractStruct) resource);
     } else if (resource instanceof PlainTextResource) {
-      searchText(entry, (PlainTextResource)resource);
+      searchText(entry, (PlainTextResource) resource);
     }
   }
 
-  private void searchStruct(ResourceEntry entry, AbstractStruct struct)
-  {
+  private void searchStruct(ResourceEntry entry, AbstractStruct struct) {
     for (final StructEntry o : struct.getFields()) {
-      if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.getResourceName())) {
+      if (o instanceof ResourceRef
+          && ((ResourceRef) o).getResourceName().equalsIgnoreCase(targetEntry.getResourceName())) {
         addHit(entry, entry.getSearchString(), o);
-      }
-      else if (o instanceof StringRef &&
-               !StringTable.getSoundResource(((StringRef)o).getValue()).isEmpty() &&
-               targetEntry.getResourceName().equalsIgnoreCase(StringTable.getSoundResource(((StringRef)o).getValue()) + ".WAV")) {
+      } else if (o instanceof StringRef && !StringTable.getSoundResource(((StringRef) o).getValue()).isEmpty()
+          && targetEntry.getResourceName()
+              .equalsIgnoreCase(StringTable.getSoundResource(((StringRef) o).getValue()) + ".WAV")) {
         addHit(entry, null, o);
-      }
-      else if (o instanceof AbstractStruct) {
-        searchStruct(entry, (AbstractStruct)o);
+      } else if (o instanceof AbstractStruct) {
+        searchStruct(entry, (AbstractStruct) o);
       }
     }
   }
 
-  private void searchText(ResourceEntry entry, PlainTextResource text)
-  {
+  private void searchText(ResourceEntry entry, PlainTextResource text) {
     String nameBase = getTargetEntry().getResourceRef();
     Pattern p = Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE);
     Matcher m = p.matcher(text.getText());

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer.icon;
@@ -9,8 +9,7 @@ import javax.swing.ImageIcon;
 import org.infinity.icon.Icons;
 
 /** A dummy class used as reference for determining the current package name. */
-public enum ViewerIcons
-{
+public enum ViewerIcons {
   ICON_BTN_ADD_ACTOR("btn_addActor.png"),
   ICON_BTN_ADD_AMBIENT("btn_addAmbient.png"),
   ICON_BTN_ADD_ANIM("btn_addAnim.png"),
@@ -104,5 +103,4 @@ public enum ViewerIcons
   public String getFileName() {
     return fileName;
   }
-
 }

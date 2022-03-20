@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -47,16 +47,14 @@ import org.infinity.resource.text.QuestsResource;
 import org.infinity.util.Variables;
 
 /**
- * This resource is used to hold game information in save games. The GAM file does
- * not store {@link AreResource area}, {@link CreResource creature} or {@link ItmResource item}
- * information, instead, it stores information on the {@link PartyNPC party members}
- * and the global variables which affect party members.
+ * This resource is used to hold game information in save games. The GAM file does not store {@link AreResource area},
+ * {@link CreResource creature} or {@link ItmResource item} information, instead, it stores information on the
+ * {@link PartyNPC party members} and the global variables which affect party members.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/gam_v1.1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/gam_v1.1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/gam_v1.1.htm</a>
  */
-public final class GamResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
-{
+public final class GamResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs {
   // GAM-specific field labels
   public static final String GAM_GAME_TIME                        = "Game time (game seconds)";
   public static final String GAM_SELECTED_FORMATION               = "Selected formation";
@@ -105,62 +103,60 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   public static final String GAM_UNKNOWN_STRUCTURE                = "Unknown structure";
   public static final String GAM_POCKET_PLANE                     = "Pocket plane";
 
-  public static final String[] s_formation = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
-  public static final String[] s_weather = {"No weather", "Raining", "Snowing", "Light weather",
-                                            "Medium weather", "Light wind", "Medium wind", "Rare lightning",
-                                            "Regular lightning", "Storm increasing"};
-  public static final String[] s_torment = {"Follow", "T", "Gather", "4 and 2", "3 by 2",
-                                            "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
-                                            "Line", "None"};
-  public static final String[] s_configuration = {
-      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", null,
-      "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Automap notes hidden"};
-  public static final String[] s_configuration_bg1 = {
-      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window"};
-  public static final String[] s_configuration_iwd = {
-      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", null,
-      "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Unsupported"};
-  public static final String[] s_configuration_iwd2 = {
-      "Normal windows", "Party AI enabled", null, null, null, "Fullscreen mode", "Toolbar hidden",
-      "Console hidden", "Automap notes hidden"};
-  public static final String[] s_version_bg1 = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"};
-  public static final String[] s_familiar_owner = {
-      "Party member 0", "Party member 1", "Party member 2", "Party member 3",
-      "Party member 4", "Party member 5"};
+  public static final String[] FORMATION_ARRAY = { "Button 1", "Button 2", "Button 3", "Button 4", "Button 5" };
+
+  public static final String[] WEATHER_ARRAY = { "No weather", "Raining", "Snowing", "Light weather", "Medium weather",
+      "Light wind", "Medium wind", "Rare lightning", "Regular lightning", "Storm increasing" };
+
+  public static final String[] TORMENT_ARRAY = { "Follow", "T", "Gather", "4 and 2", "3 by 2", "Protect", "2 by 3",
+      "Rank", "V", "Wedge", "S", "Line", "None" };
+
+  public static final String[] CONFIGURATION_ARRAY = { "Normal windows", "Party AI disabled", "Larger text window",
+      "Largest text window", null, "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Automap notes hidden" };
+
+  public static final String[] CONFIGURATION_BG1_ARRAY = { "Normal windows", "Party AI disabled", "Larger text window",
+      "Largest text window" };
+
+  public static final String[] CONFIGURATION_IWD_ARRAY = { "Normal windows", "Party AI disabled", "Larger text window",
+      "Largest text window", null, "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Unsupported" };
+
+  public static final String[] CONFIGURATION_IWD2_ARRAY = { "Normal windows", "Party AI enabled", null, null, null,
+      "Fullscreen mode", "Toolbar hidden", "Console hidden", "Automap notes hidden" };
+
+  public static final String[] VERSION_BG1_ARRAY = { "Restrict XP to BG1 limit", "Restrict XP to TotSC limit" };
+
+  public static final String[] FAMILIAR_OWNER_ARRAY = { "Party member 0", "Party member 1", "Party member 2",
+      "Party member 3", "Party member 4", "Party member 5" };
 
   private StructHexViewer hexViewer;
   private Variables globalVars;
 
-  public GamResource(ResourceEntry entry) throws Exception
-  {
+  public GamResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
+  public AddRemovable[] getPrototypes() throws Exception {
     if (Profile.getEngine() == Profile.Engine.PST) {
       // TODO: missing CRE resource when adding PartyNPC structures
-      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable()};
-//      return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
-//                                new PartyNPC(), new NonPartyNPC()};
+      return new AddRemovable[] { new Variable(), new JournalEntry(), new KillVariable() };
+      // return new AddRemovable[]{new Variable(), new JournalEntry(), new KillVariable(),
+      // new PartyNPC(), new NonPartyNPC()};
     } else {
-      return new AddRemovable[]{new Variable(), new JournalEntry()};
-//      return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
-//                                new NonPartyNPC()};
+      return new AddRemovable[] { new Variable(), new JournalEntry() };
+      // return new AddRemovable[]{new Variable(), new JournalEntry(), new PartyNPC(),
+      // new NonPartyNPC()};
     }
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     if (entry instanceof PartyNPC) {
-      int numPartyMembers = ((IsNumeric)getAttribute(GAM_NUM_PARTY_MEMBERS)).getValue();
+      int numPartyMembers = ((IsNumeric) getAttribute(GAM_NUM_PARTY_MEMBERS)).getValue();
       if (numPartyMembers >= 6) {
         int ret = JOptionPane.showConfirmDialog(getViewer(),
-                                                "This game supports only up to 6 active party members. " +
-                                                    "Do you want to add a new entry?",
-                                                "Add new party member", JOptionPane.YES_NO_OPTION);
+            "This game supports only up to 6 active party members. " + "Do you want to add a new entry?",
+            "Add new party member", JOptionPane.YES_NO_OPTION);
         if (ret != JOptionPane.YES_OPTION) {
           entry = null;
         }
@@ -170,15 +166,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     // Page "Quests" with assigned and completed quests in PS:T
     return Profile.getEngine() == Profile.Engine.PST ? 3 : 2;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     if (Profile.getEngine() == Profile.Engine.PST && index == 1) {
       return "Quests";
     }
@@ -186,17 +180,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     switch (index) {
-      case 0:
-      {
+      case 0: {
         JScrollPane scroll = new JScrollPane(new Viewer(this));
         scroll.setBorder(BorderFactory.createEmptyBorder());
         return scroll;
       }
-      case 1:
-      {
+      case 1: {
         if (Profile.getEngine() == Profile.Engine.PST) {
           try {
             return new QuestsPanel(new QuestsResource().readQuests(), globalVars);
@@ -208,8 +199,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
           }
         }
       }
-      default:
-      {
+      default: {
         if (hexViewer == null) {
           hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
@@ -219,38 +209,33 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return index == 0 || Profile.getEngine() == Profile.Engine.PST && index == 1;
   }
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     super.writeFlatFields(os);
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     updateOffsets();
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
     if (datatype instanceof Variable) {
-      globalVars.add((Variable)datatype);
+      globalVars.add((Variable) datatype);
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     updateOffsets();
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -258,20 +243,18 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     updateOffsets();
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
     if (datatype instanceof Variable) {
-      globalVars.remove((Variable)datatype);
+      globalVars.remove((Variable) datatype);
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     updateOffsets();
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -279,8 +262,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     // Unfortunatly, can not initialize in constructor, because this method called
     // from superclass constructor
     globalVars = new Variables();
@@ -289,48 +271,43 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     addField(version);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_GAME_TIME));
     if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
-      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_torment));
+      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, TORMENT_ARRAY));
     } else {
-      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_formation));
+      addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, FORMATION_ARRAY));
     }
     for (int i = 0; i < 5; i++) {
-      addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i+1)));
+      addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i + 1)));
     }
     addField(new DecNumber(buffer, offset + 24, 4, GAM_PARTY_GOLD));
-    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder, true, true));
-    addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, s_weather));
-    SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS,
-                                                      PartyNPC.class);
-    addField(offset_partynpc);
-    SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, GAM_NUM_PARTY_MEMBERS,
-                                                   PartyNPC.class);
-    addField(count_partynpc);
-    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, GAM_OFFSET_PARTY_INVENTORY,
-                                                     UnknownSection2.class);
-    addField(offset_unknown);
-    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, GAM_NUM_PARTY_INVENTORY,
-                                                  UnknownSection2.class);
-    addField(count_unknown);
-    SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, GAM_OFFSET_NON_PARTY_MEMBERS,
-                                                         NonPartyNPC.class);
-    addField(offset_nonpartynpc);
-    SectionCount count_nonpartynpc = new SectionCount(buffer, offset + 52, 4, GAM_NUM_NON_PARTY_MEMBERS,
-                                                      NonPartyNPC.class);
-    addField(count_nonpartynpc);
-    SectionOffset offset_global = new SectionOffset(buffer, offset + 56, GAM_OFFSET_GLOBAL_VARIABLES,
-                                                    Variable.class);
-    addField(offset_global);
-    SectionCount count_global = new SectionCount(buffer, offset + 60, 4, GAM_NUM_GLOBAL_VARIABLES,
-                                                 Variable.class);
-    addField(count_global);
+    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.PARTY_ORDER_MAP, true, true));
+    addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, WEATHER_ARRAY));
+    SectionOffset offsetPartyNpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS, PartyNPC.class);
+    addField(offsetPartyNpc);
+    SectionCount countPartyNpc = new SectionCount(buffer, offset + 36, 4, GAM_NUM_PARTY_MEMBERS, PartyNPC.class);
+    addField(countPartyNpc);
+    SectionOffset offsetUnknown = new SectionOffset(buffer, offset + 40, GAM_OFFSET_PARTY_INVENTORY,
+        UnknownSection2.class);
+    addField(offsetUnknown);
+    SectionCount countUnknown = new SectionCount(buffer, offset + 44, 4, GAM_NUM_PARTY_INVENTORY,
+        UnknownSection2.class);
+    addField(countUnknown);
+    SectionOffset offsetNonPartyNpc = new SectionOffset(buffer, offset + 48, GAM_OFFSET_NON_PARTY_MEMBERS,
+        NonPartyNPC.class);
+    addField(offsetNonPartyNpc);
+    SectionCount countNonPartyNpc = new SectionCount(buffer, offset + 52, 4, GAM_NUM_NON_PARTY_MEMBERS,
+        NonPartyNPC.class);
+    addField(countNonPartyNpc);
+    SectionOffset offsetGlobal = new SectionOffset(buffer, offset + 56, GAM_OFFSET_GLOBAL_VARIABLES, Variable.class);
+    addField(offsetGlobal);
+    SectionCount countGlobal = new SectionCount(buffer, offset + 60, 4, GAM_NUM_GLOBAL_VARIABLES, Variable.class);
+    addField(countGlobal);
     addField(new ResourceRef(buffer, offset + 64, GAM_WORLD_AREA, "ARE"));
     addField(new DecNumber(buffer, offset + 72, 4, GAM_CURRENT_LINK));
-    SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, GAM_NUM_JOURNAL_ENTRIES,
-                                                  JournalEntry.class);
-    addField(count_journal);
-    SectionOffset offset_journal = new SectionOffset(buffer, offset + 80, GAM_OFFSET_JOURNAL_ENTRIES,
-                                                     JournalEntry.class);
-    addField(offset_journal);
+    SectionCount countJournal = new SectionCount(buffer, offset + 76, 4, GAM_NUM_JOURNAL_ENTRIES, JournalEntry.class);
+    addField(countJournal);
+    SectionOffset offsetJournal = new SectionOffset(buffer, offset + 80, GAM_OFFSET_JOURNAL_ENTRIES,
+        JournalEntry.class);
+    addField(offsetJournal);
 
     SectionOffset offKillvariable = null, offFamiliar = null, offIWD2 = null, offIWD = null;
     SectionOffset offLocation = null, offRubikon = null, offBestiary = null, offPocket = null;
@@ -339,21 +316,19 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_bg1));
-      addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version_bg1));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, CONFIGURATION_BG1_ARRAY));
+      addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, VERSION_BG1_ARRAY));
       addField(new Unknown(buffer, offset + 104, 76));
-    }
-    else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
+    } else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, CONFIGURATION_IWD_ARRAY));
       numIWD = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD);
       offIWD = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
       addField(offIWD);
       addField(new Unknown(buffer, offset + 108, 72));
-    }
-    else if (Profile.getEngine() == Profile.Engine.PST) { // V1.1
+    } else if (Profile.getEngine() == Profile.Engine.PST) { // V1.1
       offRubikon = new SectionOffset(buffer, offset + 84, GAM_OFFSET_MODRON_MAZE, Unknown.class);
       addField(offRubikon);
       addField(new DecNumber(buffer, offset + 88, 4, GAM_REPUTATION));
@@ -366,11 +341,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       addField(offBestiary);
       addField(new ResourceRef(buffer, offset + 112, GAM_MASTER_AREA_2, "ARE"));
       addField(new Unknown(buffer, offset + 120, 64));
-    }
-    else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
+    } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, CONFIGURATION_ARRAY));
       addField(new DecNumber(buffer, offset + 100, 4, GAM_SAVE_VERSION));
       offFamiliar = new SectionOffset(buffer, offset + 104, GAM_OFFSET_FAMILIAR_INFO, Familiar.class);
       addField(offFamiliar);
@@ -388,16 +362,15 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
         addField(new ResourceRef(buffer, offset + 132, GAM_RANDOM_ENCOUNTER_AREA, "ARE"));
         addField(new ResourceRef(buffer, offset + 140, GAM_WORLDMAP, "WMP"));
         addField(new TextString(buffer, offset + 148, 8, GAM_CAMPAIGN));
-        addField(new Bitmap(buffer, offset + 156, 4, GAM_FAMILIAR_OWNER, s_familiar_owner));
+        addField(new Bitmap(buffer, offset + 156, 4, GAM_FAMILIAR_OWNER, FAMILIAR_OWNER_ARRAY));
         addField(new TextString(buffer, offset + 160, 20, GAM_ENCOUNTER_ENTRY));
       } else {
         addField(new Unknown(buffer, offset + 128, 52));
       }
-    }
-    else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
-      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd2));
+      addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, CONFIGURATION_IWD2_ARRAY));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD2);
       offIWD2 = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
@@ -406,23 +379,23 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       addField(new Unknown(buffer, offset + 112, 68));
     }
 
-    offset = offset_partynpc.getValue();
-    for (int i = 0; i < count_partynpc.getValue(); i++) {
+    offset = offsetPartyNpc.getValue();
+    for (int i = 0; i < countPartyNpc.getValue(); i++) {
       PartyNPC npc = new PartyNPC(this, buffer, offset, i);
       offset += npc.getSize();
       addField(npc);
     }
 
-    offset = offset_nonpartynpc.getValue();
-    for (int i = 0; i < count_nonpartynpc.getValue(); i++) {
+    offset = offsetNonPartyNpc.getValue();
+    for (int i = 0; i < countNonPartyNpc.getValue(); i++) {
       NonPartyNPC npc = new NonPartyNPC(this, buffer, offset, i);
       offset += npc.getSize();
       addField(npc);
     }
 
-    offset = offset_unknown.getValue();
+    offset = offsetUnknown.getValue();
     if (offset > 0) {
-      for (int i = 0; i < count_unknown.getValue(); i++) {
+      for (int i = 0; i < countUnknown.getValue(); i++) {
         addField(new UnknownSection2(this, buffer, offset + i * 20));
       }
     }
@@ -435,8 +408,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    offset = offset_global.getValue();
-    for (int i = 0; i < count_global.getValue(); i++) {
+    offset = offsetGlobal.getValue();
+    for (int i = 0; i < countGlobal.getValue(); i++) {
       Variable var = new Variable(this, buffer, offset, i);
       offset += var.getSize();
       addField(var);
@@ -452,8 +425,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    offset = offset_journal.getValue();
-    for (int i = 0; i < count_journal.getValue(); i++) {
+    offset = offsetJournal.getValue();
+    for (int i = 0; i < countJournal.getValue(); i++) {
       JournalEntry ent = new JournalEntry(this, buffer, offset, i);
       offset += ent.getSize();
       addField(ent);
@@ -488,8 +461,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
         HexNumber offEOS = new HexNumber(buffer, offset, 4, GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE);
         addField(offEOS);
         offset += 4;
-        int unknownSize = (offEOS.getValue() > buffer.limit() - 4) ?
-                              buffer.limit() - offset - 4 : offEOS.getValue() - offset;
+        int unknownSize = (offEOS.getValue() > buffer.limit() - 4) ? buffer.limit() - offset - 4
+            : offEOS.getValue() - offset;
         addField(new Unknown(buffer, offset, unknownSize, GAM_UNKNOWN_STRUCTURE));
         offset += unknownSize;
         addField(new Unknown(buffer, offset, 4));
@@ -526,7 +499,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    if (offPocket != null && numPocket != null) {  // BG2
+    if (offPocket != null && numPocket != null) { // BG2
       offset = offPocket.getValue();
       if (offset > 0) {
         for (int i = 0; i < numPocket.getValue(); i++) {
@@ -545,15 +518,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     return offset;
   }
 
-  private void updateOffsets()
-  {
+  private void updateOffsets() {
     for (final StructEntry o : getFields()) {
       if (o instanceof PartyNPC) {
-        ((PartyNPC)o).updateCREOffset();
+        ((PartyNPC) o).updateCREOffset();
       }
-//      if (o instanceof Familiar) {
-//        ((Familiar)o).updateFilesize((DecNumber)getAttribute("File size"));
-//      }
+      // if (o instanceof Familiar) {
+      // ((Familiar)o).updateFilesize((DecNumber)getAttribute("File size"));
+      // }
     }
   }
 }

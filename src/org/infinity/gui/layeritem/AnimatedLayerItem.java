@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -32,11 +32,10 @@ import org.infinity.resource.graphics.ColorConvert;
  * Represents a game resource structure visually as a bitmap animation.
  */
 public class AnimatedLayerItem extends AbstractLayerItem
-    implements LayerItemListener, ActionListener, PropertyChangeListener
-{
+    implements LayerItemListener, ActionListener, PropertyChangeListener {
   private static final Color TRANSPARENT_COLOR = new Color(0, true);
 
-  private final FrameInfo[] frameInfos = {new FrameInfo(), new FrameInfo()};
+  private final FrameInfo[] frameInfos = { new FrameInfo(), new FrameInfo() };
 
   private BasicAnimationProvider animation;
   private boolean isAutoPlay;
@@ -44,20 +43,19 @@ public class AnimatedLayerItem extends AbstractLayerItem
   private Object interpolationType;
   private boolean forcedInterpolation;
   private double zoomFactor;
-  private Rectangle frameBounds;    // Point(x,y) defines the point of origin for the animation graphics
-  private RenderCanvas rcCanvas;    // Renders both the animation graphics and an optional frame
+  private Rectangle frameBounds; // Point(x,y) defines the point of origin for the animation graphics
+  private RenderCanvas rcCanvas; // Renders both the animation graphics and an optional frame
   private SwingWorker<Void, Void> workerAnimate;
 
   /**
-   * Initialize object with an associated Viewable, an additional text message
-   * and an array of Frame object containing graphics data and frame centers.
+   * Initialize object with an associated Viewable, an additional text message and an array of Frame object containing
+   * graphics data and frame centers.
    *
    * @param viewable Associated Viewable object
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param anim An array of Frame objects defining the animation for this layer item
+   * @param tooltip  A short text message shown as tooltip or menu item text
+   * @param anim     An array of Frame objects defining the animation for this layer item
    */
-  public AnimatedLayerItem(Viewable viewable, String tooltip, BasicAnimationProvider anim)
-  {
+  public AnimatedLayerItem(Viewable viewable, String tooltip, BasicAnimationProvider anim) {
     super(viewable, tooltip);
     init();
     initAnimation(anim);
@@ -66,28 +64,25 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns the currently assigned animation provider.
    */
-  public BasicAnimationProvider getAnimation()
-  {
+  public BasicAnimationProvider getAnimation() {
     return animation;
   }
 
   /**
    * Assigns a new animation to the layer item.
    */
-  public void setAnimation(BasicAnimationProvider anim)
-  {
+  public void setAnimation(BasicAnimationProvider anim) {
     initAnimation(anim);
   }
 
   /**
-   * Returns the currently defined frame rate for the animation. The returned value is only an
-   * approximation of the frame rate defined in {@link #setFrameRate(double)}, as the timer
-   * resolution is limited to 1 ms.
+   * Returns the currently defined frame rate for the animation. The returned value is only an approximation of the
+   * frame rate defined in {@link #setFrameRate(double)}, as the timer resolution is limited to 1 ms.
+   *
    * @return Frame rate in frames/second.
    */
-  public double getFrameRate()
-  {
-    double delay = (double)timer.getDelay();
+  public double getFrameRate() {
+    double delay = timer.getDelay();
     if (delay > 0.0) {
       return 1000.0 / delay;
     } else {
@@ -97,30 +92,34 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
   /**
    * Sets the frame rate of the animation in frames/second.
+   *
    * @param framesPerSecond The desired frame rate in the range [1.0, 60.0].
    */
-  public void setFrameRate(double framesPerSecond)
-  {
-    if (framesPerSecond < 1.0) framesPerSecond = 1.0; else if (framesPerSecond > 60.0) framesPerSecond = 60.0;
-    int delay = (int)(1000.0 / framesPerSecond);
+  public void setFrameRate(double framesPerSecond) {
+    if (framesPerSecond < 1.0) {
+      framesPerSecond = 1.0;
+    } else if (framesPerSecond > 60.0) {
+      framesPerSecond = 60.0;
+    }
+    int delay = (int) (1000.0 / framesPerSecond);
     timer.setDelay(delay);
   }
 
   /**
    * Returns the currently used zoom factor for this layer item.
+   *
    * @return Zoom factor
    */
-  public double getZoomFactor()
-  {
+  public double getZoomFactor() {
     return zoomFactor;
   }
 
   /**
    * Defines a new zoom factor for this layer item.
+   *
    * @param zoomFactor The new zoom factor.
    */
-  public void setZoomFactor(double zoomFactor)
-  {
+  public void setZoomFactor(double zoomFactor) {
     if (this.zoomFactor != zoomFactor) {
       this.zoomFactor = zoomFactor;
       updateSize();
@@ -131,21 +130,19 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns the currently used interpolation type.
    */
-  public Object getInterpolationType()
-  {
+  public Object getInterpolationType() {
     return interpolationType;
   }
 
   /**
    * Specifies the interpolation type used for scaled items.
+   *
    * @param type One of the TYPE_xxx constants.
    */
-  public void setInterpolationType(Object type)
-  {
+  public void setInterpolationType(Object type) {
     if (this.interpolationType != type) {
-      if (type == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
-          type == ViewerConstants.TYPE_BILINEAR ||
-          type == ViewerConstants.TYPE_BICUBIC) {
+      if (type == ViewerConstants.TYPE_NEAREST_NEIGHBOR || type == ViewerConstants.TYPE_BILINEAR
+          || type == ViewerConstants.TYPE_BICUBIC) {
         this.interpolationType = type;
         if (forcedInterpolation) {
           rcCanvas.setInterpolationType(interpolationType);
@@ -157,21 +154,21 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
   /**
    * Returns whether the renderer is forced to use the predefined interpolation type on scaling.
+   *
    * @return
    */
-  public boolean isForcedInterpolation()
-  {
+  public boolean isForcedInterpolation() {
     return forcedInterpolation;
   }
 
   /**
-   * Specifies whether the renderer uses the best interpolation type based on the current zoom factor
-   * or uses a predefined interpolation type only.
-   * @param set If {@code true}, uses a predefined interpolation type only.
-   *            If {@code false}, chooses an interpolation type automatically.
+   * Specifies whether the renderer uses the best interpolation type based on the current zoom factor or uses a
+   * predefined interpolation type only.
+   *
+   * @param set If {@code true}, uses a predefined interpolation type only. If {@code false}, chooses an interpolation
+   *            type automatically.
    */
-  public void setForcedInterpolation(boolean set)
-  {
+  public void setForcedInterpolation(boolean set) {
     if (forcedInterpolation != set) {
       forcedInterpolation = set;
       updateFrame();
@@ -181,38 +178,33 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns the {@link Composite} object assigned to the canvas.
    */
-  public Composite getComposite()
-  {
+  public Composite getComposite() {
     return rcCanvas.getComposite();
   }
 
   /**
    * Sets the {@link Composite} object for the canvas.
    */
-  public void setComposite(Composite comp)
-  {
+  public void setComposite(Composite comp) {
     rcCanvas.setComposite(comp);
   }
 
   /**
-   * Returns whether the animation will automatically restart after playing the last frame.
-   * (Note: Merely returns the value provided by the attached BasicAnimationProvider object.)
+   * Returns whether the animation will automatically restart after playing the last frame. (Note: Merely returns the
+   * value provided by the attached BasicAnimationProvider object.)
    */
-  public boolean isLooping()
-  {
+  public boolean isLooping() {
     return animation.isLooping();
   }
 
-  public boolean isAutoPlay()
-  {
+  public boolean isAutoPlay() {
     return isAutoPlay;
   }
 
   /**
    * Sets whether the layer item will start playing automatically when the item becomes visible.
    */
-  public void setAutoPlay(boolean set)
-  {
+  public void setAutoPlay(boolean set) {
     if (set != isAutoPlay) {
       isAutoPlay = set;
       if (isAutoPlay() && isVisible()) {
@@ -224,16 +216,14 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns whether the animation is playing.
    */
-  public boolean isPlaying()
-  {
+  public boolean isPlaying() {
     return timer.isRunning();
   }
 
   /**
    * Starts playback of the animation.
    */
-  public void play()
-  {
+  public void play() {
     if (!isPlaying()) {
       timer.start();
     }
@@ -242,8 +232,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Stops playback of the animation without resetting current frame.
    */
-  public void pause()
-  {
+  public void pause() {
     if (isPlaying()) {
       timer.stop();
     }
@@ -252,8 +241,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Stops playback of the animation and sets current frame to 0.
    */
-  public void stop()
-  {
+  public void stop() {
     if (isPlaying()) {
       timer.stop();
       animation.resetFrame();
@@ -264,16 +252,14 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns whether a frame is drawn around the item in the specified state.
    */
-  public boolean isFrameEnabled(ItemState state)
-  {
+  public boolean isFrameEnabled(ItemState state) {
     return frameInfos[state.ordinal()].isEnabled();
   }
 
   /**
    * Enables/disables the frame around the item in the specified state.
    */
-  public void setFrameEnabled(ItemState state, boolean enabled)
-  {
+  public void setFrameEnabled(ItemState state, boolean enabled) {
     frameInfos[state.ordinal()].setEnabled(enabled);
     updateFrame();
   }
@@ -281,16 +267,14 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns the frame width in pixels in the specified state.
    */
-  public int getFrameWidth(ItemState state)
-  {
-    return (int)frameInfos[state.ordinal()].getStroke().getLineWidth();
+  public int getFrameWidth(ItemState state) {
+    return (int) frameInfos[state.ordinal()].getStroke().getLineWidth();
   }
 
   /**
    * Defines the frame width in pixels in the specified state.
    */
-  public void setFrameWidth(ItemState state, int width)
-  {
+  public void setFrameWidth(ItemState state, int width) {
     frameInfos[state.ordinal()].setStroke(new BasicStroke(width < 1 ? 1 : width));
     updateFrame();
   }
@@ -298,43 +282,41 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Returns the color used for the frame around the item in the specified state.
    */
-  public Color getFrameColor(ItemState state)
-  {
+  public Color getFrameColor(ItemState state) {
     return frameInfos[state.ordinal()].getColor();
   }
 
   /**
    * Defines the color of the frame around the item in the specified state.
    */
-  public void setFrameColor(ItemState state, Color color)
-  {
+  public void setFrameColor(ItemState state, Color color) {
     frameInfos[state.ordinal()].setColor(color);
     updateFrame();
   }
 
-
   @Override
-  public void setVisible(boolean aFlag)
-  {
+  public void setVisible(boolean aFlag) {
     if (aFlag != isVisible()) {
       if (isAutoPlay()) {
-        if (aFlag) { play(); } else { pause(); }
+        if (aFlag) {
+          play();
+        } else {
+          pause();
+        }
       }
     }
     super.setVisible(aFlag);
   }
 
   @Override
-  public void layerItemChanged(LayerItemEvent event)
-  {
+  public void layerItemChanged(LayerItemEvent event) {
     if (event.getSource() == this) {
       updateDisplay(false);
     }
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == timer) {
       // advancing frame by one
       if (!animation.advanceFrame()) {
@@ -362,11 +344,9 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerAnimate) {
-      if ("state".equals(event.getPropertyName()) &&
-              SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
         workerAnimate = null;
       }
@@ -374,70 +354,61 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   @Override
-  public void repaint()
-  {
+  public void repaint() {
     updateCanvas();
     super.repaint();
   }
 
   @Override
-  protected boolean isMouseOver(Point pt)
-  {
+  protected boolean isMouseOver(Point pt) {
     Rectangle r = new Rectangle(getCanvasBounds(true));
     r.translate(-r.x, -r.y);
     return r.contains(pt);
   }
 
   /**
-   * Calculates a rectangle big enough to fit the current frame image and border into.
-   * Returns whether the canvas size changed.
+   * Calculates a rectangle big enough to fit the current frame image and border into. Returns whether the canvas size
+   * changed.
    */
-  private void updateCanvasSize()
-  {
-    int strokeWidth = (int)Math.max(getFrameInfo(false).getStroke().getLineWidth(),
+  private void updateCanvasSize() {
+    int strokeWidth = (int) Math.max(getFrameInfo(false).getStroke().getLineWidth(),
         getFrameInfo(true).getStroke().getLineWidth());
 
     if (frameBounds == null) {
-      frameBounds = new Rectangle(-strokeWidth, -strokeWidth, 2*strokeWidth, 2*strokeWidth);
+      frameBounds = new Rectangle(-strokeWidth, -strokeWidth, 2 * strokeWidth, 2 * strokeWidth);
     } else {
       frameBounds.x = frameBounds.y = -strokeWidth;
-      frameBounds.width = frameBounds.height = 2*strokeWidth;
+      frameBounds.width = frameBounds.height = 2 * strokeWidth;
     }
 
     frameBounds.width += animation.getImage().getWidth(null);
     frameBounds.height += animation.getImage().getHeight(null);
 
-    if (rcCanvas.getImage() == null ||
-        rcCanvas.getImage().getWidth(null) != frameBounds.width ||
-        rcCanvas.getImage().getHeight(null) != frameBounds.height) {
+    if (rcCanvas.getImage() == null || rcCanvas.getImage().getWidth(null) != frameBounds.width
+        || rcCanvas.getImage().getHeight(null) != frameBounds.height) {
       rcCanvas.setImage(ColorConvert.createCompatibleImage(frameBounds.width, frameBounds.height, true));
     }
   }
 
-  private Rectangle getCanvasBounds(boolean scaled)
-  {
+  private Rectangle getCanvasBounds(boolean scaled) {
     if (frameBounds == null) {
       updateCanvasSize();
     }
     if (scaled) {
-      return new Rectangle((int)((double)frameBounds.x*zoomFactor),
-                           (int)((double)frameBounds.y*zoomFactor),
-                           (int)((double)frameBounds.width*zoomFactor),
-                           (int)((double)frameBounds.height*zoomFactor));
+      return new Rectangle((int) (frameBounds.x * zoomFactor), (int) (frameBounds.y * zoomFactor),
+          (int) (frameBounds.width * zoomFactor), (int) (frameBounds.height * zoomFactor));
     } else {
       return frameBounds;
     }
   }
 
   /** Returns the FrameInfo object of the specified state. */
-  private FrameInfo getFrameInfo(boolean highlighted)
-  {
+  private FrameInfo getFrameInfo(boolean highlighted) {
     return highlighted ? frameInfos[1] : frameInfos[0];
   }
 
   /** First-time initializations. */
-  private void init()
-  {
+  private void init() {
     setLayout(new BorderLayout());
     isAutoPlay = false;
     zoomFactor = 1.0;
@@ -460,8 +431,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   /** Animation-related initializations (requires this.frame to be initialized). */
-  private void initAnimation(BasicAnimationProvider anim)
-  {
+  private void initAnimation(BasicAnimationProvider anim) {
     boolean isPlaying = isPlaying();
     stop();
 
@@ -481,8 +451,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   /** Call whenever the behavior of the current animation changes. */
-  private void updateAnimation()
-  {
+  private void updateAnimation() {
     boolean isPlaying = isPlaying();
     pause();
 
@@ -496,27 +465,24 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   /** Updates the display if needed. */
-  private void updateDisplay(boolean force)
-  {
+  private void updateDisplay(boolean force) {
     if (!isPlaying() || force) {
       repaint();
     }
   }
 
   /** Updates both frame content and position. */
-  private void updateFrame()
-  {
+  private void updateFrame() {
     updateSize();
     updatePosition();
     repaint();
   }
 
   /** Draws the current frame onto the canvas. */
-  private synchronized void updateCanvas()
-  {
+  private synchronized void updateCanvas() {
     boolean isHighlighted = (getItemState() == ItemState.HIGHLIGHTED);
 
-    Graphics2D g2 = (Graphics2D)rcCanvas.getImage().getGraphics();
+    Graphics2D g2 = (Graphics2D) rcCanvas.getImage().getGraphics();
     try {
       g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
       g2.setColor(TRANSPARENT_COLOR);
@@ -530,11 +496,10 @@ public class AnimatedLayerItem extends AbstractLayerItem
       if (fi.isEnabled()) {
         g2.setColor(fi.getColor());
         g2.setStroke(fi.getStroke());
-        int penWidth2 = (int)fi.getStroke().getLineWidth() >>> 1;
-        int penWidthExtra = (int)fi.getStroke().getLineWidth() & 1;
-        g2.drawRect(penWidth2, penWidth2,
-                    frameBounds.width - penWidth2 - penWidthExtra - 1,
-                    frameBounds.height - penWidth2 - penWidthExtra- 1);
+        int penWidth2 = (int) fi.getStroke().getLineWidth() >>> 1;
+        int penWidthExtra = (int) fi.getStroke().getLineWidth() & 1;
+        g2.drawRect(penWidth2, penWidth2, frameBounds.width - penWidth2 - penWidthExtra - 1,
+            frameBounds.height - penWidth2 - penWidthExtra - 1);
       }
     } finally {
       g2.dispose();
@@ -542,13 +507,12 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  private void updateSize()
-  {
+  private void updateSize() {
     Rectangle r = getBounds();
     Image img = rcCanvas.getImage();
     if (img != null) {
-      r.width = (int)((double)img.getWidth(null)*getZoomFactor());
-      r.height = (int)((double)img.getHeight(null)*getZoomFactor());
+      r.width = (int) (img.getWidth(null) * getZoomFactor());
+      r.height = (int) (img.getHeight(null) * getZoomFactor());
     } else {
       r.width = r.height = 1;
     }
@@ -559,18 +523,18 @@ public class AnimatedLayerItem extends AbstractLayerItem
     if (forcedInterpolation) {
       rcCanvas.setInterpolationType(interpolationType);
     } else {
-      rcCanvas.setInterpolationType((zoomFactor < 1.0) ? RenderCanvas.TYPE_BILINEAR : RenderCanvas.TYPE_NEAREST_NEIGHBOR);
+      rcCanvas
+          .setInterpolationType((zoomFactor < 1.0) ? RenderCanvas.TYPE_BILINEAR : RenderCanvas.TYPE_NEAREST_NEIGHBOR);
     }
   }
 
   /** Updates the component position based on the current frame's center. Takes zoom factor into account. */
-  private void updatePosition()
-  {
+  private void updatePosition() {
     Rectangle bounds = getCanvasBounds(true);
     Point curOfs = new Point(-bounds.x, -bounds.y);
     // applying animation offsets
-    curOfs.x -= (int)((double)animation.getLocationOffset().x*getZoomFactor());
-    curOfs.y -= (int)((double)animation.getLocationOffset().y*getZoomFactor());
+    curOfs.x -= (int) (animation.getLocationOffset().x * getZoomFactor());
+    curOfs.y -= (int) (animation.getLocationOffset().y * getZoomFactor());
     if (!getLocationOffset().equals(curOfs)) {
       Point distance = new Point(getLocationOffset().x - curOfs.x - 1, getLocationOffset().y - curOfs.y - 1);
       setLocationOffset(curOfs);
@@ -579,11 +543,10 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-//----------------------------- INNER CLASSES -----------------------------
+  // ----------------------------- INNER CLASSES -----------------------------
 
   /** Stores information about frames around the item. */
-  private static class FrameInfo
-  {
+  private static class FrameInfo {
     private static Color DefaultColor = new Color(0, true);
     private static BasicStroke DefaultStroke = new BasicStroke(1.0f);
 
@@ -591,29 +554,29 @@ public class AnimatedLayerItem extends AbstractLayerItem
     private Color color;
     private BasicStroke stroke;
 
-    public FrameInfo()
-    {
+    public FrameInfo() {
       this(DefaultStroke, DefaultColor, false);
     }
 
-    public FrameInfo(BasicStroke stroke, Color color, boolean enabled)
-    {
+    public FrameInfo(BasicStroke stroke, Color color, boolean enabled) {
       setStroke(stroke);
       setColor(color);
       this.enabled = enabled;
     }
 
-    public boolean isEnabled() { return enabled; }
+    public boolean isEnabled() {
+      return enabled;
+    }
 
-    public void setEnabled(boolean enabled)
-    {
+    public void setEnabled(boolean enabled) {
       this.enabled = enabled;
     }
 
-    public BasicStroke getStroke() { return stroke; }
+    public BasicStroke getStroke() {
+      return stroke;
+    }
 
-    public void setStroke(BasicStroke stroke)
-    {
+    public void setStroke(BasicStroke stroke) {
       if (stroke != null) {
         this.stroke = stroke;
       } else {
@@ -621,10 +584,11 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
 
-    public Color getColor() { return color; }
+    public Color getColor() {
+      return color;
+    }
 
-    public void setColor(Color color)
-    {
+    public void setColor(Color color) {
       if (color == null) {
         color = DefaultColor;
       }

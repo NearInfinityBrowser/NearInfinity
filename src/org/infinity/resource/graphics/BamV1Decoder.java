@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -14,47 +14,42 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
 
-
 /**
  * Handles BAM v1 resources (both BAMC and uncompressed BAM V1).
  */
-public class BamV1Decoder extends BamDecoder
-{
+public class BamV1Decoder extends BamDecoder {
   private final List<BamV1FrameEntry> listFrames = new ArrayList<>();
   private final List<CycleEntry> listCycles = new ArrayList<>();
   private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
 
   private BamV1Control defaultControl;
-  private ByteBuffer bamBuffer;   // contains the raw (uncompressed) data of the BAM resource
-  private int[] bamPalette;    // BAM palette
-  private int rleIndex;     // color index for RLE compressed pixels
+  private ByteBuffer bamBuffer; // contains the raw (uncompressed) data of the BAM resource
+  private int[] bamPalette; // BAM palette
+  private int rleIndex; // color index for RLE compressed pixels
 
   /**
-   * Loads and decodes a BAM v1 resource. This includes both compressed (BAMC) and uncompressed BAM
-   * resource.
+   * Loads and decodes a BAM v1 resource. This includes both compressed (BAMC) and uncompressed BAM resource.
+   *
    * @param bamEntry The BAM resource entry.
    */
-  public BamV1Decoder(ResourceEntry bamEntry)
-  {
+  public BamV1Decoder(ResourceEntry bamEntry) {
     super(bamEntry);
     init();
   }
 
-
   @Override
-  public BamV1Control createControl()
-  {
+  public BamV1Control createControl() {
     return new BamV1Control(this);
   }
 
   @Override
-  public BamV1FrameEntry getFrameInfo(int frameIdx)
-  {
+  public BamV1FrameEntry getFrameInfo(int frameIdx) {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       return listFrames.get(frameIdx);
     } else {
@@ -63,8 +58,7 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public void close()
-  {
+  public void close() {
     bamBuffer = null;
     bamPalette = null;
     listFrames.clear();
@@ -73,32 +67,27 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public boolean isOpen()
-  {
+  public boolean isOpen() {
     return (bamBuffer != null);
   }
 
   @Override
-  public void reload()
-  {
+  public void reload() {
     init();
   }
 
   @Override
-  public ByteBuffer getResourceBuffer()
-  {
+  public ByteBuffer getResourceBuffer() {
     return bamBuffer;
   }
 
   @Override
-  public int frameCount()
-  {
+  public int frameCount() {
     return listFrames.size();
   }
 
   @Override
-  public Image frameGet(BamControl control, int frameIdx)
-  {
+  public Image frameGet(BamControl control, int frameIdx) {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       if (control == null) {
         control = defaultControl;
@@ -122,10 +111,9 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public void frameGet(BamControl control, int frameIdx, Image canvas)
-  {
+  public void frameGet(BamControl control, int frameIdx, Image canvas) {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if(control == null) {
+      if (control == null) {
         control = defaultControl;
       }
       int w, h;
@@ -144,15 +132,12 @@ public class BamV1Decoder extends BamDecoder
   }
 
   /** Returns the compressed color index for compressed BAM v1 resources. */
-  public int getRleIndex()
-  {
+  public int getRleIndex() {
     return rleIndex;
   }
 
-
   // Initializes the current BAM
-  private void init()
-  {
+  private void init() {
     // resetting data
     close();
 
@@ -209,23 +194,23 @@ public class BamV1Decoder extends BamDecoder
         // initializing cycles
         for (int i = 0; i < cyclesCount; i++) {
           int cnt = bamBuffer.getShort(ofs) & 0xffff;
-          int idx = bamBuffer.getShort(ofs+2) & 0xffff;
+          int idx = bamBuffer.getShort(ofs + 2) & 0xffff;
           listCycles.add(new CycleEntry(bamBuffer, ofsLookup, cnt, idx));
           ofs += 0x04;
         }
 
         // initializing palette (number of palette entries can be less than 256)
-        int[] offsets = {ofsFrames, ofsPalette, ofsLookup, bamBuffer.limit()};
+        int[] offsets = { ofsFrames, ofsPalette, ofsLookup, bamBuffer.limit() };
         Arrays.sort(offsets);
         int idx = Arrays.binarySearch(offsets, ofsPalette);
         int numEntries = 256;
         if (idx >= 0 && idx + 1 < offsets.length) {
-          numEntries = Math.min(256, (offsets[idx+1] - offsets[idx]) / 4);
+          numEntries = Math.min(256, (offsets[idx + 1] - offsets[idx]) / 4);
         }
         bamPalette = new int[256];
         Arrays.fill(bamPalette, 0xff000000);
         for (int i = 0; i < numEntries; i++) {
-          int col = bamBuffer.getInt(ofsPalette + 4*i);
+          int col = bamBuffer.getInt(ofsPalette + 4 * i);
           // handling alpha backwards compatibility with non-enhanced games
           if ((col & 0xff000000) == 0) {
             col |= 0xff000000;
@@ -245,15 +230,14 @@ public class BamV1Decoder extends BamDecoder
   }
 
   // Draws the absolute frame onto the canvas.
-  private void decodeFrame(BamControl control, int frameIdx, Image canvas)
-  {
+  private void decodeFrame(BamControl control, int frameIdx, Image canvas) {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
       if (control == null) {
         control = defaultControl;
       }
       int[] palette;
       if (control instanceof BamV1Control) {
-        palette = ((BamV1Control)control).getCurrentPalette();
+        palette = ((BamV1Control) control).getCurrentPalette();
       } else {
         palette = bamPalette;
       }
@@ -263,9 +247,9 @@ public class BamV1Decoder extends BamDecoder
       byte[] bufferB = null;
       int[] bufferI = null;
       if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        bufferB = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        bufferB = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
       } else {
-        bufferI = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        bufferI = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
       }
       int dstWidth = image.getWidth();
       int dstHeight = image.getHeight();
@@ -283,7 +267,7 @@ public class BamV1Decoder extends BamDecoder
         maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
         maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
         srcOfs = ofsData;
-        dstOfs = top*dstWidth + left;
+        dstOfs = top * dstWidth + left;
       } else {
         left = top = 0;
         maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
@@ -298,8 +282,12 @@ public class BamV1Decoder extends BamDecoder
               // writing remaining RLE compressed pixels
               count--;
               if (x < maxWidth) {
-                if (bufferB != null) bufferB[dstOfs] = pixel;
-                if (bufferI != null) bufferI[dstOfs] = color;
+                if (bufferB != null) {
+                  bufferB[dstOfs] = pixel;
+                }
+                if (bufferI != null) {
+                  bufferI[dstOfs] = color;
+                }
               }
             } else {
               pixel = bamBuffer.get(srcOfs++);
@@ -308,8 +296,12 @@ public class BamV1Decoder extends BamDecoder
                 count = bamBuffer.get(srcOfs++) & 0xff;
               }
               if (x < maxWidth) {
-                if (bufferB != null) bufferB[dstOfs] = pixel;
-                if (bufferI != null) bufferI[dstOfs] = color;
+                if (bufferB != null) {
+                  bufferB[dstOfs] = pixel;
+                }
+                if (bufferI != null) {
+                  bufferI[dstOfs] = color;
+                }
               }
             }
           }
@@ -317,15 +309,15 @@ public class BamV1Decoder extends BamDecoder
         }
       } catch (Exception e) {
         System.err.printf("Error [%s]: input (offset=%d, size=%d), output (offset=%d, size=%d)\n",
-                          e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs,
-                          bufferB != null ? bufferB.length : bufferI.length);
+            e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs,
+            bufferB != null ? bufferB.length : bufferI.length);
       }
       bufferB = null;
       bufferI = null;
 
       // rendering resulting image onto the canvas if needed
       if (image != canvas) {
-        Graphics2D g = (Graphics2D)canvas.getGraphics();
+        Graphics2D g = (Graphics2D) canvas.getGraphics();
         try {
           if (getComposite() != null) {
             g.setComposite(getComposite());
@@ -342,50 +334,45 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
-    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
-    hash = 31 * hash + ((bamBuffer == null) ? 0 : bamBuffer.hashCode());
-    hash = 31 * hash + ((bamPalette == null) ? 0 : bamPalette.hashCode());
-    hash = 31 * hash + rleIndex;
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Arrays.hashCode(bamPalette);
+    result = prime * result + Objects.hash(bamBuffer, listCycles, listFrames, rleIndex);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!(o instanceof BamV1Decoder)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    boolean retVal = super.equals(o);
-    if (retVal) {
-      BamV1Decoder other = (BamV1Decoder)o;
-      retVal &= (this.listFrames == null && other.listFrames == null) ||
-                (this.listFrames != null && this.listFrames.equals(other.listFrames));
-      retVal &= (this.listCycles == null && other.listCycles == null) ||
-                (this.listCycles != null && this.listCycles.equals(other.listCycles));
-      retVal &= (this.bamBuffer == null && other.bamBuffer == null) ||
-                (this.bamBuffer != null && this.bamBuffer.equals(other.bamBuffer));
-      retVal &= (this.bamPalette == null && other.bamPalette == null) ||
-                (this.bamPalette != null && this.bamPalette.equals(other.bamPalette));
-      retVal &= (this.rleIndex == other.rleIndex);
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-    return retVal;
+    BamV1Decoder other = (BamV1Decoder) obj;
+    return Objects.equals(bamBuffer, other.bamBuffer) && Arrays.equals(bamPalette, other.bamPalette)
+        && Objects.equals(listCycles, other.listCycles) && Objects.equals(listFrames, other.listFrames)
+        && rleIndex == other.rleIndex;
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /** Provides information for a single frame entry */
-  public class BamV1FrameEntry implements BamDecoder.FrameEntry
-  {
-    private int width, height, centerX, centerY, ofsData;
-    private int overrideCenterX, overrideCenterY;
+  public class BamV1FrameEntry implements BamDecoder.FrameEntry {
+    private int width;
+    private int height;
+    private int centerX;
+    private int centerY;
+    private int ofsData;
+    private int overrideCenterX;
+    private int overrideCenterY;
     private boolean compressed;
 
-    private BamV1FrameEntry(ByteBuffer buffer, int ofs)
-    {
+    private BamV1FrameEntry(ByteBuffer buffer, int ofs) {
       if (buffer != null && ofs + 12 <= buffer.limit()) {
         width = buffer.getShort(ofs + 0) & 0xffff;
         height = buffer.getShort(ofs + 2) & 0xffff;
@@ -400,42 +387,87 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public int getWidth() { return width; }
-    @Override
-    public int getHeight() { return height; }
-    @Override
-    public int getCenterX() { return overrideCenterX; }
-    @Override
-    public int getCenterY() { return overrideCenterY; }
+    public int getWidth() {
+      return width;
+    }
 
     @Override
-    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
-    @Override
-    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
-    @Override
-    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
-
-    public boolean isCompressed() { return compressed; }
+    public int getHeight() {
+      return height;
+    }
 
     @Override
-    public String toString()
-    {
-      return "[width=" + getWidth() + ", height=" + getHeight() +
-             ", centerX=" + getCenterX() + ", centerY=" + getCenterY() +
-             ", compressed=" + Boolean.toString(isCompressed()) + "]" ;
+    public int getCenterX() {
+      return overrideCenterX;
+    }
+
+    @Override
+    public int getCenterY() {
+      return overrideCenterY;
+    }
+
+    @Override
+    public void setCenterX(int x) {
+      overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x));
+    }
+
+    @Override
+    public void setCenterY(int y) {
+      overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y));
+    }
+
+    @Override
+    public void resetCenter() {
+      overrideCenterX = centerX;
+      overrideCenterY = centerY;
+    }
+
+    public boolean isCompressed() {
+      return compressed;
+    }
+
+    @Override
+    public String toString() {
+      return "[width=" + getWidth() + ", height=" + getHeight() + ", centerX=" + getCenterX() + ", centerY="
+          + getCenterY() + ", compressed=" + Boolean.toString(isCompressed()) + "]";
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result
+          + Objects.hash(centerX, centerY, compressed, height, ofsData, overrideCenterX, overrideCenterY, width);
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      BamV1FrameEntry other = (BamV1FrameEntry) obj;
+      return centerX == other.centerX && centerY == other.centerY && compressed == other.compressed
+          && height == other.height && ofsData == other.ofsData && overrideCenterX == other.overrideCenterX
+          && overrideCenterY == other.overrideCenterY && width == other.width;
     }
   }
 
-
   /** Provides access to cycle-specific functionality. */
-  public static class BamV1Control extends BamControl
-  {
-    private int[] currentPalette, externalPalette;
+  public static class BamV1Control extends BamControl {
+    private int[] currentPalette;
+    private int[] externalPalette;
     private boolean transparencyEnabled;
-    private int currentCycle, currentFrame;
+    private int currentCycle;
+    private int currentFrame;
 
-    protected BamV1Control(BamV1Decoder decoder)
-    {
+    protected BamV1Control(BamV1Decoder decoder) {
       super(decoder);
       init();
     }
@@ -443,16 +475,14 @@ public class BamV1Decoder extends BamDecoder
     /**
      * Returns whether the transparent palette entry is drawn or not.
      */
-    public boolean isTransparencyEnabled()
-    {
+    public boolean isTransparencyEnabled() {
       return transparencyEnabled;
     }
 
     /**
      * Specify whether to draw the transparent palette entry.
      */
-    public void setTransparencyEnabled(boolean enable)
-    {
+    public void setTransparencyEnabled(boolean enable) {
       if (enable != transparencyEnabled) {
         transparencyEnabled = enable;
         preparePalette(externalPalette);
@@ -460,21 +490,21 @@ public class BamV1Decoder extends BamDecoder
     }
 
     /** Returns the transparency index of the current palette. */
-    public int getTransparencyIndex()
-    {
+    public int getTransparencyIndex() {
       int idx = currentPalette.length - 1;
-      for (; idx > 0; idx--)
-        if ((currentPalette[idx] & 0xff000000) == 0)
+      for (; idx > 0; idx--) {
+        if ((currentPalette[idx] & 0xff000000) == 0) {
           break;
+        }
+      }
       return idx;
     }
 
     /** Returns whether the palette makes use of alpha transparency. */
-    public boolean isAlphaEnabled()
-    {
+    public boolean isAlphaEnabled() {
       if (Profile.isEnhancedEdition()) {
-        for (int i = 0; i < currentPalette.length; i++) {
-          int mask = currentPalette[i] & 0xff000000;
+        for (int element : currentPalette) {
+          int mask = element & 0xff000000;
           if (mask != 0 && mask != 0xff000000) {
             return true;
           }
@@ -485,20 +515,20 @@ public class BamV1Decoder extends BamDecoder
 
     /**
      * Returns the currently assigned external palette.
+     *
      * @return The currently assigned external palette, or {@code null} if not available.
      */
-    public int[] getExternalPalette()
-    {
+    public int[] getExternalPalette() {
       return externalPalette;
     }
 
     /**
-     * Applies the colors of the specified palette to the active BAM palette.
-     * <b>Note:</b> Must be called whenever any changes to the external palette have been done.
+     * Applies the colors of the specified palette to the active BAM palette. <b>Note:</b> Must be called whenever any
+     * changes to the external palette have been done.
+     *
      * @param palette An external palette. Specify {@code null} to use the default palette.
      */
-    public void setExternalPalette(int[] palette)
-    {
+    public void setExternalPalette(int[] palette) {
       if (palette != null) {
         externalPalette = new int[palette.length];
         for (int i = 0; i < palette.length; i++) {
@@ -512,35 +542,30 @@ public class BamV1Decoder extends BamDecoder
     }
 
     /** Returns the original and unmodified palette as defined in the BAM resource. */
-    public int[] getPalette()
-    {
+    public int[] getPalette() {
       return getDecoder().bamPalette;
     }
 
     /**
-     * Returns the currently used palette. This is either an external palette, the default palette,
-     * or a combination of both.
+     * Returns the currently used palette. This is either an external palette, the default palette, or a combination of
+     * both.
      */
-    public int[] getCurrentPalette()
-    {
+    public int[] getCurrentPalette() {
       return currentPalette;
     }
 
     @Override
-    public BamV1Decoder getDecoder()
-    {
-      return (BamV1Decoder)super.getDecoder();
+    public BamV1Decoder getDecoder() {
+      return (BamV1Decoder) super.getDecoder();
     }
 
     @Override
-    public int cycleCount()
-    {
+    public int cycleCount() {
       return getDecoder().listCycles.size();
     }
 
     @Override
-    public int cycleFrameCount()
-    {
+    public int cycleFrameCount() {
       if (currentCycle < getDecoder().listCycles.size()) {
         return getDecoder().listCycles.get(currentCycle).frames.length;
       } else {
@@ -549,8 +574,7 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleFrameCount(int cycleIdx)
-    {
+    public int cycleFrameCount(int cycleIdx) {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
         return getDecoder().listCycles.get(cycleIdx).frames.length;
       } else {
@@ -559,14 +583,12 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleGet()
-    {
+    public int cycleGet() {
       return currentCycle;
     }
 
     @Override
-    public boolean cycleSet(int cycleIdx)
-    {
+    public boolean cycleSet(int cycleIdx) {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
         if (currentCycle != cycleIdx) {
           currentCycle = cycleIdx;
@@ -581,8 +603,7 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public boolean cycleHasNextFrame()
-    {
+    public boolean cycleHasNextFrame() {
       if (currentCycle < getDecoder().listCycles.size()) {
         return (currentFrame < getDecoder().listCycles.get(currentCycle).frames.length - 1);
       } else {
@@ -591,8 +612,7 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public boolean cycleNextFrame()
-    {
+    public boolean cycleNextFrame() {
       if (cycleHasNextFrame()) {
         currentFrame++;
         return true;
@@ -602,50 +622,43 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public void cycleReset()
-    {
+    public void cycleReset() {
       currentFrame = 0;
     }
 
     @Override
-    public Image cycleGetFrame()
-    {
+    public Image cycleGetFrame() {
       int frameIdx = cycleGetFrameIndexAbsolute();
       return getDecoder().frameGet(this, frameIdx);
     }
 
     @Override
-    public void cycleGetFrame(Image canvas)
-    {
+    public void cycleGetFrame(Image canvas) {
       int frameIdx = cycleGetFrameIndexAbsolute();
       getDecoder().frameGet(this, frameIdx, canvas);
     }
 
     @Override
-    public Image cycleGetFrame(int frameIdx)
-    {
+    public Image cycleGetFrame(int frameIdx) {
       frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
       return getDecoder().frameGet(this, frameIdx);
     }
 
     @Override
-    public void cycleGetFrame(int frameIdx, Image canvas)
-    {
+    public void cycleGetFrame(int frameIdx, Image canvas) {
       frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
       getDecoder().frameGet(this, frameIdx, canvas);
     }
 
     @Override
-    public int cycleGetFrameIndex()
-    {
+    public int cycleGetFrameIndex() {
       return currentFrame;
     }
 
     @Override
-    public boolean cycleSetFrameIndex(int frameIdx)
-    {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).frames.length) {
+    public boolean cycleSetFrameIndex(int frameIdx) {
+      if (currentCycle < getDecoder().listCycles.size() && frameIdx >= 0
+          && frameIdx < getDecoder().listCycles.get(currentCycle).frames.length) {
         currentFrame = frameIdx;
         return true;
       } else {
@@ -654,31 +667,53 @@ public class BamV1Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute()
-    {
+    public int cycleGetFrameIndexAbsolute() {
       return cycleGetFrameIndexAbsolute(currentCycle, currentFrame);
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute(int frameIdx)
-    {
+    public int cycleGetFrameIndexAbsolute(int frameIdx) {
       return cycleGetFrameIndexAbsolute(currentCycle, frameIdx);
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
-    {
-      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(cycleIdx).frames.length) {
+    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx) {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && frameIdx >= 0
+          && frameIdx < getDecoder().listCycles.get(cycleIdx).frames.length) {
         return getDecoder().listCycles.get(cycleIdx).frames[frameIdx];
       } else {
         return -1;
       }
     }
 
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = super.hashCode();
+      result = prime * result + Arrays.hashCode(currentPalette);
+      result = prime * result + Arrays.hashCode(externalPalette);
+      result = prime * result + Objects.hash(currentCycle, currentFrame, transparencyEnabled);
+      return result;
+    }
 
-    private void init()
-    {
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!super.equals(obj)) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      BamV1Control other = (BamV1Control) obj;
+      return currentCycle == other.currentCycle && currentFrame == other.currentFrame
+          && Arrays.equals(currentPalette, other.currentPalette)
+          && Arrays.equals(externalPalette, other.externalPalette) && transparencyEnabled == other.transparencyEnabled;
+    }
+
+    private void init() {
       transparencyEnabled = true;
       currentPalette = null;
       externalPalette = null;
@@ -688,18 +723,17 @@ public class BamV1Decoder extends BamDecoder
       updateSharedBamSize();
     }
 
-
     // Prepares the palette to be used for decoding BAM frames
-    private void preparePalette(int[] externalPalette)
-    {
-      if (currentPalette == null)
+    private void preparePalette(int[] externalPalette) {
+      if (currentPalette == null) {
         currentPalette = new int[256];
+      }
 
       // some optimizations: don't prepare if the palette hasn't changed
       int idx = 0;
       List<Integer> transIndices = new ArrayList<>(); // multiple transparent palette indices are supported
       int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
-      boolean alphaUsed = false;  // determines whether alpha is actually used
+      boolean alphaUsed = false; // determines whether alpha is actually used
 
       if (externalPalette != null) {
         // filling palette entries from external palette, as much as possible
@@ -709,8 +743,9 @@ public class BamV1Decoder extends BamDecoder
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00)
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
             transIndices.add(idx);
+          }
         }
       }
 
@@ -722,8 +757,9 @@ public class BamV1Decoder extends BamDecoder
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00)
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
             transIndices.add(idx);
+          }
         }
       }
 
@@ -736,43 +772,65 @@ public class BamV1Decoder extends BamDecoder
 
       // applying transparent indices
       for (int i : transIndices) {
-        if (transparencyEnabled)
+        if (transparencyEnabled) {
           currentPalette[i] = 0;
-        else
+        } else {
           currentPalette[i] |= 0xff000000;
+        }
       }
     }
   }
 
-
   // Stores information for a single cycle
-  private class CycleEntry
-  {
-    private final int[] frames;    // list of frame indices used in this cycle
+  private class CycleEntry {
+    private final int[] frames; // list of frame indices used in this cycle
 
-    private int indexCount;        // number of frame indices in this cycle
-    private int lookupIndex;       // index into frame lookup table
+    private int indexCount; // number of frame indices in this cycle
+    private int lookupIndex; // index into frame lookup table
 
     /**
-     * @param buffer The BAM data buffer
+     * @param buffer    The BAM data buffer
      * @param ofsLookup Offset of frame lookup table
-     * @param idxCount Number of frame indices in this cycle
+     * @param idxCount  Number of frame indices in this cycle
      * @param idxLookup Index into frame lookup table of first frame in this cycle
      */
-    private CycleEntry(ByteBuffer buffer, int ofsLookup, int idxCount, int idxLookup)
-    {
-      if (buffer != null && idxCount >= 0 && idxLookup >= 0 &&
-          ofsLookup + 2*(idxLookup+idxCount) <= buffer.limit()) {
+    private CycleEntry(ByteBuffer buffer, int ofsLookup, int idxCount, int idxLookup) {
+      if (buffer != null && idxCount >= 0 && idxLookup >= 0
+          && ofsLookup + 2 * (idxLookup + idxCount) <= buffer.limit()) {
         indexCount = idxCount;
         lookupIndex = idxLookup;
         frames = new int[indexCount];
         for (int i = 0; i < indexCount; i++) {
-          frames[i] = buffer.getShort(ofsLookup + 2*(lookupIndex+i));
+          frames[i] = buffer.getShort(ofsLookup + 2 * (lookupIndex + i));
         }
       } else {
         frames = new int[0];
         indexCount = lookupIndex = 0;
       }
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + Arrays.hashCode(frames);
+      result = prime * result + Objects.hash(indexCount, lookupIndex);
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      CycleEntry other = (CycleEntry) obj;
+      return Arrays.equals(frames, other.frames) && indexCount == other.indexCount && lookupIndex == other.lookupIndex;
     }
   }
 }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -22,12 +22,11 @@ import org.infinity.resource.vertex.Vertex;
 /**
  * Handles specific layer type: ARE/Region
  */
-public class LayerObjectRegion extends LayerObject
-{
+public class LayerObjectRegion extends LayerObject {
   private static final Color[][] COLOR = {
-    {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800000, true), new Color(0xC0C00000, true)},
-    {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0804040, true), new Color(0xC0C06060, true)},
-    {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800040, true), new Color(0xC0C00060, true)},
+      { new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800000, true), new Color(0xC0C00000, true) },
+      { new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0804040, true), new Color(0xC0C06060, true) },
+      { new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800040, true), new Color(0xC0C00060, true) },
   };
 
   private final ITEPoint region;
@@ -36,24 +35,26 @@ public class LayerObjectRegion extends LayerObject
   private final ShapedLayerItem item;
   private Point[] shapeCoords;
 
-  public LayerObjectRegion(AreResource parent, ITEPoint region)
-  {
+  public LayerObjectRegion(AreResource parent, ITEPoint region) {
     super("Region", ITEPoint.class, parent);
     this.region = region;
     String msg = null;
     int type = 0;
     try {
-      type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
-      if (type < 0) type = 0; else if (type >= ITEPoint.s_type.length) type = ITEPoint.s_type.length - 1;
+      type = ((IsNumeric) region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
+      if (type < 0) {
+        type = 0;
+      } else if (type >= ITEPoint.TYPE_ARRAY.length) {
+        type = ITEPoint.TYPE_ARRAY.length - 1;
+      }
 
-      final IsTextual info = (IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_INFO_POINT_TEXT);
-      msg = String.format("%s (%s) %s\n%s",
-                          region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
-                          ITEPoint.s_type[type], getAttributes(),
-                          // For "1 - Info point" show description
-                          type == 1 && info != null ? info.getText() : "");
-      final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
-      final int vOfs = ((IsNumeric)parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      final IsTextual info = (IsTextual) region.getAttribute(ITEPoint.ARE_TRIGGER_INFO_POINT_TEXT);
+      msg = String.format("%s (%s) %s\n%s", region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
+          ITEPoint.TYPE_ARRAY[type], getAttributes(),
+          // For "1 - Info point" show description
+          type == 1 && info != null ? info.getText() : "");
+      final int vNum = ((IsNumeric) region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
+      final int vOfs = ((IsNumeric) parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
     } catch (Exception e) {
       e.printStackTrace();
@@ -62,7 +63,8 @@ public class LayerObjectRegion extends LayerObject
     final Rectangle bounds = normalizePolygon(poly);
 
     int colorType = Settings.UseColorShades ? type : 0;
-    location.x = bounds.x; location.y = bounds.y;
+    location.x = bounds.x;
+    location.y = bounds.y;
     item = new ShapedLayerItem(region, msg, poly);
     item.setName(getCategory());
     item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
@@ -75,59 +77,56 @@ public class LayerObjectRegion extends LayerObject
   }
 
   @Override
-  public Viewable getViewable()
-  {
+  public Viewable getViewable() {
     return region;
   }
 
   @Override
-  public AbstractLayerItem getLayerItem(int type)
-  {
+  public AbstractLayerItem getLayerItem(int type) {
     return (type == 0) ? item : null;
   }
 
   @Override
-  public AbstractLayerItem[] getLayerItems()
-  {
-    return new AbstractLayerItem[]{item};
+  public AbstractLayerItem[] getLayerItems() {
+    return new AbstractLayerItem[] { item };
   }
 
   @Override
-  public void update(double zoomFactor)
-  {
+  public void update(double zoomFactor) {
     if (item != null) {
-      item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                           (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+      item.setItemLocation((int) (location.x * zoomFactor + (zoomFactor / 2.0)),
+          (int) (location.y * zoomFactor + (zoomFactor / 2.0)));
       Polygon poly = createPolygon(shapeCoords, zoomFactor);
       normalizePolygon(poly);
       item.setShape(poly);
     }
   }
 
-  private String getAttributes()
-  {
+  private String getAttributes() {
     final StringBuilder sb = new StringBuilder();
     sb.append('[');
 
-    addTrappedDesc(sb, region,
-                   ITEPoint.ARE_TRIGGER_TRAPPED,
-                   ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY,
-                   ITEPoint.ARE_TRIGGER_SCRIPT);
+    addTrappedDesc(sb, region, ITEPoint.ARE_TRIGGER_TRAPPED, ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY,
+        ITEPoint.ARE_TRIGGER_SCRIPT);
 
-    final ResourceRef dest = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
+    final ResourceRef dest = (ResourceRef) region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
     if (dest != null && !dest.isEmpty()) {
-      if (sb.length() > 1) sb.append(", ");
+      if (sb.length() > 1) {
+        sb.append(", ");
+      }
 
-      final AreResource self = (AreResource)getParentStructure();
+      final AreResource self = (AreResource) getParentStructure();
       final boolean isSelf = dest.getResourceName().equalsIgnoreCase(self.getName());
       sb.append("Destination: ").append(isSelf ? "(this area)" : dest);
-      String entrance = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
+      String entrance = ((IsTextual) region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
       if (!entrance.isEmpty() && !entrance.equalsIgnoreCase("NONE")) {
         sb.append('>').append(entrance);
       }
     }
 
-    if (sb.length() == 1) sb.append("No flags");
+    if (sb.length() == 1) {
+      sb.append("No flags");
+    }
     sb.append(']');
     return sb.toString();
   }

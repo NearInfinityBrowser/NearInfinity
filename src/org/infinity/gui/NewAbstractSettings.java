@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -19,16 +19,14 @@ import javax.swing.KeyStroke;
 import org.infinity.icon.Icons;
 
 // Common base class for settings dialogs, used to customize the creation of new resources
-public abstract class NewAbstractSettings extends JDialog implements ActionListener
-{
-  private static final KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+public abstract class NewAbstractSettings extends JDialog implements ActionListener {
+  private static final KeyStroke ESC_KEY = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
   private boolean accepted;
   private JButton okButton;
   private JButton cancelButton;
 
-  protected NewAbstractSettings(Window parent, String title)
-  {
+  protected NewAbstractSettings(Window parent, String title) {
     super(parent, title, Dialog.ModalityType.APPLICATION_MODAL);
     initDialog(parent);
   }
@@ -37,37 +35,31 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
   public abstract Object getConfig();
 
   // incquire the return state of the dialog
-  public boolean isAccepted()
-  {
+  public boolean isAccepted() {
     return accepted;
   }
 
   // override to implement special actions performed when clicking the "Create" button
-  protected void accept()
-  {
+  protected void accept() {
     accepted = true;
     setVisible(false);
   }
 
   // override to implement special actions performed when clicking the "Cancel" button
-  protected void reject()
-  {
+  protected void reject() {
     accepted = false;
     setVisible(false);
   }
 
-  protected JButton acceptButton()
-  {
+  protected JButton acceptButton() {
     return okButton;
   }
 
-  protected JButton rejectButton()
-  {
+  protected JButton rejectButton() {
     return cancelButton;
   }
 
-  private void initDialog(Window parent)
-  {
+  private void initDialog(Window parent) {
     accepted = false;
 
     okButton = new JButton("Create", Icons.ICON_NEW_16.getIcon());
@@ -79,36 +71,34 @@ public abstract class NewAbstractSettings extends JDialog implements ActionListe
 
     getRootPane().getActionMap().put("NIclose", new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent event)
-      {
+      public void actionPerformed(ActionEvent event) {
         reject();
       }
     });
   }
 
-  protected boolean isCancelOnEscape()
-  {
-    return (getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(escKey) != null);
+  protected boolean isCancelOnEscape() {
+    return (getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(ESC_KEY) != null);
   }
 
-  protected void setCancelOnEscape(boolean bEnable)
-  {
-    if (bEnable == true && getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(escKey) == null)
-      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "NIclose");
-    else if (bEnable == false && getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(escKey) != null)
-      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(escKey);
+  protected void setCancelOnEscape(boolean bEnable) {
+    if (bEnable && getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(ESC_KEY) == null) {
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ESC_KEY, "NIclose");
+    } else if (!bEnable && getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(ESC_KEY) != null) {
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(ESC_KEY);
+    }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == acceptButton())
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == acceptButton()) {
       accept();
-    else if (event.getSource() == rejectButton())
+    } else if (event.getSource() == rejectButton()) {
       reject();
+    }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 }

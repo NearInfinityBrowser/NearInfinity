@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 202 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -31,25 +31,22 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Field that represents a string enumeration of some values.
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@link String}</li>
  * <li>Value meaning: value from list of enumarated values</li>
  * </ul>
  */
-public final class TextBitmap extends Datatype implements Editable, IsTextual
-{
+public final class TextBitmap extends Datatype implements Editable, IsTextual {
   private final String[] ids;
   private final String[] names;
+
   private JTable table;
   private String text;
 
-  public TextBitmap(ByteBuffer buffer, int offset, int length, String name, Map<String, String> items)
-  {
+  public TextBitmap(ByteBuffer buffer, int offset, int length, String name, Map<String, String> items) {
     super(offset, length, name);
     read(buffer, offset);
     if (items != null) {
@@ -67,11 +64,10 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     }
   }
 
-// --------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     if (table == null) {
       table = new JTable(new BitmapTableModel());
       table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -110,14 +106,12 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
     table.scrollRectToVisible(table.getCellRect(table.getSelectedRow(), 0, false));
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     int index = table.getSelectedRow();
     if (index == -1) {
       return false;
@@ -133,23 +127,21 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     return true;
   }
 
-// --------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     StreamUtils.writeString(os, text, getSize());
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-//--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     text = StreamUtils.readString(buffer, getSize(), Misc.CHARSET_ASCII);
 
@@ -165,52 +157,53 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     return offset + getSize();
   }
 
-//--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
   @Override
-  public String toString()
-  {
-    for (int i = 0; i < ids.length; i++)
+  public String toString() {
+    for (int i = 0; i < ids.length; i++) {
       if (ids[i].equalsIgnoreCase(text)) {
         return text + " - " + names[i];
       }
+    }
     return text;
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((text == null) ? 0 : text.hashCode());
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(text);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof TextBitmap)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    TextBitmap other = (TextBitmap)o;
-    boolean retVal = (text == null && other.text == null) ||
-                     (text != null && text.equals(other.text));
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TextBitmap other = (TextBitmap) obj;
+    return Objects.equals(text, other.text);
   }
 
-//--------------------- Begin Interface IsTextual ---------------------
+  // --------------------- Begin Interface IsTextual ---------------------
 
   /** Returns the unprocessed textual symbol of fixed number of characters. */
   @Override
-  public String getText()
-  {
+  public String getText() {
     return text;
   }
 
-//--------------------- End Interface IsTextual ---------------------
+  // --------------------- End Interface IsTextual ---------------------
 
   /** Returns the textual description of the symbol. */
-  public String getDescription()
-  {
+  public String getDescription() {
     for (int i = 0; i < ids.length; i++) {
       if (text.equals(ids[i])) {
         if (i < names.length) {
@@ -223,8 +216,7 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     return "";
   }
 
-  private void setValue(String newValue)
-  {
+  private void setValue(String newValue) {
     final String oldValue = text;
     text = newValue;
     if (!Objects.equals(oldValue, newValue)) {
@@ -232,31 +224,27 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private final class BitmapTableModel extends AbstractTableModel
-  {
-    private BitmapTableModel()
-    {
+  private final class BitmapTableModel extends AbstractTableModel {
+    private BitmapTableModel() {
     }
 
     @Override
-    public int getRowCount()
-    {
+    public int getRowCount() {
       return ids.length;
     }
 
     @Override
-    public int getColumnCount()
-    {
+    public int getColumnCount() {
       return 2;
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex)
-    {
-      if (columnIndex == 0)
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      if (columnIndex == 0) {
         return ids[rowIndex];
+      }
       return names[rowIndex];
     }
   }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
@@ -14,10 +14,9 @@ import org.infinity.resource.video.MveDecoder.MveSegment;
 /**
  * Decodes a single frame of audio data. (Internally used by MveDecoder)
  */
-public class MveAudioDecoder
-{
+public class MveAudioDecoder {
   // 256 delta entries for compressed audio
-  private static short[] DELTA = {
+  private static final short[] DELTA = {
       0,      1,      2,      3,      4,      5,      6,      7,      8,      9,     10,     11,     12,     13,     14,     15,
      16,     17,     18,     19,     20,     21,     22,     23,     24,     25,     26,     27,     28,     29,     30,     31,
      32,     33,     34,     35,     36,     37,     38,     39,     40,     41,     42,     43,     47,     51,     56,     61,
@@ -39,15 +38,15 @@ public class MveAudioDecoder
   // the currently used MVE info structure
   private final MveInfo info;
 
-  private boolean isAudioInit;    // set when audio initialization occured in the current chunk
+  private boolean isAudioInit; // set when audio initialization occured in the current chunk
 
   /**
    * Creates a new MveAudioDecoder object. Constructor is not publicly accessible.
+   *
    * @param info Info structure containing all MVE related data.
    * @return An MveAudioDecoder object on success, {@code null} otherwise.
    */
-  public static MveAudioDecoder createDecoder(MveInfo info)
-  {
+  public static MveAudioDecoder createDecoder(MveInfo info) {
     if (info != null) {
       return new MveAudioDecoder(info);
     } else {
@@ -57,36 +56,37 @@ public class MveAudioDecoder
 
   /**
    * Processes audio specific segments.
+   *
    * @param segment The current segment to process.
-   * @return {@code true} if the segment has been processed successfully,
-   *         {@code false} if the segment did not fit into the audio category.
+   * @return {@code true} if the segment has been processed successfully, {@code false} if the segment did not fit into
+   *         the audio category.
    * @throws Exception On error.
    */
-  public boolean processAudio(MveSegment segment) throws Exception
-  {
-    if (info == null || segment == null)
+  public boolean processAudio(MveSegment segment) throws Exception {
+    if (info == null || segment == null) {
       throw new NullPointerException();
+    }
 
     switch (segment.getOpcode()) {
-      case MveDecoder.MVE_OC_END_OF_STREAM:     // do final clean up
+      case MveDecoder.MVE_OC_END_OF_STREAM: // do final clean up
         shutDown();
         break;
-      case MveDecoder.MVE_OC_END_OF_CHUNK:      // do some temporary clean up
+      case MveDecoder.MVE_OC_END_OF_CHUNK: // do some temporary clean up
         cleanUp();
         break;
-      case MveDecoder.MVE_OC_AUDIO_BUFFERS:     // initializes audio properties
+      case MveDecoder.MVE_OC_AUDIO_BUFFERS: // initializes audio properties
         processInitAudio(segment);
         break;
-      case MveDecoder.MVE_OC_PLAY_AUDIO:        // ignored
+      case MveDecoder.MVE_OC_PLAY_AUDIO: // ignored
         break;
-      case MveDecoder.MVE_OC_AUDIO_DATA:        // decodes a frame worth of audio data
+      case MveDecoder.MVE_OC_AUDIO_DATA: // decodes a frame worth of audio data
         if (info.audioCompressed) {
           processCompressedAudio(segment);
         } else {
           processUncompressedAudio(segment);
         }
         break;
-      case MveDecoder.MVE_OC_AUDIO_SILENCE:     // generates a frame worth of silence
+      case MveDecoder.MVE_OC_AUDIO_SILENCE: // generates a frame worth of silence
         processSilence(segment);
         break;
       default:
@@ -98,72 +98,68 @@ public class MveAudioDecoder
   /**
    * Properly releases temporary resources.
    */
-  public void close()
-  {
+  public void close() {
     shutDown();
   }
 
-  private MveAudioDecoder(MveInfo info)
-  {
-    if (info == null)
+  private MveAudioDecoder(MveInfo info) {
+    if (info == null) {
       throw new NullPointerException();
+    }
 
     this.info = info;
   }
 
   // cleans up temporary data
-  private void cleanUp()
-  {
+  private void cleanUp() {
     info.audioInitialized = isAudioInit;
     isAudioInit = false;
   }
 
   // cleans up all MVE specific
-  private void shutDown()
-  {
+  private void shutDown() {
     // nothing to do (yet)
   }
 
   // initializes audio properties
-  private void processInitAudio(MveSegment segment) throws Exception
-  {
+  private void processInitAudio(MveSegment segment) throws Exception {
     isAudioInit = true;
     if (segment != null && segment.getOpcode() == MveDecoder.MVE_OC_AUDIO_BUFFERS) {
       int flags, channels, bitsPerSample, sampleRate;
       switch (segment.getVersion()) {
         case 0:
-          segment.getBits(16);    // bogus data
+          segment.getBits(16); // bogus data
           flags = segment.getBits(16);
           channels = ((flags & MveDecoder.MVE_AUDIO_STEREO) != 0) ? 2 : 1;
           bitsPerSample = ((flags & MveDecoder.MVE_AUDIO_16BIT) != 0) ? 16 : 8;
           sampleRate = segment.getBits(16);
           info.audioCompressed = false;
-          segment.getBits(16);    // buffer length (not needed)
+          segment.getBits(16); // buffer length (not needed)
           break;
         case 1:
-          segment.getBits(16);    // bogus data
+          segment.getBits(16); // bogus data
           flags = segment.getBits(16);
           channels = ((flags & MveDecoder.MVE_AUDIO_STEREO) != 0) ? 2 : 1;
           bitsPerSample = ((flags & MveDecoder.MVE_AUDIO_16BIT) != 0) ? 16 : 8;
           info.audioCompressed = ((flags & MveDecoder.MVE_AUDIO_COMPRESSED) != 0);
           sampleRate = segment.getBits(16);
-          segment.getBits(32);    // buffer length (not needed)
+          segment.getBits(32); // buffer length (not needed)
           break;
         default:
           throw new Exception("Unsupported version: " + segment.getVersion());
       }
-      info.audioFormat = new AudioFormat((float)sampleRate, bitsPerSample, channels, (bitsPerSample != 8), false);
+      info.audioFormat = new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample != 8), false);
     }
   }
 
   // writes an audio frame worth of silent data
-  private void processSilence(MveSegment segment) throws Exception
-  {
-    int index = segment.getBits(16);    // sequential index of the audio frame
-    int mask = segment.getBits(16);     // channel mask
-    int len = segment.getBits(16);      // total size of the uncompressed audio block in bytes
-    if (len < 0)
+  private void processSilence(MveSegment segment) throws Exception {
+    int index = segment.getBits(16); // sequential index of the audio frame
+    int mask = segment.getBits(16); // channel mask
+    int len = segment.getBits(16); // total size of the uncompressed audio block in bytes
+    if (len < 0) {
       len = 0;
+    }
     updateTimer(len);
 
     byte[] block = null;
@@ -174,7 +170,7 @@ public class MveAudioDecoder
         if (queue != null) {
           if (block == null) {
             block = new byte[len];
-            Arrays.fill(block, (byte)0);
+            Arrays.fill(block, (byte) 0);
           }
           queue.addAudioBlock(index, block);
         }
@@ -183,13 +179,13 @@ public class MveAudioDecoder
   }
 
   // writes an audio frame worth of uncompressed audio data
-  private void processUncompressedAudio(MveSegment segment) throws Exception
-  {
-    int index = segment.getBits(16);    // sequential index of the audio frame
-    int mask = segment.getBits(16);     // channel mask
-    int len = segment.getBits(16);      // total size of the uncompressed audio block in bytes
-    if (len < 0)
+  private void processUncompressedAudio(MveSegment segment) throws Exception {
+    int index = segment.getBits(16); // sequential index of the audio frame
+    int mask = segment.getBits(16); // channel mask
+    int len = segment.getBits(16); // total size of the uncompressed audio block in bytes
+    if (len < 0) {
       len = 0;
+    }
     updateTimer(len);
 
     byte[] block = null;
@@ -209,16 +205,17 @@ public class MveAudioDecoder
   }
 
   // decodes and writes an audio frame worth of compressed audio data
-  private void processCompressedAudio(MveSegment segment) throws Exception
-  {
-    if (info.audioFormat.getSampleSizeInBits() != 16)
+  private void processCompressedAudio(MveSegment segment) throws Exception {
+    if (info.audioFormat.getSampleSizeInBits() != 16) {
       throw new Exception("Unsupported bits per samples: " + info.audioFormat.getSampleSizeInBits());
+    }
 
-    int index = segment.getBits(16);    // sequential index of the audio frame
-    int mask = segment.getBits(16);     // channel mask
-    int len = segment.getBits(16);      // total size of the uncompressed audio block in bytes
-    if (len < 0)
+    int index = segment.getBits(16); // sequential index of the audio frame
+    int mask = segment.getBits(16); // channel mask
+    int len = segment.getBits(16); // total size of the uncompressed audio block in bytes
+    if (len < 0) {
       len = 0;
+    }
     updateTimer(len);
 
     short[] predictor = null;
@@ -236,17 +233,17 @@ public class MveAudioDecoder
 
             // initializing start value
             for (int j = 0; j < info.audioFormat.getChannels(); j++) {
-              predictor[j] = (short)segment.getBits(16);
-              block[outOfs++] = (byte)(predictor[j] & 0xff);
-              block[outOfs++] = (byte)(predictor[j] >>> 8);
+              predictor[j] = (short) segment.getBits(16);
+              block[outOfs++] = (byte) (predictor[j] & 0xff);
+              block[outOfs++] = (byte) (predictor[j] >>> 8);
             }
 
             // decoding deltas
             int channel = 0;
             while (outOfs < len) {
               predictor[channel] += DELTA[segment.getBits(8)];
-              block[outOfs++] = (byte)(predictor[channel] & 0xff);
-              block[outOfs++] = (byte)(predictor[channel] >>> 8);
+              block[outOfs++] = (byte) (predictor[channel] & 0xff);
+              block[outOfs++] = (byte) (predictor[channel] >>> 8);
               channel = (channel + 1) & channelMask;
             }
           }
@@ -256,12 +253,10 @@ public class MveAudioDecoder
     }
   }
 
-  private void updateTimer(int frameSize)
-  {
+  private void updateTimer(int frameSize) {
     if (!info.isFrameDelayStable) {
-      info.frameDelay = (int)((1000000L * frameSize) / ((long)info.audioFormat.getSampleRate() *
-                                                       info.audioFormat.getChannels() *
-                                                       info.audioFormat.getSampleSizeInBits() / 8L));
+      info.frameDelay = (int) ((1000000L * frameSize) / ((long) info.audioFormat.getSampleRate()
+          * info.audioFormat.getChannels() * info.audioFormat.getSampleSizeInBits() / 8L));
     }
   }
 }

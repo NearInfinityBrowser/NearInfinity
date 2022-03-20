@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -28,8 +28,7 @@ import org.infinity.util.io.FileManager;
 /**
  * Provides functions for checking, downloading and updating new versions of Near Infinity.
  */
-public class Updater
-{
+public class Updater {
   // Auto-check interval constants
   static final int UPDATE_INTERVAL_SESSION    = 0;
   static final int UPDATE_INTERVAL_DAILY      = 1;
@@ -41,9 +40,8 @@ public class Updater
 
   // A hardcoded list of default update servers that will be used if no update servers have been specified.
   private static final String[] DEFAULT_SERVERS = {
-    "https://nearinfinitybrowser.github.io/NearInfinity/update/update.xml",
-    "https://argent77.github.io/NearInfinity/update/update.xml"
-  };
+      "https://nearinfinitybrowser.github.io/NearInfinity/update/update.xml",
+      "https://argent77.github.io/NearInfinity/update/update.xml" };
 
   // Number of supported update servers
   private static final int PREFS_SERVER_COUNT           = 4;
@@ -89,26 +87,27 @@ public class Updater
   private final List<String> serverList = new ArrayList<>();
 
   private Preferences prefs;
-  private String hash, version, timestamp;
+  private String hash;
+  private String version;
+  private String timestamp;
   private Calendar autoCheckDate;
   private Proxy proxy;
   private int autoCheckInterval;
-  private boolean stableOnly, autoCheckEnabled, proxyEnabled;
+  private boolean stableOnly;
+  private boolean autoCheckEnabled;
+  private boolean proxyEnabled;
 
   /** Returns a list of predefined server URLs. */
-  public static String[] getDefaultServerList()
-  {
+  public static String[] getDefaultServerList() {
     return DEFAULT_SERVERS;
   }
 
   /** Returns the maximum supported number of updater servers. */
-  public static int getMaxServerCount()
-  {
+  public static int getMaxServerCount() {
     return PREFS_SERVER_COUNT;
   }
 
-  public static Updater getInstance()
-  {
+  public static Updater getInstance() {
     if (instance == null) {
       instance = new Updater();
     }
@@ -117,20 +116,20 @@ public class Updater
 
   /**
    * Returns whether the specified release can be considered a new release.
-   * @param release The release to check.
+   *
+   * @param release  The release to check.
    * @param onlyOnce If {@code true}, each new release will be checked only once.
    * @return {@code true} if the specified release is considered newer, {@code false} otherwise.
    */
-  public static boolean isNewRelease(UpdateInfo.Release release, boolean onlyOnce)
-  {
+  public static boolean isNewRelease(UpdateInfo.Release release, boolean onlyOnce) {
     boolean isNewer = false;
     if (release != null && release.isValid()) {
       String curHash = null;
       String curVersion = null;
       Calendar curCal = null;
 
-      if (onlyOnce && !getInstance().getCurrentHash().isEmpty() &&
-          !(getInstance().getCurrentTimeStamp().isEmpty() || getInstance().getCurrentVersion().isEmpty())) {
+      if (onlyOnce && !getInstance().getCurrentHash().isEmpty()
+          && !(getInstance().getCurrentTimeStamp().isEmpty() || getInstance().getCurrentVersion().isEmpty())) {
         curHash = getInstance().getCurrentHash();
         curVersion = getInstance().getCurrentVersion();
         curCal = Utils.toCalendar(getInstance().getCurrentTimeStamp());
@@ -161,12 +160,11 @@ public class Updater
   }
 
   /** Returns the modification time of the current JAR's MANIFEST.MF. */
-  static Calendar getJarFileDate()
-  {
+  static Calendar getJarFileDate() {
     String jarPath = Utils.getJarFileName(NearInfinity.class);
     if (jarPath != null && !jarPath.isEmpty()) {
       try (JarFile jf = new JarFile(jarPath)) {
-      ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
+        ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
         if (manifest != null) {
           Calendar cal = Calendar.getInstance();
           if (manifest.getTime() >= 0L) {
@@ -183,10 +181,10 @@ public class Updater
 
   /**
    * Calculates the checksum of the current JAR file using the specified hash algorithm.
+   *
    * @return The MD5 checksum of the current JAR file or empty string on error.
    */
-  static String getJarFileHash()
-  {
+  static String getJarFileHash() {
     String path = Utils.getJarFileName(NearInfinity.class);
     if (path != null && !path.isEmpty()) {
       Path jarPath = FileManager.resolve(path);
@@ -201,12 +199,10 @@ public class Updater
   }
 
   /**
-   * Checks whether server1 and server2 are the same.
-   * Servers are considered the same if one server is part of or equal to the other.
-   * Empty server strings always return true.
+   * Checks whether server1 and server2 are the same. Servers are considered the same if one server is part of or equal
+   * to the other. Empty server strings always return true.
    */
-  static boolean isSameServer(String server1, String server2)
-  {
+  static boolean isSameServer(String server1, String server2) {
     server1 = (server1 != null) ? server1.toLowerCase(Locale.ENGLISH) : "";
     server2 = (server2 != null) ? server2.toLowerCase(Locale.ENGLISH) : "";
     if (server1.isEmpty() || server2.isEmpty()) {
@@ -216,8 +212,7 @@ public class Updater
     }
   }
 
-  private Updater()
-  {
+  private Updater() {
     try {
       prefs = Preferences.userNodeForPackage(getClass());
     } catch (SecurityException se) {
@@ -229,25 +224,24 @@ public class Updater
   }
 
   /** Provides access to the server list. */
-  public List<String> getServerList()
-  {
+  public List<String> getServerList() {
     return serverList;
   }
 
   /**
-   * Adds a new update server link to the server list. Optionally checks online if the link points
-   * to a valid update.xml. Does nothing if the server URL already exists.
-   * @param link The update server URL.
-   * @param validate Only checks link format if {@code false}. Additionally checks if
-   *                 link points to a valid update.xml if {@code true}.
+   * Adds a new update server link to the server list. Optionally checks online if the link points to a valid
+   * update.xml. Does nothing if the server URL already exists.
+   *
+   * @param link     The update server URL.
+   * @param validate Only checks link format if {@code false}. Additionally checks if link points to a valid update.xml
+   *                 if {@code true}.
    * @throws IOException
    * @throws MalformedURLException
    */
-  public void addServer(String link, boolean validate) throws MalformedURLException, IOException
-  {
+  public void addServer(String link, boolean validate) throws MalformedURLException, IOException {
     if (link != null && !link.isEmpty() && serverList.size() < getMaxServerCount()) {
       if (Utils.isUrlValid(link)) {
-        boolean isValid = (validate == false);
+        boolean isValid = !validate;
         if (!isValid) {
           // check availability of update.xml
           isValid = (getValidatedUpdateUrl(link) != null);
@@ -269,52 +263,48 @@ public class Updater
   }
 
   /** Returns whether to look for stable releases only. */
-  public boolean isStableOnly()
-  {
+  public boolean isStableOnly() {
     return stableOnly;
   }
 
   /** Returns whether to consider only stable releases when checking for updates. */
-  public void setStableOnly(boolean set)
-  {
+  public void setStableOnly(boolean set) {
     stableOnly = set;
   }
 
   /** Returns whether to automatically check for updates. */
-  public boolean isAutoUpdateCheckEnabled()
-  {
+  public boolean isAutoUpdateCheckEnabled() {
     return autoCheckEnabled;
   }
 
   /** Updates whether to automatically check for updates. */
-  public void setAutoUpdateCheckEnabled(boolean set)
-  {
+  public void setAutoUpdateCheckEnabled(boolean set) {
     autoCheckEnabled = set;
   }
 
   /** Returns the current check interval value (as specified by the UPDATE_INTERVAL_xxx constants). */
-  public int getAutoUpdateCheckInterval()
-  {
+  public int getAutoUpdateCheckInterval() {
     return autoCheckInterval;
   }
 
   /** Updates the check interval value (as specified by the UPDATE_INTERVAL_xxx constants). */
-  public void setAutoUpdateCheckInterval(int value)
-  {
-    if (value < 0) value = 0;
-    if (value > UPDATE_INTERVAL_PER_MONTH) value = UPDATE_INTERVAL_PER_MONTH;
+  public void setAutoUpdateCheckInterval(int value) {
+    if (value < 0) {
+      value = 0;
+    }
+    if (value > UPDATE_INTERVAL_PER_MONTH) {
+      value = UPDATE_INTERVAL_PER_MONTH;
+    }
     autoCheckInterval = value;
   }
 
   /** Returns the last update check date. */
-  public Calendar getAutoUpdateCheckDate()
-  {
+  public Calendar getAutoUpdateCheckDate() {
     return autoCheckDate;
   }
 
   /** Updates the last update check date. Specifying {@code null} will add the current date. */
-  public void setAutoUpdateCheckDate(Calendar cal)
-  {
+  public void setAutoUpdateCheckDate(Calendar cal) {
     if (cal != null) {
       autoCheckDate = cal;
     } else {
@@ -323,33 +313,27 @@ public class Updater
   }
 
   /** Returns true if the last auto update check is older than the currently defined update interval. */
-  public boolean hasAutoUpdateCheckDateExpired()
-  {
+  public boolean hasAutoUpdateCheckDateExpired() {
     return hasAutoUpdateCheckDateExpired(getAutoUpdateCheckInterval());
   }
 
   /** Returns true if the last auto update check is older than specified by the UPDATE_INTERVAL_xxx constant. */
-  public boolean hasAutoUpdateCheckDateExpired(int value)
-  {
+  public boolean hasAutoUpdateCheckDateExpired(int value) {
     switch (value) {
-      case UPDATE_INTERVAL_SESSION:
-      {
+      case UPDATE_INTERVAL_SESSION: {
         return true;
       }
-      case UPDATE_INTERVAL_DAILY:
-      {
+      case UPDATE_INTERVAL_DAILY: {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, -1);
         return (getAutoUpdateCheckDate().compareTo(cal) < 0);
       }
-      case UPDATE_INTERVAL_PER_WEEK:
-      {
+      case UPDATE_INTERVAL_PER_WEEK: {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.WEEK_OF_MONTH, -1);
         return (getAutoUpdateCheckDate().compareTo(cal) < 0);
       }
-      case UPDATE_INTERVAL_PER_MONTH:
-      {
+      case UPDATE_INTERVAL_PER_MONTH: {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONDAY, -1);
         return (getAutoUpdateCheckDate().compareTo(cal) < 0);
@@ -359,32 +343,29 @@ public class Updater
   }
 
   /** Returns whether to use a proxy for accessing remote servers. */
-  public boolean isProxyEnabled()
-  {
+  public boolean isProxyEnabled() {
     return proxyEnabled;
   }
 
-  public void setProxyEnabled(boolean set)
-  {
+  public void setProxyEnabled(boolean set) {
     proxyEnabled = set;
   }
 
   /**
-   * Returns the current Proxy settings if available and enabled.
-   * More specifically, calls {@link #getProxy(boolean)} with force = {@code false}.
+   * Returns the current Proxy settings if available and enabled. More specifically, calls {@link #getProxy(boolean)}
+   * with force = {@code false}.
    */
-  public Proxy getProxy()
-  {
+  public Proxy getProxy() {
     return getProxy(false);
   }
 
   /**
    * Returns the current Proxy settings if available and enabled.
+   *
    * @param force Force to return proxy information even if it has been disabled.
    * @return A proxy object or {@code null} depending on availability.
    */
-  public Proxy getProxy(boolean force)
-  {
+  public Proxy getProxy(boolean force) {
     if (proxyEnabled || force) {
       return proxy;
     } else {
@@ -393,13 +374,13 @@ public class Updater
   }
 
   /**
-   * Sets up a new HTTP proxy. Specifying {@code null} or 0 for one or both parameters will
-   * remove the current proxy settings.
+   * Sets up a new HTTP proxy. Specifying {@code null} or 0 for one or both parameters will remove the current proxy
+   * settings.
+   *
    * @param hostName The host name of the proxy address.
-   * @param port The port of the proxy address.
+   * @param port     The port of the proxy address.
    */
-  public void setProxy(String hostName, int port)
-  {
+  public void setProxy(String hostName, int port) {
     if (hostName != null && !hostName.isEmpty() && port >= 0 && port < 65536) {
       proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(hostName, port));
     } else {
@@ -408,8 +389,7 @@ public class Updater
   }
 
   /** Updates hash and timestamp from given Release info object. */
-  public void updateReleaseInfo(UpdateInfo.Release release)
-  {
+  public void updateReleaseInfo(UpdateInfo.Release release) {
     if (release != null && release.isValid()) {
       setCurrentHash(release.getHash());
       setCurrentTimeStamp(release.getTimeStampString());
@@ -417,14 +397,12 @@ public class Updater
   }
 
   /** Returns the cached hash string from the latest update check. */
-  public String getCurrentHash()
-  {
+  public String getCurrentHash() {
     return hash;
   }
 
   /** Updates the cached hash string. */
-  public void setCurrentHash(String hash)
-  {
+  public void setCurrentHash(String hash) {
     if (hash != null) {
       this.hash = hash;
     } else {
@@ -433,14 +411,12 @@ public class Updater
   }
 
   /** Returns the cached NI version. */
-  public String getCurrentVersion()
-  {
+  public String getCurrentVersion() {
     return version;
   }
 
   /** Updtes the cached NI version. */
-  public void setCurrentVersion(String version)
-  {
+  public void setCurrentVersion(String version) {
     if (version != null) {
       this.version = version;
     } else {
@@ -449,14 +425,12 @@ public class Updater
   }
 
   /** Returns the cached timestamp value from the latest update check. */
-  public String getCurrentTimeStamp()
-  {
+  public String getCurrentTimeStamp() {
     return timestamp;
   }
 
   /** Updates the cached timestamp string. */
-  public void setCurrentTimeStamp(String timestamp)
-  {
+  public void setCurrentTimeStamp(String timestamp) {
     if (timestamp != null) {
       this.timestamp = timestamp;
     } else {
@@ -465,8 +439,7 @@ public class Updater
   }
 
   /** Loads server and update settings from stored preferences. */
-  public void loadUpdateSettings()
-  {
+  public void loadUpdateSettings() {
     // resetting values
     serverList.clear();
     stableOnly = false;
@@ -536,8 +509,7 @@ public class Updater
   }
 
   /** Saves server and update settings to disk. */
-  public boolean saveUpdateSettings()
-  {
+  public boolean saveUpdateSettings() {
     if (prefs != null) {
       // saving server list
       prefs.putBoolean(PREFS_STABLEONLY, stableOnly);
@@ -559,9 +531,8 @@ public class Updater
       prefs.put(PREFS_AUTOCHECK_TIMESTAMP, Utils.toTimeStamp(autoCheckDate));
 
       // saving proxy settings
-      if (proxy != null && proxy.type() == Proxy.Type.HTTP &&
-          proxy.address() instanceof InetSocketAddress) {
-        InetSocketAddress addr = (InetSocketAddress)proxy.address();
+      if (proxy != null && proxy.type() == Proxy.Type.HTTP && proxy.address() instanceof InetSocketAddress) {
+        InetSocketAddress addr = (InetSocketAddress) proxy.address();
         prefs.putBoolean(PREFS_PROXYENABLED, proxyEnabled);
         prefs.put(PREFS_PROXYHOST, addr.getHostName());
         prefs.putInt(PREFS_PROXYPORT, addr.getPort());
@@ -582,15 +553,15 @@ public class Updater
   }
 
   /**
-   * Checks the specified URL if it points to a valid update.xml and returns the
-   * (possibly modified) URL on success or {@code null} on error.
+   * Checks the specified URL if it points to a valid update.xml and returns the (possibly modified) URL on success or
+   * {@code null} on error.
+   *
    * @param link A URL pointing to the update.xml.
    * @return A URL that is guaranteed to point to a valid update.xml or {@code null} on error.
    * @throws IOException
    * @throws MalformedURLException
    */
-  public String getValidatedUpdateUrl(String link) throws MalformedURLException, IOException
-  {
+  public String getValidatedUpdateUrl(String link) throws MalformedURLException, IOException {
     if (Utils.isUrlValid(link)) {
       try {
         // try the specified link first
@@ -617,10 +588,10 @@ public class Updater
 
   /**
    * Attempts to download update information and return them as UpdateInfo object.
+   *
    * @return The UpdateInfo object containing update information, or {@code null} if not available.
    */
-  public UpdateInfo loadUpdateInfo()
-  {
+  public UpdateInfo loadUpdateInfo() {
     for (Iterator<String> iter = getServerList().iterator(); iter.hasNext();) {
       try {
         URL url = new URL(iter.next());
@@ -628,13 +599,13 @@ public class Updater
         UpdateInfo info = new UpdateInfo(xml, url.toExternalForm());
         if (info.isValid()) {
           // adding alternate servers to list (if available)
-            for (int i = 0, count = info.getGeneral().getServerCount(); i < count; i++) {
-              try {
-                addServer(info.getGeneral().getServer(i), true);
-              } catch (Exception e) {
-                // skip adding server on error
-              }
+          for (int i = 0, count = info.getGeneral().getServerCount(); i < count; i++) {
+            try {
+              addServer(info.getGeneral().getServer(i), true);
+            } catch (Exception e) {
+              // skip adding server on error
             }
+          }
 
           return info;
         }

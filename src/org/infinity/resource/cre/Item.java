@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -16,8 +16,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.util.io.StreamUtils;
 
-public final class Item extends AbstractStruct implements AddRemovable
-{
+public final class Item extends AbstractStruct implements AddRemovable {
   // CRE/Item-specific field labels
   public static final String CRE_ITEM             = "Item";
   public static final String CRE_ITEM_RESREF      = "Item";
@@ -27,32 +26,28 @@ public final class Item extends AbstractStruct implements AddRemovable
   public static final String CRE_ITEM_QUANTITY_3  = "Quantity/Charges 3";
   public static final String CRE_ITEM_FLAGS       = "Flags";
 
-  private static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen",
-                                              "Undroppable"};
+  private static final String[] ITEM_FLAGS_ARRAY = { "No flags set", "Identified", "Not stealable", "Stolen",
+      "Undroppable" };
 
-  public Item() throws Exception
-  {
+  public Item() throws Exception {
     super(null, CRE_ITEM, StreamUtils.getByteBuffer(20), 0);
   }
 
-  public Item(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
-  {
+  public Item(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, CRE_ITEM + " " + nr, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new ResourceRef(buffer, offset, CRE_ITEM_RESREF, "ITM"));
     if (Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 8, 2, CRE_ITEM_DURATION));
@@ -62,8 +57,7 @@ public final class Item extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_QUANTITY_1));
     addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_QUANTITY_2));
     addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_QUANTITY_3));
-    addField(new Flag(buffer, offset + 16, 4, CRE_ITEM_FLAGS, s_itemflag));
+    addField(new Flag(buffer, offset + 16, 4, CRE_ITEM_FLAGS, ITEM_FLAGS_ARRAY));
     return offset + 20;
   }
 }
-

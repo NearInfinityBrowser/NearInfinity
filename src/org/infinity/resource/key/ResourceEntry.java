@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -34,23 +35,21 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
-public abstract class ResourceEntry implements Comparable<ResourceEntry>
-{
+public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   // list of file extensions not shown in the resource tree
-  private static final HashSet<String> skippedExtensions = new HashSet<>();
+  private static final HashSet<String> SKIPPED_EXTENSIONS = new HashSet<>();
 
   static {
-    skippedExtensions.add("BAK");
-    skippedExtensions.add("BIF");
+    SKIPPED_EXTENSIONS.add("BAK");
+    SKIPPED_EXTENSIONS.add("BIF");
   }
 
   private String searchString;
 
-  static int[] getLocalFileInfo(Path file)
-  {
+  static int[] getLocalFileInfo(Path file) {
     if (file != null && FileEx.create(file).isFile()) {
       try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
-        ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
+        ByteBuffer bb = StreamUtils.getByteBuffer((int) ch.size());
         if (ch.read(bb) < ch.size()) {
           throw new IOException();
         }
@@ -70,7 +69,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           if (bb.limit() > 16) {
             int v1 = bb.getInt(8);
             int v2 = bb.getInt(12);
-            return new int[]{ v1, v2 };
+            return new int[] { v1, v2 };
           } else {
             throw new IOException("Unexpected end of file");
           }
@@ -81,12 +80,12 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           }
           if (tileSize > 0) {
             int tileCount = bb.limit() / tileSize;
-            return new int[]{ tileCount, tileSize };
+            return new int[] { tileCount, tileSize };
           } else {
             throw new Exception("Invalid TIS tile size");
           }
         } else {
-          return new int[]{ (int)ch.size() };
+          return new int[] { (int) ch.size() };
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -96,31 +95,27 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = 7;
-    hash = 31 * hash + ((searchString == null) ? 0 : searchString.hashCode());
-    return hash;
+  public int hashCode() {
+    return Objects.hash(searchString);
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     return equals(o, false);
   }
 
   /**
    * Indicates whether the specified object argument is equal to this one.
-   * @param o  the reference object with which to compare.
+   *
+   * @param o     the reference object with which to compare.
    * @param exact whether to compare path in addition to resource name.
    * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
    */
-  public boolean equals(Object o, boolean exact)
-  {
+  public boolean equals(Object o, boolean exact) {
     if (o == this) {
       return true;
     } else if (o instanceof ResourceEntry) {
-      ResourceEntry entry = (ResourceEntry)o;
+      ResourceEntry entry = (ResourceEntry) o;
       boolean bRet = getResourceName().equalsIgnoreCase(entry.getResourceName());
       if (bRet && exact) {
         if (getActualPath() != entry.getActualPath()) {
@@ -136,11 +131,10 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     return false;
   }
 
-// --------------------- Begin Interface Comparable ---------------------
+  // --------------------- Begin Interface Comparable ---------------------
 
   @Override
-  public int compareTo(ResourceEntry entry)
-  {
+  public int compareTo(ResourceEntry entry) {
     if (entry == this) {
       return 0;
     } else {
@@ -148,48 +142,37 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     }
   }
 
-// --------------------- End Interface Comparable ---------------------
+  // --------------------- End Interface Comparable ---------------------
 
-  public Path getActualPath()
-  {
-    return getActualPath((NearInfinity.getInstance() != null) &&
-                         BrowserMenuBar.getInstance().ignoreOverrides());
+  public Path getActualPath() {
+    return getActualPath((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
-  public ImageIcon getIcon()
-  {
+  public ImageIcon getIcon() {
     return ResourceFactory.getKeyfile().getIcon(getExtension());
   }
 
-  public long getResourceSize()
-  {
-    return getResourceSize((NearInfinity.getInstance() != null) &&
-                           BrowserMenuBar.getInstance().ignoreOverrides());
+  public long getResourceSize() {
+    return getResourceSize((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
-  public ByteBuffer getResourceBuffer() throws Exception
-  {
-    return getResourceBuffer((NearInfinity.getInstance() != null) &&
-                             BrowserMenuBar.getInstance().ignoreOverrides());
+  public ByteBuffer getResourceBuffer() throws Exception {
+    return getResourceBuffer((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
-  public InputStream getResourceDataAsStream() throws Exception
-  {
-    return getResourceDataAsStream((NearInfinity.getInstance() != null) &&
-                                   BrowserMenuBar.getInstance().ignoreOverrides());
+  public InputStream getResourceDataAsStream() throws Exception {
+    return getResourceDataAsStream(
+        (NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
-  public int[] getResourceInfo() throws Exception
-  {
-    return getResourceInfo((NearInfinity.getInstance() != null) &&
-                           BrowserMenuBar.getInstance().ignoreOverrides());
+  public int[] getResourceInfo() throws Exception {
+    return getResourceInfo((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
   /**
    * Returns localized name of the resource. This string used in game interface.
    */
-  public String getSearchString()
-  {
+  public String getSearchString() {
     if (searchString == null) {
       try {
         String extension = getExtension().toUpperCase();
@@ -217,10 +200,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           searchString = PlainTextResource.getSearchString(this);
         }
       } catch (Exception e) {
-        if ((NearInfinity.getInstance() != null) &&
-            !BrowserMenuBar.getInstance().ignoreReadErrors()) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+        if ((NearInfinity.getInstance() != null) && !BrowserMenuBar.getInstance().ignoreReadErrors()) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(), "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
         searchString = "Error";
         e.printStackTrace();
@@ -230,13 +212,12 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   }
 
   /**
-   * Returns whether the current resource matches all of the search options specified in the
-   * SearchOptions argument.
+   * Returns whether the current resource matches all of the search options specified in the SearchOptions argument.
+   *
    * @param searchOptions Contains the options to check the resource against.
    * @return {@code true} if all options are matching, {@code false} otherwise.
    */
-  public boolean matchSearchOptions(SearchOptions searchOptions)
-  {
+  public boolean matchSearchOptions(SearchOptions searchOptions) {
     if (searchOptions != null && !searchOptions.isEmpty()) {
       if ("ARE".equalsIgnoreCase(searchOptions.getResourceType())) {
         return AreResource.matchSearchOptions(this, searchOptions);
@@ -262,17 +243,15 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   /**
    * Indicates whether the resource is visible for Near Infinity.
    */
-  public boolean isVisible()
-  {
+  public boolean isVisible() {
     // Visibility conditions:
     // 1. Options->Show Unknown Resource Types == true OR resource type is supported
     // 2. NOT Resource type part of skippedExtensions
     // 3. Filename length is valid
     int resLen = getResourceRef().length();
-    boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes()) ||
-                   Profile.isResourceTypeSupported(getExtension()) &&
-                   !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH)) &&
-                   (resLen >= 0 && resLen <= 8);
+    boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes())
+        || Profile.isResourceTypeSupported(getExtension())
+            && !SKIPPED_EXTENSIONS.contains(getExtension().toUpperCase(Locale.ENGLISH)) && (resLen >= 0 && resLen <= 8);
     return bRet;
   }
 

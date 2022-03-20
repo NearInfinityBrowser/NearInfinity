@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sound;
@@ -13,23 +13,24 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class AudioPlayer
-{
-  private static final byte buffer[] = new byte[8196];
+public class AudioPlayer {
+  private static final byte BUFFER[] = new byte[8196];
 
   private AudioFormat audioFormat;
   private SourceDataLine dataLine;
-  private boolean playing = true, stopped = true;
+  private boolean playing = true;
+  private boolean stopped = true;
 
   /**
    * Starts playback of audio data associated with the specified audio buffer.
+   *
    * @param audioBuffer AudioBuffer object containing audio data.
    * @throws Exception On error
    */
-  public void play(AudioBuffer audioBuffer) throws Exception
-  {
-    if (audioBuffer == null || audioBuffer.getAudioData() == null)
+  public void play(AudioBuffer audioBuffer) throws Exception {
+    if (audioBuffer == null || audioBuffer.getAudioData() == null) {
       return;
+    }
 
     setPlaying(true);
     setStopped(false);
@@ -40,16 +41,17 @@ public class AudioPlayer
         if (!AudioSystem.isLineSupported(info)) {
           throw new UnsupportedAudioFileException("Unsupported audio format");
         }
-        dataLine = (SourceDataLine)AudioSystem.getLine(info);
+        dataLine = (SourceDataLine) AudioSystem.getLine(info);
         dataLine.open(ais.getFormat(), 16384);
       }
       dataLine.start();
 
       while (isPlaying()) {
-        int numBytesRead = ais.read(buffer, 0, buffer.length);
-        if (numBytesRead < 0)
+        int numBytesRead = ais.read(BUFFER, 0, BUFFER.length);
+        if (numBytesRead < 0) {
           break;
-        dataLine.write(buffer, 0, numBytesRead);
+        }
+        dataLine.write(BUFFER, 0, numBytesRead);
       }
     } catch (Exception e) {
       setStopped(true);
@@ -66,8 +68,7 @@ public class AudioPlayer
   /**
    * Stops audio playback.
    */
-  public void stopPlay()
-  {
+  public void stopPlay() {
     setPlaying(false);
     while (!isStopped()) {
       try {
@@ -82,25 +83,23 @@ public class AudioPlayer
     dataLine = null;
   }
 
-  private synchronized void setPlaying(boolean b)
-  {
-    if (b != playing)
+  private synchronized void setPlaying(boolean b) {
+    if (b != playing) {
       playing = b;
+    }
   }
 
-  private boolean isPlaying()
-  {
+  private boolean isPlaying() {
     return playing;
   }
 
-  private synchronized void setStopped(boolean b)
-  {
-    if (b != stopped)
+  private synchronized void setStopped(boolean b) {
+    if (b != stopped) {
       stopped = b;
+    }
   }
 
-  private boolean isStopped()
-  {
+  private boolean isStopped() {
     return stopped;
   }
 }

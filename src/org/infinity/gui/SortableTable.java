@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -23,6 +23,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -35,13 +36,14 @@ import org.infinity.resource.Profile;
 import org.infinity.util.ArrayUtil;
 import org.infinity.util.io.FileEx;
 
-public final class SortableTable extends JTable implements MouseListener
-{
+public final class SortableTable extends JTable implements MouseListener {
   private static final String WITH_DELIMITERS = "(?<=%1$s)(?!%1$s)|(?<!%1$s)(?=%1$s)";
+
   private static final Pattern SPLIT_BY_NUMBER = Pattern.compile(String.format(WITH_DELIMITERS, "\\d+"));
+
   /**
-   * Comparator, that sorts strings as numbers if it looks like numbers and
-   * lexicographically with ignore case otherwise.
+   * Comparator, that sorts strings as numbers if it looks like numbers and lexicographically with ignore case
+   * otherwise.
    */
   private static final Comparator<String> SORTER = (String s1, String s2) -> {
     try {
@@ -54,54 +56,51 @@ public final class SortableTable extends JTable implements MouseListener
   };
 
   private final SortableTableModel tableModel;
+
   private boolean sortAscending;
   private int sortByColumn;
 
-  public SortableTable(String[] columnNames, Class<?>[] columnClasses, Integer[] columnWidths)
-  {
+  public SortableTable(String[] columnNames, Class<?>[] columnClasses, Integer[] columnWidths) {
     tableModel = new SortableTableModel(columnNames, columnClasses);
     setModel(tableModel);
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     getTableHeader().setDefaultRenderer(new TableHeaderRenderer());
     getTableHeader().addMouseListener(this);
-    for (int i = 0; i < columnWidths.length; i++)
+    for (int i = 0; i < columnWidths.length; i++) {
       getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+    }
   }
 
-  public void addTableItem(TableItem item)
-  {
+  public void addTableItem(TableItem item) {
     tableModel.addTableItem(item);
   }
 
-  public void clear()
-  {
+  public void clear() {
     tableModel.clear();
   }
 
-  public TableItem getTableItemAt(int rowIndex)
-  {
+  public TableItem getTableItemAt(int rowIndex) {
     return tableModel.getTableItemAt(rowIndex);
   }
 
-  public void tableComplete()
-  {
+  public void tableComplete() {
     tableModel.sort();
   }
 
-  public void tableComplete(int sortByColumn)
-  {
+  public void tableComplete(int sortByColumn) {
     this.sortByColumn = sortByColumn;
     tableModel.sort();
   }
 
-
   public void saveCheckResult(Component parent, String header) {
     saveResult(parent, "Save check result", header);
   }
+
   public void saveSearchResult(Component parent, String query) {
     saveResult(parent, "Save search result", "Searched for: " + query);
   }
+
   private void saveResult(Component parent, String dialogTitle, String header) {
     final JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
     chooser.setDialogTitle(dialogTitle);
@@ -109,24 +108,26 @@ public final class SortableTable extends JTable implements MouseListener
     if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       final Path output = chooser.getSelectedFile().toPath();
       if (FileEx.create(output).exists()) {
-        final String[] options = {"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?",
-                                         dialogTitle, JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+        final String[] options = { "Overwrite", "Cancel" };
+        if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", dialogTitle, JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           return;
         }
       }
       try (final BufferedWriter bw = Files.newBufferedWriter(output)) {
-        bw.write(header); bw.newLine();
-        bw.write("Number of hits: " + getRowCount()); bw.newLine();
+        bw.write(header);
+        bw.newLine();
+        bw.write("Number of hits: " + getRowCount());
+        bw.newLine();
         for (int i = 0; i < getRowCount(); i++) {
-          bw.write(getTableItemAt(i).toString()); bw.newLine();
+          bw.write(getTableItemAt(i).toString());
+          bw.newLine();
         }
-        JOptionPane.showMessageDialog(parent, "Result saved to " + output,
-                                      "Save complete", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parent, "Result saved to " + output, "Save complete",
+            JOptionPane.INFORMATION_MESSAGE);
       } catch (IOException ex) {
-        JOptionPane.showMessageDialog(parent, "Error while saving " + output + " (details in the trace)",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(parent, "Error while saving " + output + " (details in the trace)", "Error",
+            JOptionPane.ERROR_MESSAGE);
         ex.printStackTrace();
       }
     }
@@ -134,25 +135,25 @@ public final class SortableTable extends JTable implements MouseListener
 
   /**
    * Scrolls the table within an enclosing viewport to make the specified row completely visible. This calls
-   * {@code scrollRectToVisible} with the bounds of the specified row. For this method to work, the {@code JTable}
-   * must be within a JViewport.
-   * If the given index is outside the table's range of rows, this method results in nothing.
+   * {@code scrollRectToVisible} with the bounds of the specified row. For this method to work, the {@code JTable} must
+   * be within a JViewport. If the given index is outside the table's range of rows, this method results in nothing.
+   *
    * @param index the index of the row to make visible.
    */
-  public void ensureIndexIsVisible(int index)
-  {
+  public void ensureIndexIsVisible(int index) {
     Rectangle rect = getCellRect(index, 0, true);
-    if (rect != null)
+    if (rect != null) {
       scrollRectToVisible(rect);
+    }
   }
 
   @Override
   public void mouseClicked(MouseEvent e) {
     final int viewColumn = getColumnModel().getColumnIndexAtX(e.getX());
     final int column = convertColumnIndexToModel(viewColumn);
-    if (column == sortByColumn)
+    if (column == sortByColumn) {
       sortAscending = !sortAscending;
-    else {
+    } else {
       sortByColumn = column;
       sortAscending = false;
     }
@@ -161,31 +162,32 @@ public final class SortableTable extends JTable implements MouseListener
   }
 
   @Override
-  public void mousePressed(MouseEvent e) {}
+  public void mousePressed(MouseEvent e) {
+  }
 
   @Override
-  public void mouseReleased(MouseEvent e) {}
+  public void mouseReleased(MouseEvent e) {
+  }
 
   @Override
-  public void mouseEntered(MouseEvent e) {}
+  public void mouseEntered(MouseEvent e) {
+  }
 
   @Override
-  public void mouseExited(MouseEvent e) {}
+  public void mouseExited(MouseEvent e) {
+  }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private final class TableHeaderRenderer extends DefaultTableCellRenderer
-  {
-    private TableHeaderRenderer()
-    {
-      setHorizontalTextPosition(DefaultTableCellRenderer.LEFT);
+  private final class TableHeaderRenderer extends DefaultTableCellRenderer {
+    private TableHeaderRenderer() {
+      setHorizontalTextPosition(SwingConstants.LEFT);
       setBorder(UIManager.getBorder("TableHeader.cellBorder"));
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                   boolean isSelected, boolean hasFocus, int row, int column)
-    {
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+        int row, int column) {
       if (table != null) {
         JTableHeader header = table.getTableHeader();
         if (header != null) {
@@ -196,120 +198,103 @@ public final class SortableTable extends JTable implements MouseListener
         }
       }
 
-      if (sortByColumn == column)
+      if (sortByColumn == column) {
         setIcon(sortAscending ? Icons.ICON_UP_16.getIcon() : Icons.ICON_DOWN_16.getIcon());
-      else
+      } else {
         setIcon(null);
+      }
       return this;
     }
   }
 
-  private final class SortableTableModel implements TableModel, Comparator<TableItem>
-  {
+  private final class SortableTableModel implements TableModel, Comparator<TableItem> {
     private final List<TableModelListener> listeners = new ArrayList<>();
     private final List<TableItem> tableItems = new ArrayList<>();
     private final Class<?>[] columnClasses;
     private final String[] columnNames;
 
-    private SortableTableModel(String[] columnNames, Class<?>[] columnClasses)
-    {
-      this.columnNames   = columnNames   != null ? columnNames   : new String[0];
+    private SortableTableModel(String[] columnNames, Class<?>[] columnClasses) {
+      this.columnNames = columnNames != null ? columnNames : new String[0];
       this.columnClasses = columnClasses != null ? columnClasses : new Class<?>[0];
     }
 
-    private void addTableItem(TableItem item)
-    {
+    private void addTableItem(TableItem item) {
       tableItems.add(item);
     }
 
-    private TableItem getTableItemAt(int rowIndex)
-    {
+    private TableItem getTableItemAt(int rowIndex) {
       return tableItems.get(rowIndex);
     }
 
-    private void fireTableChangedEvent()
-    {
+    private void fireTableChangedEvent() {
       final TableModelEvent event = new TableModelEvent(this);
       for (TableModelListener l : listeners) {
         l.tableChanged(event);
       }
     }
 
-    public void sort()
-    {
+    public void sort() {
       Collections.sort(tableItems, this);
       fireTableChangedEvent();
     }
 
-    private void clear()
-    {
+    private void clear() {
       tableItems.clear();
       fireTableChangedEvent();
     }
 
     @Override
-    public Class<?> getColumnClass(int columnIndex)
-    {
+    public Class<?> getColumnClass(int columnIndex) {
       return columnClasses[columnIndex];
     }
 
     @Override
-    public int getColumnCount()
-    {
+    public int getColumnCount() {
       return columnClasses.length;
     }
 
     @Override
-    public String getColumnName(int columnIndex)
-    {
+    public String getColumnName(int columnIndex) {
       return columnNames[columnIndex];
     }
 
     @Override
-    public int getRowCount()
-    {
+    public int getRowCount() {
       return tableItems.size();
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex)
-    {
+    public Object getValueAt(int rowIndex, int columnIndex) {
       return tableItems.get(rowIndex).getObjectAt(columnIndex);
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-    {
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
     }
 
     @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex)
-    {
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
       return false;
     }
 
     @Override
-    public void addTableModelListener(TableModelListener l)
-    {
+    public void addTableModelListener(TableModelListener l) {
       listeners.add(l);
     }
 
     @Override
-    public void removeTableModelListener(TableModelListener l)
-    {
+    public void removeTableModelListener(TableModelListener l) {
       listeners.remove(l);
     }
 
     @Override
-    public int compare(TableItem o1, TableItem o2)
-    {
+    public int compare(TableItem o1, TableItem o2) {
       int res;
       if (getColumnClass(sortByColumn) == Integer.class) {
-        Integer int1 = (Integer)o1.getObjectAt(sortByColumn);
-        Integer int2 = (Integer)o2.getObjectAt(sortByColumn);
+        Integer int1 = (Integer) o1.getObjectAt(sortByColumn);
+        Integer int2 = (Integer) o2.getObjectAt(sortByColumn);
         res = int1.compareTo(int2);
-      }
-      else {
+      } else {
         Object item1 = o1.getObjectAt(sortByColumn);
         Object item2 = o2.getObjectAt(sortByColumn);
         String string1 = (item1 != null) ? item1.toString() : "";
@@ -327,4 +312,3 @@ public final class SortableTable extends JTable implements MouseListener
     }
   }
 }
-

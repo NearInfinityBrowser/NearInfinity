@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -27,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -53,65 +54,68 @@ import org.infinity.search.DialogSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
-{
-  private static final ButtonPanel.Control CtrlNextState      = ButtonPanel.Control.CUSTOM_1;
-  private static final ButtonPanel.Control CtrlPrevState      = ButtonPanel.Control.CUSTOM_2;
-  private static final ButtonPanel.Control CtrlNextTrans      = ButtonPanel.Control.CUSTOM_3;
-  private static final ButtonPanel.Control CtrlPrevTrans      = ButtonPanel.Control.CUSTOM_4;
+final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
+  private static final ButtonPanel.Control CTRL_NEXT_STATE      = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CTRL_PREV_STATE      = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CTRL_NEXT_TRANS      = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CTRL_PREV_TRANS      = ButtonPanel.Control.CUSTOM_4;
+
   /** Button that allow move to next state, specified for the response. */
-  private static final ButtonPanel.Control CtrlSelect         = ButtonPanel.Control.CUSTOM_5;
+  private static final ButtonPanel.Control CTRL_SELECT          = ButtonPanel.Control.CUSTOM_5;
+
   /**
-   * Button that allow return to previous state, before current was selected by
-   * the {@link #CtrlSelect} button.
+   * Button that allow return to previous state, before current was selected by the {@link #CTRL_SELECT} button.
    */
-  private static final ButtonPanel.Control CtrlReturn         = ButtonPanel.Control.CUSTOM_6;
-  private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.CUSTOM_7;
-  private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.CUSTOM_8;
+  private static final ButtonPanel.Control CTRL_RETURN          = ButtonPanel.Control.CUSTOM_6;
+  private static final ButtonPanel.Control CTRL_STATE_FIELD     = ButtonPanel.Control.CUSTOM_7;
+  private static final ButtonPanel.Control CTRL_RESPONSE_FIELD  = ButtonPanel.Control.CUSTOM_8;
 
   private static final Color NORMAL_COLOR = Color.BLACK;
   private static final Color ERROR_COLOR  = Color.RED;
 
   private final DlgResource dlg;
+
   /** List of all states, found in {@link #dlg}. */
   private final List<State> stateList = new ArrayList<>();
+
   /** List of all transitions, found in {@link #dlg}. */
   private final List<Transition> transList = new ArrayList<>();
+
   /**
-   * List of all state triggers, found in {@link #dlg}. Trigger determines conditions
-   * when state will be visible in the dialogue.
+   * List of all state triggers, found in {@link #dlg}. Trigger determines conditions when state will be visible in the
+   * dialogue.
    */
   private final List<StateTrigger> staTriList = new ArrayList<>();
+
   /**
-   * List of all transition triggers, found in {@link #dlg}. Trigger determines
-   * conditions when transition will be available for selection in the dialogue.
+   * List of all transition triggers, found in {@link #dlg}. Trigger determines conditions when transition will be
+   * available for selection in the dialogue.
    */
   private final List<ResponseTrigger> transTriList = new ArrayList<>();
+
   /**
-   * List of all state actions, found in {@link #dlg}. Action determines what
-   * will be do when game process entering to related state.
+   * List of all state actions, found in {@link #dlg}. Action determines what will be do when game process entering to
+   * related state.
    */
   private final List<Action> actionList = new ArrayList<>();
 
   /** State that editor shows right now. */
   private State currentState;
+
   /** Transition that editor shows right now. */
   private Transition currentTrans;
 
   /**
-   * Stack of states, that were selected by the {@link #CtrlSelect} button. The
-   * {@link #CtrlReturn} button allows return to one of this states together with
-   * transition from {@link #lastTransitions}
+   * Stack of states, that were selected by the {@link #CTRL_SELECT} button. The {@link #CTRL_RETURN} button allows
+   * return to one of this states together with transition from {@link #lastTransitions}
    */
   private final ArrayDeque<State> lastStates = new ArrayDeque<>();
+
   /**
-   * Stack of transitions, that were current at moment when next state selected
-   * by the {@link #CtrlSelect} button. The {@link #CtrlReturn} button allows return
-   * to one of this transitions together with state from {@link #lastStates}
+   * Stack of transitions, that were current at moment when next state selected by the {@link #CTRL_SELECT} button. The
+   * {@link #CTRL_RETURN} button allows return to one of this transitions together with state from {@link #lastStates}
    */
   private final ArrayDeque<Transition> lastTransitions = new ArrayDeque<>();
-  private DlgResource undoDlg;
-  private boolean alive = true;
 
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final DlgPanel stateTextPanel, stateTriggerPanel, transTextPanel, transTriggerPanel, transActionPanel;
@@ -123,13 +127,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private final TitledBorder bostate = new TitledBorder("State");
   private final TitledBorder botrans = new TitledBorder("Response");
 
-  Viewer(DlgResource dlg)
-  {
+  private DlgResource undoDlg;
+  private boolean alive = true;
+
+  Viewer(DlgResource dlg) {
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
 
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.FIND_MENU);
-    bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu) ButtonPanel.createControl(ButtonPanel.Control.FIND_MENU);
+    bpmFind.setMenuItems(new JMenuItem[] { ifindall, ifindthis });
     bpmFind.addItemListener(this);
     bpmFind.addActionListener(this);
 
@@ -155,12 +161,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     JButton bReturn = new JButton("Return", Icons.ICON_UNDO_16.getIcon());
     bReturn.addActionListener(this);
 
-    int width = (int)tfState.getPreferredSize().getWidth();
-    int height = (int)bNextState.getPreferredSize().getHeight();
+    int width = (int) tfState.getPreferredSize().getWidth();
+    int height = (int) bNextState.getPreferredSize().getHeight();
     tfState.setPreferredSize(new Dimension(width, height));
     tfResponse.setPreferredSize(new Dimension(width, height));
-    tfState.setHorizontalAlignment(JTextField.CENTER);
-    tfResponse.setHorizontalAlignment(JTextField.CENTER);
+    tfState.setHorizontalAlignment(SwingConstants.CENTER);
+    tfResponse.setHorizontalAlignment(SwingConstants.CENTER);
     tfState.addActionListener(this);
     tfResponse.addActionListener(this);
     stateTextPanel = new DlgPanel("Text", true);
@@ -191,15 +197,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     outerpanel.add(transpanel);
 
     buttonPanel.addControl(new JLabel("State:"));
-    buttonPanel.addControl(tfState, CtrlStateField);
-    buttonPanel.addControl(bPrevState, CtrlPrevState);
-    buttonPanel.addControl(bNextState, CtrlNextState);
+    buttonPanel.addControl(tfState, CTRL_STATE_FIELD);
+    buttonPanel.addControl(bPrevState, CTRL_PREV_STATE);
+    buttonPanel.addControl(bNextState, CTRL_NEXT_STATE);
     buttonPanel.addControl(new JLabel(" Response:"));
-    buttonPanel.addControl(tfResponse, CtrlResponseField);
-    buttonPanel.addControl(bPrevTrans, CtrlPrevTrans);
-    buttonPanel.addControl(bNextTrans, CtrlNextTrans);
-    buttonPanel.addControl(bSelect, CtrlSelect);
-    buttonPanel.addControl(bReturn, CtrlReturn);
+    buttonPanel.addControl(tfResponse, CTRL_RESPONSE_FIELD);
+    buttonPanel.addControl(bPrevTrans, CTRL_PREV_TRANS);
+    buttonPanel.addControl(bNextTrans, CTRL_NEXT_TRANS);
+    buttonPanel.addControl(bSelect, CTRL_SELECT);
+    buttonPanel.addControl(bReturn, CTRL_RETURN);
     buttonPanel.addControl(bpmFind, ButtonPanel.Control.FIND_MENU);
 
     setLayout(new BorderLayout());
@@ -212,21 +218,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     showTransition(currentState == null ? -1 : currentState.getFirstTrans());
   }
 
-  public void setUndoDlg(DlgResource dlg)
-  {
+  public void setUndoDlg(DlgResource dlg) {
     this.undoDlg = dlg;
-    buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
+    buttonPanel.getControlByType(CTRL_RETURN).setEnabled(true);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (!alive) return;
-    if (buttonPanel.getControlByType(CtrlReturn) == event.getSource()) {
-      JButton bUndo = (JButton)event.getSource();
-      if(lastStates.isEmpty() && (undoDlg != null)) {
+  public void actionPerformed(ActionEvent event) {
+    if (!alive) {
+      return;
+    }
+    if (buttonPanel.getControlByType(CTRL_RETURN) == event.getSource()) {
+      JButton bUndo = (JButton) event.getSource();
+      if (lastStates.isEmpty() && (undoDlg != null)) {
         showExternState(undoDlg, -1, true);
         return;
       }
@@ -244,13 +250,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     } else {
       int newstate = currentState == null ? -1 : currentState.getNumber();
       int newtrans = currentTrans == null ? -1 : currentTrans.getNumber();
-      if (buttonPanel.getControlByType(CtrlNextState) == event.getSource()) {
+      if (buttonPanel.getControlByType(CTRL_NEXT_STATE) == event.getSource()) {
         newstate++;
-      } else if (buttonPanel.getControlByType(CtrlPrevState) == event.getSource()) {
+      } else if (buttonPanel.getControlByType(CTRL_PREV_STATE) == event.getSource()) {
         newstate--;
-      } else if (buttonPanel.getControlByType(CtrlNextTrans) == event.getSource()) {
+      } else if (buttonPanel.getControlByType(CTRL_NEXT_TRANS) == event.getSource()) {
         newtrans++;
-      } else if (buttonPanel.getControlByType(CtrlPrevTrans) == event.getSource()) {
+      } else if (buttonPanel.getControlByType(CTRL_PREV_TRANS) == event.getSource()) {
         newtrans--;
       } else if (event.getSource() == tfState) {
         try {
@@ -274,39 +280,35 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         } catch (Exception e) {
           tfResponse.setText(String.valueOf(currentTrans.getNumber() - currentState.getFirstTrans()));
         }
-      } else if (buttonPanel.getControlByType(CtrlSelect) == event.getSource()) {
+      } else if (buttonPanel.getControlByType(CTRL_SELECT) == event.getSource()) {
         final String nextDlgName = currentTrans.getNextDialog().getResourceName();
         if (dlg.getResourceEntry().getResourceName().equalsIgnoreCase(nextDlgName)) {
           lastStates.push(currentState);
           lastTransitions.push(currentTrans);
-          buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
+          buttonPanel.getControlByType(CTRL_RETURN).setEnabled(true);
           newstate = currentTrans.getNextDialogState();
         } else {
-          DlgResource newdlg =
-              (DlgResource)ResourceFactory.getResource(ResourceFactory.getResourceEntry(nextDlgName));
+          DlgResource newdlg = (DlgResource) ResourceFactory.getResource(ResourceFactory.getResourceEntry(nextDlgName));
           showExternState(newdlg, currentTrans.getNextDialogState(), false);
         }
       }
       if (currentState != null && newstate != currentState.getNumber()) {
         showState(newstate);
         showTransition(currentState.getFirstTrans());
-      } else
-      if (currentTrans != null && newtrans != currentTrans.getNumber()) {
+      } else if (currentTrans != null && newtrans != currentTrans.getNumber()) {
         showTransition(newtrans);
       }
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
-      ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
+      ButtonPopupMenu bpmFind = (ButtonPopupMenu) event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
         List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
@@ -318,14 +320,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
   }
 
-// --------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-
-// --------------------- Begin Interface TableModelListener ---------------------
+  // --------------------- Begin Interface TableModelListener ---------------------
 
   @Override
-  public void tableChanged(TableModelEvent e)
-  {
+  public void tableChanged(TableModelEvent e) {
     if (e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.DELETE) {
       updateViewerLists();
     }
@@ -333,20 +333,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     showTransition(currentTrans == null ? -1 : currentTrans.getNumber());
   }
 
-// --------------------- End Interface TableModelListener ---------------------
+  // --------------------- End Interface TableModelListener ---------------------
 
   /** For quickly jump to the corresponding state while only having a StructEntry. */
-  public void select(StructEntry entry)
-  {
+  public void select(StructEntry entry) {
     try {
       int stateNrToShow = -1;
       int transNrToShow = -1;
 
       StructEntry dlgEntry = null;
-      for (StructEntry ref = entry; ref != null; ref = ref.getParent())
-        if (ref instanceof DlgResource)
+      for (StructEntry ref = entry; ref != null; ref = ref.getParent()) {
+        if (ref instanceof DlgResource) {
           dlgEntry = ref;
-      if (dlgEntry == null || !dlg.getResourceEntry().equals(((DlgResource)dlgEntry).getResourceEntry())) {
+        }
+      }
+      if (dlgEntry == null || !dlg.getResourceEntry().equals(((DlgResource) dlgEntry).getResourceEntry())) {
         throw new Exception("Source and target resource don't match.");
       }
 
@@ -354,59 +355,48 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (entry instanceof State) {
         stateNrToShow = ((State) entry).getNumber();
         transNrToShow = ((State) entry).getFirstTrans();
-      }
-      else if (entry instanceof Transition) {
+      } else if (entry instanceof Transition) {
         int transnr = ((Transition) entry).getNumber();
         stateNrToShow = findStateForTrans(transnr);
         transNrToShow = transnr;
-      }
-      else if (entry instanceof StateTrigger) {
-        int triggerIndex = ((StateTrigger)entry).getNumber();
-        State state = stateList
-                      .stream()
-                      .filter(s -> ((IsNumeric)s.getAttribute(State.DLG_STATE_TRIGGER_INDEX)).getValue() == triggerIndex)
-                      .findFirst()
-                      .orElse(null);
+      } else if (entry instanceof StateTrigger) {
+        int triggerIndex = ((StateTrigger) entry).getNumber();
+        State state = stateList.stream()
+            .filter(s -> ((IsNumeric) s.getAttribute(State.DLG_STATE_TRIGGER_INDEX)).getValue() == triggerIndex)
+            .findFirst().orElse(null);
         if (state != null) {
           stateNrToShow = state.getNumber();
           transNrToShow = state.getFirstTrans();
         }
-      }
-      else if (entry instanceof ResponseTrigger) {
-        int triggerIndex = ((ResponseTrigger)entry).getNumber();
-        Transition trans = transList
-                           .stream()
-                           .filter(t -> ((Flag)t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(1) &&
-                                        ((IsNumeric)t.getAttribute(Transition.DLG_TRANS_TRIGGER_INDEX)).getValue() == triggerIndex)
-                           .findFirst()
-                           .orElse(null);
+      } else if (entry instanceof ResponseTrigger) {
+        int triggerIndex = ((ResponseTrigger) entry).getNumber();
+        Transition trans = transList.stream()
+            .filter(t -> ((Flag) t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(1)
+                && ((IsNumeric) t.getAttribute(Transition.DLG_TRANS_TRIGGER_INDEX)).getValue() == triggerIndex)
+            .findFirst().orElse(null);
         if (trans != null) {
           transNrToShow = trans.getNumber();
           stateNrToShow = findStateForTrans(transNrToShow);
         }
-      }
-      else if (entry instanceof Action) {
-        int actionIndex = ((Action)entry).getNumber();
-        Transition trans = transList
-                           .stream()
-                           .filter(t -> ((Flag)t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(2) &&
-                                        ((IsNumeric)t.getAttribute(Transition.DLG_TRANS_ACTION_INDEX)).getValue() == actionIndex)
-                           .findFirst()
-                           .orElse(null);
+      } else if (entry instanceof Action) {
+        int actionIndex = ((Action) entry).getNumber();
+        Transition trans = transList.stream()
+            .filter(t -> ((Flag) t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(2)
+                && ((IsNumeric) t.getAttribute(Transition.DLG_TRANS_ACTION_INDEX)).getValue() == actionIndex)
+            .findFirst().orElse(null);
         if (trans != null) {
           transNrToShow = trans.getNumber();
           stateNrToShow = findStateForTrans(transNrToShow);
         }
-      }
-      else if (entry instanceof StringRef) {
+      } else if (entry instanceof StringRef) {
         // can be a child element of a state or transition
         for (StructEntry ref = entry; ref != null; ref = ref.getParent()) {
           if (ref instanceof State) {
-            stateNrToShow = ((State)ref).getNumber();
-            transNrToShow = ((State)ref).getFirstTrans();
+            stateNrToShow = ((State) ref).getNumber();
+            transNrToShow = ((State) ref).getFirstTrans();
             break;
           } else if (ref instanceof Transition) {
-            transNrToShow = ((Transition)ref).getNumber();
+            transNrToShow = ((Transition) ref).getNumber();
             stateNrToShow = findStateForTrans(transNrToShow);
             break;
           }
@@ -420,11 +410,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
   }
 
-  private int findStateForTrans(int transnr)
-  {
+  private int findStateForTrans(int transnr) {
     for (State state : stateList) {
-      if ((transnr >= state.getFirstTrans()) &&
-          (transnr < (state.getFirstTrans() + state.getTransCount()))) {
+      if ((transnr >= state.getFirstTrans()) && (transnr < (state.getFirstTrans() + state.getTransCount()))) {
         return state.getNumber();
       }
     }
@@ -437,8 +425,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    *
    * @param nr Number of state within {@link #dlg}
    */
-  private void showState(int nr)
-  {
+  private void showState(int nr) {
     if (currentState != null) {
       currentState.removeTableModelListener(this);
       currentState = null;
@@ -447,13 +434,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     final boolean isBroken = nr > cnt;
     final String cur = toString(nr);
-    bostate.setTitle("State " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to state " + nr + ")" : ""));
+    bostate
+        .setTitle("State " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to state " + nr + ")" : ""));
     bostate.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
     outerpanel.repaint();// Force repaint border
     tfState.setText(cur);
     // Do both range checks, just in case...
-    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0 && nr <= cnt);
-    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr >= 0 && nr < cnt);
+    buttonPanel.getControlByType(CTRL_PREV_STATE).setEnabled(nr > 0 && nr <= cnt);
+    buttonPanel.getControlByType(CTRL_NEXT_STATE).setEnabled(nr >= 0 && nr < cnt);
 
     final boolean isValid = nr >= 0 && nr <= cnt;
     tfState.setEnabled(isValid);
@@ -485,8 +473,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    *
    * @param nr Global number of transition within {@link #dlg}
    */
-  private void showTransition(int nr)
-  {
+  private void showTransition(int nr) {
     if (currentTrans != null) {
       currentTrans.removeTableModelListener(this);
       currentTrans = null;
@@ -497,13 +484,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     final boolean isBroken = nr >= transList.size() && currentState.getTransCount() > 0;
     final String cur = toString(num);
-    botrans.setTitle("Response " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to response " + nr + ")" : ""));
+    botrans.setTitle(
+        "Response " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to response " + nr + ")" : ""));
     botrans.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
     outerpanel.repaint();// Force repaint border
     tfResponse.setText(cur);
     // Do both range checks, just in case...
-    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0 && num <= cnt);
-    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num >= 0 && num < cnt);
+    buttonPanel.getControlByType(CTRL_PREV_TRANS).setEnabled(num > 0 && num <= cnt);
+    buttonPanel.getControlByType(CTRL_NEXT_TRANS).setEnabled(num >= 0 && num < cnt);
 
     final boolean isValid = nr >= 0 && nr < transList.size();
     final boolean isCorrect = isValid && num >= 0 && num <= cnt;
@@ -512,16 +500,16 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (nr >= 0 && currentState != null) {
         // Print warning about not correct resource
         if (isValid) {
-          System.err.println(dlg.getName() + ": transition " + nr + " is not transition from state " + currentState.getNumber());
-        } else
-        if (isBroken) {
+          System.err.println(
+              dlg.getName() + ": transition " + nr + " is not transition from state " + currentState.getNumber());
+        } else if (isBroken) {
           System.err.println(dlg.getName() + ": transition " + nr + " is not exist");
         }
       }
       transTextPanel.clearDisplay();
       transTriggerPanel.clearDisplay();
       transActionPanel.clearDisplay();
-      buttonPanel.getControlByType(CtrlSelect).setEnabled(false);
+      buttonPanel.getControlByType(CTRL_SELECT).setEnabled(false);
       return;
     }
 
@@ -543,15 +531,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     } else {
       transActionPanel.clearDisplay();
     }
-    buttonPanel.getControlByType(CtrlSelect).setEnabled(!flags.isFlagSet(3));// Bit 3: terminate dialog
+    buttonPanel.getControlByType(CTRL_SELECT).setEnabled(!flags.isFlagSet(3));// Bit 3: terminate dialog
   }
 
   /**
-   * Retrieves all kinds of its child structures from dialog and places them to
-   * separate lists for fast access.
+   * Retrieves all kinds of its child structures from dialog and places them to separate lists for fast access.
    */
-  private void updateViewerLists()
-  {
+  private void updateViewerLists() {
     stateList.clear();
     transList.clear();
     staTriList.clear();
@@ -559,15 +545,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     actionList.clear();
     for (final StructEntry entry : dlg.getFields()) {
       if (entry instanceof State) {
-        stateList.add((State)entry);
+        stateList.add((State) entry);
       } else if (entry instanceof Transition) {
-        transList.add((Transition)entry);
+        transList.add((Transition) entry);
       } else if (entry instanceof StateTrigger) {
-        staTriList.add((StateTrigger)entry);
+        staTriList.add((StateTrigger) entry);
       } else if (entry instanceof ResponseTrigger) {
-        transTriList.add((ResponseTrigger)entry);
+        transTriList.add((ResponseTrigger) entry);
       } else if (entry instanceof Action) {
-        actionList.add((Action)entry);
+        actionList.add((Action) entry);
       }
     }
     if (currentState != null && !stateList.contains(currentState)) {
@@ -582,7 +568,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     lastStates.retainAll(stateList);
     lastTransitions.retainAll(transList);
     if (lastStates.isEmpty() && (undoDlg == null)) {
-      buttonPanel.getControlByType(CtrlReturn).setEnabled(false);
+      buttonPanel.getControlByType(CTRL_RETURN).setEnabled(false);
     }
   }
 
@@ -596,51 +582,51 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       NearInfinity.getInstance().setViewable(newdlg);
     }
 
-    Viewer newdlg_viewer = (Viewer)newdlg.getViewerTab(0);
+    final Viewer newDlgViewer = (Viewer) newdlg.getViewerTab(0);
     if (isUndo) {
-      newdlg_viewer.alive = true;
-      newdlg_viewer.repaint(); // only necessary when dlg is in extra window
+      newDlgViewer.alive = true;
+      newDlgViewer.repaint(); // only necessary when dlg is in extra window
     } else {
-      newdlg_viewer.setUndoDlg(this.dlg);
-      newdlg_viewer.showState(state);
-      newdlg_viewer.showTransition(newdlg_viewer.currentState == null ? -1 : newdlg_viewer.currentState.getFirstTrans());
+      newDlgViewer.setUndoDlg(this.dlg);
+      newDlgViewer.showState(state);
+      newDlgViewer
+          .showTransition(newDlgViewer.currentState == null ? -1 : newDlgViewer.currentState.getFirstTrans());
     }
 
     // make sure the viewer tab is selected
-    JTabbedPane parent = (JTabbedPane) newdlg_viewer.getParent();
-    parent.getModel().setSelectedIndex(parent.indexOfComponent(newdlg_viewer));
+    JTabbedPane parent = (JTabbedPane) newDlgViewer.getParent();
+    parent.getModel().setSelectedIndex(parent.indexOfComponent(newDlgViewer));
   }
 
   /** Renders negative numbers as dash ({@code "-"}). */
-  private static String toString(int value)
-  {
+  private static String toString(int value) {
     return value < 0 ? "-" : Integer.toString(value);
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private final class DlgPanel extends JPanel implements ActionListener
-  {
-    /** Button used to view {@link #struct} in the new {@link StructViewer} instance.  */
+  private final class DlgPanel extends JPanel implements ActionListener {
+    /** Button used to view {@link #struct} in the new {@link StructViewer} instance. */
     private final JButton bView = new JButton(Icons.ICON_ZOOM_16.getIcon());
+
     /** Button used to open {@link #structEntry} in the table viewer. */
     private final JButton bGoto = new JButton(Icons.ICON_ROW_INSERT_AFTER_16.getIcon());
+
     /** Button used to open {@link #structEntry} in the tree viewer. */
     private final JButton bTree = new JButton(Icons.ICON_SELECT_IN_TREE_16.getIcon());
     private final JButton bPlay = new JButton(Icons.ICON_VOLUME_16.getIcon());
     private final ScriptTextArea textArea = new ScriptTextArea();
     private final JLabel label = new JLabel();
     private final String title;
+
     private AbstractStruct struct;
     private StructEntry structEntry;
 
-    private DlgPanel(String title, boolean viewable)
-    {
+    private DlgPanel(String title, boolean viewable) {
       this(title, viewable, false);
     }
 
-    private DlgPanel(String title, boolean viewable, boolean useHighlighting)
-    {
+    private DlgPanel(String title, boolean viewable, boolean useHighlighting) {
       this.title = title;
       final Insets insets = new Insets(0, 0, 0, 0);
       initButton(bGoto, insets, "Select attribute");
@@ -690,15 +676,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       add(scroll, gbc);
     }
 
-    private void initButton(JButton button, Insets insets, String tooltip)
-    {
+    private void initButton(JButton button, Insets insets, String tooltip) {
       button.setMargin(insets);
       button.setToolTipText(tooltip);
       button.addActionListener(this);
     }
 
-    private void display(State state, int number)
-    {
+    private void display(State state, int number) {
       label.setText(title + " (" + number + ')');
       bView.setEnabled(true);
       bGoto.setEnabled(true);
@@ -712,8 +696,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       textArea.setCaretPosition(0);
     }
 
-    private void display(Transition trans, int number)
-    {
+    private void display(Transition trans, int number) {
       label.setText(title + " (" + number + ')');
       bView.setEnabled(true);
       bGoto.setEnabled(true);
@@ -743,8 +726,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       textArea.setCaretPosition(0);
     }
 
-    private void display(List<? extends AbstractCode> codes, int number)
-    {
+    private void display(List<? extends AbstractCode> codes, int number) {
       final boolean isValid = number >= 0 && number < codes.size();
 
       label.setText(title + " (" + number + ')' + (isValid ? "" : " (broken reference)"));
@@ -778,8 +760,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       }
     }
 
-    private void clearDisplay()
-    {
+    private void clearDisplay() {
       label.setText(title + " (-)");
       label.setForeground(NORMAL_COLOR);
       textArea.setText("");
@@ -792,19 +773,18 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
 
     @Override
-    public void actionPerformed(ActionEvent event)
-    {
+    public void actionPerformed(ActionEvent event) {
       if (event.getSource() == bView) {
         new ViewFrame(getTopLevelAncestor(), struct);
       } else if (event.getSource() == bGoto) {
         dlg.getViewer().selectEntry(structEntry.getName());
       } else if (event.getSource() == bTree) {
         if (struct instanceof TreeItemEntry) {
-          dlg.selectInTree((TreeItemEntry)struct);
+          dlg.selectInTree((TreeItemEntry) struct);
         }
       } else if (event.getSource() == bPlay) {
         if (struct instanceof TreeItemEntry) {
-          final int strRef = ((TreeItemEntry)struct).getAssociatedText().getValue();
+          final int strRef = ((TreeItemEntry) struct).getAssociatedText().getValue();
           final String resourceName = StringTable.getSoundResource(strRef);
           if (!resourceName.isEmpty()) {
             ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName + ".WAV");

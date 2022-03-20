@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -21,14 +21,12 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.are.viewer.AreaViewer;
 
-final class Viewer extends JPanel implements ActionListener
-{
+final class Viewer extends JPanel implements ActionListener {
   private static final String CMD_VIEWAREA = "ViewArea";
 
   private final AreResource are;
 
-  private JPanel makeFieldPanel()
-  {
+  private JPanel makeFieldPanel() {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldBasePanel = new JPanel(new BorderLayout());
@@ -56,18 +54,15 @@ final class Viewer extends JPanel implements ActionListener
     return fieldBasePanel;
   }
 
-  Viewer(AreResource are)
-  {
+  Viewer(AreResource are) {
     this.are = are;
 
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)are.getAttribute(AreResource.ARE_LOCATION), 1);
+    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_LOCATION), 1);
     JPanel fieldPanel = makeFieldPanel();
     JPanel actorPanel = ViewerUtil.makeListPanel("Actors", are, Actor.class, Actor.ARE_ACTOR_NAME);
-    JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are,
-                                                     Container.class, Container.ARE_CONTAINER_NAME);
+    JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are, Container.class, Container.ARE_CONTAINER_NAME);
     JPanel doorPanel = ViewerUtil.makeListPanel("Doors", are, Door.class, Door.ARE_DOOR_NAME);
-    JPanel itePanel = ViewerUtil.makeListPanel("Points of interest", are,
-                                               ITEPoint.class, ITEPoint.ARE_TRIGGER_NAME);
+    JPanel itePanel = ViewerUtil.makeListPanel("Points of interest", are, ITEPoint.class, ITEPoint.ARE_TRIGGER_NAME);
 
     JPanel pLeft = new JPanel(new GridLayout(2, 1, 4, 4));
     pLeft.add(fieldPanel);
@@ -85,16 +80,14 @@ final class Viewer extends JPanel implements ActionListener
     setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getActionCommand().equals(CMD_VIEWAREA)) {
       are.showAreaViewer(this);
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 }
-

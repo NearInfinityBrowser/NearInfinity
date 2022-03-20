@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -38,33 +38,38 @@ import org.infinity.util.IniMapSection;
 /**
  * Manages actor layer objects.
  */
-public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implements PropertyChangeListener
-{
-  private static final String AvailableFmt = "Actors: %d";
+public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implements PropertyChangeListener {
+  private static final String AVAILABLE_FMT = "Actors: %d";
 
-  private boolean realEnabled, realPlaying, forcedInterpolation, selectionCircleEnabled, personalSpaceEnabled;
+  private boolean realEnabled;
+  private boolean realPlaying;
+  private boolean forcedInterpolation;
+  private boolean selectionCircleEnabled;
+  private boolean personalSpaceEnabled;
   private int frameState;
+
   private Object interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
+
   private double frameRate = ViewerConstants.FRAME_AUTO;
+
   private SwingWorker<Void, Void> loadWorker;
   private WindowBlocker blocker;
 
-  public LayerActor(AreResource are, AreaViewer viewer)
-  {
+  public LayerActor(AreResource are, AreaViewer viewer) {
     super(are, ViewerConstants.LayerType.ACTOR, viewer);
     loadLayer();
   }
 
   @Override
-  protected void loadLayer()
-  {
+  protected void loadLayer() {
     // loading actors from ARE
-    loadLayerItems(AreResource.ARE_OFFSET_ACTORS, AreResource.ARE_NUM_ACTORS,
-                   Actor.class, a -> new LayerObjectAreActor(parent, a));
+    loadLayerItems(AreResource.ARE_OFFSET_ACTORS, AreResource.ARE_NUM_ACTORS, Actor.class,
+        a -> new LayerObjectAreActor(parent, a));
 
     final List<LayerObjectActor> objectList = getLayerObjects();
     // loading actors from associated INI
-    final String iniFile = ((IsTextual)parent.getAttribute(AreResource.ARE_WED_RESOURCE)).getText().toUpperCase(Locale.ENGLISH) + ".INI";
+    final String iniFile = ((IsTextual) parent.getAttribute(AreResource.ARE_WED_RESOURCE)).getText()
+        .toUpperCase(Locale.ENGLISH) + ".INI";
     IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
     if (ini != null) {
       for (final IniMapSection section : ini) {
@@ -93,7 +98,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
       ResourceEntry gamEntry = null;
       Path arePath = areEntry.getActualPath();
       if (arePath != null) {
-        Path gamPath = arePath.getParent().resolve((String)Profile.getProperty(Profile.Key.GET_GAM_NAME));
+        Path gamPath = arePath.getParent().resolve((String) Profile.getProperty(Profile.Key.GET_GAM_NAME));
         if (Files.isRegularFile(gamPath)) {
           gamEntry = new FileResourceEntry(gamPath, false);
         }
@@ -106,11 +111,11 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
       if (gamEntry != null) {
         Resource res = ResourceFactory.getResource(gamEntry);
         if (res instanceof GamResource) {
-          GamResource gamRes = (GamResource)res;
+          GamResource gamRes = (GamResource) res;
           List<StructEntry> npcList = gamRes.getFields(PartyNPC.class);
           for (int i = 0, cnt = npcList.size(); i < cnt; i++) {
-            PartyNPC npc = (PartyNPC)npcList.get(i);
-            String area = ((IsTextual)npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
+            PartyNPC npc = (PartyNPC) npcList.get(i);
+            String area = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
             if (areEntry.getResourceRef().equalsIgnoreCase(area)) {
               try {
                 LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
@@ -130,27 +135,24 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   }
 
   @Override
-  public String getAvailability()
-  {
+  public String getAvailability() {
     int cnt = getLayerObjectCount();
-    return String.format(AvailableFmt, cnt);
+    return String.format(AVAILABLE_FMT, cnt);
   }
 
   /**
-   * Sets the visibility state of all items in the layer. Takes enabled states of the different
-   * item types into account.
+   * Sets the visibility state of all items in the layer. Takes enabled states of the different item types into account.
    */
   @Override
-  public void setLayerVisible(boolean visible)
-  {
+  public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
 
     loadWorker = new SwingWorker<Void, Void>() {
       @Override
-      public Void doInBackground()
-      {
+      public Void doInBackground() {
         final List<LayerObjectActor> list = getLayerObjects();
-        final ProgressMonitor progress = new ProgressMonitor(getViewer(), "Loading actor animations...", "0 %", 0, list.size());
+        final ProgressMonitor progress = new ProgressMonitor(getViewer(), "Loading actor animations...", "0 %", 0,
+            list.size());
         progress.setMillisToDecideToPopup(500);
         progress.setMillisToPopup(1000);
 
@@ -160,14 +162,15 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
             boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
             LayerObjectActor loa = list.get(i);
 
-            IconLayerItem iconItem = (IconLayerItem)loa.getLayerItem(ViewerConstants.ITEM_ICON);
+            IconLayerItem iconItem = (IconLayerItem) loa.getLayerItem(ViewerConstants.ITEM_ICON);
             if (iconItem != null) {
               iconItem.setVisible(state && !realEnabled);
             }
 
-            AnimatedLayerItem animItem = (AnimatedLayerItem)loa.getLayerItem(ViewerConstants.ITEM_REAL);
+            AnimatedLayerItem animItem = (AnimatedLayerItem) loa.getLayerItem(ViewerConstants.ITEM_REAL);
             if (animItem != null) {
-              if (animItem.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER && state && realEnabled) {
+              if (animItem.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER && state
+                  && realEnabled) {
                 // real actor animations loaded on demand
                 if (blocker == null) {
                   blocker = new WindowBlocker(getViewer());
@@ -204,42 +207,40 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     loadWorker.execute();
   }
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent e)
-  {
+  public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() == loadWorker) {
-      if ("state".equals(e.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == e.getNewValue()) {
+      if ("state".equals(e.getPropertyName()) && SwingWorker.StateValue.DONE == e.getNewValue()) {
         loadWorker = null;
       }
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
   /**
    * Returns the currently active interpolation type for real actors.
-   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
-   *         or ViewerConstants.TYPE_BICUBIC.
+   *
+   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR or
+   *         ViewerConstants.TYPE_BICUBIC.
    */
-  public Object getRealActorInterpolation()
-  {
+  public Object getRealActorInterpolation() {
     return interpolationType;
   }
 
   /**
    * Sets the interpolation type for real actors.
-   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
-   *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
+   *
+   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
+   *                          or ViewerConstants.TYPE_BICUBIC.
    */
-  public void setRealActorInterpolation(Object interpolationType)
-  {
+  public void setRealActorInterpolation(Object interpolationType) {
     if (interpolationType != this.interpolationType) {
       this.interpolationType = interpolationType;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setInterpolationType(interpolationType);
         }
@@ -248,24 +249,22 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   }
 
   /**
-   * Returns whether to force the specified interpolation type or use the best one available, depending
-   * on the current zoom factor.
+   * Returns whether to force the specified interpolation type or use the best one available, depending on the current
+   * zoom factor.
    */
-  public boolean isRealActorForcedInterpolation()
-  {
+  public boolean isRealActorForcedInterpolation() {
     return forcedInterpolation;
   }
 
   /**
-   * Specify whether to force the specified interpolation type or use the best one available, depending
-   * on the current zoom factor.
+   * Specify whether to force the specified interpolation type or use the best one available, depending on the current
+   * zoom factor.
    */
-  public void setRealActorForcedInterpolation(boolean forced)
-  {
+  public void setRealActorForcedInterpolation(boolean forced) {
     if (forced != forcedInterpolation) {
       forcedInterpolation = forced;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setForcedInterpolation(forced);
         }
@@ -275,21 +274,19 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
 
   /**
    * Returns whether real actor items or iconic actor items are enabled.
-   * @return If {@code true}, real actor items are enabled.
-   *         If {@code false}, iconic actor items are enabled.
+   *
+   * @return If {@code true}, real actor items are enabled. If {@code false}, iconic actor items are enabled.
    */
-  public boolean isRealActorEnabled()
-  {
+  public boolean isRealActorEnabled() {
     return realEnabled;
   }
 
   /**
    * Specify whether iconic actor type or real actor type is enabled.
-   * @param enable If {@code true}, real actor items will be shown.
-   *               If {@code false}, iconic actor items will be shown.
+   *
+   * @param enable If {@code true}, real actor items will be shown. If {@code false}, iconic actor items will be shown.
    */
-  public void setRealActorEnabled(boolean enable)
-  {
+  public void setRealActorEnabled(boolean enable) {
     if (enable != realEnabled) {
       realEnabled = enable;
       if (isLayerVisible()) {
@@ -301,17 +298,14 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   /**
    * Returns whether real actor items are enabled and animated.
    */
-  public boolean isRealActorPlaying()
-  {
+  public boolean isRealActorPlaying() {
     return realEnabled && realPlaying;
   }
 
   /**
-   * Specify whether real actor should be animated. Setting to {@code true} will enable
-   * real actors automatically.
+   * Specify whether real actor should be animated. Setting to {@code true} will enable real actors automatically.
    */
-  public void setRealActorPlaying(boolean play)
-  {
+  public void setRealActorPlaying(boolean play) {
     if (play != realPlaying) {
       realPlaying = play;
       if (realPlaying && !realEnabled) {
@@ -325,24 +319,23 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
 
   /**
    * Returns the current frame visibility.
+   *
    * @return One of ViewerConstants.FRAME_NEVER, ViewerConstants.FRAME_AUTO or ViewerConstants.FRAME_ALWAYS.
    */
-  public int getRealActorFrameState()
-  {
+  public int getRealActorFrameState() {
     return frameState;
   }
 
   /**
    * Specify the frame visibility for real actors
+   *
    * @param state One of ViewerConstants.FRAME_NEVER, ViewerConstants.FRAME_AUTO or ViewerConstants.FRAME_ALWAYS.
    */
-  public void setRealActorFrameState(int state)
-  {
+  public void setRealActorFrameState(int state) {
     switch (state) {
       case ViewerConstants.FRAME_NEVER:
       case ViewerConstants.FRAME_AUTO:
-      case ViewerConstants.FRAME_ALWAYS:
-      {
+      case ViewerConstants.FRAME_ALWAYS: {
         frameState = state;
         updateFrameState();
         break;
@@ -353,22 +346,20 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   /**
    * Returns whether selection circle of actor sprites is enabled.
    */
-  public boolean isRealActorSelectionCircleEnabled()
-  {
+  public boolean isRealActorSelectionCircleEnabled() {
     return selectionCircleEnabled;
   }
 
   /**
    * Specify whether selection circle of actor sprites is enabled.
    */
-  public void setRealActorSelectionCircleEnabled(boolean enable)
-  {
+  public void setRealActorSelectionCircleEnabled(boolean enable) {
     if (enable != selectionCircleEnabled) {
       selectionCircleEnabled = enable;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item.getAnimation() instanceof ActorAnimationProvider) {
-          ActorAnimationProvider aap = (ActorAnimationProvider)item.getAnimation();
+          ActorAnimationProvider aap = (ActorAnimationProvider) item.getAnimation();
           aap.setSelectionCircleEnabled(selectionCircleEnabled);
         }
       }
@@ -378,22 +369,20 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   /**
    * Returns whether personal space indicator of actor sprites is enabled.
    */
-  public boolean isRealActorPersonalSpaceEnabled()
-  {
+  public boolean isRealActorPersonalSpaceEnabled() {
     return personalSpaceEnabled;
   }
 
   /**
    * Specify whether personal space indicator of actor sprites is enabled.
    */
-  public void setRealActorPersonalSpaceEnabled(boolean enable)
-  {
+  public void setRealActorPersonalSpaceEnabled(boolean enable) {
     if (enable != personalSpaceEnabled) {
       personalSpaceEnabled = enable;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item.getAnimation() instanceof ActorAnimationProvider) {
-          ActorAnimationProvider aap = (ActorAnimationProvider)item.getAnimation();
+          ActorAnimationProvider aap = (ActorAnimationProvider) item.getAnimation();
           aap.setPersonalSpaceEnabled(personalSpaceEnabled);
         }
       }
@@ -402,24 +391,24 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
 
   /**
    * Returns the frame rate used for playing back actor sprites.
+   *
    * @return Frame rate in frames/second.
    */
-  public double getRealActorFrameRate()
-  {
+  public double getRealActorFrameRate() {
     return frameRate;
   }
 
   /**
    * Specify a new frame rate for real actors.
+   *
    * @param frameRate Frame rate in frames/second.
    */
-  public void setRealActorFrameRate(double frameRate)
-  {
+  public void setRealActorFrameRate(double frameRate) {
     frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
     if (frameRate != this.frameRate) {
       this.frameRate = frameRate;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setFrameRate(frameRate);
         }
@@ -427,10 +416,9 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     }
   }
 
-  private void updateFrameState()
-  {
+  private void updateFrameState() {
     for (final LayerObjectActor layer : getLayerObjects()) {
-      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+      final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
       if (item != null) {
         switch (frameState) {
           case ViewerConstants.FRAME_NEVER:

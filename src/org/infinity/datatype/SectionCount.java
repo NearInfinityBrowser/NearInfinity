@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -9,40 +9,35 @@ import java.util.Objects;
 
 import org.infinity.resource.StructEntry;
 
-public final class SectionCount extends DecNumber
-{
+public final class SectionCount extends DecNumber {
   private Class<? extends StructEntry> section;
 
-  public SectionCount(ByteBuffer buffer, int offset, int length, String desc,
-                      Class<? extends StructEntry> section)
-  {
+  public SectionCount(ByteBuffer buffer, int offset, int length, String desc, Class<? extends StructEntry> section) {
     super(buffer, offset, length, desc);
     this.section = Objects.requireNonNull(section, "Class for SectionCount must not be null");
   }
 
-//--------------------- Begin Interface InlineEditable ---------------------
+  // --------------------- Begin Interface InlineEditable ---------------------
 
- @Override
- public boolean update(Object value)
- {
-   // should not be modified by the user
-   return false;
- }
+  @Override
+  public boolean update(Object value) {
+    // should not be modified by the user
+    return false;
+  }
 
-//--------------------- End Interface InlineEditable ---------------------
+  // --------------------- End Interface InlineEditable ---------------------
 
-  public Class<? extends StructEntry> getSection()
-  {
+  public Class<? extends StructEntry> getSection() {
     return section;
   }
 
-  public void setSection(Class<? extends StructEntry> section)
-  {
+  public void setSection(Class<? extends StructEntry> section) {
     if (!this.section.equals(section)) {
       Class<? extends StructEntry> cls = this.section;
       this.section = Objects.requireNonNull(section, "Class for SectionCount must not be null");
-      if (getParent() != null)
+      if (getParent() != null) {
         getParent().updateSectionCount(cls);
+      }
     }
   }
 }

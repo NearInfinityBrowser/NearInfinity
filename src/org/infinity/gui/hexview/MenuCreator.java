@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.hexview;
@@ -22,8 +22,7 @@ import tv.porst.jhexview.JHexView;
 /**
  * Provides a basic popupmenu for the HexViewer components.
  */
-public class MenuCreator implements IMenuCreator, ActionListener
-{
+public class MenuCreator implements IMenuCreator, ActionListener {
   private final JPopupMenu popup;
   private final JMenuItem miUndo;
   private final JMenuItem miRedo;
@@ -32,8 +31,7 @@ public class MenuCreator implements IMenuCreator, ActionListener
   private final JMenuItem miSelectAll;
   private final JHexView hexView;
 
-  public MenuCreator(JHexView hexView)
-  {
+  public MenuCreator(JHexView hexView) {
     if (hexView == null) {
       throw new NullPointerException("hexView is null");
     }
@@ -68,11 +66,10 @@ public class MenuCreator implements IMenuCreator, ActionListener
     miSelectAll.addActionListener(this);
   }
 
-//--------------------- Begin Interface IMenuCreator ---------------------
+  // --------------------- Begin Interface IMenuCreator ---------------------
 
   @Override
-  public JPopupMenu createMenu(long offset)
-  {
+  public JPopupMenu createMenu(long offset) {
     // generating popup menu
     popup.removeAll();
 
@@ -94,13 +91,12 @@ public class MenuCreator implements IMenuCreator, ActionListener
     return popup;
   }
 
-//--------------------- End Interface IMenuCreator ---------------------
+  // --------------------- End Interface IMenuCreator ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == miUndo) {
       getHexView().undo();
     } else if (e.getSource() == miRedo) {
@@ -114,37 +110,30 @@ public class MenuCreator implements IMenuCreator, ActionListener
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
   /** Returns the parent JHexView component. */
-  public JHexView getHexView()
-  {
+  public JHexView getHexView() {
     return hexView;
   }
 
-  protected JPopupMenu getPopupMenu()
-  {
+  protected JPopupMenu getPopupMenu() {
     return popup;
   }
 
-  private boolean isUndoAvailable()
-  {
+  private boolean isUndoAvailable() {
     return getHexView().canUndo();
   }
 
-  private boolean isRedoAvailable()
-  {
+  private boolean isRedoAvailable() {
     return getHexView().canRedo();
   }
 
-  private boolean isCopyAvailable()
-  {
+  private boolean isCopyAvailable() {
     return (getHexView().getSelectionLength() > 0);
   }
 
-  private boolean isPasteAvailable()
-  {
-    return Toolkit.getDefaultToolkit().getSystemClipboard()
-        .isDataFlavorAvailable(DataFlavor.stringFlavor);
+  private boolean isPasteAvailable() {
+    return Toolkit.getDefaultToolkit().getSystemClipboard().isDataFlavorAvailable(DataFlavor.stringFlavor);
   }
 }

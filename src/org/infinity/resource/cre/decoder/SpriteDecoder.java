@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -64,8 +64,7 @@ import org.infinity.util.tuples.Couple;
 /**
  * Specialized BAM decoder for creature animation sprites.
  */
-public abstract class SpriteDecoder extends PseudoBamDecoder
-{
+public abstract class SpriteDecoder extends PseudoBamDecoder {
   // List of general creature animation attributes
   public static final DecoderAttribute KEY_ANIMATION_TYPE     = DecoderAttribute.with("animation_type", DecoderAttribute.DataType.USERDEFINED);
   public static final DecoderAttribute KEY_ANIMATION_SECTION  = DecoderAttribute.with("animation_section", DecoderAttribute.DataType.STRING);
@@ -98,39 +97,34 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * A default operation that can be passed to the
    * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
-   * method. It is called once per source BAM resource.
-   * Performed actions: palette replacement, shadow color fix, false color replacement, translucency
+   * method. It is called once per source BAM resource. Performed actions: palette replacement, shadow color fix, false
+   * color replacement, translucency
    */
-  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = new BeforeSourceBam() {
-    @Override
-    public void accept(BamV1Control control, SegmentDef sd)
-    {
-      if (isPaletteReplacementEnabled() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
-        int[] palette = getNewPaletteData(sd.getEntry());
-        if (palette != null) {
-          SpriteUtils.applyNewPalette(control, palette);
-        }
+  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = (control, sd) -> {
+    if (isPaletteReplacementEnabled() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
+      int[] palette = getNewPaletteData(sd.getEntry());
+      if (palette != null) {
+        SpriteUtils.applyNewPalette(control, palette);
       }
+    }
 
-      SpriteUtils.fixShadowColor(control, isTransparentShadow());
+    SpriteUtils.fixShadowColor(control, isTransparentShadow());
 
-      if (isPaletteReplacementEnabled() && isFalseColor()) {
-        applyFalseColors(control, sd);
-      }
+    if (isPaletteReplacementEnabled() && isFalseColor()) {
+      applyFalseColors(control, sd);
+    }
 
-      if (isTintEnabled()) {
-        applyColorTint(control, sd);
-      }
+    if (isTintEnabled()) {
+      applyColorTint(control, sd);
+    }
 
-      if (isPaletteReplacementEnabled() && isFalseColor() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
-        applyColorEffects(control, sd);
-      }
+    if (isPaletteReplacementEnabled() && isFalseColor() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
+      applyColorEffects(control, sd);
+    }
 
-      if ((isTranslucencyEnabled() && isTranslucent()) ||
-          (isBlurEnabled() && isBlurred())) {
-        int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
-        applyTranslucency(control, minVal);
-      }
+    if ((isTranslucencyEnabled() && isTranslucent()) || (isBlurEnabled() && isBlurred())) {
+      int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
+      applyTranslucency(control, minVal);
     }
   };
 
@@ -139,26 +133,15 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
    * method. It is called for each source frame (segment) before being applied to the target frame.
    */
-  protected final BeforeSourceFrame FN_BEFORE_SRC_FRAME = new BeforeSourceFrame() {
-    @Override
-    public BufferedImage apply(SegmentDef sd, BufferedImage image, Graphics2D g)
-    {
-      // nothing to do...
-      return image;
-    }
-  };
+  protected final BeforeSourceFrame FN_BEFORE_SRC_FRAME = (sd, image, g) -> image;
 
   /**
    * A default operation that can be passed to the
    * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
    * method. It is called for each source frame (segment) after being applied to the target frame.
    */
-  protected final AfterSourceFrame FN_AFTER_SRC_FRAME = new AfterSourceFrame() {
-    @Override
-    public void accept(SegmentDef sd, Graphics2D g)
-    {
-      // nothing to do...
-    }
+  protected final AfterSourceFrame FN_AFTER_SRC_FRAME = (sd, g) -> {
+    // nothing to do...
   };
 
   /**
@@ -166,13 +149,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
    * method. It calculates an eastern direction frame by mirroring it horizontally if needed.
    */
-  protected final AfterDestFrame FN_AFTER_DST_FRAME = new AfterDestFrame() {
-    @Override
-    public void accept(DirDef dd, int frameIdx)
-    {
-      if (dd.isMirrored()) {
-        flipImageHorizontal(frameIdx);
-      }
+  protected final AfterDestFrame FN_AFTER_DST_FRAME = (dd, frameIdx) -> {
+    if (dd.isMirrored()) {
+      flipImageHorizontal(frameIdx);
     }
   };
 
@@ -203,12 +182,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Creates a new {@code SpriteDecoder} instance based on the specified animation id.
+   *
    * @param animationId the creature animation id in the range [0, 0xffff].
    * @return A {@code SpriteDecoder} instance with processed animation data.
    * @throws Exception if the creature animation could not be loaded.
    */
-  public static SpriteDecoder importSprite(int animationId) throws Exception
-  {
+  public static SpriteDecoder importSprite(int animationId) throws Exception {
     if (animationId < 0 || animationId > 0xffff) {
       throw new IllegalArgumentException(String.format("Animation id is out of range: 0x%04x", animationId));
     }
@@ -218,35 +197,35 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Creates a new {@code SpriteDecoder} instance based on the specified CRE resource.
+   *
    * @param cre The CRE resource instance.
    * @return A {@code SpriteDecoder} instance with processed animation data.
    * @throws Exception if the specified resource could not be processed.
    */
-  public static SpriteDecoder importSprite(CreResource cre) throws Exception
-  {
+  public static SpriteDecoder importSprite(CreResource cre) throws Exception {
     Objects.requireNonNull(cre, "CRE resource cannot be null");
-    int animationId = ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue();
-    Class<? extends SpriteDecoder> spriteClass =
-        Objects.requireNonNull(SpriteUtils.detectAnimationType(animationId), String.format("Creature animation is not available: 0x%04x", animationId));
+    int animationId = ((IsNumeric) cre.getAttribute(CreResource.CRE_ANIMATION)).getValue();
+    Class<? extends SpriteDecoder> spriteClass = Objects.requireNonNull(SpriteUtils.detectAnimationType(animationId),
+        String.format("Creature animation is not available: 0x%04x", animationId));
     try {
-      Constructor<? extends SpriteDecoder> ctor =
-          Objects.requireNonNull(spriteClass.getConstructor(CreResource.class), "No matching constructor found");
+      Constructor<? extends SpriteDecoder> ctor = Objects.requireNonNull(spriteClass.getConstructor(CreResource.class),
+          "No matching constructor found");
       return ctor.newInstance(cre);
     } catch (InvocationTargetException ite) {
-      throw (ite.getCause() instanceof Exception) ? (Exception)ite.getCause() : ite;
+      throw (ite.getCause() instanceof Exception) ? (Exception) ite.getCause() : ite;
     }
   }
 
   /**
    * Instances creates with this constructor are only suited for identification purposes.
-   * @param type the animation type
+   *
+   * @param type        the animation type
    * @param animationId specific animation id
    * @param sectionName INI section name for animation-specific data
-   * @param ini the INI file with creature animation attributes
+   * @param ini         the INI file with creature animation attributes
    * @throws Exception
    */
-  protected SpriteDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
-  {
+  protected SpriteDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception {
     Objects.requireNonNull(type, "Animation type cannot be null");
     Objects.requireNonNull(ini, "No INI data available for animation id: " + animationId);
     this.attributesMap = new TreeMap<>();
@@ -264,12 +243,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * This constructor creates an instance that can be used to render animation sequences.
+   *
    * @param type the animation type
-   * @param cre the CRE resource instance.
+   * @param cre  the CRE resource instance.
    * @throws Exception
    */
-  protected SpriteDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
-  {
+  protected SpriteDecoder(AnimationInfo.Type type, CreResource cre) throws Exception {
     Objects.requireNonNull(type, "Animation type cannot be null");
     this.attributesMap = new TreeMap<>();
     this.directionMap = new EnumMap<>(Direction.class);
@@ -277,7 +256,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     setAttribute(KEY_ANIMATION_SECTION, type.getSectionName());
     this.creInfo = new CreatureInfo(this, cre);
     this.ini = Objects.requireNonNull(SpriteUtils.getAnimationInfo(getAnimationId()),
-                                      String.format("No INI data available for animation id: 0x%04x", getAnimationId()));
+        String.format("No INI data available for animation id: 0x%04x", getAnimationId()));
     this.currentSequence = Sequence.NONE;
     this.showCircle = false;
     this.selectionCircleBitmap = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);
@@ -299,13 +278,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Returns the data associated with the specified attribute name.
+   *
    * @param key the attribute name.
-   * @return attribute data in the type inferred from the method call.
-   *                   Returns {@code null} if data is not available for the inferred type.
+   * @return attribute data in the type inferred from the method call. Returns {@code null} if data is not available for
+   *         the inferred type.
    */
   @SuppressWarnings("unchecked")
-  public <T> T getAttribute(DecoderAttribute att)
-  {
+  public <T> T getAttribute(DecoderAttribute att) {
     T retVal = null;
     if (att == null) {
       return retVal;
@@ -314,7 +293,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     Object data = attributesMap.getOrDefault(att, att.getDefaultValue());
     if (data != null) {
       try {
-        retVal = (T)data;
+        retVal = (T) data;
       } catch (ClassCastException e) {
         // e.printStackTrace();
       }
@@ -324,11 +303,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Stores the attribute key and value along with the autodetected data type.
-   * @param key the attribute name.
+   *
+   * @param key   the attribute name.
    * @param value the value in one of the data types covered by {@link DecoderAttribute.DataType}.
    */
-  protected void setAttribute(DecoderAttribute att, Object value)
-  {
+  protected void setAttribute(DecoderAttribute att, Object value) {
     if (att == null) {
       return;
     }
@@ -336,37 +315,34 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns an iterator over the attribute keys. */
-  public Iterator<DecoderAttribute> getAttributeIterator()
-  {
+  public Iterator<DecoderAttribute> getAttributeIterator() {
     return attributesMap.keySet().iterator();
   }
 
   /** Returns the type of the current creature animation. */
-  public AnimationInfo.Type getAnimationType()
-  {
+  public AnimationInfo.Type getAnimationType() {
     return getAttribute(KEY_ANIMATION_TYPE);
   }
 
   /**
-   * Returns the INI section name for the current animation type.
-   * Returns {@code null} if the name could not be determined.
+   * Returns the INI section name for the current animation type. Returns {@code null} if the name could not be
+   * determined.
    */
-  public String getAnimationSectionName()
-  {
+  public String getAnimationSectionName() {
     return getAttribute(KEY_ANIMATION_SECTION);
   }
 
   /**
    * Returns a list of BAM filenames associated with the current animation type.
+   *
    * @param essential if set returns only essential files required for the animation.
-   * @return list of BAM filenames associated with the current animation type.
-   *         Returns {@code null} if files could not be determined.
+   * @return list of BAM filenames associated with the current animation type. Returns {@code null} if files could not
+   *         be determined.
    */
   public abstract List<String> getAnimationFiles(boolean essential);
 
   /** Recreates the creature animation based on the current creature resource. */
-  public void reset() throws Exception
-  {
+  public void reset() throws Exception {
     Direction[] directions = getDirectionMap().keySet().toArray(new Direction[getDirectionMap().keySet().size()]);
     discard();
     // recreating current sequence
@@ -376,36 +352,34 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Removes the currently loaded animation sequence. */
-  protected void discard()
-  {
+  protected void discard() {
     frameClear();
     directionMap.clear();
     SpriteUtils.clearBamCache();
   }
 
   /**
-   * Loads the specified sequence if available. Discards the currently active sequence.
-   * Call {@code reset()} instead to enforce reloading the same sequence with different
-   * creature attributes.
+   * Loads the specified sequence if available. Discards the currently active sequence. Call {@code reset()} instead to
+   * enforce reloading the same sequence with different creature attributes.
+   *
    * @param seq the animation sequence to load. Specifying {@code Sequence.None} only discards the current sequence.
    * @return whether the sequence was successfully loaded.
    */
-  public boolean loadSequence(Sequence seq) throws Exception
-  {
+  public boolean loadSequence(Sequence seq) throws Exception {
     return loadSequence(seq, null);
   }
 
   /**
-   * Loads selected directions of the specified sequence if available. Discards the currently active sequence.
-   * Call {@code reset()} instead to enforce reloading the same sequence with different
-   * creature attributes.
-   * @param seq the animation sequence to load. Specifying {@code Sequence.None} only discards the current sequence.
-   * @param directions array with directions allowed to be created. Specify {@code null} to create animations
-   *                   for all directions.
+   * Loads selected directions of the specified sequence if available. Discards the currently active sequence. Call
+   * {@code reset()} instead to enforce reloading the same sequence with different creature attributes.
+   *
+   * @param seq        the animation sequence to load. Specifying {@code Sequence.None} only discards the current
+   *                   sequence.
+   * @param directions array with directions allowed to be created. Specify {@code null} to create animations for all
+   *                   directions.
    * @return whether the sequence was successfully loaded.
    */
-  public boolean loadSequence(Sequence seq, Direction[] directions) throws Exception
-  {
+  public boolean loadSequence(Sequence seq, Direction[] directions) throws Exception {
     boolean retVal = true;
 
     if (getCurrentSequence() != Objects.requireNonNull(seq, "Animation sequence cannot be null")) {
@@ -427,8 +401,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns the currently active sequence. */
-  public Sequence getCurrentSequence()
-  {
+  public Sequence getCurrentSequence() {
     return currentSequence;
   }
 
@@ -437,12 +410,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Returns the closest available direction to the specified direction.
+   *
    * @param dir the requested direction
-   * @return an available {@code Direction} that is closest to the specified direction.
-   *         Returns {@code null} if no direction is available.
+   * @return an available {@code Direction} that is closest to the specified direction. Returns {@code null} if no
+   *         direction is available.
    */
-  public Direction getExistingDirection(Direction dir)
-  {
+  public Direction getExistingDirection(Direction dir) {
     Direction retVal = null;
 
     if (dir == null) {
@@ -478,38 +451,32 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Provides access to the {@link CreatureInfo} instance associated with the sprite decoder. */
-  public CreatureInfo getCreatureInfo()
-  {
+  public CreatureInfo getCreatureInfo() {
     return creInfo;
   }
 
   /** Returns the {@code CreResource} instance of the current CRE resource. */
-  public CreResource getCreResource()
-  {
+  public CreResource getCreResource() {
     return creInfo.getCreResource();
   }
 
   /** Returns the numeric animation id of the current CRE resource. */
-  public int getAnimationId()
-  {
+  public int getAnimationId() {
     return creInfo.getAnimationId();
   }
 
   /** Returns a INI structure with creature animation info. */
-  public IniMap getAnimationInfo()
-  {
+  public IniMap getAnimationInfo() {
     return ini;
   }
 
   /** Returns whether the selection circle for the creature is drawn. */
-  public boolean isSelectionCircleEnabled()
-  {
+  public boolean isSelectionCircleEnabled() {
     return showCircle;
   }
 
   /** Sets whether the selection circle for the creature is drawn. */
-  public void setSelectionCircleEnabled(boolean b)
-  {
+  public void setSelectionCircleEnabled(boolean b) {
     if (showCircle != b) {
       showCircle = b;
       selectionCircleChanged();
@@ -517,14 +484,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether the space occupied by the creature is visualized. */
-  public boolean isPersonalSpaceVisible()
-  {
+  public boolean isPersonalSpaceVisible() {
     return showPersonalSpace;
   }
 
   /** Sets whether the space occupied by the creature is visualized. */
-  public void setPersonalSpaceVisible(boolean b)
-  {
+  public void setPersonalSpaceVisible(boolean b) {
     if (showPersonalSpace != b) {
       showPersonalSpace = b;
       personalSpaceChanged();
@@ -532,14 +497,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether a bounding box is drawn around sprites (or quadrants) and secondary overlays. */
-  public boolean isBoundingBoxVisible()
-  {
+  public boolean isBoundingBoxVisible() {
     return showBoundingBox;
   }
 
   /** Sets whether a bounding box is drawn around sprites (or quadrants) and secondary overlays. */
-  public void setBoundingBoxVisible(boolean b)
-  {
+  public void setBoundingBoxVisible(boolean b) {
     if (showBoundingBox != b) {
       showBoundingBox = b;
       spriteChanged();
@@ -547,14 +510,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether the avatar sprite should be rendered. */
-  public boolean getRenderAvatar()
-  {
+  public boolean getRenderAvatar() {
     return renderSpriteAvatar;
   }
 
   /** Sets whether the avatar sprite should be rendered. */
-  public void setRenderAvatar(boolean b)
-  {
+  public void setRenderAvatar(boolean b) {
     if (renderSpriteAvatar != b) {
       renderSpriteAvatar = b;
       spriteChanged();
@@ -562,14 +523,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether the weapon overlay should be rendered. This option affects only specific animation types. */
-  public boolean getRenderWeapon()
-  {
+  public boolean getRenderWeapon() {
     return renderSpriteWeapon;
   }
 
   /** Sets whether the weapon overlay should be rendered. This option affects only specific animation types. */
-  public void setRenderWeapon(boolean b)
-  {
+  public void setRenderWeapon(boolean b) {
     if (renderSpriteWeapon != b) {
       renderSpriteWeapon = b;
       spriteChanged();
@@ -577,35 +536,31 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns whether the shield (or left-handed weapon) overlay should be rendered.
-   * This option affects only specific animation types.
+   * Returns whether the shield (or left-handed weapon) overlay should be rendered. This option affects only specific
+   * animation types.
    */
-  public boolean getRenderShield()
-  {
+  public boolean getRenderShield() {
     return renderSpriteShield;
   }
 
   /**
-   * Sets whether the shield (or left-handed weapon) overlay should be rendered.
-   * This option affects only specific animation types.
+   * Sets whether the shield (or left-handed weapon) overlay should be rendered. This option affects only specific
+   * animation types.
    */
-  public void setRenderShield(boolean b)
-  {
+  public void setRenderShield(boolean b) {
     if (renderSpriteShield != b) {
       renderSpriteShield = b;
       spriteChanged();
     }
   }
 
-  /**  Returns whether the helmet overlay should be rendered. This option affects only specific animation types. */
-  public boolean getRenderHelmet()
-  {
+  /** Returns whether the helmet overlay should be rendered. This option affects only specific animation types. */
+  public boolean getRenderHelmet() {
     return renderSpriteHelmet;
   }
 
   /** Sets whether the helmet overlay should be rendered. This option affects only specific animation types. */
-  public void setRenderHelmet(boolean b)
-  {
+  public void setRenderHelmet(boolean b) {
     if (renderSpriteHelmet != b) {
       renderSpriteHelmet = b;
       spriteChanged();
@@ -613,14 +568,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether translucency effect is applied to the creature animation. */
-  public boolean isTranslucencyEnabled()
-  {
+  public boolean isTranslucencyEnabled() {
     return translucencyEnabled;
   }
 
   /** Sets whether translucency effect is applied to the creature animation. */
-  public void setTranslucencyEnabled(boolean b)
-  {
+  public void setTranslucencyEnabled(boolean b) {
     if (translucencyEnabled != b) {
       translucencyEnabled = b;
       if (isTranslucent()) {
@@ -631,14 +584,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether tint effects are applied to the creature animation. */
-  public boolean isTintEnabled()
-  {
+  public boolean isTintEnabled() {
     return tintEnabled;
   }
 
   /** Sets whether tint effects are applied to the creature animation. */
-  public void setTintEnabled(boolean b)
-  {
+  public void setTintEnabled(boolean b) {
     if (tintEnabled != b) {
       tintEnabled = b;
       SpriteUtils.clearBamCache();
@@ -647,14 +598,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether blur effect is applied to the creature animation. */
-  public boolean isBlurEnabled()
-  {
+  public boolean isBlurEnabled() {
     return blurEnabled;
   }
 
   /** Sets whether blur effect is applied to the creature animation. */
-  public void setBlurEnabled(boolean b)
-  {
+  public void setBlurEnabled(boolean b) {
     if (blurEnabled != b) {
       blurEnabled = b;
       SpriteUtils.clearBamCache();
@@ -663,14 +612,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether any kind of palette replacement (full palette or false colors) is enabled. */
-  public boolean isPaletteReplacementEnabled()
-  {
+  public boolean isPaletteReplacementEnabled() {
     return paletteReplacementEnabled;
   }
 
   /** Sets whether palette replacement (full palette or false colors) is enabled. */
-  public void setPaletteReplacementEnabled(boolean b)
-  {
+  public void setPaletteReplacementEnabled(boolean b) {
     if (paletteReplacementEnabled != b) {
       paletteReplacementEnabled = b;
       SpriteUtils.clearBamCache();
@@ -679,20 +626,18 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns {@code true} if a bitmap is used to render the selection circle.
-   * Returns {@code false} if a colored circle is drawn instead.
+   * Returns {@code true} if a bitmap is used to render the selection circle. Returns {@code false} if a colored circle
+   * is drawn instead.
    */
-  public boolean isSelectionCircleBitmap()
-  {
+  public boolean isSelectionCircleBitmap() {
     return selectionCircleBitmap;
   }
 
   /**
-   * Specify {@code true} if a bitmap should be used to render the selection circle.
-   * Specify {@code false} if a colored circle should be drawn instead.
+   * Specify {@code true} if a bitmap should be used to render the selection circle. Specify {@code false} if a colored
+   * circle should be drawn instead.
    */
-  public void setSelectionCircleBitmap(boolean b)
-  {
+  public void setSelectionCircleBitmap(boolean b) {
     if (selectionCircleBitmap != b) {
       selectionCircleBitmap = b;
       selectionCircleChanged();
@@ -700,41 +645,35 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns the moving speed of the creature animation. */
-  public double getMoveScale()
-  {
+  public double getMoveScale() {
     return getAttribute(KEY_MOVE_SCALE);
   }
 
   /** Sets the moving speed of the creature animation. */
-  protected void setMoveScale(double value)
-  {
+  protected void setMoveScale(double value) {
     setAttribute(KEY_MOVE_SCALE, value);
   }
 
   /** Returns the selection circle size of the creature animation. */
-  public int getEllipse()
-  {
+  public int getEllipse() {
     return getAttribute(KEY_ELLIPSE);
   }
 
   /** Sets the selection circle size of the creature animation. */
-  public void setEllipse(int value)
-  {
+  public void setEllipse(int value) {
     if (getEllipse() != value) {
       setAttribute(KEY_ELLIPSE, value);
       selectionCircleChanged();
     }
   }
 
-  /** Returns the map space (in search map units) reserved exclusively for the creature animation*/
-  public int getPersonalSpace()
-  {
+  /** Returns the map space (in search map units) reserved exclusively for the creature animation */
+  public int getPersonalSpace() {
     return getAttribute(KEY_PERSONAL_SPACE);
   }
 
-  /** Sets the map space (in search map units) reserved exclusively for the creature animation*/
-  public void setPersonalSpace(int value)
-  {
+  /** Sets the map space (in search map units) reserved exclusively for the creature animation */
+  public void setPersonalSpace(int value) {
     if (getPersonalSpace() != value) {
       setAttribute(KEY_PERSONAL_SPACE, value);
       personalSpaceChanged();
@@ -742,26 +681,24 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns the resref (prefix) for the associated animation files. */
-  public String getAnimationResref()
-  {
+  public String getAnimationResref() {
     return getAttribute(KEY_RESREF);
   }
 
   /** Sets the resref (prefix) for the associated animation files. */
-  protected void setAnimationResref(String resref)
-  {
+  protected void setAnimationResref(String resref) {
     setAttribute(KEY_RESREF, resref);
   }
 
-  /** Returns the replacement palette for the creature animation. Returns empty string if no replacement palette exists. */
-  public String getNewPalette()
-  {
+  /**
+   * Returns the replacement palette for the creature animation. Returns empty string if no replacement palette exists.
+   */
+  public String getNewPalette() {
     return getAttribute(KEY_NEW_PALETTE);
   }
 
   /** Sets the replacement palette for the creature animation. */
-  public void setNewPalette(String resref)
-  {
+  public void setNewPalette(String resref) {
     resref = (resref != null) ? resref.trim() : "";
     if (!getNewPalette().equalsIgnoreCase(resref)) {
       setAttribute(KEY_NEW_PALETTE, resref);
@@ -770,155 +707,135 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Loads the replacement palette associated with the specified BAM resource. */
-  protected int[] getNewPaletteData(ResourceEntry bamRes)
-  {
+  protected int[] getNewPaletteData(ResourceEntry bamRes) {
     // Note: method argument is irrelevant for base implementation
     return SpriteUtils.loadReplacementPalette(getNewPalette());
   }
 
   /**
    * Returns whether blending mode "brightest" is enabled.
-   * <p>Blending modes and their effects:
+   * <p>
+   * Blending modes and their effects:
    * <li>Brightest only: Use {@code GL_ONE_MINUS_DST_COLOR}
    * <li>MultiplyBlend only: Use {@code GL_DST_COLOR}
    * <li>Brightest and MultiplyBlend: Use {@code GL_SRC_COLOR}
    */
-  public boolean isBrightest()
-  {
+  public boolean isBrightest() {
     return getAttribute(KEY_BRIGHTEST);
   }
 
   /** Sets blending mode "brightest". */
-  protected void setBrightest(boolean b)
-  {
+  protected void setBrightest(boolean b) {
     setAttribute(KEY_BRIGHTEST, b);
   }
 
   /**
    * Returns whether blending mode "multiply_blend" is enabled.
-   * <p>Blending modes and their effects:
+   * <p>
+   * Blending modes and their effects:
    * <li>Brightest only: Use {@code GL_ONE_MINUS_DST_COLOR}
    * <li>MultiplyBlend only: Use {@code GL_DST_COLOR}
    * <li>Brightest and MultiplyBlend: Use {@code GL_SRC_COLOR}
    */
-  public boolean isMultiplyBlend()
-  {
+  public boolean isMultiplyBlend() {
     return getAttribute(KEY_MULTIPLY_BLEND);
   }
 
   /** Sets blending mode "multiply_blend". */
-  protected void setMultiplyBlend(boolean b)
-  {
+  protected void setMultiplyBlend(boolean b) {
     setAttribute(KEY_MULTIPLY_BLEND, b);
   }
 
   /** Returns whether sprite is affected by environmental lighting. */
-  public boolean isLightSource()
-  {
+  public boolean isLightSource() {
     return getAttribute(KEY_LIGHT_SOURCE);
   }
 
   /** Sets whether sprite is affected by environmental lighting. */
-  protected void setLightSource(boolean b)
-  {
+  protected void setLightSource(boolean b) {
     setAttribute(KEY_LIGHT_SOURCE, b);
   }
 
   /** Returns whether a red tint is applied to the creature if detected by infravision. */
-  public boolean isDetectedByInfravision()
-  {
+  public boolean isDetectedByInfravision() {
     return getAttribute(KEY_DETECTED_BY_INFRAVISION);
   }
 
   /** Sets whether a red tint is applied to the creature if detected by infravision. */
-  protected void setDetectedByInfravision(boolean b)
-  {
+  protected void setDetectedByInfravision(boolean b) {
     setAttribute(KEY_DETECTED_BY_INFRAVISION, b);
   }
 
   /** Returns whether palette range replacement is enabled. */
-  public boolean isFalseColor()
-  {
+  public boolean isFalseColor() {
     return getAttribute(KEY_FALSE_COLOR);
   }
 
   /** Sets whether palette range replacement is enabled. */
-  protected void setFalseColor(boolean b)
-  {
+  protected void setFalseColor(boolean b) {
     setAttribute(KEY_FALSE_COLOR, b);
   }
 
-  /** Returns whether creature animation is translucent.  */
-  public boolean isTranslucent()
-  {
+  /** Returns whether creature animation is translucent. */
+  public boolean isTranslucent() {
     return getCreatureInfo().getEffectiveTranslucency() > 0;
   }
 
-  /** Sets whether creature animation is translucent.  */
-  protected void setTranslucent(boolean b)
-  {
+  /** Sets whether creature animation is translucent. */
+  protected void setTranslucent(boolean b) {
     setAttribute(KEY_TRANSLUCENT, b);
   }
 
   /** Returns whether the blur effect is active for the creature animation. */
-  public boolean isBlurred()
-  {
+  public boolean isBlurred() {
     return getCreatureInfo().isBlurEffect();
   }
 
   /** Call this method whenever the visibility of the selection circle has been changed. */
-  public void selectionCircleChanged()
-  {
+  public void selectionCircleChanged() {
     // force recaching
     imageCircle = null;
   }
 
   /** Call this method whenever the visibility of personal space has been changed. */
-  public void personalSpaceChanged()
-  {
+  public void personalSpaceChanged() {
     // nothing to do
   }
 
   /** Call this method whenever the visibility of any sprite types has been changed. */
-  public void spriteChanged()
-  {
+  public void spriteChanged() {
     setAnimationChanged();
   }
 
   /** Call this method whenever the allegiance value has been changed. */
-  public void allegianceChanged()
-  {
+  public void allegianceChanged() {
     // force recaching
     imageCircle = null;
   }
 
   /**
-   * Call this method whenever the creature palette has changed.
-   * False color is processed by {@link #falseColorChanged()}.
+   * Call this method whenever the creature palette has changed. False color is processed by
+   * {@link #falseColorChanged()}.
    */
-  public void paletteChanged()
-  {
+  public void paletteChanged() {
     // Note: PST false color palette may also contain true color regions.
-    if (!isFalseColor() ||
-        Profile.getGame() == Profile.Game.PSTEE ||
-        Profile.getEngine() == Profile.Engine.PST) {
+    if (!isFalseColor() || Profile.getGame() == Profile.Game.PSTEE || Profile.getEngine() == Profile.Engine.PST) {
       setAnimationChanged();
     }
   }
 
   /**
-   * Call this method whenever the false color palette of the creature has changed.
-   * Conventional palette changes are processed by {@link #paletteChanged()}. */
-  public void falseColorChanged()
-  {
+   * Call this method whenever the false color palette of the creature has changed. Conventional palette changes are
+   * processed by {@link #paletteChanged()}.
+   */
+  public void falseColorChanged() {
     if (isFalseColor()) {
       setAnimationChanged();
     }
   }
 
   /** This method reloads the creature animation if any relevant changes have been made. */
-  public void applyAnimationChanges()
-  {
+  public void applyAnimationChanges() {
     if (hasAnimationChanged()) {
       resetAnimationChanged();
       try {
@@ -930,14 +847,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns whether changes to the creature animation should be applied immediately. */
-  public boolean isAutoApplyChanges()
-  {
+  public boolean isAutoApplyChanges() {
     return autoApplyChanges;
   }
 
   /** Sets whether changes to the creature animation should be applied immediately. */
-  public void setAutoApplyChanges(boolean b)
-  {
+  public void setAutoApplyChanges(boolean b) {
     if (autoApplyChanges != b) {
       autoApplyChanges = b;
       if (autoApplyChanges) {
@@ -947,17 +862,15 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns whether a creature animation reload has been requested.
-   * Call {@link #applyAnimationChanges()} to apply the changes.
+   * Returns whether a creature animation reload has been requested. Call {@link #applyAnimationChanges()} to apply the
+   * changes.
    */
-  public boolean hasAnimationChanged()
-  {
+  public boolean hasAnimationChanged() {
     return animationChanged;
   }
 
   /** Call to request a creature animation reload by the method {@link #applyAnimationChanges()}. */
-  public void setAnimationChanged()
-  {
+  public void setAnimationChanged() {
     animationChanged = true;
     if (isAutoApplyChanges()) {
       applyAnimationChanges();
@@ -965,14 +878,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Call to cancel the request of a creature animation reload by the method {@link #applyAnimationChanges()}. */
-  public void resetAnimationChanged()
-  {
+  public void resetAnimationChanged() {
     animationChanged = false;
   }
 
   @Override
-  public SpriteBamControl createControl()
-  {
+  public SpriteBamControl createControl() {
     return new SpriteBamControl(this);
   }
 
@@ -980,15 +891,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * Returns the preferred compositor for rendering the sprite on the target surface.
    */
   @Override
-  public Composite getComposite()
-  {
+  public Composite getComposite() {
     int blending = ((isBrightest() ? 1 : 0) << 0) | ((isMultiplyBlend() ? 1 : 0) << 1);
     switch (blending) {
-      case 1:   // brightest
+      case 1: // brightest
         return BlendingComposite.Brightest;
-      case 2:   // multiply
+      case 2: // multiply
         return BlendingComposite.Multiply;
-      case 3:   // brightest + multiply
+      case 3: // brightest + multiply
         return BlendingComposite.BrightestMultiply;
       default:
         return AlphaComposite.SrcOver;
@@ -996,15 +906,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns the BAM cycle associated with the specified direction.
-   * Returns -1 if entry not found.
+   * Returns the BAM cycle associated with the specified direction. Returns -1 if entry not found.
    */
-  public int getCycleIndex(Direction dir)
-  {
+  public int getCycleIndex(Direction dir) {
     int retVal = -1;
     Integer value = directionMap.get(dir);
     if (value != null) {
-      retVal = value.intValue();
+      retVal = value;
     }
 
     return retVal;
@@ -1013,8 +921,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Returns a copy of the map containing associations between animation directions and bam sequence numbers.
    */
-  public EnumMap<Direction, Integer> getDirectionMap()
-  {
+  public EnumMap<Direction, Integer> getDirectionMap() {
     return directionMap.clone();
   }
 
@@ -1023,15 +930,15 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Initializes general data for the creature animation.
+   *
    * @param ini The INI map containing creature animation data.
    */
-  protected void initDefaults(IniMap ini) throws Exception
-  {
+  protected void initDefaults(IniMap ini) throws Exception {
     IniMapSection section = getGeneralIniSection(Objects.requireNonNull(ini, "INI object cannot be null"));
     Objects.requireNonNull(section.getAsString("animation_type"), "animation_type required");
     Misc.requireCondition(getAnimationType().contains(getAnimationId()),
-                          String.format("Animation slot (%04X) is not compatible with animation type (%s)",
-                                        getAnimationId(), getAnimationType().toString()));
+        String.format("Animation slot (%04X) is not compatible with animation type (%s)", getAnimationId(),
+            getAnimationType().toString()));
 
     setMoveScale(section.getAsDouble("move_scale", 0.0));
     setEllipse(section.getAsInteger("ellipse", 16));
@@ -1044,7 +951,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     setNewPalette(s);
 
     // getting first available "resref" definition
-    for (Iterator<IniMapSection> iter = getAnimationInfo().iterator(); iter.hasNext(); ) {
+    for (Iterator<IniMapSection> iter = getAnimationInfo().iterator(); iter.hasNext();) {
       section = iter.next();
       s = section.getAsString("resref", "");
       if (!s.isEmpty()) {
@@ -1059,8 +966,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * Returns the general INI map section defined for all supported creature animation types from the specified
    * {@code IniMap} instance. Returns an empty {@code IniMapSection} instance if section could not be determined.
    */
-  protected IniMapSection getGeneralIniSection(IniMap ini)
-  {
+  protected IniMapSection getGeneralIniSection(IniMap ini) {
     final String sectionName = "general";
     IniMapSection retVal = null;
     if (ini != null) {
@@ -1075,11 +981,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns the INI map section responsible for animation-type-specific attributes.
-   * Returns an empty {@code IniMapSection} instance if section could not be determined.
+   * Returns the INI map section responsible for animation-type-specific attributes. Returns an empty
+   * {@code IniMapSection} instance if section could not be determined.
    */
-  protected IniMapSection getSpecificIniSection()
-  {
+  protected IniMapSection getSpecificIniSection() {
     IniMapSection retVal = null;
     IniMap ini = getAnimationInfo();
     if (ini != null) {
@@ -1095,18 +1000,18 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Assigns a cycle index to the specified BAM sequence and direction.
-   * @param seq the sequence type for identification purposes.
-   * @param dir the direction type
+   *
+   * @param seq        the sequence type for identification purposes.
+   * @param dir        the direction type
    * @param cycleIndex the cycle index associated with the specified sequence and direction.
    * @return The previous BAM cycle index if available. -1 otherwise.
    */
-  protected int addDirection(Direction dir, int cycleIndex)
-  {
+  protected int addDirection(Direction dir, int cycleIndex) {
     int retVal = -1;
     dir = Objects.requireNonNull(dir, "Creature direction required");
     Integer value = directionMap.get(dir);
     if (value != null) {
-      retVal = value.intValue();
+      retVal = value;
     }
     directionMap.put(dir, cycleIndex);
 
@@ -1115,6 +1020,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Generates definitions for the specified animation sequence.
+   *
    * @param seq the requested animation sequence.
    * @return a fully initialized {@code SeqDef} object if sequence is supported, {@code null} otherwise.
    */
@@ -1122,74 +1028,74 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Loads the specified animation sequence into the SpriteDecoder.
+   *
    * @param seq the sequence to load.
    * @throws NullPointerException if specified sequence is not available.
    */
-  protected void createSequence(Sequence seq) throws Exception
-  {
+  protected void createSequence(Sequence seq) throws Exception {
     createSequence(seq, null);
   }
 
   /**
-   * Loads the specified animation sequence into the SpriteDecoder.
-   * Only directions listed in the given {@code Direction} array will be considered.
-   * @param seq the sequence to load.
-   * @param directions an array of {@code Direction} values. Only directions listed in the array
-   *                   are considered by the creation process. Specify {@code null} to allow all directions.
+   * Loads the specified animation sequence into the SpriteDecoder. Only directions listed in the given
+   * {@code Direction} array will be considered.
+   *
+   * @param seq        the sequence to load.
+   * @param directions an array of {@code Direction} values. Only directions listed in the array are considered by the
+   *                   creation process. Specify {@code null} to allow all directions.
    * @throws NullPointerException if specified sequence is not available.
    */
-  protected void createSequence(Sequence seq, Direction[] directions) throws Exception
-  {
-    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+  protected void createSequence(Sequence seq, Direction[] directions) throws Exception {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq),
+        "Sequence not available: " + (seq != null ? seq : "(null)"));
     if (directions == null) {
       directions = Direction.values();
     }
-    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME,
+        FN_AFTER_DST_FRAME);
   }
 
   /** Returns the number of sprite instances to render by the current blur state of the creature animation. */
-  protected int getBlurInstanceCount()
-  {
+  protected int getBlurInstanceCount() {
     return isBlurred() ? 4 : 1;
   }
 
-  protected Point getBlurInstanceShift(Point pt, Direction dir, int idx)
-  {
+  protected Point getBlurInstanceShift(Point pt, Direction dir, int idx) {
     Point retVal = (pt != null) ? pt : new Point();
     if (isBlurred()) {
-      int dist = Math.max(0, idx) * 9;  // distance between images: 9 pixels
+      int dist = Math.max(0, idx) * 9; // distance between images: 9 pixels
       // shift position depends on sprite direction and specified index
       int dirValue = ((dir != null) ? dir.getValue() : 0) & ~1; // truncate to nearest semi-cardinal direction
       switch (dirValue) {
-        case 2:   // SW
+        case 2: // SW
           retVal.x = dist / 2;
           retVal.y = -dist / 2;
           break;
-        case 4:   // W
+        case 4: // W
           retVal.x = dist;
           retVal.y = 0;
           break;
-        case 6:   // NW
+        case 6: // NW
           retVal.x = dist / 2;
           retVal.y = dist / 2;
           break;
-        case 8:   // N
+        case 8: // N
           retVal.x = 0;
           retVal.y = dist;
           break;
-        case 10:  // NE
+        case 10: // NE
           retVal.x = -dist / 2;
           retVal.y = dist / 2;
           break;
-        case 12:  // E
+        case 12: // E
           retVal.x = -dist;
           retVal.y = 0;
           break;
-        case 14:  // SE
+        case 14: // SE
           retVal.x = -dist / 2;
           retVal.y = -dist / 2;
           break;
-        default:  // S
+        default: // S
           retVal.x = 0;
           retVal.y = -dist;
       }
@@ -1199,12 +1105,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     return retVal;
   }
 
-  protected void createAnimation(SeqDef definition, List<Direction> directions,
-                                 BeforeSourceBam beforeSrcBam,
-                                 BeforeSourceFrame beforeSrcFrame,
-                                 AfterSourceFrame afterSrcFrame,
-                                 AfterDestFrame afterDstFrame)
-  {
+  protected void createAnimation(SeqDef definition, List<Direction> directions, BeforeSourceBam beforeSrcBam,
+      BeforeSourceFrame beforeSrcFrame, AfterSourceFrame afterSrcFrame, AfterDestFrame afterDstFrame) {
     PseudoBamControl dstCtrl = createControl();
     BamV1Control srcCtrl = null;
     ResourceEntry entry = null;
@@ -1271,24 +1173,25 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         if (afterDstFrame != null) {
           afterDstFrame.accept(dd, frameIndex);
         }
-        dstCtrl.cycleAddFrames(cycleIndex, new int[] {frameIndex});
+        dstCtrl.cycleAddFrames(cycleIndex, new int[] { frameIndex });
       }
     }
   }
 
   /**
-   * Creates a single creature animation frame from the given array of source frame segments
-   * and adds it to the BAM frame list. Each source frame segment can be processed by the specified lambda function
-   * before it is drawn onto to the target frame.
-   * @param sourceFrames array of source frame segments to compose.
-   * @param beforeSrcFrame optional function that is executed before a source frame segment is drawn onto the
+   * Creates a single creature animation frame from the given array of source frame segments and adds it to the BAM
+   * frame list. Each source frame segment can be processed by the specified lambda function before it is drawn onto to
+   * the target frame.
+   *
+   * @param sourceFrames   array of source frame segments to compose.
+   * @param beforeSrcFrame optional function that is executed before a source frame segment is drawn onto the target
+   *                       frame.
+   * @param afterSrcFrame  optional method that is executed right after a source frame segment has been drawn onto the
    *                       target frame.
-   * @param afterSrcFrame optional method that is executed right after a source frame segment has been drawn onto the
-   *                      target frame.
    * @return the absolute target BAM frame index.
    */
-  protected int createFrame(FrameInfo[] sourceFrames, BeforeSourceFrame beforeSrcFrame, AfterSourceFrame afterSrcFrame)
-  {
+  protected int createFrame(FrameInfo[] sourceFrames, BeforeSourceFrame beforeSrcFrame,
+      AfterSourceFrame afterSrcFrame) {
     Rectangle rect;
     if (Objects.requireNonNull(sourceFrames, "Source frame info objects required").length > 0) {
       rect = SpriteUtils.getTotalFrameDimension(sourceFrames);
@@ -1302,8 +1205,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     // include selection circle in image size
     float circleStrokeSize = getSelectionCircleStrokeSize();
     Dimension dim = getSelectionCircleSize();
-    rect = SpriteUtils.updateFrameDimension(rect, new Dimension(2 * (dim.width + (int)circleStrokeSize),
-                                                                2 * (dim.height + (int)circleStrokeSize)));
+    rect = SpriteUtils.updateFrameDimension(rect,
+        new Dimension(2 * (dim.width + (int) circleStrokeSize), 2 * (dim.height + (int) circleStrokeSize)));
 
     // creating target image
     BufferedImage image;
@@ -1321,7 +1224,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
           ctrl.cycleSet(fi.getCycle());
           int frameIdx = fi.getFrame();
           ctrl.cycleSetFrameIndex(frameIdx);
-          BufferedImage srcImage = (BufferedImage)ctrl.cycleGetFrame();
+          BufferedImage srcImage = (BufferedImage) ctrl.cycleGetFrame();
           if (beforeSrcFrame != null) {
             srcImage = beforeSrcFrame.apply(fi.getSegmentDefinition(), srcImage, g);
           }
@@ -1336,11 +1239,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
             Object oldHints = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
             try {
               g.setStroke(FrameInfo.STROKE_BOUNDING_BOX);
-              g.setColor(FrameInfo.SPRITE_COLOR.getOrDefault(fi.getSegmentDefinition().getSpriteType(), FrameInfo.SPRITE_COLOR_DEFAULT));
+              g.setColor(FrameInfo.SPRITE_COLOR.getOrDefault(fi.getSegmentDefinition().getSpriteType(),
+                  FrameInfo.SPRITE_COLOR_DEFAULT));
               g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
               g.drawRect(x, y, entry.getWidth() - 1, entry.getHeight() - 1);
             } finally {
-              g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+              g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                  (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
               if (oldColor != null) {
                 g.setColor(oldColor);
               }
@@ -1375,10 +1280,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Calculates the total size of the personal space region.
+   *
    * @param scaled whether dimension should be scaled according to search map unit size.
    */
-  protected Dimension getPersonalSpaceSize(boolean scaled)
-  {
+  protected Dimension getPersonalSpaceSize(boolean scaled) {
     int size = Math.max(0, (getPersonalSpace() - 1) | 1);
     if (scaled) {
       return new Dimension(size * 16, size * 12);
@@ -1389,13 +1294,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Draws the personal space region onto the specified graphics object.
-   * @param g the {@code Graphics2D} instance of the image.
+   *
+   * @param g      the {@code Graphics2D} instance of the image.
    * @param center center position of the personal space.
-   * @param color the fill color of the drawn region. Specify {@code null} to use a default color.
-   * @param alpha alpha transparency in range [0.0, 1.0] where 0.0 is fully transparent (invisible) and 1.0 is fully opaque.
+   * @param color  the fill color of the drawn region. Specify {@code null} to use a default color.
+   * @param alpha  alpha transparency in range [0.0, 1.0] where 0.0 is fully transparent (invisible) and 1.0 is fully
+   *               opaque.
    */
-  protected void drawPersonalSpace(Graphics2D g, Point center, Color color, float alpha)
-  {
+  protected void drawPersonalSpace(Graphics2D g, Point center, Color color, float alpha) {
     if (g != null) {
       BufferedImage image = createPersonalSpace(color, alpha);
       g.drawImage(image, center.x - (image.getWidth() / 2), center.y - (image.getHeight() / 2), null);
@@ -1403,14 +1309,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Creates a bitmap with the personal space tiles. */
-  protected BufferedImage createPersonalSpace(Color color, float alpha)
-  {
+  protected BufferedImage createPersonalSpace(Color color, float alpha) {
     // preparations
     if (color == null) {
       color = new Color(224, 0, 224);
     }
-    alpha = Math.max(0.0f, Math.min(1.0f, alpha));  // clamping alpha to [0.0, 1.0]
-    color = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255 * alpha));
+    alpha = Math.max(0.0f, Math.min(1.0f, alpha)); // clamping alpha to [0.0, 1.0]
+    color = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * alpha));
 
     // creating personal space pattern (unscaled)
     Dimension dim = getPersonalSpaceSize(false);
@@ -1419,7 +1324,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       return new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     }
     BufferedImage image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-    int[] bitmap = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+    int[] bitmap = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     int cx = dim.width / 2;
     int cy = dim.height / 2;
     int c = color.getRGB();
@@ -1445,7 +1350,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
       g.drawImage(image, 0, 0, dim.width, dim.height, null);
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                         (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+          (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     } finally {
       g.dispose();
       g = null;
@@ -1455,8 +1360,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Calculates the horizontal and vertical radius of the selection circle (ellipse). */
-  protected Dimension getSelectionCircleSize()
-  {
+  protected Dimension getSelectionCircleSize() {
     Dimension dim = new Dimension();
     dim.width = Math.max(0, getEllipse());
     if (dim.width == 0) {
@@ -1465,7 +1369,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     if (isSelectionCircleBitmap()) {
       dim.width += 2; // compensation for missing stroke size
     }
-    dim.height = dim.width * 4 / 7;   // ratio 1.75
+    dim.height = dim.width * 4 / 7; // ratio 1.75
     if (dim.height % 7 > 3) {
       // rounding up
       dim.height++;
@@ -1473,13 +1377,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     return dim;
   }
 
-  /** Determines a circle stroke size relative to the circle size. Empty circles or bitmap circles have no stroke size. */
-  protected float getSelectionCircleStrokeSize()
-  {
+  /**
+   * Determines a circle stroke size relative to the circle size. Empty circles or bitmap circles have no stroke size.
+   */
+  protected float getSelectionCircleStrokeSize() {
     float circleStrokeSize = 0.0f;
     if (!isSelectionCircleBitmap() && getEllipse() > 0) {
       // thickness relative to circle size
-      circleStrokeSize = Math.max(1.0f, (float)(Math.floor(Math.sqrt(getEllipse()) / 2.0)));
+      circleStrokeSize = Math.max(1.0f, (float) (Math.floor(Math.sqrt(getEllipse()) / 2.0)));
     }
 
     return circleStrokeSize;
@@ -1487,13 +1392,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Draws a selection circle onto the specified graphics object.
-   * @param g the {@code Graphics2D} instance of the image.
-   * @param center center position of the circle.
-   * @param color the circle color. Specify {@code null} to use global defaults.
+   *
+   * @param g          the {@code Graphics2D} instance of the image.
+   * @param center     center position of the circle.
+   * @param color      the circle color. Specify {@code null} to use global defaults.
    * @param strokeSize the thickness of the selection circle.
    */
-  protected void drawSelectionCircle(Graphics2D g, Point center, float strokeSize)
-  {
+  protected void drawSelectionCircle(Graphics2D g, Point center, float strokeSize) {
     if (g != null) {
       Dimension dim = getSelectionCircleSize();
       if (dim.width == 0 || dim.height == 0) {
@@ -1504,23 +1409,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       if (isSelectionCircleBitmap()) {
         // fetching ornate selection circle image
         image = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceImage(-1)
-                                                  : SpriteUtils.getAllegianceImage(getCreatureInfo().getAllegiance());
+            : SpriteUtils.getAllegianceImage(getCreatureInfo().getAllegiance());
       } else {
         if (imageCircle == null) {
           // pregenerating circle graphics
-          int stroke = (int)Math.ceil(strokeSize);
-          imageCircle = ColorConvert.createCompatibleImage((dim.width + stroke) * 2 + 1, (dim.height + stroke) * 2 + 1, true);
+          int stroke = (int) Math.ceil(strokeSize);
+          imageCircle = ColorConvert.createCompatibleImage((dim.width + stroke) * 2 + 1, (dim.height + stroke) * 2 + 1,
+              true);
           Graphics2D g2 = imageCircle.createGraphics();
           try {
             Color color = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceColor(-1)
-                                                            : SpriteUtils.getAllegianceColor(getCreatureInfo().getAllegiance());
+                : SpriteUtils.getAllegianceColor(getCreatureInfo().getAllegiance());
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(color);
             g2.setStroke(new BasicStroke(strokeSize));
-            g2.drawOval((imageCircle.getWidth() / 2) - dim.width,
-                        (imageCircle.getHeight() / 2) - dim.height,
-                        2 * dim.width,
-                        2 * dim.height);
+            g2.drawOval((imageCircle.getWidth() / 2) - dim.width, (imageCircle.getHeight() / 2) - dim.height,
+                2 * dim.width, 2 * dim.height);
           } finally {
             g2.dispose();
             g2 = null;
@@ -1536,19 +1440,18 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       Object oldHints = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g.drawImage(image, center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height, null);
-      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+          (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     }
   }
 
   /** Returns whether creature shadow is semi-transparent. */
-  protected boolean isTransparentShadow()
-  {
+  protected boolean isTransparentShadow() {
     return transparentShadow;
   }
 
   /** Sets whether creature shadow is semi-transparent. */
-  protected void setTransparentShadow(boolean b)
-  {
+  protected void setTransparentShadow(boolean b) {
     if (transparentShadow != b) {
       transparentShadow = b;
       spriteChanged();
@@ -1557,11 +1460,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Translates the specified color location index into a palette color offset.
+   *
    * @param locationIndex the location to translate.
    * @return the resulting palette color offset. Returns -1 if location is not supported.
    */
-  protected int getColorOffset(int locationIndex)
-  {
+  protected int getColorOffset(int locationIndex) {
     int retVal = -1;
     if (locationIndex >= 0 && locationIndex < 7) {
       retVal = 4 + locationIndex * 12;
@@ -1571,11 +1474,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Returns the palette data for the specified color entry.
+   *
    * @param colorIndex the color entry.
    * @return palette data as int array. Returns {@code null} if palette data could not be determined.
    */
-  protected int[] getColorData(int colorIndex, boolean allowRandom)
-  {
+  protected int[] getColorData(int colorIndex, boolean allowRandom) {
     int[] retVal = null;
     try {
       retVal = SpriteUtils.getColorGradient(colorIndex, allowRandom);
@@ -1587,10 +1490,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Replaces false colors with color ranges defined in the associated CRE resource.
+   *
    * @param control the BAM controller.
    */
-  protected void applyFalseColors(BamV1Control control, SegmentDef sd)
-  {
+  protected void applyFalseColors(BamV1Control control, SegmentDef sd) {
     if (control == null || sd == null) {
       return;
     }
@@ -1599,10 +1502,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     final Map<Integer, int[]> colorRanges = new HashMap<>();
     for (int loc = 0; loc < 7; loc++) {
       int ofs = getColorOffset(loc);
-      Couple<Integer, Boolean> colorInfo =
-          getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
-      int colIdx = colorInfo.getValue0().intValue();
-      boolean allowRandom = colorInfo.getValue1().booleanValue();
+      Couple<Integer, Boolean> colorInfo = getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
+      int colIdx = colorInfo.getValue0();
+      boolean allowRandom = colorInfo.getValue1();
       if (ofs > 0 && colIdx >= 0) {
         int[] range = getColorData(colIdx, allowRandom);
         if (range != null) {
@@ -1616,9 +1518,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       ItemInfo itemInfo = getCreatureInfo().getEquippedShield();
       if (itemInfo != null && itemInfo.getSlotType() == ItemInfo.SlotType.WEAPON) {
         EffectInfo effectInfo = itemInfo.getEffectInfo();
-        List<EffectInfo.Effect> fxList = effectInfo.getEffects(getCreatureInfo(),
-                                                               SegmentDef.SpriteType.WEAPON,
-                                                               EffectInfo.OPCODE_SET_COLOR);
+        List<EffectInfo.Effect> fxList = effectInfo.getEffects(getCreatureInfo(), SegmentDef.SpriteType.WEAPON,
+            EffectInfo.OPCODE_SET_COLOR);
         for (final EffectInfo.Effect fx : fxList) {
           int loc = fx.getParameter2() & 0xf;
           int ofs = getColorOffset(loc);
@@ -1637,7 +1538,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     for (final Integer ofs : colorRanges.keySet()) {
       // replacing base ranges
       final int[] range = colorRanges.get(ofs);
-      palette = SpriteUtils.replaceColors(palette, range, ofs.intValue(), range.length, false);
+      palette = SpriteUtils.replaceColors(palette, range, ofs, range.length, false);
     }
 
     if (getAnimationType() != AnimationInfo.Type.MONSTER_PLANESCAPE) {
@@ -1671,14 +1572,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Replaces false colors with special color effects applied to the CRE resource.
-   * Currently supported: stoneskin/petrification, frozen state, burned state.
+   * Replaces false colors with special color effects applied to the CRE resource. Currently supported:
+   * stoneskin/petrification, frozen state, burned state.
+   *
    * @param control the BAM controller.
    */
-  protected void applyColorEffects(BamV1Control control, SegmentDef sd)
-  {
-    if (control == null || sd == null ||
-        getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
+  protected void applyColorEffects(BamV1Control control, SegmentDef sd) {
+    if (control == null || sd == null || getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
       return;
     }
 
@@ -1724,23 +1624,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Modifies BAM palette with tint colors from selected effect opcodes.
+   *
    * @param control the BAM controller.
    */
-  protected void applyColorTint(BamV1Control control, SegmentDef sd)
-  {
-    if (control == null || sd == null ||
-        getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
+  protected void applyColorTint(BamV1Control control, SegmentDef sd) {
+    if (control == null || sd == null || getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
       return;
     }
 
     int[] palette = control.getCurrentPalette();
-    Couple<Integer, Integer> fullTint = Couple.with(-1, -1);  // stores info for later
+    Couple<Integer, Integer> fullTint = Couple.with(-1, -1); // stores info for later
     // color locations >= 0: affects only false color BAMs directly; data is stored for full palette tint though
     for (int loc = 0; loc < 7; loc++) {
       int ofs = getColorOffset(loc);
       Couple<Integer, Integer> colorInfo = getCreatureInfo().getEffectiveTintValue(sd.getSpriteType(), loc);
-      int opcode = colorInfo.getValue0().intValue();
-      int color = colorInfo.getValue1().intValue();
+      int opcode = colorInfo.getValue0();
+      int color = colorInfo.getValue1();
       if (ofs > 0 && opcode >= 0 && color >= 0) {
         // applying tint to color range
         if (isFalseColor()) {
@@ -1781,8 +1680,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       fullTint.setValue0(colorInfo.getValue0());
       fullTint.setValue1(colorInfo.getValue1());
     }
-    int opcode = fullTint.getValue0().intValue();
-    int color = fullTint.getValue1().intValue();
+    int opcode = fullTint.getValue0();
+    int color = fullTint.getValue1();
     if (opcode >= 0 && color >= 0) {
       // applying tint to whole palette
       palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
@@ -1793,10 +1692,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * The specified frame is mirrored horizontally. Both pixel data and center point are adjusted.
+   *
    * @param frameIndex absolute frame index in the BAM frame list.
    */
-  protected void flipImageHorizontal(int frameIndex)
-  {
+  protected void flipImageHorizontal(int frameIndex) {
     PseudoBamFrameEntry frame = getFrameInfo(frameIndex);
     // flipping image horizontally
     BufferedImage image = frame.getFrame();
@@ -1811,11 +1710,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Applies translucency to the specified paletted image.
-   * @param control the BAM controller.
+   *
+   * @param control         the BAM controller.
    * @param minTranslucency the minimum amount of translucency to apply.
    */
-  protected void applyTranslucency(BamV1Control control, int minTranslucency)
-  {
+  protected void applyTranslucency(BamV1Control control, int minTranslucency) {
     if (control != null) {
       int alpha = minTranslucency;
       if (isTranslucencyEnabled()) {
@@ -1843,161 +1742,129 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /**
-   * Returns whether the current CRE resource provides an animation that is compatible with the
-   * {@code SpriteDecoder} class.
+   * Returns whether the current CRE resource provides an animation that is compatible with the {@code SpriteDecoder}
+   * class.
+   *
    * @return {@code true} if the animation type of the CRE is compatible with this {@code SpriteDecoder} instance.
    *         Returns {@code false} otherwise.
    */
-  protected boolean isMatchingAnimationType()
-  {
+  protected boolean isMatchingAnimationType() {
     boolean retVal = false;
 
     List<String> names = getAnimationFiles(true);
     if (!names.isEmpty()) {
-      retVal = names.parallelStream().allMatch(ResourceFactory::resourceExists);
+      retVal = names.stream().allMatch(ResourceFactory::resourceExists);
     }
 
     return retVal;
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((creInfo == null) ? 0 : creInfo.hashCode());
-    hash = 31 * hash + ((ini == null) ? 0 : ini.hashCode());
-    hash = 31 * hash + ((directionMap == null) ? 0 : directionMap.hashCode());
-    hash = 31 * hash + ((attributesMap == null) ? 0 : attributesMap.hashCode());
-    hash = 31 * hash + ((currentSequence == null) ? 0 : currentSequence.hashCode());
-    hash = 31 * hash + Boolean.valueOf(showCircle).hashCode();
-    hash = 31 * hash + Boolean.valueOf(selectionCircleBitmap).hashCode();
-    hash = 31 * hash + Boolean.valueOf(showPersonalSpace).hashCode();
-    hash = 31 * hash + Boolean.valueOf(showBoundingBox).hashCode();
-    hash = 31 * hash + Boolean.valueOf(transparentShadow).hashCode();
-    hash = 31 * hash + Boolean.valueOf(translucencyEnabled).hashCode();
-    hash = 31 * hash + Boolean.valueOf(tintEnabled).hashCode();
-    hash = 31 * hash + Boolean.valueOf(blurEnabled).hashCode();
-    hash = 31 * hash + Boolean.valueOf(paletteReplacementEnabled).hashCode();
-    hash = 31 * hash + Boolean.valueOf(renderSpriteAvatar).hashCode();
-    hash = 31 * hash + Boolean.valueOf(renderSpriteWeapon).hashCode();
-    hash = 31 * hash + Boolean.valueOf(renderSpriteHelmet).hashCode();
-    hash = 31 * hash + Boolean.valueOf(renderSpriteShield).hashCode();
-    hash = 31 * hash + Boolean.valueOf(animationChanged).hashCode();
-    hash = 31 * hash + Boolean.valueOf(autoApplyChanges).hashCode();
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(animationChanged, attributesMap, autoApplyChanges, blurEnabled, creInfo,
+        currentSequence, directionMap, ini, paletteReplacementEnabled, renderSpriteAvatar, renderSpriteHelmet,
+        renderSpriteShield, renderSpriteWeapon, selectionCircleBitmap, showBoundingBox, showCircle, showPersonalSpace,
+        tintEnabled, translucencyEnabled, transparentShadow);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!(o instanceof SpriteDecoder)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    boolean retVal = super.equals(o);
-    if (retVal) {
-      SpriteDecoder other = (SpriteDecoder)o;
-      retVal &= (this.creInfo == null && other.creInfo == null) ||
-                (this.creInfo != null && this.creInfo.equals(other.creInfo));
-      retVal &= (this.ini == null && other.ini == null) ||
-                (this.ini != null && this.ini.equals(other.ini));
-      retVal &= (this.directionMap == null && other.directionMap == null) ||
-                (this.directionMap != null && this.directionMap.equals(other.directionMap));
-      retVal &= (this.attributesMap == null && other.attributesMap == null) ||
-                (this.attributesMap != null && this.attributesMap.equals(other.attributesMap));
-      retVal &= (this.currentSequence == null && other.currentSequence == null) ||
-                (this.currentSequence != null && this.currentSequence.equals(other.currentSequence));
-      retVal &= (this.showCircle == other.showCircle);
-      retVal &= (this.selectionCircleBitmap == other.selectionCircleBitmap);
-      retVal &= (this.showPersonalSpace == other.showPersonalSpace);
-      retVal &= (this.showBoundingBox == other.showBoundingBox);
-      retVal &= (this.transparentShadow == other.transparentShadow);
-      retVal &= (this.translucencyEnabled == other.translucencyEnabled);
-      retVal &= (this.tintEnabled == other.tintEnabled);
-      retVal &= (this.blurEnabled == other.blurEnabled);
-      retVal &= (this.paletteReplacementEnabled == other.paletteReplacementEnabled);
-      retVal &= (this.renderSpriteAvatar == other.renderSpriteAvatar);
-      retVal &= (this.renderSpriteWeapon == other.renderSpriteWeapon);
-      retVal &= (this.renderSpriteHelmet == other.renderSpriteHelmet);
-      retVal &= (this.renderSpriteShield == other.renderSpriteShield);
-      retVal &= (this.animationChanged == other.animationChanged);
-      retVal &= (this.autoApplyChanges == other.autoApplyChanges);
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-    return retVal;
+    SpriteDecoder other = (SpriteDecoder) obj;
+    return animationChanged == other.animationChanged && Objects.equals(attributesMap, other.attributesMap)
+        && autoApplyChanges == other.autoApplyChanges && blurEnabled == other.blurEnabled
+        && Objects.equals(creInfo, other.creInfo) && currentSequence == other.currentSequence
+        && Objects.equals(directionMap, other.directionMap) && Objects.equals(ini, other.ini)
+        && paletteReplacementEnabled == other.paletteReplacementEnabled
+        && renderSpriteAvatar == other.renderSpriteAvatar && renderSpriteHelmet == other.renderSpriteHelmet
+        && renderSpriteShield == other.renderSpriteShield && renderSpriteWeapon == other.renderSpriteWeapon
+        && selectionCircleBitmap == other.selectionCircleBitmap && showBoundingBox == other.showBoundingBox
+        && showCircle == other.showCircle && showPersonalSpace == other.showPersonalSpace
+        && tintEnabled == other.tintEnabled && translucencyEnabled == other.translucencyEnabled
+        && transparentShadow == other.transparentShadow;
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
    * Specialized controller for creature animations.
    */
-  public static class SpriteBamControl extends PseudoBamControl
-  {
-    protected SpriteBamControl(SpriteDecoder decoder)
-    {
+  public static class SpriteBamControl extends PseudoBamControl {
+    protected SpriteBamControl(SpriteDecoder decoder) {
       super(decoder);
     }
 
     @Override
-    public SpriteDecoder getDecoder()
-    {
-      return (SpriteDecoder)super.getDecoder();
+    public SpriteDecoder getDecoder() {
+      return (SpriteDecoder) super.getDecoder();
     }
 
     /**
      * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
-     * {@code Graphics2D} instance based on current decoder settings.
-     * Frame dimension and center position are taken into account and based on the currently selected cycle frame.
-     * @param g the {@code Graphics2D} instance used to render the graphics.
+     * {@code Graphics2D} instance based on current decoder settings. Frame dimension and center position are taken into
+     * account and based on the currently selected cycle frame.
+     *
+     * @param g      the {@code Graphics2D} instance used to render the graphics.
      * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
      */
-    public void getVisualMarkers(Graphics2D g, Point offset)
-    {
+    public void getVisualMarkers(Graphics2D g, Point offset) {
       getVisualMarkers(g, offset, cycleGetFrameIndex(), getDecoder().isPersonalSpaceVisible(),
-                       getDecoder().isSelectionCircleEnabled());
+          getDecoder().isSelectionCircleEnabled());
     }
 
     /**
      * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
-     * {@code Graphics2D} instance.
-     * Frame dimension and center position are taken into account and based on the currently selected cycle frame.
-     * @param g the {@code Graphics2D} instance used to render the graphics.
-     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
-     * @param drawPersonalSpace whether to draw the personal space marker.
+     * {@code Graphics2D} instance. Frame dimension and center position are taken into account and based on the
+     * currently selected cycle frame.
+     *
+     * @param g                   the {@code Graphics2D} instance used to render the graphics.
+     * @param offset              amount of pixels to move the center point by. Specify {@code null} for no change.
+     * @param drawPersonalSpace   whether to draw the personal space marker.
      * @param drawSelectionCircle whether to draw the selection circle.
      */
-    public void getVisualMarkers(Graphics2D g, Point offset, boolean drawPersonalSpace, boolean drawSelectionCircle)
-    {
+    public void getVisualMarkers(Graphics2D g, Point offset, boolean drawPersonalSpace, boolean drawSelectionCircle) {
       getVisualMarkers(g, offset, cycleGetFrameIndex(), drawPersonalSpace, drawSelectionCircle);
     }
 
     /**
      * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
-     * {@code Graphics2D} instance based on current decoder settings.
-     * Frame dimension and center position are taken into account by the specified relative frame index.
-     * @param g the {@code Graphics2D} instance used to render the graphics.
-     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
+     * {@code Graphics2D} instance based on current decoder settings. Frame dimension and center position are taken into
+     * account by the specified relative frame index.
+     *
+     * @param g        the {@code Graphics2D} instance used to render the graphics.
+     * @param offset   amount of pixels to move the center point by. Specify {@code null} for no change.
      * @param frameIdx the frame index relative to current cycle.
      */
-    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx)
-    {
+    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx) {
       getVisualMarkers(g, offset, frameIdx, getDecoder().isPersonalSpaceVisible(),
-                       getDecoder().isSelectionCircleEnabled());
+          getDecoder().isSelectionCircleEnabled());
     }
 
     /**
      * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
-     * {@code Graphics2D} instance.
-     * Frame dimension and center position are taken into account by the specified relative frame index.
-     * @param g the {@code Graphics2D} instance used to render the graphics.
-     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
-     * @param frameIdx the frame index relative to current cycle.
-     * @param drawPersonalSpace whether to draw the personal space marker.
+     * {@code Graphics2D} instance. Frame dimension and center position are taken into account by the specified relative
+     * frame index.
+     *
+     * @param g                   the {@code Graphics2D} instance used to render the graphics.
+     * @param offset              amount of pixels to move the center point by. Specify {@code null} for no change.
+     * @param frameIdx            the frame index relative to current cycle.
+     * @param drawPersonalSpace   whether to draw the personal space marker.
      * @param drawSelectionCircle whether to draw the selection circle.
      */
-    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx,
-                                 boolean drawPersonalSpace, boolean drawSelectionCircle)
-    {
-      if (g == null || (drawPersonalSpace == false && drawSelectionCircle == false)) {
+    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx, boolean drawPersonalSpace,
+        boolean drawSelectionCircle) {
+      if (g == null || (!drawPersonalSpace && !drawSelectionCircle)) {
         return;
       }
 
@@ -2048,16 +1915,15 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
   }
 
-
   /**
    * Represents an operation that is called once per source BAM resource when creating a creature animation.
    */
-  public interface BeforeSourceBam
-  {
+  public interface BeforeSourceBam {
     /**
      * Performs this operation on the given arguments.
+     *
      * @param control the {@code BamV1Control} instance of the source BAM
-     * @param sd the {@code SegmentDef} instance describing the source BAM.
+     * @param sd      the {@code SegmentDef} instance describing the source BAM.
      */
     void accept(BamV1Control control, SegmentDef sd);
   }
@@ -2065,29 +1931,29 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Represents a function that is called for each source frame before it is drawn onto the destination image.
    */
-  public interface BeforeSourceFrame
-  {
+  public interface BeforeSourceFrame {
     /**
      * Performs this function on the given arguments.
-     * @param sd the {@code SegmentDef} structure describing the given source frame.
+     *
+     * @param sd       the {@code SegmentDef} structure describing the given source frame.
      * @param srcImage {@code BufferedImage} object of the the source frame
-     * @param g the {@code Graphics2D} object of the destination image.
+     * @param g        the {@code Graphics2D} object of the destination image.
      * @return the updated source frame image
      */
     BufferedImage apply(SegmentDef sd, BufferedImage srcImage, Graphics2D g);
   }
 
   /**
-   * Represents an operation that is called for each source frame after it has been drawn onto the destination image.
-   * It can be used to clean up modifications made to the {@code Graphics2D} instance
-   * in the {@code BeforeSourceFrame} function.
+   * Represents an operation that is called for each source frame after it has been drawn onto the destination image. It
+   * can be used to clean up modifications made to the {@code Graphics2D} instance in the {@code BeforeSourceFrame}
+   * function.
    */
-  public interface AfterSourceFrame
-  {
+  public interface AfterSourceFrame {
     /**
      * Performs this operation on the given arguments.
+     *
      * @param sd the {@code SegmentDef} structure describing the current source frame.
-     * @param g the {@code Graphics2D} object of the destination image.
+     * @param g  the {@code Graphics2D} object of the destination image.
      */
     void accept(SegmentDef sd, Graphics2D g);
   }
@@ -2095,11 +1961,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Represents an operation that is called for each destination frame after it has been created.
    */
-  public interface AfterDestFrame
-  {
+  public interface AfterDestFrame {
     /**
      * Performs this operation on the given arguments.
-     * @param dd the {@code DirDef} object defining the current destination cycle
+     *
+     * @param dd       the {@code DirDef} object defining the current destination cycle
      * @param frameIdx the absolute destination BAM frame index.
      */
     void accept(DirDef dd, int frameIdx);

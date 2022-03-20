@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -24,42 +24,35 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
 
-public final class FileResourceEntry extends ResourceEntry
-{
+public final class FileResourceEntry extends ResourceEntry {
   private final boolean override;
   private Path file;
 
-  public FileResourceEntry(Path file)
-  {
+  public FileResourceEntry(Path file) {
     this(file, false);
   }
 
-  public FileResourceEntry(Path file, boolean override)
-  {
+  public FileResourceEntry(Path file, boolean override) {
     this.file = file;
     this.override = override;
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return getResourceName().toUpperCase(Locale.ENGLISH);
   }
 
-  public void deleteFile() throws IOException
-  {
+  public void deleteFile() throws IOException {
     Files.delete(file);
   }
 
   @Override
-  public Path getActualPath(boolean ignoreOverride)
-  {
+  public Path getActualPath(boolean ignoreOverride) {
     return file;
   }
 
   @Override
-  public long getResourceSize(boolean ignoreOverride)
-  {
+  public long getResourceSize(boolean ignoreOverride) {
     try {
       return Files.size(file);
     } catch (IOException e) {
@@ -69,17 +62,15 @@ public final class FileResourceEntry extends ResourceEntry
   }
 
   @Override
-  public String getExtension()
-  {
+  public String getExtension() {
     String name = file.getFileName().toString();
     return name.substring(name.lastIndexOf('.') + 1).toUpperCase(Locale.ENGLISH);
   }
 
   @Override
-  public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws IOException
-  {
+  public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws IOException {
     try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
-      ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
+      ByteBuffer bb = StreamUtils.getByteBuffer((int) ch.size());
       ch.read(bb);
       bb.position(0);
       return bb;
@@ -87,36 +78,32 @@ public final class FileResourceEntry extends ResourceEntry
   }
 
   @Override
-  public InputStream getResourceDataAsStream(boolean ignoreOverride) throws IOException
-  {
+  public InputStream getResourceDataAsStream(boolean ignoreOverride) throws IOException {
     return new ByteBufferInputStream(getResourceBuffer(ignoreOverride));
   }
 
   @Override
-  public int[] getResourceInfo(boolean ignoreOverride)
-  {
+  public int[] getResourceInfo(boolean ignoreOverride) {
     return getLocalFileInfo(file);
   }
 
   @Override
-  public String getResourceName()
-  {
+  public String getResourceName() {
     return file.getFileName().toString();
   }
 
   @Override
-  public String getResourceRef()
-  {
+  public String getResourceRef() {
     String fileName = file.getFileName().toString();
     int pos = fileName.lastIndexOf('.');
-    if (pos >= 0)
+    if (pos >= 0) {
       fileName = fileName.substring(0, pos);
+    }
     return fileName;
   }
 
   @Override
-  public String getTreeFolderName()
-  {
+  public String getTreeFolderName() {
     if (BrowserMenuBar.getInstance() != null) {
       final OverrideMode mode = BrowserMenuBar.getInstance().getOverrideMode();
       final Keyfile keyfile = ResourceFactory.getKeyfile();
@@ -124,8 +111,7 @@ public final class FileResourceEntry extends ResourceEntry
       if (keyfile.getExtensionType(getExtension()) != -1) {
         if (mode == OverrideMode.InTree) {
           return getExtension();
-        } else if (mode == OverrideMode.Split &&
-                   keyfile.getResourceEntry(getResourceName()) != null) {
+        } else if (mode == OverrideMode.Split && keyfile.getResourceEntry(getResourceName()) != null) {
           return getExtension();
         }
       }
@@ -138,13 +124,12 @@ public final class FileResourceEntry extends ResourceEntry
   }
 
   @Override
-  public ResourceTreeFolder getTreeFolder()
-  {
+  public ResourceTreeFolder getTreeFolder() {
     ResourceTreeFolder retVal = null;
 
     // check extra folders first
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
-    for (final Path path: extraPaths) {
+    for (final Path path : extraPaths) {
       if (file.startsWith(path)) {
         // finding correct subfolder
         int startIndex = path.getNameCount() - 1; // include main folder
@@ -156,7 +141,7 @@ public final class FileResourceEntry extends ResourceEntry
           String name = subPath.getName(idx).toString();
           List<ResourceTreeFolder> folders = retVal.getFolders();
           retVal = null;
-          for (final ResourceTreeFolder subFolder: folders) {
+          for (final ResourceTreeFolder subFolder : folders) {
             if (name.equalsIgnoreCase(subFolder.folderName())) {
               retVal = subFolder;
               break;
@@ -175,13 +160,11 @@ public final class FileResourceEntry extends ResourceEntry
   }
 
   @Override
-  public boolean hasOverride()
-  {
+  public boolean hasOverride() {
     return override;
   }
 
-  public void renameFile(String newName, boolean overwrite) throws IOException
-  {
+  public void renameFile(String newName, boolean overwrite) throws IOException {
     Path basePath = file.getParent();
     CopyOption[] options = new CopyOption[overwrite ? 2 : 1];
     options[0] = StandardCopyOption.ATOMIC_MOVE;
@@ -195,8 +178,8 @@ public final class FileResourceEntry extends ResourceEntry
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + ((file == null) ? 0 : file.hashCode());
-    return prime * result + (override ? 1231 : 1237);
+    result = prime * result + Objects.hash(file, override);
+    return result;
   }
 
   @Override
@@ -204,7 +187,10 @@ public final class FileResourceEntry extends ResourceEntry
     if (this == obj) {
       return true;
     }
-    if (!super.equals(obj) || getClass() != obj.getClass()) {
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
       return false;
     }
     FileResourceEntry other = (FileResourceEntry) obj;

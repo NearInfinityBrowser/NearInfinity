@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -36,8 +36,7 @@ import org.xml.sax.SAXParseException;
 /**
  * Provides access to update information stored in "update.xml".
  */
-public class UpdateInfo
-{
+public class UpdateInfo {
   /** Available release types. */
   public enum ReleaseType {
     /** Information about the latest Near Infinity release (stable or unstable). */
@@ -61,22 +60,22 @@ public class UpdateInfo
   }
 
   // Supported node and attribute names
-  private static final String NODE_UPDATE       = "update";
-  private static final String NODE_GENERAL      = "general";
-  private static final String NODE_RELEASE      = "release";
-  private static final String NODE_SERVER       = "server";
-  private static final String NODE_INFO         = "info";
-  private static final String NODE_LINK         = "link";
-  private static final String NODE_FILE         = "file";
-  private static final String NODE_NAME         = "name";
-  private static final String NODE_URL          = "url";
-  private static final String NODE_VERSION      = "version";
-  private static final String NODE_TIMESTAMP    = "timestamp";
-  private static final String NODE_HASH         = "hash";
-  private static final String NODE_CHANGELOG    = "changelog";
-  private static final String NODE_ENTRY        = "entry";
-  private static final String ATTR_VERSION      = "version";
-  private static final String ATTR_TYPE         = "type";
+  private static final String NODE_UPDATE     = "update";
+  private static final String NODE_GENERAL    = "general";
+  private static final String NODE_RELEASE    = "release";
+  private static final String NODE_SERVER     = "server";
+  private static final String NODE_INFO       = "info";
+  private static final String NODE_LINK       = "link";
+  private static final String NODE_FILE       = "file";
+  private static final String NODE_NAME       = "name";
+  private static final String NODE_URL        = "url";
+  private static final String NODE_VERSION    = "version";
+  private static final String NODE_TIMESTAMP  = "timestamp";
+  private static final String NODE_HASH       = "hash";
+  private static final String NODE_CHANGELOG  = "changelog";
+  private static final String NODE_ENTRY      = "entry";
+  private static final String ATTR_VERSION    = "version";
+  private static final String ATTR_TYPE       = "type";
 
   private final EnumMap<ReleaseType, Release> releases = new EnumMap<>(ReleaseType.class);
 
@@ -84,15 +83,13 @@ public class UpdateInfo
   private int version;
 
   /**
-   * Checks if the specified string contains valid update.xml data.
-   * <b>Note:</b> This is an expensive operation.
-   * @param s The string to check.
+   * Checks if the specified string contains valid update.xml data. <b>Note:</b> This is an expensive operation.
+   *
+   * @param s        The string to check.
    * @param systemId Base path for relative URIs (required for Doctype reference).
-   * @return {@code true} if the string conforms to the update.xml specification,
-   *         {@code false} otherwise.
+   * @return {@code true} if the string conforms to the update.xml specification, {@code false} otherwise.
    */
-  public static boolean isValidXml(String s, String systemId)
-  {
+  public static boolean isValidXml(String s, String systemId) {
     try {
       return isValidXml(new ByteArrayInputStream(s.getBytes("UTF-8")), systemId);
     } catch (UnsupportedEncodingException e) {
@@ -101,14 +98,12 @@ public class UpdateInfo
   }
 
   /**
-   * Checks if the specified file contains valid update.xml data.
-   * <b>Note:</b> This is an expensive operation.
+   * Checks if the specified file contains valid update.xml data. <b>Note:</b> This is an expensive operation.
+   *
    * @param f The file to read data from.
-   * @return {@code true} if the file content conforms to the update.xml specification,
-   *         {@code false} otherwise.
+   * @return {@code true} if the file content conforms to the update.xml specification, {@code false} otherwise.
    */
-  public static boolean isValidXml(Path f)
-  {
+  public static boolean isValidXml(Path f) {
     try (InputStream is = StreamUtils.getInputStream(f)) {
       return isValidXml(is, f.getParent().toAbsolutePath().toString());
     } catch (IOException e) {
@@ -117,15 +112,13 @@ public class UpdateInfo
   }
 
   /**
-   * Checks if the specified input stream points to valid update.xml data.
-   * <b>Note:</b> This is an expensive operation.
-   * @param is The input stream to read data from.
+   * Checks if the specified input stream points to valid update.xml data. <b>Note:</b> This is an expensive operation.
+   *
+   * @param is       The input stream to read data from.
    * @param systemId Base path for relative URIs (required for Doctype reference).
-   * @return {@code true} if the data from the stream conforms to the update.xml specification,
-   *         {@code false} otherwise.
+   * @return {@code true} if the data from the stream conforms to the update.xml specification, {@code false} otherwise.
    */
-  public static boolean isValidXml(InputStream is, String systemId)
-  {
+  public static boolean isValidXml(InputStream is, String systemId) {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -139,20 +132,20 @@ public class UpdateInfo
 
   /**
    * Read update information from the given InputStream object.
-   * @param is InputStream object pointing to the update data in XML format.
+   *
+   * @param is       InputStream object pointing to the update data in XML format.
    * @param systemId Base path for relative URIs (required for Doctype reference).
    */
-  public UpdateInfo(InputStream is, String systemId) throws Exception
-  {
+  public UpdateInfo(InputStream is, String systemId) throws Exception {
     parseXml(is, systemId);
   }
 
   /**
    * Read update information from the specified file.
+   *
    * @param f The file containing update information in XML format.
    */
-  public UpdateInfo(Path f) throws Exception
-  {
+  public UpdateInfo(Path f) throws Exception {
     try (InputStream is = StreamUtils.getInputStream(f)) {
       parseXml(is, f.getParent().toAbsolutePath().toString());
     }
@@ -160,43 +153,40 @@ public class UpdateInfo
 
   /**
    * Read update information from the specified string.
-   * @param s The text string containing update information in XML format.
+   *
+   * @param s        The text string containing update information in XML format.
    * @param systemId Base path for relative URIs (required for Doctype reference).
    */
-  public UpdateInfo(String s, String systemId) throws Exception
-  {
+  public UpdateInfo(String s, String systemId) throws Exception {
     parseXml(new ByteArrayInputStream(s.getBytes("UTF-8")), systemId);
   }
 
   /**
    * Provides access to the General section of the update.xml.
    */
-  public General getGeneral()
-  {
+  public General getGeneral() {
     return general;
   }
 
   /**
-   * Provides access to the the Release section specified by the user in the Server Settings
-   * or returns {@code null} if not available.
+   * Provides access to the the Release section specified by the user in the Server Settings or returns {@code null} if
+   * not available.
    */
-  public Release getRelease()
-  {
+  public Release getRelease() {
     return releases.get(Updater.getInstance().isStableOnly() ? ReleaseType.STABLE : ReleaseType.LATEST);
   }
 
   /**
    * Provides access to the specified Release section or returns {@code null} if not available.
+   *
    * @param type The release type to access.
    */
-  public Release getRelease(ReleaseType type)
-  {
+  public Release getRelease(ReleaseType type) {
     return releases.get(type);
   }
 
   // Returns whether all mandatory fields have been initialized correctly.
-  public boolean isValid()
-  {
+  public boolean isValid() {
     boolean retVal = true;
     if (getGeneral() != null) {
       retVal &= getGeneral().isValid();
@@ -214,18 +204,16 @@ public class UpdateInfo
   }
 
   /**
-   * Returns the specification version of the current update.xml. Any version > 0 is valid.
-   * Newer versions are supposed to be backwards compatible.
+   * Returns the specification version of the current update.xml. Any version > 0 is valid. Newer versions are supposed
+   * to be backwards compatible.
+   *
    * @return The specification version of the update.xml.
    */
-  public int getUpdateInfoVersion()
-  {
+  public int getUpdateInfoVersion() {
     return version;
   }
 
-
-  private void parseXml(InputStream is, String systemId) throws Exception
-  {
+  private void parseXml(InputStream is, String systemId) throws Exception {
     if (is != null) {
       // reading XML data
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -257,7 +245,7 @@ public class UpdateInfo
         Node n = generalList.item(idx);
         if (n.getNodeType() == Node.ELEMENT_NODE) {
           // General section is optional
-          parseGeneral((Element)n);
+          parseGeneral((Element) n);
           break;
         }
       }
@@ -267,14 +255,13 @@ public class UpdateInfo
       for (int idx = 0, size = releaseList.getLength(); idx < size; idx++) {
         Node n = releaseList.item(idx);
         if (n.getNodeType() == Node.ELEMENT_NODE) {
-          parseRelease((Element)n);
+          parseRelease((Element) n);
         }
       }
     }
   }
 
-  private void parseGeneral(Element elemGeneral) throws Exception
-  {
+  private void parseGeneral(Element elemGeneral) throws Exception {
     if (elemGeneral == null || !elemGeneral.getNodeName().equals(NODE_GENERAL)) {
       throw new Exception("Update.xml: Node \"" + NODE_GENERAL + "\" expected");
     }
@@ -333,8 +320,7 @@ public class UpdateInfo
     general = new General(serverList, infoList);
   }
 
-  private void parseRelease(Element elemRelease) throws Exception
-  {
+  private void parseRelease(Element elemRelease) throws Exception {
     if (elemRelease == null || !elemRelease.getNodeName().equals(NODE_RELEASE)) {
       throw new Exception("Update.xml: Node \"" + NODE_RELEASE + "\" expected");
     }
@@ -365,9 +351,9 @@ public class UpdateInfo
       Node node = children.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         if (node.getNodeName().equals(NODE_FILE)) {
-          elemFile = (Element)node;
+          elemFile = (Element) node;
         } else if (node.getNodeName().equals(NODE_CHANGELOG)) {
-          elemChangelog = (Element)node;
+          elemChangelog = (Element) node;
         }
       }
     }
@@ -380,7 +366,7 @@ public class UpdateInfo
     for (int idx = 0, size = children.getLength(); idx < size; idx++) {
       Element elem = null;
       if (children.item(idx).getNodeType() == Node.ELEMENT_NODE) {
-        elem = (Element)children.item(idx);
+        elem = (Element) children.item(idx);
       } else {
         continue;
       }
@@ -405,7 +391,7 @@ public class UpdateInfo
       changelog = new ArrayList<>();
       children = elemChangelog.getElementsByTagName(NODE_ENTRY);
       for (int idx = 0, size = children.getLength(); idx < size; idx++) {
-        Element elem = (Element)children.item(idx);
+        Element elem = (Element) children.item(idx);
         String s = elem.getTextContent().trim();
         if (!s.isEmpty()) {
           changelog.add(s);
@@ -416,22 +402,18 @@ public class UpdateInfo
       }
     }
 
-    Release release = new Release(type, fileName, link, linkType, version, hash, timeStamp,
-                                  linkManual, changelog);
+    Release release = new Release(type, fileName, link, linkType, version, hash, timeStamp, linkManual, changelog);
     releases.put(type, release);
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   // Manages "General" information
-  public static class General
-  {
+  public static class General {
     private final List<String> servers = new ArrayList<>();
     private final List<Couple<String, String>> information = new ArrayList<>();
 
-    private General(List<String> servers, List<Couple<String, String>> information) throws Exception
-    {
+    private General(List<String> servers, List<Couple<String, String>> information) throws Exception {
       if (servers != null) {
         this.servers.addAll(servers);
       }
@@ -440,12 +422,13 @@ public class UpdateInfo
       }
     }
 
-    /**  Returns number of available alternate update servers. */
-    public int getServerCount() { return servers.size(); }
+    /** Returns number of available alternate update servers. */
+    public int getServerCount() {
+      return servers.size();
+    }
 
     /** Returns the URL of the specified alternate server or {@code null} if not available. */
-    public String getServer(int index)
-    {
+    public String getServer(int index) {
       if (index >= 0 && index < getServerCount()) {
         return servers.get(index);
       } else {
@@ -454,11 +437,12 @@ public class UpdateInfo
     }
 
     /** Returns number of available links to related websites. */
-    public int getInformationCount() { return information.size(); }
+    public int getInformationCount() {
+      return information.size();
+    }
 
     /** Returns name of the specified related website or {@code null} if not available. */
-    public String getInformationName(int index)
-    {
+    public String getInformationName(int index) {
       if (index >= 0 && index < getInformationCount()) {
         return information.get(index).getValue0();
       } else {
@@ -467,8 +451,7 @@ public class UpdateInfo
     }
 
     /** Returns URL of the specified related website or {@code null} if not available. */
-    public String getInformationLink(int index)
-    {
+    public String getInformationLink(int index) {
       if (index >= 0 && index < getInformationCount()) {
         return information.get(index).getValue1();
       } else {
@@ -477,8 +460,7 @@ public class UpdateInfo
     }
 
     /** Checks whether data has been initialized correctly. */
-    public boolean isValid()
-    {
+    public boolean isValid() {
       for (int i = 0, size = getServerCount(); i < size; i++) {
         String url = getServer(i);
         if (!Utils.isUrlValid(url)) {
@@ -496,39 +478,37 @@ public class UpdateInfo
     }
   }
 
-
   // Manages "Release" information
-  public static class Release
-  {
+  public static class Release {
     private final List<String> changelog = new ArrayList<>();
     private final ReleaseType type;
-    private String fileName, link, linkManual, version, hash;
+
+    private String fileName;
+    private String link;
+    private String linkManual;
+    private String version;
+    private String hash;
     private FileType linkType;
     private Calendar timeStamp;
 
-    private Release(ReleaseType type, String fileName, String link, String linkType, String version,
-                  String hash, String timeStamp, String linkManual, List<String> changelog) throws Exception
-    {
+    private Release(ReleaseType type, String fileName, String link, String linkType, String version, String hash,
+        String timeStamp, String linkManual, List<String> changelog) throws Exception {
       // checking mandatory fields
       if (fileName == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
-                                          NODE_NAME, NODE_RELEASE));
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_NAME, NODE_RELEASE));
       }
       if (link == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
-                                          NODE_LINK, NODE_RELEASE));
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_LINK, NODE_RELEASE));
       }
       if (version == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
-                                          NODE_VERSION, NODE_RELEASE));
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_VERSION, NODE_RELEASE));
       }
       if (timeStamp == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
-                                          NODE_TIMESTAMP, NODE_RELEASE));
+        throw new Exception(
+            String.format("Update.xml: Missing \"%s\" node in %s section", NODE_TIMESTAMP, NODE_RELEASE));
       }
       if (hash == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
-                                          NODE_HASH, NODE_RELEASE));
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_HASH, NODE_RELEASE));
       }
 
       this.type = type;
@@ -545,56 +525,71 @@ public class UpdateInfo
     }
 
     /** Returns the type of this file entry. */
-    public ReleaseType getReleaseType() { return type; }
+    public ReleaseType getReleaseType() {
+      return type;
+    }
 
     /** Returns the actual filename without path. */
-    public String getFileName() { return fileName; }
+    public String getFileName() {
+      return fileName;
+    }
 
     /** Returns the link to the file. Use {@link #getLinkType()} to determine archive format. */
-    public String getLink() { return link; }
+    public String getLink() {
+      return link;
+    }
 
     /** Returns the archive format of the file to download. */
-    public FileType getLinkType() { return linkType; }
+    public FileType getLinkType() {
+      return linkType;
+    }
 
     /** Returns the file version. */
-    public String getVersion() { return version; }
+    public String getVersion() {
+      return version;
+    }
 
     /** Returns the md5 hash string for the file to download. */
-    public String getHash() { return hash; }
+    public String getHash() {
+      return hash;
+    }
 
     /** Returns the date and time of the file. */
-    public Calendar getTimeStamp() { return timeStamp; }
+    public Calendar getTimeStamp() {
+      return timeStamp;
+    }
 
-    /** Returns a String version of the timestamp in  ISO 8601 format. */
-    public String getTimeStampString() { return Utils.toTimeStamp(timeStamp); }
+    /** Returns a String version of the timestamp in ISO 8601 format. */
+    public String getTimeStampString() {
+      return Utils.toTimeStamp(timeStamp);
+    }
 
     /** Returns a link to the file for manual download or {@code null} if not available. */
-    public String getDownloadLink() { return linkManual; }
+    public String getDownloadLink() {
+      return linkManual;
+    }
 
     /** Returns whether a ChangeLog is available. */
-    public boolean hasChangeLog() { return !changelog.isEmpty(); }
+    public boolean hasChangeLog() {
+      return !changelog.isEmpty();
+    }
 
     /** Returns a read-only list of changelog entries. */
-    public List<String> getChangelog() { return Collections.unmodifiableList(changelog); }
+    public List<String> getChangelog() {
+      return Collections.unmodifiableList(changelog);
+    }
 
     /** Checks whether data has been initialized correctly. */
-    public boolean isValid()
-    {
-      if (getReleaseType() == null) {
-        return false;
-      }
-      if (!Utils.isUrlValid(getLink())) {
-        return false;
-      }
-      if (getDownloadLink() != null && !Utils.isUrlValid(getDownloadLink())) {
+    public boolean isValid() {
+      if ((getReleaseType() == null) || !Utils.isUrlValid(getLink())
+          || (getDownloadLink() != null && !Utils.isUrlValid(getDownloadLink()))) {
         return false;
       }
       return true;
     }
 
     // Returns only supported archive formats for the linked file
-    private static FileType validateLinkType(String linkType) throws Exception
-    {
+    private static FileType validateLinkType(String linkType) throws Exception {
       if ("jar".equalsIgnoreCase(linkType)) {
         return FileType.ORIGINAL;
       } else if ("zip".equalsIgnoreCase(linkType)) {
@@ -606,25 +601,22 @@ public class UpdateInfo
     }
   }
 
-  private static class XmlErrorHandler implements ErrorHandler
-  {
-    public XmlErrorHandler() {}
+  private static class XmlErrorHandler implements ErrorHandler {
+    public XmlErrorHandler() {
+    }
 
     @Override
-    public void warning(SAXParseException exception) throws SAXException
-    {
+    public void warning(SAXParseException exception) throws SAXException {
       throw exception;
     }
 
     @Override
-    public void error(SAXParseException exception) throws SAXException
-    {
+    public void error(SAXParseException exception) throws SAXException {
       throw exception;
     }
 
     @Override
-    public void fatalError(SAXParseException exception) throws SAXException
-    {
+    public void fatalError(SAXParseException exception) throws SAXException {
       throw exception;
     }
   }

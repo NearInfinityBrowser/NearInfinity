@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.icon;
@@ -109,12 +109,13 @@ public enum Icons {
   }
 
   /**
-   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object
-   * and returns it as an {@code ImageIcon} instance.
-   * @param cls {@code Class} object used to determine the root path within the Java Archive.
-   *            Specify {@code null} to use the current class as root path for the graphics file.
-   * @param fileName Filename of the graphics file relative to the root path.
-   *                 The following file format are supported: BMP, GIF, JPEG PNG and WEBP.
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@code ImageIcon} instance.
+   *
+   * @param cls      {@code Class} object used to determine the root path within the Java Archive. Specify {@code null}
+   *                 to use the current class as root path for the graphics file.
+   * @param fileName Filename of the graphics file relative to the root path. The following file format are supported:
+   *                 BMP, GIF, JPEG PNG and WEBP.
    * @return {@code ImageIcon} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
    */
   public static ImageIcon getIcon(Class<?> cls, String fileName) {
@@ -139,9 +140,10 @@ public enum Icons {
   }
 
   /**
-   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object
-   * and returns it as an {@code Image} instance.
-   * @param cls {@code Class} object used to to determine the root path within the Java Archive.
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@code Image} instance.
+   *
+   * @param cls      {@code Class} object used to to determine the root path within the Java Archive.
    * @param fileName Filename of the graphics file relative to the root path.
    * @return {@code Image} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
    */

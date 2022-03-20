@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -19,48 +19,44 @@ import javax.swing.SwingConstants;
 /**
  * A component that displays an image. Provides support for scaling and filtering.
  */
-public class RenderCanvas extends JComponent implements SwingConstants
-{
+public class RenderCanvas extends JComponent implements SwingConstants {
   // interpolation types used in scaling
-  public static final Object TYPE_NEAREST_NEIGHBOR  = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
-  public static final Object TYPE_BILINEAR          = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-  public static final Object TYPE_BICUBIC           = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+  public static final Object TYPE_NEAREST_NEIGHBOR = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+  public static final Object TYPE_BILINEAR = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+  public static final Object TYPE_BICUBIC = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
   private Image currentImage;
   private Object interpolationType;
-  private boolean isScaling, isAutoScale;
-  private int scaledWidth, scaledHeight;
-  private int verticalAlignment, horizontalAlignment;
+  private boolean isScaling;
+  private boolean isAutoScale;
+  private int scaledWidth;
+  private int scaledHeight;
+  private int verticalAlignment;
+  private int horizontalAlignment;
   private Composite composite;
 
-  public RenderCanvas()
-  {
+  public RenderCanvas() {
     this(null, false, TYPE_NEAREST_NEIGHBOR, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image)
-  {
+  public RenderCanvas(Image image) {
     this(image, false, TYPE_NEAREST_NEIGHBOR, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image, boolean scaled)
-  {
+  public RenderCanvas(Image image, boolean scaled) {
     this(image, scaled, TYPE_NEAREST_NEIGHBOR, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image, boolean scaled, Object interpolationType)
-  {
+  public RenderCanvas(Image image, boolean scaled, Object interpolationType) {
     this(image, scaled, interpolationType, CENTER, CENTER);
   }
 
-  public RenderCanvas(Image image, boolean scaled, Object interpolationType,
-                      int horizontalAlign, int verticalAlign)
-  {
+  public RenderCanvas(Image image, boolean scaled, Object interpolationType, int horizontalAlign, int verticalAlign) {
     setOpaque(false);
     this.currentImage = null;
     this.interpolationType = TYPE_NEAREST_NEIGHBOR;
     this.isScaling = false;
-    this.isAutoScale = true;   // defaults to "true" to preserve backwards compatibility
+    this.isAutoScale = true; // defaults to "true" to preserve backwards compatibility
     this.scaledWidth = this.scaledHeight = -1;
     this.verticalAlignment = this.horizontalAlignment = CENTER;
     setInterpolationType(interpolationType);
@@ -73,19 +69,19 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns the currently assigned image.
+   *
    * @return Image object if an image has been assigned, {@code false} otherwise.
    */
-  public Image getImage()
-  {
+  public Image getImage() {
     return currentImage;
   }
 
   /**
    * Sets a new image
+   *
    * @param image
    */
-  public void setImage(Image image)
-  {
+  public void setImage(Image image) {
     if (currentImage != image) {
       if (image == null) {
         currentImage.flush();
@@ -103,19 +99,19 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Gets the alignment of the component's content along the Y axis.
+   *
    * @return One of the following constants defined in SwingConstants: TOP, CENTER or BOTTOM.
    */
-  public int getVerticalAlignment()
-  {
+  public int getVerticalAlignment() {
     return verticalAlignment;
   }
 
   /**
    * Sets the alignment of the component's content along the Y axis. The default property is CENTER.
+   *
    * @param alignment One of the following constants defined in SwingConstants: TOP, CENTER or BOTTOM.
    */
-  public void setVerticalAlignment(int alignment)
-  {
+  public void setVerticalAlignment(int alignment) {
     if (alignment != verticalAlignment) {
       switch (alignment) {
         case SwingConstants.TOP:
@@ -135,19 +131,19 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Gets the alignment of the component's content along the X axis.
+   *
    * @return One of the following constants defined in SwingConstants: LEFT, CENTER or RIGHT.
    */
-  public int getHorizontalAlignment()
-  {
+  public int getHorizontalAlignment() {
     return horizontalAlignment;
   }
 
   /**
    * Sets the alignment of the component's content along the X axis. The default property is CENTER.
+   *
    * @param alignment One of the following constants defined in SwingConstants: LEFT, CENTER or RIGHT.
    */
-  public void setHorizontalAlignment(int alignment)
-  {
+  public void setHorizontalAlignment(int alignment) {
     if (alignment != horizontalAlignment) {
       switch (alignment) {
         case SwingConstants.LEFT:
@@ -167,19 +163,19 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns whether scaling has been activated.
+   *
    * @return {@code true} if scaling has been activated.
    */
-  public boolean isScalingEnabled()
-  {
+  public boolean isScalingEnabled() {
     return isScaling;
   }
 
   /**
    * Sets whether the image buffer's content should be drawn scaled.
+   *
    * @param enable {@code true} to enable scaling.
    */
-  public void setScalingEnabled(boolean enable)
-  {
+  public void setScalingEnabled(boolean enable) {
     if (enable != isScaling) {
       isScaling = enable;
       repaint();
@@ -187,24 +183,23 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
   /**
-   * Returns whether the image should be scaled to full size of the component.
-   * Values set by {@link #setScaledWidth(int)}, {@link #setScaledHeight(int) or {@link #setScaleFactor(float)}
-   * are ignored while this setting is enabled.
+   * Returns whether the image should be scaled to full size of the component. Values set by
+   * {@link #setScaledWidth(int)}, {@link #setScaledHeight(int) or {@link #setScaleFactor(float)} are ignored while this
+   * setting is enabled.
+   *
    * @return {@code true} if image will be auto-scaled.
    */
-  public boolean isAutoScaleEnabled()
-  {
+  public boolean isAutoScaleEnabled() {
     return isAutoScale;
   }
 
   /**
-   * Sets whether the image will be scaled to full size of the component.
-   * Values set by {@link #setScaledWidth(int)}, {@link #setScaledHeight(int) or {@link #setScaleFactor(float)}
-   * are ignored while this setting is enabled.
+   * Sets whether the image will be scaled to full size of the component. Values set by {@link #setScaledWidth(int)},
+   * {@link #setScaledHeight(int) or {@link #setScaleFactor(float)} are ignored while this setting is enabled.
+   *
    * @param enable {@code true} to enable auto-scale.
    */
-  public void setAutoScaleEnabled(boolean enable)
-  {
+  public void setAutoScaleEnabled(boolean enable) {
     if (enable != isAutoScale) {
       isAutoScale = enable;
       repaint();
@@ -212,36 +207,37 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
   /**
-   * A convenience method that applies a uniform scale to the current image in both vertical and
-   * horizontal direction.
+   * A convenience method that applies a uniform scale to the current image in both vertical and horizontal direction.
+   *
    * @param factor The scaling factor. Must be > 0.0.
    */
-  public void setScaleFactor(float factor)
-  {
-    if (factor <= 0.0f) return;
+  public void setScaleFactor(float factor) {
+    if (factor <= 0.0f) {
+      return;
+    }
 
     if (currentImage != null) {
-      setScaledWidth((int)(currentImage.getWidth(null) * factor));
-      setScaledHeight((int)(currentImage.getHeight(null) * factor));
+      setScaledWidth((int) (currentImage.getWidth(null) * factor));
+      setScaledHeight((int) (currentImage.getHeight(null) * factor));
     }
   }
 
   /**
    * Returns the scaled width of the current image.
+   *
    * @return scaled width of the current image.
    */
-  public int getScaledWidth()
-  {
+  public int getScaledWidth() {
     return scaledWidth;
   }
 
   /**
-   * Sets the new width of the image when scaled. This value is ignored while
-   * {@link #setAutoScaleEnabled(boolean)} is active.
+   * Sets the new width of the image when scaled. This value is ignored while {@link #setAutoScaleEnabled(boolean)} is
+   * active.
+   *
    * @param newWidth New width of the image. Must be > 0.
    */
-  public void setScaledWidth(int newWidth)
-  {
+  public void setScaledWidth(int newWidth) {
     if (newWidth > 0 && newWidth != scaledWidth) {
       scaledWidth = newWidth;
       update();
@@ -250,20 +246,20 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns the scaled height of the current image.
+   *
    * @return scaled height of the current image.
    */
-  public int getScaledHeight()
-  {
+  public int getScaledHeight() {
     return scaledHeight;
   }
 
   /**
-   * Sets the new height of the image when scaled. This value is ignored while
-   * {@link #setAutoScaleEnabled(boolean)} is active.
+   * Sets the new height of the image when scaled. This value is ignored while {@link #setAutoScaleEnabled(boolean)} is
+   * active.
+   *
    * @param newHeight New height of the image. Must be > 0.
    */
-  public void setScaledHeight(int newHeight)
-  {
+  public void setScaledHeight(int newHeight) {
     if (newHeight > 0 && newHeight != scaledHeight) {
       scaledHeight = newHeight;
       update();
@@ -272,24 +268,23 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns the interpolation type used when scaling has been enabled.
+   *
    * @return The interpolation type.
    */
-  public Object getInterpolationType()
-  {
+  public Object getInterpolationType() {
     return interpolationType;
   }
 
   /**
-   * Specify the interpolation type used when scaling has been enabled.
-   * One of TYPE_NEAREST_NEIGHBOR, TYPE_BILINEAR and TYPE_BICUBIC (Default: TYPE_NEAREST_NEIGHBOR).
+   * Specify the interpolation type used when scaling has been enabled. One of TYPE_NEAREST_NEIGHBOR, TYPE_BILINEAR and
+   * TYPE_BICUBIC (Default: TYPE_NEAREST_NEIGHBOR).
+   *
    * @param interpolationType The new interpolation type to set.
    */
-  public void setInterpolationType(Object interpolationType)
-  {
+  public void setInterpolationType(Object interpolationType) {
     if (this.interpolationType != interpolationType) {
-      if (interpolationType == TYPE_NEAREST_NEIGHBOR ||
-          interpolationType == TYPE_BILINEAR ||
-          interpolationType == TYPE_BICUBIC) {
+      if (interpolationType == TYPE_NEAREST_NEIGHBOR || interpolationType == TYPE_BILINEAR
+          || interpolationType == TYPE_BICUBIC) {
         this.interpolationType = interpolationType;
         if (isScaling) {
           repaint();
@@ -301,31 +296,27 @@ public class RenderCanvas extends JComponent implements SwingConstants
   /**
    * Returns the {@link Composite} object used to draw the image on the canvas.
    */
-  public Composite getComposite()
-  {
+  public Composite getComposite() {
     return composite;
   }
 
   /**
    * Sets the {@link Composite} object that is used to draw the image on the canvas.
+   *
    * @param c the {@code Composite} object. Specify {@code null} to use a default composite object.
    */
-  public void setComposite(Composite c)
-  {
+  public void setComposite(Composite c) {
     composite = (c != null) ? c : AlphaComposite.SrcOver;
   }
 
-
-  protected void update()
-  {
+  protected void update() {
     invalidate();
     if (getParent() != null) {
       getParent().repaint();
     }
   }
 
-  protected Rectangle getCanvasSize()
-  {
+  protected Rectangle getCanvasSize() {
     Rectangle rect = new Rectangle();
     if (currentImage != null) {
       rect.width = currentImage.getWidth(null);
@@ -360,12 +351,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Renders the image to the canvas.
+   *
    * @param g The graphics context in which to paint.
    */
-  protected void paintCanvas(Graphics g)
-  {
+  protected void paintCanvas(Graphics g) {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
-      Graphics2D g2 = (Graphics2D)g;
+      Graphics2D g2 = (Graphics2D) g;
       Composite oldComposite = g2.getComposite();
       g2.setComposite(getComposite());
       Rectangle rect = getCanvasSize();
@@ -381,14 +372,13 @@ public class RenderCanvas extends JComponent implements SwingConstants
     }
   }
 
-//--------------------- Begin Class Component ---------------------
+  // --------------------- Begin Class Component ---------------------
 
   @Override
-  public void paint(Graphics g)
-  {
+  public void paint(Graphics g) {
     paintCanvas(g);
     super.paint(g);
   }
 
-//--------------------- End Class Component ---------------------
+  // --------------------- End Class Component ---------------------
 }

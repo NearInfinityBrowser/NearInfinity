@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -42,14 +42,19 @@ public enum Direction {
   SSE(15);
 
   private final int dir;
-  private Direction(int dir) { this.dir = dir; }
+
+  private Direction(int dir) {
+    this.dir = dir;
+  }
 
   /** Returns the numeric direction value. */
-  public int getValue() { return dir; }
+  public int getValue() {
+    return dir;
+  }
 
   /**
-   * Determines the {@link Direction} instance associated with the specified numeric value and returns it.
-   * Return {@code null} if association could not be determined.
+   * Determines the {@link Direction} instance associated with the specified numeric value and returns it. Return
+   * {@code null} if association could not be determined.
    */
   public static Direction from(int value) {
     for (final Direction d : Direction.values()) {

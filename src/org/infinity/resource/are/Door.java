@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -27,8 +27,7 @@ import org.infinity.resource.vertex.OpenVertexImpeded;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
-{
+public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs {
   // ARE/Door-specific field labels
   public static final String ARE_DOOR                                   = "Door";
   public static final String ARE_DOOR_NAME                              = "Name";
@@ -74,90 +73,82 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   public static final String ARE_DOOR_SPEAKER_NAME                      = "Speaker name";
   public static final String ARE_DOOR_DIALOG                            = "Dialogue";
 
-  public static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                         "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                         "Door secret", "Secret door detected", "Can be looked through",
-                                         "Uses key", "Sliding door"};
-  public static final String[] s_flag_iwd2 = {"No flags set", "Door open", "Door locked", "Trap resets",
-                                              "Detectable trap", "Door forced", "Cannot close", "Door located",
-                                              "Door secret", "Secret door detected", "Alternate lock string",
-                                              "Can be looked through", "Warn on activate", "Displayed warning",
-                                              "Door hidden", "Uses key"};
+  public static final String[] FLAGS_ARRAY = { "No flags set", "Door open", "Door locked", "Trap resets",
+      "Detectable trap", "Door forced", "Cannot close", "Door located", "Door secret", "Secret door detected",
+      "Can be looked through", "Uses key", "Sliding door" };
 
-  public Door() throws Exception
-  {
+  public static final String[] FLAGS_IWD2_ARRAY = { "No flags set", "Door open", "Door locked", "Trap resets",
+      "Detectable trap", "Door forced", "Cannot close", "Door located", "Door secret", "Secret door detected",
+      "Alternate lock string", "Can be looked through", "Warn on activate", "Displayed warning", "Door hidden",
+      "Uses key" };
+
+  public Door() throws Exception {
     super(null, ARE_DOOR, StreamUtils.getByteBuffer(200), 0);
   }
 
-  public Door(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
-  {
+  public Door(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    return new AddRemovable[]{new OpenVertex(), new ClosedVertex(), new ClosedVertexImpeded(),
-                              new OpenVertexImpeded()};
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] { new OpenVertex(), new ClosedVertex(), new ClosedVertexImpeded(),
+        new OpenVertexImpeded() };
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
   @Override
-  public void readVertices(ByteBuffer buffer, int offset) throws Exception
-  {
-    IsNumeric firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN);
-    IsNumeric numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN);
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception {
+    IsNumeric firstVertex = (IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN);
+    IsNumeric numVertices = (IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_OPEN);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new OpenVertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED);
-    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED);
+    firstVertex = (IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED);
+    numVertices = (IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new ClosedVertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN);
-    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN);
+    firstVertex = (IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN);
+    numVertices = (IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new OpenVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED);
-    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED);
+    firstVertex = (IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED);
+    numVertices = (IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new ClosedVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
   }
 
   @Override
-  public int updateVertices(int offset, int number)
-  {
+  public int updateVertices(int offset, int number) {
     // Must assume that the number is correct
-    ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).setValue(number);
-    int count = ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
-    ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).setValue(number + count);
-    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
-    ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).setValue(number + count);
-    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
-    ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).setValue(number + count);
-    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
+    ((DecNumber) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).setValue(number);
+    int count = ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+    ((DecNumber) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).setValue(number + count);
+    count += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+    ((DecNumber) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).setValue(number + count);
+    count += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
+    ((DecNumber) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).setValue(number + count);
+    count += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
 
     for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
-        ((Vertex)entry).realignStructOffsets();
+        ((Vertex) entry).realignStructOffsets();
         offset += 4;
       }
     }
@@ -165,40 +156,35 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   }
 
   @Override
-  protected void setAddRemovableOffset(AddRemovable datatype)
-  {
-    final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+  protected void setAddRemovableOffset(AddRemovable datatype) {
+    final int offset = ((IsNumeric) getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
     if (datatype instanceof OpenVertex) {
-      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+      int index = ((IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
-    }
-    else if (datatype instanceof ClosedVertex) {
-      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+    } else if (datatype instanceof ClosedVertex) {
+      int index = ((IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
-    }
-    else if (datatype instanceof OpenVertexImpeded) {
-      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
+    } else if (datatype instanceof OpenVertexImpeded) {
+      int index = ((IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
-    }
-    else if (datatype instanceof ClosedVertexImpeded) {
-      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
+    } else if (datatype instanceof ClosedVertexImpeded) {
+      int index = ((IsNumeric) getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
     }
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 32, ARE_DOOR_NAME));
     addField(new TextString(buffer, offset + 32, 8, ARE_DOOR_ID));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
-      addField(new Flag(buffer, offset + 40, 4, ARE_DOOR_FLAGS, s_flag_iwd2));
+      addField(new Flag(buffer, offset + 40, 4, ARE_DOOR_FLAGS, FLAGS_IWD2_ARRAY));
     } else {
-      addField(new Flag(buffer, offset + 40, 4, ARE_DOOR_FLAGS, s_flag));
+      addField(new Flag(buffer, offset + 40, 4, ARE_DOOR_FLAGS, FLAGS_ARRAY));
     }
     addField(new DecNumber(buffer, offset + 44, 4, ARE_DOOR_FIRST_VERTEX_INDEX_OPEN));
     addField(new SectionCount(buffer, offset + 48, 2, ARE_DOOR_NUM_VERTICES_OPEN, OpenVertex.class));
@@ -213,10 +199,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new DecNumber(buffer, offset + 68, 2, ARE_DOOR_CLOSED_BOUNDING_BOX_RIGHT));
     addField(new DecNumber(buffer, offset + 70, 2, ARE_DOOR_CLOSED_BOUNDING_BOX_BOTTOM));
     addField(new DecNumber(buffer, offset + 72, 4, ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN));
-    addField(new SectionCount(buffer, offset + 76, 2, ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN,
-                              OpenVertexImpeded.class));
-    addField(new SectionCount(buffer, offset + 78, 2, ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED,
-                              ClosedVertexImpeded.class));
+    addField(new SectionCount(buffer, offset + 76, 2, ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN, OpenVertexImpeded.class));
+    addField(new SectionCount(buffer, offset + 78, 2, ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED, ClosedVertexImpeded.class));
     addField(new DecNumber(buffer, offset + 80, 4, ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED));
     addField(new DecNumber(buffer, offset + 84, 2, ARE_DOOR_CURRENT_HP));
     addField(new DecNumber(buffer, offset + 86, 2, ARE_DOOR_EFFECTIVE_AC));
