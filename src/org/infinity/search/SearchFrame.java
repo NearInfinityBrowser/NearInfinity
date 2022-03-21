@@ -21,10 +21,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -56,7 +59,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
   private final JButton binsert = new JButton("Insert reference", Icons.ICON_PASTE_16.getIcon());
   private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
-  private final JList<String> list = new JList<>();
+  private final JList<ResourceWrapper> list = new JList<>();
   private final JPanel bpanel;
   private final JProgressBar progress = new JProgressBar();
   private final JRadioButton rbcre = new JRadioButton("Creatures");
@@ -64,15 +67,8 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JRadioButton rbspl = new JRadioButton("Spells");
   private final JRadioButton rbsto = new JRadioButton("Stores");
   private final JTextField tfield = new JTextField(10);
-
-//  public static void clearCache() {
-//    if (SEARCH_FRAME != null) {
-//      SEARCH_FRAME.list.setListData(new String[0]);
-//      SEARCH_FRAME.bopen.setEnabled(false);
-//      SEARCH_FRAME.bopennew.setEnabled(false);
-//      SEARCH_FRAME.binsert.setEnabled(false);
-//    }
-//  }
+  private final JCheckBox cbCaseSensitive = new JCheckBox("Match case");
+  private final JCheckBox cbRegex = new JCheckBox("Use regular expressions");
 
   public SearchFrame() {
     super("Find");
@@ -113,9 +109,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       @Override
       public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
-          String selected = list.getSelectedValue();
-          String resname = selected.substring(0, selected.indexOf(" - "));
-          ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
+          ResourceEntry entry = list.getSelectedValue().getResourceEntry();
           NearInfinity.getInstance().showResourceEntry(entry);
         }
       }
@@ -148,6 +142,15 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     rbpanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Find:"),
         BorderFactory.createEmptyBorder(3, 6, 3, 3)));
 
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
+    optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
+    cbCaseSensitive.setMnemonic('c');
+    cbCaseSensitive.setToolTipText("Search text is compared case-sensitive. Can be used in combination with regular expressions.");
+    cbRegex.setMnemonic('r');
+    cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
+    optionsPanel.add(cbCaseSensitive);
+    optionsPanel.add(cbRegex);
+
     JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -161,6 +164,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbc.insets = new Insets(6, 4, 3, 5);
     gbl.setConstraints(rbpanel, gbc);
     pane.add(rbpanel);
+
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.insets = new Insets(6, 4, 3, 5);
+    gbl.setConstraints(optionsPanel, gbc);
+    pane.add(optionsPanel);
 
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
@@ -204,7 +214,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(bpanel, gbc);
     pane.add(bpanel);
 
-    setSize(Misc.getScaledValue(500), Misc.getScaledValue(450));
+    setSize(Misc.getScaledValue(500), Misc.getScaledValue(500));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
@@ -218,14 +228,11 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       }
       new Thread(this).start();
     } else if (event.getSource() == bopen) {
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf(" - "));
-      ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
+      ResourceEntry entry = list.getSelectedValue().getResourceEntry();
       NearInfinity.getInstance().showResourceEntry(entry);
     } else if (event.getSource() == bopennew) {
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf(" - "));
-      new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
+      ResourceEntry entry = list.getSelectedValue().getResourceEntry();
+      new ViewFrame(this, ResourceFactory.getResource(entry));
     } else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
       if (viewable == null || !(viewable instanceof BcsResource)) {
@@ -233,9 +240,8 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
             JOptionPane.ERROR_MESSAGE);
         return;
       }
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf("."));
-      ((BcsResource) viewable).insertString('\"' + resname + '\"');
+      String resName = list.getSelectedValue().getResourceEntry().getResourceRef();
+      ((BcsResource) viewable).insertString('\"' + resName + '\"');
     }
   }
 
@@ -263,53 +269,134 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
     binsert.setEnabled(false);
-    list.setListData(new String[] {});
+    list.setListData(new ResourceWrapper[] {});
     rbcre.setEnabled(false);
     rbitm.setEnabled(false);
     rbspl.setEnabled(false);
     rbsto.setEnabled(false);
 
-    String selectedtype = "";
-    if (rbcre.isSelected()) {
-      selectedtype = "CRE";
-    } else if (rbitm.isSelected()) {
-      selectedtype = "ITM";
-    } else if (rbspl.isSelected()) {
-      selectedtype = "SPL";
-    } else if (rbsto.isSelected()) {
-      selectedtype = "STO";
-    }
-
-    List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
-    String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
-    List<String> found = new ArrayList<>();
-    cards.show(bpanel, "Progress");
-    progress.setMaximum(resources.size());
-    for (int i = 0; i < resources.size(); i++) {
-      ResourceEntry entry = resources.get(i);
-      String string = entry.getSearchString();
-      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1) {
-        found.add(entry.toString() + " - " + string);
+    try {
+      if (tfield.getText().isEmpty()) {
+        return;
       }
-      progress.setValue(i + 1);
-    }
-    cards.show(bpanel, "Button");
-    progress.setValue(0);
 
-    list.ensureIndexIsVisible(0);
-    if (found.size() > 0) {
-      Collections.sort(found);
-      list.setListData(found.toArray(new String[found.size()]));
-      list.setEnabled(true);
-    }
+      String selectedtype = "";
+      if (rbcre.isSelected()) {
+        selectedtype = "CRE";
+      } else if (rbitm.isSelected()) {
+        selectedtype = "ITM";
+      } else if (rbspl.isSelected()) {
+        selectedtype = "SPL";
+      } else if (rbsto.isSelected()) {
+        selectedtype = "STO";
+      }
 
-    rbcre.setEnabled(true);
-    rbitm.setEnabled(true);
-    rbspl.setEnabled(true);
-    rbsto.setEnabled(true);
-    tfield.setEnabled(true);
-    bsearch.setEnabled(true);
+      final boolean isCase = cbCaseSensitive.isSelected();
+      Pattern regex = null;
+      if (cbRegex.isSelected()) {
+        try {
+          String text = tfield.getText();
+          regex = Pattern.compile(text, isCase ? 0 : Pattern.CASE_INSENSITIVE);
+        } catch (PatternSyntaxException e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(this, "Regular expression error:\n" + e.getMessage(), "Error",
+              JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      }
+
+      String expr = tfield.getText();
+      if (!isCase) {
+        expr = expr.toLowerCase(Locale.ENGLISH);
+      }
+
+      List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
+      List<ResourceWrapper> found = new ArrayList<>();
+      cards.show(bpanel, "Progress");
+      progress.setMaximum(resources.size());
+      for (int i = 0, size = resources.size(); i < size; i++) {
+        final ResourceEntry entry = resources.get(i);
+        final String string = entry.getSearchString();
+        boolean isMatch = false;
+        if (string != null) {
+          if (regex != null) {
+            isMatch = regex.matcher(string).find();
+          } else {
+            String text = isCase ? string : string.toLowerCase(Locale.ENGLISH);
+            isMatch = text.contains(expr);
+          }
+        }
+
+        if (isMatch) {
+          found.add(new ResourceWrapper(entry));
+        }
+
+        progress.setValue(i + 1);
+      }
+      cards.show(bpanel, "Button");
+      progress.setValue(0);
+
+      list.ensureIndexIsVisible(0);
+      if (found.size() > 0) {
+        Collections.sort(found);
+        list.setListData(found.toArray(new ResourceWrapper[found.size()]));
+        list.setEnabled(true);
+      }
+    } finally {
+      rbcre.setEnabled(true);
+      rbitm.setEnabled(true);
+      rbspl.setEnabled(true);
+      rbsto.setEnabled(true);
+      tfield.setEnabled(true);
+      bsearch.setEnabled(true);
+    }
   }
 
   // --------------------- End Interface Runnable ---------------------
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  private static class ResourceWrapper implements Comparable<ResourceWrapper> {
+    private final ResourceEntry entry;
+
+    public ResourceWrapper(ResourceEntry entry) {
+      this.entry = entry;
+    }
+
+    public ResourceEntry getResourceEntry() {
+      return entry;
+    }
+
+    // --------------------- Begin Interface Comparable ---------------------
+
+    @Override
+    public int compareTo(ResourceWrapper wrapper) {
+      if (wrapper.entry == this.entry) {
+        return 0;
+      } else if (this.entry == null) {
+        return -1;
+      } else if (wrapper.entry == null) {
+        return 1;
+      } else {
+        return this.entry.getResourceName().compareToIgnoreCase(wrapper.entry.getResourceName());
+      }
+    }
+
+    // --------------------- End Interface Comparable ---------------------
+
+    @Override
+    public String toString() {
+      if (entry == null) {
+        return "(null)";
+      }
+
+      String resName = entry.getResourceName();
+      String descName = entry.getSearchString();
+      String text = resName;
+      if (descName != null && !descName.isEmpty()) {
+        text += " - " + descName;
+      }
+      return text;
+    }
+  }
 }
