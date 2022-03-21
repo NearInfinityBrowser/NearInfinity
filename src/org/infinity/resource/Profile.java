@@ -1415,10 +1415,10 @@ public final class Profile implements FileWatcher.FileWatchListener {
     addEntry(Key.GET_GLOBAL_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER);
 
     // setting default override folder name
-    addEntry(Key.GET_GLOBAL_OVERRIDE_NAME, Type.STRING, "Override");
+    addEntry(Key.GET_GLOBAL_OVERRIDE_NAME, Type.STRING, "override");
 
     // Language root folder for Enhanced Edition games
-    addEntry(Key.GET_GLOBAL_LANG_NAME, Type.STRING, "Lang");
+    addEntry(Key.GET_GLOBAL_LANG_NAME, Type.STRING, "lang");
 
     // setting dialog.tlk file names
     addEntry(Key.GET_GLOBAL_DIALOG_NAME, Type.STRING, "dialog.tlk");
