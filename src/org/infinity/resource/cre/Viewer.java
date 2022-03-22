@@ -242,7 +242,11 @@ public final class Viewer extends JPanel {
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true, 100);
+    if (cre.isCharacter()) {
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CHR_NAME), gbl, gbc, true, 100);
+    } else {
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true, 100);
+    }
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP_VALUE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GOLD), gbl, gbc, true);
@@ -331,7 +335,11 @@ public final class Viewer extends JPanel {
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true);
+    if (cre.isCharacter()) {
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CHR_NAME), gbl, gbc, true);
+    } else {
+      ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true);
+    }
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP_VALUE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_LEVELS_TOTAL), gbl, gbc, true);

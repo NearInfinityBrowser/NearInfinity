@@ -736,6 +736,11 @@ public final class CreResource extends AbstractStruct
     isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
+  /** Returns whether the creature resource includes a CHR (character) header. */
+  public boolean isCharacter() {
+    return isChr;
+  }
+
   @Override
   public void close() throws Exception {
     JComponent c = getViewerTab(TAB_INDEX_ANIMATION);
