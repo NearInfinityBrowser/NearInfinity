@@ -145,7 +145,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
     optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
     cbCaseSensitive.setMnemonic('c');
-    cbCaseSensitive.setToolTipText("Search text is compared case-sensitive. Can be used in combination with regular expressions.");
+    cbCaseSensitive.setToolTipText("Search text is matched case-sensitive. Can be used in combination with regular expressions.");
     cbRegex.setMnemonic('r');
     cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
     optionsPanel.add(cbCaseSensitive);

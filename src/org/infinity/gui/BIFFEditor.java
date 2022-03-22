@@ -318,6 +318,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       labels[5] = new JLabel("Write new keyfile");
       bok.addActionListener(this);
       bok.setEnabled(false);
+      getRootPane().setDefaultButton(bok);
 
       Container pane = getContentPane();
       GridBagLayout gbl = new GridBagLayout();
@@ -330,6 +331,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       for (int i = 0; i < boxes.length; i++) {
         boxes[i] = new JCheckBox();
         boxes[i].setEnabled(false);
+        labels[i].setEnabled(false);
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.CENTER;
         gbl.setConstraints(boxes[i], gbc);
@@ -351,6 +353,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     private void setProgress(int level, boolean ok) {
       if (ok) {
         boxes[level - 1].setSelected(true);
+        labels[level - 1].setEnabled(true);
       } else {
         boxes[level - 1].setForeground(Color.RED);
       }

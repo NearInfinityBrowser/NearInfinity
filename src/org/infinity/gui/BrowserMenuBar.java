@@ -1287,8 +1287,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       add(editString);
       // TODO: reactivate when fixed
       editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.ICON_EDIT_16.getIcon(), KeyEvent.VK_E, this);
-      editBIFF.setToolTipText("Temporarily disabled");
-      editBIFF.setEnabled(false);
+      final List<Path> dlcPaths = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+      if (Profile.isEnhancedEdition() && dlcPaths != null && !dlcPaths.isEmpty()) {
+        editBIFF.setToolTipText("Temporarily disabled");
+        editBIFF.setEnabled(false);
+      }
       add(editBIFF);
     }
 
@@ -1297,7 +1300,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       if (event.getSource() == editString) {
         ChildFrame.show(StringEditor.class, StringEditor::new);
       } else if (event.getSource() == editBIFF) {
-        // new BIFFEditor();
+        new BIFFEditor();
       }
     }
   }
@@ -1396,7 +1399,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private final JMenuItem toolInfinityAmp;
     private final JMenuItem toolCreatureBrowser;
-    private final JMenuItem toolCleanKeyfile;
+//    private final JMenuItem toolCleanKeyfile;
     private final JMenuItem toolCheckAllDialog;
     private final JMenuItem toolCheckOverrideDialog;
 
@@ -1443,12 +1446,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       addSeparator();
 
       // TODO: reactivate when fixed
-      toolCleanKeyfile = makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.ICON_REFRESH_16.getIcon(), -1, this);
-      toolCleanKeyfile.setToolTipText("Temporarily disabled");
-      toolCleanKeyfile.setEnabled(false);
-      add(toolCleanKeyfile);
+//      toolCleanKeyfile = makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.ICON_REFRESH_16.getIcon(), -1, this);
+//      toolCleanKeyfile.setToolTipText("Temporarily disabled");
+//      toolCleanKeyfile.setEnabled(false);
+//      add(toolCleanKeyfile);
 
-      addSeparator();
+//      addSeparator();
 
       // *** Begin Check submenu ***
       JMenu checkMenu = new JMenu("Check");
@@ -1645,8 +1648,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         });
       } else if (event.getSource() == dumpDebugInfo) {
         dumpDebugInfo();
-      } else if (event.getSource() == toolCleanKeyfile) {
-        // cleanKeyfile();
+//      } else if (event.getSource() == toolCleanKeyfile) {
+//         cleanKeyfile();
       } else if (event.getSource() == toolDropZone) {
         ChildFrame.show(BcsDropFrame.class, BcsDropFrame::new);
       } else if (event.getSource() == toolCheckAllDialog) {

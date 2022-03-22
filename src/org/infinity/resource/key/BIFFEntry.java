@@ -51,8 +51,8 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
     if (fileName == null) {
       throw new NullPointerException();
     }
-    this.separatorChar = '/';
-    this.fileName = fileName.replaceAll("[\\:]", "/"); // (normalized) relative path
+    this.separatorChar = Profile.isEnhancedEdition() ? '/' : '\\';
+    this.fileName = fileName.replace('\\', separatorChar).replace(':', separatorChar);
     this.location = 1; // put into root folder
     this.index = -1; // not yet associated with KEY file
   }
