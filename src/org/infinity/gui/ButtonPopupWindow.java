@@ -275,14 +275,14 @@ public class ButtonPopupWindow extends JButton {
 
   protected void firePopupWindowListener(boolean becomeVisible) {
     PopupWindowEvent event = null;
-    for (PopupWindowListener listener : listeners) {
+    for (int i = 0, size = listeners.size(); i < size; i++) {
       if (event == null) {
         event = new PopupWindowEvent(this);
       }
       if (becomeVisible) {
-        listener.popupWindowWillBecomeVisible(event);
+        listeners.get(i).popupWindowWillBecomeVisible(event);
       } else {
-        listener.popupWindowWillBecomeInvisible(event);
+        listeners.get(i).popupWindowWillBecomeInvisible(event);
       }
     }
   }
