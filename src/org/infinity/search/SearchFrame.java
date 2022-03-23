@@ -69,6 +69,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JTextField tfield = new JTextField(10);
   private final JCheckBox cbCaseSensitive = new JCheckBox("Match case");
   private final JCheckBox cbRegex = new JCheckBox("Use regular expressions");
+  private final JCheckBox cbInvert = new JCheckBox("Invert match");
 
   public SearchFrame() {
     super("Find");
@@ -144,12 +145,15 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
     JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
     optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
-    cbCaseSensitive.setMnemonic('c');
+    cbCaseSensitive.setMnemonic('m');
     cbCaseSensitive.setToolTipText("Search text is matched case-sensitive. Can be used in combination with regular expressions.");
     cbRegex.setMnemonic('r');
     cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
+    cbInvert.setMnemonic('v');
+    cbInvert.setToolTipText("Add to results list on mismatch.");
     optionsPanel.add(cbCaseSensitive);
     optionsPanel.add(cbRegex);
+    optionsPanel.add(cbInvert);
 
     JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
@@ -292,6 +296,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       }
 
       final boolean isCase = cbCaseSensitive.isSelected();
+      final boolean isInverted = cbInvert.isSelected();
       Pattern regex = null;
       if (cbRegex.isSelected()) {
         try {
@@ -325,6 +330,10 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
             String text = isCase ? string : string.toLowerCase(Locale.ENGLISH);
             isMatch = text.contains(expr);
           }
+        }
+
+        if (isInverted) {
+          isMatch = !isMatch;
         }
 
         if (isMatch) {
