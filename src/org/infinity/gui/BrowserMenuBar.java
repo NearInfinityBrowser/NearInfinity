@@ -282,6 +282,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     toolsMenu.setShowDebugExtraInfo(show);
   }
 
+  /** Returns whether system information are shown when NI starts up. */
+  public boolean showSysInfo() {
+    return optionsMenu.optionShowSystemInfo.isSelected();
+  }
+
   /** Returns whether scripts are automatically scanned for compile errors. */
   public boolean autocheckBCS() {
     return optionsMenu.optionAutocheckBCS.isSelected();
@@ -1771,6 +1776,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_SHOWCOLOREDSTRUCTURES    = "ShowColoredStructures";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
+    private static final String OPTION_SHOWSYSINFO              = "ShowSysInfo";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
     private static final String OPTION_HIGHLIGHT_OVERRIDDEN     = "HighlightOverridden";
@@ -1864,6 +1870,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionShowStrrefs;
     private JCheckBoxMenuItem optionShowColoredStructures;
     private JCheckBoxMenuItem optionShowHexColored;
+    private JCheckBoxMenuItem optionShowSystemInfo;
     private JCheckBoxMenuItem optionShowUnknownResources;
     private JCheckBoxMenuItem optionKeepViewOnCopy;
     private JCheckBoxMenuItem optionTreeSearchNames;
@@ -1976,6 +1983,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowHexColored = new JCheckBoxMenuItem("Show colored blocks in Raw tabs",
           getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
+      optionShowSystemInfo = new JCheckBoxMenuItem("Display system information at startup", getPrefs().getBoolean(OPTION_SHOWSYSINFO, true));
+      add(optionShowSystemInfo);
 
       addSeparator();
 
@@ -2589,6 +2598,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       dialogViewerMenu.storePreferences(getPrefs());
       getPrefs().putBoolean(OPTION_SHOWCOLOREDSTRUCTURES, optionShowColoredStructures.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWSYSINFO, optionShowSystemInfo.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());

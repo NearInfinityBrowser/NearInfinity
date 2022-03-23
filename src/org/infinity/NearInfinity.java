@@ -5,6 +5,7 @@
 package org.infinity;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
@@ -12,6 +13,8 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
@@ -50,6 +53,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -85,6 +89,7 @@ import org.infinity.gui.ResourceTree;
 import org.infinity.gui.StatusBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
@@ -120,6 +125,7 @@ import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   private static final int[] JAVA_VERSION = { 1, 8 }; // the minimum java version supported
@@ -471,6 +477,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       leftPanel.add(toolBar, BorderLayout.NORTH);
 
       containerpanel = new JPanel(new BorderLayout());
+      containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
       spSplitter.setBorder(BorderFactory.createEmptyBorder());
       spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
@@ -544,6 +551,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
         tree.setModel(treemodel);
         containerpanel.removeAll();
+        containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
         containerpanel.revalidate();
         containerpanel.repaint();
       }
@@ -741,6 +749,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       BrowserMenuBar.getInstance().gameLoaded(oldGame, oldKeyFile.toString());
       tree.setModel(treemodel);
       containerpanel.removeAll();
+      containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       containerpanel.revalidate();
       containerpanel.repaint();
     } finally {
@@ -759,6 +768,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     viewable = null;
     tree.select(null);
     containerpanel.removeAll();
+    containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
     containerpanel.revalidate();
     containerpanel.repaint();
     return true;
@@ -795,6 +805,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         BrowserMenuBar.getInstance().gameLoaded(null, null);
         tree.setModel(treemodel);
         containerpanel.removeAll();
+        containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
         containerpanel.revalidate();
         containerpanel.repaint();
       }
@@ -1175,6 +1186,88 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       try (FileChannel ch = FileChannel.open(path, StandardOpenOption.READ)) {
       }
     }
+  }
+
+  /**
+   * Shows Java Runtime information when there are no components attached to the main view.
+   */
+  private JPanel createJavaInfoPanel() {
+    if (!BrowserMenuBar.getInstance().showSysInfo()) {
+      return new JPanel();
+    }
+
+    final List<Couple<String, String>> entries = new ArrayList<>();
+    entries.add(new Couple<String, String>("Java Runtime", System.getProperty("java.runtime.name")));
+
+    String s1 = System.getProperty("java.version", "n/a");
+    String s2 = System.getProperty("java.version.date", "");
+    String value = s2.isEmpty() ? s1 : String.format("%s (%s)", s1, s2);
+    entries.add(new Couple<String, String>("Java Version", value));
+
+    value = System.getProperty("java.vm.name", "n/a") + " (" + System.getProperty("java.vm.version", "n/a");
+    s1 = System.getProperty("java.vm.info", "");
+    if (!s1.isEmpty()) {
+      value += ", " + s1;
+    }
+    value += ")";
+    entries.add(new Couple<String, String>("Java VM", value));
+
+    entries.add(new Couple<String, String>("Java VM Architecture", System.getProperty("os.arch", "n/a")));
+
+    long memoryMax = Runtime.getRuntime().maxMemory();
+    if (memoryMax != Long.MAX_VALUE) {
+      memoryMax /= 1024L * 1024L;
+      entries.add(new Couple<String, String>("Available Memory", String.format("%d MB", memoryMax)));
+    } else {
+      entries.add(new Couple<String, String>("Available Memory", "n/a"));
+    }
+
+    JPanel outerPanel = new JPanel(new BorderLayout());
+    JPanel innerPanel = new JPanel(new GridBagLayout());
+    outerPanel.add(innerPanel, BorderLayout.CENTER);
+    GridBagConstraints c = new GridBagConstraints();
+
+    final JLabel titleLabel = new JLabel("System Information");
+    titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, titleLabel.getFont().getSize2D() * 1.25f));
+
+    int row = 0;
+    c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 4, 0), 0, 0);
+    innerPanel.add(titleLabel, c);
+    row++;
+
+    for (final Couple<String, String> entry : entries) {
+      final JLabel keyLabel = new JLabel(entry.getValue0());
+      c = ViewerUtil.setGBC(c, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      innerPanel.add(keyLabel, c);
+
+      final JLabel valueLabel = new JLabel(entry.getValue1());
+      c = ViewerUtil.setGBC(c, 1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 16, 0, 0), 0, 0);
+      innerPanel.add(valueLabel, c);
+
+      row++;
+    }
+
+    if (memoryMax < 480) {
+      String message = "<html><center>Your Java memory settings may not be sufficient to use all features of Near Infinity.<br>";
+      if (System.getProperty("os.arch").contains("64")) {
+        message += "Please consider running Near Infinity with improved memory settings.";
+      } else {
+        message += "Please consider upgrading your Java Runtime Environment to 64-bit<br>or run Near Infinity with improved memory settings.";
+      }
+      message += "</center></html>";
+      final JLabel infoLabel = new JLabel(message);
+      infoLabel.setForeground(new Color(0x800000));
+
+      c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+          new Insets(16, 0, 0, 0), 0, 0);
+      innerPanel.add(infoLabel, c);
+      row++;
+    }
+
+    return outerPanel;
   }
 
   // -------------------------- INNER CLASSES --------------------------
