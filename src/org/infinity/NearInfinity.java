@@ -1222,9 +1222,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       entries.add(new Couple<String, String>("Available Memory", "n/a"));
     }
 
-    JPanel outerPanel = new JPanel(new BorderLayout());
-    JPanel innerPanel = new JPanel(new GridBagLayout());
-    outerPanel.add(innerPanel, BorderLayout.CENTER);
+    JPanel infoPanel = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
 
     final JLabel titleLabel = new JLabel("System Information");
@@ -1233,19 +1231,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     int row = 0;
     c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 4, 0), 0, 0);
-    innerPanel.add(titleLabel, c);
+    infoPanel.add(titleLabel, c);
     row++;
 
     for (final Couple<String, String> entry : entries) {
       final JLabel keyLabel = new JLabel(entry.getValue0());
       c = ViewerUtil.setGBC(c, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
           new Insets(8, 0, 0, 0), 0, 0);
-      innerPanel.add(keyLabel, c);
+      infoPanel.add(keyLabel, c);
 
       final JLabel valueLabel = new JLabel(entry.getValue1());
       c = ViewerUtil.setGBC(c, 1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
           new Insets(8, 16, 0, 0), 0, 0);
-      innerPanel.add(valueLabel, c);
+      infoPanel.add(valueLabel, c);
 
       row++;
     }
@@ -1263,11 +1261,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
       c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(16, 0, 0, 0), 0, 0);
-      innerPanel.add(infoLabel, c);
+      infoPanel.add(infoLabel, c);
       row++;
     }
 
-    return outerPanel;
+    return infoPanel;
   }
 
   // -------------------------- INNER CLASSES --------------------------
