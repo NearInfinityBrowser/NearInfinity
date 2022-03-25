@@ -3649,34 +3649,35 @@ public final class EffectFactory {
 
       case 232: // Cast spell on condition
       {
-        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "[ENEMY]", "Anyone"}));
-        final List<String> cndList = new ArrayList<String>() {{
-          add("HitBy([ANYONE]) / instant");
-          add("See([ENEMY]) / per round");
-          add("HPPercentLT(Myself,50) / per round");
-          add("HPPercentLT(Myself,25) / per round");
-          add("HPPercentLT(Myself,10) / per round");
-          add("StateCheck(Myself,STATE_HELPLESS) / per round");
-          add("StateCheck(Myself,STATE_POISONED) / per round");
-          add("AttackedBy([ANYONE]) / instant");
-          add("Range([ANYONE],4) / per round");
-          add("Range([ANYONE],10) / per round");
-          add("-Crash- / per round");
-          add("TookDamage() / instant");
-          if (Profile.isEnhancedEdition()) {
-            add("Killed([ANYONE]) / instant");
-            add("TimeOfDay('Special') / per round");
-            add("Range([ANYONE],'Special') / per round");
-            add("StateCheck(Myself,'Special') / per round");
-            add("Died(Myself) / instant");
-            add("Died([ANYONE]) / instant");
-            add("TurnedBy([ANYONE]) / instant");
-            add("HPLT(Myself,'Special') / per round");
-            add("HPPercentLT(Myself,'Special') / per round");
-            add("CheckSpellState(Myself,'Special') / per round");
-          }
-        }};
-        final String[] conditions = cndList.toArray(new String[cndList.size()]);
+        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "[EVILCUTOFF]", "[ANYONE]"}));
+        List<String> conditionsList = new ArrayList<>(Arrays.asList(
+            "HitBy([ANYONE]) / instant",
+            "See([EVILCUTOFF]) / per round",
+            "HPPercentLT(Myself,50) / per round",
+            "HPPercentLT(Myself,25) / per round",
+            "HPPercentLT(Myself,10) / per round",
+            "StateCheck(Myself,STATE_HELPLESS) / per round",
+            "StateCheck(Myself,STATE_POISONED) / per round",
+            "AttackedBy([ANYONE]) / instant",
+            "PersonalSpaceDistance([ANYONE],4) / per round",
+            "PersonalSpaceDistance([ANYONE],10) / per round",
+            "-Unknown- / per round",
+            "TookDamage() / instant"));
+        if (Profile.isEnhancedEdition()) {
+          conditionsList.set(10, "Delay('Special') / per round");
+          conditionsList.addAll(Arrays.asList(
+              "Killed([ANYONE]) / instant",
+              "TimeOfDay('Special') / per round",
+              "PersonalSpaceDistance([ANYONE],'Special') / per round",
+              "StateCheck(Myself,'Special') / per round",
+              "Die() / instant",
+              "Died([ANYONE]) / instant",
+              "TurnedBy([ANYONE]) / instant",
+              "HPLT(Myself,'Special') / per round",
+              "HPPercentLT(Myself,'Special') / per round",
+              "CheckSpellState(Myself,'Special') / per round"));
+        }
+        final String[] conditions = conditionsList.toArray(new String[conditionsList.size()]);
         if (Profile.isEnhancedEdition()) {
           Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition", conditions);
           s.add(item);
