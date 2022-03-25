@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.Profile;
@@ -29,12 +31,10 @@ import org.infinity.util.io.StreamUtils;
 
 public final class Decompiler {
   // List of IDS resources containing bitwise entries
-  private static final HashSet<String> BITWISE_IDS = new HashSet<String>() {{
-    add("areatype");  add("areaflag");  add("bits");      add("classmsk");
-    add("crearefl");  add("damages");   add("doorflag");  add("dmgtype");
-    add("extstate");  add("invitem");   add("itemflag");  add("jourtype");
-    add("magespec");  add("splcast");   add("state");     add("wmpflag");
-  }};
+  private static final HashSet<String> BITWISE_IDS = new HashSet<String>(Stream.of(
+      "areatype", "areaflag", "bits", "classmsk", "crearefl", "damages", "doorflag", "dmgtype", "extstate", "invitem",
+      "itemflag", "jourtype", "magespec", "splcast", "state", "wmpflag")
+      .collect(Collectors.toSet()));
 
   private final Set<Integer> strrefsUsed = new HashSet<>();
   private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
