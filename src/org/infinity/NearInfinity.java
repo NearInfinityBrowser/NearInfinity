@@ -1197,6 +1197,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     final List<Couple<String, String>> entries = new ArrayList<>();
+    entries.add(new Couple<String, String>("Near Infinity", BrowserMenuBar.VERSION));
     entries.add(new Couple<String, String>("Java Runtime", System.getProperty("java.runtime.name")));
 
     String s1 = System.getProperty("java.version", "n/a");
