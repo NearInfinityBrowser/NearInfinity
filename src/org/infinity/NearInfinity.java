@@ -150,6 +150,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static NearInfinity browser;
 
+  static {
+    if (Platform.IS_MACOS) {
+      // Enforce proper macOS menu bar integration
+      System.setProperty("apple.laf.useScreenMenuBar", "true");
+    }
+  }
+
   private final JPanel containerpanel;
   private final JSplitPane spSplitter;
   private final ResourceTree tree;
@@ -1139,6 +1146,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   // Enables command-Q on OSX to trigger the window closing callback
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void enableOSXQuitStrategy() {
+    // Doesn't work anymore on JRE 9 and higher:
+    // Java 9 introduced streamlined access to macOS-specific features,
+    //  e.g. menu bar integration, quit strategy, about dialog, ...
+    // TODO: Reimplement macOS-specific functionality if/when NI switches to Java 9+ compatibility
     try {
       Class application = Class.forName("com.apple.eawt.Application");
       Method getApplication = application.getMethod("getApplication");
