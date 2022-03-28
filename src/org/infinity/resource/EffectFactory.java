@@ -1488,7 +1488,7 @@ public final class EffectFactory {
             // 360..367
             "Ignore reputation breaking point", "Cast spell on critical miss", "Critical miss bonus",
             "Movement check", "Unknown (364)", "Make unselectable", "Apply spell on movement",
-        "Minimum base stats"};
+            "Minimum base stats"};
 
         // add more game-specific types dynamically
         boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
@@ -1515,7 +1515,7 @@ public final class EffectFactory {
                 // 400..408
                 "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
                 "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
-            "EEex: Projectile Mutator"};
+                "EEex: Projectile Mutator"};
             effectNamesArray = Stream.of(effectNamesArray, eeexOpcodes).flatMap(Stream::of).toArray(String[]::new);
           }
         }
@@ -1538,7 +1538,7 @@ public final class EffectFactory {
               // 400..408
               "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
               "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
-          "EEex: Projectile Mutator"};
+              "EEex: Projectile Mutator"};
           effectNamesArray = Stream.of(effectNamesArray, eeexOpcodes).flatMap(Stream::of).toArray(String[]::new);
         }
         break;
@@ -2069,10 +2069,7 @@ public final class EffectFactory {
 
       case 1: // Modify attacks per round
         if (Profile.getEngine() == Profile.Engine.IWD) {
-          s.add(new Bitmap(buffer, offset, 4, "Value",
-              new String[]{"0 attacks per round", "1 attack per round",
-                  "2 attacks per round", "3 attacks per round",
-                  "4 attacks per round", "5 attacks per round"}));
+          s.add(new Bitmap(buffer, offset, 4, "Value", Arrays.copyOf(ATTACKS, 6)));
         } else if (Profile.isEnhancedEdition()) {
           int type = buffer.getInt(offset + 4);
           switch (type) {
@@ -2095,7 +2092,7 @@ public final class EffectFactory {
 
         if (Profile.isEnhancedEdition()) {
           Bitmap item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
-              new String[]{"Increment", "Set", "Set % of", "Set final"});
+              new String[]{INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Set final"});
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
           }
@@ -2162,7 +2159,7 @@ public final class EffectFactory {
       case 5: // Charm creature
       {
         s.add(new IdsBitmap(buffer, offset, 4, "Creature type", "GENERAL.IDS"));
-        if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD2) {
+        if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           final TreeMap<Long, String> idsmap = new TreeMap<>();
@@ -2170,18 +2167,20 @@ public final class EffectFactory {
           idsmap.put(1L, "Charmed (hostile)");
           idsmap.put(2L, "Dire charmed (neutral)");
           idsmap.put(3L, "Dire charmed (hostile)");
-          idsmap.put(4L, "Controlled");
-          idsmap.put(5L, "Hostile");
-          if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.BG2 ||
-              Profile.isEnhancedEdition()) {
-            idsmap.put(1000L, "Charmed (neutral, no text)");
-            idsmap.put(1001L, "Charmed (hostile, no text)");
-            idsmap.put(1002L, "Dire charmed (neutral, no text)");
-            idsmap.put(1003L, "Dire charmed (hostile, no text)");
-            idsmap.put(1004L, "Controlled (no text)");
-            idsmap.put(1005L, "Hostile (no text)");
+          if (Profile.getEngine() != Profile.Engine.PST) {
+            idsmap.put(4L, "Controlled");
+            idsmap.put(5L, "Thrull (hostile)");
+            if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.BG2 ||
+                Profile.isEnhancedEdition()) {
+              idsmap.put(1000L, "Charmed (neutral, no text)");
+              idsmap.put(1001L, "Charmed (hostile, no text)");
+              idsmap.put(1002L, "Dire charmed (neutral, no text)");
+              idsmap.put(1003L, "Dire charmed (hostile, no text)");
+              idsmap.put(1004L, "Controlled (no text)");
+              idsmap.put(1005L, "Thrull (hostile, no text)");
+            }
           }
-          s.add(new HashBitmap(buffer, offset + 4, 4, "Charm type", idsmap));
+          s.add(new HashBitmap(buffer, offset + 4, 4, "Charm type", idsmap, false));
         }
         break;
       }
@@ -2226,12 +2225,20 @@ public final class EffectFactory {
       case 51: // Character tint solid
       case 52: // Character tint bright
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", COLOR_LOCATIONS_MAP, false));
+        if (Profile.getEngine() != Profile.Engine.PST) {
+          s.add(new HashBitmap(buffer, offset + 4, 4, "Location", COLOR_LOCATIONS_MAP, false));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        }
         break;
 
       case 9: // Set color glow pulse
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", COLOR_LOCATIONS_MAP, false));
+        if (Profile.getEngine() != Profile.Engine.PST) {
+          s.add(new HashBitmap(buffer, offset + 4, 2, "Location", COLOR_LOCATIONS_MAP, false));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 2, AbstractStruct.COMMON_UNUSED));
+        }
         s.add(new DecNumber(buffer, offset + 6, 2, "Cycle speed"));
         break;
 
@@ -2289,7 +2296,7 @@ public final class EffectFactory {
           int type = buffer.getInt(offset + 4);
           s.add(new DecNumber(buffer, offset, 4, (isV1 && type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
           Bitmap item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
-              new String[]{"Increment", "Set", "Set % of", "Cat's grace"});
+              new String[]{INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Cat's grace"});
           s.add(item);
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
@@ -2316,7 +2323,7 @@ public final class EffectFactory {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", INC_TYPES));
         } else if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-              new String[]{"Increment", "Set", "Increment % of", "Lay on hands",
+              new String[]{INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Lay on hands",
                   "Wholeness of body", "Lathander's renewal"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 2, "Modifier type", INC_TYPES));
@@ -2364,7 +2371,7 @@ public final class EffectFactory {
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-              new String[]{"Increment", "Set", "Mastery"}));
+              new String[]{INC_TYPES[0], INC_TYPES[1], "Mastery"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", INC_TYPES));
         }
@@ -2421,14 +2428,14 @@ public final class EffectFactory {
           typesArray = new String[]{"1 damage per second", "Amount damage per second",
               "Amount damage per second", "1 damage per amount seconds",
               "Amount damage per round", "(Crash)", "Snakebite", "Unused",
-          "Envenomed weapon"};
+              "Envenomed weapon"};
           if (Profile.getEngine() == Profile.Engine.IWD2) {
             typesArray[5] = "Unused";
           }
         } else {
           typesArray = new String[]{"1 damage per second", "1 damage per second",
               "Amount damage per second", "1 damage per amount seconds",
-          "Param3 damage per amount seconds"};
+              "Param3 damage per amount seconds"};
           if (Profile.getEngine() == Profile.Engine.BG1) {
             typesArray[3] = "1 damage per amount+1 seconds";
           }
@@ -2505,17 +2512,14 @@ public final class EffectFactory {
         break;
 
       case 42: // Bonus wizard spells
+      {
         s.add(new DecNumber(buffer, offset, 4, "# spells to add"));
-        if (isTobEx) {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
-              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-              "Level 5", "Level 6", "Level 7", "Level 8", "Level 9", "Ex: Double spells"}));
-        } else {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
-              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-              "Level 5", "Level 6", "Level 7", "Level 8", "Level 9"}));
-        }
+        final String[] levels = {"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+            "Level 5", "Level 6", "Level 7", "Level 8", "Level 9", "Ex: Double spells"};
+        s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
+            isTobEx ? levels : Arrays.copyOf(levels, levels.length - 1)));
         break;
+      }
 
       case 44: // Strength bonus
         Bitmap item = null;
@@ -2524,13 +2528,13 @@ public final class EffectFactory {
           int type = buffer.getInt(offset + 4);
           s.add(new DecNumber(buffer, offset, 4, (isV1 && type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
           item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
-              new String[]{"Increment", "Set", "Set % of", "Bull's Strength"});
+              new String[]{INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Bull's Strength"});
           s.add(item);
         } else if (isTobEx) {
           int type = buffer.getInt(offset + 4);
           s.add(new DecNumber(buffer, offset, 4, (type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
-          item = new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{INC_TYPES[0], INC_TYPES[1], INC_TYPES[2],
-          "Strength spell"});
+          item = new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{INC_TYPES[0], INC_TYPES[1],
+              INC_TYPES[2], "Strength spell"});
           s.add(item);
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -2621,21 +2625,19 @@ public final class EffectFactory {
       }
 
       case 62: // Bonus priest spells
+      {
         s.add(new DecNumber(buffer, offset, 4, "# spells to add"));
+        final String[] levels = {"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
+            "Level 5", "Level 6", "Level 7", "Level 8", "Level 9", "Ex: Double spells"};
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
-              new String[]{"Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-                  "Level 5", "Level 6", "Level 7", "Level 8", "Level 9"}));
-        } else if (isTobEx) {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
-              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-              "Level 5", "Level 6", "Level 7", null, null, "Ex: Double spells"}));
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", Arrays.copyOf(levels, levels.length - 1)));
         } else {
-          s.add(new Flag(buffer, offset + 4, 4, "Spell levels", new String[]{
-              "Double spells", "Level 1", "Level 2", "Level 3", "Level 4",
-              "Level 5", "Level 6", "Level 7"}));
+          levels[8] = levels[9] = null;
+          s.add(new Flag(buffer, offset + 4, 4, "Spell levels",
+              isTobEx ? levels : Arrays.copyOf(levels, levels.length - 3)));
         }
         break;
+      }
 
       case 66: // Translucency
         s.add(new DecNumber(buffer, offset, 4, "Fade amount"));
@@ -2905,7 +2907,7 @@ public final class EffectFactory {
             new String[]{"Enchanted", "Magical", "Non-magical", "Silver",
                 "Non-silver", "Non-silver, non-magical", "Two-handed",
                 "One-handed", "Cursed", "Non-cursed", "Cold iron",
-        "Non-cold-iron"}));
+                "Non-cold-iron"}));
         break;
 
       case 122: // Create inventory item
@@ -2925,7 +2927,7 @@ public final class EffectFactory {
             Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Behavior",
               new String[]{"Normal", "Source to target", "Return to start",
-          "Exchange with target"}));
+                  "Exchange with target"}));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -2991,7 +2993,7 @@ public final class EffectFactory {
         if (Profile.getEngine() != Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
               new String[]{"Change into", "Appearance only", "Appearance only",
-          "Appearance only"}));
+                  "Appearance only"}));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -3122,7 +3124,7 @@ public final class EffectFactory {
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode",
               new String[]{"Cast normally", "Cast instantly (ignore level)",
-          "Cast instantly (at level)"}));
+                  "Cast instantly (at level)"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Cast instantly?", AbstractStruct.OPTION_NOYES));
         }
@@ -3566,7 +3568,7 @@ public final class EffectFactory {
         String[] list;
         if (Profile.isEnhancedEdition()) {
           list = new String[]{"From 2DA", "Known spells",
-          "Known spells with unset spell flags bit 15 (Ignore wild surge)"};
+              "Known spells with unset spell flags bit 15 (Ignore wild surge)"};
         } else {
           list = new String[]{"From 2DA", "Known spells"};
         }
@@ -3579,7 +3581,7 @@ public final class EffectFactory {
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Play where?",
             new String[]{"Over target (unattached)", "Over target (attached)",
-        "At target point"}));
+                "At target point"}));
         restype = "VEF:VVC:BAM";
         break;
 
@@ -3730,8 +3732,7 @@ public final class EffectFactory {
       case 236: // Project image
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Image type",
-            new String[]{"Talkative, uncontrollable", "Mislead", "Project image",
-        "Simulacrum"}));
+            new String[]{"Talkative, uncontrollable", "Mislead", "Project image", "Simulacrum"}));
         break;
 
       case 237: // Set image type
@@ -3746,8 +3747,7 @@ public final class EffectFactory {
         map.put(0xffffffffL, "Not party member");
         s.add(new HashBitmap(buffer, offset, 4, "Puppet master", map));
         s.add(new Bitmap(buffer, offset + 4, 4, "Puppet type",
-            new String[]{"Talkative, uncontrollable", "Mislead", "Project image",
-        "Simulacrum"}));
+            new String[]{"Talkative, uncontrollable", "Mislead", "Project image", "Simulacrum"}));
         break;
       }
 
@@ -4148,8 +4148,7 @@ public final class EffectFactory {
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Type",
-              new String[]{"Default", "Equipped effects list only",
-          "Timed effects list only"}));
+              new String[]{"Default", "Equipped effects list only", "Timed effects list only"}));
           restype = "ITM:SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -4327,8 +4326,7 @@ public final class EffectFactory {
       case 339: // Alter visual animation effect
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset, 2, "Modifier type",
-              new String[]{"Set value", "AND value", "OR value", "XOR value",
-          "AND NOT value"}));
+              new String[]{"Set value", "AND value", "OR value", "XOR value", "AND NOT value"}));
           s.add(new DecNumber(buffer, offset + 2, 2, "Value"));
           s.add(new ProRef(buffer, offset + 4, 4, "Projectile"));
           restype = EFFECT_STRING;
@@ -4361,8 +4359,7 @@ public final class EffectFactory {
       case 342: // Override creature data
         if (Profile.isEnhancedEdition()) {
           Bitmap bmp = new Bitmap(buffer, offset + 4, 4, "Field",
-              new String[]{"Unknown", "Body heat", "Blood color", "Unknown",
-          "Personal space"});
+              new String[]{"Unknown", "Body heat", "Blood color", "Unknown", "Personal space"});
           switch (bmp.getValue()) {
             case 1:  s.add(new Bitmap(buffer, offset, 4, "Enabled?", AbstractStruct.OPTION_NOYES)); break;
             case 2:  s.add(new ColorValue(buffer, offset, 4, "Color", false)); break;
@@ -4601,7 +4598,7 @@ public final class EffectFactory {
               null, null, null, null, "Sticky", null, null, null, "Undetermined (repeat)",
               "Foreground (repeat)", null, null,
               "Fade out transparency (blended)",
-          "Color & transparency (blended)"}));
+              "Color & transparency (blended)"}));
           restype = "BAM";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -4662,7 +4659,7 @@ public final class EffectFactory {
           s.add(new DecNumber(buffer, offset, 4, "Amount"));
           s.add(new Bitmap(buffer, offset + 4, 2, "Direction",
               new String[]{"Source to target", "Target to source", "Swap HP",
-          "Source to target even over max. HP"}));
+                  "Source to target even over max. HP"}));
           s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -4722,8 +4719,7 @@ public final class EffectFactory {
       case 110: // Retreat from
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Type",
-            new String[]{"Run", "Run", "Run", "Run", "Run", "Run", "Run",
-                "Weak", "Walk"}));
+            new String[]{"Run", "Run", "Run", "Run", "Run", "Run", "Run", "Weak", "Walk"}));
         break;
 
       case 186: // Set state
@@ -4742,7 +4738,7 @@ public final class EffectFactory {
             null, null, null, null, "Sticky", null, null, null, "Undetermined (repeat)",
             "Foreground (repeat)", null, null,
             "Fade out transparency (blended)",
-        "Color & transparency (blended)"}));
+            "Color & transparency (blended)"}));
         //        final LongIntegerHashMap<String> playBamMap = new LongIntegerHashMap<String>();
         //        playBamMap.put(0L, "Non-sticky, not 3D");
         //        playBamMap.put(1L, "Random placement, not 3D");
@@ -4759,7 +4755,7 @@ public final class EffectFactory {
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 2, "Direction",
             new String[]{"Source to target", "Target to source", "Swap HP",
-        "Source to target even over max. HP"}));
+                "Source to target even over max. HP"}));
         s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
         break;
 
@@ -4956,7 +4952,7 @@ public final class EffectFactory {
         s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
             new String[]{"None", "Abjuration", "Conjuration", "Divination",
                 "Enchantment", "Illusion", "Invocation", "Necromancy",
-        "Transmutation"}));
+                "Transmutation"}));
         break;
 
       case 238: // All saving throws bonus
@@ -5005,7 +5001,7 @@ public final class EffectFactory {
                 "Fire elemental (wizard)", "Earth elemental (wizard)",
                 "Water elemental (wizard)", "Fire elemental (priest)",
                 "Earth elemental (priest)", "Water elemental (priest)",
-        "Malavon earth elemental"}));
+                "Malavon earth elemental"}));
         break;
 
       case 247: // Beltyn's burning blood
@@ -5038,8 +5034,7 @@ public final class EffectFactory {
       case 254: // Dispel specific spell
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "Dispel type",
-            new String[]{"All effects", "Equipped effects only",
-        "Limited effects only"}));
+            new String[]{"All effects", "Equipped effects only", "Limited effects only"}));
         restype = "SPL";
         break;
 
@@ -5251,7 +5246,7 @@ public final class EffectFactory {
         s.add(new Bitmap(buffer, offset + 4, 4, "Glow",
             new String[]{"None", "Abjuration", "Conjuration", "Divination",
                 "Enchantment", "Illusion", "Invocation", "Necromancy",
-        "Transmutation"}));
+                "Transmutation"}));
         break;
 
       case 238: // All saving throws bonus
@@ -5426,7 +5421,7 @@ public final class EffectFactory {
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Damage type",
             new String[]{"Amount HP per round", "Amount HP per second",
-        "1 HP per amount seconds"}));
+                "1 HP per amount seconds"}));
         break;
 
       case 417: // Area effect using effects list
@@ -5753,7 +5748,7 @@ public final class EffectFactory {
         case 362: // Critical miss bonus
           s.add(new Bitmap(buffer, offset, 4, "Attack type",
               new String[]{"Any attack type", "Melee attack only", "Ranged attack only",
-          "Magical attack only"}));
+                  "Magical attack only"}));
           break;
 
         case 324:
