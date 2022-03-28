@@ -6,14 +6,11 @@ package org.infinity.resource;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.infinity.datatype.AnimateBitmap;
@@ -130,159 +127,12 @@ public final class EffectFactory {
     IDX_UNKNOWN0C4,           OFS_UNKNOWN0C4,
   }
 
-  // contains IDS mappings for BGEE's opcode 319 "Item Usability"
-  public static final TreeMap<Long, String> DURATIONS_V1_MAP = new TreeMap<>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(0L, "Instant/Limited"),
-      new AbstractMap.SimpleImmutableEntry<>(1L, "Instant/Permanent until death"),
-      new AbstractMap.SimpleImmutableEntry<>(2L, "Instant/While equipped"),
-      new AbstractMap.SimpleImmutableEntry<>(3L, "Delay/Limited"),
-      new AbstractMap.SimpleImmutableEntry<>(4L, "Delay/Permanent"),
-      new AbstractMap.SimpleImmutableEntry<>(5L, "Delay/While equipped"),
-      new AbstractMap.SimpleImmutableEntry<>(6L, "Limited after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(7L, "Permanent after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(8L, "Equipped after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(9L, "Instant/Permanent"),
-      new AbstractMap.SimpleImmutableEntry<>(10L, "Instant/Limited (ticks)"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
-  public static final TreeMap<Long, String> DURATIONS_V2_MAP = new TreeMap<>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(0L, "Instant/Limited"),
-      new AbstractMap.SimpleImmutableEntry<>(1L, "Instant/Permanent until death"),
-      new AbstractMap.SimpleImmutableEntry<>(2L, "Instant/While equipped"),
-      new AbstractMap.SimpleImmutableEntry<>(3L, "Delay/Limited"),
-      new AbstractMap.SimpleImmutableEntry<>(4L, "Delay/Permanent"),
-      new AbstractMap.SimpleImmutableEntry<>(5L, "Delay/While equipped"),
-      new AbstractMap.SimpleImmutableEntry<>(6L, "Limited after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(7L, "Permanent after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(8L, "Equipped after duration"),
-      new AbstractMap.SimpleImmutableEntry<>(9L, "Instant/Permanent"),
-      new AbstractMap.SimpleImmutableEntry<>(10L, "Instant/Limited (ticks)"),
-      new AbstractMap.SimpleImmutableEntry<>(4096L, "Absolute duration"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
-  public static final TreeMap<Long, String> COLOR_LOCATIONS_MAP = new TreeMap<>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(0x00L, "Armor (grey): Belt/Amulet"),
-      new AbstractMap.SimpleImmutableEntry<>(0x01L, "Armor (teal): Minor color"),
-      new AbstractMap.SimpleImmutableEntry<>(0x02L, "Armor (pink): Major color"),
-      new AbstractMap.SimpleImmutableEntry<>(0x03L, "Armor (yellow): Skin color"),
-      new AbstractMap.SimpleImmutableEntry<>(0x04L, "Armor (red): Strap/Leather"),
-      new AbstractMap.SimpleImmutableEntry<>(0x05L, "Armor (blue): Armor/Trimming"),
-      new AbstractMap.SimpleImmutableEntry<>(0x06L, "Armor (green): Hair"),
-      new AbstractMap.SimpleImmutableEntry<>(0x10L, "Weapon (grey): Head/blade/staff major"),
-      new AbstractMap.SimpleImmutableEntry<>(0x11L, "Weapon (teal): Staff minor"),
-      new AbstractMap.SimpleImmutableEntry<>(0x12L, "Weapon (pink)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x13L, "Weapon (yellow)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x14L, "Weapon (red): Grip/staff minor"),
-      new AbstractMap.SimpleImmutableEntry<>(0x15L, "Weapon (blue): Head/blade minor"),
-      new AbstractMap.SimpleImmutableEntry<>(0x16L, "Weapon (green)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x20L, "Shield (grey): Hub"),
-      new AbstractMap.SimpleImmutableEntry<>(0x21L, "Shield (teal): Interior"),
-      new AbstractMap.SimpleImmutableEntry<>(0x22L, "Shield (pink): Panel"),
-      new AbstractMap.SimpleImmutableEntry<>(0x23L, "Shield (yellow)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x24L, "Shield (red): Grip"),
-      new AbstractMap.SimpleImmutableEntry<>(0x25L, "Shield (blue): Body/trim"),
-      new AbstractMap.SimpleImmutableEntry<>(0x26L, "Shield (green)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x30L, "Helmet (grey): Wings"),
-      new AbstractMap.SimpleImmutableEntry<>(0x31L, "Helmet (teal): Detail"),
-      new AbstractMap.SimpleImmutableEntry<>(0x32L, "Helmet (pink): Plume"),
-      new AbstractMap.SimpleImmutableEntry<>(0x33L, "Helmet (yellow)"),
-      new AbstractMap.SimpleImmutableEntry<>(0x34L, "Helmet (red): Face"),
-      new AbstractMap.SimpleImmutableEntry<>(0x35L, "Helmet (blue): Exterior"),
-      new AbstractMap.SimpleImmutableEntry<>(0x36L, "Helmet (green)"),
-      new AbstractMap.SimpleImmutableEntry<>(0xffL, "Character color"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
-  public static final TreeMap<Long, String> PROJECTILES_IWD_MAP = new TreeMap<>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(0L, "Instant"),
-      new AbstractMap.SimpleImmutableEntry<>(1L, "Arrow"),
-      new AbstractMap.SimpleImmutableEntry<>(2L, "Arrow Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(3L, "Arrow Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(4L, "Arrow Heavy*"),
-      new AbstractMap.SimpleImmutableEntry<>(5L, "Arrow (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(6L, "Axe"),
-      new AbstractMap.SimpleImmutableEntry<>(7L, "Axe Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(8L, "Axe Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(9L, "Axe Heavy*"),
-      new AbstractMap.SimpleImmutableEntry<>(10L, "Axe (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(11L, "Bolt"),
-      new AbstractMap.SimpleImmutableEntry<>(12L, "Bolt Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(13L, "Bolt Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(14L, "Bolt Heavy*"),
-      new AbstractMap.SimpleImmutableEntry<>(15L, "Bolt (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(16L, "Bullet"),
-      new AbstractMap.SimpleImmutableEntry<>(17L, "Bullet Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(18L, "Bullet Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(19L, "Bullet Heavy*"),
-      new AbstractMap.SimpleImmutableEntry<>(20L, "Bullet (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(26L, "Dagger*"),
-      new AbstractMap.SimpleImmutableEntry<>(27L, "Dagger Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(28L, "Dagger Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(29L, "Dagger Heavy"),
-      new AbstractMap.SimpleImmutableEntry<>(30L, "Dagger (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(31L, "Dart"),
-      new AbstractMap.SimpleImmutableEntry<>(32L, "Dart Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(33L, "Dart Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(34L, "Dart Heavy*"),
-      new AbstractMap.SimpleImmutableEntry<>(35L, "Dart (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(36L, "Magic Missile"),
-      new AbstractMap.SimpleImmutableEntry<>(37L, "Fireball"),
-      new AbstractMap.SimpleImmutableEntry<>(39L, "Lightning Bolt"),
-      new AbstractMap.SimpleImmutableEntry<>(41L, "Sleep"),
-      new AbstractMap.SimpleImmutableEntry<>(55L, "Spear"),
-      new AbstractMap.SimpleImmutableEntry<>(56L, "Spear Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(57L, "Spear Flaming"),
-      new AbstractMap.SimpleImmutableEntry<>(58L, "Spear Heaby"),
-      new AbstractMap.SimpleImmutableEntry<>(59L, "Spear (Non-Magical)"),
-      new AbstractMap.SimpleImmutableEntry<>(62L, "Web Travel"),
-      new AbstractMap.SimpleImmutableEntry<>(63L, "Web Ground"),
-      new AbstractMap.SimpleImmutableEntry<>(64L, "Gaze"),
-      new AbstractMap.SimpleImmutableEntry<>(65L, "Holy Might"),
-      new AbstractMap.SimpleImmutableEntry<>(66L, "Flame Strike"),
-      new AbstractMap.SimpleImmutableEntry<>(67L, "Magic Missile 1"),
-      new AbstractMap.SimpleImmutableEntry<>(68L, "Magic Missile 2"),
-      new AbstractMap.SimpleImmutableEntry<>(69L, "Magic Missile 3"),
-      new AbstractMap.SimpleImmutableEntry<>(70L, "Magic Missile 4"),
-      new AbstractMap.SimpleImmutableEntry<>(71L, "Magic Missile 5"),
-      new AbstractMap.SimpleImmutableEntry<>(72L, "Magic Missile 6"),
-      new AbstractMap.SimpleImmutableEntry<>(73L, "Magic Missile 7"),
-      new AbstractMap.SimpleImmutableEntry<>(74L, "Magic Missile 8"),
-      new AbstractMap.SimpleImmutableEntry<>(75L, "Magic Missile 9"),
-      new AbstractMap.SimpleImmutableEntry<>(76L, "Magic Missile 10"),
-      new AbstractMap.SimpleImmutableEntry<>(94L, "Cloud"),
-      new AbstractMap.SimpleImmutableEntry<>(95L, "Skull Trap"),
-      new AbstractMap.SimpleImmutableEntry<>(96L, "Colour Spray"),
-      new AbstractMap.SimpleImmutableEntry<>(97L, "Ice Storm"),
-      new AbstractMap.SimpleImmutableEntry<>(98L, "Fire Wall"),
-      new AbstractMap.SimpleImmutableEntry<>(99L, "Glyph"),
-      new AbstractMap.SimpleImmutableEntry<>(100L, "Grease"),
-      new AbstractMap.SimpleImmutableEntry<>(101L, "Flame Arrow Green"),
-      new AbstractMap.SimpleImmutableEntry<>(102L, "Flame Arrow Blue"),
-      new AbstractMap.SimpleImmutableEntry<>(103L, "Fireball Green"),
-      new AbstractMap.SimpleImmutableEntry<>(104L, "FireBall Blue"),
-      new AbstractMap.SimpleImmutableEntry<>(105L, "Potion"),
-      new AbstractMap.SimpleImmutableEntry<>(106L, "Potion Exploding"),
-      new AbstractMap.SimpleImmutableEntry<>(107L, "Acid Blob"),
-      new AbstractMap.SimpleImmutableEntry<>(108L, "Scorcher"),
-      new AbstractMap.SimpleImmutableEntry<>(109L, "Travel Door"),
-      new AbstractMap.SimpleImmutableEntry<>(186L, "Cloudkill"),
-      new AbstractMap.SimpleImmutableEntry<>(187L, "Flame Arrow Ice"),
-      new AbstractMap.SimpleImmutableEntry<>(188L, "Cow"),
-      new AbstractMap.SimpleImmutableEntry<>(189L, "Hold"),
-      new AbstractMap.SimpleImmutableEntry<>(190L, "Scorcher Ice"),
-      new AbstractMap.SimpleImmutableEntry<>(191L, "Acid Blob Mustard"),
-      new AbstractMap.SimpleImmutableEntry<>(192L, "Acid Blob Grey"),
-      new AbstractMap.SimpleImmutableEntry<>(193L, "Acid Blob Ochre"),
-      new AbstractMap.SimpleImmutableEntry<>(217L, "Icewind Magic Missile"),
-      new AbstractMap.SimpleImmutableEntry<>(313L, "Modenkainen's Force Missiles"),
-      new AbstractMap.SimpleImmutableEntry<>(345L, "Sekolah's Fire"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
-  public static final TreeMap<Long, String> INC_TYPES_MAP = new TreeMap<>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(0L, "Increment"),
-      new AbstractMap.SimpleImmutableEntry<>(1L, "Set"),
-      new AbstractMap.SimpleImmutableEntry<>(2L, "Set % of"),
-      new AbstractMap.SimpleImmutableEntry<>(5L, "Multiply %"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+  public static final TreeMap<Long, String> DURATIONS_V1_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> DURATIONS_V2_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> COLOR_LOCATIONS_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> PROJECTILES_IWD_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> INC_TYPES_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> ATTACKS_EE_MAP = new TreeMap<Long, String>();
 
   public static final String[] INC_TYPES = { "Increment", "Set", "Set % of" };
 
@@ -461,30 +311,6 @@ public final class EffectFactory {
       "2.5 attacks per round", "3.5 attacks per round",
       "4.5 attacks per round"};
 
-  public static final TreeMap<Long, String> ATTACKS_EE_MAP = new TreeMap<Long, String>(Stream.of(
-      new AbstractMap.SimpleImmutableEntry<>(-10L, "-4.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-9L, "-3.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-8L, "-2.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-7L, "-1.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-6L, "-0.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-5L, "-5 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-4L, "-4 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-3L, "-3 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-2L, "-2 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(-1L, "-1 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(0L, "0 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(1L, "1 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(2L, "2 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(3L, "3 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(4L, "4 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(5L, "5 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(6L, "0.5 attack per round"),
-      new AbstractMap.SimpleImmutableEntry<>(7L, "1.5 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(8L, "2.5 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(9L, "3.5 attacks per round"),
-      new AbstractMap.SimpleImmutableEntry<>(10L, "4.5 attacks per round"))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
   public static final String[] SUMMON_CONTROLS = { "Match target", "Match target", "From CRE file", "Match target",
       "From CRE file", "Hostile", "From CRE file", "", "From CRE file" };
 
@@ -511,6 +337,172 @@ public final class EffectFactory {
   public static final String[] SPELL_STATES = { "Chaotic Command", "Miscast Magic", "Pain", "Greater Malison",
       "Blood Rage", "Cat's Grace", "Mold Touch", "Shroud of Flame" };
 
+  static {
+    DURATIONS_V1_MAP.put(0L, "Instant/Limited");
+    DURATIONS_V1_MAP.put(1L, "Instant/Permanent until death");
+    DURATIONS_V1_MAP.put(2L, "Instant/While equipped");
+    DURATIONS_V1_MAP.put(3L, "Delay/Limited");
+    DURATIONS_V1_MAP.put(4L, "Delay/Permanent");
+    DURATIONS_V1_MAP.put(5L, "Delay/While equipped");
+    DURATIONS_V1_MAP.put(6L, "Limited after duration");
+    DURATIONS_V1_MAP.put(7L, "Permanent after duration");
+    DURATIONS_V1_MAP.put(8L, "Equipped after duration");
+    DURATIONS_V1_MAP.put(9L, "Instant/Permanent");
+    DURATIONS_V1_MAP.put(10L, "Instant/Limited (ticks)");
+
+    DURATIONS_V2_MAP.put(0L, "Instant/Limited");
+    DURATIONS_V2_MAP.put(1L, "Instant/Permanent until death");
+    DURATIONS_V2_MAP.put(2L, "Instant/While equipped");
+    DURATIONS_V2_MAP.put(3L, "Delay/Limited");
+    DURATIONS_V2_MAP.put(4L, "Delay/Permanent");
+    DURATIONS_V2_MAP.put(5L, "Delay/While equipped");
+    DURATIONS_V2_MAP.put(6L, "Limited after duration");
+    DURATIONS_V2_MAP.put(7L, "Permanent after duration");
+    DURATIONS_V2_MAP.put(8L, "Equipped after duration");
+    DURATIONS_V2_MAP.put(9L, "Instant/Permanent");
+    DURATIONS_V2_MAP.put(10L, "Instant/Limited (ticks)");
+    DURATIONS_V2_MAP.put(4096L, "Absolute duration");
+
+    COLOR_LOCATIONS_MAP.put(0x00L, "Armor (grey): Belt/Amulet");
+    COLOR_LOCATIONS_MAP.put(0x01L, "Armor (teal): Minor color");
+    COLOR_LOCATIONS_MAP.put(0x02L, "Armor (pink): Major color");
+    COLOR_LOCATIONS_MAP.put(0x03L, "Armor (yellow): Skin color");
+    COLOR_LOCATIONS_MAP.put(0x04L, "Armor (red): Strap/Leather");
+    COLOR_LOCATIONS_MAP.put(0x05L, "Armor (blue): Armor/Trimming");
+    COLOR_LOCATIONS_MAP.put(0x06L, "Armor (green): Hair");
+    COLOR_LOCATIONS_MAP.put(0x10L, "Weapon (grey): Head/blade/staff major");
+    COLOR_LOCATIONS_MAP.put(0x11L, "Weapon (teal): Staff minor");
+    COLOR_LOCATIONS_MAP.put(0x12L, "Weapon (pink)");
+    COLOR_LOCATIONS_MAP.put(0x13L, "Weapon (yellow)");
+    COLOR_LOCATIONS_MAP.put(0x14L, "Weapon (red): Grip/staff minor");
+    COLOR_LOCATIONS_MAP.put(0x15L, "Weapon (blue): Head/blade minor");
+    COLOR_LOCATIONS_MAP.put(0x16L, "Weapon (green)");
+    COLOR_LOCATIONS_MAP.put(0x20L, "Shield (grey): Hub");
+    COLOR_LOCATIONS_MAP.put(0x21L, "Shield (teal): Interior");
+    COLOR_LOCATIONS_MAP.put(0x22L, "Shield (pink): Panel");
+    COLOR_LOCATIONS_MAP.put(0x23L, "Shield (yellow)");
+    COLOR_LOCATIONS_MAP.put(0x24L, "Shield (red): Grip");
+    COLOR_LOCATIONS_MAP.put(0x25L, "Shield (blue): Body/trim");
+    COLOR_LOCATIONS_MAP.put(0x26L, "Shield (green)");
+    COLOR_LOCATIONS_MAP.put(0x30L, "Helmet (grey): Wings");
+    COLOR_LOCATIONS_MAP.put(0x31L, "Helmet (teal): Detail");
+    COLOR_LOCATIONS_MAP.put(0x32L, "Helmet (pink): Plume");
+    COLOR_LOCATIONS_MAP.put(0x33L, "Helmet (yellow)");
+    COLOR_LOCATIONS_MAP.put(0x34L, "Helmet (red): Face");
+    COLOR_LOCATIONS_MAP.put(0x35L, "Helmet (blue): Exterior");
+    COLOR_LOCATIONS_MAP.put(0x36L, "Helmet (green)");
+    COLOR_LOCATIONS_MAP.put(0xffL, "Character color");
+
+    PROJECTILES_IWD_MAP.put(0L, "Instant");
+    PROJECTILES_IWD_MAP.put(1L, "Arrow");
+    PROJECTILES_IWD_MAP.put(2L, "Arrow Exploding");
+    PROJECTILES_IWD_MAP.put(3L, "Arrow Flaming");
+    PROJECTILES_IWD_MAP.put(4L, "Arrow Heavy*");
+    PROJECTILES_IWD_MAP.put(5L, "Arrow (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(6L, "Axe");
+    PROJECTILES_IWD_MAP.put(7L, "Axe Exploding");
+    PROJECTILES_IWD_MAP.put(8L, "Axe Flaming");
+    PROJECTILES_IWD_MAP.put(9L, "Axe Heavy*");
+    PROJECTILES_IWD_MAP.put(10L, "Axe (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(11L, "Bolt");
+    PROJECTILES_IWD_MAP.put(12L, "Bolt Exploding");
+    PROJECTILES_IWD_MAP.put(13L, "Bolt Flaming");
+    PROJECTILES_IWD_MAP.put(14L, "Bolt Heavy*");
+    PROJECTILES_IWD_MAP.put(15L, "Bolt (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(16L, "Bullet");
+    PROJECTILES_IWD_MAP.put(17L, "Bullet Exploding");
+    PROJECTILES_IWD_MAP.put(18L, "Bullet Flaming");
+    PROJECTILES_IWD_MAP.put(19L, "Bullet Heavy*");
+    PROJECTILES_IWD_MAP.put(20L, "Bullet (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(26L, "Dagger*");
+    PROJECTILES_IWD_MAP.put(27L, "Dagger Exploding");
+    PROJECTILES_IWD_MAP.put(28L, "Dagger Flaming");
+    PROJECTILES_IWD_MAP.put(29L, "Dagger Heavy");
+    PROJECTILES_IWD_MAP.put(30L, "Dagger (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(31L, "Dart");
+    PROJECTILES_IWD_MAP.put(32L, "Dart Exploding");
+    PROJECTILES_IWD_MAP.put(33L, "Dart Flaming");
+    PROJECTILES_IWD_MAP.put(34L, "Dart Heavy*");
+    PROJECTILES_IWD_MAP.put(35L, "Dart (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(36L, "Magic Missile");
+    PROJECTILES_IWD_MAP.put(37L, "Fireball");
+    PROJECTILES_IWD_MAP.put(39L, "Lightning Bolt");
+    PROJECTILES_IWD_MAP.put(41L, "Sleep");
+    PROJECTILES_IWD_MAP.put(55L, "Spear");
+    PROJECTILES_IWD_MAP.put(56L, "Spear Exploding");
+    PROJECTILES_IWD_MAP.put(57L, "Spear Flaming");
+    PROJECTILES_IWD_MAP.put(58L, "Spear Heaby");
+    PROJECTILES_IWD_MAP.put(59L, "Spear (Non-Magical)");
+    PROJECTILES_IWD_MAP.put(62L, "Web Travel");
+    PROJECTILES_IWD_MAP.put(63L, "Web Ground");
+    PROJECTILES_IWD_MAP.put(64L, "Gaze");
+    PROJECTILES_IWD_MAP.put(65L, "Holy Might");
+    PROJECTILES_IWD_MAP.put(66L, "Flame Strike");
+    PROJECTILES_IWD_MAP.put(67L, "Magic Missile 1");
+    PROJECTILES_IWD_MAP.put(68L, "Magic Missile 2");
+    PROJECTILES_IWD_MAP.put(69L, "Magic Missile 3");
+    PROJECTILES_IWD_MAP.put(70L, "Magic Missile 4");
+    PROJECTILES_IWD_MAP.put(71L, "Magic Missile 5");
+    PROJECTILES_IWD_MAP.put(72L, "Magic Missile 6");
+    PROJECTILES_IWD_MAP.put(73L, "Magic Missile 7");
+    PROJECTILES_IWD_MAP.put(74L, "Magic Missile 8");
+    PROJECTILES_IWD_MAP.put(75L, "Magic Missile 9");
+    PROJECTILES_IWD_MAP.put(76L, "Magic Missile 10");
+    PROJECTILES_IWD_MAP.put(94L, "Cloud");
+    PROJECTILES_IWD_MAP.put(95L, "Skull Trap");
+    PROJECTILES_IWD_MAP.put(96L, "Colour Spray");
+    PROJECTILES_IWD_MAP.put(97L, "Ice Storm");
+    PROJECTILES_IWD_MAP.put(98L, "Fire Wall");
+    PROJECTILES_IWD_MAP.put(99L, "Glyph");
+    PROJECTILES_IWD_MAP.put(100L, "Grease");
+    PROJECTILES_IWD_MAP.put(101L, "Flame Arrow Green");
+    PROJECTILES_IWD_MAP.put(102L, "Flame Arrow Blue");
+    PROJECTILES_IWD_MAP.put(103L, "Fireball Green");
+    PROJECTILES_IWD_MAP.put(104L, "FireBall Blue");
+    PROJECTILES_IWD_MAP.put(105L, "Potion");
+    PROJECTILES_IWD_MAP.put(106L, "Potion Exploding");
+    PROJECTILES_IWD_MAP.put(107L, "Acid Blob");
+    PROJECTILES_IWD_MAP.put(108L, "Scorcher");
+    PROJECTILES_IWD_MAP.put(109L, "Travel Door");
+    PROJECTILES_IWD_MAP.put(186L, "Cloudkill");
+    PROJECTILES_IWD_MAP.put(187L, "Flame Arrow Ice");
+    PROJECTILES_IWD_MAP.put(188L, "Cow");
+    PROJECTILES_IWD_MAP.put(189L, "Hold");
+    PROJECTILES_IWD_MAP.put(190L, "Scorcher Ice");
+    PROJECTILES_IWD_MAP.put(191L, "Acid Blob Mustard");
+    PROJECTILES_IWD_MAP.put(192L, "Acid Blob Grey");
+    PROJECTILES_IWD_MAP.put(193L, "Acid Blob Ochre");
+    PROJECTILES_IWD_MAP.put(217L, "Icewind Magic Missile");
+    PROJECTILES_IWD_MAP.put(313L, "Modenkainen's Force Missiles");
+    PROJECTILES_IWD_MAP.put(345L, "Sekolah's Fire");
+
+    INC_TYPES_MAP.put(0L, "Increment");
+    INC_TYPES_MAP.put(1L, "Set");
+    INC_TYPES_MAP.put(2L, "Set % of");
+    INC_TYPES_MAP.put(5L, "Multiply %");
+
+    ATTACKS_EE_MAP.put(-10L, "-4.5 attack per round");
+    ATTACKS_EE_MAP.put(-9L, "-3.5 attack per round");
+    ATTACKS_EE_MAP.put(-8L, "-2.5 attack per round");
+    ATTACKS_EE_MAP.put(-7L, "-1.5 attack per round");
+    ATTACKS_EE_MAP.put(-6L, "-0.5 attack per round");
+    ATTACKS_EE_MAP.put(-5L, "-5 attacks per round");
+    ATTACKS_EE_MAP.put(-4L, "-4 attacks per round");
+    ATTACKS_EE_MAP.put(-3L, "-3 attacks per round");
+    ATTACKS_EE_MAP.put(-2L, "-2 attacks per round");
+    ATTACKS_EE_MAP.put(-1L, "-1 attack per round");
+    ATTACKS_EE_MAP.put(0L, "0 attacks per round");
+    ATTACKS_EE_MAP.put(1L, "1 attack per round");
+    ATTACKS_EE_MAP.put(2L, "2 attacks per round");
+    ATTACKS_EE_MAP.put(3L, "3 attacks per round");
+    ATTACKS_EE_MAP.put(4L, "4 attacks per round");
+    ATTACKS_EE_MAP.put(5L, "5 attacks per round");
+    ATTACKS_EE_MAP.put(6L, "0.5 attack per round");
+    ATTACKS_EE_MAP.put(7L, "1.5 attacks per round");
+    ATTACKS_EE_MAP.put(8L, "2.5 attacks per round");
+    ATTACKS_EE_MAP.put(9L, "3.5 attacks per round");
+    ATTACKS_EE_MAP.put(10L, "4.5 attacks per round");
+  }
 
   public static EffectFactory getFactory()
   {
