@@ -45,8 +45,6 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
-import org.infinity.resource.dlg.State;
-import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
@@ -240,8 +238,6 @@ public final class DialogChecker extends AbstractSearcher
         for (final StructEntry o : dialog.getFields()) {
           if (o instanceof AbstractCode) {
             checkCode(entry, (AbstractCode) o);
-          } else if (o instanceof State) {
-            checkState(dialog, (State) o);
           }
         }
       } catch (Exception e) {
@@ -271,58 +267,6 @@ public final class DialogChecker extends AbstractSearcher
     synchronized (warningTable) {
       for (final ScriptMessage sm : compiler.getWarnings()) {
         warningTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING));
-      }
-    }
-  }
-
-  /**
-   * Performs checking of the dialogue state. Reports error, if state:
-   * <ol>
-   * <li>has more that one response</li>
-   * <li>has response without associated text</li>
-   * <li>has another response without trigger</li>
-   * </ol>
-   * Error reported because responses without text not shown in the dialogue and not available to select by PC from one
-   * hand, and from another hand if more that 2 responses not filtered by triggers, dialogue stops and requires PC to
-   * select one... even if all of them without text (in that case there just no options to select).
-   * <p>
-   * Original PS:T files contains at least 4 errors of this type
-   *
-   * @param dlg   Dialogue that owns {@code state}
-   * @param state State for checking. Never {@code null}
-   */
-  private void checkState(DlgResource dlg, State state) {
-    final int count = state.getTransCount();
-    if (count < 2) {
-      return;
-    }
-
-    final int start = state.getFirstTrans();
-    for (int i = start; i < start + count; ++i) {
-      final Transition trans = dlg.getTransition(i);
-      if (trans.hasAssociatedText()) {
-        continue;
-      }
-
-      final String message = String.format(
-          "Response has no trigger, but parent state %d has response %d without text - this response won't be accessible to the player",
-          state.getNumber(), trans.getNumber());
-
-      // If state has response without associated text, trigger error on all responses
-      // without triggers (excludes response without text)
-      for (int j = start; j < start + count; ++j) {
-        if (i == j) {
-          continue;
-        }
-
-        final Transition t = dlg.getTransition(j);
-        if (t.getTriggerIndex() >= 0) {
-          continue;
-        }
-
-        synchronized (errorTable) {
-          errorTable.addTableItem(new Problem(dlg.getResourceEntry(), t, null, message, Problem.Type.ERROR));
-        }
       }
     }
   }
