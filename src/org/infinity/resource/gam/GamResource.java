@@ -56,7 +56,7 @@ import org.infinity.util.Variables;
  */
 public final class GamResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs {
   // GAM-specific field labels
-  public static final String GAM_GAME_TIME                        = "Game time (game seconds)";
+  public static final String GAM_GAME_TIME                        = "Elapsed game time (seconds)";
   public static final String GAM_SELECTED_FORMATION               = "Selected formation";
   public static final String GAM_FORMATION_BUTTON_FMT             = "Formation button %d";
   public static final String GAM_PARTY_GOLD                       = "Party gold";
@@ -89,7 +89,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   public static final String GAM_OFFSET_FAMILIAR_INFO             = "Familiar info offset";
   public static final String GAM_OFFSET_STORED_LOCATIONS          = "Stored locations offset";
   public static final String GAM_NUM_STORED_LOCATIONS             = "# stored locations";
-  public static final String GAM_REAL_TIME                        = "Game time (real seconds)";
+  public static final String GAM_REAL_TIME                        = "Elapsed real time (ticks)";
   public static final String GAM_OFFSET_POCKET_PLANE_LOCATIONS    = "Pocket plane locations offset";
   public static final String GAM_NUM_POCKET_PLANE_LOCATIONS       = "# pocket plane locations";
   public static final String GAM_ZOOM_LEVEL                       = "Zoom level";
