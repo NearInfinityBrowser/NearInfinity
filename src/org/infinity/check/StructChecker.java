@@ -28,6 +28,8 @@ import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
+import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
@@ -40,10 +42,15 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.bcs.Compiler;
+import org.infinity.resource.bcs.ScriptMessage;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sto.ItemSale11;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 
 public final class StructChecker extends AbstractChecker implements ListSelectionListener {
   private static final String[] FILETYPES = { "ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO", "SPL",
@@ -256,12 +263,50 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     // Type-specific checks
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       List<Corruption> list = getWedCorruption(entry, struct);
-      for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
-        synchronized (table) {
+      synchronized (table) {
+        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
           table.addTableItem(iter.next());
         }
       }
+    } else if (entry.getExtension().equalsIgnoreCase("STO")) {
+      List<Corruption> list = getStoCorruption(entry, struct);
+      synchronized (table) {
+        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
+            table.addTableItem(iter.next());
+        }
+      }
     }
+  }
+
+  // Checking for invalid trigger strings in STO V1.1 resources
+  private List<Corruption> getStoCorruption(ResourceEntry entry, AbstractStruct struct) {
+    final List<Corruption> list = new ArrayList<>();
+    if (entry.getExtension().equalsIgnoreCase("STO")) {
+      String version = ((IsTextual) struct.getAttribute(AbstractStruct.COMMON_VERSION)).getText();
+      if (version.equalsIgnoreCase("V1.1")) {
+        List<StructEntry> itemList = struct.getFields(ItemSale11.class);
+        for (int itemIndex = 0, itemCount = itemList.size(); itemIndex < itemCount; itemIndex++) {
+          final ItemSale11 item = (ItemSale11) itemList.get(itemIndex);
+          final StringRef triggerEntry = (StringRef) item.getAttribute(ItemSale11.STO_SALE_TRIGGER);
+          if (triggerEntry.getValue() > 0 && StringTable.isValidStringRef(triggerEntry.getValue())) {
+            final String trigger = StringTable.getStringRef(triggerEntry.getValue()).trim();
+            if (!trigger.isEmpty()) {
+              final Compiler compiler = new Compiler(trigger, ScriptType.TRIGGER);
+              compiler.compile();
+              for (final ScriptMessage sm : compiler.getErrors()) {
+                list.add(new Corruption(entry, triggerEntry.getOffset(), String.format("[ERROR] %s %d - %s: %s",
+                    ItemSale11.STO_SALE, itemIndex, ItemSale11.STO_SALE_TRIGGER, sm.getMessage())));
+              }
+              for (final ScriptMessage sm : compiler.getWarnings()) {
+                list.add(new Corruption(entry, triggerEntry.getOffset(), String.format("[WARNING] %s %d - %s: %s",
+                    ItemSale11.STO_SALE, itemIndex, ItemSale11.STO_SALE_TRIGGER, sm.getMessage())));
+              }
+            }
+          }
+        }
+      }
+    }
+    return list;
   }
 
   // Checking for WED-specific corruptions
