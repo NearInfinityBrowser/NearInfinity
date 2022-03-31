@@ -280,7 +280,9 @@ public final class ResourceUseChecker extends AbstractSearcher
 
           checkCode(compiler.getCode(), type);
         } catch (Exception e) {
-          e.printStackTrace();
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
         }
       } else if (checkType.equalsIgnoreCase("WAV") && (entry instanceof State || entry instanceof Transition)) {
         for (final StructEntry e : ((AbstractStruct) entry).getFlatFields()) {
@@ -296,7 +298,9 @@ public final class ResourceUseChecker extends AbstractSearcher
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
-      e.printStackTrace();
+      synchronized (System.err) {
+        e.printStackTrace();
+      }
     }
   }
 

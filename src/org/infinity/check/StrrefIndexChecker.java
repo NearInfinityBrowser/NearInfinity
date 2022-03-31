@@ -60,9 +60,6 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
 
-  /** Count of strings in the {@link StringTable talk table}. */
-  private int strrefCount;
-
   public StrrefIndexChecker() {
     super("Find illegal strrefs", "StrrefIndexChecker", StringReferenceSearcher.FILE_TYPES);
 
@@ -87,7 +84,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         new ViewFrame(resultFrame, ResourceFactory.getResource(entry));
       }
     } else if (event.getSource() == bsave) {
-      table.saveCheckResult(resultFrame, "Unknown string references (maximum " + strrefCount + ")");
+      table.saveCheckResult(resultFrame, "Unknown string references (maximum " + StringTable.getNumEntries() + ")");
     } else {
       super.actionPerformed(event);
     }
@@ -109,7 +106,6 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   @Override
   public void run() {
-    strrefCount = StringTable.getNumEntries();
     if (runCheck(files)) {
       resultFrame.close();
       return;
@@ -195,7 +191,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     for (final StructEntry entry : dialog.getFlatFields()) {
       if (entry instanceof StringRef) {
         final int strref = ((StringRef) entry).getValue();
-        if (strref < -1 || strref >= strrefCount) {
+        if (!isValidStringRef(strref)) {
           synchronized (table) {
             table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
           }
@@ -212,14 +208,16 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           decompiler.decompile();
           for (final Integer stringRef : decompiler.getStringRefsUsed()) {
             final int strref = stringRef;
-            if (strref < -1 || strref >= strrefCount) {
+            if (!isValidStringRef(strref)) {
               synchronized (table) {
                 table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
               }
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
         }
       }
     }
@@ -233,7 +231,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       decompiler.decompile();
       for (final Integer stringRef : decompiler.getStringRefsUsed()) {
         final int strref = stringRef;
-        if (strref < -1 || strref >= strrefCount) {
+        if (!isValidStringRef(strref)) {
           // XXX: search routine may produce false positives
           final String strrefString = stringRef.toString();
           final String source = decompiler.getSource();
@@ -254,7 +252,9 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      synchronized (System.err) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -262,8 +262,8 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof StringRef) {
         final int strref = ((StringRef) entry).getValue();
-        if (strref < -1 || strref >= strrefCount) {
-          if (strref >= 3000000
+        if (!isValidStringRef(strref)) {
+          if (strref >= 3000000 && strref < 4000000
               && (entry.getParent() instanceof AutomapNote || entry.getParent() instanceof JournalEntry)) {
             // skip talk override entries
             continue;
@@ -288,17 +288,24 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           final long strref = Long.parseLong(lines[line].substring(pos, pos + len));
           // skip values out of integer range
           if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
-            if (strref < -1 || strref > strrefCount) {
+            if (!isValidStringRef((int) strref)) {
               synchronized (table) {
                 table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, (int) strref));
               }
             }
           }
         } catch (NumberFormatException e) {
-          e.printStackTrace();
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
         }
       }
     }
+  }
+
+  private boolean isValidStringRef(int strref) {
+    strref = StringTable.getTranslatedIndex(strref);
+    return (strref >= -1 && strref < StringTable.getNumEntries());
   }
 
   // -------------------------- INNER CLASSES --------------------------

@@ -192,26 +192,32 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
   private void checkCreature(CreResource cre) {
     final List<Item> items = new ArrayList<>();
     final List<DecNumber> slots = new ArrayList<>();
-    final IsNumeric slotsOffset = (IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
+    final int slotsOffset = ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue() + cre.getOffset();
+
+    // Gathering item and slot entries
     for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item) {
         items.add((Item) entry);
-      } else if (entry.getOffset() >= slotsOffset.getValue() + cre.getOffset() && entry instanceof DecNumber
+      } else if (entry.getOffset() >= slotsOffset
+          && entry instanceof DecNumber
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY)) {
         slots.add((DecNumber) entry);
       }
     }
-    // TODO: Investigate ability to changes slots to set and use slots.contains(...) below
-    for (DecNumber slot : slots) {
+
+    // Checking item references
+    for (final DecNumber slot : slots) {
       final int value = slot.getValue();
       if (value >= 0 && value < items.size()) {
         items.set(value, null);
       }
     }
-    for (Item item : items) {
-      if (item != null) {
-        synchronized (table) {
+
+    // Evaluating results
+    synchronized (table) {
+      for (final Item item : items) {
+        if (item != null) {
           table.addTableItem(new CreInvError(cre.getResourceEntry(), item));
         }
       }

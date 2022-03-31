@@ -226,14 +226,14 @@ public final class ScriptChecker extends AbstractSearcher
 
         final Compiler compiler = new Compiler(decompiler.decompile());
         compiler.compile();
-        for (final ScriptMessage sm : compiler.getErrors()) {
-          synchronized (errorTable) {
+        synchronized (errorTable) {
+          for (final ScriptMessage sm : compiler.getErrors()) {
             errorTable.addTableItem(
                 new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.ERROR));
           }
         }
-        for (final ScriptMessage sm : compiler.getWarnings()) {
-          synchronized (warningTable) {
+        synchronized (warningTable) {
+          for (final ScriptMessage sm : compiler.getWarnings()) {
             warningTable.addTableItem(
                 new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.WARNING));
           }

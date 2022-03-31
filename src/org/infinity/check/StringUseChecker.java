@@ -220,7 +220,9 @@ public final class StringUseChecker extends AbstractSearcher
 
           checkCode(compiler.getCode(), type);
         } catch (Exception e) {
-          e.printStackTrace();
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
         }
       }
     }
@@ -230,7 +232,9 @@ public final class StringUseChecker extends AbstractSearcher
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
-      e.printStackTrace();
+      synchronized (System.err) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -246,11 +250,7 @@ public final class StringUseChecker extends AbstractSearcher
     final Matcher m = StringReferenceSearcher.NUMBER_PATTERN.matcher(text.getText());
     while (m.find()) {
       final long nr = Long.parseLong(m.group());
-      if (nr >= 0 && nr < strUsed.length) {
-        synchronized (strUsed) {
-          strUsed[(int) nr] = true;
-        }
-      }
+      updateStringUsed(nr);
     }
   }
 
@@ -269,13 +269,8 @@ public final class StringUseChecker extends AbstractSearcher
     decompiler.setGenerateResourcesUsed(true);
     decompiler.decompile();
 
-    synchronized (strUsed) {
-      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-        final int index = stringRef;
-        if (index >= 0 && index < strUsed.length) {
-          strUsed[index] = true;
-        }
-      }
+    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+      updateStringUsed(stringRef);
     }
   }
 
@@ -284,13 +279,20 @@ public final class StringUseChecker extends AbstractSearcher
    * <p>
    * This method can be called from several threads
    *
-   * @param ref Rererence to string in the {@link StringTable string table}
+   * @param ref Reference to string in the {@link StringTable string table}
    */
   private void checkStringRef(StringRef ref) {
-    final int index = ref.getValue();
-    if (index >= 0 && index < strUsed.length) {
-      synchronized (strUsed) {
-        strUsed[index] = true;
+    updateStringUsed(ref.getValue());
+  }
+
+  /** Internally used to mark a string reference as used when conditions are met. */
+  private void updateStringUsed(long strref) {
+    if (strref >= 0 && strref < Integer.MAX_VALUE) {
+      final int index = StringTable.getTranslatedIndex((int)strref);
+      if (index >= 0 && index < strUsed.length && !strUsed[index]) {
+        synchronized (strUsed) {
+          strUsed[index] = true;
+        }
       }
     }
   }

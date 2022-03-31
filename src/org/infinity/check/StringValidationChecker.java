@@ -350,15 +350,19 @@ public class StringValidationChecker extends AbstractSearcher
         final char ch1 = textAnsi.charAt(ofs);
         final char ch2 = textUtf8.charAt(ofs);
         if (ch1 != ch2) {
-          final String msg = "Possible encoding error found at offset " + ofs;
-          table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
-          isError = true;
+          synchronized(table) {
+            final String msg = "Possible encoding error found at offset " + ofs;
+            table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+            isError = true;
+          }
         }
       }
 
       if (!isError && textAnsi.length() > textUtf8.length()) {
-        final String msg = "Possible encoding error found at offset " + textUtf8.length();
-        table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+        synchronized (table) {
+          final String msg = "Possible encoding error found at offset " + textUtf8.length();
+          table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+        }
       }
     }
   }
