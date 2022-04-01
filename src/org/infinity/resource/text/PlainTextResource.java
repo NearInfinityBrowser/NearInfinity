@@ -237,7 +237,7 @@ public class PlainTextResource
         Matcher m = p.matcher(text);
         if (m.find()) {
           startOfs += m.start();
-          endOfs = startOfs + m.end() + 1;
+          endOfs = startOfs + highlightText.length() + 1;
         }
       }
       highlightText(startOfs, endOfs);

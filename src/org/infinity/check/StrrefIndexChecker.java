@@ -50,6 +50,8 @@ import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener {
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
@@ -277,6 +279,11 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
   }
 
   private void checkText(PlainTextResource text) {
+    if (text.getResourceEntry().getExtension().equalsIgnoreCase("2DA")) {
+      check2da(Table2daCache.get(text.getResourceEntry(), false));
+      return;
+    }
+
     final String[] lines = text.getText().split("\r?\n");
     for (int i = 0; i < lines.length; i++) {
       final Matcher matcher = StringReferenceSearcher.NUMBER_PATTERN.matcher(lines[i]);
@@ -297,6 +304,43 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         } catch (NumberFormatException e) {
           synchronized (System.err) {
             e.printStackTrace();
+          }
+        }
+      }
+    }
+  }
+
+  private void check2da(Table2da array) {
+    if (array != null) {
+      // checking default value
+      try {
+        long strref = Long.parseLong(array.getDefaultValue());
+        if (strref >= Integer.MIN_VALUE
+            && strref <= Integer.MAX_VALUE
+            && !isValidStringRef((int) strref)) {
+          synchronized (table) {
+            table.addTableItem(new StrrefEntry(array.getResourceEntry(), array.getDefaultEntry().getLine() + 1,
+                array.getDefaultEntry().getPosition() + 1, (int) strref));
+          }
+        }
+      } catch (NumberFormatException e) {
+      }
+
+      // checking table content
+      for (int row = 0, numRows = array.getRowCount(); row < numRows; row++) {
+        for (int col = 0, numCols = array.getColCount(row); col < numCols; col++) {
+          final Table2da.Entry entry = array.getEntry(row, col);
+          try {
+            long strref = Long.parseLong(entry.getValue());
+            if (strref >= Integer.MIN_VALUE
+                && strref <= Integer.MAX_VALUE
+                && !isValidStringRef((int) strref)) {
+              synchronized (table) {
+                table.addTableItem(new StrrefEntry(array.getResourceEntry(), entry.getLine() + 1,
+                    entry.getPosition() + 1, (int) strref));
+              }
+            }
+          } catch (NumberFormatException e) {
           }
         }
       }

@@ -41,11 +41,22 @@ public class Table2daCache {
    * @return 2DA content as Table2da object or {@code null} on error.
    */
   public static synchronized Table2da get(ResourceEntry entry) {
+    return get(entry, true);
+  }
+
+  /**
+   * Returns a Table2da object based on the specified 2DA resource.
+   *
+   * @param entry 2DA resource entry.
+   * @param strict Indicates whether a valid file signature check should be enforced.
+   * @return 2DA content as Table2da object or {@code null} on error.
+   */
+  public static synchronized Table2da get(ResourceEntry entry, boolean strict) {
     Table2da table = null;
     if (entry != null) {
       table = MAP.get(entry);
       if (table == null) {
-        table = new Table2da(entry);
+        table = new Table2da(entry, strict);
         if (!table.isEmpty()) {
           MAP.put(table.getResourceEntry(), table);
         } else {
