@@ -407,7 +407,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 76, 4, ITM_WEIGHT));
     addField(new StringRef(buffer, 80, ITM_DESCRIPTION_GENERAL));
     addField(new StringRef(buffer, 84, ITM_DESCRIPTION_IDENTIFIED));
-    if (isV11) {
+    if (isV11 || (isV10 && Profile.getGame() == Profile.Game.PSTEE)) {
       addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
       addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
