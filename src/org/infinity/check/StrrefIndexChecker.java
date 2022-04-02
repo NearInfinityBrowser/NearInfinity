@@ -388,7 +388,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         case 1:
           return isText ? (line + ":" + pos) : Integer.toHexString(offset) + 'h';
         default:
-          return Integer.toString(strref);
+          return strref;
       }
     }
 
