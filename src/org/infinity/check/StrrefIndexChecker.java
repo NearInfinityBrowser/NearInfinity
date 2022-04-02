@@ -66,7 +66,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     super("Find illegal strrefs", "StrrefIndexChecker", StringReferenceSearcher.FILE_TYPES);
 
     table = new SortableTable(new String[] { "File", "Offset / Line:Pos", "Strref" },
-        new Class<?>[] { StrrefEntry.class, String.class, Integer.class }, new Integer[] { 200, 100, 100 });
+        new Class<?>[] { ResourceEntry.class, String.class, Integer.class }, new Integer[] { 200, 100, 100 });
   }
 
   // --------------------- Begin Interface ActionListener ---------------------

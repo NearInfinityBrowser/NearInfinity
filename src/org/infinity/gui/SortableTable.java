@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
@@ -234,6 +235,15 @@ public final class SortableTable extends JTable implements MouseListener {
     }
 
     public void sort() {
+      // Sanity check
+      if (!tableItems.isEmpty()) {
+        final Object item = tableItems.get(0).getObjectAt(sortByColumn);
+        if (item != null && !getColumnClass(sortByColumn).isAssignableFrom(item.getClass())) {
+          System.err.printf("Incompatible item type at column %d: expected %s, found %s\n",
+              sortByColumn, getColumnClass(sortByColumn).getSimpleName(), item.getClass().getSimpleName());
+        }
+      }
+
       Collections.sort(tableItems, this);
       fireTableChangedEvent();
     }
@@ -287,22 +297,22 @@ public final class SortableTable extends JTable implements MouseListener {
       listeners.remove(l);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public int compare(TableItem o1, TableItem o2) {
       int res;
-      if (getColumnClass(sortByColumn) == Integer.class) {
-        Integer int1 = (Integer) o1.getObjectAt(sortByColumn);
-        Integer int2 = (Integer) o2.getObjectAt(sortByColumn);
-        res = int1.compareTo(int2);
+      final Object item1 = o1.getObjectAt(sortByColumn);
+      final Object item2 = o2.getObjectAt(sortByColumn);
+
+      if (item1 instanceof Comparable && item2 instanceof Comparable) {
+        res = ((Comparable) item1).compareTo(item2);
       } else {
-        Object item1 = o1.getObjectAt(sortByColumn);
-        Object item2 = o2.getObjectAt(sortByColumn);
-        String string1 = (item1 != null) ? item1.toString() : "";
-        String string2 = (item2 != null) ? item2.toString() : "";
+        final String s1 = Objects.toString(item1, "");
+        final String s2 = Objects.toString(item2, "");
 
         // Extract numbers from strings and compare it as numbers
-        final String[] arr1 = SPLIT_BY_NUMBER.split(string1);
-        final String[] arr2 = SPLIT_BY_NUMBER.split(string2);
+        final String[] arr1 = SPLIT_BY_NUMBER.split(s1);
+        final String[] arr2 = SPLIT_BY_NUMBER.split(s2);
         res = ArrayUtil.compare(arr1, arr2, SORTER);
       }
       if (sortAscending) {
