@@ -6,8 +6,6 @@ package org.infinity.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -203,14 +201,16 @@ public class Table2da {
     List<Entry> retVal = new ArrayList<>();
 
     if (line != null) {
-      final Pattern pattern = Pattern.compile("\\b\\S+\\b");
-      final Matcher matcher = pattern.matcher(line);
-
-      while (matcher.find()) {
-        int start = matcher.start();
-        int end = matcher.end();
-        String value = line.substring(start, end);
-        retVal.add(new Entry(this, value, lineIndex, start));
+      String[] tokens = line.split("\\s+");
+      int fromIndex = 0;
+      for (final String token : tokens) {
+        fromIndex = line.indexOf(token, fromIndex);
+        if (fromIndex >= 0) {
+          retVal.add(new Entry(this, token, lineIndex, fromIndex));
+          fromIndex += token.length();
+        } else {
+          break;
+        }
       }
     }
 
