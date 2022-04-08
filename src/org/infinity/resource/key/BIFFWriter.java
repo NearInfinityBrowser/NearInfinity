@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -24,15 +24,13 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public final class BIFFWriter
-{
+public final class BIFFWriter {
   private final BIFFEntry bifEntry;
   private final Map<ResourceEntry, Boolean> resources = new HashMap<>();
   private final Map<ResourceEntry, Boolean> tileResources = new HashMap<>();
   private final AbstractBIFFReader.Type format;
 
-  private static byte[] compress(byte data[])
-  {
+  private static byte[] compress(byte data[]) {
     Deflater deflater = new Deflater();
     byte compr[] = new byte[data.length * 2];
     deflater.setInput(data);
@@ -41,14 +39,13 @@ public final class BIFFWriter
     return Arrays.copyOfRange(compr, 0, clength);
   }
 
-  private static void compressBIF(Path biff, Path compr, String uncrfilename) throws IOException
-  {
+  private static void compressBIF(Path biff, Path compr, String uncrfilename) throws IOException {
     try (OutputStream os = StreamUtils.getOutputStream(compr, true)) {
       StreamUtils.writeString(os, "BIF ", 4);
       StreamUtils.writeString(os, "V1.0", 4);
       StreamUtils.writeInt(os, uncrfilename.length());
       StreamUtils.writeString(os, uncrfilename, uncrfilename.length());
-      StreamUtils.writeInt(os, (int)Files.size(biff)); // Uncompressed length
+      StreamUtils.writeInt(os, (int) Files.size(biff)); // Uncompressed length
       StreamUtils.writeInt(os, 0); // Compressed length
       try (OutputStream dos = new DeflaterOutputStream(os)) {
         try (InputStream is = StreamUtils.getInputStream(biff)) {
@@ -61,19 +58,18 @@ public final class BIFFWriter
         }
       }
     }
-    int comprsize = (int)(Files.size(compr)) - (0x20 + uncrfilename.length());
+    int comprsize = (int) (Files.size(compr)) - (0x20 + uncrfilename.length());
     try (FileChannel ch = FileChannel.open(compr, StandardOpenOption.READ, StandardOpenOption.WRITE)) {
-      ch.position((long)(0x10 + uncrfilename.length()));
+      ch.position(0x10 + uncrfilename.length());
       StreamUtils.writeInt(ch, comprsize);
     }
   }
 
-  private static void compressBIFC(Path biff, Path compr) throws Exception
-  {
+  private static void compressBIFC(Path biff, Path compr) throws Exception {
     try (OutputStream os = StreamUtils.getOutputStream(compr, true)) {
       StreamUtils.writeString(os, "BIFC", 4);
       StreamUtils.writeString(os, "V1.0", 4);
-      StreamUtils.writeInt(os, (int)Files.size(biff));
+      StreamUtils.writeInt(os, (int) Files.size(biff));
       try (InputStream is = StreamUtils.getInputStream(biff)) {
         byte block[] = readBytes(is, 8192);
         while (block.length != 0) {
@@ -87,8 +83,7 @@ public final class BIFFWriter
     }
   }
 
-  private static byte[] readBytes(InputStream is, int length) throws Exception
-  {
+  private static byte[] readBytes(InputStream is, int length) throws Exception {
     byte[] buffer = new byte[length];
     int bytesread = 0;
     while (bytesread < length) {
@@ -101,26 +96,23 @@ public final class BIFFWriter
     return Arrays.copyOfRange(buffer, 0, bytesread);
   }
 
-  public BIFFWriter(BIFFEntry bifEntry, AbstractBIFFReader.Type format)
-  {
+  public BIFFWriter(BIFFEntry bifEntry, AbstractBIFFReader.Type format) {
     this.bifEntry = bifEntry;
     this.format = format;
-    if (bifEntry.getIndex() == -1) {  // new biff-file
+    if (bifEntry.getIndex() == -1) { // new biff-file
       ResourceFactory.getKeyfile().addBIFFEntry(bifEntry);
     }
   }
 
-  public void addResource(ResourceEntry resourceEntry, boolean ignoreoverride)
-  {
+  public void addResource(ResourceEntry resourceEntry, boolean ignoreoverride) {
     if (resourceEntry.getExtension().equalsIgnoreCase("TIS")) {
-      tileResources.put(resourceEntry, Boolean.valueOf(ignoreoverride));
+      tileResources.put(resourceEntry, ignoreoverride);
     } else {
-      resources.put(resourceEntry, Boolean.valueOf(ignoreoverride));
+      resources.put(resourceEntry, ignoreoverride);
     }
   }
 
-  public void write() throws Exception
-  {
+  public void write() throws Exception {
     Path biffPath = FileManager.query(Profile.getGameRoot(), "data");
     if (biffPath == null || !FileEx.create(biffPath).isDirectory()) {
       throw new Exception("No BIFF folder found.");
@@ -130,7 +122,7 @@ public final class BIFFWriter
     try {
       writeBIFF(dummyFile);
       ResourceFactory.getKeyfile().closeBIFFFiles();
-      bifEntry.setFileSize((int)Files.size(dummyFile)); // Uncompressed length
+      bifEntry.setFileSize((int) Files.size(dummyFile)); // Uncompressed length
       if (format == AbstractBIFFReader.Type.BIFF) {
         // Delete old BIFF, rename this to real name
         Path realFile = bifEntry.getPath();
@@ -184,16 +176,14 @@ public final class BIFFWriter
     }
   }
 
-  private BIFFResourceEntry reloadNode(ResourceEntry entry, int newOffset)
-  {
+  private BIFFResourceEntry reloadNode(ResourceEntry entry, int newOffset) {
     ResourceFactory.getResourceTreeModel().removeResourceEntry(entry);
     final BIFFResourceEntry newEntry = new BIFFResourceEntry(bifEntry, entry.getResourceName(), newOffset);
     ResourceFactory.getResourceTreeModel().addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
     return newEntry;
   }
 
-  private void writeBIFF(Path file) throws Exception
-  {
+  private void writeBIFF(Path file) throws Exception {
     try (OutputStream os = StreamUtils.getOutputStream(file, true)) {
       StreamUtils.writeString(os, "BIFF", 4);
       StreamUtils.writeString(os, "V1  ", 4);
@@ -207,11 +197,11 @@ public final class BIFFWriter
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue());
         offset += info[0];
         StreamUtils.writeInt(os, info[0]); // Size
-        StreamUtils.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
-        StreamUtils.writeShort(os, (short)0); // Unknown
+        StreamUtils.writeShort(os, (short) ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
+        StreamUtils.writeShort(os, (short) 0); // Unknown
         index++;
       }
       index = 1; // Tileset index starts at 1
@@ -220,25 +210,25 @@ public final class BIFFWriter
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue());
         StreamUtils.writeInt(os, info[0]); // Number of tiles
         StreamUtils.writeInt(os, info[1]); // Size of each tile (in bytes)
         offset += info[0] * info[1];
-        StreamUtils.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
-        StreamUtils.writeShort(os, (short)0); // Unknown
+        StreamUtils.writeShort(os, (short) ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
+        StreamUtils.writeShort(os, (short) 0); // Unknown
         index++;
       }
       for (final Map.Entry<ResourceEntry, Boolean> entry : resources.entrySet()) {
-        StreamUtils.writeBytes(os, entry.getKey().getResourceBuffer(entry.getValue().booleanValue()));
+        StreamUtils.writeBytes(os, entry.getKey().getResourceBuffer(entry.getValue()));
       }
       for (final Map.Entry<ResourceEntry, Boolean> entry : tileResources.entrySet()) {
         final ResourceEntry resourceEntry = entry.getKey();
-        ByteBuffer buffer = resourceEntry.getResourceBuffer(entry.getValue().booleanValue());
-        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
-        int size = info[0]*info[1];
+        ByteBuffer buffer = resourceEntry.getResourceBuffer(entry.getValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue());
+        int size = info[0] * info[1];
         int toSkip = buffer.limit() - size;
         if (toSkip > 0) {
-          buffer.position(toSkip);  // skipping TIS header
+          buffer.position(toSkip); // skipping TIS header
         }
         StreamUtils.writeBytes(os, buffer);
       }

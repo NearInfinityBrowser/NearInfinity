@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -44,6 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -65,35 +66,38 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public class ConvertToTis extends ChildFrame
-    implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener
-{
+    implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener {
   private static String currentDir = Profile.getGameRoot().toString();
 
   private String inFileName;
   private JSlider sTileNum;
-  private JTextField tfInput, tfOutput, tfTileNum;
-  private JButton bConvert, bCancel;
-  private JButton bInput, bOutput, bVersionHelp;
+  private JTextField tfInput;
+  private JTextField tfOutput;
+  private JTextField tfTileNum;
+  private JButton bConvert;
+  private JButton bCancel;
+  private JButton bInput;
+  private JButton bOutput;
+  private JButton bVersionHelp;
   private JComboBox<String> cbVersion;
   private JCheckBox cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
 
-
   /**
    * Converts an image into a TIS V1 resource.
-   * @param parent This parameter is needed for the progress monitor only.
-   * @param img The source image to convert into a TIS resource.
-   * @param tisFileName The name of the resulting TIS file.
-   * @param tileCount The number of tiles to convert.
-   * @param result Returns more specific information about the conversion process. Data placed in the
-   *               first item indicates success, data in the second item indicates failure.
+   *
+   * @param parent       This parameter is needed for the progress monitor only.
+   * @param img          The source image to convert into a TIS resource.
+   * @param tisFileName  The name of the resulting TIS file.
+   * @param tileCount    The number of tiles to convert.
+   * @param result       Returns more specific information about the conversion process. Data placed in the first item
+   *                     indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV1(Component parent, BufferedImage img, String tisFileName, int tileCount,
-                                  List<String> result, boolean showProgress)
-  {
+      List<String> result, boolean showProgress) {
     // checking parameters
     if (result == null) {
       return false;
@@ -103,11 +107,10 @@ public class ConvertToTis extends ChildFrame
       result.add("No source image specified");
       return false;
     }
-    if (img.getWidth() <= 0 || ((img.getWidth() % 64) != 0) ||
-        img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
+    if (img.getWidth() <= 0 || ((img.getWidth() % 64) != 0) || img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
       result.add(null);
-      result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n" +
-                 String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
+      result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n"
+          + String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
       return false;
     }
     if (tisFileName == null || tisFileName.isEmpty()) {
@@ -115,16 +118,16 @@ public class ConvertToTis extends ChildFrame
       result.add("No output filename specified.");
       return false;
     }
-    if (tileCount < 1 || tileCount > (img.getWidth()*img.getHeight()/4096)) {
+    if (tileCount < 1 || tileCount > (img.getWidth() * img.getHeight() / 4096)) {
       result.add(null);
       result.add("Invalid number of tiles specified.");
       return false;
     }
 
     ProgressMonitor progress = null;
-    int[] src = ((DataBufferInt)img.getRaster().getDataBuffer()).getData();
-    byte[] dst = new byte[24 + tileCount*5120];   // header + tiles
-    int dstOfs = 0;   // current start offset for write operations
+    int[] src = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+    byte[] dst = new byte[24 + tileCount * 5120]; // header + tiles
+    int dstOfs = 0; // current start offset for write operations
 
     // writing header data
     System.arraycopy("TIS V1  ".getBytes(), 0, dst, 0, 8);
@@ -134,23 +137,22 @@ public class ConvertToTis extends ChildFrame
     DynamicArray.putInt(dst, 20, 0x40);
     dstOfs += 24;
 
-    int[] srcBlock = new int[64*64];      // temp. storage for a single tile
-    int[] palette = new int[255];         // temp. storage for generated palette
-    byte[] tilePalette = new byte[1024];  // final palette for output
-    byte[] tileData = new byte[64*64];    // final tile data for output
-    int tw = img.getWidth() / 64;         // tiles per row
+    int[] srcBlock = new int[64 * 64]; // temp. storage for a single tile
+    int[] palette = new int[255]; // temp. storage for generated palette
+    byte[] tilePalette = new byte[1024]; // final palette for output
+    byte[] tileData = new byte[64 * 64]; // final tile data for output
+    int tw = img.getWidth() / 64; // tiles per row
 
     try {
       String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       if (showProgress) {
-        progress = new ProgressMonitor(parent, "Converting TIS...", String.format(note, 0, tileCount),
-                                       0, progressMax);
+        progress = new ProgressMonitor(parent, "Converting TIS...", String.format(note, 0, tileCount), 0, progressMax);
         progress.setMillisToDecideToPopup(0);
         progress.setMillisToPopup(0);
       }
 
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(2048);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(2048); // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
         if (showProgress) {
           if (progress.isCanceled()) {
@@ -172,7 +174,7 @@ public class ConvertToTis extends ChildFrame
         colorCache.clear();
 
         // initializing source tile
-        int inOfs = ty*64*img.getWidth() + tx*64;
+        int inOfs = ty * 64 * img.getWidth() + tx * 64;
         for (int i = 0, outOfs = 0; i < 64; i++, inOfs += img.getWidth(), outOfs += 64) {
           System.arraycopy(src, inOfs, srcBlock, outOfs, 64);
         }
@@ -181,13 +183,14 @@ public class ConvertToTis extends ChildFrame
         if (ColorConvert.medianCut(srcBlock, 255, palette, true)) {
 
           // filling palette and color cache, index 0 denotes transparency
-          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
+          tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
-            tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
-            tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
+            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
+            tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
-            colorCache.put(palette[i - 1], (byte)(i - 1));
+            colorCache.put(palette[i - 1], (byte) (i - 1));
           }
 
           // processing pixel data
@@ -197,10 +200,10 @@ public class ConvertToTis extends ChildFrame
             } else {
               Byte palIndex = colorCache.get(srcBlock[i]);
               if (palIndex != null) {
-                tileData[i] = (byte)(palIndex + 1);
+                tileData[i] = (byte) (palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.getNearestColor(srcBlock[i], palette, 0.0, null);
-                tileData[i] = (byte)(color + 1);
+                byte color = (byte) ColorConvert.getNearestColor(srcBlock[i], palette, 0.0, null);
+                tileData[i] = (byte) (color + 1);
                 colorCache.put(srcBlock[i], color);
               }
             }
@@ -232,7 +235,8 @@ public class ConvertToTis extends ChildFrame
       }
     } finally {
       // some cleaning up
-      src = null; dst = null;
+      src = null;
+      dst = null;
       img.flush();
       if (progress != null) {
         progress.close();
@@ -247,18 +251,18 @@ public class ConvertToTis extends ChildFrame
 
   /**
    * Converts an image into a TIS V2 resource.
-   * @param parent This parameter is needed for the progress monitor only.
-   * @param img The source image to convert into a TIS resource.
-   * @param tisFileName The name of the resulting TIS file.
-   * @param tileCount The number of tiles to convert.
-   * @param result Returns more specific information about the conversion process. Data placed in the
-   *               first item indicates success, data in the second item indicates failure.
+   *
+   * @param parent       This parameter is needed for the progress monitor only.
+   * @param img          The source image to convert into a TIS resource.
+   * @param tisFileName  The name of the resulting TIS file.
+   * @param tileCount    The number of tiles to convert.
+   * @param result       Returns more specific information about the conversion process. Data placed in the first item
+   *                     indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
-  public static boolean convertV2(Component parent, BufferedImage img, String tisFileName,
-                                  int tileCount, List<String> result, boolean showProgress)
-  {
+  public static boolean convertV2(Component parent, BufferedImage img, String tisFileName, int tileCount,
+      List<String> result, boolean showProgress) {
     // checking parameters
     if (result == null) {
       return false;
@@ -268,11 +272,10 @@ public class ConvertToTis extends ChildFrame
       result.add("No source image specified");
       return false;
     }
-    if (img.getWidth() <= 0 || ((img.getWidth() % 64) != 0) ||
-        img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
+    if (img.getWidth() <= 0 || ((img.getWidth() % 64) != 0) || img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
       result.add(null);
-      result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n" +
-                 String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
+      result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n"
+          + String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
       return false;
     }
     if (tisFileName == null || tisFileName.isEmpty()) {
@@ -285,7 +288,7 @@ public class ConvertToTis extends ChildFrame
       result.add("PVRZ-based TIS filenames have to be 2 up to 7 characters long.");
       return false;
     }
-    if (tileCount < 1 || tileCount > (img.getWidth()*img.getHeight()/4096)) {
+    if (tileCount < 1 || tileCount > (img.getWidth() * img.getHeight() / 4096)) {
       result.add(null);
       result.add("Invalid number of tiles specified.");
       return false;
@@ -296,8 +299,8 @@ public class ConvertToTis extends ChildFrame
     List<BinPack2D> pageList = new ArrayList<>();
     List<TileEntry> entryList = new ArrayList<>(tileCount);
 
-    byte[] dst = new byte[24 + tileCount*12];   // header + tiles
-    int dstOfs = 0;   // current start offset for write operations
+    byte[] dst = new byte[24 + tileCount * 12]; // header + tiles
+    int dstOfs = 0; // current start offset for write operations
 
     try {
       if (showProgress) {
@@ -351,13 +354,13 @@ public class ConvertToTis extends ChildFrame
           }
 
           // registering tile entries
-          int tileIdx = (y*img.getWidth())/(tileDim*tileDim) + x/tileDim;
-          for (int ty = 0; ty < space.height; ty++, tileIdx += img.getWidth()/tileDim) {
+          int tileIdx = (y * img.getWidth()) / (tileDim * tileDim) + x / tileDim;
+          for (int ty = 0; ty < space.height; ty++, tileIdx += img.getWidth() / tileDim) {
             for (int tx = 0; tx < space.width; tx++) {
               // marking page index as incomplete
               if (tileIdx + tx < tileCount) {
-                TileEntry entry = new TileEntry(tileIdx + tx, pageIdx,
-                                                (rectMatch.x + tx)*tileDim, (rectMatch.y + ty)*tileDim);
+                TileEntry entry = new TileEntry(tileIdx + tx, pageIdx, (rectMatch.x + tx) * tileDim,
+                    (rectMatch.y + ty) * tileDim);
                 entryList.add(entry);
               }
             }
@@ -387,13 +390,13 @@ public class ConvertToTis extends ChildFrame
       }
 
       // generating PVRZ files
-      if (!createPvrzPages(tisFileName, img, pageList, DxtEncoder.DxtType.DXT1, entryList,
-                           result, progress)) {
+      if (!createPvrzPages(tisFileName, img, pageList, DxtEncoder.DxtType.DXT1, entryList, result, progress)) {
         return false;
       }
     } finally {
       // some cleaning up
-      dst = null; img.flush();
+      dst = null;
+      img.flush();
       if (progress != null) {
         progress.close();
         progress = null;
@@ -407,12 +410,12 @@ public class ConvertToTis extends ChildFrame
 
   /**
    * Returns a valid TIS filename based on the parameters.
+   *
    * @param tisFilename The TIS filename the return value is based on.
-   * @param tisVersion The TIS version to consider (1=V1, 2=V2).
+   * @param tisVersion  The TIS version to consider (1=V1, 2=V2).
    * @return A valid TIS filename.
    */
-  public static String createValidTisName(String tisFilename, int tisVersion)
-  {
+  public static String createValidTisName(String tisFilename, int tisVersion) {
     // extracting file path and filename without extension
     Path outFile = FileManager.resolve(tisFilename).toAbsolutePath();
     Path outPath = outFile.getParent();
@@ -443,23 +446,18 @@ public class ConvertToTis extends ChildFrame
     return outPath.resolve(outNameBase + ".TIS").toString();
   }
 
-
   // Returns a list of supported graphics file formats
-  private static FileNameExtensionFilter[] getInputFilters()
-  {
+  private static FileNameExtensionFilter[] getInputFilters() {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bam", "bmp", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
-        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
-    };
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
     return filters;
   }
 
   // generates a PVRZ filename based on the specified parameters
-  private static String generatePvrzName(String tisFileName, int page)
-  {
+  private static String generatePvrzName(String tisFileName, int page) {
     Path tisFile = FileManager.resolve(tisFileName);
     Path tisPath = tisFile.getParent();
     String tisNameBase = tisFile.getFileName().toString();
@@ -468,7 +466,7 @@ public class ConvertToTis extends ChildFrame
     }
     if (Pattern.matches(".{2,7}", tisNameBase)) {
       String pvrzName = String.format("%s%s%02d.PVRZ", tisNameBase.substring(0, 1),
-                                      tisNameBase.substring(2, tisNameBase.length()), page);
+          tisNameBase.substring(2, tisNameBase.length()), page);
       if (tisPath != null) {
         return tisPath.resolve(pvrzName).toString();
       } else {
@@ -479,11 +477,8 @@ public class ConvertToTis extends ChildFrame
   }
 
   // generates PVRZ textures
-  public static boolean createPvrzPages(String tisFileName, BufferedImage srcImg,
-                                         List<BinPack2D> pages, DxtEncoder.DxtType dxtType,
-                                         List<TileEntry> entryList, List<String> result,
-                                         ProgressMonitor progress)
-  {
+  public static boolean createPvrzPages(String tisFileName, BufferedImage srcImg, List<BinPack2D> pages,
+      DxtEncoder.DxtType dxtType, List<TileEntry> entryList, List<String> result, ProgressMonitor progress) {
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
     String note = "Generating PVRZ file %s / %s";
@@ -500,7 +495,7 @@ public class ConvertToTis extends ChildFrame
           return false;
         }
         progress.setProgress(pageIdx + 1);
-        progress.setNote(String.format(note, pageIdx+1, pages.size()));
+        progress.setNote(String.format(note, pageIdx + 1, pages.size()));
       }
       String pvrzName = generatePvrzName(tisFileName, pageIdx);
       BinPack2D packer = pages.get(pageIdx);
@@ -516,16 +511,16 @@ public class ConvertToTis extends ChildFrame
       g.setColor(new Color(0, true));
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       int tw = srcImg.getWidth() / 64;
-      for (final TileEntry entry: entryList) {
+      for (final TileEntry entry : entryList) {
         if (entry.page == pageIdx) {
           int sx = (entry.tileIndex % tw) * 64, sy = (entry.tileIndex / tw) * 64;
           int dx = entry.x, dy = entry.y;
           g.clearRect(dx, dy, 64, 64);
-          g.drawImage(srcImg, dx, dy, dx+64, dy+64, sx, sy, sx+64, sy+64, null);
+          g.drawImage(srcImg, dx, dy, dx + 64, dy + 64, sx, sy, sx + 64, sy + 64, null);
         }
       }
       g.dispose();
-      int[] textureData = ((DataBufferInt)texture.getRaster().getDataBuffer()).getData();
+      int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
       try {
         // compressing PVRZ
         int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
@@ -560,29 +555,25 @@ public class ConvertToTis extends ChildFrame
     return true;
   }
 
-
-  public ConvertToTis()
-  {
+  public ConvertToTis() {
     super("Convert to TIS", true);
     init();
   }
 
-//--------------------- Begin Class ChildFrame ---------------------
+  // --------------------- Begin Class ChildFrame ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
+  protected boolean windowClosing(boolean forced) throws Exception {
     clear();
     return super.windowClosing(forced);
   }
 
-//--------------------- End Class ChildFrame ---------------------
+  // --------------------- End Class ChildFrame ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "TIS output file already exists. Overwrite?";
@@ -592,15 +583,12 @@ public class ConvertToTis extends ChildFrame
             file = FileManager.resolve(tfOutput.getText());
           }
           if (file != null) {
-            if (!FileEx.create(file).exists() ||
-                JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
-                                                                        JOptionPane.YES_NO_OPTION,
-                                                                        JOptionPane.QUESTION_MESSAGE)) {
+            if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
+                "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
               file = null;
               workerConvert = new SwingWorker<List<String>, Void>() {
                 @Override
-                public List<String> doInBackground()
-                {
+                public List<String> doInBackground() {
                   return convert();
                 }
               };
@@ -621,7 +609,7 @@ public class ConvertToTis extends ChildFrame
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       FileNameExtensionFilter[] filters = getInputFilters();
-      for (final FileNameExtensionFilter filter: filters) {
+      for (final FileNameExtensionFilter filter : filters) {
         fc.addChoosableFileFilter(filter);
       }
       fc.setFileFilter(filters[0]);
@@ -662,8 +650,8 @@ public class ConvertToTis extends ChildFrame
         String fixed = createValidTisName(orig, getTisVersion());
         if (!orig.equalsIgnoreCase(fixed)) {
           ret = JOptionPane.showConfirmDialog(this,
-              "The chosen output file is not compatible with the current TIS settings.\n" +
-                  "Do you want me to fix it?\n",
+              "The chosen output file is not compatible with the current TIS settings.\n"
+                  + "Do you want me to fix it?\n",
               "Invalid output filename", JOptionPane.YES_NO_CANCEL_OPTION);
           if (ret == JOptionPane.YES_OPTION) {
             tfOutput.setText(fixed);
@@ -679,28 +667,24 @@ public class ConvertToTis extends ChildFrame
         }
       }
     } else if (event.getSource() == bVersionHelp) {
-      final String helpMsg =
-          "\"Legacy\" is the old and proven TIS format supported by all available\n" +
-          "Infinity Engine games. Graphics data is stored in the TIS file directly.\n" +
-          "Each tile (64x64 pixel block) is limited to a 256 color table.\n\n" +
-          "\"PVRZ-based\" uses a new TIS format introduced by BG:EE. Graphics data\n" +
-          "is stored separately in PVRZ files and is not limited to a 256 color table.\n" +
-          "It is only supported by the Enhanced Editions of the Baldur's Gate games.";
-      JOptionPane.showMessageDialog(this, helpMsg, "About TIS versions",
-          JOptionPane.INFORMATION_MESSAGE);
+      final String helpMsg = "\"Legacy\" is the old and proven TIS format supported by all available\n"
+          + "Infinity Engine games. Graphics data is stored in the TIS file directly.\n"
+          + "Each tile (64x64 pixel block) is limited to a 256 color table.\n\n"
+          + "\"PVRZ-based\" uses a new TIS format introduced by BG:EE. Graphics data\n"
+          + "is stored separately in PVRZ files and is not limited to a 256 color table.\n"
+          + "It is only supported by the Enhanced Editions of the Baldur's Gate games.";
+      JOptionPane.showMessageDialog(this, helpMsg, "About TIS versions", JOptionPane.INFORMATION_MESSAGE);
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerConvert) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         if (blocker != null) {
           blocker.setBlocked(false);
           blocker = null;
@@ -741,31 +725,28 @@ public class ConvertToTis extends ChildFrame
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == sTileNum) {
       tileNumSliderUpdated();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface FocusListener ---------------------
+  // --------------------- Begin Interface FocusListener ---------------------
 
   @Override
-  public void focusGained(FocusEvent event)
-  {
+  public void focusGained(FocusEvent event) {
     // nothing to do
   }
 
   @Override
-  public void focusLost(FocusEvent event)
-  {
+  public void focusLost(FocusEvent event) {
     if (event.getSource() == tfInput) {
       // validating input file (if it has changed)
       if (inFileName == null || !inFileName.equals(tfInput.getText())) {
@@ -781,19 +762,17 @@ public class ConvertToTis extends ChildFrame
     }
   }
 
-//--------------------- End Interface FocusListener ---------------------
+  // --------------------- End Interface FocusListener ---------------------
 
-//--------------------- Begin Interface KeyListener ---------------------
+  // --------------------- Begin Interface KeyListener ---------------------
 
   @Override
-  public void keyTyped(KeyEvent event)
-  {
+  public void keyTyped(KeyEvent event) {
     // nothing to do
   }
 
   @Override
-  public void keyPressed(KeyEvent event)
-  {
+  public void keyPressed(KeyEvent event) {
     if (event.getSource() == tfTileNum) {
       if (event.getKeyCode() == KeyEvent.VK_ENTER) {
         tileNumEditUpdated(true);
@@ -803,16 +782,14 @@ public class ConvertToTis extends ChildFrame
   }
 
   @Override
-  public void keyReleased(KeyEvent event)
-  {
+  public void keyReleased(KeyEvent event) {
     // nothing to do
   }
 
-//--------------------- End Interface KeyListener ---------------------
+  // --------------------- End Interface KeyListener ---------------------
 
-  private void init()
-  {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+  private void init() {
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
 
     // setting up files section
     JPanel pFiles = new JPanel(new GridBagLayout());
@@ -828,78 +805,76 @@ public class ConvertToTis extends ChildFrame
     bInput.addActionListener(this);
     bOutput = new JButton("...");
     bOutput.addActionListener(this);
-    JLabel lInputNote =
-        new JLabel("Note: Width and height of the source image have to be a multiple of 64 pixels.");
+    JLabel lInputNote = new JLabel("Note: Width and height of the source image have to be a multiple of 64 pixels.");
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFiles.add(lInput, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFiles.add(tfInput, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFiles.add(bInput, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFiles.add(lOutput, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pFiles.add(tfOutput, c);
-    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 4), 0, 0);
     pFiles.add(bOutput, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 4, 4, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 4, 4, 0), 0, 0);
     pFiles.add(lInputNote, c);
 
     // setting up options section
     JPanel pSubOptions = new JPanel(new GridBagLayout());
     JLabel lVersion = new JLabel("TIS version:");
-    cbVersion = new JComboBox<>(new String[]{"Legacy", "PVRZ-based"});
+    cbVersion = new JComboBox<>(new String[] { "Legacy", "PVRZ-based" });
     cbVersion.setSelectedIndex(0);
     bVersionHelp = new JButton("?");
     bVersionHelp.setToolTipText("About TIS versions");
     bVersionHelp.addActionListener(this);
-    bVersionHelp.setMargin(new Insets(bVersionHelp.getInsets().top, 4,
-                                      bVersionHelp.getInsets().bottom, 4));
+    bVersionHelp.setMargin(new Insets(bVersionHelp.getInsets().top, 4, bVersionHelp.getInsets().bottom, 4));
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pSubOptions.add(lVersion, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 8, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 8, 0);
     pSubOptions.add(cbVersion, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pSubOptions.add(bVersionHelp, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pSubOptions.add(new JPanel(), c);
 
     JPanel pOptions = new JPanel(new GridBagLayout());
     pOptions.setBorder(BorderFactory.createTitledBorder("Options "));
     JLabel lTileNum = new JLabel("Number of tiles to convert:");
     lTileNum.setToolTipText("Counting from left to right, top to bottom.");
-    sTileNum = new JSlider(JSlider.HORIZONTAL);
+    sTileNum = new JSlider(SwingConstants.HORIZONTAL);
     sTileNum.addChangeListener(this);
     tfTileNum = new JTextField(6);
     tfTileNum.addKeyListener(this);
     tfTileNum.addFocusListener(this);
 
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pOptions.add(lTileNum, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pOptions.add(sTileNum, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 4), 0, 0);
     pOptions.add(tfTileNum, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pOptions.add(pSubOptions, c);
 
     // setting up bottom button bar
@@ -915,32 +890,32 @@ public class ConvertToTis extends ChildFrame
     bCancel.setMargin(new Insets(i.top + 2, i.left, i.bottom + 2, i.right));
 
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(cbCloseOnExit, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bConvert, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     // putting all together
     setLayout(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 8), 0, 0);
     add(pFiles, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 8, 8), 0, 0);
     add(pOptions, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 8), 0, 0);
     add(pButtons, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     add(new JPanel(), c);
 
     // finalizing dialog initialization
@@ -952,15 +927,13 @@ public class ConvertToTis extends ChildFrame
     setVisible(true);
   }
 
-  private void hideWindow()
-  {
+  private void hideWindow() {
     clear();
     setVisible(false);
   }
 
   // resetting dialog state
-  private void clear()
-  {
+  private void clear() {
     tfInput.setText("");
     tfOutput.setText("");
     sTileNum.setMinimum(0);
@@ -971,8 +944,7 @@ public class ConvertToTis extends ChildFrame
   }
 
   // got enough data to start conversion?
-  private boolean isReady()
-  {
+  private boolean isReady() {
     boolean ret = false;
     if (!getInputFile().isEmpty()) {
       Path f = FileManager.resolve(getInputFile());
@@ -981,26 +953,27 @@ public class ConvertToTis extends ChildFrame
     return ret;
   }
 
-  private void tileNumEditUpdated(boolean updateText)
-  {
+  private void tileNumEditUpdated(boolean updateText) {
     try {
       int tiles = Integer.parseInt(tfTileNum.getText());
-      if (tiles < sTileNum.getMinimum())
+      if (tiles < sTileNum.getMinimum()) {
         tiles = sTileNum.getMinimum();
-      if (tiles > sTileNum.getMaximum())
+      }
+      if (tiles > sTileNum.getMaximum()) {
         tiles = sTileNum.getMaximum();
+      }
       if (sTileNum.getValue() != tiles) {
         sTileNum.setValue(tiles);
       }
       tileNumSliderUpdated();
     } catch (NumberFormatException e) {
-      if (updateText)
+      if (updateText) {
         tfTileNum.setText(Integer.toString(sTileNum.getValue()));
+      }
     }
   }
 
-  private void tileNumSliderUpdated()
-  {
+  private void tileNumSliderUpdated() {
     String s = Integer.toString(sTileNum.getValue());
     if (!tfTileNum.getText().equals(s)) {
       tfTileNum.setText(s);
@@ -1008,25 +981,21 @@ public class ConvertToTis extends ChildFrame
   }
 
   // returns 1=TIS V1 or 2=TIS V2
-  private int getTisVersion()
-  {
+  private int getTisVersion() {
     return (cbVersion.getSelectedIndex() == 1) ? 2 : 1;
   }
 
   // returns number of tiles to convert
-  private int getTileCount()
-  {
+  private int getTileCount() {
     return (sTileNum.getValue() > 0) ? sTileNum.getValue() : 0;
   }
 
-  private String getInputFile()
-  {
+  private String getInputFile() {
     return (inFileName != null) ? inFileName : "";
   }
 
   // checking image dimensions and calculating max. possible number of tiles
-  private boolean validateInput(String inputFile)
-  {
+  private boolean validateInput(String inputFile) {
     int tileCount = 0;
     boolean isValid = false;
     inFileName = inputFile;
@@ -1034,8 +1003,7 @@ public class ConvertToTis extends ChildFrame
       Path f = FileManager.resolve(inFileName);
       if (FileEx.create(f).isFile()) {
         Dimension dimImage = ColorConvert.getImageDimension(f);
-        if (dimImage.width >= 0 && (dimImage.width % 64) == 0 &&
-            dimImage.height >= 0 && (dimImage.height % 64) == 0) {
+        if (dimImage.width >= 0 && (dimImage.width % 64) == 0 && dimImage.height >= 0 && (dimImage.height % 64) == 0) {
           tileCount = (dimImage.width * dimImage.height) / 4096;
           isValid = true;
         }
@@ -1066,8 +1034,7 @@ public class ConvertToTis extends ChildFrame
 
   // Converts source image into a TIS file and optional PVRZ file(s). Returns a summary of the result.
   // Return value: First list element is used for success message, second element for error message.
-  private List<String> convert()
-  {
+  private List<String> convert() {
     List<String> ret = new Vector<>(2);
 
     // validating input file
@@ -1092,7 +1059,7 @@ public class ConvertToTis extends ChildFrame
 
     // fetching remaining settings
     String outFileName = StreamUtils.replaceFileExtension(tfOutput.getText(), "TIS");
-    int maxTileCount = (srcImage.getWidth()*srcImage.getHeight()) / 4096;
+    int maxTileCount = (srcImage.getWidth() * srcImage.getHeight()) / 4096;
     int tileCount = Math.max(1, Math.min(getTileCount(), maxTileCount));
     int tisVersion = getTisVersion();
 
@@ -1107,25 +1074,17 @@ public class ConvertToTis extends ChildFrame
     return ret;
   }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-// -------------------------- INNER CLASSES --------------------------
-
-  public static class TileEntry
-  {
+  public static class TileEntry {
     public int tileIndex;
     public int page;
-    public int x, y;
+    public int x;
+    public int y;
 
-    public static Comparator<TileEntry> CompareByIndex = new Comparator<TileEntry>() {
-      @Override
-      public int compare(TileEntry te1, TileEntry te2)
-      {
-        return te1.tileIndex - te2.tileIndex;
-      }
-    };
+    public static Comparator<TileEntry> CompareByIndex = (te1, te2) -> te1.tileIndex - te2.tileIndex;
 
-    public TileEntry(int index, int page, int x, int y)
-    {
+    public TileEntry(int index, int page, int x, int y) {
       this.tileIndex = index;
       this.page = page;
       this.x = x;

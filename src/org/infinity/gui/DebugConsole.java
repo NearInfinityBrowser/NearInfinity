@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -28,22 +28,21 @@ import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 
-final class DebugConsole extends ChildFrame implements ActionListener
-{
-  private final JButton bClearConsole = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
-  private final JButton bSaveConsole = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+final class DebugConsole extends ChildFrame implements ActionListener {
+  private final JButton bClearConsole = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
+  private final JButton bSaveConsole = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JCheckBox cbExtraInfo = new JCheckBox("Print internal debug info");
 
-  DebugConsole()
-  {
+  DebugConsole() {
     super("Debug Console");
-    setIconImage(Icons.getIcon(Icons.ICON_PROPERTIES_16).getImage());
+    setIconImage(Icons.ICON_PROPERTIES_16.getIcon().getImage());
 
     bClearConsole.setMnemonic('c');
     bClearConsole.addActionListener(this);
     bSaveConsole.setMnemonic('s');
     bSaveConsole.addActionListener(this);
-    cbExtraInfo.setToolTipText("Enable output of internal class information of current top-level window, resource and selected field in structure viewer.");
+    cbExtraInfo.setToolTipText(
+        "Enable output of internal class information of current top-level window, resource and selected field in structure viewer.");
     cbExtraInfo.setSelected(BrowserMenuBar.getInstance().getShowDebugExtraInfo());
     cbExtraInfo.addActionListener(this);
 
@@ -56,7 +55,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
     lowerpanel.add(bSaveConsole);
     lowerpanel.add(cbExtraInfo);
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(new InfinityScrollPane(taconsole, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
@@ -65,31 +64,35 @@ final class DebugConsole extends ChildFrame implements ActionListener
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == bClearConsole)
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == bClearConsole) {
       NearInfinity.getConsoleText().setText("");
-    else if (event.getSource() == bSaveConsole) {
+    } else if (event.getSource() == bSaveConsole) {
       JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
       chooser.setDialogTitle("Save console");
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
         if (FileEx.create(output).exists()) {
-          String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+          String options[] = { "Overwrite", "Cancel" };
+          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log",
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
             return;
+          }
         }
         try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Near Infinity Debug Log"); bw.newLine();
-          bw.write(BrowserMenuBar.VERSION); bw.newLine();
-          bw.write((String)Profile.getProperty(Profile.Key.GET_GAME_TITLE)); bw.newLine();
+          bw.write("Near Infinity Debug Log");
           bw.newLine();
-          bw.write(NearInfinity.getConsoleText().getText()); bw.newLine();
+          bw.write(BrowserMenuBar.VERSION);
+          bw.newLine();
+          bw.write((String) Profile.getProperty(Profile.Key.GET_GAME_TITLE));
+          bw.newLine();
+          bw.newLine();
+          bw.write(NearInfinity.getConsoleText().getText());
+          bw.newLine();
           bw.newLine();
           Properties props = System.getProperties();
           for (Map.Entry<Object, Object> entry : props.entrySet()) {
@@ -97,19 +100,17 @@ final class DebugConsole extends ChildFrame implements ActionListener
             bw.newLine();
           }
           JOptionPane.showMessageDialog(this, "Console saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
+              JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-          JOptionPane.showMessageDialog(this, "Error while saving " + output, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Error while saving " + output, "Error", JOptionPane.ERROR_MESSAGE);
           e.printStackTrace();
         }
       }
-    }
-    else if (event.getSource() == cbExtraInfo) {
+    } else if (event.getSource() == cbExtraInfo) {
       BrowserMenuBar.getInstance().setShowDebugExtraInfo(cbExtraInfo.isSelected());
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
 }

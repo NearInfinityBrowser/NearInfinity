@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -47,42 +47,40 @@ import org.infinity.util.Misc;
 /**
  * Extends {@link InfinityTextArea} by script-specific features.
  */
-public class ScriptTextArea extends InfinityTextArea implements DocumentListener
-{
+public class ScriptTextArea extends InfinityTextArea implements DocumentListener {
   private enum IconType {
-    INFORMATION,
-    WARNING,
-    ERROR
+    INFORMATION, WARNING, ERROR
   }
 
-  private static final Stroke STROKE_LINK  = new BasicStroke(0.75f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                                                             1.0f, new float[]{1.0f, 2.0f}, 0.0f);
+  private static final Stroke STROKE_LINK = new BasicStroke(0.75f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f,
+      new float[] { 1.0f, 2.0f }, 0.0f);
 
-  private static final EnumMap<IconType, Icon> icons = new EnumMap<>(IconType.class);
+  private static final EnumMap<IconType, Icon> ICONS = new EnumMap<>(IconType.class);
+
   static {
-    icons.put(IconType.INFORMATION, Icons.getIcon(Icons.ICON_INFORMATION_16));
-    icons.put(IconType.WARNING, Icons.getIcon(Icons.ICON_WARNING_16));
-    icons.put(IconType.ERROR, Icons.getIcon(Icons.ICON_ERROR_16));
+    ICONS.put(IconType.INFORMATION, Icons.ICON_INFORMATION_16.getIcon());
+    ICONS.put(IconType.WARNING, Icons.ICON_WARNING_16.getIcon());
+    ICONS.put(IconType.ERROR, Icons.ICON_ERROR_16.getIcon());
   }
 
   // Contains tokens that require special attention
   private final TreeMap<Integer, InteractiveToken> tokenMap = new TreeMap<>();
+
   // Controls concurrent access to tokenMap instance
   private final ReentrantLock tokenMapLock = new ReentrantLock();
+
   // Special popup menu for interactive resource references
   private final ScriptPopupMenu menu = new ScriptPopupMenu();
 
   private Signatures triggers;
   private Signatures actions;
 
-  public ScriptTextArea()
-  {
+  public ScriptTextArea() {
     super(true);
 
     Language lang;
-    if (BrowserMenuBar.getInstance() != null &&
-        BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
-        lang = Language.BCS;
+    if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+      lang = Language.BCS;
     } else {
       lang = Language.NONE;
     }
@@ -97,24 +95,26 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
       addMouseListener(new MouseAdapter() {
         @Override
-        public void mousePressed(MouseEvent e) { handlePopup(e); }
+        public void mousePressed(MouseEvent e) {
+          handlePopup(e);
+        }
 
         @Override
-        public void mouseReleased(MouseEvent e) { handlePopup(e); }
+        public void mouseReleased(MouseEvent e) {
+          handlePopup(e);
+        }
       });
     }
   }
 
   @Override
-  public void setText(String text)
-  {
+  public void setText(String text) {
     super.setText(text);
     discardAllEdits();
   }
 
   @Override
-  protected void paintComponent(Graphics g)
-  {
+  protected void paintComponent(Graphics g) {
     super.paintComponent(g);
 
     // getting range of affected lines
@@ -132,8 +132,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
     if (offsetMin >= 0 && offsetMax >= offsetMin && tokenMapLock.tryLock()) {
       try {
-        SortedMap<Integer, InteractiveToken> map =
-            tokenMap.subMap(Integer.valueOf(offsetMin), Integer.valueOf(offsetMax));
+        SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(offsetMin, offsetMax);
 
         // processing interactive tokens of visible area
         Iterator<Integer> iter = map.keySet().iterator();
@@ -170,8 +169,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   }
 
   @Override
-  public String getToolTipText(MouseEvent e)
-  {
+  public String getToolTipText(MouseEvent e) {
     String retVal = super.getToolTipText(e);
 
     tokenMapLock.lock();
@@ -180,8 +178,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
       int line = getLineOfOffset(offset);
       int ofsMin = getLineStartOffset(line);
       int ofsMax = getLineEndOffset(line);
-      SortedMap<Integer, InteractiveToken> map =
-          tokenMap.subMap(Integer.valueOf(ofsMin), Integer.valueOf(ofsMax));
+      SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(ofsMin, ofsMax);
       Iterator<InteractiveToken> iter = map.values().iterator();
 
       while (iter.hasNext()) {
@@ -201,35 +198,31 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     return retVal;
   }
 
-//--------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent e)
-  {
+  public void insertUpdate(DocumentEvent e) {
     updateInteractiveTokens(true);
     repaint();
   }
 
   @Override
-  public void removeUpdate(DocumentEvent e)
-  {
+  public void removeUpdate(DocumentEvent e) {
     updateInteractiveTokens(true);
     repaint();
   }
 
   @Override
-  public void changedUpdate(DocumentEvent e)
-  {
+  public void changedUpdate(DocumentEvent e) {
     // ignore?
   }
 
-//--------------------- End Interface DocumentListener ---------------------
+  // --------------------- End Interface DocumentListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
+  public void stateChanged(ChangeEvent e) {
     // important: stateChanged() is registered by super class
     super.stateChanged(e);
 
@@ -237,82 +230,76 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     repaint();
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
   /**
    * Adds a new error notification to the gutter at the left edge.
-   * @param line The (one-based) line where to add the icon.
-   * @param message A tooltip message
-   * @param overwrite Set to {@code true} if this message should always replace older messages.
-   *                  Set to {@code false} to skip this message if a message of higher or equal
-   *                  priority has already been added to this line.
+   *
+   * @param line      The (one-based) line where to add the icon.
+   * @param message   A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages. Set to {@code false} to
+   *                  skip this message if a message of higher or equal priority has already been added to this line.
    */
-  public void setLineError(int line, String message, boolean overwrite)
-  {
+  public void setLineError(int line, String message, boolean overwrite) {
     if (!overwrite) {
       GutterIcon item = getGutterIconInfo(line);
       if (item != null) {
-        if (item.icon == icons.get(IconType.ERROR)) {
+        if (item.icon == ICONS.get(IconType.ERROR)) {
           return;
         }
       }
     }
     line--; // 1-based to 0-based index
     removeGutterIcon(line);
-    addGutterIcon(line, icons.get(IconType.ERROR), message);
+    addGutterIcon(line, ICONS.get(IconType.ERROR), message);
   }
 
   /**
    * Adds a new warning notification to the gutter at the left edge.
-   * @param line The (one-based) line where to add the icon.
-   * @param message A tooltip message
-   * @param overwrite Set to {@code true} if this message should always replace older messages.
-   *                  Set to {@code false} to skip this message if a message of higher or equal
-   *                  priority has already been added to this line.
+   *
+   * @param line      The (one-based) line where to add the icon.
+   * @param message   A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages. Set to {@code false} to
+   *                  skip this message if a message of higher or equal priority has already been added to this line.
    */
-  public void setLineWarning(int line, String message, boolean overwrite)
-  {
+  public void setLineWarning(int line, String message, boolean overwrite) {
     if (!overwrite) {
       GutterIcon item = getGutterIconInfo(line);
       if (item != null) {
-        if (item.icon == icons.get(IconType.ERROR) ||
-            item.icon == icons.get(IconType.WARNING)) {
+        if (item.icon == ICONS.get(IconType.ERROR) || item.icon == ICONS.get(IconType.WARNING)) {
           return;
         }
       }
     }
     line--; // 1-based to 0-based index
     removeGutterIcon(line);
-    addGutterIcon(line, icons.get(IconType.WARNING), message);
+    addGutterIcon(line, ICONS.get(IconType.WARNING), message);
   }
 
   /**
    * Adds a new information notification to the gutter at the left edge.
-   * @param line The (one-based) line where to add the icon.
-   * @param message A tooltip message
-   * @param overwrite Set to {@code true} if this message should always replace older messages.
-   *                  Set to {@code false} to skip this message if a message of higher or equal
-   *                  priority has already been added to this line.
+   *
+   * @param line      The (one-based) line where to add the icon.
+   * @param message   A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages. Set to {@code false} to
+   *                  skip this message if a message of higher or equal priority has already been added to this line.
    */
-  public void setLineInformation(int line, String message, boolean overwrite)
-  {
+  public void setLineInformation(int line, String message, boolean overwrite) {
     if (!overwrite) {
       GutterIcon item = getGutterIconInfo(line);
       if (item != null) {
-        if (item.icon == icons.get(IconType.ERROR) ||
-            item.icon == icons.get(IconType.WARNING) ||
-            item.icon == icons.get(IconType.INFORMATION)) {
+        if (item.icon == ICONS.get(IconType.ERROR) || item.icon == ICONS.get(IconType.WARNING)
+            || item.icon == ICONS.get(IconType.INFORMATION)) {
           return;
         }
       }
     }
     line--; // 1-based to 0-based index
     removeGutterIcon(line);
-    addGutterIcon(line, icons.get(IconType.INFORMATION), message);
+    addGutterIcon(line, ICONS.get(IconType.INFORMATION), message);
   }
 
-  private void handlePopup(MouseEvent e)
-  {
+  private void handlePopup(MouseEvent e) {
     if (e.isPopupTrigger()) {
       tokenMapLock.lock();
       try {
@@ -321,8 +308,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
         int minOffset = getLineStartOffset(line);
         int maxOffset = getLineEndOffset(line);
 
-        SortedMap<Integer, InteractiveToken> map =
-            tokenMap.subMap(Integer.valueOf(minOffset), Integer.valueOf(maxOffset));
+        SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(minOffset, maxOffset);
 
         Iterator<InteractiveToken> iter = map.values().iterator();
         while (iter.hasNext()) {
@@ -330,7 +316,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           // generate list of resource links
           menu.clearResEntries();
           if (token.isLink()) {
-            for (final ResourceEntry entry: token.resourceEntries) {
+            for (final ResourceEntry entry : token.resourceEntries) {
               menu.addResEntry(entry);
             }
             if (offset >= token.position && offset < token.position + token.length) {
@@ -347,8 +333,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   }
 
   // Processes a change in the document regarding interactive tokens
-  private void updateInteractiveTokens(boolean reset)
-  {
+  private void updateInteractiveTokens(boolean reset) {
     tokenMapLock.lock();
     try {
       Point range = getVisibleLineRange(null);
@@ -363,7 +348,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
         if (range.x > 0) {
           try {
             int offset = getLineStartOffset(range.x);
-            submap = tokenMap.subMap(Integer.valueOf(0), Integer.valueOf(offset));
+            submap = tokenMap.subMap(0, offset);
             Iterator<Integer> iter = submap.keySet().iterator();
             while (iter.hasNext()) {
               iter.next();
@@ -375,7 +360,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
         try {
           int offset = getLineEndOffset(range.y);
-          submap = tokenMap.subMap(Integer.valueOf(offset), Integer.valueOf(Integer.MAX_VALUE));
+          submap = tokenMap.subMap(offset, Integer.MAX_VALUE);
           Iterator<Integer> iter = submap.keySet().iterator();
           while (iter.hasNext()) {
             iter.next();
@@ -398,9 +383,9 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           if (token != null) {
             offset = token.getEndOffset();
             InteractiveToken result = null;
-            Integer key = Integer.valueOf(token.getOffset());
+            Integer key = token.getOffset();
             if (!tokenMap.containsKey(key)) {
-              Token curToken = new TokenImpl(token);  // make sure content of current token doesn't change
+              Token curToken = new TokenImpl(token); // make sure content of current token doesn't change
               switch (curToken.getType()) {
                 case BCSTokenMaker.TOKEN_ACTION:
                   result = updateFunctionToken(curToken, actions);
@@ -431,21 +416,19 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   }
 
   // Process action or trigger name
-  private InteractiveToken updateFunctionToken(Token token, Signatures sig)
-  {
+  private InteractiveToken updateFunctionToken(Token token, Signatures sig) {
     InteractiveToken retVal = null;
     String name = token.getLexeme();
     Signatures.Function function = sig.getFunction(name);
     if (function != null) {
-      retVal = new InteractiveToken(token.getOffset(), token.length(), function.toString(),
-                                    null, getForegroundForToken(token));
+      retVal = new InteractiveToken(token.getOffset(), token.length(), function.toString(), null,
+          getForegroundForToken(token));
     }
     return retVal;
   }
 
   // Process symbol or symbolic spell name
-  private InteractiveToken updateSymbolToken(Token token)
-  {
+  private InteractiveToken updateSymbolToken(Token token) {
     InteractiveToken retVal = null;
     Signatures.Function.Parameter param = getFunctionParameter(token);
     if (param != null) {
@@ -463,7 +446,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
               }
               String text = (name != null) ? resRef + " (" + name + ")" : resRef;
               retVal = new InteractiveToken(token.getOffset(), token.length(), text, entry,
-                                            getForegroundForToken(token));
+                  getForegroundForToken(token));
               retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
             }
           } else {
@@ -472,8 +455,8 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
             Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
             if (value != null) {
               retVal = new InteractiveToken(token.getOffset(), token.length(),
-                                            idsRef + ": " + value.toString() + " (0x" + Long.toHexString(value.longValue()) + ")",
-                                            ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
+                  idsRef + ": " + value.toString() + " (0x" + Long.toHexString(value) + ")",
+                  ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
             }
           }
         }
@@ -484,8 +467,8 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
           if (value != null) {
             retVal = new InteractiveToken(token.getOffset(), token.length(),
-                                          idsRef + ": " + value.longValue() + " (0x" + Long.toHexString(value.longValue()) + ")",
-                                          ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
+                idsRef + ": " + value.longValue() + " (0x" + Long.toHexString(value) + ")",
+                ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
           }
         }
       }
@@ -494,13 +477,11 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   }
 
   // Process string
-  private InteractiveToken updateStringToken(Token token)
-  {
+  private InteractiveToken updateStringToken(Token token) {
     InteractiveToken retVal = null;
     Signatures.Function.Parameter param = getFunctionParameter(token);
-    if (param != null &&
-        (param.getType() == Signatures.Function.Parameter.TYPE_STRING ||
-         param.getType() == Signatures.Function.Parameter.TYPE_OBJECT)) {
+    if (param != null && (param.getType() == Signatures.Function.Parameter.TYPE_STRING
+        || param.getType() == Signatures.Function.Parameter.TYPE_OBJECT)) {
       // getting string content
       String value = token.getLexeme();
       if (value != null && value.length() >= 2) {
@@ -514,12 +495,12 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
       String[] types;
       if (param.getType() == Signatures.Function.Parameter.TYPE_OBJECT) {
-        types = new String[]{Signatures.Function.Parameter.RESTYPE_SCRIPT};
+        types = new String[] { Signatures.Function.Parameter.RESTYPE_SCRIPT };
       } else {
         types = param.getResourceType();
       }
 
-      for (String type: types) {
+      for (String type : types) {
         if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT)) {
           // script name
           Set<ResourceEntry> set = CreMapCache.getCreForScriptName(value);
@@ -528,7 +509,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
             String name = entry.getSearchString();
             String text = (name != null) ? entry.getResourceName() + " (" + name + ")" : entry.getResourceName();
             retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, entry,
-                                          getForegroundForToken(token));
+                getForegroundForToken(token));
             break;
           }
         } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST)) {
@@ -536,24 +517,26 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           String text = "";
           ArrayList<ResourceEntry> resList = new ArrayList<>();
           for (int i = 0, cnt = value.length() / 4; i < cnt; i++) {
-            String snum = value.substring(i*4, i*4 + 4);
+            String snum = value.substring(i * 4, i * 4 + 4);
             String res = null;
             try {
               long num = Long.parseLong(snum);
               res = IdsMapCache.getIdsSymbol("SPELL.IDS", num);
-              String resRef = org.infinity.resource.spl.Viewer.getResourceName((int)num, true);
+              String resRef = org.infinity.resource.spl.Viewer.getResourceName((int) num, true);
               if (ResourceFactory.resourceExists(resRef)) {
                 resList.add(ResourceFactory.getResourceEntry(resRef));
               }
             } catch (NumberFormatException e) {
             }
             if (res != null) {
-              if (i > 0) { text += ", "; }
+              if (i > 0) {
+                text += ", ";
+              }
               text += res;
             }
           }
           retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, null,
-                                        getForegroundForToken(token));
+              getForegroundForToken(token));
           retVal.resourceEntries.addAll(resList);
           retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
           break;
@@ -566,7 +549,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
               String name = entry.getSearchString();
               String text = (name != null) ? entry.getResourceName() + " (" + name + ")" : entry.getResourceName();
               retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, entry,
-                                            getForegroundForToken(token));
+                  getForegroundForToken(token));
               break;
             }
           }
@@ -576,8 +559,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     return retVal;
   }
 
-  private Signatures.Function.Parameter getFunctionParameter(Token token)
-  {
+  private Signatures.Function.Parameter getFunctionParameter(Token token) {
     Signatures.Function.Parameter retVal = null;
 
     if (token != null) {
@@ -592,14 +574,12 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
         if (token != null) {
           offset = token.getOffset();
-          if (token.getType() == BCSTokenMaker.TOKEN_ACTION ||
-              token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
+          if (token.getType() == BCSTokenMaker.TOKEN_ACTION || token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
             resultToken = token;
             break;
           } else if (token.getType() == BCSTokenMaker.TOKEN_KEYWORD) {
             break;
-          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
-                     token.getLexeme().indexOf(',') >= 0) {
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR && token.getLexeme().indexOf(',') >= 0) {
             index++;
           }
         }
@@ -623,8 +603,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     return retVal;
   }
 
-  private String getIdsTargetResRef(Token token)
-  {
+  private String getIdsTargetResRef(Token token) {
     String retVal = null;
 
     if (token != null && token.getType() == BCSTokenMaker.TOKEN_SYMBOL) {
@@ -642,15 +621,13 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR && token.getLexeme().indexOf('[') >= 0) {
             resultToken = token;
             break;
-          } else if (token.getType() == BCSTokenMaker.TOKEN_KEYWORD ||
-                     token.getType() == BCSTokenMaker.TOKEN_ACTION ||
-                     token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
+          } else if (token.getType() == BCSTokenMaker.TOKEN_KEYWORD || token.getType() == BCSTokenMaker.TOKEN_ACTION
+              || token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
             break;
-          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
-                     (token.getLexeme().indexOf(',') >= 0 || token.getLexeme().indexOf('(') >= 0)) {
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR
+              && (token.getLexeme().indexOf(',') >= 0 || token.getLexeme().indexOf('(') >= 0)) {
             break;
-          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
-                     token.getLexeme().indexOf('.') >= 0) {
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR && token.getLexeme().indexOf('.') >= 0) {
             index++;
           }
         }
@@ -667,20 +644,18 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     return retVal;
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static class InteractiveToken
-  {
+  private static class InteractiveToken {
     public final ArrayList<ResourceEntry> resourceEntries = new ArrayList<>();
-    public final int position;    // position within the text
-    public final int length;      // length of token
+    public final int position; // position within the text
+    public final int length; // length of token
     public final String tooltip;
     public final Color color;
 
     public boolean silent;
 
-    public InteractiveToken(int position, int length, String tooltip, ResourceEntry resourceEntry, Color color)
-    {
+    public InteractiveToken(int position, int length, String tooltip, ResourceEntry resourceEntry, Color color) {
       this.position = position;
       this.length = length;
       this.tooltip = tooltip;
@@ -690,24 +665,27 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
       }
     }
 
-    public boolean isTooltip() { return (tooltip != null) && !tooltip.isEmpty(); }
+    public boolean isTooltip() {
+      return (tooltip != null) && !tooltip.isEmpty();
+    }
 
-    public boolean isLink() { return !resourceEntries.isEmpty(); }
+    public boolean isLink() {
+      return !resourceEntries.isEmpty();
+    }
 
-    public boolean isSilent() { return silent || !isTooltip(); }
+    public boolean isSilent() {
+      return silent || !isTooltip();
+    }
   }
 
-  private static class ScriptPopupMenu extends JPopupMenu implements ActionListener
-  {
+  private static class ScriptPopupMenu extends JPopupMenu implements ActionListener {
     private final ArrayList<DataMenuItem> itemsOpen = new ArrayList<>();
     private final ArrayList<DataMenuItem> itemsOpenNew = new ArrayList<>();
 
-    public ScriptPopupMenu()
-    {
+    public ScriptPopupMenu() {
     }
 
-    public void addResEntry(ResourceEntry resEntry)
-    {
+    public void addResEntry(ResourceEntry resEntry) {
       if (!itemsOpen.isEmpty()) {
         addSeparator();
       }
@@ -722,21 +700,23 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
       add(item);
     }
 
-    public void clearResEntries()
-    {
-      itemsOpen.forEach((item) -> { item.removeActionListener(this); });
+    public void clearResEntries() {
+      itemsOpen.forEach(item -> {
+        item.removeActionListener(this);
+      });
       itemsOpen.clear();
-      itemsOpenNew.forEach((item) -> { item.removeActionListener(this); });
+      itemsOpenNew.forEach(item -> {
+        item.removeActionListener(this);
+      });
       itemsOpenNew.clear();
       removeAll();
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() instanceof DataMenuItem) {
-        DataMenuItem item = (DataMenuItem)e.getSource();
-        ResourceEntry entry = (item.getData() instanceof ResourceEntry) ? (ResourceEntry)item.getData() : null;
+        DataMenuItem item = (DataMenuItem) e.getSource();
+        ResourceEntry entry = (item.getData() instanceof ResourceEntry) ? (ResourceEntry) item.getData() : null;
         if (entry != null) {
           if (itemsOpen.contains(e.getSource())) {
             NearInfinity.getInstance().showResourceEntry(entry);

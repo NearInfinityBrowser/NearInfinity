@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -43,36 +43,33 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DlcDirectoryStream implements DirectoryStream<Path>
-{
+public class DlcDirectoryStream implements DirectoryStream<Path> {
   private final DlcFileSystem dlcfs;
   private final byte[] path;
   private final DirectoryStream.Filter<? super Path> filter;
   private volatile boolean isClosed;
   private volatile Iterator<Path> itr;
 
-  DlcDirectoryStream(DlcPath zipPath, DirectoryStream.Filter<? super java.nio.file.Path> filter)
-      throws IOException
-  {
+  protected DlcDirectoryStream(DlcPath zipPath, DirectoryStream.Filter<? super java.nio.file.Path> filter) throws IOException {
     this.dlcfs = zipPath.getFileSystem();
     this.path = zipPath.getResolvedPath();
     this.filter = filter;
     // sanity check
-    if (!dlcfs.isDirectory(path))
+    if (!dlcfs.isDirectory(path)) {
       throw new NotDirectoryException(zipPath.toString());
+    }
   }
 
   @Override
-  public void close() throws IOException
-  {
+  public void close() throws IOException {
     isClosed = true;
   }
 
   @Override
-  public Iterator<Path> iterator()
-  {
-    if (isClosed)
+  public Iterator<Path> iterator() {
+    if (isClosed) {
       throw new ClosedDirectoryStreamException();
+    }
     if (itr != null) {
       throw new IllegalStateException("Iterator has already been returned");
     }
@@ -84,24 +81,23 @@ public class DlcDirectoryStream implements DirectoryStream<Path>
     }
     return new Iterator<Path>() {
       @Override
-      public boolean hasNext()
-      {
-        if (isClosed)
+      public boolean hasNext() {
+        if (isClosed) {
           return false;
+        }
         return itr.hasNext();
       }
 
       @Override
-      public synchronized Path next()
-      {
-        if (isClosed)
+      public synchronized Path next() {
+        if (isClosed) {
           throw new NoSuchElementException();
+        }
         return itr.next();
       }
 
       @Override
-      public void remove()
-      {
+      public void remove() {
         throw new UnsupportedOperationException();
       }
     };

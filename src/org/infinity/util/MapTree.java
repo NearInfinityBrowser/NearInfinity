@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -8,29 +8,28 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.Vector;
 
 /**
- * Implementation of a tree node that can form an n-ary tree.
- * Provides basic operations such as getting/setting keys, values and child nodes,
- * adding/removing child nodes or finding specific child nodes within the tree.
+ * Implementation of a tree node that can form an n-ary tree. Provides basic operations such as getting/setting keys,
+ * values and child nodes, adding/removing child nodes or finding specific child nodes within the tree.
  *
  * @param <K> the type of the key to identifiy the node in a tree.
  * @param <V> the type of the data associated with a tree node.
  */
-public class MapTree<K, V> implements Cloneable
-{
+public class MapTree<K, V> implements Cloneable {
   private final K key;
-//  private final Collection<MapTree<K, V>> children;
+
+  // private final Collection<MapTree<K, V>> children;
   private final HashMap<K, MapTree<K, V>> children;
 
   private MapTree<K, V> parent;
   private V value;
 
   /** Creates a path of MapTree objects, starting from the root node up to the specified node. */
-  public static <K, V> Collection<MapTree<K, V>> getNodePath(MapTree<K, V> node)
-  {
+  public static <K, V> Collection<MapTree<K, V>> getNodePath(MapTree<K, V> node) {
     Collection<MapTree<K, V>> retVal = new Vector<>();
     if (node != null) {
       Stack<MapTree<K, V>> stack = new Stack<>();
@@ -48,8 +47,7 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /** Returns the root of the specified node. */
-  public static <K, V> MapTree<K, V> getRoot(MapTree<K, V> node)
-  {
+  public static <K, V> MapTree<K, V> getRoot(MapTree<K, V> node) {
     if (node != null) {
       MapTree<K, V> curNode = node;
       while (curNode.getParent() != null) {
@@ -62,11 +60,11 @@ public class MapTree<K, V> implements Cloneable
 
   /**
    * Constructs a new MapNode object with the given key and value arguments.
-   * @param key The node key.
+   *
+   * @param key   The node key.
    * @param value The associated value.
    */
-  public MapTree(K key, V value)
-  {
+  public MapTree(K key, V value) {
     if (key == null) {
       throw new NullPointerException("key must not be null");
     }
@@ -76,52 +74,47 @@ public class MapTree<K, V> implements Cloneable
     this.value = value;
   }
 
-//--------------------- Begin Interface Cloneable ---------------------
+  // --------------------- Begin Interface Cloneable ---------------------
 
   /**
    * Creates a copy of this node and all of its children.
+   *
    * @return a clone of this node and all of its children.
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Object clone()
-  {
+  public Object clone() {
     MapTree<K, V> node = new MapTree<>(key, value);
     for (Iterator<MapTree<K, V>> iter = children.values().iterator(); iter.hasNext();) {
-      node.addChild((MapTree<K, V>)iter.next().clone());
+      node.addChild((MapTree<K, V>) iter.next().clone());
     }
     return node;
   }
 
-//--------------------- End Interface Cloneable ---------------------
+  // --------------------- End Interface Cloneable ---------------------
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (o instanceof MapTree<?, ?>) {
-      MapTree<?, ?> node = (MapTree<?, ?>)o;
-      boolean b = key.equals(node.getKey());
-      if (b && value != null) {
-        b &= value.equals(node.getValue());
-      }
-      return b;
-    }
-    return false;
+  public int hashCode() {
+    return Objects.hash(key, value);
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = key.hashCode();
-    if (value != null) {
-      hash ^= value.hashCode();
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-    return hash;
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    MapTree<?, ?> other = (MapTree<?, ?>) obj;
+    return Objects.equals(key, other.key) && Objects.equals(value, other.value);
   }
 
   /** Adds a new child to this node. May overwrite a child node containing a matching key. */
-  public boolean addChild(MapTree<K, V> child)
-  {
+  public boolean addChild(MapTree<K, V> child) {
     if (child != null) {
       removeChild(child.getKey());
       child.parent = this;
@@ -132,15 +125,13 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /**
-   * Adds all children of the given collection to this node. Existing child nodes
-   * containing a matching key will be overwritten. Returns the number of added child nodes.
+   * Adds all children of the given collection to this node. Existing child nodes containing a matching key will be
+   * overwritten. Returns the number of added child nodes.
    */
-  public int addChildren(Collection<MapTree<K, V>> children)
-  {
+  public int addChildren(Collection<MapTree<K, V>> children) {
     int retVal = 0;
     if (children != null && !children.isEmpty()) {
-      for (Iterator<MapTree<K, V>> iter = children.iterator(); iter.hasNext();) {
-        MapTree<K, V> node = iter.next();
+      for (MapTree<K, V> node : children) {
         if (addChild(node)) {
           retVal++;
         }
@@ -151,11 +142,11 @@ public class MapTree<K, V> implements Cloneable
 
   /**
    * Searches for the first node containing a matching key.
+   *
    * @param key The key to search.
    * @return The first available node containing the specified key.
    */
-  public MapTree<K, V> findNode(K key)
-  {
+  public MapTree<K, V> findNode(K key) {
     if (key != null) {
       Collection<MapTree<K, V>> retVal = findNodesRecursive(null, this, key, true);
       if (retVal != null && !retVal.isEmpty()) {
@@ -167,11 +158,11 @@ public class MapTree<K, V> implements Cloneable
 
   /**
    * Searches the whole tree, starting from the current node for nodes containing a matching key.
+   *
    * @param key The key to search.
    * @return A collection of nodes containing the specified key.
    */
-  public Collection<MapTree<K, V>> findNodes(K key)
-  {
+  public Collection<MapTree<K, V>> findNodes(K key) {
     Collection<MapTree<K, V>> retVal = new Vector<>();
     if (key != null) {
       retVal = findNodesRecursive(retVal, parent, key, false);
@@ -180,14 +171,12 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /** Returns the number of child nodes. */
-  public int getChildCount()
-  {
+  public int getChildCount() {
     return children.size();
   }
 
   /** Returns the child node matching the given key, or null otherwise. */
-  public MapTree<K, V> getChild(K key)
-  {
+  public MapTree<K, V> getChild(K key) {
     if (key != null) {
       return children.get(key);
     }
@@ -195,41 +184,34 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /** Returns an unmodifiable collection of all children associated with this node. */
-  public Collection<MapTree<K, V>> getChildren()
-  {
+  public Collection<MapTree<K, V>> getChildren() {
     return Collections.unmodifiableCollection(children.values());
   }
 
   /** Returns the node key. */
-  public K getKey()
-  {
+  public K getKey() {
     return key;
   }
 
   /** Creates a node path, starting from the root node up to the current node. */
-  public Collection<MapTree<K, V>> getNodePath()
-  {
+  public Collection<MapTree<K, V>> getNodePath() {
     return getNodePath(this);
   }
 
   /** Returns the parent node (if any). */
-  public MapTree<K, V> getParent()
-  {
+  public MapTree<K, V> getParent() {
     return parent;
   }
 
   /** Returns the value associated with the node (if any). */
-  public V getValue()
-  {
+  public V getValue() {
     return value;
   }
 
   /**
-   * Removes the child node containing the matching key and returns it.
-   * Does nothing if no matching child node exists.
+   * Removes the child node containing the matching key and returns it. Does nothing if no matching child node exists.
    */
-  public MapTree<K, V> removeChild(K key)
-  {
+  public MapTree<K, V> removeChild(K key) {
     if (key != null) {
       MapTree<K, V> node = children.remove(key);
       if (node != null) {
@@ -241,11 +223,10 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /**
-   * Removes all children matching the keys in the given collection.
-   * Returns a collection of child nodes which have been successfully removed.
+   * Removes all children matching the keys in the given collection. Returns a collection of child nodes which have been
+   * successfully removed.
    */
-  public Collection<MapTree<K, V>> removeChildren(Collection<K> keys)
-  {
+  public Collection<MapTree<K, V>> removeChildren(Collection<K> keys) {
     Collection<MapTree<K, V>> retVal = new Vector<>();
     if (keys != null && !keys.isEmpty()) {
       for (Iterator<K> iter = keys.iterator(); iter.hasNext();) {
@@ -261,10 +242,8 @@ public class MapTree<K, V> implements Cloneable
   /**
    * Removes all children from the current node.
    */
-  public void removeAllChildren()
-  {
-    for (Iterator<K> iter = children.keySet().iterator(); iter.hasNext();) {
-      K key = iter.next();
+  public void removeAllChildren() {
+    for (K key : children.keySet()) {
       MapTree<K, V> node = children.remove(key);
       if (node != null) {
         node.parent = null;
@@ -273,11 +252,9 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /**
-   * Replaces the value of the child node containing a matching key.
-   * Returns whether the operation was successful.
+   * Replaces the value of the child node containing a matching key. Returns whether the operation was successful.
    */
-  public boolean setChild(K key, V value)
-  {
+  public boolean setChild(K key, V value) {
     MapTree<K, V> node = getChild(key);
     if (node != null) {
       node.setValue(value);
@@ -287,20 +264,16 @@ public class MapTree<K, V> implements Cloneable
   }
 
   /** Assigns a new value to this node. Returns the previously assigned value (if any). */
-  public V setValue(V newValue)
-  {
+  public V setValue(V newValue) {
     V retVal = value;
     value = newValue;
     return retVal;
   }
 
-
   // Recursively searches all child nodes for the given key.
   // Returns either the first match only or a list of all available matches.
-  private static<K, V> Collection<MapTree<K, V>> findNodesRecursive(Collection<MapTree<K, V>> retVal,
-                                                                    MapTree<K, V> parent, K key,
-                                                                    boolean firstMatch)
-  {
+  private static <K, V> Collection<MapTree<K, V>> findNodesRecursive(Collection<MapTree<K, V>> retVal,
+      MapTree<K, V> parent, K key, boolean firstMatch) {
     if (retVal == null) {
       retVal = new Vector<>();
     }
@@ -310,8 +283,8 @@ public class MapTree<K, V> implements Cloneable
     }
 
     if (parent != null && key != null) {
-      for (Iterator<MapTree<K, V>> iter = parent.getChildren().iterator();
-           iter.hasNext() && (!firstMatch || retVal.isEmpty());) {
+      for (Iterator<MapTree<K, V>> iter = parent.getChildren().iterator(); iter.hasNext()
+          && (!firstMatch || retVal.isEmpty());) {
         MapTree<K, V> node = iter.next();
         if (node.getKey().equals(key)) {
           retVal.add(node);

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -36,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -50,12 +51,9 @@ import org.infinity.util.DataString;
 import org.infinity.util.SimpleListModel;
 
 /**
- * Provides a modal dialog for selecting a single or multiple game resources of one or more
- * given resource types.
+ * Provides a modal dialog for selecting a single or multiple game resources of one or more given resource types.
  */
-public class OpenResourceDialog extends JDialog
-    implements ItemListener, ListSelectionListener, DocumentListener
-{
+public class OpenResourceDialog extends JDialog implements ItemListener, ListSelectionListener, DocumentListener {
   private final List<List<ResourceEntry>> resources = new ArrayList<>();
 
   private ResourceEntry[] result;
@@ -65,22 +63,22 @@ public class OpenResourceDialog extends JDialog
   private JComboBox<DataString<String>> cbType;
   private JTextField tfSearch;
   private PlainDocument searchDoc;
-  private JButton bOpen, bCancel;
+  private JButton bOpen;
+  private JButton bCancel;
   private boolean searchLock;
 
   /**
    * Opens a modal dialog where the user can select one or more internal game resources.
-   * @param owner The parent window of this dialog.
-   * @param title The dialog title.
-   * @param extensions A list of file extensions which is to limit the list of internal files.
-   *                   Specify {@code null} to show all available resources.
+   *
+   * @param owner          The parent window of this dialog.
+   * @param title          The dialog title.
+   * @param extensions     A list of file extensions which is to limit the list of internal files. Specify {@code null}
+   *                       to show all available resources.
    * @param multiSelection Specify {@code true} to allow selecting more than one resource.
-   * @return An array of selected ResourceEntry objects.
-   *         Returns {@code null} if the user cancelled the operation.
+   * @return An array of selected ResourceEntry objects. Returns {@code null} if the user cancelled the operation.
    */
   public static ResourceEntry[] showOpenDialog(Window owner, String title, String[] extensions,
-                                               boolean multiSelection)
-  {
+      boolean multiSelection) {
     ResourceEntry[] retVal = null;
     if (title == null) {
       title = "Select resource";
@@ -92,12 +90,10 @@ public class OpenResourceDialog extends JDialog
     return retVal;
   }
 
-
-  //--------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent e)
-  {
+  public void itemStateChanged(ItemEvent e) {
     if (e.getSource() == cbType) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -110,13 +106,12 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-//--------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e)
-  {
+  public void valueChanged(ListSelectionEvent e) {
     if (e.getSource() == list && !isSearchLock()) {
       try {
         setSearchLock(true);
@@ -128,13 +123,12 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-//--------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent e)
-  {
+  public void insertUpdate(DocumentEvent e) {
     if (e.getDocument() == searchDoc && !isSearchLock()) {
       try {
         setSearchLock(true);
@@ -146,10 +140,8 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-
   @Override
-  public void removeUpdate(DocumentEvent e)
-  {
+  public void removeUpdate(DocumentEvent e) {
     if (e.getDocument() == searchDoc && !isSearchLock()) {
       try {
         setSearchLock(true);
@@ -161,10 +153,8 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-
   @Override
-  public void changedUpdate(DocumentEvent e)
-  {
+  public void changedUpdate(DocumentEvent e) {
     if (e.getDocument() == searchDoc && !isSearchLock()) {
       try {
         setSearchLock(true);
@@ -176,23 +166,21 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-//--------------------- End Interface DocumentListener ---------------------
+  // --------------------- End Interface DocumentListener ---------------------
 
-  protected OpenResourceDialog(Window owner, String title, String[] extensions)
-  {
+  protected OpenResourceDialog(Window owner, String title, String[] extensions) {
     super(owner, title, ModalityType.APPLICATION_MODAL);
     init();
     setExtensions(extensions);
   }
 
   /** Specifies a list of supported resource types for this dialog. */
-  protected void setExtensions(String[] extList)
-  {
+  protected void setExtensions(String[] extList) {
     if (extList != null && extList.length > 0) {
       int extra = (extList.length > 1) ? 1 : 0;
       extensions = new ArrayList<>();// ObjectString[extList.length + extra];
-      for (int i = 0; i < extList.length; i++) {
-        final String s = extList[i].trim().toUpperCase(Locale.ENGLISH);
+      for (String element : extList) {
+        final String s = element.trim().toUpperCase(Locale.ENGLISH);
         extensions.add(DataString.with(s + " resources", s, DataString.FMT_STRING_ONLY));
       }
 
@@ -217,24 +205,21 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Returns a list of resource types defined for this dialog. */
-  protected String[] getExtensions()
-  {
+  protected String[] getExtensions() {
     final String str = extensions.get(0).getData();
     if (!str.isEmpty()) {
       return str.split(";");
     }
-    return new String[]{""};
+    return new String[] { "" };
   }
 
   /** Returns {@code true} if multiple list items can be selected. */
-  protected boolean isMultiSelection()
-  {
+  protected boolean isMultiSelection() {
     return (list.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
   }
 
   /** Specify whether multiple list items can be selected. */
-  protected void setMultiSelection(boolean multi)
-  {
+  protected void setMultiSelection(boolean multi) {
     if (multi) {
       list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     } else {
@@ -243,18 +228,14 @@ public class OpenResourceDialog extends JDialog
   }
 
   /**
-   * Returns the result of the last dialog operation.
-   * Returns a list of ResourceEntry objects if dialog operation was successful.
-   * Returns {@code null} if operation has been cancelled.
+   * Returns the result of the last dialog operation. Returns a list of ResourceEntry objects if dialog operation was
+   * successful. Returns {@code null} if operation has been cancelled.
    */
-  protected ResourceEntry[] getResult()
-  {
+  protected ResourceEntry[] getResult() {
     return result;
   }
 
-
-  private void acceptDialog()
-  {
+  private void acceptDialog() {
     setVisible(false);
     List<ResourceEntry> entries = list.getSelectedValuesList();
     if (entries != null) {
@@ -264,15 +245,13 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-  private void cancel()
-  {
+  private void cancel() {
     setVisible(false);
     result = null;
   }
 
   /** Generates a list of available resources for all supported types. */
-  private void updateResources()
-  {
+  private void updateResources() {
     resources.clear();
     for (final DataString<String> extension : extensions) {
       final String data = extension.getData();
@@ -293,12 +272,11 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Initializes type combobox. */
-  private void updateGui()
-  {
-    DefaultComboBoxModel<DataString<String>> model = (DefaultComboBoxModel<DataString<String>>)cbType.getModel();
+  private void updateGui() {
+    DefaultComboBoxModel<DataString<String>> model = (DefaultComboBoxModel<DataString<String>>) cbType.getModel();
     model.removeAllElements();
     if (extensions != null) {
-      for (final DataString<String> os: extensions) {
+      for (final DataString<String> os : extensions) {
         model.addElement(os);
       }
     }
@@ -308,8 +286,7 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Initializes resource list. */
-  private void updateList(List<ResourceEntry> entries)
-  {
+  private void updateList(List<ResourceEntry> entries) {
     listModel.clear();
     if (entries != null) {
       listModel.addAll(entries);
@@ -322,8 +299,7 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Select one or more list items based on search text. */
-  private void updateListSelection(String search)
-  {
+  private void updateListSelection(String search) {
     if (search == null) {
       search = "";
     } else {
@@ -380,8 +356,7 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Returns index of closest list item match for given string. */
-  private int getClosestIndex(String text)
-  {
+  private int getClosestIndex(String text) {
     text = text.toUpperCase(Locale.ENGLISH);
     final int size = listModel.getSize();
     for (int selected = 0; selected < size; selected++) {
@@ -394,8 +369,7 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Synchronizes search field with list selections. */
-  private void updateSearchField()
-  {
+  private void updateSearchField() {
     int[] indices = list.getSelectedIndices();
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < indices.length; i++) {
@@ -409,13 +383,11 @@ public class OpenResourceDialog extends JDialog
     tfSearch.setCaretPosition(0);
   }
 
-  private boolean isSearchLock()
-  {
+  private boolean isSearchLock() {
     return searchLock;
   }
 
-  private synchronized void setSearchLock(boolean set)
-  {
+  private synchronized void setSearchLock(boolean set) {
     if (searchLock != set) {
       searchLock = set;
       if (searchLock) {
@@ -429,19 +401,16 @@ public class OpenResourceDialog extends JDialog
   }
 
   /** Constructs the dialog elements. */
-  private void init()
-  {
+  private void init() {
     AbstractAction actOpen = new AbstractAction("Open") {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         acceptDialog();
       }
     };
     AbstractAction actCancel = new AbstractAction("Cancel") {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         cancel();
       }
     };
@@ -449,13 +418,13 @@ public class OpenResourceDialog extends JDialog
     bOpen = new JButton(actOpen);
     bCancel = new JButton(actCancel);
     Dimension d = new Dimension(Math.max(bOpen.getPreferredSize().width, bCancel.getPreferredSize().width),
-                                Math.max(bOpen.getPreferredSize().height, bCancel.getPreferredSize().height));
+        Math.max(bOpen.getPreferredSize().height, bCancel.getPreferredSize().height));
     bOpen.setPreferredSize(d);
     bCancel.setPreferredSize(d);
-    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), bOpen);
-    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), bCancel);
+    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+        bOpen);
+    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+        bCancel);
     getRootPane().getActionMap().put(bOpen, actOpen);
     getRootPane().getActionMap().put(bCancel, actCancel);
 
@@ -476,12 +445,11 @@ public class OpenResourceDialog extends JDialog
     listModel = new SimpleListModel<>();
     list = new JList<>(listModel);
     list.setLayoutOrientation(JList.VERTICAL_WRAP);
-    list.setVisibleRowCount(0);   // no limit
+    list.setVisibleRowCount(0); // no limit
     list.addListSelectionListener(this);
     list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2 && !list.isSelectionEmpty()) {
           acceptDialog();
         }
@@ -493,45 +461,45 @@ public class OpenResourceDialog extends JDialog
     GridBagConstraints c = new GridBagConstraints();
 
     JPanel pType = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pType.add(lType, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pType.add(cbType, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(12, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(12, 0, 0, 0), 0, 0);
     pType.add(lSearch, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(12, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(12, 8, 0, 0), 0, 0);
     pType.add(tfSearch, c);
 
     JPanel pList = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pList.add(scroll, c);
 
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bOpen, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pType, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pList, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 8), 0, 0);
     pMain.add(pButtons, c);
 
     setLayout(new BorderLayout());
@@ -539,8 +507,7 @@ public class OpenResourceDialog extends JDialog
 
     addWindowListener(new WindowAdapter() {
       @Override
-      public void windowClosed(WindowEvent e)
-      {
+      public void windowClosed(WindowEvent e) {
         if (e.getSource() == this) {
           cancel();
         }
@@ -549,7 +516,7 @@ public class OpenResourceDialog extends JDialog
 
     pack();
     setResizable(true);
-    setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     setLocationRelativeTo(getOwner());
     list.requestFocusInWindow();
   }

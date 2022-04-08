@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -39,55 +39,68 @@ import org.infinity.util.tuples.Monuple;
 /**
  * This panel provides controls for visual settings and includes a table view of creature animation attributes.
  */
-public class SettingsPanel extends JPanel
-{
+public class SettingsPanel extends JPanel {
   // Available render canvas backgrounds
-  public static final List<Backgrounds.BackgroundInfo> backgroundList = new ArrayList<Backgrounds.BackgroundInfo>() {{
-    add(Backgrounds.BG_COLOR_NONE);
-    add(Backgrounds.BG_CAVE_BG);
-    add(Backgrounds.BG_CITY_NIGHT_SOD);
-    add(Backgrounds.BG_WILDERNESS_BG);
-    add(Backgrounds.BG_WILDERNESS_IWD);
-    add(Backgrounds.BG_CITY_PST);
-    add(Backgrounds.BG_DUNGEON_PST);
-    add(Backgrounds.BG_COLOR_WHITE);
-    add(Backgrounds.BG_COLOR_BLACK);
-    add(Backgrounds.BG_COLOR_LIGHT_GRAY);
-    add(Backgrounds.BG_COLOR_GRAY);
-    // REMEMBER: has to be last entry in list
-    add(new Backgrounds.BackgroundInfo("Customize color...", Color.WHITE));
-  }};
+  public static final List<Backgrounds.BackgroundInfo> BACKGROUND_LIST = new ArrayList<Backgrounds.BackgroundInfo>();
 
   // Available items for zoom selection list
-  private static final Vector<ItemString<Integer>> zoomList = new Vector<ItemString<Integer>>() {{
-    add(ItemString.with("50 %", 50));
-    add(ItemString.with("100 % (original)", 100));
-    add(ItemString.with("200 %", 200));
-    add(ItemString.with("300 %", 300));
-    add(ItemString.with("400 %", 400));
-    add(ItemString.with("500 %", 500));
-  }};
+  private static final Vector<ItemString<Integer>> ZOOM_LIST = new Vector<ItemString<Integer>>();
 
   // Available items for frame rate selection list
-  private static final Vector<ItemString<Integer>> frameRateList = new Vector<ItemString<Integer>>() {{
-    add(ItemString.with("1 frames/sec.", 1));
-    add(ItemString.with("2 frames/sec.", 2));
-    add(ItemString.with("5 frames/sec.", 5));
-    add(ItemString.with("10 frames/sec.", 10));
-    add(ItemString.with("15 frames/sec. (original)", 15));
-    add(ItemString.with("20 frames/sec.", 20));
-    add(ItemString.with("25 frames/sec.", 25));
-    add(ItemString.with("30 frames/sec.", 30));
-    add(ItemString.with("50 frames/sec.", 50));
-    add(ItemString.with("60 frames/sec.", 60));
-  }};
+  private static final Vector<ItemString<Integer>> FRAME_RATE_LIST = new Vector<ItemString<Integer>>();
 
-  private static int indexZoom, indexFrameRate, indexBackground;
-  private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isOrnateSelectionCircle, isPersonalSpace,
-                         isTintEnabled, isBlurEnabled, isPaletteReplacementEnabled, isShowBorders,
-                         isShowAvatar, isShowHelmet, isShowShield, isShowWeapon;
+  private static int indexZoom;
+  private static int indexFrameRate;
+  private static int indexBackground;
+
+  private static boolean isFiltering;
+  private static boolean isBlending;
+  private static boolean isTranslucent;
+  private static boolean isSelectionCircle;
+  private static boolean isOrnateSelectionCircle;
+  private static boolean isPersonalSpace;
+  private static boolean isTintEnabled;
+  private static boolean isBlurEnabled;
+  private static boolean isPaletteReplacementEnabled;
+  private static boolean isShowBorders;
+  private static boolean isShowAvatar;
+  private static boolean isShowHelmet;
+  private static boolean isShowShield;
+  private static boolean isShowWeapon;
 
   static {
+    BACKGROUND_LIST.add(Backgrounds.BG_COLOR_NONE);
+    BACKGROUND_LIST.add(Backgrounds.BG_CAVE_BG);
+    BACKGROUND_LIST.add(Backgrounds.BG_CITY_NIGHT_SOD);
+    BACKGROUND_LIST.add(Backgrounds.BG_WILDERNESS_BG);
+    BACKGROUND_LIST.add(Backgrounds.BG_WILDERNESS_IWD);
+    BACKGROUND_LIST.add(Backgrounds.BG_CITY_PST);
+    BACKGROUND_LIST.add(Backgrounds.BG_DUNGEON_PST);
+    BACKGROUND_LIST.add(Backgrounds.BG_COLOR_WHITE);
+    BACKGROUND_LIST.add(Backgrounds.BG_COLOR_BLACK);
+    BACKGROUND_LIST.add(Backgrounds.BG_COLOR_LIGHT_GRAY);
+    BACKGROUND_LIST.add(Backgrounds.BG_COLOR_GRAY);
+    // REMEMBER: has to be last entry in list
+    BACKGROUND_LIST.add(new Backgrounds.BackgroundInfo("Customize color...", Color.WHITE));
+
+    ZOOM_LIST.add(ItemString.with("50 %", 50));
+    ZOOM_LIST.add(ItemString.with("100 % (original)", 100));
+    ZOOM_LIST.add(ItemString.with("200 %", 200));
+    ZOOM_LIST.add(ItemString.with("300 %", 300));
+    ZOOM_LIST.add(ItemString.with("400 %", 400));
+    ZOOM_LIST.add(ItemString.with("500 %", 500));
+
+    FRAME_RATE_LIST.add(ItemString.with("1 frames/sec.", 1));
+    FRAME_RATE_LIST.add(ItemString.with("2 frames/sec.", 2));
+    FRAME_RATE_LIST.add(ItemString.with("5 frames/sec.", 5));
+    FRAME_RATE_LIST.add(ItemString.with("10 frames/sec.", 10));
+    FRAME_RATE_LIST.add(ItemString.with("15 frames/sec. (original)", 15));
+    FRAME_RATE_LIST.add(ItemString.with("20 frames/sec.", 20));
+    FRAME_RATE_LIST.add(ItemString.with("25 frames/sec.", 25));
+    FRAME_RATE_LIST.add(ItemString.with("30 frames/sec.", 30));
+    FRAME_RATE_LIST.add(ItemString.with("50 frames/sec.", 50));
+    FRAME_RATE_LIST.add(ItemString.with("60 frames/sec.", 60));
+
     resetSettings();
   }
 
@@ -98,26 +111,33 @@ public class SettingsPanel extends JPanel
   private JComboBox<ItemString<Integer>> cbFrameRate;
   private JComboBox<Backgrounds.BackgroundInfo> cbBackground;
   private JButton bCenter;
-  private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbOrnateSelectionCircle, cbPersonalSpace,
-                    cbTintEnabled, cbBlurEnabled, cbPaletteReplacementEnabled, cbShowBorders,
-                    cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon;
+  private JCheckBox cbFiltering;
+  private JCheckBox cbBlending;
+  private JCheckBox cbTranslucent;
+  private JCheckBox cbSelectionCircle;
+  private JCheckBox cbOrnateSelectionCircle;
+  private JCheckBox cbPersonalSpace;
+  private JCheckBox cbTintEnabled;
+  private JCheckBox cbBlurEnabled;
+  private JCheckBox cbPaletteReplacementEnabled;
+  private JCheckBox cbShowBorders;
+  private JCheckBox cbShowAvatar;
+  private JCheckBox cbShowHelmet;
+  private JCheckBox cbShowShield;
+  private JCheckBox cbShowWeapon;
   private AttributesPanel panelAttributes;
 
   /** Returns a list of background info instances available for the specified game. */
-  public static List<BackgroundInfo> getBackgrounds(Profile.Game game)
-  {
-    return backgroundList
-        .stream()
-        .filter(bi -> bi.getGames().contains((game != null) ? game : Profile.getGame()))
+  public static List<BackgroundInfo> getBackgrounds(Profile.Game game) {
+    return BACKGROUND_LIST.stream().filter(bi -> bi.getGames().contains((game != null) ? game : Profile.getGame()))
         .collect(Collectors.toList());
   }
 
   /** Initializes global settings with sane defaults. */
-  private static void resetSettings()
-  {
-    indexZoom = 1;        // 100 % (original)
-    indexFrameRate = 4;   // 15 fps (original)
-    indexBackground = 0;  // System color
+  private static void resetSettings() {
+    indexZoom = 1; // 100 % (original)
+    indexFrameRate = 4; // 15 fps (original)
+    indexBackground = 0; // System color
     isFiltering = false;
     isBlending = true;
     isTranslucent = true;
@@ -134,8 +154,7 @@ public class SettingsPanel extends JPanel
     isPaletteReplacementEnabled = true;
   }
 
-  public SettingsPanel(CreatureBrowser browser)
-  {
+  public SettingsPanel(CreatureBrowser browser) {
     super();
     this.browser = Objects.requireNonNull(browser);
     resetSettings();
@@ -143,33 +162,32 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns the associated {@code CreatureBrowser} instance. */
-  public CreatureBrowser getBrowser() { return browser; }
+  public CreatureBrowser getBrowser() {
+    return browser;
+  }
 
   /** Discards and reloads the current settings and attributes list. */
-  public void reset()
-  {
+  public void reset() {
     applyBackgroundInfo();
     getAttributesPanel().reset();
   }
 
   /** Returns the currently selected zoom (in percent). */
-  public int getZoom()
-  {
+  public int getZoom() {
     int retVal = 100;
     ItemString<Integer> is = cbZoom.getModel().getElementAt(indexZoom);
     if (is != null) {
-      retVal = is.getData().intValue();
+      retVal = is.getData();
     }
     return retVal;
   }
 
-  private void setZoomIndex(int index)
-  {
+  private void setZoomIndex(int index) {
     if (index != indexZoom) {
       if (index >= 0 && index < cbZoom.getModel().getSize()) {
         indexZoom = index;
         cbZoom.setSelectedIndex(indexZoom);
-        getBrowser().getRenderPanel().setZoom((float)getZoom() / 100.0f);
+        getBrowser().getRenderPanel().setZoom(getZoom() / 100.0f);
         getBrowser().getRenderPanel().updateCanvas();
       } else {
         throw new IndexOutOfBoundsException();
@@ -178,18 +196,16 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns the currently selected frame rate. */
-  public int getFrameRate()
-  {
+  public int getFrameRate() {
     int retVal = 15;
     ItemString<Integer> is = cbFrameRate.getModel().getElementAt(indexFrameRate);
     if (is != null) {
-      retVal = is.getData().intValue();
+      retVal = is.getData();
     }
     return retVal;
   }
 
-  private void setFrameRateIndex(int index)
-  {
+  private void setFrameRateIndex(int index) {
     if (index != indexFrameRate) {
       if (index >= 0 && index < cbFrameRate.getModel().getSize()) {
         indexFrameRate = index;
@@ -202,10 +218,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns the selected {@code BackgroundInfo} object. */
-  public Backgrounds.BackgroundInfo getBackgroundInfo() { return cbBackground.getModel().getElementAt(indexBackground); }
+  public Backgrounds.BackgroundInfo getBackgroundInfo() {
+    return cbBackground.getModel().getElementAt(indexBackground);
+  }
 
-  private void setBackgroundInfoIndex(int index)
-  {
+  private void setBackgroundInfoIndex(int index) {
     if (index != indexBackground || index == cbBackground.getModel().getSize() - 1) {
       if (index >= 0 && index < cbBackground.getModel().getSize()) {
         if (index == cbBackground.getModel().getSize() - 1) {
@@ -215,7 +232,8 @@ public class SettingsPanel extends JPanel
           if (color != null) {
             info = cbBackground.getModel().getElementAt(index);
             info.setColor(color);
-            info.setLabel(String.format("Customize color: RGB(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue()));
+            info.setLabel(
+                String.format("Customize color: RGB(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue()));
           } else {
             cbBackground.setSelectedIndex(indexBackground);
             return;
@@ -231,8 +249,7 @@ public class SettingsPanel extends JPanel
     }
   }
 
-  private void applyBackgroundInfo()
-  {
+  private void applyBackgroundInfo() {
     Backgrounds.BackgroundInfo info = getBackgroundInfo();
     if (info != null) {
       getBrowser().getRenderPanel().setBackgroundColor(info.getColor());
@@ -243,10 +260,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether bilinear filtering is enabled for sprite display. */
-  public boolean isFilteringEnabled() { return isFiltering; }
+  public boolean isFilteringEnabled() {
+    return isFiltering;
+  }
 
-  private void setFilteringEnabled(boolean b)
-  {
+  private void setFilteringEnabled(boolean b) {
     if (isFiltering != b) {
       isFiltering = b;
       cbFiltering.setSelected(isFiltering);
@@ -255,10 +273,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether special blending effects are enabled for selected creature animations. */
-  public boolean isBlendingEnabled() { return isBlending; }
+  public boolean isBlendingEnabled() {
+    return isBlending;
+  }
 
-  private void setBlendingEnabled(boolean b)
-  {
+  private void setBlendingEnabled(boolean b) {
     if (isBlending != b) {
       isBlending = b;
       cbBlending.setSelected(isBlending);
@@ -267,10 +286,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether translucency is enabled for selected creature animations. */
-  public boolean isTranslucencyEnabled() { return isTranslucent; }
+  public boolean isTranslucencyEnabled() {
+    return isTranslucent;
+  }
 
-  private void setTranslucencyEnabled(boolean b)
-  {
+  private void setTranslucencyEnabled(boolean b) {
     if (isTranslucent != b) {
       isTranslucent = b;
       cbTranslucent.setSelected(isTranslucent);
@@ -279,10 +299,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether the selection circle is visible. */
-  public boolean isSelectionCircleEnabled() { return isSelectionCircle; }
+  public boolean isSelectionCircleEnabled() {
+    return isSelectionCircle;
+  }
 
-  private void setSelectionCircleEnabled(boolean b)
-  {
+  private void setSelectionCircleEnabled(boolean b) {
     if (isSelectionCircle != b) {
       isSelectionCircle = b;
       cbSelectionCircle.setSelected(isSelectionCircle);
@@ -292,10 +313,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether an ornate graphics is used to draw the selection circle. */
-  public boolean isOrnateSelectionCircle() { return isOrnateSelectionCircle; }
+  public boolean isOrnateSelectionCircle() {
+    return isOrnateSelectionCircle;
+  }
 
-  private void setOrnateSelectionCircle(boolean b)
-  {
+  private void setOrnateSelectionCircle(boolean b) {
     if (isOrnateSelectionCircle != b) {
       isOrnateSelectionCircle = b;
       cbOrnateSelectionCircle.setSelected(isOrnateSelectionCircle);
@@ -305,10 +327,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether personal space is visible. */
-  public boolean isPersonalSpaceEnabled() { return isPersonalSpace; }
+  public boolean isPersonalSpaceEnabled() {
+    return isPersonalSpace;
+  }
 
-  private void setPersonalSpaceEnabled(boolean b)
-  {
+  private void setPersonalSpaceEnabled(boolean b) {
     if (isPersonalSpace != b) {
       isPersonalSpace = b;
       cbPersonalSpace.setSelected(isPersonalSpace);
@@ -318,10 +341,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether tint effects (e.g. from opcodes 51/52) are enabled. */
-  public boolean isTintEnabled() { return isTintEnabled; }
+  public boolean isTintEnabled() {
+    return isTintEnabled;
+  }
 
-  private void setTintEnabled(boolean b)
-  {
+  private void setTintEnabled(boolean b) {
     if (isTintEnabled != b) {
       isTintEnabled = b;
       cbTintEnabled.setSelected(isTintEnabled);
@@ -330,10 +354,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether blur effect (opcode 66) is enabled. */
-  public boolean isBlurEnabled() { return isBlurEnabled; }
+  public boolean isBlurEnabled() {
+    return isBlurEnabled;
+  }
 
-  private void setBlurEnabled(boolean b)
-  {
+  private void setBlurEnabled(boolean b) {
     if (isBlurEnabled != b) {
       isBlurEnabled = b;
       cbBlurEnabled.setSelected(isBlurEnabled);
@@ -342,10 +367,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether palette replacement (full palette or false colors) is enabled. */
-  public boolean isPaletteReplacementEnabled() { return isPaletteReplacementEnabled; }
+  public boolean isPaletteReplacementEnabled() {
+    return isPaletteReplacementEnabled;
+  }
 
-  private void setPaletteReplacementEnabled(boolean b)
-  {
+  private void setPaletteReplacementEnabled(boolean b) {
     if (isPaletteReplacementEnabled != b) {
       isPaletteReplacementEnabled = b;
       cbPaletteReplacementEnabled.setSelected(isPaletteReplacementEnabled);
@@ -354,10 +380,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether the creature animation avatar is drawn. */
-  public boolean isAvatarVisible() { return isShowAvatar; }
+  public boolean isAvatarVisible() {
+    return isShowAvatar;
+  }
 
-  private void setAvatarVisible(boolean b)
-  {
+  private void setAvatarVisible(boolean b) {
     if (isShowAvatar != b) {
       isShowAvatar = b;
       cbShowAvatar.setSelected(isShowAvatar);
@@ -366,10 +393,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether the helmet overlay is drawn. */
-  public boolean isHelmetVisible() { return isShowHelmet; }
+  public boolean isHelmetVisible() {
+    return isShowHelmet;
+  }
 
-  private void setHelmetVisible(boolean b)
-  {
+  private void setHelmetVisible(boolean b) {
     if (isShowHelmet != b) {
       isShowHelmet = b;
       cbShowHelmet.setSelected(isShowHelmet);
@@ -378,10 +406,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether the shield overlay is drawn. */
-  public boolean isShieldVisible() { return isShowShield; }
+  public boolean isShieldVisible() {
+    return isShowShield;
+  }
 
-  private void setShieldVisible(boolean b)
-  {
+  private void setShieldVisible(boolean b) {
     if (isShowShield != b) {
       isShowShield = b;
       cbShowShield.setSelected(isShowShield);
@@ -390,10 +419,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether the weapon overlay is drawn. */
-  public boolean isWeaponVisible() { return isShowWeapon; }
+  public boolean isWeaponVisible() {
+    return isShowWeapon;
+  }
 
-  private void setWeaponVisible(boolean b)
-  {
+  private void setWeaponVisible(boolean b) {
     if (isShowWeapon != b) {
       isShowWeapon = b;
       cbShowWeapon.setSelected(isShowWeapon);
@@ -402,10 +432,11 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns whether colorered borders are drawn around sprite avatar and overlays. */
-  public boolean isOverlayBordersVisible() { return isShowBorders; }
+  public boolean isOverlayBordersVisible() {
+    return isShowBorders;
+  }
 
-  private void setOverlayBordersVisible(boolean b)
-  {
+  private void setOverlayBordersVisible(boolean b) {
     if (isShowBorders != b) {
       isShowBorders = b;
       cbShowBorders.setSelected(isShowBorders);
@@ -414,8 +445,7 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns the {@link Composite} object valid for the currently loaded {@code SpriteDecoder} instance. */
-  public Composite getComposite()
-  {
+  public Composite getComposite() {
     Composite retVal = AlphaComposite.SrcOver;
     if (getBrowser().getDecoder() != null && isBlendingEnabled()) {
       retVal = getBrowser().getDecoder().getComposite();
@@ -424,16 +454,17 @@ public class SettingsPanel extends JPanel
   }
 
   /** Provides access to the creature animation attributes panel. */
-  public AttributesPanel getAttributesPanel() { return panelAttributes; }
+  public AttributesPanel getAttributesPanel() {
+    return panelAttributes;
+  }
 
-  private void init()
-  {
+  private void init() {
     GridBagConstraints c = new GridBagConstraints();
 
     // selection controls
     JLabel l1 = new JLabel("Zoom:");
-    cbZoom = new JComboBox<>(zoomList);
-    cbZoom.setPrototypeDisplayValue(zoomList.get(1));
+    cbZoom = new JComboBox<>(ZOOM_LIST);
+    cbZoom.setPrototypeDisplayValue(ZOOM_LIST.get(1));
     cbZoom.setSelectedIndex(indexZoom);
     cbZoom.addActionListener(listeners);
 
@@ -442,43 +473,42 @@ public class SettingsPanel extends JPanel
     bCenter.addActionListener(listeners);
 
     JLabel l2 = new JLabel("Frame rate:");
-    cbFrameRate = new JComboBox<>(frameRateList);
-    cbFrameRate.setPrototypeDisplayValue(frameRateList.get(2));
+    cbFrameRate = new JComboBox<>(FRAME_RATE_LIST);
+    cbFrameRate.setPrototypeDisplayValue(FRAME_RATE_LIST.get(2));
     cbFrameRate.setSelectedIndex(indexFrameRate);
     cbFrameRate.addActionListener(listeners);
 
     JLabel l3 = new JLabel("Background:");
     List<Backgrounds.BackgroundInfo> bgList = getBackgrounds(Profile.getGame());
     cbBackground = new JComboBox<>(bgList.toArray(new Backgrounds.BackgroundInfo[bgList.size()]));
-    cbBackground.setPrototypeDisplayValue(backgroundList.get(1));
+    cbBackground.setPrototypeDisplayValue(BACKGROUND_LIST.get(1));
     cbBackground.setSelectedIndex(indexBackground);
     cbBackground.addActionListener(listeners);
 
     JPanel panel1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.VERTICAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel1.add(l1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     panel1.add(cbZoom, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.VERTICAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     panel1.add(bCenter, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.VERTICAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel1.add(l2, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 4, 0, 0), 0, 0);
     panel1.add(cbFrameRate, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.VERTICAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel1.add(l3, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 4, 0, 0), 0, 0);
     panel1.add(cbBackground, c);
-
 
     // checkbox controls
     cbFiltering = new JCheckBox("Enable filtering", isFiltering);
@@ -486,11 +516,13 @@ public class SettingsPanel extends JPanel
     cbFiltering.addActionListener(listeners);
 
     cbBlending = new JCheckBox("Enable blending", isBlending);
-    cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. movanic devas or wisps).");
+    cbBlending.setToolTipText(
+        "Affects only creature animations with special blending attributes (e.g. movanic devas or wisps).");
     cbBlending.addActionListener(listeners);
 
     cbTranslucent = new JCheckBox("Enable translucency", isTranslucent);
-    cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals).");
+    cbTranslucent
+        .setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals).");
     cbTranslucent.addActionListener(listeners);
 
     cbTintEnabled = new JCheckBox("Enable tint effect", isTintEnabled);
@@ -534,72 +566,70 @@ public class SettingsPanel extends JPanel
     cbShowBorders.addActionListener(listeners);
 
     JPanel panel2 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel2.add(cbFiltering, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 16, 0, 0), 0, 0);
     panel2.add(cbBlending, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbSelectionCircle, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowAvatar, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbOrnateSelectionCircle, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowHelmet, c);
 
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbPersonalSpace, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowWeapon, c);
 
-    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbTranslucent, c);
-    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowShield, c);
 
-    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbBlurEnabled, c);
-    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowBorders, c);
 
-    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
     panel2.add(cbTintEnabled, c);
-    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbPaletteReplacementEnabled, c);
-
 
     // attributes table panel
     panelAttributes = new AttributesPanel(getBrowser());
 
-
     // combining panels
     JPanel panelMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 8), 0, 0);
     panelMain.add(panel1, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(16, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(16, 8, 0, 8), 0, 0);
     panelMain.add(panel2, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.BOTH, new Insets(16, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(16, 8, 8, 8), 0, 0);
     panelMain.add(panelAttributes, c);
 
     JScrollPane scroll = new JScrollPane(panelMain);
@@ -610,8 +640,7 @@ public class SettingsPanel extends JPanel
   }
 
   /** Returns a color from user input. */
-  private Color getCustomColor(Color defColor)
-  {
+  private Color getCustomColor(Color defColor) {
     final JColorChooser cc = new JColorChooser((defColor != null) ? defColor : Color.WHITE);
 
     // We only need the RGB panel
@@ -634,7 +663,7 @@ public class SettingsPanel extends JPanel
     try {
       // Returns color value without alpha component
       dlg = JColorChooser.createDialog(getBrowser(), "Choose background color", true, cc,
-                                       evt -> retVal.setValue0(new Color(cc.getColor().getRGB(), false)), null);
+          evt -> retVal.setValue0(new Color(cc.getColor().getRGB(), false)), null);
       dlg.setVisible(true);
     } finally {
       if (dlg != null) {
@@ -645,76 +674,56 @@ public class SettingsPanel extends JPanel
     return retVal.getValue0();
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements ActionListener
-  {
-    public Listeners()
-    {
+  private class Listeners implements ActionListener {
+    public Listeners() {
     }
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == bCenter) {
         getBrowser().getRenderPanel().centerOnSprite();
-      }
-      else if (e.getSource() == cbZoom) {
+      } else if (e.getSource() == cbZoom) {
         setZoomIndex(cbZoom.getSelectedIndex());
-      }
-      else if (e.getSource() == cbFrameRate) {
+      } else if (e.getSource() == cbFrameRate) {
         setFrameRateIndex(cbFrameRate.getSelectedIndex());
-      }
-      else if (e.getSource() == cbBackground) {
+      } else if (e.getSource() == cbBackground) {
         setBackgroundInfoIndex(cbBackground.getSelectedIndex());
-      }
-      else if (e.getSource() == cbFiltering) {
+      } else if (e.getSource() == cbFiltering) {
         setFilteringEnabled(cbFiltering.isSelected());
-      }
-      else if (e.getSource() == cbBlending) {
+      } else if (e.getSource() == cbBlending) {
         setBlendingEnabled(cbBlending.isSelected());
-      }
-      else if (e.getSource() == cbTranslucent) {
+      } else if (e.getSource() == cbTranslucent) {
         setTranslucencyEnabled(cbTranslucent.isSelected());
-      }
-      else if (e.getSource() == cbTintEnabled) {
+      } else if (e.getSource() == cbTintEnabled) {
         setTintEnabled(cbTintEnabled.isSelected());
-      }
-      else if (e.getSource() == cbBlurEnabled) {
+      } else if (e.getSource() == cbBlurEnabled) {
         setBlurEnabled(cbBlurEnabled.isSelected());
-      }
-      else if (e.getSource() == cbPaletteReplacementEnabled) {
+      } else if (e.getSource() == cbPaletteReplacementEnabled) {
         setPaletteReplacementEnabled(cbPaletteReplacementEnabled.isSelected());
-      }
-      else if (e.getSource() == cbSelectionCircle) {
+      } else if (e.getSource() == cbSelectionCircle) {
         setSelectionCircleEnabled(cbSelectionCircle.isSelected());
-      }
-      else if (e.getSource() == cbOrnateSelectionCircle) {
+      } else if (e.getSource() == cbOrnateSelectionCircle) {
         setOrnateSelectionCircle(cbOrnateSelectionCircle.isSelected());
-      }
-      else if (e.getSource() == cbPersonalSpace) {
+      } else if (e.getSource() == cbPersonalSpace) {
         setPersonalSpaceEnabled(cbPersonalSpace.isSelected());
-      }
-      else if (e.getSource() == cbShowAvatar) {
+      } else if (e.getSource() == cbShowAvatar) {
         setAvatarVisible(cbShowAvatar.isSelected());
-      }
-      else if (e.getSource() == cbShowHelmet) {
+      } else if (e.getSource() == cbShowHelmet) {
         setHelmetVisible(cbShowHelmet.isSelected());
-      }
-      else if (e.getSource() == cbShowShield) {
+      } else if (e.getSource() == cbShowShield) {
         setShieldVisible(cbShowShield.isSelected());
-      }
-      else if (e.getSource() == cbShowWeapon) {
+      } else if (e.getSource() == cbShowWeapon) {
         setWeaponVisible(cbShowWeapon.isSelected());
-      }
-      else if (e.getSource() == cbShowBorders) {
+      } else if (e.getSource() == cbShowBorders) {
         setOverlayBordersVisible(cbShowBorders.isSelected());
       }
     }
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
   }
 
   /**
@@ -722,27 +731,25 @@ public class SettingsPanel extends JPanel
    *
    * @param <T> type of the user-defined data
    */
-  private static class ItemString<T>
-  {
+  private static class ItemString<T> {
     private final T data;
     private final String text;
 
-    public static <T> ItemString<T> with(String text, T data)
-    {
+    public static <T> ItemString<T> with(String text, T data) {
       return new ItemString<>(text, data);
     }
 
-    public ItemString(String text, T data)
-    {
+    public ItemString(String text, T data) {
       this.text = (text != null) ? text : "";
       this.data = data;
     }
 
-    public T getData() { return data; }
+    public T getData() {
+      return data;
+    }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return text;
     }
   }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -40,11 +40,11 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 
-public class TtfResource implements Resource, DocumentListener, ActionListener
-{
-  private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
+public class TtfResource implements Resource, DocumentListener, ActionListener {
+  private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
 
   private static final String DEFAULT_STRING = "The quick brown fox jumps over the lazy dog.  1234567890";
+
   private static final int[] FONT_SIZE = { 12, 18, 24, 36, 48, 60, 72, 96, 128, 192 };
 
   private static String CURRENT_STRING = DEFAULT_STRING;
@@ -57,8 +57,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   private JPanel panel;
   private Font font;
 
-  public TtfResource(ResourceEntry entry) throws Exception
-  {
+  public TtfResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
 
     try (InputStream is = this.entry.getResourceDataAsStream()) {
@@ -74,21 +73,19 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     }
   }
 
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     JLabel lInput = new JLabel("Sample text:");
     tfInput = new JTextField();
     if (!CURRENT_STRING.equals(DEFAULT_STRING)) {
@@ -98,11 +95,11 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
 
     JPanel pInput = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 8, 8, 0), 0, 0);
     pInput.add(lInput, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 8), 0, 0);
     pInput.add(tfInput, gbc);
 
     tpDisplay = new JTextPane(new DefaultStyledDocument());
@@ -116,10 +113,10 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
-    buttonPanel.addControl(bProperties, Properties);
+    buttonPanel.addControl(bProperties, PROPERTIES);
 
     panel = new JPanel(new BorderLayout());
     panel.add(pInput, BorderLayout.NORTH);
@@ -129,27 +126,25 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     return panel;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
       showProperties();
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   @Override
-  public void insertUpdate(DocumentEvent event)
-  {
+  public void insertUpdate(DocumentEvent event) {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
@@ -157,8 +152,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   }
 
   @Override
-  public void removeUpdate(DocumentEvent event)
-  {
+  public void removeUpdate(DocumentEvent event) {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
@@ -166,25 +160,23 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   }
 
   @Override
-  public void changedUpdate(DocumentEvent event)
-  {
+  public void changedUpdate(DocumentEvent event) {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
     }
   }
 
-//--------------------- Begin Interface DocumentListener ---------------------
+  // --------------------- Begin Interface DocumentListener ---------------------
 
   // Updates text display
-  private void updateText(String text)
-  {
+  private void updateText(String text) {
     if (text == null || text.isEmpty()) {
       text = DEFAULT_STRING;
     }
     CURRENT_STRING = text;
 
-    DefaultStyledDocument doc = (DefaultStyledDocument)tpDisplay.getDocument();
+    DefaultStyledDocument doc = (DefaultStyledDocument) tpDisplay.getDocument();
     if (doc != null) {
       // removing old content
       if (doc.getLength() > 0) {
@@ -197,8 +189,8 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
 
       // adding current text in different sizes
       int pos = 0;
-      for (int i = 0; i < FONT_SIZE.length; i++) {
-        String label = Integer.toString(FONT_SIZE[i]) + "    ";
+      for (int element : FONT_SIZE) {
+        String label = Integer.toString(element) + "    ";
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setFontFamily(as, "SansSerif");
         StyleConstants.setFontSize(as, FONT_SIZE[0]);
@@ -211,7 +203,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
 
         as = new SimpleAttributeSet();
         StyleConstants.setFontFamily(as, font.getFamily());
-        StyleConstants.setFontSize(as, FONT_SIZE[i]);
+        StyleConstants.setFontSize(as, element);
         try {
           doc.insertString(pos, CURRENT_STRING, as);
           pos += CURRENT_STRING.length();
@@ -226,8 +218,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   }
 
   // Shows message box about basic resource properties
-  private void showProperties()
-  {
+  private void showProperties() {
     String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
     String fontName = font.getFontName();
     String fontFamily = font.getFamily();
@@ -236,7 +227,6 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     sb.append("<tr><td>Font name:</td><td>").append(fontName).append("</td></tr>");
     sb.append("<tr><td>Font family:</td><td>").append(fontFamily).append("</td></tr>");
     sb.append("</table></html>");
-    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
-                                  JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 }

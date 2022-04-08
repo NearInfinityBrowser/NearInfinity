@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -21,9 +21,7 @@ import java.awt.event.FocusListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,6 +38,7 @@ import javax.swing.UIManager;
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Profile.Key;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.tuples.Couple;
@@ -47,8 +46,7 @@ import org.infinity.util.tuples.Couple;
 /**
  * Display verbose information about the currently selected game.
  */
-public final class GameProperties extends ChildFrame implements ActionListener
-{
+public final class GameProperties extends ChildFrame implements ActionListener {
   private static final EnumMap<Profile.Key, String> RES_TYPES = new EnumMap<>(Profile.Key.class);
 
   static {
@@ -135,17 +133,15 @@ public final class GameProperties extends ChildFrame implements ActionListener
   private final JButton bClose = new JButton("Close");
   private final JButton bEdit = new JButton("Edit...");
 
-  public GameProperties(Window owner)
-  {
+  public GameProperties(Window owner) {
     super("Game Properties", true);
     init();
   }
 
-  //--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bClose) {
       setVisible(false);
     } else if (event.getSource() == bEdit) {
@@ -153,10 +149,9 @@ public final class GameProperties extends ChildFrame implements ActionListener
     }
   }
 
-  //--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-  private void init()
-  {
+  private void init() {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setLayout(new BorderLayout());
     GridBagConstraints gbc = new GridBagConstraints();
@@ -168,7 +163,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
 
     // Entry: game type
     s = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
-    if ((Boolean)Profile.getProperty(Profile.Key.IS_FORCED_GAME)) {
+    if ((Boolean) Profile.getProperty(Profile.Key.IS_FORCED_GAME)) {
       s = s + " (enforced)";
     }
     l = new JLabel("Game type:");
@@ -197,7 +192,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
       List<Path> dlcPaths = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
       if (dlcPaths != null && !dlcPaths.isEmpty()) {
         StringBuilder sb = new StringBuilder();
-        for (final Path dlcPath: dlcPaths) {
+        for (final Path dlcPath : dlcPaths) {
           if (sb.length() > 0) {
             sb.append("; ");
           }
@@ -216,7 +211,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
         sb.append(String.format("Autodetect (%s)", getLanguageName(s)));
       }
       if (languages != null) {
-        for (final String lang: languages) {
+        for (final String lang : languages) {
           if (lang != null && !lang.isEmpty()) {
             sb.append(String.format(", %s", getLanguageName(lang)));
           }
@@ -244,27 +239,26 @@ public final class GameProperties extends ChildFrame implements ActionListener
     Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
     s = (iniFile != null) ? iniFile.toString() : "n/a";
     tf = createReadOnlyField(s, true);
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pIni.add(tf, gbc);
     bEdit.setMargin(new Insets(2, 4, 2, 4));
     bEdit.addActionListener(this);
     bEdit.setEnabled(iniFile != null && FileEx.create(iniFile).isFile());
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pIni.add(bEdit, gbc);
     listControls.add(Couple.with(l, pIni));
 
     // adding controls from listControls to dialog
     JPanel pFixed = new JPanel(new GridBagLayout());
     int row = 0;
-    for (final Iterator<Couple<JComponent, JComponent>> iter = listControls.iterator(); iter.hasNext();) {
-      Couple<JComponent, JComponent> pair = iter.next();
-      gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    for (Couple<JComponent, JComponent> pair : listControls) {
+      gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 0), 0, 0);
       pFixed.add(pair.getValue0(), gbc);
-      gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+      gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 0, 0), 0, 0);
       pFixed.add(pair.getValue1(), gbc);
       row++;
     }
@@ -282,8 +276,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     List<JLabel> listTypes = new ArrayList<>();
     int maxWidth = 0, maxHeight = 0;
     // preparing entries
-    for (Iterator<Profile.Key> iter = RES_TYPES.keySet().iterator(); iter.hasNext();) {
-      Profile.Key key = iter.next();
+    for (Key key : RES_TYPES.keySet()) {
       if (key != null) {
         JLabel label = createCheckLabel(key, RES_TYPES.get(key));
         maxWidth = Math.max(maxWidth, label.getPreferredSize().width);
@@ -292,29 +285,22 @@ public final class GameProperties extends ChildFrame implements ActionListener
       }
     }
 
-    Collections.sort(listTypes, new Comparator<JLabel>() {
-      @Override
-      public int compare(JLabel o1, JLabel o2)
-      {
-        return o1.getText().compareToIgnoreCase(o2.getText());
-      }
-    });
+    Collections.sort(listTypes, (o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
 
     // setting preferred size to fit all entries
     int itemsPerRow = pFixed.getPreferredSize().width / (maxWidth + flow.getHgap());
     if (pFixed.getPreferredSize().width % (maxWidth + flow.getHgap()) > (maxWidth / 2)) {
-      itemsPerRow++;  // prevent bigger gaps on the right side
+      itemsPerRow++; // prevent bigger gaps on the right side
     }
     itemsPerRow = Math.max(itemsPerRow, 4);
     int numCols = ((listTypes.size() + itemsPerRow - 1) / itemsPerRow);
-    int panelWidth = itemsPerRow * (maxWidth + flow.getHgap()) + flow.getHgap() +
-                     pSupportList.getInsets().left + pSupportList.getInsets().right;
-    int panelHeight = numCols*(maxHeight + flow.getVgap()) + flow.getVgap() +
-                      pSupportList.getInsets().top + pSupportList.getInsets().bottom;
+    int panelWidth = itemsPerRow * (maxWidth + flow.getHgap()) + flow.getHgap() + pSupportList.getInsets().left
+        + pSupportList.getInsets().right;
+    int panelHeight = numCols * (maxHeight + flow.getVgap()) + flow.getVgap() + pSupportList.getInsets().top
+        + pSupportList.getInsets().bottom;
     pSupportList.setPreferredSize(new Dimension(panelWidth, panelHeight));
     // adding entries to GUI
-    for (Iterator<JLabel> iter = listTypes.iterator(); iter.hasNext();) {
-      JLabel label = iter.next();
+    for (JLabel label : listTypes) {
       Dimension d = label.getPreferredSize();
       d.width = maxWidth;
       label.setPreferredSize(d);
@@ -322,39 +308,39 @@ public final class GameProperties extends ChildFrame implements ActionListener
     }
     // creating actual panel for supported resource types
     JPanel pSupport = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pSupport.add(new JLabel("Supported resource types:"), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pSupport.add(new JPanel(), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 0, 0, 0), 0, 0);
     pSupport.add(pSupportList, gbc);
 
     // adding close button
     JPanel pButton = new JPanel(new GridBagLayout());
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pButton.add(new JPanel(), gbc);
     bClose.addActionListener(this);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButton.add(bClose, gbc);
     gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pButton.add(new JPanel(), gbc);
 
     // putting everything together
     JPanel pMain = new JPanel(new GridBagLayout());
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pFixed, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pSupport, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     pMain.add(pButton, gbc);
 
     add(pMain, BorderLayout.CENTER);
@@ -367,8 +353,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Returns the name of the language specified by the given language code
-  private static String getLanguageName(String langCode)
-  {
+  private static String getLanguageName(String langCode) {
     if (langCode != null && langCode.matches("[a-z]{2}_[A-Z]{2}")) {
       String lang[] = langCode.split("_");
       if (lang.length >= 2) {
@@ -382,21 +367,19 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Creates a read-only text field, optionally with visible caret
-  private static JTextField createReadOnlyField(String text, boolean showCaret)
-  {
+  private static JTextField createReadOnlyField(String text, boolean showCaret) {
     JTextField tf = new JTextField();
     if (showCaret) {
       tf.addFocusListener(new FocusListener() {
         @Override
-        public void focusLost(FocusEvent e)
-        {
-          JTextField tf = (JTextField)e.getSource();
+        public void focusLost(FocusEvent e) {
+          JTextField tf = (JTextField) e.getSource();
           tf.getCaret().setVisible(false);
         }
+
         @Override
-        public void focusGained(FocusEvent e)
-        {
-          JTextField tf = (JTextField)e.getSource();
+        public void focusGained(FocusEvent e) {
+          JTextField tf = (JTextField) e.getSource();
           tf.getCaret().setVisible(true);
         }
       });
@@ -411,14 +394,13 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Creates a label with a graphical icon specifying checked or unchecked state
-  private static JLabel createCheckLabel(Profile.Key key, String desc)
-  {
+  private static JLabel createCheckLabel(Profile.Key key, String desc) {
     if (key != null && desc != null && Profile.getProperty(key) instanceof Boolean) {
       ImageIcon icon;
-      if ((Boolean)Profile.getProperty(key)) {
-        icon = Icons.getIcon(Icons.ICON_CHECK_16);
+      if ((Boolean) Profile.getProperty(key)) {
+        icon = Icons.ICON_CHECK_16.getIcon();
       } else {
-        icon = Icons.getIcon(Icons.ICON_CHECK_NOT_16);
+        icon = Icons.ICON_CHECK_NOT_16.getIcon();
       }
       JLabel label = new JLabel(desc, icon, SwingConstants.LEFT);
       label.setFont(new Font(Font.MONOSPACED, label.getFont().getStyle(), label.getFont().getSize()));

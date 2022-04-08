@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -39,10 +39,9 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.ResourceEntry;
 
-public final class AttributeSearcher extends AbstractSearcher implements Runnable, ActionListener
-{
+public final class AttributeSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;
-  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
+  private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_AGAIN_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbnot = new JCheckBox("Negate result");
@@ -57,15 +56,15 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
   private Pattern regPattern;
   private int searchNumber;
 
-  public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
-  {
+  public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent) {
     super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.structEntry = structEntry;
-    while (struct.getParent() != null)
+    while (struct.getParent() != null) {
       struct = struct.getParent();
+    }
     files = ResourceFactory.getResources(struct.getResourceEntry().getExtension());
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
-    inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    inputFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
     tfinput.setText(structEntry.toString());
     bsearch.addActionListener(this);
@@ -144,29 +143,26 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
     inputFrame.setVisible(true);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bsearch || event.getSource() == tfinput) {
       inputFrame.setVisible(false);
       new Thread(this).start();
-    }
-    else if (event.getSource() == rbexact)
+    } else if (event.getSource() == rbexact) {
       cbwhole.setEnabled(true);
-    else if (event.getSource() == rbless || event.getSource() == rbgreater)
+    } else if (event.getSource() == rbless || event.getSource() == rbgreater) {
       cbwhole.setEnabled(false);
+    }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     String title = structEntry.getName() + " - " + tfinput.getText();
     if (cbnot.isSelected()) {
       title = structEntry.getName() + " - not " + tfinput.getText();
@@ -227,30 +223,29 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
-        final AbstractStruct struct = (AbstractStruct)resource;
+        final AbstractStruct struct = (AbstractStruct) resource;
         for (final StructEntry searchEntry : struct.getFlatFields()) {
           // skipping fields located in different parent structures
           if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
             continue;
           }
 
-          if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||
-              searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
+          if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass()
+              || searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
             boolean hit = false;
             if (rbexact.isSelected()) {
               hit = regPattern.matcher(searchEntry.toString()).matches();
             } else if (rbless.isSelected()) {
-              hit = searchNumber > ((IsNumeric)searchEntry).getValue();
+              hit = searchNumber > ((IsNumeric) searchEntry).getValue();
             } else if (rbgreater.isSelected()) {
-              hit = searchNumber < ((IsNumeric)searchEntry).getValue();
+              hit = searchNumber < ((IsNumeric) searchEntry).getValue();
             }
 
             if (cbnot.isSelected()) {
@@ -289,8 +284,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
     };
   }
 
-  private synchronized void addHit(ResourceEntry entry, String name, StructEntry ref)
-  {
+  private synchronized void addHit(ResourceEntry entry, String name, StructEntry ref) {
     if (resultFrame != null) {
       resultFrame.addHit(entry, name, ref);
     }

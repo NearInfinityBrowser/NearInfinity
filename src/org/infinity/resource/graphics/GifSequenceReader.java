@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -30,23 +30,21 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class GifSequenceReader
-{
+public class GifSequenceReader {
   /**
-   * List of supported frame disposal methods.
-   * Unknown or unsupported methods are combined in {@code DoNotDispose}.
+   * List of supported frame disposal methods. Unknown or unsupported methods are combined in {@code DoNotDispose}.
    */
   public enum DisposalMethod {
-    DoNotDispose,
-    Background,
-    Previous,
+    DO_NOT_DISPOSE, BACKGROUND, PREVIOUS,
   }
 
-  private static final String metaFormatName = "javax_imageio_gif_image_1.0";
-  private static final HashSet<String> metaNodeNames = new HashSet<>();
+  private static final String META_FORMAT_NAME = "javax_imageio_gif_image_1.0";
+
+  private static final HashSet<String> META_NODE_NAME_SET = new HashSet<>();
+
   static {
-    metaNodeNames.add("ImageDescriptor");
-    metaNodeNames.add("GraphicControlExtension");
+    META_NODE_NAME_SET.add("ImageDescriptor");
+    META_NODE_NAME_SET.add("GraphicControlExtension");
   }
 
   private final ImageReader gifReader;
@@ -59,9 +57,10 @@ public class GifSequenceReader
    * @param inputStream the ImageInputStream to read data from.
    * @throws IOException if no input stream or gif reader is found.
    */
-  public GifSequenceReader(ImageInputStream inputStream) throws IOException
-  {
-    if (inputStream == null) { throw new IOException("No image input stream specified."); }
+  public GifSequenceReader(ImageInputStream inputStream) throws IOException {
+    if (inputStream == null) {
+      throw new IOException("No image input stream specified.");
+    }
     frames = new ArrayList<>();
     gifReader = getReader();
     gifReader.setInput(inputStream, false, false);
@@ -69,20 +68,20 @@ public class GifSequenceReader
   }
 
   /**
-   * Decodes the next available GIF frame. This and previously decoded frames can be access by
-   * {@code getFrame}.
-   * @return The Frame object initialized with frame data, or {@code null} if no more frames
-   *         are available.
+   * Decodes the next available GIF frame. This and previously decoded frames can be access by {@code getFrame}.
+   *
+   * @return The Frame object initialized with frame data, or {@code null} if no more frames are available.
    * @throws Exception When a read or decode error occurred.
    */
-  public Frame decode() throws Exception
-  {
+  public Frame decode() throws Exception {
     Frame retVal = null;
     if (frames.size() < numFrames) {
       int index = frames.size();
       IIOImage ioimg = gifReader.readAll(index, null);
       retVal = initFrame(index, ioimg);
-      if (retVal == null) { throw new Exception("Unable to decode GIF frame "+ index); }
+      if (retVal == null) {
+        throw new Exception("Unable to decode GIF frame " + index);
+      }
       frames.add(retVal);
     }
     return retVal;
@@ -90,11 +89,11 @@ public class GifSequenceReader
 
   /**
    * Decodes all remaining frames at once. Frames can be accessed afterwards by {@code getFrame}.
+   *
    * @return The number of frames decoded by this call.
    * @throws Exception When a read or decode error occurred.
    */
-  public int decodeAll() throws Exception
-  {
+  public int decodeAll() throws Exception {
     int count = 0;
     while (decode() != null) {
       count++;
@@ -105,34 +104,36 @@ public class GifSequenceReader
   /**
    * Returns the number of decoded GIF frames.
    */
-  public int getFrameCount()
-  {
+  public int getFrameCount() {
     return frames.size();
   }
 
   /**
    * Returns the decoded GIF frame at the specified index.
+   *
    * @param index frame index, starting at 0.
    */
-  public Frame getFrame(int index) throws IndexOutOfBoundsException
-  {
+  public Frame getFrame(int index) throws IndexOutOfBoundsException {
     return frames.get(index);
   }
 
-  private Frame initFrame(int index, IIOImage ioimg) throws Exception
-  {
-    if (ioimg == null) { throw new NullPointerException("img is null"); }
+  private Frame initFrame(int index, IIOImage ioimg) throws Exception {
+    if (ioimg == null) {
+      throw new NullPointerException("img is null");
+    }
 
     Frame frame = new Frame(index);
     Frame framePrev = (index > 0) ? frames.get(index - 1) : null;
     updateMetadata(frame, ioimg.getMetadata());
     RenderedImage rimg = ioimg.getRenderedImage();
-    if (rimg == null) { throw new Exception("No image data found"); }
+    if (rimg == null) {
+      throw new Exception("No image data found");
+    }
 
     // Converting RenderedImage into BufferedImage object
     BufferedImage gifImg = null;
     if (rimg instanceof BufferedImage) {
-      gifImg = (BufferedImage)rimg;
+      gifImg = (BufferedImage) rimg;
     } else {
       ColorModel cm = rimg.getColorModel();
       int width = rimg.getWidth();
@@ -141,7 +142,9 @@ public class GifSequenceReader
       boolean isAlphaPre = cm.isAlphaPremultiplied();
       Hashtable<String, Object> properties = new Hashtable<>();
       String[] keys = rimg.getPropertyNames();
-      for (String k: keys) { properties.put(k, rimg.getProperty(k)); }
+      for (String k : keys) {
+        properties.put(k, rimg.getProperty(k));
+      }
       gifImg = new BufferedImage(cm, raster, isAlphaPre, properties);
       gifImg.copyData(raster);
     }
@@ -149,29 +152,28 @@ public class GifSequenceReader
     BufferedImage bimg = null;
     Graphics2D g = null;
     if (framePrev != null) {
-      bimg = new BufferedImage(framePrev.getRenderedImage().getWidth(),
-                               framePrev.getRenderedImage().getHeight(),
-                               BufferedImage.TYPE_INT_ARGB);
+      bimg = new BufferedImage(framePrev.getRenderedImage().getWidth(), framePrev.getRenderedImage().getHeight(),
+          BufferedImage.TYPE_INT_ARGB);
       DisposalMethod dm = framePrev.getDisposalMethod();
 
       // Preparing canvas
       g = bimg.createGraphics();
       switch (dm) {
-        case DoNotDispose:  // Copy previous frame to current frame
+        case DO_NOT_DISPOSE: // Copy previous frame to current frame
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
           g.drawImage(framePrev.getRenderedImage(), null, 0, 0);
           break;
-        case Previous:      // Restore content from two frame ago
+        case PREVIOUS: // Restore content from two frame ago
           if (index > 1) {
             Frame fpp = frames.get(index - 2);
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
             g.drawImage(fpp.getRenderedImage(), null, 0, 0);
           }
           break;
-        case Background:    // Clear with background color
+        case BACKGROUND: // Clear with background color
           Color col = new Color(0, true);
           if (framePrev.getTransparentIndex() >= 0) {
-            IndexColorModel cm = (IndexColorModel)framePrev.getImage().getColorModel();
+            IndexColorModel cm = (IndexColorModel) framePrev.getImage().getColorModel();
             col = new Color(cm.getRGB(framePrev.getTransparentIndex()), true);
           }
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
@@ -200,10 +202,9 @@ public class GifSequenceReader
   }
 
   // Updates the specified Frame object with metadata
-  private Frame updateMetadata(Frame frame, IIOMetadata meta)
-  {
+  private Frame updateMetadata(Frame frame, IIOMetadata meta) {
     if (frame != null && meta != null) {
-      Node tree = meta.getAsTree(metaFormatName);
+      Node tree = meta.getAsTree(META_FORMAT_NAME);
       NodeList children = tree.getChildNodes();
       for (int i = 0; i < children.getLength(); i++) {
         Node child = children.item(i);
@@ -221,13 +222,13 @@ public class GifSequenceReader
             if (n != null) {
               switch (n.getNodeValue()) {
                 case "restoreToBackgroundColor":
-                  frame.disposal = DisposalMethod.Background;
+                  frame.disposal = DisposalMethod.BACKGROUND;
                   break;
                 case "restoreToPrevious":
-                  frame.disposal = DisposalMethod.Previous;
+                  frame.disposal = DisposalMethod.PREVIOUS;
                   break;
                 default:
-                  frame.disposal = DisposalMethod.DoNotDispose;
+                  frame.disposal = DisposalMethod.DO_NOT_DISPOSE;
                   break;
               }
             }
@@ -244,8 +245,7 @@ public class GifSequenceReader
     return frame;
   }
 
-  private int getIntValue(Node node)
-  {
+  private int getIntValue(Node node) {
     int retVal = 0;
     if (node != null) {
       try {
@@ -256,8 +256,7 @@ public class GifSequenceReader
     return retVal;
   }
 
-  private boolean getBoolValue(Node node)
-  {
+  private boolean getBoolValue(Node node) {
     boolean retVal = false;
     if (node != null) {
       retVal = Boolean.parseBoolean(node.getNodeValue());
@@ -265,8 +264,7 @@ public class GifSequenceReader
     return retVal;
   }
 
-  private static ImageReader getReader() throws IOException
-  {
+  private static ImageReader getReader() throws IOException {
     Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix("gif");
     if (!iter.hasNext()) {
       throw new IOException("No GIF image readers exist");
@@ -275,51 +273,69 @@ public class GifSequenceReader
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public static class Frame
-  {
+  public static class Frame {
     private int index;
-    private BufferedImage image, renderedImage;
+    private BufferedImage image;
+    private BufferedImage renderedImage;
     private Rectangle rect;
     private int delay;
     private DisposalMethod disposal;
     private int transIndex;
-    private boolean userInput, interlaced;
+    private boolean userInput;
+    private boolean interlaced;
 
-    Frame(int index)
-    {
+    Frame(int index) {
       this.index = index;
       this.rect = new Rectangle();
-      this.disposal = DisposalMethod.DoNotDispose;
+      this.disposal = DisposalMethod.DO_NOT_DISPOSE;
       this.transIndex = -1;
     }
 
     /** Returns the frame index within the GIF animation sequence. */
-    public int getIndex() { return index; }
+    public int getIndex() {
+      return index;
+    }
 
     /** Returns the unprocessed image of the frame. */
-    public BufferedImage getImage() { return image; }
+    public BufferedImage getImage() {
+      return image;
+    }
 
     /** Returns the correctly rendered image relative to neighboring frames. */
-    public BufferedImage getRenderedImage() { return renderedImage; }
+    public BufferedImage getRenderedImage() {
+      return renderedImage;
+    }
 
     /** Returns position and size of the frame relative to global animation size. */
-    public Rectangle getRect() { return rect; }
+    public Rectangle getRect() {
+      return rect;
+    }
 
     /** Returns the time to display this frame. */
-    public int getDelay() { return delay; }
+    public int getDelay() {
+      return delay;
+    }
 
     /** Returns the disposal method used to prepare for the next frame. */
-    public DisposalMethod getDisposalMethod() { return disposal; }
+    public DisposalMethod getDisposalMethod() {
+      return disposal;
+    }
 
     /** Returns the transparent palette index, or -1 if not present. */
-    public int getTransparentIndex() { return transIndex; }
+    public int getTransparentIndex() {
+      return transIndex;
+    }
 
     /** Returns the user input flag. */
-    public boolean isUserInput() { return userInput; }
+    public boolean isUserInput() {
+      return userInput;
+    }
 
     /** Returns whether frame data is encoded in interlaced mode. */
-    public boolean isInterlaced() { return interlaced; }
+    public boolean isInterlaced() {
+      return interlaced;
+    }
   }
 }

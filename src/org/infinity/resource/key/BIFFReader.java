@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -22,22 +22,20 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Provides read operations for uncompressed BIFF V1 archives.
  */
-public class BIFFReader extends AbstractBIFFReader
-{
+public class BIFFReader extends AbstractBIFFReader {
   private final WindowBlocker blocker;
 
-  private int numFiles, numTilesets;
+  private int numFiles;
+  private int numTilesets;
 
-  protected BIFFReader(Path file) throws Exception
-  {
+  protected BIFFReader(Path file) throws Exception {
     super(file);
     this.blocker = new WindowBlocker(NearInfinity.getInstance());
     open();
   }
 
   @Override
-  public synchronized void open() throws Exception
-  {
+  public synchronized void open() throws Exception {
     try (FileChannel channel = FileChannel.open(getFile(), StandardOpenOption.READ)) {
       String sigver = StreamUtils.readString(channel, 8);
       if (!"BIFFV1  ".equals(sigver)) {
@@ -46,7 +44,7 @@ public class BIFFReader extends AbstractBIFFReader
       this.numFiles = StreamUtils.readInt(channel);
       this.numTilesets = StreamUtils.readInt(channel);
       int ofsFiles = StreamUtils.readInt(channel);
-      ByteBuffer bb = StreamUtils.getByteBuffer(this.numFiles*0x10 + this.numTilesets*0x14);
+      ByteBuffer bb = StreamUtils.getByteBuffer(this.numFiles * 0x10 + this.numTilesets * 0x14);
       channel.position(ofsFiles);
       channel.read(bb);
       bb.position(0);
@@ -55,36 +53,31 @@ public class BIFFReader extends AbstractBIFFReader
   }
 
   @Override
-  public Type getType()
-  {
+  public Type getType() {
     return Type.BIFF;
   }
 
   @Override
-  public int getFileCount()
-  {
+  public int getFileCount() {
     return numFiles;
   }
 
   @Override
-  public int getTilesetCount()
-  {
+  public int getTilesetCount() {
     return numTilesets;
   }
 
   @Override
-  public int getBIFFSize()
-  {
+  public int getBIFFSize() {
     try {
-      return (int)Files.size(getFile());
+      return (int) Files.size(getFile());
     } catch (IOException e) {
     }
     return -1;
   }
 
   @Override
-  public ByteBuffer getResourceBuffer(int locator) throws IOException
-  {
+  public ByteBuffer getResourceBuffer(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry == null) {
       throw new IOException("Resource not found");
@@ -95,7 +88,7 @@ public class BIFFReader extends AbstractBIFFReader
       channel.position(entry.offset);
       if (entry.isTile) {
         ByteBuffer header = getTisHeader(entry.count, entry.size);
-        int remaining = entry.count*entry.size + header.limit();
+        int remaining = entry.count * entry.size + header.limit();
         if (remaining > 1000000) {
           blocker.setBlocked(true);
         }
@@ -103,13 +96,15 @@ public class BIFFReader extends AbstractBIFFReader
           buffer = StreamUtils.getByteBuffer(remaining);
           StreamUtils.copyBytes(header, buffer, header.limit());
           remaining -= header.limit();
-          while (channel.read(buffer) > 0) {}
+          while (channel.read(buffer) > 0) {
+          }
         } finally {
           blocker.setBlocked(false);
         }
       } else {
         buffer = StreamUtils.getByteBuffer(entry.size);
-        while (channel.read(buffer) > 0) {}
+        while (channel.read(buffer) > 0) {
+        }
       }
 
       buffer.position(0);
@@ -118,15 +113,14 @@ public class BIFFReader extends AbstractBIFFReader
   }
 
   @Override
-  public InputStream getResourceAsStream(int locator) throws IOException
-  {
+  public InputStream getResourceAsStream(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry == null) {
       throw new IOException("Resource not found");
     }
 
     try (FileChannel channel = FileChannel.open(getFile(), StandardOpenOption.READ)) {
-      int size = entry.isTile ? entry.count*entry.size : entry.size;
+      int size = entry.isTile ? entry.count * entry.size : entry.size;
       ByteBuffer buffer = channel.map(MapMode.READ_ONLY, entry.offset, size).order(ByteOrder.LITTLE_ENDIAN);
       InputStream is;
       if (entry.isTile) {
@@ -139,8 +133,7 @@ public class BIFFReader extends AbstractBIFFReader
     }
   }
 
-  private void init(ByteBuffer buffer, int numFiles, int numTilesets)
-  {
+  private void init(ByteBuffer buffer, int numFiles, int numTilesets) {
     // reading file entries
     for (int i = 0; i < numFiles; i++) {
       int locator = buffer.getInt() & 0xfffff;

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.chu;
@@ -61,12 +61,12 @@ import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.util.StringTable;
 
-
-final class Viewer extends JPanel implements ActionListener, TableModelListener, ListSelectionListener,
-                                             ChangeListener, MouseListener
-{
+final class Viewer extends JPanel
+    implements ActionListener, TableModelListener, ListSelectionListener, ChangeListener, MouseListener {
   /** Supported control types. */
-  public enum ControlType { UNKNOWN, BUTTON, SLIDER, TEXT_FIELD, TEXT_AREA, LABEL, SCROLL_BAR }
+  public enum ControlType {
+    UNKNOWN, BUTTON, SLIDER, TEXT_FIELD, TEXT_AREA, LABEL, SCROLL_BAR
+  }
 
   private final ChuResource chu;
 
@@ -75,66 +75,81 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   private ListControlsModel controlsModel;
   private JList<Panel> panelsList;
   private JList<BaseControl> controlsList;
-  private JCheckBox cbTransparentPanel, cbOutlineControls;
+  private JCheckBox cbTransparentPanel;
+  private JCheckBox cbOutlineControls;
   private PropertiesPanel pProperties;
 
   /** Converts a control id into a ControlType enum. */
-  public static ControlType getControlType(int type)
-  {
+  public static ControlType getControlType(int type) {
     switch (type) {
-      case 0:  return ControlType.BUTTON;
-      case 2:  return ControlType.SLIDER;
-      case 3:  return ControlType.TEXT_FIELD;
-      case 5:  return ControlType.TEXT_AREA;
-      case 6:  return ControlType.LABEL;
-      case 7:  return ControlType.SCROLL_BAR;
-      default: return ControlType.UNKNOWN;
+      case 0:
+        return ControlType.BUTTON;
+      case 2:
+        return ControlType.SLIDER;
+      case 3:
+        return ControlType.TEXT_FIELD;
+      case 5:
+        return ControlType.TEXT_AREA;
+      case 6:
+        return ControlType.LABEL;
+      case 7:
+        return ControlType.SCROLL_BAR;
+      default:
+        return ControlType.UNKNOWN;
     }
   }
 
   /** Converts a ControlType enum into a control id. */
-  public static int getControlId(ControlType type)
-  {
+  public static int getControlId(ControlType type) {
     switch (type) {
-      case BUTTON:      return 0;
-      case SLIDER:      return 2;
-      case TEXT_FIELD:   return 3;
-      case TEXT_AREA:    return 5;
-      case LABEL:       return 6;
-      case SCROLL_BAR:   return 7;
-      default:          return -1;
+      case BUTTON:
+        return 0;
+      case SLIDER:
+        return 2;
+      case TEXT_FIELD:
+        return 3;
+      case TEXT_AREA:
+        return 5;
+      case LABEL:
+        return 6;
+      case SCROLL_BAR:
+        return 7;
+      default:
+        return -1;
     }
   }
 
   /** Returns a control object of the given type. */
-  public static BaseControl createControl(Viewer viewer, Control control)
-  {
+  public static BaseControl createControl(Viewer viewer, Control control) {
     ControlType type = (control != null) ? getControlType(control.getControlType()) : ControlType.UNKNOWN;
     switch (type) {
-      case BUTTON:      return new ButtonControl(viewer, control);
-      case SLIDER:      return new SliderControl(viewer, control);
-      case TEXT_FIELD:   return new TextFieldControl(viewer, control);
-      case TEXT_AREA:    return new TextAreaControl(viewer, control);
-      case LABEL:       return new LabelControl(viewer, control);
-      case SCROLL_BAR:   return new ScrollBarControl(viewer, control);
-      default:          return new UnknownControl(viewer, control);
+      case BUTTON:
+        return new ButtonControl(viewer, control);
+      case SLIDER:
+        return new SliderControl(viewer, control);
+      case TEXT_FIELD:
+        return new TextFieldControl(viewer, control);
+      case TEXT_AREA:
+        return new TextAreaControl(viewer, control);
+      case LABEL:
+        return new LabelControl(viewer, control);
+      case SCROLL_BAR:
+        return new ScrollBarControl(viewer, control);
+      default:
+        return new UnknownControl(viewer, control);
     }
   }
 
-
-
-  public Viewer(ChuResource chu)
-  {
+  public Viewer(ChuResource chu) {
     this.chu = chu;
     this.chu.addTableModelListener(this);
     initControls();
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == cbOutlineControls) {
       // updating main display
       Panel p = getSelectedPanel();
@@ -148,13 +163,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface TableModelListener ---------------------
+  // --------------------- Begin Interface TableModelListener ---------------------
 
   @Override
-  public void tableChanged(TableModelEvent e)
-  {
+  public void tableChanged(TableModelEvent e) {
     if (e.getSource() == getResource()) {
       // updating viewer elements
       Panel p = getSelectedPanel();
@@ -163,13 +177,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-//--------------------- End Interface TableModelListener ---------------------
+  // --------------------- End Interface TableModelListener ---------------------
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e)
-  {
+  public void valueChanged(ListSelectionEvent e) {
     if (e.getSource() == panelsList) {
       Panel p = getSelectedPanel();
       if (p != null) {
@@ -195,13 +208,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
+  public void stateChanged(ChangeEvent e) {
     if (e.getSource() == pProperties) {
       // updating main display to reflect changes in control properties
       Panel p = getSelectedPanel();
@@ -215,13 +227,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface MouseListener ---------------------
+  // --------------------- Begin Interface MouseListener ---------------------
 
   @Override
-  public void mouseClicked(MouseEvent e)
-  {
+  public void mouseClicked(MouseEvent e) {
     if (e.getSource() == panelsList) {
       if (e.getClickCount() == 2 && !e.isConsumed()) {
         Panel p = panelsList.getSelectedValue();
@@ -250,94 +261,80 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   }
 
   @Override
-  public void mousePressed(MouseEvent e)
-  {
+  public void mousePressed(MouseEvent e) {
   }
 
   @Override
-  public void mouseReleased(MouseEvent e)
-  {
+  public void mouseReleased(MouseEvent e) {
   }
 
   @Override
-  public void mouseEntered(MouseEvent e)
-  {
+  public void mouseEntered(MouseEvent e) {
   }
 
   @Override
-  public void mouseExited(MouseEvent e)
-  {
+  public void mouseExited(MouseEvent e) {
   }
 
-//--------------------- End Interface MouseListener ---------------------
+  // --------------------- End Interface MouseListener ---------------------
 
   /** Returns the associated ChuResource instance. */
-  public ChuResource getResource()
-  {
+  public ChuResource getResource() {
     return chu;
   }
 
   /** Returns whether to make the panel background transparent if no bg image is available. */
-  boolean isTransparentBackground()
-  {
+  boolean isTransparentBackground() {
     return cbTransparentPanel.isSelected();
   }
 
   /** Returns the currently active panel. */
-  Panel getSelectedPanel()
-  {
+  Panel getSelectedPanel() {
     Object o = panelsModel.getElementAt(panelsList.getSelectedIndex());
     if (o instanceof Panel) {
-      return (Panel)o;
+      return (Panel) o;
     } else {
       return null;
     }
   }
 
   /** Returns the currently active control. */
-  BaseControl getSelectedControl()
-  {
+  BaseControl getSelectedControl() {
     Object o = controlsModel.getElementAt(controlsList.getSelectedIndex());
     if (o instanceof BaseControl) {
-      return (BaseControl)o;
+      return (BaseControl) o;
     } else {
       return null;
     }
   }
 
   /** Returns the current properties panel instance. */
-  PropertiesPanel getProperties()
-  {
+  PropertiesPanel getProperties() {
     return pProperties;
   }
 
   /** Returns the controls model. */
-  ListControlsModel getControls()
-  {
+  ListControlsModel getControls() {
     return controlsModel;
   }
 
   /** Returns whether the specified control is currently selected. */
-  boolean isControlSelected(BaseControl control)
-  {
+  boolean isControlSelected(BaseControl control) {
     return (control == controlsModel.getElementAt(controlsList.getSelectedIndex()));
   }
 
   /** Returns whether to draw boxes around controls. */
-  boolean isControlOutlined()
-  {
+  boolean isControlOutlined() {
     return cbOutlineControls.isSelected();
   }
 
   // Update preview image
-  private void setPreview(Image image)
-  {
+  private void setPreview(Image image) {
     rcMain.setImage(image);
     rcMain.revalidate();
   }
 
-  private void initControls()
-  {
+  private void initControls() {
     setLayout(new GridBagLayout());
 
     GridBagConstraints gbc = new GridBagConstraints();
@@ -350,8 +347,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     rcMain = new RenderCanvas();
     rcMain.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(rcMain, gbc);
 
     // creating side panel
@@ -369,7 +366,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     cbTransparentPanel.addActionListener(this);
 
     JLabel lControls = new JLabel("Controls:");
-    controlsModel = new ListControlsModel(this, null);    // assigning resource later
+    controlsModel = new ListControlsModel(this, null); // assigning resource later
     controlsList = new JList<>(controlsModel);
     controlsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     controlsList.addListSelectionListener(this);
@@ -383,35 +380,35 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     pProperties.addChangeListener(this);
 
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
     pSideBar.add(lPanels, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.75, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 8, 0, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.75, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 8, 0, 8), 0, 0);
     pSideBar.add(spPanels, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
     pSideBar.add(cbTransparentPanel, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(16, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(16, 8, 0, 8), 0, 0);
     pSideBar.add(lControls, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.25, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 8, 0, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.25, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 8, 0, 8), 0, 0);
     pSideBar.add(spControls, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
     pSideBar.add(cbOutlineControls, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(16, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(16, 8, 0, 8), 0, 0);
     pSideBar.add(pProperties, gbc);
 
     // putting all together
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 0), 0, 0);
     add(spMain, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 8), 0, 0);
     add(pSideBar, gbc);
 
     // selecting first available panel
@@ -420,17 +417,14 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-
-//----------------------------- INNER CLASSES -----------------------------
+  // ----------------------------- INNER CLASSES -----------------------------
 
   // Data model for the panels list
-  private class ListPanelsModel extends AbstractListModel<Panel>
-  {
+  private class ListPanelsModel extends AbstractListModel<Panel> {
     private final List<Panel> listPanels = new ArrayList<>();
     private final Viewer viewer;
 
-    public ListPanelsModel(Viewer viewer)
-    {
+    public ListPanelsModel(Viewer viewer) {
       super();
       this.viewer = viewer;
 
@@ -439,17 +433,15 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    //--------------------- Begin Interface ListModel ---------------------
+    // --------------------- Begin Interface ListModel ---------------------
 
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return listPanels.size();
     }
 
     @Override
-    public Panel getElementAt(int index)
-    {
+    public Panel getElementAt(int index) {
       if (index >= 0 && index < listPanels.size()) {
         return listPanels.get(index);
       } else {
@@ -457,59 +449,50 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    //--------------------- End Interface ListModel ---------------------
+    // --------------------- End Interface ListModel ---------------------
 
-    public Viewer getViewer()
-    {
+    public Viewer getViewer() {
       return viewer;
     }
 
-    public ChuResource getResource()
-    {
+    public ChuResource getResource() {
       return getViewer().getResource();
     }
   }
 
-
   // Data model for the controls list
-  private class ListControlsModel extends AbstractListModel<BaseControl>
-  {
+  private class ListControlsModel extends AbstractListModel<BaseControl> {
     private final List<BaseControl> listControls = new ArrayList<>();
     private final Viewer viewer;
 
     private Window panel;
 
-    public ListControlsModel(Viewer viewer, Window panel)
-    {
+    public ListControlsModel(Viewer viewer, Window panel) {
       super();
       this.viewer = viewer;
       setResource(panel);
     }
 
-    //--------------------- Begin Interface ListModel ---------------------
+    // --------------------- Begin Interface ListModel ---------------------
 
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return listControls.size();
     }
 
     @Override
-    public BaseControl getElementAt(int index)
-    {
+    public BaseControl getElementAt(int index) {
       return getEntry(index);
     }
 
-    //--------------------- End Interface ListModel ---------------------
+    // --------------------- End Interface ListModel ---------------------
 
-    public Viewer getViewer()
-    {
+    public Viewer getViewer() {
       return viewer;
     }
 
     /** Apply new Window object and reset model data. */
-    public void setResource(Window panel)
-    {
+    public void setResource(Window panel) {
       if (panel != this.panel) {
         int oldSize = getSize();
         clearList();
@@ -523,29 +506,27 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         // notifying changed items
         int numChanged = Math.min(oldSize, getSize());
         if (numChanged > 1) {
-          fireContentsChanged(this, 1, numChanged-1);
+          fireContentsChanged(this, 1, numChanged - 1);
         }
 
         // notifying added/removed items
         int numAdded = getSize() - oldSize;
         if (numAdded > 0) {
-          fireIntervalAdded(this, numChanged, numChanged+numAdded-1);
+          fireIntervalAdded(this, numChanged, numChanged + numAdded - 1);
         } else if (numAdded < 0) {
           numAdded = -numAdded;
-          fireIntervalRemoved(this, numChanged, numChanged+numAdded-1);
+          fireIntervalRemoved(this, numChanged, numChanged + numAdded - 1);
         }
       }
     }
 
     /** Return currently assigned Window object. */
-    public Window getResource()
-    {
+    public Window getResource() {
       return panel;
     }
 
     // use cache to return given control
-    private BaseControl getEntry(int index)
-    {
+    private BaseControl getEntry(int index) {
       if (index >= 0 && index < getSize()) {
         return listControls.get(index);
       } else {
@@ -553,8 +534,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    private void clearList()
-    {
+    private void clearList() {
       BaseControl empty;
       if (listControls.isEmpty()) {
         empty = new UnknownControl(getViewer(), null);
@@ -562,14 +542,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         empty = listControls.get(0);
       }
       listControls.clear();
-      listControls.add(empty);   // first entry is special
+      listControls.add(empty); // first entry is special
     }
   }
 
-
   // Manages the Control Properties panel
-  private static class PropertiesPanel extends JPanel implements ActionListener
-  {
+  private static class PropertiesPanel extends JPanel implements ActionListener {
     // Format strings used to display common properties of a control
     private static final String FMT_POSITION = "X: %d, Y: %d";
     private static final String FMT_SIZE = "W: %d, H: %d";
@@ -577,30 +555,31 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private final List<ChangeListener> listeners = new ArrayList<>();
     private final JRadioButton[] rbButtonState = new JRadioButton[4];
 
-    private JLabel lPosition, lSize;
+    private JLabel lPosition;
+    private JLabel lSize;
     private JPanel pControl;
     private CardLayout clControl;
-    private JCheckBox cbVisible, cbSliderGrabbed, cbTextFieldCaret, cbScrollBarUpState,
-                      cbScrollBarDownState;
+    private JCheckBox cbVisible;
+    private JCheckBox cbSliderGrabbed;
+    private JCheckBox cbTextFieldCaret;
+    private JCheckBox cbScrollBarUpState;
+    private JCheckBox cbScrollBarDownState;
 
-    public PropertiesPanel()
-    {
+    public PropertiesPanel() {
       super();
       init();
     }
 
-  //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       fireStateChanged();
     }
 
-  //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
-    public void addChangeListener(ChangeListener l)
-    {
+    public void addChangeListener(ChangeListener l) {
       if (l != null) {
         if (listeners.indexOf(l) < 0) {
           listeners.add(l);
@@ -608,19 +587,18 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-//    public void removeChangeListener(ChangeListener l)
-//    {
-//      if (l != null) {
-//        int idx = listeners.indexOf(l);
-//        if (idx >= 0) {
-//          listeners.remove(idx);
-//        }
-//      }
-//    }
+    // public void removeChangeListener(ChangeListener l)
+    // {
+    // if (l != null) {
+    // int idx = listeners.indexOf(l);
+    // if (idx >= 0) {
+    // listeners.remove(idx);
+    // }
+    // }
+    // }
 
     /** Display the properties panel for the given control type. */
-    public void showPanel(ControlType type)
-    {
+    public void showPanel(ControlType type) {
       switch (type) {
         case BUTTON:
         case SLIDER:
@@ -637,8 +615,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    public void updateProperties(BaseControl control)
-    {
+    public void updateProperties(BaseControl control) {
       if (control != null && control.getResource() != null) {
         // setting common fields
         lPosition.setText(String.format(FMT_POSITION, control.getPosition().x, control.getPosition().y));
@@ -648,7 +625,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
         // setting specialized fields
         if (control instanceof ButtonControl) {
-          ButtonControl c = (ButtonControl)control;
+          ButtonControl c = (ButtonControl) control;
           if (c.isUnpressed()) {
             setButtonUnpressed();
           } else if (c.isPressed()) {
@@ -659,13 +636,13 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             setButtonDisabled();
           }
         } else if (control instanceof SliderControl) {
-          SliderControl c = (SliderControl)control;
+          SliderControl c = (SliderControl) control;
           setSliderGrabbed(c.isGrabbed());
         } else if (control instanceof TextFieldControl) {
-          TextFieldControl c = (TextFieldControl)control;
+          TextFieldControl c = (TextFieldControl) control;
           setTextFieldCaretEnabled(c.isCaretEnabled());
         } else if (control instanceof ScrollBarControl) {
-          ScrollBarControl c = (ScrollBarControl)control;
+          ScrollBarControl c = (ScrollBarControl) control;
           setScrollBarUpArrowPressed(c.isUpArrowPressed());
           setScrollBarDownArrowPressed(c.isDownArrowPressed());
         }
@@ -676,39 +653,86 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    public void setControlVisible(boolean b) { cbVisible.setSelected(b); }
-    public boolean isControlVisible() { return cbVisible.isSelected(); }
+    public void setControlVisible(boolean b) {
+      cbVisible.setSelected(b);
+    }
 
-    public void setButtonUnpressed() { rbButtonState[0].setSelected(true); }
-    public void setButtonPressed() { rbButtonState[1].setSelected(true); }
-    public void setButtonSelected() { rbButtonState[2].setSelected(true); }
-    public void setButtonDisabled() { rbButtonState[3].setSelected(true); }
-    public boolean isButtonUnpressed() { return rbButtonState[0].isSelected(); }
-    public boolean isButtonPressed() { return rbButtonState[1].isSelected(); }
-    public boolean isButtonSelected() { return rbButtonState[2].isSelected(); }
-    public boolean isButtonDisabled() { return rbButtonState[3].isSelected(); }
+    public boolean isControlVisible() {
+      return cbVisible.isSelected();
+    }
 
-    public void setSliderGrabbed(boolean b) { cbSliderGrabbed.setSelected(b); }
-    public boolean isSliderGrabbed() { return cbSliderGrabbed.isSelected(); }
+    public void setButtonUnpressed() {
+      rbButtonState[0].setSelected(true);
+    }
 
-    public void setTextFieldCaretEnabled(boolean b) { cbTextFieldCaret.setSelected(b); }
-    public boolean isTextFieldCaretEnabled() { return cbTextFieldCaret.isSelected(); }
+    public void setButtonPressed() {
+      rbButtonState[1].setSelected(true);
+    }
 
-    public void setScrollBarUpArrowPressed(boolean b) { cbScrollBarUpState.setSelected(b); }
-    public void setScrollBarDownArrowPressed(boolean b) { cbScrollBarDownState.setSelected(b); }
-    public boolean isScrollBarUpArrowPressed() { return cbScrollBarUpState.isSelected(); }
-    public boolean isScrollBarDownArrowPressed() { return cbScrollBarDownState.isSelected(); }
+    public void setButtonSelected() {
+      rbButtonState[2].setSelected(true);
+    }
 
-    private void fireStateChanged()
-    {
+    public void setButtonDisabled() {
+      rbButtonState[3].setSelected(true);
+    }
+
+    public boolean isButtonUnpressed() {
+      return rbButtonState[0].isSelected();
+    }
+
+    public boolean isButtonPressed() {
+      return rbButtonState[1].isSelected();
+    }
+
+    public boolean isButtonSelected() {
+      return rbButtonState[2].isSelected();
+    }
+
+    public boolean isButtonDisabled() {
+      return rbButtonState[3].isSelected();
+    }
+
+    public void setSliderGrabbed(boolean b) {
+      cbSliderGrabbed.setSelected(b);
+    }
+
+    public boolean isSliderGrabbed() {
+      return cbSliderGrabbed.isSelected();
+    }
+
+    public void setTextFieldCaretEnabled(boolean b) {
+      cbTextFieldCaret.setSelected(b);
+    }
+
+    public boolean isTextFieldCaretEnabled() {
+      return cbTextFieldCaret.isSelected();
+    }
+
+    public void setScrollBarUpArrowPressed(boolean b) {
+      cbScrollBarUpState.setSelected(b);
+    }
+
+    public void setScrollBarDownArrowPressed(boolean b) {
+      cbScrollBarDownState.setSelected(b);
+    }
+
+    public boolean isScrollBarUpArrowPressed() {
+      return cbScrollBarUpState.isSelected();
+    }
+
+    public boolean isScrollBarDownArrowPressed() {
+      return cbScrollBarDownState.isSelected();
+    }
+
+    private void fireStateChanged() {
       ChangeEvent e = new ChangeEvent(this);
       for (int i = listeners.size() - 1; i >= 0; i--) {
         listeners.get(i).stateChanged(e);
       }
     }
 
-    private void init()
-    {
+    private void init() {
       setLayout(new GridBagLayout());
       setBorder(BorderFactory.createTitledBorder("Control Properties "));
 
@@ -723,19 +747,19 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       cbVisible = new JCheckBox("Control visible", true);
       cbVisible.addActionListener(this);
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pCommon.add(lPosTitle, gbc);
       gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
       pCommon.add(lPosition, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
       pCommon.add(lSizeTitle, gbc);
       gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
       pCommon.add(lSize, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 2, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
       pCommon.add(cbVisible, gbc);
 
       // constructing specific control panels
@@ -762,53 +786,48 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       rbButtonState[2].addActionListener(this);
       rbButtonState[3].addActionListener(this);
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(lButtonState, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(rbButtonState[0], gbc);
       gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(rbButtonState[1], gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(rbButtonState[2], gbc);
       gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(rbButtonState[3], gbc);
 
       pControl.add(pButton, ControlType.BUTTON.name());
-
 
       // slider panel
       JPanel pSlider = new JPanel(new GridBagLayout());
       cbSliderGrabbed = new JCheckBox("Slider grabbed", false);
       cbSliderGrabbed.addActionListener(this);
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pSlider.add(cbSliderGrabbed, gbc);
 
       pControl.add(pSlider, ControlType.SLIDER.name());
-
 
       // text field panel
       JPanel pTextField = new JPanel(new GridBagLayout());
       cbTextFieldCaret = new JCheckBox("Show caret", false);
       cbTextFieldCaret.addActionListener(this);
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pTextField.add(cbTextFieldCaret, gbc);
 
       pControl.add(pTextField, ControlType.TEXT_FIELD.name());
 
-
       // text area panel (nothing to do)
       pControl.add(new JPanel(), ControlType.TEXT_AREA.name());
 
-
       // label panel (nothing to do)
       pControl.add(new JPanel(), ControlType.LABEL.name());
-
 
       // scroll bar panel
       JPanel pScrollBar = new JPanel(new GridBagLayout());
@@ -817,21 +836,20 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       cbScrollBarDownState = new JCheckBox("Down arrow pressed", false);
       cbScrollBarDownState.addActionListener(this);
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pScrollBar.add(cbScrollBarUpState, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pScrollBar.add(cbScrollBarDownState, gbc);
 
       pControl.add(pScrollBar, ControlType.SCROLL_BAR.name());
 
-
       // putting all together
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
       add(pCommon, gbc);
       gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(16, 8, 8, 8), 0, 0);
+          GridBagConstraints.HORIZONTAL, new Insets(16, 8, 8, 8), 0, 0);
       add(pControl, gbc);
 
       // showing empty control by default
@@ -839,46 +857,39 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-
   // Manages a single CHU panel
-  private static class Panel
-  {
+  private static class Panel {
     private final Viewer viewer;
     private final Window panel;
 
-    private BufferedImage image, bg;
+    private BufferedImage image;
+    private BufferedImage bg;
 
-    public Panel(Viewer viewer, Window panel)
-    {
+    public Panel(Viewer viewer, Window panel) {
       this.viewer = viewer;
       this.panel = panel;
     }
 
-    public Viewer getViewer()
-    {
+    public Viewer getViewer() {
       return viewer;
     }
 
-    public Window getResource()
-    {
+    public Window getResource() {
       return panel;
     }
 
     /** Returns the position of the background image for this panel. */
-    public Point getPosition()
-    {
+    public Point getPosition() {
       return getResource().getWindowPosition();
     }
 
-    /** Returns width and height of the background image for this panel.  */
-    public Dimension getDimension()
-    {
+    /** Returns width and height of the background image for this panel. */
+    public Dimension getDimension() {
       return getResource().getWindowDimension();
     }
 
     /** Returns the total width and height of the panel. */
-    public Dimension getPanelDimension()
-    {
+    public Dimension getPanelDimension() {
       Point p = getPosition();
       Dimension dim = getDimension();
       dim.width += p.x;
@@ -891,11 +902,9 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /**
-     * Returns the background image for this panel. Use getPosition/getDimension to correctly
-     * place it on the panel.
+     * Returns the background image for this panel. Use getPosition/getDimension to correctly place it on the panel.
      */
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -903,8 +912,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Recreates the panel. */
-    public void reset()
-    {
+    public void reset() {
       image = null;
       bg = null;
 
@@ -921,14 +929,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Forces a repaint of the panel and its controls. */
-    public void repaint()
-    {
+    public void repaint() {
       updateImage();
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       if (getResource() != null) {
         StringBuilder sb = new StringBuilder("ID: ");
         sb.append(getResource().getWindowId());
@@ -945,12 +951,15 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     }
 
-    private void updateImage()
-    {
+    private void updateImage() {
       if (image == null) {
         Dimension dim = getPanelDimension();
-        if (dim.width == 0) dim.width = 1;
-        if (dim.height == 0) dim.height = 1;
+        if (dim.width == 0) {
+          dim.width = 1;
+        }
+        if (dim.height == 0) {
+          dim.height = 1;
+        }
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
       }
 
@@ -972,9 +981,9 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
                 if (mos instanceof MosV1Decoder) {
-                  ((MosV1Decoder)mos).setTransparencyEnabled(true);
+                  ((MosV1Decoder) mos).setTransparencyEnabled(true);
                 }
-                bg = (BufferedImage)mos.getImage();
+                bg = (BufferedImage) mos.getImage();
               }
             }
             if (bg != null) {
@@ -1002,7 +1011,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               Point pCtrl = control.getPosition();
               Dimension dim = control.getDimension();
               g.setColor(control.getOutlinedColor());
-              g.drawRect(pPanel.x + pCtrl.x, pPanel.y + pCtrl.y, dim.width-1, dim.height-1);
+              g.drawRect(pPanel.x + pCtrl.x, pPanel.y + pCtrl.y, dim.width - 1, dim.height - 1);
             }
           }
         } finally {
@@ -1014,16 +1023,14 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   }
 
   // Common base for control specific classes
-  private static abstract class BaseControl
-  {
+  private static abstract class BaseControl {
     private final Viewer viewer;
     private final Control control;
 
     private Color outlinedColor;
     private boolean visible;
 
-    protected BaseControl(Viewer viewer, Control control, ControlType type)
-    {
+    protected BaseControl(Viewer viewer, Control control, ControlType type) {
       if (viewer == null) {
         throw new NullPointerException("viewer is null");
       }
@@ -1037,26 +1044,22 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Returns the viewer object. */
-    public Viewer getViewer()
-    {
+    public Viewer getViewer() {
       return viewer;
     }
 
     /** Returns the control object. */
-    public Control getResource()
-    {
+    public Control getResource() {
       return control;
     }
 
     /** Returns whether a valid control is associated with this instance. */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
       return (control == null);
     }
 
     /** Returns the control type. */
-    public ControlType getType()
-    {
+    public ControlType getType() {
       if (!isEmpty()) {
         return getControlType(getResource().getControlType());
       } else {
@@ -1065,8 +1068,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Returns the position of the control relative to the parent panel. */
-    public Point getPosition()
-    {
+    public Point getPosition() {
       if (!isEmpty()) {
         return getResource().getControlPosition();
       } else {
@@ -1075,12 +1077,15 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Returns width and height of the control. */
-    public Dimension getDimension()
-    {
+    public Dimension getDimension() {
       if (!isEmpty()) {
         Dimension dim = getResource().getControlDimensions();
-        if (dim.width <= 0) dim.width = 1;
-        if (dim.height <= 0) dim.height = 1;
+        if (dim.width <= 0) {
+          dim.width = 1;
+        }
+        if (dim.height <= 0) {
+          dim.height = 1;
+        }
         return dim;
       } else {
         return new Dimension(1, 1);
@@ -1088,42 +1093,38 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Set whether the control should be drawn. */
-    public void setVisible(boolean set)
-    {
+    public void setVisible(boolean set) {
       visible = set;
     }
 
     /** Returns whether the control is drawn. */
-    public boolean isVisible()
-    {
+    public boolean isVisible() {
       return visible;
     }
 
     /** Returns the visual representation of the current control. */
     public abstract Image getImage();
 
-//    /** Specify the outlined color. */
-//    public void setOutlinedColor(Color color)
-//    {
-//      if (color != null) {
-//        if (!color.equals(outlinedColor)) {
-//          outlinedColor = color;
-//          updateImage();
-//        }
-//      } else {
-//        outlinedColor = Color.GREEN;
-//      }
-//    }
+    // /** Specify the outlined color. */
+    // public void setOutlinedColor(Color color)
+    // {
+    // if (color != null) {
+    // if (!color.equals(outlinedColor)) {
+    // outlinedColor = color;
+    // updateImage();
+    // }
+    // } else {
+    // outlinedColor = Color.GREEN;
+    // }
+    // }
 
     /** Returns the outlined color. */
-    public Color getOutlinedColor()
-    {
+    public Color getOutlinedColor() {
       return outlinedColor;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       if (getResource() != null) {
         StringBuilder sb = new StringBuilder("ID: ");
         sb.append(getResource().getControlId());
@@ -1137,8 +1138,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     /** Apply settings from properties panel. Note: Override to add more functionality. */
-    public void updateState()
-    {
+    public void updateState() {
       PropertiesPanel panel = getViewer().getProperties();
       setVisible(panel.isControlVisible());
     }
@@ -1148,8 +1148,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     // Convert cases of the text controlled by flags.
     // (flags: 0=first letter upper case, 1=all letters upper case, 2=all letters lower case)
-    protected String convertText(String text, int flags)
-    {
+    protected String convertText(String text, int flags) {
       if (text != null && !text.isEmpty()) {
         StringBuilder sb = new StringBuilder();
         // ctrl: 0=no change, 1=force upper, 2=force lower
@@ -1158,7 +1157,9 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
           char ch = text.charAt(i);
           if (ctrl == 1) {
             ch = Character.toUpperCase(ch);
-            if (flags == 0 && !Character.isWhitespace(ch)) ctrl = 0;
+            if (flags == 0 && !Character.isWhitespace(ch)) {
+              ctrl = 0;
+            }
           } else if (ctrl == 2) {
             ch = Character.toLowerCase(ch);
           }
@@ -1174,13 +1175,13 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     /**
      * Returns the dimension and base line for fully rendered the text with the given font BAM.
-     * @param text The text to render.
+     *
+     * @param text   The text to render.
      * @param fntBam The font BAM.
-     * @return Required dimension and baseline to fully render the text. Dimension is specified by
-     *         width and height, vertical baseline position is specified by y.
+     * @return Required dimension and baseline to fully render the text. Dimension is specified by width and height,
+     *         vertical baseline position is specified by y.
      */
-    protected static Rectangle getTextDimension(String text, BamDecoder fntBam)
-    {
+    protected static Rectangle getTextDimension(String text, BamDecoder fntBam) {
       Rectangle rect = new Rectangle();
       if (text != null && !text.isEmpty() && fntBam != null) {
 
@@ -1190,7 +1191,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
           FrameEntry info = fntBam.getFrameInfo(i);
           rect.y = Math.max(rect.y, info.getCenterY());
           int lower = Math.max(0, info.getHeight() - info.getCenterY());
-          rect.height = Math.max(rect.height, rect.y+lower);
+          rect.height = Math.max(rect.height, rect.y + lower);
         }
 
         // 2. determine text width
@@ -1198,31 +1199,39 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         ctrl.setMode(BamControl.Mode.INDIVIDUAL);
         for (int i = 0; i < text.length(); i++) {
           int ch = text.charAt(i);
-          if (ch < 1 || ch > 255) ch = 32;
-          int frameIdx = ctrl.cycleGetFrameIndexAbsolute(ch-1, 0);
+          if (ch < 1 || ch > 255) {
+            ch = 32;
+          }
+          int frameIdx = ctrl.cycleGetFrameIndexAbsolute(ch - 1, 0);
           if (frameIdx >= 0) {
             rect.width += fntBam.getFrameInfo(frameIdx).getWidth();
           }
         }
       }
       // don't return empty dimension
-      if (rect.height == 0) rect.height = 1;
-      if (rect.width == 0) rect.width = 1;
+      if (rect.height == 0) {
+        rect.height = 1;
+      }
+      if (rect.width == 0) {
+        rect.width = 1;
+      }
 
       return rect;
     }
 
     /**
      * Renders the given text message into an Image object.
-     * @param text The text to render.
-     * @param fntBam The Font BAM.
-     * @param fntColor Text color (can be null).
+     *
+     * @param text      The text to render.
+     * @param fntBam    The Font BAM.
+     * @param fntColor  Text color (can be null).
      * @param trueColor Don't postprocess text if set.
      */
-    protected static Image drawText(String text, BamDecoder fntBam, Color fntColor, boolean trueColor)
-    {
+    protected static Image drawText(String text, BamDecoder fntBam, Color fntColor, boolean trueColor) {
       BufferedImage image = null;
-      if (text == null) text = "";
+      if (text == null) {
+        text = "";
+      }
       if (fntBam != null) {
         BamControl ctrl = fntBam.createControl();
         ctrl.setMode(BamControl.Mode.INDIVIDUAL);
@@ -1234,8 +1243,10 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
           int curX = 0;
           for (int i = 0; i < text.length(); i++) {
             int ch = text.charAt(i);
-            if (ch < 1 || ch > 255) ch = 32;
-            ctrl.cycleSet(ch-1);
+            if (ch < 1 || ch > 255) {
+              ch = 32;
+            }
+            ctrl.cycleSet(ch - 1);
             ctrl.cycleSetFrameIndex(0);
             int frameIdx = ctrl.cycleGetFrameIndexAbsolute();
             if (frameIdx >= 0) {
@@ -1246,7 +1257,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               int baseline = info.getCenterY();
               int dx = curX;
               int dy = rect.y - baseline;
-              g.drawImage(letter, dx, dy, dx+width, dy+height, 0, 0, width, height, null);
+              g.drawImage(letter, dx, dy, dx + width, dy + height, 0, 0, width, height, null);
               curX += width;
             }
           }
@@ -1257,9 +1268,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
         // postprocessing text
         // Dirty hack: the correct information is most likely stored in the FNT resource directly
-        if ((Profile.isEnhancedEdition() || trueColor == false) &&
-            ctrl instanceof BamV1Control) {
-          int[] palette = ((BamV1Control)ctrl).getPalette();
+        if ((Profile.isEnhancedEdition() || !trueColor) && ctrl instanceof BamV1Control) {
+          int[] palette = ((BamV1Control) ctrl).getPalette();
           // Hack: determining whether palette contains alpha values
           boolean isAlpha = (palette.length == 256);
           int intensity = palette[1] & 0xff;
@@ -1275,7 +1285,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             } else {
               rgb = palette[1] & 0x00ffffff;
             }
-            int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+            int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             if (buffer != null) {
               for (int i = 0; i < buffer.length; i++) {
                 if ((buffer[i] & 0xff000000) != 0) {
@@ -1292,25 +1302,21 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   }
 
   // Manages the visual appearance of unrecognized control types
-  private static class UnknownControl extends BaseControl
-  {
+  private static class UnknownControl extends BaseControl {
     private BufferedImage image;
 
-    public UnknownControl(Viewer viewer, Control control)
-    {
+    public UnknownControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.UNKNOWN);
       updateImage();
     }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       return image;
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1337,53 +1343,73 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   }
 
   // Manages the visual appearance of buttons
-  private static class ButtonControl extends BaseControl
-  {
+  private static class ButtonControl extends BaseControl {
     private static final int UNPRESSED  = 0;
     private static final int PRESSED    = 1;
     private static final int SELECTED   = 2;
     private static final int DISABLED   = 3;
 
-    private static final HashSet<String> ignoreResourceSet = new HashSet<>();
+    private static final HashSet<String> IGNORE_RESOURCE_SET = new HashSet<>();
 
     static {
       // XXX: ignore a set of known background BAMs with cycle and frame indices
-      ignoreResourceSet.add("BIGBUTT.BAM:0:0");
-      ignoreResourceSet.add("BIGBUTT.BAM:0:1");
-      ignoreResourceSet.add("BIGBUTT.BAM:0:2");
-      ignoreResourceSet.add("CIFF4INV.BAM:0:0");
-      ignoreResourceSet.add("CIFF4INV.BAM:0:1");
-      ignoreResourceSet.add("CIFF4INV.BAM:0:2");
-      ignoreResourceSet.add("CIFF4INV.BAM:0:3");
-      ignoreResourceSet.add("GUICTRL.BAM:0:0");
-      ignoreResourceSet.add("GUICTRL.BAM:0:1");
-      ignoreResourceSet.add("GUICTRL.BAM:0:2");
-      ignoreResourceSet.add("GUICTRL.BAM:0:3");
+      IGNORE_RESOURCE_SET.add("BIGBUTT.BAM:0:0");
+      IGNORE_RESOURCE_SET.add("BIGBUTT.BAM:0:1");
+      IGNORE_RESOURCE_SET.add("BIGBUTT.BAM:0:2");
+      IGNORE_RESOURCE_SET.add("CIFF4INV.BAM:0:0");
+      IGNORE_RESOURCE_SET.add("CIFF4INV.BAM:0:1");
+      IGNORE_RESOURCE_SET.add("CIFF4INV.BAM:0:2");
+      IGNORE_RESOURCE_SET.add("CIFF4INV.BAM:0:3");
+      IGNORE_RESOURCE_SET.add("GUICTRL.BAM:0:0");
+      IGNORE_RESOURCE_SET.add("GUICTRL.BAM:0:1");
+      IGNORE_RESOURCE_SET.add("GUICTRL.BAM:0:2");
+      IGNORE_RESOURCE_SET.add("GUICTRL.BAM:0:3");
     }
 
     private BufferedImage image;
     private int buttonState;
 
-    public ButtonControl(Viewer viewer, Control control)
-    {
+    public ButtonControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.BUTTON);
       buttonState = UNPRESSED;
       updateImage();
     }
 
     // Required for properties panel
-    public void setUnPressed() { buttonState = UNPRESSED; }
-    public void setPressed() { buttonState = PRESSED; }
-    public void setSelected() { buttonState = SELECTED; }
-    public void setDisabled() { buttonState = DISABLED; }
-    public boolean isUnpressed() { return (buttonState == UNPRESSED); }
-    public boolean isPressed() { return (buttonState == PRESSED); }
-    public boolean isSelected() { return (buttonState == SELECTED); }
-    public boolean isDisabled() { return (buttonState == DISABLED); }
+    public void setUnPressed() {
+      buttonState = UNPRESSED;
+    }
+
+    public void setPressed() {
+      buttonState = PRESSED;
+    }
+
+    public void setSelected() {
+      buttonState = SELECTED;
+    }
+
+    public void setDisabled() {
+      buttonState = DISABLED;
+    }
+
+    public boolean isUnpressed() {
+      return (buttonState == UNPRESSED);
+    }
+
+    public boolean isPressed() {
+      return (buttonState == PRESSED);
+    }
+
+    public boolean isSelected() {
+      return (buttonState == SELECTED);
+    }
+
+    public boolean isDisabled() {
+      return (buttonState == DISABLED);
+    }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1391,8 +1417,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateState()
-    {
+    public void updateState() {
       super.updateState();
       PropertiesPanel panel = getViewer().getProperties();
       if (panel.isButtonUnpressed()) {
@@ -1407,8 +1432,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1428,19 +1452,25 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2. drawing control
             if (isVisible()) {
               // loading BAM
-              String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_BTN_RESREF)).getResourceName();
+              String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_BTN_RESREF))
+                  .getResourceName();
               // getting specified cycle index
-              int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_ANIMATION_INDEX)).getValue();
+              int cycleIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_BTN_ANIMATION_INDEX))
+                  .getValue();
               int frameIdx = 0;
               // getting specified cycle frame index
               if (isUnpressed()) {
-                frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_UNPRESSED)).getValue();
+                frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_UNPRESSED))
+                    .getValue();
               } else if (isPressed()) {
-                frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_PRESSED)).getValue();
+                frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_PRESSED))
+                    .getValue();
               } else if (isSelected()) {
-                frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_SELECTED)).getValue();
+                frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_SELECTED))
+                    .getValue();
               } else if (isDisabled()) {
-                frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_DISABLED)).getValue();
+                frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_BTN_FRAME_INDEX_DISABLED))
+                    .getValue();
               }
               if (!isResourceIgnored(resName, cycleIdx, frameIdx)) {
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
@@ -1452,9 +1482,9 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                     if (frameIdx >= 0 && frameIdx < bamCtrl.cycleFrameCount()) {
                       bamCtrl.cycleSetFrameIndex(frameIdx);
 
-                    // drawing BAM
-                    Image bamImage = bamCtrl.cycleGetFrame();
-                    g.drawImage(bamImage, 0, 0, null);
+                      // drawing BAM
+                      Image bamImage = bamCtrl.cycleGetFrame();
+                      g.drawImage(bamImage, 0, 0, null);
                     }
                   }
                 }
@@ -1469,38 +1499,38 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     // Indicates whether to ignore the resource specified by the given filename
-    private static boolean isResourceIgnored(String resName, int cycleIdx, int frameIdx)
-    {
+    private static boolean isResourceIgnored(String resName, int cycleIdx, int frameIdx) {
       if (resName != null && !resName.isEmpty()) {
-        return ignoreResourceSet.contains(String.format("%s:%d:%d",
-                                                        resName.toUpperCase(Locale.ENGLISH), cycleIdx, frameIdx));
+        return IGNORE_RESOURCE_SET
+            .contains(String.format("%s:%d:%d", resName.toUpperCase(Locale.ENGLISH), cycleIdx, frameIdx));
       } else {
         return true;
       }
     }
   }
 
-
   // Manages the visual appearance of sliders
-  private static class SliderControl extends BaseControl
-  {
+  private static class SliderControl extends BaseControl {
     private BufferedImage image;
     private boolean sliderGrabbed;
 
-    public SliderControl(Viewer viewer, Control control)
-    {
+    public SliderControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.SLIDER);
       sliderGrabbed = false;
       updateImage();
     }
 
     // required for properties panel
-    public void setGrabbed(boolean b) { sliderGrabbed = b; }
-    public boolean isGrabbed() { return sliderGrabbed; }
+    public void setGrabbed(boolean b) {
+      sliderGrabbed = b;
+    }
+
+    public boolean isGrabbed() {
+      return sliderGrabbed;
+    }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1508,16 +1538,14 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateState()
-    {
+    public void updateState() {
       super.updateState();
       PropertiesPanel panel = getViewer().getProperties();
       setGrabbed(panel.isSliderGrabbed());
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1536,40 +1564,46 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image
-            String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SLD_BACKGROUND)).getResourceName();
+            String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_SLD_BACKGROUND))
+                .getResourceName();
             MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
             if (mos != null) {
               if (mos instanceof MosV1Decoder) {
-                ((MosV1Decoder)mos).setTransparencyEnabled(true);
+                ((MosV1Decoder) mos).setTransparencyEnabled(true);
               }
               mos.getImage(image);
             }
 
             // 2.2. drawing control elements
             if (isVisible()) {
-              resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB)).getResourceName();
+              resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB)).getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 BamControl bamCtrl = bam.createControl();
                 bamCtrl.setMode(BamControl.Mode.INDIVIDUAL);
                 // getting specified cycle index
-                int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SLD_ANIMATION_INDEX)).getValue();
-                cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
+                int cycleIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SLD_ANIMATION_INDEX))
+                    .getValue();
+                cycleIdx = Math.min(bamCtrl.cycleCount() - 1, Math.max(0, cycleIdx));
                 bamCtrl.cycleSet(cycleIdx);
                 int frameIdx;
                 // getting specified cycle frame index
                 if (isGrabbed()) {
-                  frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_GRABBED)).getValue();
+                  frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_GRABBED))
+                      .getValue();
                 } else {
-                  frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_UNGRABBED)).getValue();
+                  frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SLD_FRAME_INDEX_UNGRABBED))
+                      .getValue();
                 }
-                frameIdx = Math.min(bamCtrl.cycleFrameCount()-1, Math.max(0, frameIdx));
+                frameIdx = Math.min(bamCtrl.cycleFrameCount() - 1, Math.max(0, frameIdx));
                 bamCtrl.cycleSetFrameIndex(frameIdx);
 
                 // drawing frame
                 Image knob = bamCtrl.cycleGetFrame();
-                int knobX = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_X)).getValue();
-                int knobY = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_Y)).getValue();
+                int knobX = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_X))
+                    .getValue();
+                int knobY = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB_POSITION_Y))
+                    .getValue();
                 g.drawImage(knob, knobX, knobY, knob.getWidth(null), knob.getHeight(null), null);
               }
             }
@@ -1582,34 +1616,35 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-
   // Manages the visual appearance of text fields
-  private static class TextFieldControl extends BaseControl
-  {
-    private static final HashSet<String> ignoreResourceSet = new HashSet<>();
+  private static class TextFieldControl extends BaseControl {
+    private static final HashSet<String> IGNORE_RESOURCE_SET = new HashSet<>();
 
     static {
       // XXX: ignore a set of known background MOS resources
-      ignoreResourceSet.add("XXXXGRBG.MOS");
+      IGNORE_RESOURCE_SET.add("XXXXGRBG.MOS");
     }
 
     private BufferedImage image;
     private boolean caretEnabled;
 
-    public TextFieldControl(Viewer viewer, Control control)
-    {
+    public TextFieldControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.TEXT_FIELD);
       caretEnabled = false;
       updateImage();
     }
 
     // required for properties panel
-    public void setCaretEnabled(boolean b) { caretEnabled = b; }
-    public boolean isCaretEnabled() { return caretEnabled; }
+    public void setCaretEnabled(boolean b) {
+      caretEnabled = b;
+    }
+
+    public boolean isCaretEnabled() {
+      return caretEnabled;
+    }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1617,16 +1652,14 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateState()
-    {
+    public void updateState() {
       super.updateState();
       PropertiesPanel panel = getViewer().getProperties();
       setCaretEnabled(panel.isTextFieldCaretEnabled());
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1645,12 +1678,13 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image (is it actually used?)
-            String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_BACKGROUND_1)).getResourceName();
+            String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_TF_BACKGROUND_1))
+                .getResourceName();
             if (!isResourceIgnored(resName)) {
               MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
                 if (mos instanceof MosV1Decoder) {
-                  ((MosV1Decoder)mos).setTransparencyEnabled(true);
+                  ((MosV1Decoder) mos).setTransparencyEnabled(true);
                 }
                 mos.getImage(image);
               }
@@ -1658,41 +1692,44 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2.2. drawing text
             if (isVisible()) {
-              int caretX = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_X)).getValue();
-              int caretY = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_Y)).getValue();
+              int caretX = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_X)).getValue();
+              int caretY = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_CARET_POSITION_Y)).getValue();
 
-              String text = ((IsTextual)getResource().getAttribute(Control.CHU_CONTROL_TF_TEXT)).getText();
+              String text = ((IsTextual) getResource().getAttribute(Control.CHU_CONTROL_TF_TEXT)).getText();
               if (!text.isEmpty()) {
-                resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_FONT)).getResourceName();
+                resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_TF_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
-                  int maxLen = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_FIELD_LENGTH)).getValue();
-                  if (text.length() > maxLen) text = text.substring(0, maxLen);
-                  int flags = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_ALLOWED_CSE)).getValue();
+                  int maxLen = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_FIELD_LENGTH)).getValue();
+                  if (text.length() > maxLen) {
+                    text = text.substring(0, maxLen);
+                  }
+                  int flags = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_ALLOWED_CSE)).getValue();
                   text = convertText(text, flags);
                   Image textImage = drawText(text, bam, null, false);
                   if (textImage != null) {
-                    g.drawImage(textImage, caretX, caretY,
-                                textImage.getWidth(null), textImage.getHeight(null), null);
+                    g.drawImage(textImage, caretX, caretY, textImage.getWidth(null), textImage.getHeight(null), null);
                   }
                 }
               }
 
               // 2.3. drawing caret
               if (isCaretEnabled()) {
-                resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET)).getResourceName();
+                resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_TF_CARET)).getResourceName();
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
                   bamCtrl.setMode(BamControl.Mode.INDIVIDUAL);
                   // getting specified cycle index
-                  int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_ANIMATION_INDEX)).getValue();
-                  cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
+                  int cycleIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_ANIMATION_INDEX))
+                      .getValue();
+                  cycleIdx = Math.min(bamCtrl.cycleCount() - 1, Math.max(0, cycleIdx));
                   bamCtrl.cycleSet(cycleIdx);
                   // getting specified cycle frame index
-                  int frameIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_TF_FRAME_INDEX)).getValue();
-                  frameIdx = Math.min(bamCtrl.cycleFrameCount()-1, Math.max(0, frameIdx));
+                  int frameIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_TF_FRAME_INDEX))
+                      .getValue();
+                  frameIdx = Math.min(bamCtrl.cycleFrameCount() - 1, Math.max(0, frameIdx));
                   bamCtrl.cycleSetFrameIndex(frameIdx);
 
                   // drawing frame
@@ -1710,31 +1747,26 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     // Indicates whether to ignore the resource specified by the given filename
-    private static boolean isResourceIgnored(String resName)
-    {
+    private static boolean isResourceIgnored(String resName) {
       if (resName != null && !resName.isEmpty()) {
-        return ignoreResourceSet.contains(resName.toUpperCase(Locale.ENGLISH));
+        return IGNORE_RESOURCE_SET.contains(resName.toUpperCase(Locale.ENGLISH));
       } else {
         return true;
       }
     }
   }
 
-
   // Manages the visual appearance of text areas
-  private static class TextAreaControl extends BaseControl
-  {
+  private static class TextAreaControl extends BaseControl {
     private BufferedImage image;
 
-    public TextAreaControl(Viewer viewer, Control control)
-    {
+    public TextAreaControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.TEXT_AREA);
       updateImage();
     }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1742,8 +1774,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1771,21 +1802,17 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-
   // Manages the visual appearance of labels
-  private static class LabelControl extends BaseControl
-  {
+  private static class LabelControl extends BaseControl {
     private BufferedImage image;
 
-    public LabelControl(Viewer viewer, Control control)
-    {
+    public LabelControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.LABEL);
       updateImage();
     }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1793,8 +1820,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1813,16 +1839,19 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String text = StringTable.getStringRef(((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
+              String text = StringTable
+                  .getStringRef(((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
               if (text != null) {
-                String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
+                String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT))
+                    .getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
-                  Flag flags = (Flag)getResource().getAttribute(Control.CHU_CONTROL_LBL_FLAGS);
+                  Flag flags = (Flag) getResource().getAttribute(Control.CHU_CONTROL_LBL_FLAGS);
                   Color col = null;
                   if (flags.isFlagSet(0)) {
-                    col = new Color(((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_LBL_COLOR_1)).getValue());
+                    col = new Color(
+                        ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_LBL_COLOR_1)).getValue());
                   }
                   Image textImage = drawText(text, bam, col, flags.isFlagSet(1));
                   if (textImage != null) {
@@ -1834,16 +1863,16 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                     int x = 0, y = 0;
                     if (flags.isFlagSet(3)) { // left
                       x = 0;
-                    } else if (flags.isFlagSet(4)) {  // right
+                    } else if (flags.isFlagSet(4)) { // right
                       x = dstWidth - srcWidth;
-                    } else {  // hcenter
+                    } else { // hcenter
                       x = (dstWidth - srcWidth) / 2;
                     }
                     if (flags.isFlagSet(5)) { // top
                       y = 0;
-                    } else if (flags.isFlagSet(7)) {  // bottom
+                    } else if (flags.isFlagSet(7)) { // bottom
                       y = dstHeight - srcHeight;
-                    } else {  // vcenter
+                    } else { // vcenter
                       y = (dstHeight - srcHeight) / 2;
                     }
                     // drawing text
@@ -1861,29 +1890,37 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
   }
 
-
   // Manages the visual appearance of scroll bars
-  private static class ScrollBarControl extends BaseControl
-  {
+  private static class ScrollBarControl extends BaseControl {
     private BufferedImage image;
-    private boolean upPressed, downPressed;
+    private boolean upPressed;
+    private boolean downPressed;
 
-    public ScrollBarControl(Viewer viewer, Control control)
-    {
+    public ScrollBarControl(Viewer viewer, Control control) {
       super(viewer, control, ControlType.SCROLL_BAR);
       upPressed = downPressed = false;
       updateImage();
     }
 
     // required for properties panel
-    public void setUpArrowPressed(boolean b) { upPressed = b; }
-    public boolean isUpArrowPressed() { return upPressed; }
-    public void setDownArrowPressed(boolean b) { downPressed = b; }
-    public boolean isDownArrowPressed() { return downPressed; }
+    public void setUpArrowPressed(boolean b) {
+      upPressed = b;
+    }
+
+    public boolean isUpArrowPressed() {
+      return upPressed;
+    }
+
+    public void setDownArrowPressed(boolean b) {
+      downPressed = b;
+    }
+
+    public boolean isDownArrowPressed() {
+      return downPressed;
+    }
 
     @Override
-    public Image getImage()
-    {
+    public Image getImage() {
       if (image == null) {
         updateImage();
       }
@@ -1891,8 +1928,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateState()
-    {
+    public void updateState() {
       super.updateState();
       PropertiesPanel panel = getViewer().getProperties();
       setUpArrowPressed(panel.isScrollBarUpArrowPressed());
@@ -1900,8 +1936,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     }
 
     @Override
-    public void updateImage()
-    {
+    public void updateImage() {
       if (image == null) {
         Dimension dim = getDimension();
         image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
@@ -1920,22 +1955,30 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SB_GRAPHICS)).getResourceName();
+              String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_SB_GRAPHICS))
+                  .getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
-                int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_ANIMATION_INDEX)).getValue();
-                int frameTroughIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_TROUGH)).getValue();
-                int frameSliderIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_SLIDER)).getValue();
+                int cycleIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SB_ANIMATION_INDEX))
+                    .getValue();
+                int frameTroughIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_TROUGH))
+                    .getValue();
+                int frameSliderIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_SLIDER))
+                    .getValue();
                 int frameUpIdx, frameDownIdx;
                 if (isUpArrowPressed()) {
-                  frameUpIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_PRESSED)).getValue();
+                  frameUpIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_PRESSED))
+                      .getValue();
                 } else {
-                  frameUpIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_UNPRESSED)).getValue();
+                  frameUpIdx = ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_UP_UNPRESSED))
+                      .getValue();
                 }
                 if (isDownArrowPressed()) {
-                  frameDownIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_PRESSED)).getValue();
+                  frameDownIdx = ((IsNumeric) getResource()
+                      .getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_PRESSED)).getValue();
                 } else {
-                  frameDownIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_UNPRESSED)).getValue();
+                  frameDownIdx = ((IsNumeric) getResource()
+                      .getAttribute(Control.CHU_CONTROL_SB_FRAME_INDEX_DOWN_UNPRESSED)).getValue();
                 }
                 BamControl ctrl = bam.createControl();
                 ctrl.cycleSet(cycleIdx);
@@ -1949,8 +1992,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                   int bottom = getDimension().height - bam.getFrameInfo(idx).getHeight();
                   int w = image.getWidth(null);
                   int h = image.getHeight(null);
-                  int segments = (bottom-top) / h;
-                  int lastSegmentHeight = (bottom-top) % h;
+                  int segments = (bottom - top) / h;
+                  int lastSegmentHeight = (bottom - top) % h;
                   idx = ctrl.cycleGetFrameIndexAbsolute(frameTroughIdx);
                   int curY = top;
                   for (int i = 0; i < segments; i++) {
@@ -1958,8 +2001,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                     curY += h;
                   }
                   if (lastSegmentHeight > 0) {
-                    g.drawImage(image, 0, curY, w, curY+lastSegmentHeight,
-                                0, 0, w, lastSegmentHeight, null);
+                    g.drawImage(image, 0, curY, w, curY + lastSegmentHeight, 0, 0, w, lastSegmentHeight, null);
                   }
                 }
 

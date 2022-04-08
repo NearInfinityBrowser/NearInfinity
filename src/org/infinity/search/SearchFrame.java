@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -21,10 +21,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -48,15 +51,15 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
-public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable
-{
-  private static final SearchFrame searchframe = null;
+public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
+//  private static final SearchFrame SEARCH_FRAME = null;
+
   private final CardLayout cards = new CardLayout();
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton binsert = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
-  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
-  private final JList<String> list = new JList<>();
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton binsert = new JButton("Insert reference", Icons.ICON_PASTE_16.getIcon());
+  private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
+  private final JList<ResourceWrapper> list = new JList<>();
   private final JPanel bpanel;
   private final JProgressBar progress = new JProgressBar();
   private final JRadioButton rbcre = new JRadioButton("Creatures");
@@ -64,21 +67,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JRadioButton rbspl = new JRadioButton("Spells");
   private final JRadioButton rbsto = new JRadioButton("Stores");
   private final JTextField tfield = new JTextField(10);
+  private final JCheckBox cbCaseSensitive = new JCheckBox("Match case");
+  private final JCheckBox cbRegex = new JCheckBox("Use regular expressions");
+  private final JCheckBox cbInvert = new JCheckBox("Invert match");
 
-  public static void clearCache()
-  {
-    if (searchframe != null) {
-      searchframe.list.setListData(new String[0]);
-      searchframe.bopen.setEnabled(false);
-      searchframe.bopennew.setEnabled(false);
-      searchframe.binsert.setEnabled(false);
-    }
-  }
-
-  public SearchFrame()
-  {
+  public SearchFrame() {
     super("Find");
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     getRootPane().setDefaultButton(bsearch);
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
@@ -111,24 +106,18 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.addActionListener(this);
     bopennew.addActionListener(this);
     binsert.addActionListener(this);
-    list.addMouseListener(new MouseAdapter()
-    {
+    list.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
-          String selected = list.getSelectedValue();
-          String resname = selected.substring(0, selected.indexOf(" - "));
-          ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
+          ResourceEntry entry = list.getSelectedValue().getResourceEntry();
           NearInfinity.getInstance().showResourceEntry(entry);
         }
       }
     });
-    addWindowListener(new WindowAdapter()
-    {
+    addWindowListener(new WindowAdapter() {
       @Override
-      public void windowOpened(WindowEvent event)
-      {
+      public void windowOpened(WindowEvent event) {
         tfield.requestFocus();
       }
     });
@@ -152,9 +141,21 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     rbpanel.add(rbspl);
     rbpanel.add(rbsto);
     rbpanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Find:"),
-                                                         BorderFactory.createEmptyBorder(3, 6, 3, 3)));
+        BorderFactory.createEmptyBorder(3, 6, 3, 3)));
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
+    optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
+    cbCaseSensitive.setMnemonic('m');
+    cbCaseSensitive.setToolTipText("Search text is matched case-sensitive. Can be used in combination with regular expressions.");
+    cbRegex.setMnemonic('r');
+    cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
+    cbInvert.setMnemonic('v');
+    cbInvert.setToolTipText("Add to results list on mismatch.");
+    optionsPanel.add(cbCaseSensitive);
+    optionsPanel.add(cbRegex);
+    optionsPanel.add(cbInvert);
+
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -168,6 +169,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(rbpanel, gbc);
     pane.add(rbpanel);
 
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.insets = new Insets(6, 4, 3, 5);
+    gbl.setConstraints(optionsPanel, gbc);
+    pane.add(optionsPanel);
+
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
     gbc.insets = new Insets(3, 6, 3, 3);
@@ -178,8 +186,8 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.SOUTH;
     gbc.insets.left = 3;
-    tfield.setPreferredSize(new Dimension((int)tfield.getPreferredSize().getWidth(),
-                                          (int)bsearch.getPreferredSize().getHeight()));
+    tfield.setPreferredSize(
+        new Dimension((int) tfield.getPreferredSize().getWidth(), (int) bsearch.getPreferredSize().getHeight()));
     gbl.setConstraints(tfield, gbc);
     pane.add(tfield);
 
@@ -210,65 +218,54 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(bpanel, gbc);
     pane.add(bpanel);
 
-    setSize(Misc.getScaledValue(500), Misc.getScaledValue(450));
+    setSize(Misc.getScaledValue(500), Misc.getScaledValue(500));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
-      if (tfield.getText() == null || tfield.getText().equals(""))
+      if (tfield.getText() == null || tfield.getText().equals("")) {
         return;
+      }
       new Thread(this).start();
-    }
-    else if (event.getSource() == bopen) {
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf(" - "));
-      ResourceEntry entry = ResourceFactory.getResourceEntry(resname);
+    } else if (event.getSource() == bopen) {
+      ResourceEntry entry = list.getSelectedValue().getResourceEntry();
       NearInfinity.getInstance().showResourceEntry(entry);
-    }
-    else if (event.getSource() == bopennew) {
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf(" - "));
-      new ViewFrame(this, ResourceFactory.getResource(ResourceFactory.getResourceEntry(resname)));
-    }
-    else if (event.getSource() == binsert) {
+    } else if (event.getSource() == bopennew) {
+      ResourceEntry entry = list.getSelectedValue().getResourceEntry();
+      new ViewFrame(this, ResourceFactory.getResource(entry));
+    } else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
       if (viewable == null || !(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         return;
       }
-      String selected = list.getSelectedValue();
-      String resname = selected.substring(0, selected.indexOf("."));
-      ((BcsResource)viewable).insertString('\"' + resname + '\"');
+      String resName = list.getSelectedValue().getResourceEntry().getResourceRef();
+      ((BcsResource) viewable).insertString('\"' + resName + '\"');
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
     binsert.setEnabled(true);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     list.setEnabled(false);
     tfield.setEnabled(false);
     list.clearSelection();
@@ -276,52 +273,139 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
     binsert.setEnabled(false);
-    list.setListData(new String[]{});
+    list.setListData(new ResourceWrapper[] {});
     rbcre.setEnabled(false);
     rbitm.setEnabled(false);
     rbspl.setEnabled(false);
     rbsto.setEnabled(false);
 
-    String selectedtype = "";
-    if (rbcre.isSelected())
-      selectedtype = "CRE";
-    else if (rbitm.isSelected())
-      selectedtype = "ITM";
-    else if (rbspl.isSelected())
-      selectedtype = "SPL";
-    else if (rbsto.isSelected())
-      selectedtype = "STO";
+    try {
+      if (tfield.getText().isEmpty()) {
+        return;
+      }
 
-    List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
-    String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
-    List<String> found = new ArrayList<>();
-    cards.show(bpanel, "Progress");
-    progress.setMaximum(resources.size());
-    for (int i = 0; i < resources.size(); i++) {
-      ResourceEntry entry = resources.get(i);
-      String string = entry.getSearchString();
-      if (string != null && string.toLowerCase(Locale.ENGLISH).indexOf(expr) != -1)
-        found.add(entry.toString() + " - " + string);
-      progress.setValue(i + 1);
+      String selectedtype = "";
+      if (rbcre.isSelected()) {
+        selectedtype = "CRE";
+      } else if (rbitm.isSelected()) {
+        selectedtype = "ITM";
+      } else if (rbspl.isSelected()) {
+        selectedtype = "SPL";
+      } else if (rbsto.isSelected()) {
+        selectedtype = "STO";
+      }
+
+      final boolean isCase = cbCaseSensitive.isSelected();
+      final boolean isInverted = cbInvert.isSelected();
+      Pattern regex = null;
+      if (cbRegex.isSelected()) {
+        try {
+          String text = tfield.getText();
+          regex = Pattern.compile(text, isCase ? 0 : Pattern.CASE_INSENSITIVE);
+        } catch (PatternSyntaxException e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(this, "Regular expression error:\n" + e.getMessage(), "Error",
+              JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      }
+
+      String expr = tfield.getText();
+      if (!isCase) {
+        expr = expr.toLowerCase(Locale.ENGLISH);
+      }
+
+      List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
+      List<ResourceWrapper> found = new ArrayList<>();
+      cards.show(bpanel, "Progress");
+      progress.setMaximum(resources.size());
+      for (int i = 0, size = resources.size(); i < size; i++) {
+        final ResourceEntry entry = resources.get(i);
+        final String string = entry.getSearchString();
+        boolean isMatch = false;
+        if (string != null) {
+          if (regex != null) {
+            isMatch = regex.matcher(string).find();
+          } else {
+            String text = isCase ? string : string.toLowerCase(Locale.ENGLISH);
+            isMatch = text.contains(expr);
+          }
+        }
+
+        if (isInverted) {
+          isMatch = !isMatch;
+        }
+
+        if (isMatch) {
+          found.add(new ResourceWrapper(entry));
+        }
+
+        progress.setValue(i + 1);
+      }
+      cards.show(bpanel, "Button");
+      progress.setValue(0);
+
+      list.ensureIndexIsVisible(0);
+      if (found.size() > 0) {
+        Collections.sort(found);
+        list.setListData(found.toArray(new ResourceWrapper[found.size()]));
+        list.setEnabled(true);
+      }
+    } finally {
+      rbcre.setEnabled(true);
+      rbitm.setEnabled(true);
+      rbspl.setEnabled(true);
+      rbsto.setEnabled(true);
+      tfield.setEnabled(true);
+      bsearch.setEnabled(true);
     }
-    cards.show(bpanel, "Button");
-    progress.setValue(0);
-
-    list.ensureIndexIsVisible(0);
-    if (found.size() > 0) {
-      Collections.sort(found);
-      list.setListData(found.toArray(new String[found.size()]));
-      list.setEnabled(true);
-    }
-
-    rbcre.setEnabled(true);
-    rbitm.setEnabled(true);
-    rbspl.setEnabled(true);
-    rbsto.setEnabled(true);
-    tfield.setEnabled(true);
-    bsearch.setEnabled(true);
   }
 
-// --------------------- End Interface Runnable ---------------------
-}
+  // --------------------- End Interface Runnable ---------------------
 
+  // -------------------------- INNER CLASSES --------------------------
+
+  private static class ResourceWrapper implements Comparable<ResourceWrapper> {
+    private final ResourceEntry entry;
+
+    public ResourceWrapper(ResourceEntry entry) {
+      this.entry = entry;
+    }
+
+    public ResourceEntry getResourceEntry() {
+      return entry;
+    }
+
+    // --------------------- Begin Interface Comparable ---------------------
+
+    @Override
+    public int compareTo(ResourceWrapper wrapper) {
+      if (wrapper.entry == this.entry) {
+        return 0;
+      } else if (this.entry == null) {
+        return -1;
+      } else if (wrapper.entry == null) {
+        return 1;
+      } else {
+        return this.entry.getResourceName().compareToIgnoreCase(wrapper.entry.getResourceName());
+      }
+    }
+
+    // --------------------- End Interface Comparable ---------------------
+
+    @Override
+    public String toString() {
+      if (entry == null) {
+        return "(null)";
+      }
+
+      String resName = entry.getResourceName();
+      String descName = entry.getSearchString();
+      String text = resName;
+      if (descName != null && !descName.isEmpty()) {
+        text += " - " + descName;
+      }
+      return text;
+    }
+  }
+}

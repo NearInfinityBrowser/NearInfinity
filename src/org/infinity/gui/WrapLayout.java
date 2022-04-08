@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -14,52 +14,43 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 /**
- * Extends Swing's {@link FlowLayout} by updating the preferred container size whenever the
- * layout changes because. As a result components will not be removed from the visible portion
- * of the UI.
+ * Extends Swing's {@link FlowLayout} by updating the preferred container size whenever the layout changes because. As a
+ * result components will not be removed from the visible portion of the UI.
  *
  * Based on Rob Camick's sources: https://tips4java.wordpress.com/2008/11/06/wrap-layout/
  */
-public class WrapLayout extends FlowLayout
-{
-  public WrapLayout()
-  {
+public class WrapLayout extends FlowLayout {
+  public WrapLayout() {
   }
 
-  public WrapLayout(int align)
-  {
+  public WrapLayout(int align) {
     super(align);
   }
 
-  public WrapLayout(int align, int hgap, int vgap)
-  {
+  public WrapLayout(int align, int hgap, int vgap) {
     super(align, hgap, vgap);
   }
 
   @Override
-  public Dimension preferredLayoutSize(Container target)
-  {
+  public Dimension preferredLayoutSize(Container target) {
     return layoutSize(target, true);
   }
 
   @Override
-  public Dimension minimumLayoutSize(Container target)
-  {
+  public Dimension minimumLayoutSize(Container target) {
     Dimension minimum = layoutSize(target, false);
     minimum.width -= (getHgap() + 1);
     return minimum;
   }
 
   /**
-   * Returns the minimum or preferred dimension needed to layout the target
-   * container.
+   * Returns the minimum or preferred dimension needed to layout the target container.
    *
-   * @param target Target to get layout size for.
+   * @param target    Target to get layout size for.
    * @param preferred should preferred size be calculated.
    * @return the dimension to layout the target container.
    */
-  private Dimension layoutSize(Container target, boolean preferred)
-  {
+  private Dimension layoutSize(Container target, boolean preferred) {
     synchronized (target.getTreeLock()) {
       // Each row must fit with the width allocated to the containter.
       // When the container width = 0, the preferred width of the container
@@ -138,8 +129,7 @@ public class WrapLayout extends FlowLayout
   }
 
   /*
-   * A new row has been completed. Use the dimensions of this row to update the
-   * preferred size for the container.
+   * A new row has been completed. Use the dimensions of this row to update the preferred size for the container.
    *
    * @param dim update the width and height when appropriate
    *
@@ -147,8 +137,7 @@ public class WrapLayout extends FlowLayout
    *
    * @param rowHeight the height of the row to add
    */
-  private void addRow(Dimension dim, int rowWidth, int rowHeight)
-  {
+  private void addRow(Dimension dim, int rowWidth, int rowHeight) {
     dim.width = Math.max(dim.width, rowWidth);
 
     if (dim.height > 0) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.maze;
@@ -23,28 +23,24 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 
 /**
- * This resource is used to randomise the layout of the Modron Maze. It is very
- * similar to the maze structure found within {@link GamResource GAM V1.1} for
- * classic PST. A resource of this type can usually only be found inside {@link
- * SavResource SAV} files after the Modron Maze has been initialized by the game.
+ * This resource is used to randomise the layout of the Modron Maze. It is very similar to the maze structure found
+ * within {@link GamResource GAM V1.1} for classic PST. A resource of this type can usually only be found inside
+ * {@link SavResource SAV} files after the Modron Maze has been initialized by the game.
  * <p>
  * This resource is used only in Planescape: Torment Extended Edition
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/maze_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/maze_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/maze_v1.htm</a>
  */
-public class MazeResource extends AbstractStruct implements Resource, HasViewerTabs
-{
+public class MazeResource extends AbstractStruct implements Resource, HasViewerTabs {
   private StructHexViewer hexViewer;
 
-  public MazeResource(ResourceEntry entry) throws Exception
-  {
+  public MazeResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
 
@@ -91,23 +87,20 @@ public class MazeResource extends AbstractStruct implements Resource, HasViewerT
     return curOfs;
   }
 
-//--------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, true);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, MazeEntry.class);
@@ -117,16 +110,14 @@ public class MazeResource extends AbstractStruct implements Resource, HasViewerT
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
-//--------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 }

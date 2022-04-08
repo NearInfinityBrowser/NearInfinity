@@ -1,19 +1,17 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
 
+import java.awt.Adjustable;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.LayoutManager;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
@@ -22,60 +20,47 @@ import javax.swing.JScrollBar;
 /**
  * Extends {@link JPopupMenu} by applying a size constraint and scrollbar to the menu.
  */
-public class ScrollPopupMenu extends JPopupMenu
-{
+public class ScrollPopupMenu extends JPopupMenu {
   private static final int DEFAULT_NUM_VISIBLE_ROWS = 10;
 
   private JScrollBar popupScrollBar;
   private int maximumVisibleRows;
   private boolean modified;
 
-  public ScrollPopupMenu()
-  {
+  public ScrollPopupMenu() {
     this(null, DEFAULT_NUM_VISIBLE_ROWS);
   }
 
-  public ScrollPopupMenu(String label)
-  {
+  public ScrollPopupMenu(String label) {
     this(label, DEFAULT_NUM_VISIBLE_ROWS);
   }
 
-  public ScrollPopupMenu(String label, int maxVisibleRows)
-  {
+  public ScrollPopupMenu(String label, int maxVisibleRows) {
     super(label);
     setLayout(new ScrollPopupMenuLayout());
 
     setMaximumVisibleRows(maxVisibleRows);
 
     super.add(getScrollBar());
-    addMouseWheelListener(new MouseWheelListener() {
-      @Override
-      public void mouseWheelMoved(MouseWheelEvent event)
-      {
-        JScrollBar scrollBar = getScrollBar();
-        int amount = (event.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL)
-            ? event.getUnitsToScroll() * scrollBar.getUnitIncrement()
-            : (event.getWheelRotation() < 0 ? -1 : 1) * scrollBar.getBlockIncrement();
+    addMouseWheelListener(event -> {
+      JScrollBar scrollBar = getScrollBar();
+      int amount = (event.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL)
+          ? event.getUnitsToScroll() * scrollBar.getUnitIncrement()
+          : (event.getWheelRotation() < 0 ? -1 : 1) * scrollBar.getBlockIncrement();
 
-        scrollBar.setValue(scrollBar.getValue() + amount);
-        event.consume();
-      }
+      scrollBar.setValue(scrollBar.getValue() + amount);
+      event.consume();
     });
 
     refresh();
   }
 
-  protected JScrollBar getScrollBar()
-  {
+  protected JScrollBar getScrollBar() {
     if (popupScrollBar == null) {
-      popupScrollBar = new JScrollBar(JScrollBar.VERTICAL);
-      popupScrollBar.addAdjustmentListener(new AdjustmentListener() {
-        @Override
-        public void adjustmentValueChanged(AdjustmentEvent e)
-        {
-          doLayout();
-          repaint();
-        }
+      popupScrollBar = new JScrollBar(Adjustable.VERTICAL);
+      popupScrollBar.addAdjustmentListener(e -> {
+        doLayout();
+        repaint();
       });
 
       popupScrollBar.setVisible(false);
@@ -84,13 +69,11 @@ public class ScrollPopupMenu extends JPopupMenu
     return popupScrollBar;
   }
 
-  public int getMaximumVisibleRows()
-  {
+  public int getMaximumVisibleRows() {
     return maximumVisibleRows;
   }
 
-  public void setMaximumVisibleRows(int maximumVisibleRows)
-  {
+  public void setMaximumVisibleRows(int maximumVisibleRows) {
     if (maximumVisibleRows <= 0) {
       maximumVisibleRows = DEFAULT_NUM_VISIBLE_ROWS;
     }
@@ -102,16 +85,14 @@ public class ScrollPopupMenu extends JPopupMenu
   }
 
   @Override
-  public void paintChildren(Graphics g)
-  {
+  public void paintChildren(Graphics g) {
     Insets insets = getInsets();
     g.clipRect(insets.left, insets.top, getWidth(), getHeight() - insets.top - insets.bottom);
     super.paintChildren(g);
   }
 
   @Override
-  protected void addImpl(Component comp, Object constraints, int index)
-  {
+  protected void addImpl(Component comp, Object constraints, int index) {
     super.addImpl(comp, constraints, index);
 
     if (maximumVisibleRows < getComponentCount() - 1) {
@@ -122,8 +103,7 @@ public class ScrollPopupMenu extends JPopupMenu
   }
 
   @Override
-  public void remove(int index)
-  {
+  public void remove(int index) {
     // can't remove the scrollbar
     ++index;
 
@@ -137,8 +117,7 @@ public class ScrollPopupMenu extends JPopupMenu
   }
 
   @Override
-  public void insert(Action a, int index)
-  {
+  public void insert(Action a, int index) {
     // can't insert before scrollbar
     ++index;
 
@@ -152,8 +131,7 @@ public class ScrollPopupMenu extends JPopupMenu
   }
 
   @Override
-  public void insert(Component component, int index)
-  {
+  public void insert(Component component, int index) {
     // can't insert before scrollbar
     ++index;
 
@@ -167,23 +145,20 @@ public class ScrollPopupMenu extends JPopupMenu
   }
 
   @Override
-  public Dimension getPreferredSize()
-  {
+  public Dimension getPreferredSize() {
     refresh();
     return super.getPreferredSize();
   }
 
   @Override
-  public void setVisible(boolean visible)
-  {
+  public void setVisible(boolean visible) {
     if (visible) {
       refresh();
     }
     super.setVisible(visible);
   }
 
-  private void refresh()
-  {
+  private void refresh() {
     JScrollBar scrollBar = getScrollBar();
     if (scrollBar.isVisible() && isModified()) {
       int extent = 0;
@@ -220,38 +195,31 @@ public class ScrollPopupMenu extends JPopupMenu
     clearModified();
   }
 
-  private boolean isModified()
-  {
+  private boolean isModified() {
     return modified;
   }
 
-  private void setModified()
-  {
+  private void setModified() {
     modified = true;
   }
 
-  private void clearModified()
-  {
+  private void clearModified() {
     modified = false;
   }
 
   // -------------------------- INNER CLASSES --------------------------
 
-  protected class ScrollPopupMenuLayout implements LayoutManager
-  {
+  protected class ScrollPopupMenuLayout implements LayoutManager {
     @Override
-    public void addLayoutComponent(String name, Component comp)
-    {
+    public void addLayoutComponent(String name, Component comp) {
     }
 
     @Override
-    public void removeLayoutComponent(Component comp)
-    {
+    public void removeLayoutComponent(Component comp) {
     }
 
     @Override
-    public Dimension preferredLayoutSize(Container parent)
-    {
+    public Dimension preferredLayoutSize(Container parent) {
       int visibleAmount = Integer.MAX_VALUE;
       Dimension dim = new Dimension();
       for (Component comp : parent.getComponents()) {
@@ -259,8 +227,7 @@ public class ScrollPopupMenu extends JPopupMenu
           if (comp instanceof JScrollBar) {
             JScrollBar scrollBar = (JScrollBar) comp;
             visibleAmount = scrollBar.getVisibleAmount();
-          }
-          else {
+          } else {
             Dimension pref = comp.getPreferredSize();
             dim.width = Math.max(dim.width, pref.width);
             dim.height += pref.height;
@@ -275,8 +242,7 @@ public class ScrollPopupMenu extends JPopupMenu
     }
 
     @Override
-    public Dimension minimumLayoutSize(Container parent)
-    {
+    public Dimension minimumLayoutSize(Container parent) {
       int visibleAmount = Integer.MAX_VALUE;
       Dimension dim = new Dimension();
       for (Component comp : parent.getComponents()) {
@@ -284,8 +250,7 @@ public class ScrollPopupMenu extends JPopupMenu
           if (comp instanceof JScrollBar) {
             JScrollBar scrollBar = (JScrollBar) comp;
             visibleAmount = scrollBar.getVisibleAmount();
-          }
-          else {
+          } else {
             Dimension min = comp.getMinimumSize();
             dim.width = Math.max(dim.width, min.width);
             dim.height += min.height;
@@ -300,8 +265,7 @@ public class ScrollPopupMenu extends JPopupMenu
     }
 
     @Override
-    public void layoutContainer(Container parent)
-    {
+    public void layoutContainer(Container parent) {
       Insets insets = parent.getInsets();
 
       int width = parent.getWidth() - insets.left - insets.right;

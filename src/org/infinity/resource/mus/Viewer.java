@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.mus;
@@ -31,29 +31,29 @@ import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
-public class Viewer extends JPanel implements Runnable, ActionListener
-{
+public class Viewer extends JPanel implements Runnable, ActionListener {
   private final SimpleListModel<Entry> listModel = new SimpleListModel<>();
   private final JList<Entry> list = new JList<>(listModel);
   private final AudioPlayer player = new AudioPlayer();
   private final List<Entry> entryList = new Vector<>();
 
   private JLabel playList;
-  private JButton bPlay, bEnd, bStop;
-  private boolean play, end, closed = false;
+  private JButton bPlay;
+  private JButton bEnd;
+  private JButton bStop;
+  private boolean play= false;
+  private boolean end = false;
+  private boolean closed = false;
 
-
-  public Viewer(MusResource mus)
-  {
+  public Viewer(MusResource mus) {
     initGUI();
     loadMusResource(mus);
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bPlay) {
       new Thread(this).start();
     } else if (event.getSource() == bStop) {
@@ -67,20 +67,20 @@ public class Viewer extends JPanel implements Runnable, ActionListener
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     bPlay.setEnabled(false);
     bStop.setEnabled(true);
     bEnd.setEnabled(true);
     list.setEnabled(false);
     int nextnr = list.getSelectedIndex();
-    if (nextnr == -1)
+    if (nextnr == -1) {
       nextnr = 0;
+    }
     play = true;
     end = false;
     try {
@@ -113,35 +113,31 @@ public class Viewer extends JPanel implements Runnable, ActionListener
     list.ensureIndexIsVisible(0);
   }
 
-//--------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
-  public void close()
-  {
+  public void close() {
     setClosed(true);
     stopPlay();
-    for (final Entry entry: entryList) {
+    for (final Entry entry : entryList) {
       entry.close();
     }
     entryList.clear();
   }
 
   // Creates a new music list and loads all associated soundtracks
-  public void loadMusResource(final MusResource mus)
-  {
+  public void loadMusResource(final MusResource mus) {
     if (mus != null) {
       // Parse and load soundtracks in a separate thread
       (new SwingWorker<Boolean, Void>() {
         @Override
-        public Boolean doInBackground()
-        {
+        public Boolean doInBackground() {
           return parseMusFile(mus);
         }
       }).execute();
     }
   }
 
-  private boolean parseMusFile(MusResource mus)
-  {
+  private boolean parseMusFile(MusResource mus) {
     if (!isClosed()) {
       stopPlay();
       bPlay.setEnabled(false);
@@ -150,9 +146,11 @@ public class Viewer extends JPanel implements Runnable, ActionListener
       String dir = tokenizer.nextToken().trim();
       listModel.clear();
       entryList.clear();
-      int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
+      int count = Integer.valueOf(tokenizer.nextToken().trim());
       for (int i = 0; i < count; i++) {
-        if (isClosed()) return false;
+        if (isClosed()) {
+          return false;
+        }
         Entry entry = new Entry(mus.getResourceEntry(), dir, entryList, tokenizer.nextToken().trim(), i);
         entryList.add(entry);
         listModel.addElement(entry);
@@ -160,14 +158,16 @@ public class Viewer extends JPanel implements Runnable, ActionListener
       list.setSelectedIndex(0);
       validate();
 
-      for (final Entry entry: entryList) {
-        if (isClosed()) return false;
+      for (final Entry entry : entryList) {
+        if (isClosed()) {
+          return false;
+        }
         try {
           entry.init();
         } catch (Exception e) {
           e.printStackTrace();
-          JOptionPane.showMessageDialog(getTopLevelAncestor(), "Error loading " + entry.toString() + '\n' +
-                                        e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(getTopLevelAncestor(),
+              "Error loading " + entry.toString() + '\n' + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
 
@@ -179,15 +179,13 @@ public class Viewer extends JPanel implements Runnable, ActionListener
     return false;
   }
 
-
-  private void initGUI()
-  {
-    bPlay = new JButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+  private void initGUI() {
+    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
-    bEnd = new JButton("Finish", Icons.getIcon(Icons.ICON_END_16));
+    bEnd = new JButton("Finish", Icons.ICON_END_16.getIcon());
     bEnd.setEnabled(false);
     bEnd.addActionListener(this);
-    bStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
+    bStop = new JButton("Stop", Icons.ICON_STOP_16.getIcon());
     bStop.setEnabled(false);
     bStop.addActionListener(this);
 
@@ -220,23 +218,20 @@ public class Viewer extends JPanel implements Runnable, ActionListener
     add(centerPanel, BorderLayout.CENTER);
   }
 
-  public void stopPlay()
-  {
+  public void stopPlay() {
     if (player != null) {
       play = false;
       player.stopPlay();
     }
   }
 
-  private synchronized void setClosed(boolean b)
-  {
+  private synchronized void setClosed(boolean b) {
     if (b != closed) {
       closed = b;
     }
   }
 
-  private synchronized boolean isClosed()
-  {
+  private synchronized boolean isClosed() {
     return closed;
   }
 }

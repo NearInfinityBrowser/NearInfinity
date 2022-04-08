@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -23,13 +23,14 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
 /** Meta class for identifying dialogue node. */
-final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
-{
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
+final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
+  private static final ImageIcon ICON = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
 
   private final DlgTreeModel parent;
+
   /** Dialog which represents this tree. */
   private final DlgResource dlg;
+
   /** States from which dialog can start. */
   private final ArrayList<StateItem> states = new ArrayList<>();
 
@@ -40,25 +41,24 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   private final int numActions;
   private final String flags;
 
-  public DlgItem(DlgTreeModel parent, DlgResource dlg)
-  {
+  public DlgItem(DlgTreeModel parent, DlgResource dlg) {
     this.parent = parent;
     this.dlg = dlg;
-    numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
-    numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
-    numStateTriggers    = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
+    numStates = getAttribute(DlgResource.DLG_NUM_STATES);
+    numTransitions = getAttribute(DlgResource.DLG_NUM_RESPONSES);
+    numStateTriggers = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
     numResponseTriggers = getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
-    numActions          = getAttribute(DlgResource.DLG_NUM_ACTIONS);
+    numActions = getAttribute(DlgResource.DLG_NUM_ACTIONS);
 
     final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
-    flags = entry instanceof Flag ? ((Flag)entry).toString() : null;
+    flags = entry instanceof Flag ? ((Flag) entry).toString() : null;
 
     final boolean alwaysShow = BrowserMenuBar.getInstance().alwaysShowState0();
     // finding and storing initial states
     int count = 0;
     for (final StructEntry e : dlg.getFields()) {
       if (e instanceof State) {
-        final State s = (State)e;
+        final State s = (State) e;
         // First state always under root, if setting is checked
         if (alwaysShow && count == 0 || s.getTriggerIndex() >= 0) {
           states.add(new StateItem(s, this, null));
@@ -74,46 +74,74 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   }
 
   @Override
-  public TreeItemEntry getEntry() { return null; }
+  public TreeItemEntry getEntry() {
+    return null;
+  }
 
   @Override
-  public ItemBase getMain() { return null; }
+  public ItemBase getMain() {
+    return null;
+  }
 
   @Override
-  public DlgResource getDialog() { return dlg; }
+  public DlgResource getDialog() {
+    return dlg;
+  }
 
   @Override
-  public Icon getIcon() { return ICON; }
+  public Icon getIcon() {
+    return ICON;
+  }
 
   @Override
-  public boolean removeChild(ItemBase child) { return states.remove(child); }
+  public boolean removeChild(ItemBase child) {
+    return states.remove(child);
+  }
 
   @Override
-  public void traverseChildren(Consumer<ItemBase> action) { states.forEach(action); }
+  public void traverseChildren(Consumer<ItemBase> action) {
+    states.forEach(action);
+  }
 
   @Override
-  public StateItem getChildAt(int childIndex) { return states.get(childIndex); }
+  public StateItem getChildAt(int childIndex) {
+    return states.get(childIndex);
+  }
 
   @Override
-  public int getChildCount() { return states.size(); }
+  public int getChildCount() {
+    return states.size();
+  }
 
   @Override
-  public TreeNode getParent() { return parent; }
+  public TreeNode getParent() {
+    return parent;
+  }
 
   @Override
-  public int getIndex(TreeNode node) { return states.indexOf(node); }
+  public int getIndex(TreeNode node) {
+    return states.indexOf(node);
+  }
 
   @Override
-  public boolean getAllowsChildren() { return true; }
+  public boolean getAllowsChildren() {
+    return true;
+  }
 
   @Override
-  public boolean isLeaf() { return states.isEmpty(); }
+  public boolean isLeaf() {
+    return states.isEmpty();
+  }
 
   @Override
-  public Enumeration<? extends StateItem> children() { return Collections.enumeration(states); }
+  public Enumeration<? extends StateItem> children() {
+    return Collections.enumeration(states);
+  }
 
   @Override
-  public Iterator<StateItem> iterator() { return states.iterator(); }
+  public Iterator<StateItem> iterator() {
+    return states.iterator();
+  }
 
   /**
    * Extracts specified {@link SectionCount} attribute from dialog.
@@ -121,18 +149,16 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
    * @param attrName Attribute name
    * @return value of the attribute or 0 if attribute does not exists
    */
-  private int getAttribute(String attrName)
-  {
+  private int getAttribute(String attrName) {
     final StructEntry entry = getDialog().getAttribute(attrName, false);
     if (entry instanceof IsNumeric) {
-      return ((IsNumeric)entry).getValue();
+      return ((IsNumeric) entry).getValue();
     }
     return 0;
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getDialogName());
     sb.append(" (states: ").append(Integer.toString(numStates));
@@ -148,24 +174,20 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
     return sb.toString();
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
    * Performs comparison based on global dialog tree option "Sort states by weight".
    */
-  private static class StateComparator implements Comparator<StateItem>
-  {
+  private static class StateComparator implements Comparator<StateItem> {
     private final boolean sortByWeight;
 
-    public StateComparator()
-    {
+    public StateComparator() {
       sortByWeight = BrowserMenuBar.getInstance().sortStatesByWeight();
     }
 
     @Override
-    public int compare(StateItem state1, StateItem state2)
-    {
+    public int compare(StateItem state1, StateItem state2) {
       if (sortByWeight) {
         int idx1 = state1.getEntry().getTriggerIndex();
         int idx2 = state2.getEntry().getTriggerIndex();

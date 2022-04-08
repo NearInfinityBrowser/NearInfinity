@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.hexview;
@@ -22,13 +22,10 @@ import tv.porst.jhexview.JHexView;
 /**
  * Provides a dynamic popupmenu for the StructHexViewer component.
  */
-public class ResourceMenuCreator extends MenuCreator
-{
+public class ResourceMenuCreator extends MenuCreator {
   private final AbstractStruct struct;
 
-
-  public ResourceMenuCreator(JHexView hexView, AbstractStruct struct)
-  {
+  public ResourceMenuCreator(JHexView hexView, AbstractStruct struct) {
     super(hexView);
 
     if (struct == null) {
@@ -37,16 +34,15 @@ public class ResourceMenuCreator extends MenuCreator
     this.struct = struct;
   }
 
-//--------------------- Begin Interface IMenuCreator ---------------------
+  // --------------------- Begin Interface IMenuCreator ---------------------
 
   @Override
-  public JPopupMenu createMenu(long offset)
-  {
+  public JPopupMenu createMenu(long offset) {
     // generating popup menu
     JPopupMenu popup = super.createMenu(offset);
 
     // adding dynamic entries on top of popup menu
-    List<JMenuItem> list = createStructEntries((int)offset);
+    List<JMenuItem> list = createStructEntries((int) offset);
     if (!list.isEmpty()) {
       popup.add(new JPopupMenu.Separator(), 0);
       popup.addSeparator();
@@ -61,24 +57,23 @@ public class ResourceMenuCreator extends MenuCreator
     return popup;
   }
 
-//--------------------- End Interface IMenuCreator ---------------------
+  // --------------------- End Interface IMenuCreator ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() instanceof DataMenuItem) {
-      DataMenuItem mi = (DataMenuItem)e.getSource();
-      StructEntry entry = (StructEntry)mi.getData();
+      DataMenuItem mi = (DataMenuItem) e.getSource();
+      StructEntry entry = (StructEntry) mi.getData();
       if (entry != null) {
         List<StructEntry> listEntries = entry.getStructChain();
         StructViewer curViewer = null;
-        for (int i = 0; i < listEntries.size(); i++) {
-          entry = listEntries.get(i);
+        for (StructEntry listEntry : listEntries) {
+          entry = listEntry;
           if (entry instanceof AbstractStruct) {
             if (entry == getStruct()) {
-              curViewer = ((AbstractStruct)entry).getViewer();
+              curViewer = ((AbstractStruct) entry).getViewer();
               if (curViewer != null) {
                 curViewer.selectEditTab();
                 curViewer.selectEntry(entry.getOffset(), false);
@@ -87,9 +82,9 @@ public class ResourceMenuCreator extends MenuCreator
               if (curViewer != null) {
                 curViewer.selectEntry(entry.getOffset(), false);
               }
-              ViewFrame curFrame = curViewer.getViewFrame((AbstractStruct)entry);
+              ViewFrame curFrame = curViewer.getViewFrame((AbstractStruct) entry);
               if (curFrame.getViewable() instanceof AbstractStruct) {
-                curViewer = ((AbstractStruct)curFrame.getViewable()).getViewer();
+                curViewer = ((AbstractStruct) curFrame.getViewable()).getViewer();
               } else {
                 curViewer = null;
               }
@@ -105,20 +100,18 @@ public class ResourceMenuCreator extends MenuCreator
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
   /** Returns the associated resource structure instance. */
-  public AbstractStruct getStruct()
-  {
+  public AbstractStruct getStruct() {
     return struct;
   }
 
   // Creates a list of all structures containing the specified offset, starting from topmost level.
-  private List<JMenuItem> createStructEntries(int offset)
-  {
+  private List<JMenuItem> createStructEntries(int offset) {
     List<JMenuItem> list = new ArrayList<>();
     if (getHexView().getData() instanceof StructuredDataProvider) {
-      StructEntry curEntry = ((StructuredDataProvider)getHexView().getData()).getFieldAt(offset);
+      StructEntry curEntry = ((StructuredDataProvider) getHexView().getData()).getFieldAt(offset);
       if (curEntry != null) {
         List<StructEntry> listEntries = curEntry.getStructChain();
         // we don't need actual resource structure

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -14,7 +14,6 @@ import org.infinity.datatype.IsTextual;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -28,43 +27,44 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * Handles specific layer type: global GAM/Actor
  */
-public class LayerObjectGlobalActor extends LayerObjectActor
-{
-  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class) {{
-    put(Allegiance.GOOD, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_G_1),
-                                      Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_G_2)});
-    put(Allegiance.NEUTRAL, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_B_1),
-                                         Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_B_2)});
-    put(Allegiance.ENEMY, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_R_1),
-                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_R_2)});
-  }};
+public class LayerObjectGlobalActor extends LayerObjectActor {
+  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class);
+
   private static final Point CENTER = new Point(12, 40);
+
+  static {
+    ICONS.put(Allegiance.GOOD, new Image[] { ViewerIcons.ICON_ITM_GAM_ACTOR_G_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_GAM_ACTOR_G_2.getIcon().getImage() });
+    ICONS.put(Allegiance.NEUTRAL, new Image[] { ViewerIcons.ICON_ITM_GAM_ACTOR_B_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_GAM_ACTOR_B_2.getIcon().getImage() });
+    ICONS.put(Allegiance.ENEMY, new Image[] { ViewerIcons.ICON_ITM_GAM_ACTOR_R_1.getIcon().getImage(),
+        ViewerIcons.ICON_ITM_GAM_ACTOR_R_2.getIcon().getImage() });
+  }
 
   private final PartyNPC npc;
 
   private CreResource cre;
 
-  public LayerObjectGlobalActor(GamResource parent, PartyNPC npc)
-  {
+  public LayerObjectGlobalActor(GamResource parent, PartyNPC npc) {
     super(PartyNPC.class, parent);
     this.npc = Objects.requireNonNull(npc);
 
-    int creOfs = ((IsNumeric)this.npc.getAttribute(PartyNPC.GAM_NPC_OFFSET_CRE)).getValue();
-    int creSize = ((IsNumeric)this.npc.getAttribute(PartyNPC.GAM_NPC_CRE_SIZE)).getValue();
+    int creOfs = ((IsNumeric) this.npc.getAttribute(PartyNPC.GAM_NPC_OFFSET_CRE)).getValue();
+    int creSize = ((IsNumeric) this.npc.getAttribute(PartyNPC.GAM_NPC_CRE_SIZE)).getValue();
     if (creOfs > 0 && creSize > 0) {
       // attached resource?
       StructEntry se = this.npc.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
       if (se instanceof CreResource) {
-        this.cre = (CreResource)se;
+        this.cre = (CreResource) se;
       }
     } else {
       // external resource?
-      String creRes = ((IsTextual)this.npc.getAttribute(PartyNPC.GAM_NPC_CHARACTER)).getText();
+      String creRes = ((IsTextual) this.npc.getAttribute(PartyNPC.GAM_NPC_CHARACTER)).getText();
       ResourceEntry entry = ResourceFactory.getResourceEntry(creRes + ".CRE");
       if (entry != null) {
         Resource res = ResourceFactory.getResource(entry);
         if (res instanceof CreResource) {
-          this.cre = (CreResource)res;
+          this.cre = (CreResource) res;
         }
       }
     }
@@ -73,10 +73,10 @@ public class LayerObjectGlobalActor extends LayerObjectActor
       throw new NullPointerException("Could not determine CRE resource: " + this.npc.getName());
     }
 
-    location.x = ((IsNumeric)this.npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_X)).getValue();
-    location.y = ((IsNumeric)this.npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_Y)).getValue();
+    location.x = ((IsNumeric) this.npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_X)).getValue();
+    location.y = ((IsNumeric) this.npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_Y)).getValue();
 
-    int ea = ((IsNumeric)this.cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+    int ea = ((IsNumeric) this.cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
     Image[] icons = ICONS.get(getAllegiance(ea));
     icons = getIcons(icons);
 
@@ -106,14 +106,13 @@ public class LayerObjectGlobalActor extends LayerObjectActor
   }
 
   @Override
-  public void loadAnimation()
-  {
+  public void loadAnimation() {
     if (items[1] instanceof AnimatedLayerItem) {
-      AnimatedLayerItem item = (AnimatedLayerItem)items[1];
+      AnimatedLayerItem item = (AnimatedLayerItem) items[1];
       if (item.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER) {
         if (cre != null) {
           try {
-            int orientation = ((IsNumeric)npc.getAttribute(PartyNPC.GAM_NPC_ORIENTATION)).getValue();
+            int orientation = ((IsNumeric) npc.getAttribute(PartyNPC.GAM_NPC_ORIENTATION)).getValue();
             ActorAnimationProvider sprite = createAnimationProvider(cre);
             sprite.setOrientation(orientation);
 
@@ -128,28 +127,25 @@ public class LayerObjectGlobalActor extends LayerObjectActor
   }
 
   @Override
-  public Viewable getViewable()
-  {
+  public Viewable getViewable() {
     return npc;
   }
 
   @Override
-  public boolean isScheduled(int schedule)
-  {
-    return true;  // always active
+  public boolean isScheduled(int schedule) {
+    return true; // always active
   }
 
   /** Tooltip for actor object. */
-  private String getTooltip()
-  {
+  private String getTooltip() {
     String retVal = null;
 
-    retVal = ((IsTextual)npc.getAttribute(PartyNPC.GAM_NPC_NAME)).getText().trim();
+    retVal = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_NAME)).getText().trim();
     if (retVal.isEmpty()) {
-      retVal = ((IsTextual)cre.getAttribute(CreResource.CRE_NAME)).getText().trim();
+      retVal = ((IsTextual) cre.getAttribute(CreResource.CRE_NAME)).getText().trim();
     }
     if (retVal.isEmpty()) {
-      retVal = ((IsTextual)cre.getAttribute(CreResource.CRE_TOOLTIP)).getText().trim();
+      retVal = ((IsTextual) cre.getAttribute(CreResource.CRE_TOOLTIP)).getText().trim();
     }
     if (retVal.isEmpty()) {
       retVal = "(no name)";

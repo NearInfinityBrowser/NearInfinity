@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -20,53 +20,74 @@ import org.infinity.util.Misc;
 /**
  * Common base for processing creature animations with different armor levels.
  */
-public abstract class CharacterBaseDecoder extends SpriteDecoder
-{
-  public static final DecoderAttribute KEY_CAN_LIE_DOWN       = DecoderAttribute.with("can_lie_down", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_DOUBLE_BLIT        = DecoderAttribute.with("double_blit", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_EQUIP_HELMET       = DecoderAttribute.with("equip_helmet", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_ARMOR_MAX_CODE     = DecoderAttribute.with("armor_max_code", DecoderAttribute.DataType.INT);
-  public static final DecoderAttribute KEY_HEIGHT_CODE        = DecoderAttribute.with("height_code", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_HEIGHT_CODE_HELMET = DecoderAttribute.with("height_code_helmet", DecoderAttribute.DataType.STRING);
+public abstract class CharacterBaseDecoder extends SpriteDecoder {
+  public static final DecoderAttribute KEY_CAN_LIE_DOWN = DecoderAttribute.with("can_lie_down",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_DOUBLE_BLIT = DecoderAttribute.with("double_blit",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_EQUIP_HELMET = DecoderAttribute.with("equip_helmet",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_ARMOR_MAX_CODE = DecoderAttribute.with("armor_max_code",
+      DecoderAttribute.DataType.INT);
+  public static final DecoderAttribute KEY_HEIGHT_CODE = DecoderAttribute.with("height_code",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_HEIGHT_CODE_HELMET = DecoderAttribute.with("height_code_helmet",
+      DecoderAttribute.DataType.STRING);
 
   /** Available attack types associated with attack sequences. */
   public enum AttackType {
-    ONE_HANDED, TWO_HANDED, TWO_WEAPON, THROWING,
-    BOW, CROSSBOW, SLING
+    ONE_HANDED, TWO_HANDED, TWO_WEAPON, THROWING, BOW, CROSSBOW, SLING
   }
 
-  public CharacterBaseDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
-  {
+  public CharacterBaseDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception {
     super(type, animationId, ini);
   }
 
-  public CharacterBaseDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
-  {
+  public CharacterBaseDecoder(AnimationInfo.Type type, CreResource cre) throws Exception {
     super(type, cre);
   }
 
   /** Returns whether the creature falls down when dead/unconscious. */
-  public boolean canLieDown() { return getAttribute(KEY_CAN_LIE_DOWN); }
-  protected void setCanLieDown(boolean b) { setAttribute(KEY_CAN_LIE_DOWN, b); }
+  public boolean canLieDown() {
+    return getAttribute(KEY_CAN_LIE_DOWN);
+  }
+
+  protected void setCanLieDown(boolean b) {
+    setAttribute(KEY_CAN_LIE_DOWN, b);
+  }
 
   /** unused */
-  public boolean isDoubleBlit() { return getAttribute(KEY_DOUBLE_BLIT); }
-  protected void setDoubleBlit(boolean b) { setAttribute(KEY_DOUBLE_BLIT, b); }
+  public boolean isDoubleBlit() {
+    return getAttribute(KEY_DOUBLE_BLIT);
+  }
+
+  protected void setDoubleBlit(boolean b) {
+    setAttribute(KEY_DOUBLE_BLIT, b);
+  }
 
   /**
-   * Returns the maximum armor code value used as suffix in animation filenames.
-   * Highest code value is usually used by ArmorSpecificResref().
+   * Returns the maximum armor code value used as suffix in animation filenames. Highest code value is usually used by
+   * ArmorSpecificResref().
    */
-  public int getMaxArmorCode() { return getAttribute(KEY_ARMOR_MAX_CODE); }
-  protected void setMaxArmorCode(int v) { setAttribute(KEY_ARMOR_MAX_CODE, Math.max(0, v)); }
+  public int getMaxArmorCode() {
+    return getAttribute(KEY_ARMOR_MAX_CODE);
+  }
+
+  protected void setMaxArmorCode(int v) {
+    setAttribute(KEY_ARMOR_MAX_CODE, Math.max(0, v));
+  }
 
   /** Returns whether helmet overlay is shown. */
-  public boolean isHelmetEquipped() { return getAttribute(KEY_EQUIP_HELMET); }
-  protected void setHelmetEquipped(boolean b) { setAttribute(KEY_EQUIP_HELMET, b); }
+  public boolean isHelmetEquipped() {
+    return getAttribute(KEY_EQUIP_HELMET);
+  }
+
+  protected void setHelmetEquipped(boolean b) {
+    setAttribute(KEY_EQUIP_HELMET, b);
+  }
 
   /** Returns the height code prefix for helmet overlay sprites. Falls back to generic height code if needed. */
-  public String getHelmetHeightCode()
-  {
+  public String getHelmetHeightCode() {
     String retVal = getAttribute(KEY_HEIGHT_CODE_HELMET);
     if (retVal.isEmpty()) {
       retVal = getHeightCode();
@@ -74,12 +95,16 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
     return retVal;
   }
 
-  protected void setHelmetHeightCode(String s) { setAttribute(KEY_HEIGHT_CODE_HELMET, s); }
+  protected void setHelmetHeightCode(String s) {
+    setAttribute(KEY_HEIGHT_CODE_HELMET, s);
+  }
 
   /** Returns the creature animation height code prefix. */
-  public String getHeightCode() { return getAttribute(KEY_HEIGHT_CODE); }
-  protected void setHeightCode(String s)
-  {
+  public String getHeightCode() {
+    return getAttribute(KEY_HEIGHT_CODE);
+  }
+
+  protected void setHeightCode(String s) {
     if (s == null || s.isEmpty()) {
       // heuristically determine height code
       s = guessHeightCode();
@@ -88,8 +113,7 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
   }
 
   /** Returns the armor code based on equipped armor of the current creature. */
-  public int getArmorCode()
-  {
+  public int getArmorCode() {
     int retVal = 1;
     ItemInfo itm = getCreatureInfo().getEquippedArmor();
     if (itm != null) {
@@ -103,13 +127,14 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
 
   /**
    * Determines the attack type based on the specified item resource.
-   * @param itm the item resource.
-   * @param abilityIndex the item-specific ability to check (e.g. throwing or melee for throwing axes)
-   * @param preferTwoWeapon whether {@code AttackType.TwoWeapon} should be returned if a melee one-handed weapon is detected.
+   *
+   * @param itm             the item resource.
+   * @param abilityIndex    the item-specific ability to check (e.g. throwing or melee for throwing axes)
+   * @param preferTwoWeapon whether {@code AttackType.TwoWeapon} should be returned if a melee one-handed weapon is
+   *                        detected.
    * @return attack type associated with the item resource.
    */
-  public AttackType getAttackType(ItemInfo itm, int abilityIndex, boolean preferTwoWeapon)
-  {
+  public AttackType getAttackType(ItemInfo itm, int abilityIndex, boolean preferTwoWeapon) {
     AttackType retVal = AttackType.ONE_HANDED;
     if (itm == null) {
       return retVal;
@@ -128,17 +153,17 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
     }
 
     switch (itm.getCategory()) {
-      case 15:  // Bows
+      case 15: // Bows
         retVal = AttackType.BOW;
         break;
-      case 27:  // Crossbows
+      case 27: // Crossbows
         retVal = AttackType.CROSSBOW;
         break;
-      case 18:  // Slings
+      case 18: // Slings
         retVal = AttackType.SLING;
         break;
       default:
-        if (abilType == 1) {  // melee
+        if (abilType == 1) { // melee
           if (isTwoHanded) {
             retVal = AttackType.TWO_HANDED;
           } else {
@@ -154,10 +179,10 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
 
   /**
    * Attempts to determine the correct height code.
+   *
    * @return the "guessed" height code. Returns empty string if code could not be determined.
    */
-  protected String guessHeightCode()
-  {
+  protected String guessHeightCode() {
     String retVal = "";
     boolean isCharacter = (getAnimationType() == AnimationInfo.Type.CHARACTER);
     String c2 = isCharacter ? "Q" : "P";
@@ -169,20 +194,20 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
       char gender = resref.charAt(2);
       if (gender == 'M' || gender == 'F') {
         switch (race) {
-          case 'H':   // human
-          case 'O':   // half-orc
+          case 'H': // human
+          case 'O': // half-orc
             if (isCharacter) {
               retVal = "W" + c2 + ((gender == 'F') ? "N" : "L");
             } else {
               retVal = "W" + c2 + "L";
             }
             break;
-          case 'E':   // elf/half-elf
+          case 'E': // elf/half-elf
             retVal = "W" + c2 + "M";
             break;
-          case 'D':   // dwarf/gnome
-          case 'G':   // gnome (?)
-          case 'I':   // halfling
+          case 'D': // dwarf/gnome
+          case 'G': // gnome (?)
+          case 'I': // halfling
             retVal = "W" + c2 + "S";
             break;
         }
@@ -193,24 +218,24 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
     if (retVal.isEmpty()) {
       CreResource cre = getCreResource();
       if (cre != null) {
-        boolean isFemale = ((IsNumeric)cre.getAttribute(CreResource.CRE_GENDER)).getValue() == 2;
-        int race = ((IsNumeric)cre.getAttribute(CreResource.CRE_RACE)).getValue();
+        boolean isFemale = ((IsNumeric) cre.getAttribute(CreResource.CRE_GENDER)).getValue() == 2;
+        int race = ((IsNumeric) cre.getAttribute(CreResource.CRE_RACE)).getValue();
         switch (race) {
-          case 1:   // human
-          case 7:   // half-orc
+          case 1: // human
+          case 7: // half-orc
             if (isCharacter) {
               retVal = "W" + c2 + (isFemale ? "N" : "L");
             } else {
               retVal = "W" + c2 + "L";
             }
             break;
-          case 2:   // elf
-          case 3:   // half-elf
+          case 2: // elf
+          case 3: // half-elf
             retVal = "W" + c2 + "M";
             break;
-          case 4:   // dwarf
-          case 5:   // halfling
-          case 6:   // gnome
+          case 4: // dwarf
+          case 5: // halfling
+          case 6: // gnome
             retVal = "W" + c2 + "S";
             break;
         }
@@ -221,8 +246,7 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     // setting properties
     initDefaults(getAnimationInfo());
     IniMapSection section = getSpecificIniSection();

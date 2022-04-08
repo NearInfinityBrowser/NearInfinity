@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -23,18 +23,15 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
- * Visual effects allow you to group other visual effects, animations, and sounds
- * together and specify the timing with which each component plays. This is powerful
- * in the sense that you can create a whole visual effect display with these files.
- * VEF files can be used with the actions {@code CreateVisualEffect(S:Object*,P:Location*)}
- * and {@code CreateVisualEffectObject(S:Object*,O:Target*)}, and in effect opcode
- * 215 (Graphics: Play 3D Effect).
+ * Visual effects allow you to group other visual effects, animations, and sounds together and specify the timing with
+ * which each component plays. This is powerful in the sense that you can create a whole visual effect display with
+ * these files. VEF files can be used with the actions {@code CreateVisualEffect(S:Object*,P:Location*)} and
+ * {@code CreateVisualEffectObject(S:Object*,O:Target*)}, and in effect opcode 215 (Graphics: Play 3D Effect).
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm</a>
  */
-public final class VefResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
-{
+public final class VefResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs {
   // VEF-specific field labels
   public static final String VEF_OFFSET_COMPONENT_PRI = "Primary component offset";
   public static final String VEF_NUM_COMPONENT_PRI    = "Primary component count";
@@ -43,38 +40,32 @@ public final class VefResource extends AbstractStruct implements Resource, HasCh
 
   private StructHexViewer hexViewer;
 
-  public VefResource(ResourceEntry entry) throws Exception
-  {
+  public VefResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    return new AddRemovable[]{new PrimaryComponent(), new SecondaryComponent()};
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] { new PrimaryComponent(), new SecondaryComponent() };
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
@@ -82,38 +73,36 @@ public final class VefResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
-    SectionOffset offset_component1 = new SectionOffset(buffer, offset + 8, VEF_OFFSET_COMPONENT_PRI,
-                                                        PrimaryComponent.class);
-    addField(offset_component1);
-    SectionCount count_component1 = new SectionCount(buffer, offset + 12, 4, VEF_NUM_COMPONENT_PRI,
-                                                     PrimaryComponent.class);
-    addField(count_component1);
-    SectionOffset offset_component2 = new SectionOffset(buffer, offset + 16, VEF_OFFSET_COMPONENT_SEC,
-                                                        SecondaryComponent.class);
-    addField(offset_component2);
-    SectionCount count_component2 = new SectionCount(buffer, offset + 20, 4, VEF_NUM_COMPONENT_SEC,
-                                                     SecondaryComponent.class);
-    addField(count_component2);
+    SectionOffset offsetComponent1 = new SectionOffset(buffer, offset + 8, VEF_OFFSET_COMPONENT_PRI,
+        PrimaryComponent.class);
+    addField(offsetComponent1);
+    SectionCount countComponent1 = new SectionCount(buffer, offset + 12, 4, VEF_NUM_COMPONENT_PRI,
+        PrimaryComponent.class);
+    addField(countComponent1);
+    SectionOffset offsetComponent2 = new SectionOffset(buffer, offset + 16, VEF_OFFSET_COMPONENT_SEC,
+        SecondaryComponent.class);
+    addField(offsetComponent2);
+    SectionCount countComponent2 = new SectionCount(buffer, offset + 20, 4, VEF_NUM_COMPONENT_SEC,
+        SecondaryComponent.class);
+    addField(countComponent2);
 
-    offset = offset_component1.getValue();
-    for (int i = 0; i < count_component1.getValue(); i++) {
+    offset = offsetComponent1.getValue();
+    for (int i = 0; i < countComponent1.getValue(); i++) {
       PrimaryComponent comp1 = new PrimaryComponent(this, buffer, offset, i);
       offset = comp1.getEndOffset();
       addField(comp1);
     }
 
-    offset = offset_component2.getValue();
-    for (int i = 0; i < count_component2.getValue(); i++) {
+    offset = offsetComponent2.getValue();
+    for (int i = 0; i < countComponent2.getValue(); i++) {
       SecondaryComponent comp2 = new SecondaryComponent(this, buffer, offset, i);
       offset = comp2.getEndOffset();
       addField(comp2);
@@ -128,22 +117,19 @@ public final class VefResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -151,16 +137,14 @@ public final class VefResource extends AbstractStruct implements Resource, HasCh
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();

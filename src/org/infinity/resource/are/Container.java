@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -25,9 +25,8 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
-                                                               HasChildStructs
-{
+public final class Container extends AbstractStruct
+    implements AddRemovable, HasVertices, HasViewerTabs, HasChildStructs {
   // ARE/Container-specific field labels
   public static final String ARE_CONTAINER                            = "Container";
   public static final String ARE_CONTAINER_NAME                       = "Name";
@@ -57,68 +56,59 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   public static final String ARE_CONTAINER_BREAK_DIFFICULTY           = "Break difficulty";
   public static final String ARE_CONTAINER_LOCKPICK_STRING            = "Lockpick string";
 
-  public static final String[] s_type = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
-                                          "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
-  public static final String[] s_flag = { "No flags set", "Locked", "Disable if no owner", "Magical lock",
-                                          "Trap resets", "Remove only", "Disabled", "EE: Don't clear" };
+  public static final String[] TYPE_ARRAY = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf", "Altar",
+      "Non-visible", "Spellbook", "Body", "Barrel", "Crate" };
 
-  public Container() throws Exception
-  {
+  public static final String[] FLAG_ARRAY = { "No flags set", "Locked", "Disable if no owner", "Magical lock",
+      "Trap resets", "Remove only", "Disabled", "EE: Don't clear" };
+
+  public Container() throws Exception {
     super(null, ARE_CONTAINER, StreamUtils.getByteBuffer(192), 0);
   }
 
-  public Container(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
-  {
+  public Container(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, ARE_CONTAINER + " " + nr, buffer, offset);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    return new AddRemovable[]{new Vertex(), new Item()};
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] { new Vertex(), new Item() };
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_VIEW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     return new ViewerContainer(this);
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return true;
   }
 
   @Override
-  public void readVertices(ByteBuffer buffer, int offset) throws Exception
-  {
-    int firstVertex = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
-    int numVertices = ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception {
+    int firstVertex = ((IsNumeric) getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
+    int numVertices = ((IsNumeric) getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
     offset += firstVertex << 2;
     for (int i = 0; i < numVertices; i++) {
       addField(new Vertex(this, buffer, offset + 4 * i, i));
@@ -126,77 +116,71 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   }
 
   @Override
-  public int updateVertices(int offset, int number)
-  {
-    ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).setValue(number);
+  public int updateVertices(int offset, int number) {
+    ((DecNumber) getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).setValue(number);
     int count = 0;
     for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
-        ((Vertex)entry).realignStructOffsets();
+        ((Vertex) entry).realignStructOffsets();
         offset += 4;
         count++;
       }
     }
-    ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).setValue(count);
+    ((DecNumber) getAttribute(ARE_CONTAINER_NUM_VERTICES)).setValue(count);
     return count;
   }
 
   @Override
-  protected void setAddRemovableOffset(AddRemovable datatype)
-  {
+  protected void setAddRemovableOffset(AddRemovable datatype) {
     if (datatype instanceof Vertex) {
-      int index = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
-      final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      int index = ((IsNumeric) getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
+      final int offset = ((IsNumeric) getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
-      ((AbstractStruct)datatype).realignStructOffsets();
-    }
-    else if (datatype instanceof Item) {
-      int index = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
-      final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
+      ((AbstractStruct) datatype).realignStructOffsets();
+    } else if (datatype instanceof Item) {
+      int index = ((IsNumeric) getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
+      final int offset = ((IsNumeric) getParent().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
       datatype.setOffset(offset + 20 * index);
-      ((AbstractStruct)datatype).realignStructOffsets();
+      ((AbstractStruct) datatype).realignStructOffsets();
     }
   }
 
-  public void readItems(ByteBuffer buffer, int offset) throws Exception
-  {
-    int firstIndex = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
-    int numItems = ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
+  public void readItems(ByteBuffer buffer, int offset) throws Exception {
+    int firstIndex = ((IsNumeric) getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
+    int numItems = ((IsNumeric) getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
     offset += firstIndex * 20;
     for (int i = 0; i < numItems; i++) {
       addField(new Item(this, buffer, offset + 20 * i, i));
     }
-//    return offset + numItems * 20;
+    // return offset + numItems * 20;
   }
 
-  public int updateItems(int offset, int number)
-  {
-    ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).setValue(number);
+  public int updateItems(int offset, int number) {
+    ((DecNumber) getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).setValue(number);
     int count = 0;
     for (final StructEntry entry : getFields()) {
       if (entry instanceof Item) {
         entry.setOffset(offset);
-        ((Item)entry).realignStructOffsets();
+        ((Item) entry).realignStructOffsets();
         offset += 20;
         count++;
       }
     }
-    ((DecNumber)getAttribute(ARE_CONTAINER_NUM_ITEMS)).setValue(count);
+    ((DecNumber) getAttribute(ARE_CONTAINER_NUM_ITEMS)).setValue(count);
     return count;
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 32, ARE_CONTAINER_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_CONTAINER_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_CONTAINER_LOCATION_Y));
-    addField(new Bitmap(buffer, offset + 36, 2, ARE_CONTAINER_TYPE, s_type));
+    addField(new Bitmap(buffer, offset + 36, 2, ARE_CONTAINER_TYPE, TYPE_ARRAY));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_CONTAINER_LOCK_DIFFICULTY));
-    addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, s_flag));
+    addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, FLAG_ARRAY));
     addField(new DecNumber(buffer, offset + 44, 2, ARE_CONTAINER_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 46, 2, ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY));
     addField(new Bitmap(buffer, offset + 48, 2, ARE_CONTAINER_TRAPPED, OPTION_NOYES));

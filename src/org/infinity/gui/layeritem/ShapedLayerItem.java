@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -23,27 +23,27 @@ import org.infinity.resource.Viewable;
 /**
  * Represents a game resource structure visually as a shape.
  */
-public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
-{
+public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener {
   private static final Color DEFAULT_COLOR = Color.BLACK;
 
-  private Shape shape;
   private final EnumMap<ItemState, Color> strokeColors = new EnumMap<>(ItemState.class);
   private final EnumMap<ItemState, BasicStroke> strokePen = new EnumMap<>(ItemState.class);
   private final EnumMap<ItemState, Color> fillColors = new EnumMap<>(ItemState.class);
   private final JLabel label;
-  private boolean stroked, filled;
+
+  private Shape shape;
+  private boolean stroked;
+  private boolean filled;
 
   /**
-   * Initialize object with an associated Viewable, an additional text message
-   * and a shape for the visual representation.
+   * Initialize object with an associated Viewable, an additional text message and a shape for the visual
+   * representation.
    *
    * @param viewable Associated Viewable object
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param shape The shape to display
+   * @param tooltip  A short text message shown as tooltip or menu item text
+   * @param shape    The shape to display
    */
-  public ShapedLayerItem(Viewable viewable, String tooltip, Shape shape)
-  {
+  public ShapedLayerItem(Viewable viewable, String tooltip, Shape shape) {
     super(viewable, tooltip);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);
@@ -57,10 +57,10 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Sets a new shape.
+   *
    * @param shape The new shape
    */
-  public void setShape(Shape shape)
-  {
+  public void setShape(Shape shape) {
     this.shape = (shape != null) ? shape : new Rectangle();
     updateSize();
     updateShape();
@@ -68,10 +68,10 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Sets the logical center of the icon.
+   *
    * @param center The center position within the icon
    */
-  public void setCenterPosition(Point center)
-  {
+  public void setCenterPosition(Point center) {
     if (center == null) {
       center = new Point(0, 0);
     }
@@ -88,10 +88,10 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Returns the polygon's stroke color of the specified visual state.
+   *
    * @return Stroke color of the specified visual state.
    */
-  public Color getStrokeColor(ItemState state)
-  {
+  public Color getStrokeColor(ItemState state) {
     if (state == null) {
       state = ItemState.NORMAL;
     }
@@ -100,10 +100,10 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Sets the stroke color of the polygon for the specified visual state.
+   *
    * @param color The stroke color of the polygon for the specified visual state.
    */
-  public void setStrokeColor(ItemState state, Color color)
-  {
+  public void setStrokeColor(ItemState state, Color color) {
     if (state != null) {
       if (color != null) {
         strokeColors.put(state, color);
@@ -116,16 +116,16 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Returns the stroke width of the polygon for the specified visual state.
+   *
    * @param state The visual state to get the stroke with from.
    * @return The stroke width in pixels.
    */
-  public int getStrokeWidth(ItemState state)
-  {
+  public int getStrokeWidth(ItemState state) {
     if (state == null) {
       state = ItemState.NORMAL;
     }
     if (strokePen.containsKey(state)) {
-      return (int)strokePen.get(state).getLineWidth();
+      return (int) strokePen.get(state).getLineWidth();
     } else {
       return 1;
     }
@@ -133,26 +133,26 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Sets the stroke width of the polygon for the specified visual state.
+   *
    * @param state The visual state to set the stroke with for.
    * @param width The stroke width in pixels.
    */
-  public void setStrokeWidth(ItemState state, int width)
-  {
+  public void setStrokeWidth(ItemState state, int width) {
     if (state != null) {
       if (width < 1) {
         width = 1;
       }
-      strokePen.put(state, new BasicStroke((float)width));
+      strokePen.put(state, new BasicStroke(width));
       updateShape();
     }
   }
 
   /**
    * Returns the polygon's fill color of the specified visual state.
+   *
    * @return Fill color of the specified visual state.
    */
-  public Color getFillColor(ItemState state)
-  {
+  public Color getFillColor(ItemState state) {
     if (state == null) {
       state = ItemState.NORMAL;
     }
@@ -161,10 +161,10 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Sets the polygon's fill color for the specified visual state.
+   *
    * @param color The fill color for the specified visual state.
    */
-  public void setFillColor(ItemState state, Color color)
-  {
+  public void setFillColor(ItemState state, Color color) {
     if (state != null) {
       if (color != null) {
         fillColors.put(state, color);
@@ -177,19 +177,19 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Returns whether the polygon should have a stroked outline.
+   *
    * @return true if the polygon is drawn with a stroked outline, false otherwise.
    */
-  public boolean getStroked()
-  {
+  public boolean getStroked() {
     return stroked;
   }
 
   /**
    * Specify whether the polygon should be drawn with a stroked outline.
+   *
    * @param b If true, the polygon will be drawn with a stroked outline
    */
-  public void setStroked(boolean b)
-  {
+  public void setStroked(boolean b) {
     if (b != stroked) {
       stroked = b;
       updateShape();
@@ -198,30 +198,28 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
 
   /**
    * Returns whether the polygon should be filled with a specific color.
+   *
    * @return true if the polygon is drawn filled, false otherwise.
    */
-  public boolean getFilled()
-  {
+  public boolean getFilled() {
     return filled;
   }
 
   /**
    * Specify whether the polygon should be filled with a specific color.
+   *
    * @param b If true, the polygon will be filled with a specific color.
    */
-  public void setFilled(boolean b)
-  {
+  public void setFilled(boolean b) {
     if (b != filled) {
       filled = b;
       updateShape();
     }
   }
 
-
   /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override
-  protected boolean isMouseOver(Point pt)
-  {
+  protected boolean isMouseOver(Point pt) {
     if (shape != null) {
       return shape.contains(pt);
     } else {
@@ -229,9 +227,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     }
   }
 
-
-  private void updateSize()
-  {
+  private void updateSize() {
     if (shape != null) {
       Rectangle r = getBounds();
       r.setSize(shape.getBounds().getSize());
@@ -241,41 +237,36 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   }
 
   /** Recreates polygons. */
-  private void updateShape()
-  {
+  private void updateShape() {
     label.repaint();
   }
 
   @Override
-  public void layerItemChanged(LayerItemEvent event)
-  {
+  public void layerItemChanged(LayerItemEvent event) {
     if (event.getSource() == this) {
       updateShape();
     }
   }
 
-//----------------------------- INNER CLASSES -----------------------------
+  // ----------------------------- INNER CLASSES -----------------------------
 
   /** Extended JLabel to draw shapes on the fly. */
-  private static class ShapeLabel extends JLabel
-  {
+  private static class ShapeLabel extends JLabel {
     private final ShapedLayerItem parent;
 
-    public ShapeLabel(ShapedLayerItem parent)
-    {
+    public ShapeLabel(ShapedLayerItem parent) {
       super();
       this.parent = parent;
     }
 
     @Override
-    protected void paintComponent(Graphics g)
-    {
+    protected void paintComponent(Graphics g) {
       super.paintComponent(g);
       if (parent != null) {
         ItemState state = parent.getItemState();
         Shape shape = parent.shape;
         if (state != null && shape != null && !shape.getBounds().isEmpty()) {
-          Graphics2D g2 = (Graphics2D)g;
+          Graphics2D g2 = (Graphics2D) g;
 
           if (parent.filled) {
             g2.setColor(parent.fillColors.get(state));

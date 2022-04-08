@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -27,68 +27,64 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
-public class Compiler
-{
-  private static final HashMap<String, String> tokenSymbolToDescMap = new HashMap<>();
+public class Compiler {
+  private static final HashMap<String, String> TOKEN_SYMBOL_TO_DESC_MAP = new HashMap<>();
+
   static {
     // translate internal parser token names into more descriptive names
-    tokenSymbolToDescMap.put("<NUMBER_LITERAL>", "<NUMBER>");
-    tokenSymbolToDescMap.put("<STRING_LITERAL>", "<STRING>");
-    tokenSymbolToDescMap.put("<LPAREN>", "\"(\"");
-    tokenSymbolToDescMap.put("<RPAREN>", "\")\"");
-    tokenSymbolToDescMap.put("<LBRACKET>", "\"[\"");
-    tokenSymbolToDescMap.put("<RBRACKET>", "\"]\"");
-    tokenSymbolToDescMap.put("<COMMA>", "\",\"");
-    tokenSymbolToDescMap.put("<DOT>", "\".\"");
-    tokenSymbolToDescMap.put("<BANG>", "\"!\"");
-    tokenSymbolToDescMap.put("<OR>", "\"|\"");
-    tokenSymbolToDescMap.put("<MINUS>", "\"-\"");
-    tokenSymbolToDescMap.put("<PLUS>", "\"+\"");
-    tokenSymbolToDescMap.put("<POUND>", "\"#\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<NUMBER_LITERAL>", "<NUMBER>");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<STRING_LITERAL>", "<STRING>");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<LPAREN>", "\"(\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<RPAREN>", "\")\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<LBRACKET>", "\"[\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<RBRACKET>", "\"]\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<COMMA>", "\",\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<DOT>", "\".\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<BANG>", "\"!\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<OR>", "\"|\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<MINUS>", "\"-\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<PLUS>", "\"+\"");
+    TOKEN_SYMBOL_TO_DESC_MAP.put("<POUND>", "\"#\"");
   }
 
   private final SortedSet<ScriptMessage> errors = new TreeSet<>();
   private final SortedSet<ScriptMessage> warnings = new TreeSet<>();
 
-  private Signatures triggers, actions;
-  private String source;    // script source
-  private String code;      // compiled bytecode
+  private Signatures triggers;
+  private Signatures actions;
+  private String source; // script source
+  private String code; // compiled bytecode
   private ScriptType scriptType;
-  private boolean verbose;  // enable to generate more compile warnings
+  private boolean verbose; // enable to generate more compile warnings
   // global states:
-  private int orCount;      // keeps track of triggers following OR()
-  private Token orToken;    // token associated with latest OR trigger
-  private int lastCode;     // stores the code of the most recently processed trigger or action
-  private Token lastToken;  // token associated with lastCode
+  private int orCount; // keeps track of triggers following OR()
+  private Token orToken; // token associated with latest OR trigger
+  private int lastCode; // stores the code of the most recently processed trigger or action
+  private Token lastToken; // token associated with lastCode
 
-  public Compiler(String source)
-  {
+  public Compiler(String source) {
     this(source, ScriptType.BAF);
   }
 
-  public Compiler(String source, ScriptType type)
-  {
+  public Compiler(String source, ScriptType type) {
     this.scriptType = type;
     setVerbose(BrowserMenuBar.getInstance().showMoreCompileWarnings());
     setSource(source);
   }
 
   /** Returns BAF script source. */
-  public String getSource()
-  {
+  public String getSource() {
     return source;
   }
 
   /** Set new BAF script source. */
-  public void setSource(String source)
-  {
+  public void setSource(String source) {
     this.source = (source != null) ? source : "";
     reset();
   }
 
   /** Load new script source from the specified BAF resource entry. */
-  public void setSource(ResourceEntry bafEntry) throws Exception
-  {
+  public void setSource(ResourceEntry bafEntry) throws Exception {
     if (bafEntry == null) {
       throw new NullPointerException();
     }
@@ -98,8 +94,7 @@ public class Compiler
   }
 
   /** Returns compiled script byte code. */
-  public String getCode()
-  {
+  public String getCode() {
     if (code == null) {
       compile();
     }
@@ -107,94 +102,86 @@ public class Compiler
   }
 
   /** Returns currently used script type. */
-  public ScriptType getScriptType()
-  {
+  public ScriptType getScriptType() {
     return scriptType;
   }
 
   /**
-   * Specify new script type.
-   * <b>Node:</b> Automatically invalidates previously compile script source.
+   * Specify new script type. <b>Node:</b> Automatically invalidates previously compile script source.
    */
-  public void setScriptType(ScriptType type)
-  {
+  public void setScriptType(ScriptType type) {
     if (type != scriptType) {
       reset();
       scriptType = type;
     }
   }
 
-  public SortedSet<ScriptMessage> getErrors()
-  {
+  public SortedSet<ScriptMessage> getErrors() {
     return errors;
   }
 
-  public SortedSet<ScriptMessage> getWarnings()
-  {
+  public SortedSet<ScriptMessage> getWarnings() {
     return warnings;
   }
 
   /** Indicates whether to generate more compile warnings. */
-  public boolean isVerbose()
-  {
+  public boolean isVerbose() {
     return verbose;
   }
 
   /** Set to generate more compile warnings. */
-  public void setVerbose(boolean set)
-  {
+  public void setVerbose(boolean set) {
     verbose = set;
   }
 
   /**
    * Compiles the current script source as if defined as {@code ScriptType.BAF}.
+   *
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
-  public String compileScript()
-  {
+  public String compileScript() {
     return compile(ScriptType.BAF);
   }
 
   /**
    * Compiles the current script source as if defined as {@code ScriptType.Trigger}.
+   *
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
-  public String compileTrigger()
-  {
+  public String compileTrigger() {
     return compile(ScriptType.TRIGGER);
   }
 
   /**
    * Compiles the current script source as if defined as {@code ScriptType.Action}.
+   *
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
-  public String compileAction()
-  {
+  public String compileAction() {
     return compile(ScriptType.ACTION);
   }
 
   /**
-   * Compiles the currently loaded script source into BCS byte code.
-   * Uses {@link #getScriptType()} to determine the correct compile action.
+   * Compiles the currently loaded script source into BCS byte code. Uses {@link #getScriptType()} to determine the
+   * correct compile action.
+   *
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
-  public String compile()
-  {
+  public String compile() {
     return compile(scriptType);
   }
 
   /**
-   * Compiles the current script source according to the specified script type.
-   * Supported script types: BAF, TRIGGER and ACTION.
+   * Compiles the current script source according to the specified script type. Supported script types: BAF, TRIGGER and
+   * ACTION.
+   *
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
-  public String compile(ScriptType type)
-  {
+  public String compile(ScriptType type) {
     switch (type) {
       case BAF:
       case TRIGGER:
-      case ACTION:
-      {
+      case ACTION: {
         reset();
         BafParser parser = new BafParser(type, new BOMStringReader(source));
         try {
@@ -223,19 +210,22 @@ public class Compiler
           errors.add(new ScriptMessage(e.getMessage(), e.currentToken));
         } catch (TokenMgrError e) {
           Token token = null;
-          try { token = parser.getNextToken(); } catch (Throwable t) {}
+          try {
+            token = parser.getNextToken();
+          } catch (Throwable t) {
+          }
           errors.add(new ScriptMessage(e.getMessage(), token));
         } catch (Throwable e) {
           errors.add(new ScriptMessage(e.getMessage()));
         }
         return code;
       }
-      default: throw new IllegalArgumentException("Could not determine script type");
+      default:
+        throw new IllegalArgumentException("Could not determine script type");
     }
   }
 
-  private String generateScriptCode(ScriptNode root)
-  {
+  private String generateScriptCode(ScriptNode root) {
     if (root == null) {
       throw new NullPointerException();
     }
@@ -247,8 +237,7 @@ public class Compiler
     return sb.toString();
   }
 
-  private String generateTriggerCode(ScriptNode root)
-  {
+  private String generateTriggerCode(ScriptNode root) {
     if (root == null) {
       throw new NullPointerException();
     }
@@ -263,8 +252,7 @@ public class Compiler
     return sb.toString();
   }
 
-  private String generateActionCode(ScriptNode root)
-  {
+  private String generateActionCode(ScriptNode root) {
     if (root == null) {
       throw new NullPointerException();
     }
@@ -279,8 +267,7 @@ public class Compiler
     return sb.toString();
   }
 
-  private void generateSC(StringBuilder sb, ScriptNode node)
-  {
+  private void generateSC(StringBuilder sb, ScriptNode node) {
     if ("SC".equals(node.type)) {
       sb.append("SC\n");
 
@@ -295,8 +282,7 @@ public class Compiler
     }
   }
 
-  private void generateCR(StringBuilder sb, ScriptNode node)
-  {
+  private void generateCR(StringBuilder sb, ScriptNode node) {
     if ("CR".equals(node.type)) {
       sb.append("CR\n");
 
@@ -318,8 +304,7 @@ public class Compiler
     }
   }
 
-  private void generateCO(StringBuilder sb, ScriptNode node)
-  {
+  private void generateCO(StringBuilder sb, ScriptNode node) {
     if ("CO".equals(node.type)) {
       sb.append("CO\n");
 
@@ -334,8 +319,7 @@ public class Compiler
     }
   }
 
-  private void generateRS(StringBuilder sb, ScriptNode node)
-  {
+  private void generateRS(StringBuilder sb, ScriptNode node) {
     if ("RS".equals(node.type)) {
       // finalizing previous condition block
       if (isOverrideFunction(lastCode, true)) {
@@ -362,8 +346,7 @@ public class Compiler
     }
   }
 
-  private void generateRE(StringBuilder sb, ScriptNode node)
-  {
+  private void generateRE(StringBuilder sb, ScriptNode node) {
     if ("RE".equals(node.type)) {
       sb.append("RE\n").append(node.code);
 
@@ -378,14 +361,14 @@ public class Compiler
     }
   }
 
-  private void generateTR(StringBuilder sb, ScriptNode node)
-  {
+  private void generateTR(StringBuilder sb, ScriptNode node) {
     if ("TR".equals(node.type)) {
       BcsTrigger trigger = new BcsTrigger(triggers);
 
-      boolean isOverride = isOverrideFunction((int)node.code, true);
+      boolean isOverride = isOverrideFunction((int) node.code, true);
       if (isOverride && lastCode == node.code) {
-        warnings.add(new ScriptMessage("Consecutive override triggers: last instance overrides previous instance(s)", node.token));
+        warnings.add(new ScriptMessage("Consecutive override triggers: last instance overrides previous instance(s)",
+            node.token));
       }
 
       boolean isOR = node.function.getName().equals("OR");
@@ -464,13 +447,13 @@ public class Compiler
       }
 
       if (isOR) {
-        orCount = (int)trigger.getNumericParam(0);
+        orCount = (int) trigger.getNumericParam(0);
         orToken = node.token;
       }
 
       // overridden trigger directly follows override trigger
       if (ovrTrigger != null) {
-        ovrTrigger.negated |= node.negated;   // carry negation state over to nested trigger
+        ovrTrigger.negated |= node.negated; // carry negation state over to nested trigger
         generateTR(sb, ovrTrigger);
       }
 
@@ -479,16 +462,14 @@ public class Compiler
     }
   }
 
-  private void generateAC(StringBuilder sb, ScriptNode node)
-  {
+  private void generateAC(StringBuilder sb, ScriptNode node) {
     generateAC(sb, node, null);
   }
 
-  private void generateAC(StringBuilder sb, ScriptNode node, BcsObject overrideTarget)
-  {
+  private void generateAC(StringBuilder sb, ScriptNode node, BcsObject overrideTarget) {
     if ("AC".equals(node.type)) {
       // ActionOverride target will be passed to the overridden action
-      boolean isOverride = isOverrideFunction((int)node.code, false);
+      boolean isOverride = isOverrideFunction((int) node.code, false);
       if (isOverride && overrideTarget != null) {
         errors.add(new ScriptMessage("Nested override actions not allowed", node.token));
         return;
@@ -556,7 +537,7 @@ public class Compiler
         // handling numbers
         for (int i = 0, cnt = node.numbers.size(); i < cnt; i++) {
           try {
-            action.setNumericParam(i, node.numbers.get(i).longValue());
+            action.setNumericParam(i, node.numbers.get(i));
           } catch (IllegalArgumentException e) {
             warnings.add(new ScriptMessage("Too many numeric arguments (allowed: 3)", node.token));
             break;
@@ -587,8 +568,7 @@ public class Compiler
     }
   }
 
-  private BcsObject generateOB(ScriptNode node)
-  {
+  private BcsObject generateOB(ScriptNode node) {
     BcsObject object = null;
     if ("OB".equals(node.type)) {
       object = new BcsObject();
@@ -610,7 +590,8 @@ public class Compiler
         try {
           object.setIdentifierValue(i, node.numbers2.get(node.numbers2.size() - i - 1));
         } catch (IllegalArgumentException e) {
-          warnings.add(new ScriptMessage("Too many target identifiers (allowed: " + object.identifier.length + ")", node.token));
+          warnings.add(
+              new ScriptMessage("Too many target identifiers (allowed: " + object.identifier.length + ")", node.token));
           break;
         }
       }
@@ -632,13 +613,12 @@ public class Compiler
   }
 
   // Determines whether the specified node points to an override trigger or action function
-  private boolean isOverrideFunction(int code, boolean isTrigger)
-  {
+  private boolean isOverrideFunction(int code, boolean isTrigger) {
     boolean retVal = false;
 
     Signatures.Function[] funcs = isTrigger ? triggers.getFunction(code) : actions.getFunction(code);
     if (funcs != null) {
-      for (Signatures.Function func: funcs) {
+      for (Signatures.Function func : funcs) {
         char paramType = 0;
         if (isTrigger) {
           paramType = Signatures.Function.Parameter.TYPE_TRIGGER;
@@ -664,8 +644,7 @@ public class Compiler
     return retVal;
   }
 
-  private void reset()
-  {
+  private void reset() {
     errors.clear();
     warnings.clear();
     code = null;
@@ -682,8 +661,7 @@ public class Compiler
   }
 
   // Checks all available arguments of the specified action, trigger or object node
-  private void checkParams(ScriptNode node)
-  {
+  private void checkParams(ScriptNode node) {
     if (node == null) {
       return;
     }
@@ -692,14 +670,13 @@ public class Compiler
       Signatures.Function function = node.function;
       for (int i = 0, sidx = 0, nidx = 0, cnt = function.getNumParameters(); i < cnt; i++) {
         Signatures.Function.Parameter param = function.getParameter(i);
-        if (param.getType() == Signatures.Function.Parameter.TYPE_STRING &&
-            sidx < node.strings.size()) {
+        if (param.getType() == Signatures.Function.Parameter.TYPE_STRING && sidx < node.strings.size()) {
           String value = node.strings.get(sidx);
           sidx++;
           String[] resTypes = param.getResourceType();
           if (resTypes.length > 0) {
             boolean found = false;
-            for (String resType: resTypes) {
+            for (String resType : resTypes) {
               if (resType.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT)) {
                 // checking script name
                 checkScriptName(param, value, node);
@@ -710,7 +687,7 @@ public class Compiler
                 checkSpellList(param, value, node);
                 found = true;
                 break;
-              } else if (Character.isUpperCase(resType.charAt(0)) || Character.isDigit(resType.charAt(0)) ) {
+              } else if (Character.isUpperCase(resType.charAt(0)) || Character.isDigit(resType.charAt(0))) {
                 if (value.length() <= 8) {
                   // checking resource
                   if (value.isEmpty()) {
@@ -724,10 +701,10 @@ public class Compiler
                   } else {
                     String resName = value + '.' + resType;
                     if (ResourceFactory.resourceExists(resName, true)) {
-                      if (param.isCombinedString() && !param.isColonSeparatedString() &&
-                          value.length() != 6) {
+                      if (param.isCombinedString() && !param.isColonSeparatedString() && value.length() != 6) {
                         // special: fixed length scope argument required
-                        errors.add(new ScriptMessage("Fixed resource name length of 6 characters required: " + param.toString(true) + " - " + value, node.token));
+                        errors.add(new ScriptMessage("Fixed resource name length of 6 characters required: "
+                            + param.toString(true) + " - " + value, node.token));
                       }
                       found = true;
                       break;
@@ -735,23 +712,25 @@ public class Compiler
                   }
                 } else {
                   int diff = value.length() - 8;
-                  warnings.add(new ScriptMessage("Resource name too long by " + diff + " character(s): " + param.toString(true) + " - " + value, node.token));
+                  warnings.add(new ScriptMessage(
+                      "Resource name too long by " + diff + " character(s): " + param.toString(true) + " - " + value,
+                      node.token));
                   found = true;
                   break;
                 }
               }
             }
             if (!found) {
-              warnings.add(new ScriptMessage("Resource not found: " + param.toString(true) + " - " + value, node.token));
+              warnings
+                  .add(new ScriptMessage("Resource not found: " + param.toString(true) + " - " + value, node.token));
             }
           }
-        } else if (param.getType() == Signatures.Function.Parameter.TYPE_INTEGER &&
-                   nidx < node.numbers.size()) {
+        } else if (param.getType() == Signatures.Function.Parameter.TYPE_INTEGER && nidx < node.numbers.size()) {
           long value = node.numbers.get(nidx);
           nidx++;
           String[] types = param.getResourceType();
           if (types.length > 0) {
-            for (String type: types) {
+            for (String type : types) {
               if (type.equals("TLK")) {
                 checkStrref(value, node);
               } else if (type.equals("SPL")) {
@@ -768,11 +747,8 @@ public class Compiler
     }
   }
 
-  private void checkScriptName(Signatures.Function.Parameter param, String name, ScriptNode node)
-  {
-    if (!name.isEmpty() &&
-        !CreMapCache.hasCreScriptName(name) &&
-        !CreMapCache.hasAreScriptName(name)) {
+  private void checkScriptName(Signatures.Function.Parameter param, String name, ScriptNode node) {
+    if (!name.isEmpty() && !CreMapCache.hasCreScriptName(name) && !CreMapCache.hasAreScriptName(name)) {
       if (param != null) {
         warnings.add(new ScriptMessage("Script name not found: " + param.toString(true) + " - " + name, node.token));
       } else {
@@ -781,19 +757,19 @@ public class Compiler
     }
   }
 
-  private void checkSpellList(Signatures.Function.Parameter param, String list, ScriptNode node)
-  {
+  private void checkSpellList(Signatures.Function.Parameter param, String list, ScriptNode node) {
     if ((list.length() & 3) == 0) {
       for (int j = 0, splcount = list.length() / 4; j < splcount; j++) {
-        String snum = list.substring(j*4, j*4 + 4);
+        String snum = list.substring(j * 4, j * 4 + 4);
         try {
           long number = Long.parseLong(snum);
           String symbol = IdsMapCache.getIdsSymbol("SPELL.IDS", number);
           if (symbol != null) {
-            String resName = org.infinity.resource.spl.Viewer.getResourceName((int)number, true);
+            String resName = org.infinity.resource.spl.Viewer.getResourceName((int) number, true);
             if (!ResourceFactory.resourceExists(resName)) {
               if (param != null) {
-                warnings.add(new ScriptMessage("Resource not found: " + param.toString(true) + " - " + resName, node.token));
+                warnings.add(
+                    new ScriptMessage("Resource not found: " + param.toString(true) + " - " + resName, node.token));
               } else {
                 warnings.add(new ScriptMessage("Resource not found: " + resName, node.token));
               }
@@ -808,18 +784,16 @@ public class Compiler
     }
   }
 
-  private void checkStrref(long value, ScriptNode node)
-  {
-    if (value != -1 && !StringTable.isValidStringRef((int)value)) {
+  private void checkStrref(long value, ScriptNode node) {
+    if (value != -1 && !StringTable.isValidStringRef((int) value)) {
       warnings.add(new ScriptMessage("String reference is out of range: " + value, node.token));
     }
   }
 
-  private void checkSpellCode(long value, ScriptNode node)
-  {
+  private void checkSpellCode(long value, ScriptNode node) {
     if (value != 0) {
       String symbol = IdsMapCache.getIdsSymbol("SPELL.IDS", value);
-      String resRef = org.infinity.resource.spl.Viewer.getResourceName((int)value, true);
+      String resRef = org.infinity.resource.spl.Viewer.getResourceName((int) value, true);
       if (!ResourceFactory.resourceExists(resRef)) {
         if (symbol == null) {
           symbol = Long.toString(value);
@@ -834,20 +808,19 @@ public class Compiler
   }
 
   // Generates a more user-friendly error message
-  private String generateErrorMessage(ParseException e)
-  {
+  private String generateErrorMessage(ParseException e) {
     StringBuilder sb = new StringBuilder();
     sb.append("Syntax error at line ").append(e.currentToken.next.beginLine);
     sb.append(", column ").append(e.currentToken.next.beginColumn);
     sb.append(". Expected ");
 
     ArrayList<String> expected = new ArrayList<>();
-    for (int i = 0; i < e.expectedTokenSequences.length; i++) {
+    for (int[] element : e.expectedTokenSequences) {
       String symbol = "";
-      for (int j = 0; j < e.expectedTokenSequences[i].length; j++) {
-        String s = tokenSymbolToDescMap.get(e.tokenImage[e.expectedTokenSequences[i][j]]);
+      for (int j = 0; j < element.length; j++) {
+        String s = TOKEN_SYMBOL_TO_DESC_MAP.get(e.tokenImage[element[j]]);
         if (s == null) {
-          s = e.tokenImage[e.expectedTokenSequences[i][j]];
+          s = e.tokenImage[element[j]];
         }
         symbol += s + ' ';
       }

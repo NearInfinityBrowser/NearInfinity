@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -29,139 +29,149 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.tuples.Couple;
 
 /**
- * Creature animation decoder for processing type 5000/6000 (character) animations.
- * Available ranges: [5000,53ff], [5500,55ff], [6000,63ff], [6500,65ff]
+ * Creature animation decoder for processing type 5000/6000 (character) animations. Available ranges: [5000,53ff],
+ * [5500,55ff], [6000,63ff], [6500,65ff]
  */
-public class CharacterDecoder extends CharacterBaseDecoder
-{
+public class CharacterDecoder extends CharacterBaseDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.CHARACTER;
 
-  public static final DecoderAttribute KEY_SPLIT_BAMS             = DecoderAttribute.with("split_bams", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_HEIGHT_CODE_SHIELD     = DecoderAttribute.with("height_code_shield", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_RESREF_PAPERDOLL       = DecoderAttribute.with("resref_paperdoll", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_RESREF_ARMOR_BASE      = DecoderAttribute.with("resref_armor_base", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_RESREF_ARMOR_SPECIFIC  = DecoderAttribute.with("resref_armor_specific", DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_SPLIT_BAMS = DecoderAttribute.with("split_bams",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_HEIGHT_CODE_SHIELD = DecoderAttribute.with("height_code_shield",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_RESREF_PAPERDOLL = DecoderAttribute.with("resref_paperdoll",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_RESREF_ARMOR_BASE = DecoderAttribute.with("resref_armor_base",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_RESREF_ARMOR_SPECIFIC = DecoderAttribute.with("resref_armor_specific",
+      DecoderAttribute.DataType.STRING);
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> suffixMapUnsplit =
-      new HashMap<Sequence, Couple<String, Integer>>() {{
-        put(Sequence.ATTACK_SLASH_1H, Couple.with("A1", 0));
-        put(Sequence.ATTACK_SLASH_2H, Couple.with("A2", 0));
-        put(Sequence.ATTACK_BACKSLASH_1H, Couple.with("A3", 0));
-        put(Sequence.ATTACK_BACKSLASH_2H, Couple.with("A4", 0));
-        put(Sequence.ATTACK_JAB_1H, Couple.with("A5", 0));
-        put(Sequence.ATTACK_JAB_2H, Couple.with("A6", 0));
-        put(Sequence.ATTACK_2WEAPONS1, Couple.with("A7", 0));
-        put(Sequence.ATTACK_OVERHEAD, Couple.with("A8", 0));
-        put(Sequence.ATTACK_2WEAPONS2, Couple.with("A9", 0));
-        put(Sequence.ATTACK_BOW, Couple.with("SA", 0));
-        put(Sequence.ATTACK_SLING, Couple.with("SS", 0));
-        put(Sequence.ATTACK_CROSSBOW, Couple.with("SX", 0));
-        put(Sequence.SPELL, Couple.with("CA", 0));
-        put(Sequence.SPELL1, get(Sequence.SPELL));
-        put(Sequence.SPELL2, Couple.with("CA", 18));
-        put(Sequence.SPELL3, Couple.with("CA", 36));
-        put(Sequence.SPELL4, Couple.with("CA", 54));
-        put(Sequence.CAST, Couple.with("CA", 9));
-        put(Sequence.CAST1, get(Sequence.CAST));
-        put(Sequence.CAST2, Couple.with("CA", 27));
-        put(Sequence.CAST3, Couple.with("CA", 45));
-        put(Sequence.CAST4, Couple.with("CA", 63));
-        put(Sequence.WALK, Couple.with("G1", 0));
-        put(Sequence.STANCE, Couple.with("G1", 9));
-        put(Sequence.STANCE2, Couple.with("G1", 27));
-        put(Sequence.STAND, Couple.with("G1", 18));
-        put(Sequence.STAND2, Couple.with("G1", 63));
-        put(Sequence.STAND3, Couple.with("G1", 72));
-        put(Sequence.GET_HIT, Couple.with("G1", 36));
-        put(Sequence.DIE, Couple.with("G1", 45));
-        put(Sequence.TWITCH, Couple.with("G1", 54));
-        put(Sequence.SLEEP, Couple.with("G1", 81));
-        put(Sequence.GET_UP, Couple.with("!G1", 81));
-        put(Sequence.SLEEP2, Couple.with("G1", 90));
-        put(Sequence.GET_UP2, Couple.with("!G1", 90));
-      }};
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (split version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> suffixMapSplit =
-      new HashMap<Sequence, Couple<String, Integer>>() {{
-        put(Sequence.ATTACK_SLASH_1H, Couple.with("A1", 0));
-        put(Sequence.ATTACK_SLASH_2H, Couple.with("A2", 0));
-        put(Sequence.ATTACK_BACKSLASH_1H, Couple.with("A3", 0));
-        put(Sequence.ATTACK_BACKSLASH_2H, Couple.with("A4", 0));
-        put(Sequence.ATTACK_JAB_1H, Couple.with("A5", 0));
-        put(Sequence.ATTACK_JAB_2H, Couple.with("A6", 0));
-        put(Sequence.ATTACK_2WEAPONS1, Couple.with("A7", 0));
-        put(Sequence.ATTACK_OVERHEAD, Couple.with("A8", 0));
-        put(Sequence.ATTACK_2WEAPONS2, Couple.with("A9", 0));
-        put(Sequence.ATTACK_BOW, Couple.with("SA", 0));
-        put(Sequence.ATTACK_SLING, Couple.with("SS", 0));
-        put(Sequence.ATTACK_CROSSBOW, Couple.with("SX", 0));
-        put(Sequence.SPELL, Couple.with("CA", 0));
-        put(Sequence.SPELL1, get(Sequence.SPELL));
-        put(Sequence.SPELL2, Couple.with("CA", 18));
-        put(Sequence.SPELL3, Couple.with("CA", 36));
-        put(Sequence.SPELL4, Couple.with("CA", 54));
-        put(Sequence.CAST, Couple.with("CA", 9));
-        put(Sequence.CAST1, get(Sequence.CAST));
-        put(Sequence.CAST2, Couple.with("CA", 27));
-        put(Sequence.CAST3, Couple.with("CA", 45));
-        put(Sequence.CAST4, Couple.with("CA", 63));
-        put(Sequence.WALK, Couple.with("G11", 0));
-        put(Sequence.STANCE, Couple.with("G1", 9));
-        put(Sequence.STANCE2, Couple.with("G13", 27));
-        put(Sequence.STAND, Couple.with("G12", 18));
-        put(Sequence.STAND2, Couple.with("G17", 63));
-        put(Sequence.STAND3, Couple.with("G18", 72));
-        put(Sequence.GET_HIT, Couple.with("G15", 36));
-        put(Sequence.DIE, Couple.with("G15", 45));
-        put(Sequence.TWITCH, Couple.with("G16", 54));
-        put(Sequence.SLEEP, Couple.with("G19", 81));
-        put(Sequence.GET_UP, Couple.with("!G19", 81));
-        put(Sequence.SLEEP2, Couple.with("G19", 90));
-        put(Sequence.GET_UP2, Couple.with("!G19", 90));
-      }};
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
   /** Set of invalid attack type / animation sequence combinations. */
-  private static final EnumMap<AttackType, EnumSet<Sequence>> forbiddenSequences =
-      new EnumMap<AttackType, EnumSet<Sequence>>(AttackType.class) {{
-        put(AttackType.ONE_HANDED, EnumSet.of(Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                              Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD,
-                                              Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
-        put(AttackType.TWO_HANDED, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                              Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD,
-                                              Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE));
-        put(AttackType.TWO_WEAPON, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                              Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                              Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW,
-                                              Sequence.STANCE2));
-        put(AttackType.THROWING, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                            Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_BOW,
-                                            Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
-        put(AttackType.BOW, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                       Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                       Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD,
-                                       Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
-        put(AttackType.SLING, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                         Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                         Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD,
-                                         Sequence.ATTACK_BOW, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
-        put(AttackType.CROSSBOW, EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
-                                            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
-                                            Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD,
-                                            Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.STANCE2));
-      }};
+  private static final EnumMap<AttackType, EnumSet<Sequence>> FORBIDDEN_SEQUENCES_MAP = new EnumMap<AttackType, EnumSet<Sequence>>(
+      AttackType.class);
+
+  static {
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_SLASH_1H, Couple.with("A1", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_SLASH_2H, Couple.with("A2", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_BACKSLASH_1H, Couple.with("A3", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_BACKSLASH_2H, Couple.with("A4", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_JAB_1H, Couple.with("A5", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_JAB_2H, Couple.with("A6", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_2WEAPONS1, Couple.with("A7", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_OVERHEAD, Couple.with("A8", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_2WEAPONS2, Couple.with("A9", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_BOW, Couple.with("SA", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_SLING, Couple.with("SS", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_CROSSBOW, Couple.with("SX", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL, Couple.with("CA", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL1, SUFFIX_MAP_UNSPLIT.get(Sequence.SPELL));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL2, Couple.with("CA", 18));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL3, Couple.with("CA", 36));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL4, Couple.with("CA", 54));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST, Couple.with("CA", 9));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST1, SUFFIX_MAP_UNSPLIT.get(Sequence.CAST));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST2, Couple.with("CA", 27));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST3, Couple.with("CA", 45));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST4, Couple.with("CA", 63));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.WALK, Couple.with("G1", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STANCE, Couple.with("G1", 9));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STANCE2, Couple.with("G1", 27));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STAND, Couple.with("G1", 18));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STAND2, Couple.with("G1", 63));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STAND3, Couple.with("G1", 72));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.GET_HIT, Couple.with("G1", 36));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.DIE, Couple.with("G1", 45));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.TWITCH, Couple.with("G1", 54));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SLEEP, Couple.with("G1", 81));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.GET_UP, Couple.with("!G1", 81));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SLEEP2, Couple.with("G1", 90));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.GET_UP2, Couple.with("!G1", 90));
+
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_SLASH_1H, Couple.with("A1", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_SLASH_2H, Couple.with("A2", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_BACKSLASH_1H, Couple.with("A3", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_BACKSLASH_2H, Couple.with("A4", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_JAB_1H, Couple.with("A5", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_JAB_2H, Couple.with("A6", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_2WEAPONS1, Couple.with("A7", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_OVERHEAD, Couple.with("A8", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_2WEAPONS2, Couple.with("A9", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_BOW, Couple.with("SA", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_SLING, Couple.with("SS", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_CROSSBOW, Couple.with("SX", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL, Couple.with("CA", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL1, SUFFIX_MAP_SPLIT.get(Sequence.SPELL));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL2, Couple.with("CA", 18));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL3, Couple.with("CA", 36));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL4, Couple.with("CA", 54));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST, Couple.with("CA", 9));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST1, SUFFIX_MAP_SPLIT.get(Sequence.CAST));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST2, Couple.with("CA", 27));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST3, Couple.with("CA", 45));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST4, Couple.with("CA", 63));
+    SUFFIX_MAP_SPLIT.put(Sequence.WALK, Couple.with("G11", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.STANCE, Couple.with("G1", 9));
+    SUFFIX_MAP_SPLIT.put(Sequence.STANCE2, Couple.with("G13", 27));
+    SUFFIX_MAP_SPLIT.put(Sequence.STAND, Couple.with("G12", 18));
+    SUFFIX_MAP_SPLIT.put(Sequence.STAND2, Couple.with("G17", 63));
+    SUFFIX_MAP_SPLIT.put(Sequence.STAND3, Couple.with("G18", 72));
+    SUFFIX_MAP_SPLIT.put(Sequence.GET_HIT, Couple.with("G15", 36));
+    SUFFIX_MAP_SPLIT.put(Sequence.DIE, Couple.with("G15", 45));
+    SUFFIX_MAP_SPLIT.put(Sequence.TWITCH, Couple.with("G16", 54));
+    SUFFIX_MAP_SPLIT.put(Sequence.SLEEP, Couple.with("G19", 81));
+    SUFFIX_MAP_SPLIT.put(Sequence.GET_UP, Couple.with("!G19", 81));
+    SUFFIX_MAP_SPLIT.put(Sequence.SLEEP2, Couple.with("G19", 90));
+    SUFFIX_MAP_SPLIT.put(Sequence.GET_UP2, Couple.with("!G19", 90));
+
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.ONE_HANDED,
+        EnumSet.of(Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H,
+            Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_BOW,
+            Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.TWO_HANDED,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_2WEAPONS1, Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_BOW,
+            Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.TWO_WEAPON,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H, Sequence.ATTACK_OVERHEAD,
+            Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW, Sequence.STANCE2));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.THROWING,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H, Sequence.ATTACK_2WEAPONS1,
+            Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_BOW, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW,
+            Sequence.STANCE2));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.BOW,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H, Sequence.ATTACK_2WEAPONS1,
+            Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_SLING, Sequence.ATTACK_CROSSBOW,
+            Sequence.STANCE2));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.SLING,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H, Sequence.ATTACK_2WEAPONS1,
+            Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_BOW, Sequence.ATTACK_CROSSBOW,
+            Sequence.STANCE2));
+    FORBIDDEN_SEQUENCES_MAP.put(AttackType.CROSSBOW,
+        EnumSet.of(Sequence.ATTACK_SLASH_1H, Sequence.ATTACK_BACKSLASH_1H, Sequence.ATTACK_JAB_1H,
+            Sequence.ATTACK_SLASH_2H, Sequence.ATTACK_BACKSLASH_2H, Sequence.ATTACK_JAB_2H, Sequence.ATTACK_2WEAPONS1,
+            Sequence.ATTACK_2WEAPONS2, Sequence.ATTACK_OVERHEAD, Sequence.ATTACK_BOW, Sequence.ATTACK_SLING,
+            Sequence.STANCE2));
+  }
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.
+   *
    * @param data a String array containing table values for a specific table entry.
-   * @return a {@code IniMap} instance with the value derived from the specified data array.
-   *         Returns {@code null} if no data could be derived.
+   * @return a {@code IniMap} instance with the value derived from the specified data array. Returns {@code null} if no
+   *         data could be derived.
    */
-  public static IniMap processTableData(String[] data)
-  {
+  public static IniMap processTableData(String[] data) {
     IniMap retVal = null;
     if (data == null || data.length < 16) {
       return retVal;
@@ -204,29 +214,30 @@ public class CharacterDecoder extends CharacterBaseDecoder
     return retVal;
   }
 
-  public CharacterDecoder(int animationId, IniMap ini) throws Exception
-  {
+  public CharacterDecoder(int animationId, IniMap ini) throws Exception {
     super(ANIMATION_TYPE, animationId, ini);
   }
 
-  public CharacterDecoder(CreResource cre) throws Exception
-  {
+  public CharacterDecoder(CreResource cre) throws Exception {
     super(ANIMATION_TYPE, cre);
   }
 
   /** Returns the correct sequence map for the current settings. */
-  private HashMap<Sequence, Couple<String, Integer>> getSuffixMap()
-  {
-    return isSplittedBams() ? suffixMapSplit : suffixMapUnsplit;
+  private HashMap<Sequence, Couple<String, Integer>> getSuffixMap() {
+    return isSplittedBams() ? SUFFIX_MAP_SPLIT : SUFFIX_MAP_UNSPLIT;
   }
 
   /** Returns whether animations are spread over various subfiles. */
-  public boolean isSplittedBams() { return getAttribute(KEY_SPLIT_BAMS); }
-  protected void setSplittedBams(boolean b) { setAttribute(KEY_SPLIT_BAMS, b); }
+  public boolean isSplittedBams() {
+    return getAttribute(KEY_SPLIT_BAMS);
+  }
+
+  protected void setSplittedBams(boolean b) {
+    setAttribute(KEY_SPLIT_BAMS, b);
+  }
 
   /** Returns the height code prefix for shield overlay sprites. Falls back to generic height code if needed. */
-  public String getShieldHeightCode()
-  {
+  public String getShieldHeightCode() {
     String retVal = getAttribute(KEY_HEIGHT_CODE_SHIELD);
     if (retVal.isEmpty()) {
       retVal = getHeightCode();
@@ -234,8 +245,7 @@ public class CharacterDecoder extends CharacterBaseDecoder
     return retVal;
   }
 
-  protected void setShieldHeightCode(String s)
-  {
+  protected void setShieldHeightCode(String s) {
     if (s != null && !s.isEmpty()) {
       // Discard if shield height code refers to non-existing overlays
       List<ResourceEntry> resList = ResourceFactory.getResources(s + "..G1\\.BAM");
@@ -244,19 +254,26 @@ public class CharacterDecoder extends CharacterBaseDecoder
       }
     }
     setAttribute(KEY_HEIGHT_CODE_SHIELD, s);
-    }
+  }
 
   /** Returns the paperdoll resref. */
-  public String getPaperdollResref() { return getAttribute(KEY_RESREF_PAPERDOLL); }
-  protected void setPaperdollResref(String s) { setAttribute(KEY_RESREF_PAPERDOLL, s); }
+  public String getPaperdollResref() {
+    return getAttribute(KEY_RESREF_PAPERDOLL);
+  }
+
+  protected void setPaperdollResref(String s) {
+    setAttribute(KEY_RESREF_PAPERDOLL, s);
+  }
 
   /**
-   * Returns the animation resref for lesser armor types.
-   * Returns the same value as {@link #getAnimationResref()} if no base armor code is available.
+   * Returns the animation resref for lesser armor types. Returns the same value as {@link #getAnimationResref()} if no
+   * base armor code is available.
    */
-  public String getArmorBaseResref() { return getAttribute(KEY_RESREF_ARMOR_BASE); }
-  protected void setArmorBaseResref(String s)
-  {
+  public String getArmorBaseResref() {
+    return getAttribute(KEY_RESREF_ARMOR_BASE);
+  }
+
+  protected void setArmorBaseResref(String s) {
     if (s.isEmpty()) {
       s = getAnimationResref();
     } else {
@@ -266,12 +283,14 @@ public class CharacterDecoder extends CharacterBaseDecoder
   }
 
   /**
-   * Returns the animation resref for greater armor types.
-   * Returns the same value as {@link #getAnimationResref()} if no specific armor code is available.
+   * Returns the animation resref for greater armor types. Returns the same value as {@link #getAnimationResref()} if no
+   * specific armor code is available.
    */
-  public String getArmorSpecificResref() { return getAttribute(KEY_RESREF_ARMOR_SPECIFIC); }
-  protected void setArmorSpecificResref(String s)
-  {
+  public String getArmorSpecificResref() {
+    return getAttribute(KEY_RESREF_ARMOR_SPECIFIC);
+  }
+
+  protected void setArmorSpecificResref(String s) {
     if (s.isEmpty()) {
       s = getAnimationResref();
     } else {
@@ -281,12 +300,10 @@ public class CharacterDecoder extends CharacterBaseDecoder
   }
 
   /**
-   * Sets the maximum armor code value uses as suffix in animation filenames.
-   * Specify -1 to detect value automatically.
+   * Sets the maximum armor code value uses as suffix in animation filenames. Specify -1 to detect value automatically.
    */
   @Override
-  protected void setMaxArmorCode(int v)
-  {
+  protected void setMaxArmorCode(int v) {
     if (v < 0) {
       // autodetection: requires fully initialized resref definitions
       final String[] resrefs = { getArmorBaseResref(), getArmorSpecificResref() };
@@ -307,8 +324,7 @@ public class CharacterDecoder extends CharacterBaseDecoder
   }
 
   @Override
-  public List<String> getAnimationFiles(boolean essential)
-  {
+  public List<String> getAnimationFiles(boolean essential) {
     ArrayList<String> retVal = null;
     String resref1 = getAnimationResref();
     String resref2 = getArmorSpecificResref();
@@ -337,31 +353,31 @@ public class CharacterDecoder extends CharacterBaseDecoder
       }
 
       // generating file list
-      retVal = new ArrayList<String>() {{
-        for (int i = 1; i <= getMaxArmorCode(); i++) {
-          for (final String a : actionSet) {
-            String resref = resref2 + i + a + ".BAM";
-            if (!ResourceFactory.resourceExists(resref)) {
-              resref = resref1 + i + a + ".BAM";
+      retVal = new ArrayList<String>() {
+        {
+          for (int i = 1; i <= getMaxArmorCode(); i++) {
+            for (final String a : actionSet) {
+              String resref = resref2 + i + a + ".BAM";
+              if (!ResourceFactory.resourceExists(resref)) {
+                resref = resref1 + i + a + ".BAM";
+              }
+              add(resref);
             }
-            add(resref);
           }
         }
-      }};
+      };
     }
 
     return retVal;
   }
 
   @Override
-  public boolean isSequenceAvailable(Sequence seq)
-  {
+  public boolean isSequenceAvailable(Sequence seq) {
     return (getSequenceDefinition(seq) != null);
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     super.init();
     IniMapSection section = getSpecificIniSection();
     setSplittedBams(section.getAsInteger(KEY_SPLIT_BAMS.getName(), 0) != 0);
@@ -375,8 +391,7 @@ public class CharacterDecoder extends CharacterBaseDecoder
   }
 
   @Override
-  protected SeqDef getSequenceDefinition(Sequence seq)
-  {
+  protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
 
     if (!getSuffixMap().containsKey(seq)) {
@@ -397,7 +412,8 @@ public class CharacterDecoder extends CharacterBaseDecoder
       ItemInfo itmShield = getCreatureInfo().getEquippedShield();
       if (itmShield != null) {
         codeShield = itmShield.getAppearance().trim();
-        isLefthandedWeapon = !codeShield.isEmpty() && ItemInfo.testAll(itmShield, ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
+        isLefthandedWeapon = !codeShield.isEmpty()
+            && ItemInfo.testAll(itmShield, ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
       }
     }
 
@@ -406,7 +422,7 @@ public class CharacterDecoder extends CharacterBaseDecoder
     int itmAbility = getCreatureInfo().getSelectedWeaponAbility();
     AttackType attackType = getAttackType(itmWeapon, itmAbility, isLefthandedWeapon);
 
-    EnumSet<Sequence> sequences = forbiddenSequences.get(attackType);
+    EnumSet<Sequence> sequences = FORBIDDEN_SEQUENCES_MAP.get(attackType);
     if (sequences != null && sequences.contains(seq)) {
       // sequence not allowed for selected weapon
       return retVal;
@@ -458,13 +474,15 @@ public class CharacterDecoder extends CharacterBaseDecoder
     }
 
     retVal = new SeqDef(seq);
-    for (final Couple<String, SegmentDef.SpriteType> data: resrefList) {
+    for (final Couple<String, SegmentDef.SpriteType> data : resrefList) {
       // getting BAM suffix and cycle index
       prefix = data.getValue0();
       SegmentDef.SpriteType spriteType = data.getValue1();
-      HashMap<Sequence, Couple<String, Integer>> curSuffixMap = (spriteType == SegmentDef.SpriteType.AVATAR) ? getSuffixMap() : suffixMapUnsplit;
+      HashMap<Sequence, Couple<String, Integer>> curSuffixMap = (spriteType == SegmentDef.SpriteType.AVATAR)
+          ? getSuffixMap()
+          : SUFFIX_MAP_UNSPLIT;
       String suffix = SegmentDef.fixBehaviorSuffix(curSuffixMap.get(seq).getValue0());
-      int cycleIdx = curSuffixMap.get(seq).getValue1().intValue();
+      int cycleIdx = curSuffixMap.get(seq).getValue1();
 
       // enabling left-handed weapon overlay if available
       if (spriteType == SegmentDef.SpriteType.SHIELD && isLefthandedWeapon) {

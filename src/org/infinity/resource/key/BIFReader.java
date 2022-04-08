@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -23,24 +23,24 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Provides read operations for file-compressed BIF V1.0 archives.
  */
-public class BIFReader extends AbstractBIFFReader
-{
+public class BIFReader extends AbstractBIFFReader {
   private final WindowBlocker blocker;
 
   private MappedByteBuffer mappedBuffer;
-  private int uncSize, compSize, compOffset;
-  private int numFiles, numTilesets;
+  private int uncSize;
+  private int compSize;
+  private int compOffset;
+  private int numFiles;
+  private int numTilesets;
 
-  protected BIFReader(Path file) throws Exception
-  {
+  protected BIFReader(Path file) throws Exception {
     super(file);
     this.blocker = new WindowBlocker(NearInfinity.getInstance());
     open();
   }
 
   @Override
-  public synchronized void open() throws Exception
-  {
+  public synchronized void open() throws Exception {
     try (FileChannel channel = FileChannel.open(getFile(), StandardOpenOption.READ)) {
       String sigver = StreamUtils.readString(channel, 8);
       if (!"BIF V1.0".equals(sigver)) {
@@ -55,7 +55,7 @@ public class BIFReader extends AbstractBIFFReader
       if (this.uncSize < 0 || this.compSize < 0) {
         throw new Exception("Invalid BIFF archive");
       }
-      this.compOffset = (int)channel.position();
+      this.compOffset = (int) channel.position();
 
       mappedBuffer = channel.map(MapMode.READ_ONLY, compOffset, compSize);
       mappedBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -64,32 +64,27 @@ public class BIFReader extends AbstractBIFFReader
   }
 
   @Override
-  public Type getType()
-  {
+  public Type getType() {
     return Type.BIF;
   }
 
   @Override
-  public int getFileCount()
-  {
+  public int getFileCount() {
     return numFiles;
   }
 
   @Override
-  public int getTilesetCount()
-  {
+  public int getTilesetCount() {
     return numTilesets;
   }
 
   @Override
-  public int getBIFFSize()
-  {
+  public int getBIFFSize() {
     return uncSize;
   }
 
   @Override
-  public ByteBuffer getResourceBuffer(int locator) throws IOException
-  {
+  public ByteBuffer getResourceBuffer(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry == null) {
       throw new IOException("Resource not found");
@@ -98,7 +93,7 @@ public class BIFReader extends AbstractBIFFReader
     ByteBuffer buffer;
     if (entry.isTile) {
       ByteBuffer header = getTisHeader(entry.count, entry.size);
-      buffer = StreamUtils.getByteBuffer(entry.count*entry.size + header.limit());
+      buffer = StreamUtils.getByteBuffer(entry.count * entry.size + header.limit());
       StreamUtils.copyBytes(header, buffer, header.limit());
     } else {
       buffer = StreamUtils.getByteBuffer(entry.size);
@@ -124,15 +119,12 @@ public class BIFReader extends AbstractBIFFReader
   }
 
   @Override
-  public InputStream getResourceAsStream(int locator) throws IOException
-  {
+  public InputStream getResourceAsStream(int locator) throws IOException {
     return new ByteBufferInputStream(getResourceBuffer(locator));
   }
 
-  private void init() throws Exception
-  {
-    try (InflaterInputStream iis = new InflaterInputStream(
-        new ByteBufferInputStream(mappedBuffer.duplicate()))) {
+  private void init() throws Exception {
+    try (InflaterInputStream iis = new InflaterInputStream(new ByteBufferInputStream(mappedBuffer.duplicate()))) {
       int curOfs = 0;
       String sigver = StreamUtils.readString(iis, 8);
       if (!"BIFFV1  ".equals(sigver)) {
@@ -175,8 +167,7 @@ public class BIFReader extends AbstractBIFFReader
   }
 
   // Returns an inflater input stream
-  private InflaterInputStream getInflaterInputStream()
-  {
+  private InflaterInputStream getInflaterInputStream() {
     return new InflaterInputStream(new ByteBufferInputStream(mappedBuffer.duplicate()));
   }
 }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -44,8 +44,7 @@ import org.infinity.util.Misc;
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
  */
-public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
-{
+public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener {
   /** Available languages for syntax highlighting. */
   public enum Language {
     /** Disables syntax highlighting */
@@ -85,26 +84,26 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   }
 
   /** The default color of the currently highlighted text line. */
-  public static final Color DefaultLineHighlightColor = new Color(0xe8e8ff);
+  public static final Color DEFAULT_LINE_HIGHLIGHT_COLOR = new Color(0xe8e8ff);
 
   /** Color scheme for unicolored text */
-  public static final String SchemeNone = "org/infinity/resource/text/modes/ThemeNone.xml";
+  public static final String SCHEME_NONE    = "org/infinity/resource/text/modes/ThemeNone.xml";
   /** Default color scheme */
-  public static final String SchemeDefault = "org/infinity/resource/text/modes/ThemeDefault.xml";
+  public static final String SCHEME_DEFAULT = "org/infinity/resource/text/modes/ThemeDefault.xml";
   /** Dark color scheme */
-  public static final String SchemeDark = "org/infinity/resource/text/modes/ThemeDark.xml";
+  public static final String SCHEME_DARK    = "org/infinity/resource/text/modes/ThemeDark.xml";
   /** Eclipse color scheme */
-  public static final String SchemeEclipse = "org/infinity/resource/text/modes/ThemeEclipse.xml";
+  public static final String SCHEME_ECLIPSE = "org/infinity/resource/text/modes/ThemeEclipse.xml";
   /** IntelliJ IDEA color scheme */
-  public static final String SchemeIdea = "org/infinity/resource/text/modes/ThemeIdea.xml";
+  public static final String SCHEME_IDEA    = "org/infinity/resource/text/modes/ThemeIdea.xml";
   /** "Monokai" color scheme */
-  public static final String SchemeMonokai = "org/infinity/resource/text/modes/ThemeMonokai.xml";
+  public static final String SCHEME_MONOKAI = "org/infinity/resource/text/modes/ThemeMonokai.xml";
   /** Visual Studio color scheme */
-  public static final String SchemeVs = "org/infinity/resource/text/modes/ThemeVs.xml";
+  public static final String SCHEME_VS      = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
-  public static final String SchemeBCS = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
+  public static final String SCHEME_BCS     = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
-  private static EnumMap<Scheme, String> SchemeMap = new EnumMap<>(Scheme.class);
+  private static final EnumMap<Scheme, String> SCHEME_MAP = new EnumMap<>(Scheme.class);
 
   static {
     // adding custom code folding definitions
@@ -112,24 +111,24 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
     FoldParserManager.get().addFoldParserMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, new CurlyFoldParser());
 
     // adding custom syntax highlighting definitions
-    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
-      .putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, "org.infinity.resource.text.modes.BCSTokenMaker");
-    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
-      .putMapping(TLKTokenMaker.SYNTAX_STYLE_TLK, "org.infinity.resource.text.modes.TLKTokenMaker");
-    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
-      .putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU, "org.infinity.resource.text.modes.WeiDULogTokenMaker");
-    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
-      .putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, "org.infinity.resource.text.modes.GLSLTokenMaker");
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS,
+        "org.infinity.resource.text.modes.BCSTokenMaker");
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(TLKTokenMaker.SYNTAX_STYLE_TLK,
+        "org.infinity.resource.text.modes.TLKTokenMaker");
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance())
+        .putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU, "org.infinity.resource.text.modes.WeiDULogTokenMaker");
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL,
+        "org.infinity.resource.text.modes.GLSLTokenMaker");
 
     // initializing color schemes
-    SchemeMap.put(Scheme.NONE, SchemeNone);
-    SchemeMap.put(Scheme.DEFAULT, SchemeDefault);
-    SchemeMap.put(Scheme.DARK, SchemeDark);
-    SchemeMap.put(Scheme.ECLIPSE, SchemeEclipse);
-    SchemeMap.put(Scheme.IDEA, SchemeIdea);
-    SchemeMap.put(Scheme.MONOKAI, SchemeMonokai);
-    SchemeMap.put(Scheme.VS, SchemeVs);
-    SchemeMap.put(Scheme.BCS, SchemeBCS);
+    SCHEME_MAP.put(Scheme.NONE, SCHEME_NONE);
+    SCHEME_MAP.put(Scheme.DEFAULT, SCHEME_DEFAULT);
+    SCHEME_MAP.put(Scheme.DARK, SCHEME_DARK);
+    SCHEME_MAP.put(Scheme.ECLIPSE, SCHEME_ECLIPSE);
+    SCHEME_MAP.put(Scheme.IDEA, SCHEME_IDEA);
+    SCHEME_MAP.put(Scheme.MONOKAI, SCHEME_MONOKAI);
+    SCHEME_MAP.put(Scheme.VS, SCHEME_VS);
+    SCHEME_MAP.put(Scheme.BCS, SCHEME_BCS);
   }
 
   private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
@@ -139,10 +138,10 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
+   *
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
-  public InfinityTextArea(boolean applySettings)
-  {
+  public InfinityTextArea(boolean applySettings) {
     super();
     if (applySettings) {
       applySettings(true);
@@ -153,11 +152,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param doc The document for the editor.
+   *
+   * @param doc           The document for the editor.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
-  public InfinityTextArea(RSyntaxDocument doc, boolean applySettings)
-  {
+  public InfinityTextArea(RSyntaxDocument doc, boolean applySettings) {
     super(doc);
     if (applySettings) {
       applySettings(true);
@@ -168,11 +167,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param text The initial text to display.
+   *
+   * @param text          The initial text to display.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
-  public InfinityTextArea(String text, boolean applySettings)
-  {
+  public InfinityTextArea(String text, boolean applySettings) {
     super(text);
     if (applySettings) {
       applySettings(true);
@@ -183,11 +182,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param textMode Either {@code INSERT_MODE} or {@code OVERWRITE_MODE}.
+   *
+   * @param textMode      Either {@code INSERT_MODE} or {@code OVERWRITE_MODE}.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
-  public InfinityTextArea(int textMode, boolean applySettings)
-  {
+  public InfinityTextArea(int textMode, boolean applySettings) {
     super(textMode);
     if (applySettings) {
       applySettings(true);
@@ -198,13 +197,13 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param rows The number of rows to display.
-   * @param cols The number of columns to display.
+   *
+   * @param rows          The number of rows to display.
+   * @param cols          The number of columns to display.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
-  public InfinityTextArea(int rows, int cols, boolean applySettings)
-  {
+  public InfinityTextArea(int rows, int cols, boolean applySettings) {
     super(rows, cols);
     if (applySettings) {
       applySettings(true);
@@ -215,14 +214,14 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param text The initial text to display.
-   * @param rows The number of rows to display.
-   * @param cols The number of columns to display.
+   *
+   * @param text          The initial text to display.
+   * @param rows          The number of rows to display.
+   * @param cols          The number of columns to display.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
-  public InfinityTextArea(String text, int rows, int cols, boolean applySettings)
-  {
+  public InfinityTextArea(String text, int rows, int cols, boolean applySettings) {
     super(text, rows, cols);
     if (applySettings) {
       applySettings(true);
@@ -233,15 +232,15 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Constructor.
-   * @param doc The document for the editor.
-   * @param text The initial text to display.
-   * @param rows The number of rows to display.
-   * @param cols The number of columns to display.
+   *
+   * @param doc           The document for the editor.
+   * @param text          The initial text to display.
+   * @param rows          The number of rows to display.
+   * @param cols          The number of columns to display.
    * @param applySettings If {@code true}, applies global text editor settings to this component.
    * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
-  public InfinityTextArea(RSyntaxDocument doc, String text, int rows, int cols, boolean applySettings)
-  {
+  public InfinityTextArea(RSyntaxDocument doc, String text, int rows, int cols, boolean applySettings) {
     super(doc, text, rows, cols);
     if (applySettings) {
       applySettings(true);
@@ -252,12 +251,12 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Applies global text editor settings to the specified {@link RSyntaxTextArea} component.
+   *
    * @param resetUndo Specifies whether the undo history will be discarded.
    */
-  public static void applySettings(RSyntaxTextArea edit, boolean resetUndo)
-  {
+  public static void applySettings(RSyntaxTextArea edit, boolean resetUndo) {
     if (edit != null) {
-      edit.setCurrentLineHighlightColor(DefaultLineHighlightColor);
+      edit.setCurrentLineHighlightColor(DEFAULT_LINE_HIGHLIGHT_COLOR);
       if (BrowserMenuBar.getInstance() != null) {
         edit.setTabsEmulated(BrowserMenuBar.getInstance().isTextTabEmulated());
         edit.setTabSize(BrowserMenuBar.getInstance().getTextTabSize());
@@ -273,21 +272,20 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         edit.setHighlightCurrentLine(false);
       }
       if (resetUndo) {
-        edit.discardAllEdits();   // clearing undo history
+        edit.discardAllEdits(); // clearing undo history
       }
     }
   }
 
   /**
    * Applies syntax highlighting and color schemes to the specified {@link RSyntaxTextArea} component.
-   * @param language The language to highlight. Specifying {@code null} uses
-   *                 {@code Language.NONE} for syntax hightlighting.
-   * @param scheme A color scheme to apply to the specified {@link RSyntaxTextArea} component.
-   *               Specifying {@code null} uses the color scheme as defined for the specified
-   *               language.
+   *
+   * @param language The language to highlight. Specifying {@code null} uses {@code Language.NONE} for syntax
+   *                 hightlighting.
+   * @param scheme   A color scheme to apply to the specified {@link RSyntaxTextArea} component. Specifying {@code null}
+   *                 uses the color scheme as defined for the specified language.
    */
-  public static void applyExtendedSettings(RSyntaxTextArea edit, Language language, Scheme scheme)
-  {
+  public static void applyExtendedSettings(RSyntaxTextArea edit, Language language, Scheme scheme) {
     if (edit != null) {
       if (language == null) {
         language = Language.NONE;
@@ -319,18 +317,17 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       }
       edit.setSyntaxEditingStyle(style);
 
-
       // applying color scheme
       String schemePath;
       if (scheme != null) {
         // applying explicit color scheme
-        schemePath = SchemeMap.get(scheme);
+        schemePath = SCHEME_MAP.get(scheme);
         if (schemePath == null || schemePath.isEmpty()) {
-          schemePath = SchemeNone;
+          schemePath = SCHEME_NONE;
         }
       } else {
         // applying implicit color scheme
-        schemePath = SchemeNone;
+        schemePath = SCHEME_NONE;
         switch (language) {
           case BCS:
             if (BrowserMenuBar.getInstance() != null) {
@@ -377,7 +374,6 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         e.printStackTrace();
       }
 
-
       // apply code folding
       switch (language) {
         case BCS:
@@ -402,29 +398,27 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 
   /**
    * Applies global text editor settings to this component.
+   *
    * @param resetUndo Specifies whether the undo history will be discarded.
    */
-  public void applySettings(boolean resetUndo)
-  {
+  public void applySettings(boolean resetUndo) {
     applySettings(this, resetUndo);
   }
 
   /**
    * Applies syntax highlighting and color schemes to this component.
-   * @param language The language to highlight. Specifying {@code null} uses
-   *                 {@code Language.NONE} for syntax hightlighting.
-   * @param scheme A color scheme to apply to the specified {@link RSyntaxTextArea} component.
-   *               Specifying {@code null} uses the color scheme as defined for the specified
-   *               language.
+   *
+   * @param language The language to highlight. Specifying {@code null} uses {@code Language.NONE} for syntax
+   *                 hightlighting.
+   * @param scheme   A color scheme to apply to the specified {@link RSyntaxTextArea} component. Specifying {@code null}
+   *                 uses the color scheme as defined for the specified language.
    */
-  public void applyExtendedSettings(Language language, Scheme scheme)
-  {
+  public void applyExtendedSettings(Language language, Scheme scheme) {
     applyExtendedSettings(this, language, scheme);
   }
 
   @Override
-  public void setText(String text)
-  {
+  public void setText(String text) {
     // skips carriage return characters
     if (text != null) {
       StringBuilder sb = new StringBuilder();
@@ -440,31 +434,28 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
     }
   }
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
+  public void stateChanged(ChangeEvent e) {
     if (e.getSource() instanceof JViewport) {
       refreshGutterIcons();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
   /**
    * Returns the underlying ScrollPane if available. Returns {@code null} otherwise.
    */
-  public RTextScrollPane getScrollPane()
-  {
+  public RTextScrollPane getScrollPane() {
     return scrollPane;
   }
 
   /**
    * Can be used to set the underlying ScrollPane instance.
    */
-  public void setScrollPane(RTextScrollPane scrollPane)
-  {
+  public void setScrollPane(RTextScrollPane scrollPane) {
     if (scrollPane != this.scrollPane) {
       if (this.scrollPane != null) {
         this.scrollPane.getViewport().removeChangeListener(this);
@@ -480,12 +471,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   }
 
   /** Adds a new icon to the left vertical margin, optionally with a tooltip. */
-  public void addGutterIcon(int line, Icon icon, String msg)
-  {
+  public void addGutterIcon(int line, Icon icon, String msg) {
     GutterIcon item = gutterIcons.get(line);
     if (item == null) {
       item = new GutterIcon(line, icon, msg);
-      gutterIcons.put(Integer.valueOf(line), item);
+      gutterIcons.put(line, item);
     } else {
       item.icon = icon;
       item.message = msg;
@@ -494,28 +484,24 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   }
 
   /** Get information about the gutter icon at the specified line. */
-  public GutterIcon getGutterIconInfo(int line)
-  {
+  public GutterIcon getGutterIconInfo(int line) {
     return gutterIcons.get(Integer.valueOf(line));
   }
 
   /** Returns whether the gutter icon at the specified line is currently applied. */
-  public boolean isGutterIconActive(int line)
-  {
+  public boolean isGutterIconActive(int line) {
     return gutterIconsActive.containsKey(Integer.valueOf(line));
   }
 
   /** Removes the gutter icon from the specified line. */
-  public void removeGutterIcon(int line)
-  {
+  public void removeGutterIcon(int line) {
     if (gutterIcons.remove(Integer.valueOf(line)) != null) {
       refreshGutterIcon(line);
     }
   }
 
   /** Removes all gutter icons at once. */
-  public void clearGutterIcons()
-  {
+  public void clearGutterIcons() {
     if (getScrollPane() != null) {
       Gutter gutter = getScrollPane().getGutter();
       Iterator<Integer> iter = gutterIconsActive.keySet().iterator();
@@ -532,8 +518,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   }
 
   /** Returns the currently min/max visible line numbers. */
-  protected Point getVisibleLineRange(Point range)
-  {
+  protected Point getVisibleLineRange(Point range) {
     if (range == null) {
       range = new Point(-1, -1);
     } else {
@@ -557,10 +542,9 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
     return range;
   }
 
-  private void refreshGutterIcon(int line)
-  {
+  private void refreshGutterIcon(int line) {
     if (getScrollPane() != null) {
-      Integer key = Integer.valueOf(line);
+      Integer key = line;
       gutterIconsActive.remove(key);
       GutterIcon item = gutterIcons.get(key);
       if (item != null) {
@@ -576,8 +560,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
     }
   }
 
-  private void refreshGutterIcons()
-  {
+  private void refreshGutterIcons() {
     if (getScrollPane() != null && !gutterIcons.isEmpty()) {
       Gutter gutter = getScrollPane().getGutter();
       Point range = getVisibleLineRange(null);
@@ -586,7 +569,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         Iterator<Integer> iter = gutterIconsActive.keySet().iterator();
         while (iter.hasNext()) {
           Integer key = iter.next();
-          int line = key.intValue();
+          int line = key;
           if (line < range.x || line > range.y) {
             GutterIconInfo info = gutterIconsActive.get(key);
             gutter.removeTrackingIcon(info);
@@ -595,14 +578,14 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         }
 
         // 2. add items that are inside of range
-        SortedMap<Integer, GutterIcon> submap = gutterIcons.subMap(Integer.valueOf(range.x), Integer.valueOf(range.y + 1));
+        SortedMap<Integer, GutterIcon> submap = gutterIcons.subMap(range.x, range.y + 1);
         if (!submap.isEmpty()) {
-          for (final Integer key: submap.keySet()) {
+          for (final Integer key : submap.keySet()) {
             if (!gutterIconsActive.containsKey(key)) {
               GutterIcon item = submap.get(key);
               try {
                 GutterIconInfo info = gutter.addLineTrackingIcon(item.line, item.icon, item.message);
-                gutterIconsActive.put(Integer.valueOf(item.line), info);
+                gutterIconsActive.put(item.line, info);
               } catch (BadLocationException e) {
               }
             }
@@ -615,22 +598,20 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   // Returns scaled global font
   private Font getGlobalFont() {
     Font f = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getScriptFont() : getFont();
-    if (f != null)
+    if (f != null) {
       f = Misc.getScaledFont(f);
+    }
     return f;
   }
 
+  // -------------------------- INNER CLASSES --------------------------
 
-//-------------------------- INNER CLASSES --------------------------
-
-  static class GutterIcon
-  {
+  static class GutterIcon {
     int line;
     Icon icon;
     String message;
 
-    public GutterIcon(int line, Icon icon, String message)
-    {
+    public GutterIcon(int line, Icon icon, String message) {
       this.line = line;
       this.icon = icon;
       this.message = message;

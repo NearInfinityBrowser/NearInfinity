@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -72,45 +72,39 @@ import java.util.Set;
 /**
  * Path implementation for DLC archives in zip format.
  */
-public class DlcPath implements Path
-{
+public class DlcPath implements Path {
   private final DlcFileSystem dfs;
   private final byte[] path;
 
   private volatile int[] offsets;
 
-  private int hashcode = 0;  // cached hashcode (created lazily)
+  private int hashcode = 0; // cached hashcode (created lazily)
 
-  DlcPath(DlcFileSystem dfs, byte[] path)
-  {
+  protected DlcPath(DlcFileSystem dfs, byte[] path) {
     this(dfs, path, false);
   }
 
-  DlcPath(DlcFileSystem dfs, byte[] path, boolean normalized)
-  {
+  protected DlcPath(DlcFileSystem dfs, byte[] path, boolean normalized) {
     this.dfs = dfs;
     if (normalized) {
-        this.path = path;
+      this.path = path;
     } else {
-        this.path = normalize(path);
+      this.path = normalize(path);
     }
   }
 
   @Override
-  public DlcFileSystem getFileSystem()
-  {
+  public DlcFileSystem getFileSystem() {
     return dfs;
   }
 
   @Override
-  public boolean isAbsolute()
-  {
+  public boolean isAbsolute() {
     return (this.path.length > 0 && path[0] == '/');
   }
 
   @Override
-  public DlcPath getRoot()
-  {
+  public DlcPath getRoot() {
     if (this.isAbsolute()) {
       return new DlcPath(dfs, new byte[] { path[0] });
     } else {
@@ -119,8 +113,7 @@ public class DlcPath implements Path
   }
 
   @Override
-  public Path getFileName()
-  {
+  public Path getFileName() {
     initOffsets();
     int count = offsets.length;
     if (count == 0) {
@@ -137,8 +130,7 @@ public class DlcPath implements Path
   }
 
   @Override
-  public DlcPath getParent()
-  {
+  public DlcPath getParent() {
     initOffsets();
     int count = offsets.length;
     if (count == 0) { // no elements so no parent
@@ -154,15 +146,13 @@ public class DlcPath implements Path
   }
 
   @Override
-  public int getNameCount()
-  {
+  public int getNameCount() {
     initOffsets();
     return offsets.length;
   }
 
   @Override
-  public DlcPath getName(int index)
-  {
+  public DlcPath getName(int index) {
     initOffsets();
     if (index < 0 || index >= offsets.length) {
       throw new IllegalArgumentException();
@@ -181,13 +171,9 @@ public class DlcPath implements Path
   }
 
   @Override
-  public DlcPath subpath(int beginIndex, int endIndex)
-  {
+  public DlcPath subpath(int beginIndex, int endIndex) {
     initOffsets();
-    if (beginIndex < 0 ||
-        beginIndex >= offsets.length ||
-        endIndex > offsets.length ||
-        beginIndex >= endIndex) {
+    if (beginIndex < 0 || beginIndex >= offsets.length || endIndex > offsets.length || beginIndex >= endIndex) {
       throw new IllegalArgumentException();
     }
 
@@ -206,10 +192,9 @@ public class DlcPath implements Path
   }
 
   @Override
-  public boolean startsWith(Path other)
-  {
+  public boolean startsWith(Path other) {
     try {
-    final DlcPath o = checkPath(other);
+      final DlcPath o = checkPath(other);
       if (o.isAbsolute() != this.isAbsolute() || o.path.length > this.path.length) {
         return false;
       }
@@ -220,23 +205,19 @@ public class DlcPath implements Path
         }
       }
       olast--;
-      return (o.path.length == this.path.length) ||
-             (o.path[olast] == '/') ||
-             (this.path[olast + 1] == '/');
+      return (o.path.length == this.path.length) || (o.path[olast] == '/') || (this.path[olast + 1] == '/');
     } catch (Exception e) {
     }
     return false;
   }
 
   @Override
-  public boolean startsWith(String other)
-  {
+  public boolean startsWith(String other) {
     return startsWith(getFileSystem().getPath(other));
   }
 
   @Override
-  public boolean endsWith(Path other)
-  {
+  public boolean endsWith(Path other) {
     try {
       final DlcPath o = checkPath(other);
       int olast = o.path.length - 1;
@@ -247,7 +228,7 @@ public class DlcPath implements Path
       if (last > 0 && this.path[last] == '/') {
         last--;
       }
-      if (olast == -1) {  // o.path.length == 0
+      if (olast == -1) { // o.path.length == 0
         return last == -1;
       }
       if ((o.isAbsolute() && (!this.isAbsolute() || olast != last)) || (last < olast)) {
@@ -265,14 +246,12 @@ public class DlcPath implements Path
   }
 
   @Override
-  public boolean endsWith(String other)
-  {
+  public boolean endsWith(String other) {
     return endsWith(getFileSystem().getPath(other));
   }
 
   @Override
-  public Path normalize()
-  {
+  public Path normalize() {
     byte[] resolved = getResolved();
     if (resolved == path) { // no change
       return this;
@@ -281,8 +260,7 @@ public class DlcPath implements Path
   }
 
   @Override
-  public DlcPath resolve(Path other)
-  {
+  public DlcPath resolve(Path other) {
     final DlcPath o = checkPath(other);
     if (o.isAbsolute()) {
       return o;
@@ -302,14 +280,12 @@ public class DlcPath implements Path
   }
 
   @Override
-  public DlcPath resolve(String other)
-  {
+  public DlcPath resolve(String other) {
     return resolve(getFileSystem().getPath(other));
   }
 
   @Override
-  public Path resolveSibling(Path other)
-  {
+  public Path resolveSibling(Path other) {
     if (other == null) {
       throw new NullPointerException();
     }
@@ -318,20 +294,18 @@ public class DlcPath implements Path
   }
 
   @Override
-  public Path resolveSibling(String other)
-  {
+  public Path resolveSibling(String other) {
     return resolveSibling(getFileSystem().getPath(other));
   }
 
   @Override
-  public Path relativize(Path other)
-  {
+  public Path relativize(Path other) {
     final DlcPath o = checkPath(other);
     if (o.equals(this)) {
       return new DlcPath(getFileSystem(), new byte[0], true);
     }
     if (/* this.getFileSystem() != o.getFileSystem() || */
-        this.isAbsolute() != o.isAbsolute()) {
+    this.isAbsolute() != o.isAbsolute()) {
       throw new IllegalArgumentException();
     }
     int mc = this.getNameCount();
@@ -355,7 +329,7 @@ public class DlcPath implements Path
     while (dotdots > 0) {
       result[pos++] = (byte) '.';
       result[pos++] = (byte) '.';
-      if (pos < len) {  // no tailing slash at the end
+      if (pos < len) { // no tailing slash at the end
         result[pos++] = (byte) '/';
       }
       dotdots--;
@@ -367,20 +341,17 @@ public class DlcPath implements Path
   }
 
   @Override
-  public URI toUri()
-  {
+  public URI toUri() {
     try {
       return new URI(DlcFileSystemProvider.SCHEME,
-                     dfs.getDlcFile().toUri() + "!" + dfs.getString(toAbsolutePath().path),
-                     null);
+          dfs.getDlcFile().toUri() + "!" + dfs.getString(toAbsolutePath().path), null);
     } catch (Exception ex) {
       throw new AssertionError(ex);
     }
   }
 
   @Override
-  public DlcPath toAbsolutePath()
-  {
+  public DlcPath toAbsolutePath() {
     if (isAbsolute()) {
       return this;
     } else {
@@ -404,23 +375,19 @@ public class DlcPath implements Path
   }
 
   @Override
-  public DlcPath toRealPath(LinkOption... options) throws IOException
-  {
+  public DlcPath toRealPath(LinkOption... options) throws IOException {
     DlcPath realPath = new DlcPath(dfs, getResolvedPath()).toAbsolutePath();
     realPath.checkAccess();
     return realPath;
   }
 
   @Override
-  public File toFile()
-  {
+  public File toFile() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers)
-      throws IOException
-  {
+  public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers) throws IOException {
     if (watcher == null || events == null || modifiers == null) {
       throw new NullPointerException();
     }
@@ -428,26 +395,22 @@ public class DlcPath implements Path
   }
 
   @Override
-  public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException
-  {
+  public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
     return register(watcher, events, new WatchEvent.Modifier[0]);
   }
 
   @Override
-  public Iterator<Path> iterator()
-  {
+  public Iterator<Path> iterator() {
     return new Iterator<Path>() {
       private int i = 0;
 
       @Override
-      public boolean hasNext()
-      {
+      public boolean hasNext() {
         return (i < getNameCount());
       }
 
       @Override
-      public Path next()
-      {
+      public Path next() {
         if (i < getNameCount()) {
           Path result = getName(i);
           i++;
@@ -458,16 +421,14 @@ public class DlcPath implements Path
       }
 
       @Override
-      public void remove()
-      {
+      public void remove() {
         throw new ReadOnlyFileSystemException();
       }
     };
   }
 
   @Override
-  public int compareTo(Path other)
-  {
+  public int compareTo(Path other) {
     final DlcPath o = checkPath(other);
     int len1 = this.path.length;
     int len2 = o.path.length;
@@ -489,14 +450,12 @@ public class DlcPath implements Path
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return dfs.getString(path);
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int h = hashcode;
     if (h == 0) {
       hashcode = h = Arrays.hashCode(path);
@@ -505,32 +464,26 @@ public class DlcPath implements Path
   }
 
   @Override
-  public boolean equals(Object obj)
-  {
-    return (obj != null) &&
-           (obj instanceof DlcPath) &&
-           (this.dfs == ((DlcPath)obj).dfs) &&
-           (compareTo((Path)obj) == 0);
+  public boolean equals(Object obj) {
+    return (obj != null) && (obj instanceof DlcPath) && (this.dfs == ((DlcPath) obj).dfs)
+        && (compareTo((Path) obj) == 0);
   }
 
-  boolean isHidden()
-  {
+  protected boolean isHidden() {
     return false;
   }
 
-  private DlcPath checkPath(Path path)
-  {
+  private DlcPath checkPath(Path path) {
     if (path == null) {
       throw new NullPointerException();
     }
     if (!(path instanceof DlcPath)) {
       throw new ProviderMismatchException();
     }
-    return (DlcPath)path;
+    return (DlcPath) path;
   }
 
-  private boolean equalsNameAt(DlcPath other, int index)
-  {
+  private boolean equalsNameAt(DlcPath other, int index) {
     int mbegin = offsets[index];
     int mlen = 0;
     if (index == (offsets.length - 1)) {
@@ -559,8 +512,7 @@ public class DlcPath implements Path
   }
 
   // create offset list if not already created
-  private void initOffsets()
-  {
+  private void initOffsets() {
     if (offsets == null) {
       int count, index;
       // count names
@@ -601,8 +553,8 @@ public class DlcPath implements Path
   // resolved path for locating zip entry inside the zip file,
   // the result path does not contain ./ and .. components
   private volatile byte[] resolved = null;
-  byte[] getResolvedPath()
-  {
+
+  protected byte[] getResolvedPath() {
     byte[] r = resolved;
     if (r == null) {
       if (isAbsolute()) {
@@ -620,8 +572,7 @@ public class DlcPath implements Path
 
   // removes redundant slashs, replace "\" to zip separator "/"
   // and check for invalid characters
-  private byte[] normalize(byte[] path)
-  {
+  private byte[] normalize(byte[] path) {
     if (path.length == 0) {
       return path;
     }
@@ -642,8 +593,7 @@ public class DlcPath implements Path
     return path;
   }
 
-  private byte[] normalize(byte[] path, int off)
-  {
+  private byte[] normalize(byte[] path, int off) {
     byte[] to = new byte[path.length];
     int n = 0;
     while (n < off) {
@@ -673,13 +623,11 @@ public class DlcPath implements Path
   }
 
   // Remove DotSlash(./) and resolve DotDot (..) components
-  private byte[] getResolved()
-  {
+  private byte[] getResolved() {
     if (path.length == 0) {
       return path;
     }
-    for (int i = 0; i < path.length; i++) {
-      byte c = path[i];
+    for (byte c : path) {
       if (c == (byte) '.') {
         return resolve0();
       }
@@ -688,8 +636,7 @@ public class DlcPath implements Path
   }
 
   // TBD: performance, avoid initOffsets
-  private byte[] resolve0()
-  {
+  private byte[] resolve0() {
     byte[] to = new byte[path.length];
     int nc = getNameCount();
     int[] lastM = new int[nc];
@@ -710,8 +657,9 @@ public class DlcPath implements Path
           continue;
         }
         if (path[0] == '/') { // "/../xyz" skip
-          if (m == 0)
+          if (m == 0) {
             to[m++] = '/';
+          }
         } else { // "../xyz" -> "../xyz"
           if (m != 0 && to[m - 1] != '/') {
             to[m++] = '/';
@@ -737,17 +685,13 @@ public class DlcPath implements Path
     return (m == to.length) ? to : Arrays.copyOf(to, m);
   }
 
-
   /////////////////////////////////////////////////////////////////////
 
-
-  void createDirectory(FileAttribute<?>... attrs)
-  {
+  protected void createDirectory(FileAttribute<?>... attrs) {
     throw new UnsupportedOperationException();
   }
 
-  InputStream newInputStream(OpenOption... options) throws IOException
-  {
+  protected InputStream newInputStream(OpenOption... options) throws IOException {
     if (options.length > 0) {
       for (OpenOption opt : options) {
         if (opt != StandardOpenOption.READ) {
@@ -758,23 +702,19 @@ public class DlcPath implements Path
     return dfs.newInputStream(getResolvedPath());
   }
 
-  DirectoryStream<Path> newDirectoryStream(Filter<? super Path> filter) throws IOException
-  {
+  protected DirectoryStream<Path> newDirectoryStream(Filter<? super Path> filter) throws IOException {
     return new DlcDirectoryStream(this, filter);
   }
 
-  void delete()
-  {
+  protected void delete() {
     throw new UnsupportedOperationException();
   }
 
-  void deleteIfExists()
-  {
+  protected void deleteIfExists() {
     throw new UnsupportedOperationException();
   }
 
-  DlcFileAttributes getAttributes() throws IOException
-  {
+  protected DlcFileAttributes getAttributes() throws IOException {
     DlcFileAttributes zfas = dfs.getFileAttributes(getResolvedPath());
     if (zfas == null) {
       throw new NoSuchFileException(toString());
@@ -782,18 +722,15 @@ public class DlcPath implements Path
     return zfas;
   }
 
-  void setAttribute(String attribute, Object value, LinkOption... options)
-  {
+  protected void setAttribute(String attribute, Object value, LinkOption... options) {
     throw new UnsupportedOperationException();
   }
 
-  void setTimes(FileTime mtime, FileTime atime, FileTime ctime)
-  {
+  protected void setTimes(FileTime mtime, FileTime atime, FileTime ctime) {
     throw new UnsupportedOperationException();
   }
 
-  Map<String, Object> readAttributes(String attributes, LinkOption... options) throws IOException
-  {
+  protected Map<String, Object> readAttributes(String attributes, LinkOption... options) throws IOException {
     String view = null;
     String attrs = null;
     int colonPos = attributes.indexOf(':');
@@ -811,8 +748,7 @@ public class DlcPath implements Path
     return dfv.readAttributes(attrs);
   }
 
-  FileStore getFileStore() throws IOException
-  {
+  protected FileStore getFileStore() throws IOException {
     // each ZipFileSystem only has one root (as requested for now)
     if (exists()) {
       return dfs.getFileStore(this);
@@ -820,8 +756,7 @@ public class DlcPath implements Path
     throw new NoSuchFileException(dfs.getString(path));
   }
 
-  boolean isSameFile(Path other) throws IOException
-  {
+  protected boolean isSameFile(Path other) throws IOException {
     if (this.equals(other)) {
       return true;
     }
@@ -829,24 +764,19 @@ public class DlcPath implements Path
       return false;
     }
     this.checkAccess();
-    ((DlcPath)other).checkAccess();
-    return Arrays.equals(this.getResolvedPath(), ((DlcPath)other).getResolvedPath());
+    ((DlcPath) other).checkAccess();
+    return Arrays.equals(this.getResolvedPath(), ((DlcPath) other).getResolvedPath());
   }
 
-  SeekableByteChannel newByteChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-      throws IOException
-  {
+  protected SeekableByteChannel newByteChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
     return dfs.newByteChannel(getResolvedPath(), options, attrs);
   }
 
-  FileChannel newFileChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-      throws IOException
-  {
+  protected FileChannel newFileChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
     return dfs.newFileChannel(getResolvedPath(), options, attrs);
   }
 
-  void checkAccess(AccessMode... modes) throws IOException
-  {
+  protected void checkAccess(AccessMode... modes) throws IOException {
     boolean w = false;
     boolean x = false;
     for (AccessMode mode : modes) {
@@ -877,26 +807,22 @@ public class DlcPath implements Path
     }
   }
 
-  boolean exists()
-  {
+  protected boolean exists() {
     if (path.length == 1 && path[0] == '/') {
       return true;
     }
     return dfs.exists(getResolvedPath());
   }
 
-  OutputStream newOutputStream(OpenOption... options)
-  {
+  protected OutputStream newOutputStream(OpenOption... options) {
     throw new UnsupportedOperationException();
   }
 
-  void move(DlcPath target, CopyOption... options)
-  {
+  protected void move(DlcPath target, CopyOption... options) {
     throw new UnsupportedOperationException();
   }
 
-  void copy(DlcPath target, CopyOption... options)
-  {
+  protected void copy(DlcPath target, CopyOption... options) {
     throw new UnsupportedOperationException();
   }
 }

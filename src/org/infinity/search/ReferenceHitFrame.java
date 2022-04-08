@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -20,6 +21,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -42,32 +44,30 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
-public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
-{
+public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener {
   private static final String QUERY_STRING = "string reference";
 
   private final Component parent;
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JLabel count;
   private final Object query;
+
   /** List of the {@link ReferenceHit} objects. */
   private final SortableTable table;
 
-  public ReferenceHitFrame(Object query, Component parent)
-  {
+  public ReferenceHitFrame(Object query, Component parent) {
     super("Result", true);
     if (query == null) {
       query = QUERY_STRING;
     }
     this.query = query;
     this.parent = parent;
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
-    table = new SortableTable(new String[]{"File", "Name/Text", "Attribute/Line"},
-                              new Class<?>[]{ResourceEntry.class, String.class, String.class},
-                              new Integer[]{100, 100, 300});
+    table = new SortableTable(new String[] { "File", "Name/Text", "Attribute/Line" },
+        new Class<?>[] { ResourceEntry.class, String.class, String.class }, new Integer[] { 100, 100, 300 });
 
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
@@ -77,9 +77,9 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     panel.add(bopen);
     panel.add(bopennew);
     panel.add(bsave);
-    count = new JLabel(table.getRowCount() + " hits found", JLabel.CENTER);
-    count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
-    JPanel pane = (JPanel)getContentPane();
+    count = new JLabel(table.getRowCount() + " hits found", SwingConstants.CENTER);
+    count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout(0, 3));
     JScrollPane scrollTable = new JScrollPane(table);
     scrollTable.getViewport().setBackground(table.getBackground());
@@ -93,15 +93,13 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().addListSelectionListener(this);
     final ChildFrame frame = this;
-    table.addMouseListener(new MouseAdapter()
-    {
+    table.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseReleased(MouseEvent event)
-      {
+      public void mouseReleased(MouseEvent event) {
         if (event.getClickCount() == 2) {
           int row = table.getSelectedRow();
           if (row != -1) {
-            Resource res = ResourceFactory.getResource((ResourceEntry)table.getValueAt(row, 0));
+            Resource res = ResourceFactory.getResource((ResourceEntry) table.getValueAt(row, 0));
             new ViewFrame(frame, res);
             showEntryInViewer(row, res);
           }
@@ -116,46 +114,44 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     Center.center(this, parent.getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry entry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry entry = (ResourceEntry) table.getValueAt(row, 0);
         if (parent instanceof ViewFrame && parent.isVisible()) {
           Resource res = ResourceFactory.getResource(entry);
-          ((ViewFrame)parent).setViewable(res);
+          ((ViewFrame) parent).setViewable(res);
           showEntryInViewer(row, res);
-          if (res instanceof DlgResource)
+          if (res instanceof DlgResource) {
             ((ViewFrame) parent).toFront();
-        }
-        else {
+          }
+        } else {
           NearInfinity.getInstance().showResourceEntry(entry);
           Viewable viewable = NearInfinity.getInstance().getViewable();
           showEntryInViewer(row, viewable);
-          if (viewable instanceof DlgResource)
+          if (viewable instanceof DlgResource) {
             NearInfinity.getInstance().toFront();
+          }
         }
       }
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        Resource res = ResourceFactory.getResource((ResourceEntry)table.getValueAt(row, 0));
+        Resource res = ResourceFactory.getResource((ResourceEntry) table.getValueAt(row, 0));
         new ViewFrame(this, res);
         showEntryInViewer(row, res);
       }
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       table.saveSearchResult(this, query.toString());
     }
   }
 
   private void showEntryInViewer(int row, Viewable viewable) {
-    ReferenceHit hit = (ReferenceHit)table.getTableItemAt(row);
+    ReferenceHit hit = (ReferenceHit) table.getTableItemAt(row);
     if (viewable instanceof DlgResource) {
       DlgResource dlgRes = (DlgResource) viewable;
       JComponent detailViewer = dlgRes.getViewerTab(0);
@@ -163,58 +159,50 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       dlgRes.selectInEdit(hit.getStructEntry());
       // make sure we see the detail viewer
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
-    }
-    else if (viewable instanceof AbstractStruct) {
-      ((AbstractStruct)viewable).getViewer().selectEntry(hit.getStructEntry().getOffset());
-    }
-    else if (viewable instanceof TextResource) {
-      ((TextResource)viewable).highlightText(hit.getLineNr(), hit.getLine());
+    } else if (viewable instanceof AbstractStruct) {
+      ((AbstractStruct) viewable).getViewer().selectEntry(hit.getStructEntry().getOffset());
+    } else if (viewable instanceof TextResource) {
+      ((TextResource) viewable).highlightText(hit.getLineNr(), hit.getLine());
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
   @Override
-  public void setVisible(boolean b)
-  {
+  public void setVisible(boolean b) {
     table.tableComplete();
     count.setText(table.getRowCount() + " hit(s) found");
-    if (b && table.getRowCount() == 0)
+    if (b && table.getRowCount() == 0) {
       JOptionPane.showMessageDialog(parent, "No hits found", "Info", JOptionPane.INFORMATION_MESSAGE);
-    else
+    } else {
       super.setVisible(b);
+    }
   }
 
-  public void addHit(ResourceEntry entry, String name, StructEntry ref)
-  {
+  public void addHit(ResourceEntry entry, String name, StructEntry ref) {
     table.addTableItem(new ReferenceHit(entry, name, ref));
   }
 
-  public void addHit(ResourceEntry entry, String line, int lineNr)
-  {
+  public void addHit(ResourceEntry entry, String line, int lineNr) {
     table.addTableItem(new ReferenceHit(entry, line, lineNr));
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /** Stores a reference to a specific resource field. */
-  public static final class ReferenceHit implements TableItem, Comparable<ReferenceHit>
-  {
+  public static final class ReferenceHit implements TableItem, Comparable<ReferenceHit> {
     public enum Mode {
-      Struct,
-      Text,
+      Struct, Text,
     }
 
     private final Mode mode;
@@ -224,8 +212,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     private final String line;
     private final int lineNr;
 
-    public ReferenceHit(ResourceEntry entry, String name, StructEntry ref)
-    {
+    public ReferenceHit(ResourceEntry entry, String name, StructEntry ref) {
       this.mode = Mode.Struct;
       this.entry = entry;
       this.name = name;
@@ -234,8 +221,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       this.lineNr = 0;
     }
 
-    public ReferenceHit(ResourceEntry entry, String line, int lineNr)
-    {
+    public ReferenceHit(ResourceEntry entry, String line, int lineNr) {
       this.mode = Mode.Text;
       this.entry = entry;
       this.name = "";
@@ -245,8 +231,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
+    public Object getObjectAt(int columnIndex) {
       switch (columnIndex) {
         case 0:
           return entry;
@@ -266,99 +251,88 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
           if (mode == Mode.Text) {
             return lineNr;
           } else {
-            if (ref != null)
+            if (ref != null) {
               return ref.getName() + '=' + ref;
+            }
             return null;
           }
       }
     }
 
-    public Mode getMode()
-    {
+    public Mode getMode() {
       return mode;
     }
 
-    public ResourceEntry getResource()
-    {
+    public ResourceEntry getResource() {
       return entry;
     }
 
-    public String getName()
-    {
+    public String getName() {
       return name;
     }
 
-    public StructEntry getStructEntry()
-    {
+    public StructEntry getStructEntry() {
       return ref;
     }
 
-    public String getLine()
-    {
+    public String getLine() {
       return line;
     }
 
-    public int getLineNr()
-    {
+    public int getLineNr() {
       return lineNr;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       if (mode == Mode.Text) {
         return String.format("File: %s, Line: %d, Text: %s", entry.getResourceName(), lineNr, line);
       } else {
         final StringBuilder buf = new StringBuilder("File: ");
         buf.append(entry.getResourceName());
-        if (name != null)
+        if (name != null) {
           buf.append(", Name: ").append(name);
-        if (ref != null)
+        }
+        if (ref != null) {
           buf.append(", Attribute: ").append(ref.getName()).append('=').append(ref);
+        }
         return buf.toString();
       }
     }
 
     @Override
-    public int hashCode()
-    {
-      int hash = 7;
-      hash = 31 * hash + ((mode == null) ? 0 : mode.hashCode());
-      hash = 31 * hash + ((entry == null) ? 0 : entry.hashCode());
-      hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
-      hash = 31 * hash + ((ref == null) ? 0 : ref.hashCode());
-      hash = 31 * hash + ((line == null) ? 0 : line.hashCode());
-      hash = 31 * hash + lineNr;
-      return hash;
+    public int hashCode() {
+      return Objects.hash(entry, line, lineNr, mode, name, ref);
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
-      if (obj instanceof ReferenceHit) {
-        ReferenceHit rh = (ReferenceHit)obj;
-        if (entry == null && rh.entry != null || !entry.equals(rh.entry))
-          return false;
-        if (name == null && rh.name != null || !name.equalsIgnoreCase(rh.name))
-          return false;
-        if (ref == null && rh.ref != null || !ref.equals(rh.ref))
-          return false;
+    public boolean equals(Object obj) {
+      if (this == obj) {
         return true;
       }
-      return super.equals(obj);
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      ReferenceHit other = (ReferenceHit) obj;
+      return Objects.equals(entry, other.entry) && Objects.equals(line, other.line) && lineNr == other.lineNr
+          && mode == other.mode && Objects.equals(name, other.name) && Objects.equals(ref, other.ref);
     }
 
     @Override
-    public int compareTo(ReferenceHit rh)
-    {
-      if (rh == null)
+    public int compareTo(ReferenceHit rh) {
+      if (rh == null) {
         throw new NullPointerException();
+      }
 
       if (entry == null) {
-        if (rh.entry == null)
+        if (rh.entry == null) {
           return 0;
-        else
+        } else {
           return 1;
+        }
       }
 
       int retVal = entry.compareTo(rh.entry);

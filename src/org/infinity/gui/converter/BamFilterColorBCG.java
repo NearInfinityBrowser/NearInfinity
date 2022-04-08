@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -32,37 +32,41 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 /**
  * Color filter: adjust brightness, contrast and gamma.
  */
-public class BamFilterColorBCG extends BamFilterBaseColor
-    implements ChangeListener, ActionListener
-{
-  private static final String FilterName = "Brightness/Contrast/Gamma";
-  private static final String FilterDesc = "This filter provides controls for adjusting brightness, " +
-                                           "contrast and gamma";
+public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListener, ActionListener {
+  private static final String FILTER_NAME = "Brightness/Contrast/Gamma";
+  private static final String FILTER_DESC = "This filter provides controls for adjusting brightness, "
+      + "contrast and gamma";
 
-  private static final double GammaScaleFactor = 100.0;   // the scale factor for gamma slider
+  private static final double GAMMA_SCALE_FACTOR = 100.0; // the scale factor for gamma slider
 
-  private JSlider sliderBrightness, sliderContrast, sliderGamma;
-  private JSpinner spinnerBrightness, spinnerContrast, spinnerGamma;
+  private JSlider sliderBrightness;
+  private JSlider sliderContrast;
+  private JSlider sliderGamma;
+  private JSpinner spinnerBrightness;
+  private JSpinner spinnerContrast;
+  private JSpinner spinnerGamma;
   private ButtonPopupWindow bpwExclude;
   private BamFilterBaseColor.ExcludeColorsPanel pExcludeColors;
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
 
-  public BamFilterColorBCG(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
+
+  public BamFilterColorBCG(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public BufferedImage process(BufferedImage frame) throws Exception
-  {
+  public BufferedImage process(BufferedImage frame) throws Exception {
     return applyEffect(frame);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }
@@ -70,25 +74,22 @@ public class BamFilterColorBCG extends BamFilterBaseColor
   }
 
   @Override
-  public void updateControls()
-  {
+  public void updateControls() {
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(sliderBrightness.getValue()).append(';');
     sb.append(sliderContrast.getValue()).append(';');
-    sb.append(((SpinnerNumberModel)spinnerGamma.getModel()).getNumber().doubleValue()).append(';');
+    sb.append(((SpinnerNumberModel) spinnerGamma.getModel()).getNumber().doubleValue()).append(';');
     sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
     return sb.toString();
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -99,21 +100,22 @@ public class BamFilterColorBCG extends BamFilterBaseColor
         int[] indices = null;
 
         // parsing configuration data
-        if (params.length > 0) {  // set brightness value
-          bValue = decodeNumber(params[0], sliderBrightness.getMinimum(), sliderBrightness.getMaximum(), Integer.MIN_VALUE);
+        if (params.length > 0) { // set brightness value
+          bValue = decodeNumber(params[0], sliderBrightness.getMinimum(), sliderBrightness.getMaximum(),
+              Integer.MIN_VALUE);
           if (bValue == Integer.MIN_VALUE) {
             return false;
           }
         }
-        if (params.length > 1) {  // set contrast value
+        if (params.length > 1) { // set contrast value
           cValue = decodeNumber(params[1], sliderContrast.getMinimum(), sliderContrast.getMaximum(), Integer.MIN_VALUE);
           if (cValue == Integer.MIN_VALUE) {
             return false;
           }
         }
-        if (params.length > 2) {  // set gamma value
-          double min = ((Number)((SpinnerNumberModel)spinnerGamma.getModel()).getMinimum()).doubleValue();
-          double max = ((Number)((SpinnerNumberModel)spinnerGamma.getModel()).getMaximum()).doubleValue();
+        if (params.length > 2) { // set gamma value
+          double min = ((Number) ((SpinnerNumberModel) spinnerGamma.getModel()).getMinimum()).doubleValue();
+          double max = ((Number) ((SpinnerNumberModel) spinnerGamma.getModel()).getMaximum()).doubleValue();
           gValue = decodeDouble(params[2], min, max, Double.MIN_VALUE);
           if (gValue == Double.MIN_VALUE) {
             return false;
@@ -134,7 +136,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor
           sliderContrast.setValue(cValue);
         }
         if (gValue != Double.MIN_VALUE) {
-          sliderGamma.setValue((int)(gValue * GammaScaleFactor));
+          sliderGamma.setValue((int) (gValue * GAMMA_SCALE_FACTOR));
         }
         if (indices != null) {
           pExcludeColors.setSelectedIndices(indices);
@@ -146,27 +148,26 @@ public class BamFilterColorBCG extends BamFilterBaseColor
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Exclude colors:");
     pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
         getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     pExcludeColors.addChangeListener(this);
-    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon(Icons.ICON_ARROW_DOWN_15), pExcludeColors);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.ICON_ARROW_DOWN_15.getIcon(), pExcludeColors);
     bpwExclude.setIconTextGap(8);
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
     JPanel pExclude = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pExclude.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pExclude.add(bpwExclude, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pExclude.add(new JPanel(), c);
 
     JLabel lb = new JLabel("Brightness:");
@@ -178,117 +179,111 @@ public class BamFilterColorBCG extends BamFilterBaseColor
     sliderContrast.addChangeListener(this);
     sliderGamma = new JSlider(SwingConstants.HORIZONTAL, 1, 500, 100);
     sliderGamma.addChangeListener(this);
-    spinnerBrightness = new JSpinner(new SpinnerNumberModel(sliderBrightness.getValue(),
-                                                            sliderBrightness.getMinimum(),
-                                                            sliderBrightness.getMaximum(), 1));
+    spinnerBrightness = new JSpinner(new SpinnerNumberModel(sliderBrightness.getValue(), sliderBrightness.getMinimum(),
+        sliderBrightness.getMaximum(), 1));
     spinnerBrightness.addChangeListener(this);
-    spinnerContrast = new JSpinner(new SpinnerNumberModel(sliderContrast.getValue(),
-                                                          sliderContrast.getMinimum(),
-                                                          sliderContrast.getMaximum(), 1));
+    spinnerContrast = new JSpinner(
+        new SpinnerNumberModel(sliderContrast.getValue(), sliderContrast.getMinimum(), sliderContrast.getMaximum(), 1));
     spinnerContrast.addChangeListener(this);
-    spinnerGamma = new JSpinner(new SpinnerNumberModel((double)sliderGamma.getValue() / GammaScaleFactor,
-                                                       (double)sliderGamma.getMinimum() / GammaScaleFactor,
-                                                       (double)sliderGamma.getMaximum() / GammaScaleFactor, 0.1));
+    spinnerGamma = new JSpinner(new SpinnerNumberModel(sliderGamma.getValue() / GAMMA_SCALE_FACTOR,
+        sliderGamma.getMinimum() / GAMMA_SCALE_FACTOR, sliderGamma.getMaximum() / GAMMA_SCALE_FACTOR, 0.1));
     spinnerGamma.addChangeListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p.add(lb, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     p.add(sliderBrightness, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     p.add(spinnerBrightness, c);
 
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p.add(lc, c);
-    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderContrast, c);
-    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerContrast, c);
 
-    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p.add(lg, c);
-    ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p.add(sliderGamma, c);
-    ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p.add(spinnerGamma, c);
-    ViewerUtil.setGBC(c, 0, 3, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 3, 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     p.add(pExclude, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     } else if (event.getSource() == sliderBrightness) {
       spinnerBrightness.setValue(Integer.valueOf(sliderBrightness.getValue()));
-      if (sliderBrightness.getModel().getValueIsAdjusting() == false) {
+      if (!sliderBrightness.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderContrast) {
       spinnerContrast.setValue(Integer.valueOf(sliderContrast.getValue()));
-      if (sliderContrast.getModel().getValueIsAdjusting() == false) {
+      if (!sliderContrast.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderGamma) {
-      spinnerGamma.setValue(Double.valueOf((double)sliderGamma.getValue() / GammaScaleFactor));
-      if (sliderGamma.getModel().getValueIsAdjusting() == false) {
+      spinnerGamma.setValue(Double.valueOf(sliderGamma.getValue() / GAMMA_SCALE_FACTOR));
+      if (!sliderGamma.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == spinnerBrightness) {
-      sliderBrightness.setValue(((Integer)spinnerBrightness.getValue()).intValue());
+      sliderBrightness.setValue(((Integer) spinnerBrightness.getValue()));
     } else if (event.getSource() == spinnerContrast) {
-      sliderContrast.setValue(((Integer)spinnerContrast.getValue()).intValue());
+      sliderContrast.setValue(((Integer) spinnerContrast.getValue()));
     } else if (event.getSource() == spinnerGamma) {
-      double v = ((Double)spinnerGamma.getValue()).doubleValue() * GammaScaleFactor;
-      sliderGamma.setValue((int)v);
+      double v = ((Double) spinnerGamma.getValue()).doubleValue() * GAMMA_SCALE_FACTOR;
+      sliderGamma.setValue((int) v);
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bpwExclude) {
-      pExcludeColors.updatePalette(getConverter().getPaletteDialog().getPalette(
-          getConverter().getPaletteDialog().getPaletteType()));
+      pExcludeColors.updatePalette(
+          getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-  private BufferedImage applyEffect(BufferedImage srcImage)
-  {
+  private BufferedImage applyEffect(BufferedImage srcImage) {
     if (srcImage != null) {
       int[] buffer;
       IndexColorModel cm = null;
       boolean isPremultiplied = false;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         // paletted image
-        cm = (IndexColorModel)srcImage.getColorModel();
+        cm = (IndexColorModel) srcImage.getColorModel();
         buffer = new int[1 << cm.getPixelSize()];
         cm.getRGBs(buffer);
         isPremultiplied = cm.isAlphaPremultiplied();
@@ -307,36 +302,47 @@ public class BamFilterColorBCG extends BamFilterBaseColor
         }
       } else if (srcImage.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
         // truecolor image
-        buffer = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        buffer = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
         isPremultiplied = srcImage.isAlphaPremultiplied();
       } else {
         buffer = new int[0];
       }
 
       // brightness in range [-100, 100]
-      float brightness = ((Integer)spinnerBrightness.getValue()).floatValue() / 100.0f;
+      float brightness = ((Integer) spinnerBrightness.getValue()).floatValue() / 100.0f;
       // contrast in range [-100, 100]
-      float contrast = (((Integer)spinnerContrast.getValue()).floatValue() + 100.0f) / 100.0f;
+      float contrast = (((Integer) spinnerContrast.getValue()).floatValue() + 100.0f) / 100.0f;
       // gamma in range [0.01, 5.0]
-      float gamma2 = 1.0f / ((Double)spinnerGamma.getValue()).floatValue();
+      float gamma2 = 1.0f / ((Double) spinnerGamma.getValue()).floatValue();
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) &&
-            (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
-          float fa = isPremultiplied ? (float)((buffer[i] >>> 24) & 0xff) : 255.0f;
-          float fr = (float)((buffer[i] >>> 16) & 0xff) / fa;
-          float fg = (float)((buffer[i] >>> 8) & 0xff) / fa;
-          float fb = (float)(buffer[i] & 0xff) / fa;
+          float fa = isPremultiplied ? (float) ((buffer[i] >>> 24) & 0xff) : 255.0f;
+          float fr = ((buffer[i] >>> 16) & 0xff) / fa;
+          float fg = ((buffer[i] >>> 8) & 0xff) / fa;
+          float fb = (buffer[i] & 0xff) / fa;
 
           // applying brightness
           if (brightness != 0.0f) {
             fr += brightness;
             fg += brightness;
             fb += brightness;
-            if (fr < 0.0f) fr = 0.0f; else if (fr > 1.0f) fr = 1.0f;
-            if (fg < 0.0f) fg = 0.0f; else if (fg > 1.0f) fg = 1.0f;
-            if (fb < 0.0f) fb = 0.0f; else if (fb > 1.0f) fb = 1.0f;
+            if (fr < 0.0f) {
+              fr = 0.0f;
+            } else if (fr > 1.0f) {
+              fr = 1.0f;
+            }
+            if (fg < 0.0f) {
+              fg = 0.0f;
+            } else if (fg > 1.0f) {
+              fg = 1.0f;
+            }
+            if (fb < 0.0f) {
+              fb = 0.0f;
+            } else if (fb > 1.0f) {
+              fb = 1.0f;
+            }
           }
 
           // applying contrast
@@ -344,41 +350,81 @@ public class BamFilterColorBCG extends BamFilterBaseColor
             fr = ((fr - 0.5f) * contrast) + 0.5f;
             fg = ((fg - 0.5f) * contrast) + 0.5f;
             fb = ((fb - 0.5f) * contrast) + 0.5f;
-            if (fr < 0.0f) fr = 0.0f; else if (fr > 1.0f) fr = 1.0f;
-            if (fg < 0.0f) fg = 0.0f; else if (fg > 1.0f) fg = 1.0f;
-            if (fb < 0.0f) fb = 0.0f; else if (fb > 1.0f) fb = 1.0f;
+            if (fr < 0.0f) {
+              fr = 0.0f;
+            } else if (fr > 1.0f) {
+              fr = 1.0f;
+            }
+            if (fg < 0.0f) {
+              fg = 0.0f;
+            } else if (fg > 1.0f) {
+              fg = 1.0f;
+            }
+            if (fb < 0.0f) {
+              fb = 0.0f;
+            } else if (fb > 1.0f) {
+              fb = 1.0f;
+            }
           }
 
           // applying gamma
           if (gamma2 != 1.0f) {
-            fr = (float)Math.pow((double)fr, gamma2);
-            fg = (float)Math.pow((double)fg, gamma2);
-            fb = (float)Math.pow((double)fb, gamma2);
-            if (fr < 0.0f) fr = 0.0f; else if (fr > 1.0f) fr = 1.0f;
-            if (fg < 0.0f) fg = 0.0f; else if (fg > 1.0f) fg = 1.0f;
-            if (fb < 0.0f) fb = 0.0f; else if (fb > 1.0f) fb = 1.0f;
+            fr = (float) Math.pow(fr, gamma2);
+            fg = (float) Math.pow(fg, gamma2);
+            fb = (float) Math.pow(fb, gamma2);
+            if (fr < 0.0f) {
+              fr = 0.0f;
+            } else if (fr > 1.0f) {
+              fr = 1.0f;
+            }
+            if (fg < 0.0f) {
+              fg = 0.0f;
+            } else if (fg > 1.0f) {
+              fg = 1.0f;
+            }
+            if (fb < 0.0f) {
+              fb = 0.0f;
+            } else if (fb > 1.0f) {
+              fb = 1.0f;
+            }
           }
 
           // reverting to int RGB
-          int ir = (int)(fr * fa); if (ir < 0) ir = 0; else if (ir > 255) ir = 255;
-          int ig = (int)(fg * fa); if (ig < 0) ig = 0; else if (ig > 255) ig = 255;
-          int ib = (int)(fb * fa); if (ib < 0) ib = 0; else if (ib > 255) ib = 255;
+          int ir = (int) (fr * fa);
+          if (ir < 0) {
+            ir = 0;
+          } else if (ir > 255) {
+            ir = 255;
+          }
+          int ig = (int) (fg * fa);
+          if (ig < 0) {
+            ig = 0;
+          } else if (ig > 255) {
+            ig = 255;
+          }
+          int ib = (int) (fb * fa);
+          if (ib < 0) {
+            ib = 0;
+          } else if (ib > 255) {
+            ib = 255;
+          }
           buffer[i] = (buffer[i] & 0xff000000) | (ir << 16) | (ig << 8) | ib;
         }
       }
 
       if (cm != null) {
         // recreating paletted image
-        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), buffer.length, buffer, 0,
-                                                  cm.hasAlpha(), cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
+        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), buffer.length, buffer, 0, cm.hasAlpha(),
+            cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         int width = srcImage.getWidth();
         int height = srcImage.getHeight();
         BufferedImage dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
-        byte[] srcPixels = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        byte[] dstPixels = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        byte[] srcPixels = ((DataBufferByte) srcImage.getRaster().getDataBuffer()).getData();
+        byte[] dstPixels = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
         System.arraycopy(srcPixels, 0, dstPixels, 0, srcPixels.length);
         srcImage = dstImage;
-        srcPixels = null; dstPixels = null;
+        srcPixels = null;
+        dstPixels = null;
       }
     }
 

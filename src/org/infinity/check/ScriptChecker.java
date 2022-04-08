@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -45,118 +45,113 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
-public final class ScriptChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
-{
+public final class ScriptChecker extends AbstractSearcher
+    implements Runnable, ActionListener, ListSelectionListener, ChangeListener {
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew, bsave;
+  private JButton bopen;
+  private JButton bopennew;
+  private JButton bsave;
   private JTabbedPane tabbedPane;
+
   /** List of the {@link ScriptErrorsTableLine} objects with compiler errors. */
   private SortableTable errorTable;
+
   /** List of the {@link ScriptErrorsTableLine} objects with compiler warnings. */
   private SortableTable warningTable;
 
-  public ScriptChecker(Component parent)
-  {
+  public ScriptChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     SortableTable table = errorTable;
-    if (tabbedPane.getSelectedIndex() == 1)
+    if (tabbedPane.getSelectedIndex() == 1) {
       table = warningTable;
+    }
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((BcsResource)NearInfinity.getInstance().getViewable()).highlightText(
-                ((Integer)table.getValueAt(row, 2)).intValue(), null);
+        ((BcsResource) NearInfinity.getInstance().getViewable()).highlightText(((Integer) table.getValueAt(row, 2)),
+            null);
       }
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         Resource resource = ResourceFactory.getResource(resourceEntry);
         new ViewFrame(resultFrame, resource);
-        ((BcsResource)resource).highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+        ((BcsResource) resource).highlightText(((Integer) table.getValueAt(row, 2)), null);
       }
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       final String type = table == errorTable ? "Errors" : "Warnings";
       table.saveCheckResult(resultFrame, type + " in scripts");
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent e)
-  {
-    if (tabbedPane.getSelectedIndex() == 0)
+  public void stateChanged(ChangeEvent e) {
+    if (tabbedPane.getSelectedIndex() == 0) {
       bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    else
+    } else {
       bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
+    }
     bopennew.setEnabled(bopen.isEnabled());
   }
 
-// --------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
-    if (tabbedPane.getSelectedIndex() == 0)
+  public void valueChanged(ListSelectionEvent event) {
+    if (tabbedPane.getSelectedIndex() == 0) {
       bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    else
+    } else {
       bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
+    }
     bopennew.setEnabled(bopen.isEnabled());
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
       final List<ResourceEntry> scriptFiles = ResourceFactory.getResources("BCS");
       scriptFiles.addAll(ResourceFactory.getResources("BS"));
 
-      final Class<?>[] colClasses = {ResourceEntry.class, String.class, Integer.class};
-      errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
-                                     colClasses,
-                                     new Integer[]{120, 440, 50});
-      warningTable = new SortableTable(new String[]{"Script", "Warning", "Line"},
-                                       colClasses,
-                                       new Integer[]{120, 440, 50});
+      final Class<?>[] colClasses = { ResourceEntry.class, String.class, Integer.class };
+      errorTable = new SortableTable(new String[] { "Script", "Error message", "Line" }, colClasses,
+          new Integer[] { 120, 440, 50 });
+      warningTable = new SortableTable(new String[] { "Script", "Warning", "Line" }, colClasses,
+          new Integer[] { 120, 440, 50 });
 
       if (runSearch("Checking scripts", scriptFiles)) {
         return;
       }
 
       if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found", "Info",
+            JOptionPane.INFORMATION_MESSAGE);
       } else {
         errorTable.tableComplete();
         warningTable.tableComplete();
         resultFrame = new ChildFrame("Result of script check", true);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
         JScrollPane scrollErrorTable = new JScrollPane(errorTable);
         scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
         JScrollPane scrollWarningTable = new JScrollPane(warningTable);
@@ -165,9 +160,9 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', scrollErrorTable);
         tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', scrollWarningTable);
         tabbedPane.addChangeListener(this);
-        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
         bopen.setMnemonic('o');
         bopennew.setMnemonic('n');
         bsave.setMnemonic('s');
@@ -176,7 +171,7 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         panel.add(bopen);
         panel.add(bopennew);
         panel.add(bsave);
-        JPanel pane = (JPanel)resultFrame.getContentPane();
+        JPanel pane = (JPanel) resultFrame.getContentPane();
         pane.setLayout(new BorderLayout(0, 3));
         pane.add(tabbedPane, BorderLayout.CENTER);
         pane.add(panel, BorderLayout.SOUTH);
@@ -188,19 +183,17 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
-        MouseListener listener = new MouseAdapter()
-        {
+        MouseListener listener = new MouseAdapter() {
           @Override
-          public void mouseReleased(MouseEvent event)
-          {
+          public void mouseReleased(MouseEvent event) {
             if (event.getClickCount() == 2) {
-              SortableTable table = (SortableTable)event.getSource();
+              SortableTable table = (SortableTable) event.getSource();
               int row = table.getSelectedRow();
               if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
                 Resource resource = ResourceFactory.getResource(resourceEntry);
                 new ViewFrame(resultFrame, resource);
-                ((BcsResource)resource).highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+                ((BcsResource) resource).highlightText(((Integer) table.getValueAt(row, 2)), null);
               }
             }
           }
@@ -220,11 +213,10 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       try {
         final BcsResource script = new BcsResource(entry);
@@ -234,16 +226,16 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
 
         final Compiler compiler = new Compiler(decompiler.decompile());
         compiler.compile();
-        for (final ScriptMessage sm : compiler.getErrors()) {
-          synchronized (errorTable) {
-            errorTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
-                                                              ScriptErrorsTableLine.Type.ERROR));
+        synchronized (errorTable) {
+          for (final ScriptMessage sm : compiler.getErrors()) {
+            errorTable.addTableItem(
+                new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.ERROR));
           }
         }
-        for (final ScriptMessage sm : compiler.getWarnings()) {
-          synchronized (warningTable) {
-            warningTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
-                                                                ScriptErrorsTableLine.Type.WARNING));
+        synchronized (warningTable) {
+          for (final ScriptMessage sm : compiler.getWarnings()) {
+            warningTable.addTableItem(
+                new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.WARNING));
           }
         }
       } catch (Exception e) {
@@ -255,13 +247,11 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
     };
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class ScriptErrorsTableLine implements TableItem
-  {
+  private static final class ScriptErrorsTableLine implements TableItem {
     public enum Type {
-      ERROR,
-      WARNING,
+      ERROR, WARNING,
     }
 
     private final ResourceEntry resourceEntry;
@@ -269,8 +259,7 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
     private final String error;
     private final Type type;
 
-    private ScriptErrorsTableLine(ResourceEntry resourceEntry, Integer lineNr, String error, Type type)
-    {
+    private ScriptErrorsTableLine(ResourceEntry resourceEntry, Integer lineNr, String error, Type type) {
       this.resourceEntry = resourceEntry;
       this.lineNr = lineNr;
       this.error = error;
@@ -278,21 +267,19 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
-      if (columnIndex == 0)
+    public Object getObjectAt(int columnIndex) {
+      if (columnIndex == 0) {
         return resourceEntry;
-      else if (columnIndex == 1)
+      } else if (columnIndex == 1) {
         return error;
+      }
       return lineNr;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       final String type = (this.type == Type.ERROR) ? "Error" : "Warning";
-      return String.format("File: %s, Line: %d, %s: %s",
-                           resourceEntry.getResourceName(), lineNr, type, error);
+      return String.format("File: %s, Line: %d, %s: %s", resourceEntry.getResourceName(), lineNr, type, error);
     }
   }
 }

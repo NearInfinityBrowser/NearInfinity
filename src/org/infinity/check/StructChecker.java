@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -20,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -27,6 +28,8 @@ import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
+import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
@@ -39,109 +42,108 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.bcs.Compiler;
+import org.infinity.resource.bcs.ScriptMessage;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sto.ItemSale11;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 
-public final class StructChecker extends AbstractChecker implements ListSelectionListener
-{
-  private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
-                                             "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
-  private static final HashMap<String, StructInfo> fileInfo = new HashMap<>();
+public final class StructChecker extends AbstractChecker implements ListSelectionListener {
+  private static final String[] FILETYPES = { "ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO", "SPL",
+                                              "STO", "VEF", "VVC", "WED", "WMP" };
+
+  private static final HashMap<String, StructInfo> FILE_INFO = new HashMap<>();
+
   static {
-    fileInfo.put("ARE", new StructInfo("AREA", new String[]{"V1.0", "V9.1"}));
-    fileInfo.put("CHR", new StructInfo("CHR ", new String[]{"V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0"}));
-    fileInfo.put("CHU", new StructInfo("CHUI", new String[]{"V1  "}));
-    fileInfo.put("CRE", new StructInfo("CRE ", new String[]{"V1.0", "V1.1", "V1.2", "V2.2", "V9.0"}));
-    fileInfo.put("DLG", new StructInfo("DLG ", new String[]{"V1.0"}));
-    fileInfo.put("EFF", new StructInfo("EFF ", new String[]{"V2.0"}));
-    fileInfo.put("GAM", new StructInfo("GAME", new String[]{"V1.1", "V2.0", "V2.1", "V2.2"}));
-    fileInfo.put("ITM", new StructInfo("ITM ", new String[]{"V1  ", "V1.1", "V2.0"}));
-    fileInfo.put("PRO", new StructInfo("PRO ", new String[]{"V1.0"}));
-    fileInfo.put("SPL", new StructInfo("SPL ", new String[]{"V1  ", "V2.0"}));
-    fileInfo.put("STO", new StructInfo("STOR", new String[]{"V1.0", "V1.1", "V9.0"}));
-    fileInfo.put("VEF", new StructInfo("VEF ", new String[]{"V1.0", ""}));
-    fileInfo.put("VVC", new StructInfo("VVC ", new String[]{"V1.0"}));
-    fileInfo.put("WED", new StructInfo("WED ", new String[]{"V1.3"}));
-    fileInfo.put("WMP", new StructInfo("WMAP", new String[]{"V1.0"}));
+    FILE_INFO.put("ARE", new StructInfo("AREA", new String[] { "V1.0", "V9.1" }));
+    FILE_INFO.put("CHR", new StructInfo("CHR ", new String[] { "V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0" }));
+    FILE_INFO.put("CHU", new StructInfo("CHUI", new String[] { "V1  " }));
+    FILE_INFO.put("CRE", new StructInfo("CRE ", new String[] { "V1.0", "V1.1", "V1.2", "V2.2", "V9.0" }));
+    FILE_INFO.put("DLG", new StructInfo("DLG ", new String[] { "V1.0" }));
+    FILE_INFO.put("EFF", new StructInfo("EFF ", new String[] { "V2.0" }));
+    FILE_INFO.put("GAM", new StructInfo("GAME", new String[] { "V1.1", "V2.0", "V2.1", "V2.2" }));
+    FILE_INFO.put("ITM", new StructInfo("ITM ", new String[] { "V1  ", "V1.1", "V2.0" }));
+    FILE_INFO.put("PRO", new StructInfo("PRO ", new String[] { "V1.0" }));
+    FILE_INFO.put("SPL", new StructInfo("SPL ", new String[] { "V1  ", "V2.0" }));
+    FILE_INFO.put("STO", new StructInfo("STOR", new String[] { "V1.0", "V1.1", "V9.0" }));
+    FILE_INFO.put("VEF", new StructInfo("VEF ", new String[] { "V1.0", "" }));
+    FILE_INFO.put("VVC", new StructInfo("VVC ", new String[] { "V1.0" }));
+    FILE_INFO.put("WED", new StructInfo("WED ", new String[] { "V1.3" }));
+    FILE_INFO.put("WMP", new StructInfo("WMAP", new String[] { "V1.0" }));
   }
 
   private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+
   /** List of the {@link Corruption} objects. */
   private final SortableTable table;
 
-  public StructChecker()
-  {
+  public StructChecker() {
     super("Find Corrupted Files", "StructChecker", FILETYPES);
 
-    table = new SortableTable(new String[]{"File", "Offset", "Error message"},
-                              new Class<?>[]{ResourceEntry.class, String.class, String.class},//TODO: replace "Offset" by Integer
-                              new Integer[]{50, 50, 400});
+    table = new SortableTable(new String[] { "File", "Offset", "Error message" },
+        new Class<?>[] { ResourceEntry.class, String.class, String.class }, // TODO: replace "Offset" by Integer
+        new Integer[] { 50, 50, 400 });
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         NearInfinity.getInstance().showResourceEntry(resourceEntry);
       }
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         new ViewFrame(resultFrame, ResourceFactory.getResource(resourceEntry));
       }
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       table.saveCheckResult(resultFrame, "Corrupted files");
     } else {
       super.actionPerformed(event);
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     if (runCheck(files)) {
       resultFrame.close();
       return;
     }
 
     if (table.getRowCount() == 0) {
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
     } else {
       table.tableComplete();
-      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-      JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
-      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+      JLabel count = new JLabel(table.getRowCount() + " error(s) found", SwingConstants.CENTER);
+      count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');
       bopennew.setMnemonic('n');
       bsave.setMnemonic('s');
@@ -152,7 +154,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       panel.add(bsave);
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
-      JPanel pane = (JPanel)resultFrame.getContentPane();
+      JPanel pane = (JPanel) resultFrame.getContentPane();
       pane.setLayout(new BorderLayout(0, 3));
       pane.add(count, BorderLayout.NORTH);
       pane.add(scrollTable, BorderLayout.CENTER);
@@ -162,18 +164,16 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
-      table.addMouseListener(new MouseAdapter()
-      {
+      table.addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseReleased(MouseEvent event)
-        {
+        public void mouseReleased(MouseEvent event) {
           if (event.getClickCount() == 2) {
             final int row = table.getSelectedRow();
             if (row != -1) {
-              final ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+              final ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
               final Resource resource = ResourceFactory.getResource(resourceEntry);
               new ViewFrame(resultFrame, resource);
-              ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+              ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
             }
           }
         }
@@ -188,22 +188,20 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
-        search(entry, (AbstractStruct)resource);
+        search(entry, (AbstractStruct) resource);
       }
       advanceProgress();
     };
   }
 
-  private void search(ResourceEntry entry, AbstractStruct struct)
-  {
+  private void search(ResourceEntry entry, AbstractStruct struct) {
     final List<StructEntry> flatList = struct.getFlatFields();
     if (flatList.size() < 2) {
       return;
@@ -218,22 +216,15 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         if (entry2.getSize() > 0 && delta < 0) {
           synchronized (table) {
             table.addTableItem(new Corruption(entry, entry1.getOffset(),
-                                              entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
-                                              "h)" +
-                                              " overlaps " +
-                                              entry2.getName() + '(' + Integer.toHexString(entry2.getOffset()) +
-                                              "h)" +
-                                              " by " + -delta + " bytes"));
+                entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) + "h)" + " overlaps "
+                    + entry2.getName() + '(' + Integer.toHexString(entry2.getOffset()) + "h)" + " by " + -delta
+                    + " bytes"));
           }
         } else if (delta > 0) {
           synchronized (table) {
             table.addTableItem(new Corruption(entry, entry1.getOffset(),
-                                              delta + " unused bytes between " +
-                                              entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
-                                              "h)" +
-                                              " and " +
-                                              entry2.getName() + '(' + Integer.toHexString(entry2.getOffset()) +
-                                              "h)"));
+                delta + " unused bytes between " + entry1.getName() + '(' + Integer.toHexString(entry1.getOffset())
+                    + "h)" + " and " + entry2.getName() + '(' + Integer.toHexString(entry2.getOffset()) + "h)"));
           }
         }
         // Using max() as shared data regions may confuse the consistency check algorithm
@@ -244,19 +235,17 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     StructEntry last = flatList.get(flatList.size() - 1);
     if (last.getName().equals(AbstractStruct.COMMON_UNUSED_BYTES)) {
       synchronized (table) {
-        table.addTableItem(new Corruption(entry, last.getOffset(),
-                                          last.getSize() + " unused bytes after " +
-                                          entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) +
-                                          "h)"));
+        table.addTableItem(new Corruption(entry, last.getOffset(), last.getSize() + " unused bytes after "
+            + entry1.getName() + '(' + Integer.toHexString(entry1.getOffset()) + "h)"));
       }
     }
 
     // Checking signature and version fields
-    StructInfo info = fileInfo.get(entry.getExtension());
+    StructInfo info = FILE_INFO.get(entry.getExtension());
     if (info != null) {
-      String sig = ((TextString)struct.getAttribute(AbstractStruct.COMMON_SIGNATURE)).toString();
+      String sig = ((TextString) struct.getAttribute(AbstractStruct.COMMON_SIGNATURE)).toString();
       if (info.isSignature(sig)) {
-        String ver = ((TextString)struct.getAttribute(AbstractStruct.COMMON_VERSION)).toString();
+        String ver = ((TextString) struct.getAttribute(AbstractStruct.COMMON_VERSION)).toString();
         if (!info.isVersion(ver)) {
           // invalid version?
           synchronized (table) {
@@ -274,34 +263,71 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     // Type-specific checks
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       List<Corruption> list = getWedCorruption(entry, struct);
-      for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
-        synchronized (table) {
+      synchronized (table) {
+        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
           table.addTableItem(iter.next());
+        }
+      }
+    } else if (entry.getExtension().equalsIgnoreCase("STO")) {
+      List<Corruption> list = getStoCorruption(entry, struct);
+      synchronized (table) {
+        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
+            table.addTableItem(iter.next());
         }
       }
     }
   }
 
+  // Checking for invalid trigger strings in STO V1.1 resources
+  private List<Corruption> getStoCorruption(ResourceEntry entry, AbstractStruct struct) {
+    final List<Corruption> list = new ArrayList<>();
+    if (entry.getExtension().equalsIgnoreCase("STO")) {
+      String version = ((IsTextual) struct.getAttribute(AbstractStruct.COMMON_VERSION)).getText();
+      if (version.equalsIgnoreCase("V1.1")) {
+        List<StructEntry> itemList = struct.getFields(ItemSale11.class);
+        for (int itemIndex = 0, itemCount = itemList.size(); itemIndex < itemCount; itemIndex++) {
+          final ItemSale11 item = (ItemSale11) itemList.get(itemIndex);
+          final StringRef triggerEntry = (StringRef) item.getAttribute(ItemSale11.STO_SALE_TRIGGER);
+          if (triggerEntry.getValue() > 0 && StringTable.isValidStringRef(triggerEntry.getValue())) {
+            final String trigger = StringTable.getStringRef(triggerEntry.getValue()).trim();
+            if (!trigger.isEmpty()) {
+              final Compiler compiler = new Compiler(trigger, ScriptType.TRIGGER);
+              compiler.compile();
+              for (final ScriptMessage sm : compiler.getErrors()) {
+                list.add(new Corruption(entry, triggerEntry.getOffset(), String.format("[ERROR] %s %d - %s: %s",
+                    ItemSale11.STO_SALE, itemIndex, ItemSale11.STO_SALE_TRIGGER, sm.getMessage())));
+              }
+              for (final ScriptMessage sm : compiler.getWarnings()) {
+                list.add(new Corruption(entry, triggerEntry.getOffset(), String.format("[WARNING] %s %d - %s: %s",
+                    ItemSale11.STO_SALE, itemIndex, ItemSale11.STO_SALE_TRIGGER, sm.getMessage())));
+              }
+            }
+          }
+        }
+      }
+    }
+    return list;
+  }
+
   // Checking for WED-specific corruptions
-  private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct)
-  {
+  private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct) {
     final List<Corruption> list = new ArrayList<>();
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       final int ovlSize = 0x18; // size of an Overlay structure
-      int ovlCount = ((IsNumeric)struct.getAttribute(8, false)).getValue(); // # overlays
-      int ovlStartOfs = ((IsNumeric)struct.getAttribute(16, false)).getValue();  // Overlays offset
+      int ovlCount = ((IsNumeric) struct.getAttribute(8, false)).getValue(); // # overlays
+      int ovlStartOfs = ((IsNumeric) struct.getAttribute(16, false)).getValue(); // Overlays offset
 
       for (int ovlIdx = 0; ovlIdx < ovlCount; ovlIdx++) {
-        int ovlOfs = ovlStartOfs + ovlIdx*ovlSize;
-        Overlay overlay = (Overlay)struct.getAttribute(ovlOfs, false);  // Overlay
+        int ovlOfs = ovlStartOfs + ovlIdx * ovlSize;
+        Overlay overlay = (Overlay) struct.getAttribute(ovlOfs, false); // Overlay
         if (overlay == null) {
           continue;
         }
-        int width = ((IsNumeric)overlay.getAttribute(ovlOfs + 0, false)).getValue();
-        int height = ((IsNumeric)overlay.getAttribute(ovlOfs + 2, false)).getValue();
-        String tisName = ((IsReference)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
-        int tileStartOfs = ((IsNumeric)overlay.getAttribute(ovlOfs + 16, false)).getValue();
-        int indexStartOfs = ((IsNumeric)overlay.getAttribute(ovlOfs + 20, false)).getValue();
+        int width = ((IsNumeric) overlay.getAttribute(ovlOfs + 0, false)).getValue();
+        int height = ((IsNumeric) overlay.getAttribute(ovlOfs + 2, false)).getValue();
+        String tisName = ((IsReference) overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
+        int tileStartOfs = ((IsNumeric) overlay.getAttribute(ovlOfs + 16, false)).getValue();
+        int indexStartOfs = ((IsNumeric) overlay.getAttribute(ovlOfs + 20, false)).getValue();
         if (tisName == null || tisName.isEmpty() || !ResourceFactory.resourceExists(tisName)) {
           continue;
         }
@@ -309,23 +335,20 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         // checking Overlay fields
         boolean skip = false;
         if (width <= 0) {
-          list.add(new Corruption(entry, ovlOfs + 0,
-                                  String.format("Overlay %d: Tileset width is <= 0", ovlIdx)));
+          list.add(new Corruption(entry, ovlOfs + 0, String.format("Overlay %d: Tileset width is <= 0", ovlIdx)));
           skip = true;
         }
         if (height <= 0) {
-          list.add(new Corruption(entry, ovlOfs + 2,
-                                  String.format("Overlay %d: Tileset height is <= 0", ovlIdx)));
+          list.add(new Corruption(entry, ovlOfs + 2, String.format("Overlay %d: Tileset height is <= 0", ovlIdx)));
           skip = true;
         }
-        if ((tileStartOfs <= ovlOfs + ovlCount*ovlSize) || (tileStartOfs >= struct.getSize())) {
-          list.add(new Corruption(entry, ovlOfs + 16,
-                                  String.format("Overlay %d: Tilemap offset is invalid", ovlIdx)));
+        if ((tileStartOfs <= ovlOfs + ovlCount * ovlSize) || (tileStartOfs >= struct.getSize())) {
+          list.add(new Corruption(entry, ovlOfs + 16, String.format("Overlay %d: Tilemap offset is invalid", ovlIdx)));
           skip = true;
         }
-        if ((indexStartOfs < ovlOfs + ovlCount*ovlSize) || (indexStartOfs >= struct.getSize())) {
+        if ((indexStartOfs < ovlOfs + ovlCount * ovlSize) || (indexStartOfs >= struct.getSize())) {
           list.add(new Corruption(entry, ovlOfs + 16,
-                                  String.format("Overlay %d: Tilemap lookup offset is invalid", ovlIdx)));
+              String.format("Overlay %d: Tilemap lookup offset is invalid", ovlIdx)));
           skip = true;
         }
         if (skip) {
@@ -334,7 +357,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
         // Checking Tilemap fields
         ResourceEntry tisResource = ResourceFactory.getResourceEntry(tisName);
-        int[] tisInfo;  // = {tileCount, tileSize}
+        int[] tisInfo; // = {tileCount, tileSize}
         try {
           tisInfo = tisResource.getResourceInfo();
         } catch (Exception e) {
@@ -343,21 +366,21 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         if (tisInfo == null || tisInfo.length < 2) {
           continue;
         }
-        final int tileSize = 0x0a;  // size of a Tilemap structure
-        int numTiles = width*height;
-        int tileEndOfs = tileStartOfs + numTiles*tileSize;
-        int indexEndOfs = indexStartOfs + 2*numTiles;
+        final int tileSize = 0x0a; // size of a Tilemap structure
+        int numTiles = width * height;
+        int tileEndOfs = tileStartOfs + numTiles * tileSize;
+        int indexEndOfs = indexStartOfs + 2 * numTiles;
         // caching tile maps and tile lookup indices
-        final HashMap<Integer, Tilemap> mapTiles = new HashMap<>(numTiles*3/2, 0.8f);
-        final HashMap<Integer, Integer> mapIndices = new HashMap<>(numTiles*3/2, 0.8f);
+        final HashMap<Integer, Tilemap> mapTiles = new HashMap<>(numTiles * 3 / 2, 0.8f);
+        final HashMap<Integer, Integer> mapIndices = new HashMap<>(numTiles * 3 / 2, 0.8f);
         for (final StructEntry item : overlay.getFields()) {
           int curOfs = item.getOffset();
           if (curOfs >= tileStartOfs && curOfs < tileEndOfs && item instanceof Tilemap) {
             int index = (curOfs - tileStartOfs) / item.getSize();
-            mapTiles.put(Integer.valueOf(index), (Tilemap)item);
+            mapTiles.put(index, (Tilemap) item);
           } else if (item.getOffset() > indexStartOfs && curOfs < indexEndOfs && item instanceof DecNumber) {
             int index = (curOfs - indexStartOfs) / 2;
-            mapIndices.put(Integer.valueOf(index), Integer.valueOf(((IsNumeric)item).getValue()));
+            mapIndices.put(index, ((IsNumeric) item).getValue());
           }
         }
         // checking indices
@@ -366,27 +389,25 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
           if (tile != null) {
             int tileOfs = tile.getOffset();
             int tileIdx = (tileOfs - tileStartOfs) / tileSize;
-            int tileIdxPri = ((IsNumeric)tile.getAttribute(tileOfs + 0, false)).getValue();
-            int tileCountPri = ((IsNumeric)tile.getAttribute(tileOfs + 2, false)).getValue();
-            int tileIdxSec = ((IsNumeric)tile.getAttribute(tileOfs + 4, false)).getValue();
-            IsNumeric tileFlag = (IsNumeric)tile.getAttribute(tileOfs + 6, false);
+            int tileIdxPri = ((IsNumeric) tile.getAttribute(tileOfs + 0, false)).getValue();
+            int tileCountPri = ((IsNumeric) tile.getAttribute(tileOfs + 2, false)).getValue();
+            int tileIdxSec = ((IsNumeric) tile.getAttribute(tileOfs + 4, false)).getValue();
+            IsNumeric tileFlag = (IsNumeric) tile.getAttribute(tileOfs + 6, false);
             int tileFlagValue = tileFlag.getValue();
             for (int j = tileIdxPri, count = tileIdxPri + tileCountPri; j < count; j++) {
               Integer tileLookupIndex = mapIndices.get(Integer.valueOf(j));
               if (tileLookupIndex != null) {
                 if (tileLookupIndex >= tisInfo[0]) {
                   list.add(new Corruption(entry, tileOfs + 0,
-                                          String.format("Overlay %d/Tilemap %d: Primary tile index %d " +
-                                                        "out of range [0..%d]",
-                                                        ovlIdx, tileIdx, j, tisInfo[0] - 1)));
+                      String.format("Overlay %d/Tilemap %d: Primary tile index %d " + "out of range [0..%d]", ovlIdx,
+                          tileIdx, j, tisInfo[0] - 1)));
                 }
               }
             }
             if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
               list.add(new Corruption(entry, tileOfs + 4,
-                                      String.format("Overlay %d/Tilemap %d: Secondary tile index %d " +
-                                                    "out of range [0..%d]",
-                                                    ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
+                  String.format("Overlay %d/Tilemap %d: Secondary tile index %d " + "out of range [0..%d]", ovlIdx,
+                      tileIdx, tileIdxSec, tisInfo[0] - 1)));
             }
           }
         }
@@ -394,49 +415,42 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     }
     return list;
   }
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class Corruption implements TableItem
-  {
+  private static final class Corruption implements TableItem {
     private final ResourceEntry resourceEntry;
     private final String offset;
     private final String errorMsg;
 
-    private Corruption(ResourceEntry resourceEntry, int offset, String errorMsg)
-    {
+    private Corruption(ResourceEntry resourceEntry, int offset, String errorMsg) {
       this.resourceEntry = resourceEntry;
       this.offset = Integer.toHexString(offset) + 'h';
       this.errorMsg = errorMsg;
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
-      if (columnIndex == 0)
+    public Object getObjectAt(int columnIndex) {
+      if (columnIndex == 0) {
         return resourceEntry;
-      else if (columnIndex == 1)
+      } else if (columnIndex == 1) {
         return offset;
-      else
+      } else {
         return errorMsg;
+      }
     }
 
     @Override
-    public String toString()
-    {
-      return "File: " + resourceEntry.getResourceName()
-           + ", Offset: " + offset
-           + ", Error: " + errorMsg;
+    public String toString() {
+      return "File: " + resourceEntry.getResourceName() + ", Offset: " + offset + ", Error: " + errorMsg;
     }
   }
 
   /** Stores supported signature and versions for a single structured resource format. */
-  private static final class StructInfo
-  {
+  private static final class StructInfo {
     public final String signature;
     public final String[] version;
 
-    public StructInfo(String sig, String[] ver)
-    {
+    public StructInfo(String sig, String[] ver) {
       signature = (sig != null) ? sig : "";
       if (ver != null) {
         version = new String[ver.length];
@@ -449,16 +463,14 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     }
 
     /** Returns whether the signatures matches the signature of the current structure definition. */
-    public boolean isSignature(String sig)
-    {
+    public boolean isSignature(String sig) {
       return (sig != null) ? signature.equals(sig) : false;
     }
 
     /** Returns whether the specified version is supported by the current structure definition. */
-    public boolean isVersion(String ver)
-    {
+    public boolean isVersion(String ver) {
       if (ver != null) {
-        for (final String v: version) {
+        for (final String v : version) {
           if (ver.equals(v)) {
             return true;
           }

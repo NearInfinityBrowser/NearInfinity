@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -28,8 +28,10 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.tuples.Couple;
 
 /**
- * Creature animation decoder for processing type 7000 (monster) animations.
- * Available ranges: (using notation slot/range where slot can be a formula with range definitions as [x,y])
+ * Creature animation decoder for processing type 7000 (monster) animations. Available ranges: (using notation
+ * slot/range where slot can be a formula with range definitions as [x,y])
+ *
+ * <pre>
  * (0x7002 | ([0x00,0x1f] << 4))/0xd
  * (0x7004 | ([0x20,0x2f] << 4))/0xb
  * (0x7000 | ([0x30,0x3f] << 4))/0xf
@@ -41,78 +43,84 @@ import org.infinity.util.tuples.Couple;
  * (0x7002 | ([0xc0,0xcf] << 4))/0xd
  * (0x7002 | ([0xe0,0xef] << 4))/0xd
  * (0x7000 | ([0xf0,0xff] << 4))/0xf
+ * </pre>
  */
-public class MonsterDecoder extends SpriteDecoder
-{
+public class MonsterDecoder extends SpriteDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER;
 
-  public static final DecoderAttribute KEY_CAN_LIE_DOWN   = DecoderAttribute.with("can_lie_down", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_PATH_SMOOTH    = DecoderAttribute.with("path_smooth", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_SPLIT_BAMS     = DecoderAttribute.with("split_bams", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_GLOW_LAYER     = DecoderAttribute.with("glow_layer", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_PALETTE1       = DecoderAttribute.with("palette1", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_PALETTE2       = DecoderAttribute.with("palette2", DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_CAN_LIE_DOWN = DecoderAttribute.with("can_lie_down",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_PATH_SMOOTH = DecoderAttribute.with("path_smooth",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_SPLIT_BAMS = DecoderAttribute.with("split_bams",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_GLOW_LAYER = DecoderAttribute.with("glow_layer",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_PALETTE1 = DecoderAttribute.with("palette1",
+      DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_PALETTE2 = DecoderAttribute.with("palette2",
+      DecoderAttribute.DataType.STRING);
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> suffixMapUnsplit = new HashMap<Sequence, Couple<String, Integer>>() {{
-    put(Sequence.WALK, Couple.with("G1", 0));
-    put(Sequence.STANCE, Couple.with("G1", 9));
-    put(Sequence.STAND, Couple.with("G1", 18));
-    put(Sequence.GET_HIT, Couple.with("G1", 27));
-    put(Sequence.DIE, Couple.with("G1", 36));
-    put(Sequence.TWITCH, Couple.with("G1", 45));
-    put(Sequence.SLEEP, Couple.with("G1", 54));
-    put(Sequence.GET_UP, Couple.with("G1", 63));
-    put(Sequence.ATTACK, Couple.with("G2", 0));
-    put(Sequence.ATTACK_2, Couple.with("G2", 9));
-    put(Sequence.ATTACK_3, Couple.with("G2", 18));
-    put(Sequence.ATTACK_4, Couple.with("G2", 27));
-    put(Sequence.ATTACK_5, Couple.with("G2", 36));
-    put(Sequence.SPELL, Couple.with("G2", 45));
-    put(Sequence.CAST, Couple.with("G2", 54));
-  }};
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (split version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> suffixMapSplit = new HashMap<Sequence, Couple<String, Integer>>() {{
-    put(Sequence.WALK, Couple.with("G11", 0));
-    put(Sequence.STANCE, Couple.with("G1", 9));
-    put(Sequence.STAND, Couple.with("G12", 18));
-    put(Sequence.GET_HIT, Couple.with("G13", 27));
-    put(Sequence.DIE, Couple.with("G14", 36));
-    put(Sequence.SLEEP, get(Sequence.DIE));
-    put(Sequence.GET_UP, Couple.with("!G14", 36));
-    put(Sequence.TWITCH, Couple.with("G15", 45));
-    put(Sequence.ATTACK, Couple.with("G2", 0));
-    put(Sequence.ATTACK_2, Couple.with("G21", 9));
-    put(Sequence.ATTACK_3, Couple.with("G22", 18));
-    put(Sequence.ATTACK_4, Couple.with("G23", 27));
-    put(Sequence.ATTACK_5, Couple.with("G24", 36));
-    put(Sequence.SPELL, Couple.with("G25", 45));
-    put(Sequence.CAST, Couple.with("G26", 54));
-  }};
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
   /** Replacement sequences if original sequence definition is missing (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> replacementMapUnsplit = new HashMap<Sequence, Couple<String, Integer>>() {{
-    put(Sequence.DIE, suffixMapUnsplit.get(Sequence.SLEEP));
-    put(Sequence.SLEEP, suffixMapUnsplit.get(Sequence.DIE));
-    put(Sequence.GET_UP, Couple.with("!" + suffixMapUnsplit.get(Sequence.DIE).getValue0(), suffixMapUnsplit.get(Sequence.DIE).getValue1()));
-  }};
+  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
-  /** Replacement sequences if original sequence definition is missing (split version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> replacementMapSplit = new HashMap<Sequence, Couple<String, Integer>>() {{
-    // not needed
-  }};
+  /** Replacement sequences if original sequence definition is missing (split version). - not needed - */
+  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
 
+  static {
+    SUFFIX_MAP_UNSPLIT.put(Sequence.WALK, Couple.with("G1", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STANCE, Couple.with("G1", 9));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.STAND, Couple.with("G1", 18));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.GET_HIT, Couple.with("G1", 27));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.DIE, Couple.with("G1", 36));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.TWITCH, Couple.with("G1", 45));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SLEEP, Couple.with("G1", 54));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.GET_UP, Couple.with("G1", 63));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK, Couple.with("G2", 0));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_2, Couple.with("G2", 9));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_3, Couple.with("G2", 18));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_4, Couple.with("G2", 27));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.ATTACK_5, Couple.with("G2", 36));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.SPELL, Couple.with("G2", 45));
+    SUFFIX_MAP_UNSPLIT.put(Sequence.CAST, Couple.with("G2", 54));
+
+    SUFFIX_MAP_SPLIT.put(Sequence.WALK, Couple.with("G11", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.STANCE, Couple.with("G1", 9));
+    SUFFIX_MAP_SPLIT.put(Sequence.STAND, Couple.with("G12", 18));
+    SUFFIX_MAP_SPLIT.put(Sequence.GET_HIT, Couple.with("G13", 27));
+    SUFFIX_MAP_SPLIT.put(Sequence.DIE, Couple.with("G14", 36));
+    SUFFIX_MAP_SPLIT.put(Sequence.SLEEP, SUFFIX_MAP_SPLIT.get(Sequence.DIE));
+    SUFFIX_MAP_SPLIT.put(Sequence.GET_UP, Couple.with("!G14", 36));
+    SUFFIX_MAP_SPLIT.put(Sequence.TWITCH, Couple.with("G15", 45));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK, Couple.with("G2", 0));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_2, Couple.with("G21", 9));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_3, Couple.with("G22", 18));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_4, Couple.with("G23", 27));
+    SUFFIX_MAP_SPLIT.put(Sequence.ATTACK_5, Couple.with("G24", 36));
+    SUFFIX_MAP_SPLIT.put(Sequence.SPELL, Couple.with("G25", 45));
+    SUFFIX_MAP_SPLIT.put(Sequence.CAST, Couple.with("G26", 54));
+
+    REPLACEMENT_MAP_UNSPLIT.put(Sequence.DIE, SUFFIX_MAP_UNSPLIT.get(Sequence.SLEEP));
+    REPLACEMENT_MAP_UNSPLIT.put(Sequence.SLEEP, SUFFIX_MAP_UNSPLIT.get(Sequence.DIE));
+    REPLACEMENT_MAP_UNSPLIT.put(Sequence.GET_UP, Couple.with("!" + SUFFIX_MAP_UNSPLIT.get(Sequence.DIE).getValue0(),
+        SUFFIX_MAP_UNSPLIT.get(Sequence.DIE).getValue1()));
+  }
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.
+   *
    * @param data a String array containing table values for a specific table entry.
-   * @return a {@code IniMap} instance with the value derived from the specified data array.
-   *         Returns {@code null} if no data could be derived.
+   * @return a {@code IniMap} instance with the value derived from the specified data array. Returns {@code null} if no
+   *         data could be derived.
    */
-  public static IniMap processTableData(String[] data)
-  {
+  public static IniMap processTableData(String[] data) {
     IniMap retVal = null;
     if (data == null || data.length < 16) {
       return retVal;
@@ -146,47 +154,63 @@ public class MonsterDecoder extends SpriteDecoder
     return retVal;
   }
 
-  public MonsterDecoder(int animationId, IniMap ini) throws Exception
-  {
+  public MonsterDecoder(int animationId, IniMap ini) throws Exception {
     super(ANIMATION_TYPE, animationId, ini);
   }
 
-  public MonsterDecoder(CreResource cre) throws Exception
-  {
+  public MonsterDecoder(CreResource cre) throws Exception {
     super(ANIMATION_TYPE, cre);
   }
 
   /** Returns the correct sequence map for the current settings. */
-  private HashMap<Sequence, Couple<String, Integer>> getSuffixMap()
-  {
-    return isSplittedBams() ? suffixMapSplit : suffixMapUnsplit;
+  private HashMap<Sequence, Couple<String, Integer>> getSuffixMap() {
+    return isSplittedBams() ? SUFFIX_MAP_SPLIT : SUFFIX_MAP_UNSPLIT;
   }
 
   /** Returns whether the creature falls down when dead/unconscious. */
-  public boolean canLieDown() { return getAttribute(KEY_CAN_LIE_DOWN); }
-  protected void setCanLieDown(boolean b) { setAttribute(KEY_CAN_LIE_DOWN, b); }
+  public boolean canLieDown() {
+    return getAttribute(KEY_CAN_LIE_DOWN);
+  }
+
+  protected void setCanLieDown(boolean b) {
+    setAttribute(KEY_CAN_LIE_DOWN, b);
+  }
 
   /** ??? */
-  public boolean isSmoothPath() { return getAttribute(KEY_PATH_SMOOTH); }
-  protected void setSmoothPath(boolean b) { setAttribute(KEY_PATH_SMOOTH, b); }
+  public boolean isSmoothPath() {
+    return getAttribute(KEY_PATH_SMOOTH);
+  }
+
+  protected void setSmoothPath(boolean b) {
+    setAttribute(KEY_PATH_SMOOTH, b);
+  }
 
   /** Returns whether animations are spread over various subfiles. */
-  public boolean isSplittedBams() { return getAttribute(KEY_SPLIT_BAMS); }
-  protected void setSplittedBams(boolean b) { setAttribute(KEY_SPLIT_BAMS, b); }
+  public boolean isSplittedBams() {
+    return getAttribute(KEY_SPLIT_BAMS);
+  }
+
+  protected void setSplittedBams(boolean b) {
+    setAttribute(KEY_SPLIT_BAMS, b);
+  }
 
   /**
-   * Returns the solid background layer of blended/glowing creature animations.
-   * (Note: currently not supported by the engine.)
+   * Returns the solid background layer of blended/glowing creature animations. (Note: currently not supported by the
+   * engine.)
    */
-  public String getGlowLayer() { return getAttribute(KEY_GLOW_LAYER); }
-  protected void setGlowLayer(String s) { setAttribute(KEY_GLOW_LAYER, s); }
+  public String getGlowLayer() {
+    return getAttribute(KEY_GLOW_LAYER);
+  }
+
+  protected void setGlowLayer(String s) {
+    setAttribute(KEY_GLOW_LAYER, s);
+  }
 
   /**
-   * Returns the first replacement palette (BMP) for the creature animation.
-   * Falls back to new palette from general attributes.
+   * Returns the first replacement palette (BMP) for the creature animation. Falls back to new palette from general
+   * attributes.
    */
-  public String getPalette1()
-  {
+  public String getPalette1() {
     String retVal = getAttribute(KEY_PALETTE1);
     if (retVal.isEmpty()) {
       retVal = getNewPalette();
@@ -194,14 +218,15 @@ public class MonsterDecoder extends SpriteDecoder
     return retVal;
   }
 
-  protected void setPalette1(String s) { setAttribute(KEY_PALETTE1, s); }
+  protected void setPalette1(String s) {
+    setAttribute(KEY_PALETTE1, s);
+  }
 
   /**
-   * Returns the second replacement palette (BMP) for the creature animation.
-   * Falls back to palette1 or new palette from general attributes.
+   * Returns the second replacement palette (BMP) for the creature animation. Falls back to palette1 or new palette from
+   * general attributes.
    */
-  public String getPalette2()
-  {
+  public String getPalette2() {
     String retVal = getAttribute(KEY_PALETTE2);
     if (retVal.isEmpty()) {
       retVal = getPalette1();
@@ -209,11 +234,12 @@ public class MonsterDecoder extends SpriteDecoder
     return retVal;
   }
 
-  protected void setPalette2(String s) { setAttribute(KEY_PALETTE2, s); }
+  protected void setPalette2(String s) {
+    setAttribute(KEY_PALETTE2, s);
+  }
 
   @Override
-  public List<String> getAnimationFiles(boolean essential)
-  {
+  public List<String> getAnimationFiles(boolean essential) {
     // collecting suffixes
     String resref = getAnimationResref();
     HashSet<String> files = new HashSet<>();
@@ -229,14 +255,12 @@ public class MonsterDecoder extends SpriteDecoder
   }
 
   @Override
-  public boolean isSequenceAvailable(Sequence seq)
-  {
+  public boolean isSequenceAvailable(Sequence seq) {
     return (getSequenceDefinition(seq) != null);
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     // setting properties
     initDefaults(getAnimationInfo());
     IniMapSection section = getSpecificIniSection();
@@ -257,8 +281,7 @@ public class MonsterDecoder extends SpriteDecoder
   }
 
   @Override
-  protected SeqDef getSequenceDefinition(Sequence seq)
-  {
+  protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
 
     Couple<String, Integer> data = getSuffixMap().get(seq);
@@ -271,10 +294,10 @@ public class MonsterDecoder extends SpriteDecoder
     // processing creature sprite
     String resref = getAnimationResref();
     String suffix = data.getValue0();
-    int ofs = data.getValue1().intValue();
+    int ofs = data.getValue1();
     ResourceEntry bamEntry = ResourceFactory.getResourceEntry(resref + SegmentDef.fixBehaviorSuffix(suffix) + ".BAM");
     if (!SpriteUtils.bamCyclesExist(bamEntry, ofs, 1)) {
-      data = (isSplittedBams() ? replacementMapSplit: replacementMapUnsplit).get(seq);
+      data = (isSplittedBams() ? REPLACEMENT_MAP_SPLIT : REPLACEMENT_MAP_UNSPLIT).get(seq);
       if (data == null) {
         return retVal;
       }
@@ -293,7 +316,7 @@ public class MonsterDecoder extends SpriteDecoder
     if (itmWeapon != null) {
       String weapon = itmWeapon.getAppearance().trim();
       if (!weapon.isEmpty()) {
-        Couple<String, Integer> wdata = suffixMapUnsplit.get(seq);
+        Couple<String, Integer> wdata = SUFFIX_MAP_UNSPLIT.get(seq);
         if (wdata != null) {
           creResList.add(Couple.with(resref + wdata.getValue0() + weapon + ".BAM", SegmentDef.SpriteType.WEAPON));
         }
@@ -312,11 +335,11 @@ public class MonsterDecoder extends SpriteDecoder
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
         for (final Direction dir : SeqDef.DIR_FULL_W) {
-          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {dir}, false, entry, 0, type, behavior);
+          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, false, entry, 0, type, behavior);
           retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
         }
         for (final Direction dir : SeqDef.DIR_FULL_E) {
-          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {dir}, true, entry, 0, type, behavior);
+          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, true, entry, 0, type, behavior);
           retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
         }
       }
@@ -330,8 +353,7 @@ public class MonsterDecoder extends SpriteDecoder
   }
 
   @Override
-  protected int[] getNewPaletteData(ResourceEntry bamRes)
-  {
+  protected int[] getNewPaletteData(ResourceEntry bamRes) {
     if (bamRes != null) {
       String resref = bamRes.getResourceRef();
       if (resref.length() >= 6) {

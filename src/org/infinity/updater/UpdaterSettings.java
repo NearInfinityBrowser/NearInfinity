@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -45,10 +45,9 @@ import org.infinity.util.Misc;
 /**
  * Provides a dialog for configuring update-relevant data.
  */
-public class UpdaterSettings extends JDialog
-{
-  private final JComboBox<String> cbUpdateInterval = new JComboBox<>(new String[]{
-      "Once per session", "Daily", "Once per week", "Once per month"});
+public class UpdaterSettings extends JDialog {
+  private final JComboBox<String> cbUpdateInterval = new JComboBox<>(
+      new String[] { "Once per session", "Daily", "Once per week", "Once per month" });
   private final JTextField tfProxyAddress = new JTextField(12);
   private final JTextField tfProxyPort = new JTextField(6);
   private final JCheckBox cbStableOnly = new JCheckBox("Consider stable releases only");
@@ -61,8 +60,7 @@ public class UpdaterSettings extends JDialog
 
   private boolean retVal = false;
 
-  public static boolean showDialog(Window owner)
-  {
+  public static boolean showDialog(Window owner) {
     UpdaterSettings dlg = new UpdaterSettings(owner);
     try {
       dlg.setVisible(true);
@@ -72,31 +70,32 @@ public class UpdaterSettings extends JDialog
     }
   }
 
-
-  private UpdaterSettings(Window owner)
-  {
+  private UpdaterSettings(Window owner) {
     super(owner, "Update settings", Dialog.ModalityType.APPLICATION_MODAL);
     init();
     loadSettings();
   }
 
-  private Server getServer() { return server; }
+  private Server getServer() {
+    return server;
+  }
 
-  private Listeners getListeners() { return listeners; }
+  private Listeners getListeners() {
+    return listeners;
+  }
 
-  private void init()
-  {
+  private void init() {
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     setResizable(true);
     setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
 
     // ESC closes dialog
-    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "ESCAPE");
+    getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+        "ESCAPE");
     getRootPane().getActionMap().put("ESCAPE", new AbstractAction() {
       @Override
-      public void actionPerformed(ActionEvent e)
-      {
+      public void actionPerformed(ActionEvent e) {
         cancel();
       }
     });
@@ -105,8 +104,8 @@ public class UpdaterSettings extends JDialog
     JLabel lProxyAddress = new JLabel("Address:");
     JLabel lProxyPort = new JLabel("Port:");
     cbAutoUpdate.addActionListener(getListeners());
-    cbStableOnly.setToolTipText("Stable versions are released much less often and don't include " +
-                                "the latest features and bugfixes.");
+    cbStableOnly.setToolTipText(
+        "Stable versions are released much less often and don't include " + "the latest features and bugfixes.");
     cbProxyEnabled.addActionListener(getListeners());
     bOK.setPreferredSize(bCancel.getPreferredSize());
     bOK.addActionListener(getListeners());
@@ -116,85 +115,85 @@ public class UpdaterSettings extends JDialog
     JPanel pServer = new JPanel(new GridBagLayout());
     pServer.setBorder(BorderFactory.createTitledBorder("Update servers"));
     for (int i = 0; i < server.getServerCount(); i++) {
-      JLabel label = new JLabel(String.format("Server %d", i+1));
+      JLabel label = new JLabel(String.format("Server %d", i + 1));
 
-      gbc = ViewerUtil.setGBC(gbc, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
+      gbc = ViewerUtil.setGBC(gbc, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 0, 0), 0, 0);
       pServer.add(label, gbc);
-      gbc = ViewerUtil.setGBC(gbc, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+      gbc = ViewerUtil.setGBC(gbc, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 16, 0, 0), 0, 0);
       pServer.add(server.getTextField(i), gbc);
-      gbc = ViewerUtil.setGBC(gbc, 2, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+      gbc = ViewerUtil.setGBC(gbc, 2, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 0, 8), 0, 0);
       pServer.add(server.getCheckButton(i), gbc);
     }
     gbc = ViewerUtil.setGBC(gbc, 0, Updater.getMaxServerCount(), 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 8), 0, 0);
     pServer.add(cbStableOnly, gbc);
 
     // configuring proxy server panel
     JPanel pProxy = new JPanel(new GridBagLayout());
     pProxy.setBorder(BorderFactory.createTitledBorder("Proxy server"));
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 4, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 4, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 8), 0, 0);
     pProxy.add(cbProxyEnabled, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 0), 0, 0);
     pProxy.add(lProxyAddress, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 0), 0, 0);
     pProxy.add(tfProxyAddress, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 16, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 8, 0), 0, 0);
     pProxy.add(lProxyPort, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 8), 0, 0);
     pProxy.add(tfProxyPort, gbc);
 
     // configuring auto update panel
     JPanel pUpdate = new JPanel(new GridBagLayout());
     pUpdate.setBorder(BorderFactory.createTitledBorder("Auto Update"));
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 8), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 8), 0, 0);
     pUpdate.add(cbAutoUpdate, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(12, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(12, 8, 8, 0), 0, 0);
     pUpdate.add(lUpdateInterval, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(12, 8, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(12, 8, 8, 0), 0, 0);
     pUpdate.add(cbUpdateInterval, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(12, 0, 8, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(12, 0, 8, 0), 0, 0);
     pUpdate.add(new JPanel(), gbc);
 
     // configuring dialog buttons panel
     JPanel pButtons = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bOK, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(bCancel, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(new JPanel(), gbc);
 
     // putting all together
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
     add(pServer, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
     add(pProxy, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 8), 0, 0);
     add(pUpdate, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+        GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     add(pButtons, gbc);
 
     pack();
@@ -204,8 +203,7 @@ public class UpdaterSettings extends JDialog
   }
 
   // Loads Updater settings into dialog fields
-  private void loadSettings()
-  {
+  private void loadSettings() {
     // getting server list
     List<String> serverList = Updater.getInstance().getServerList();
     for (int i = 0; i < Updater.getMaxServerCount(); i++) {
@@ -224,7 +222,7 @@ public class UpdaterSettings extends JDialog
     // getting proxy settings
     Proxy proxy = Updater.getInstance().getProxy(true);
     if (proxy != null) {
-      InetSocketAddress addr = (InetSocketAddress)proxy.address();
+      InetSocketAddress addr = (InetSocketAddress) proxy.address();
       cbProxyEnabled.setSelected(Updater.getInstance().isProxyEnabled());
       tfProxyAddress.setText(addr.getHostName());
       tfProxyPort.setText(Integer.toString(addr.getPort()));
@@ -238,8 +236,7 @@ public class UpdaterSettings extends JDialog
   }
 
   // Applies dialog settings to Updater
-  private void saveSettings()
-  {
+  private void saveSettings() {
     // saving server list
     List<String> serverList = Updater.getInstance().getServerList();
     serverList.clear();
@@ -278,8 +275,7 @@ public class UpdaterSettings extends JDialog
   }
 
   // Action when clicking OK button
-  private void accept()
-  {
+  private void accept() {
     if (validateSettings()) {
       saveSettings();
       retVal = true;
@@ -288,24 +284,21 @@ public class UpdaterSettings extends JDialog
   }
 
   // Action when closing dialog without accepting settings
-  private void cancel()
-  {
+  private void cancel() {
     retVal = false;
     setVisible(false);
   }
 
   // Throws an exception with message if input data contains errors.
-  private boolean validateSettings()
-  {
+  private boolean validateSettings() {
     // checking update servers
     for (int i = 0; i < Updater.getMaxServerCount(); i++) {
       if (!server.isValidated(i)) {
         if (!Utils.isSecureUrl(server.getServerUrl(i))) {
-          String msg = String.format("Server %d does not specify a secure connection (https).\n", i+1) +
-                       "Do you still want to use it?";
-          if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, msg, "Warning",
-                                                                      JOptionPane.YES_NO_OPTION,
-                                                                      JOptionPane.WARNING_MESSAGE)) {
+          String msg = String.format("Server %d does not specify a secure connection (https).\n", i + 1)
+              + "Do you still want to use it?";
+          if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, msg, "Warning", JOptionPane.YES_NO_OPTION,
+              JOptionPane.WARNING_MESSAGE)) {
             server.getTextField(i).requestFocusInWindow();
             return false;
           }
@@ -339,18 +332,17 @@ public class UpdaterSettings extends JDialog
       if (port >= 0 && port < 65536) {
         tfProxyPort.setText(Integer.toString(port));
       } else {
-        JOptionPane.showMessageDialog(this, "Invalid proxy server port.", "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Invalid proxy server port.", "Error", JOptionPane.ERROR_MESSAGE);
         tfProxyPort.requestFocusInWindow();
         return false;
       }
 
       String s = tfProxyAddress.getText().trim();
       // protocol prefixes are not needed
-      final String[] prefix = {"http://", "https://"};
-      for (int i = 0; i < prefix.length; i++) {
-        if (s.startsWith(prefix[i])) {
-          s = s.substring(prefix[i].length());
+      final String[] prefix = { "http://", "https://" };
+      for (String element : prefix) {
+        if (s.startsWith(element)) {
+          s = s.substring(element.length());
           break;
         }
       }
@@ -364,8 +356,7 @@ public class UpdaterSettings extends JDialog
         if (url != null && !url.isEmpty()) {
           tfProxyAddress.setText(url);
         } else {
-          JOptionPane.showMessageDialog(this, "Invalid proxy server address.", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Invalid proxy server address.", "Error", JOptionPane.ERROR_MESSAGE);
           tfProxyAddress.requestFocusInWindow();
           return false;
         }
@@ -376,8 +367,7 @@ public class UpdaterSettings extends JDialog
   }
 
   // Returns true if the specified server is valid or does not exist, false otherwise.
-  private boolean validateServer(int index)
-  {
+  private boolean validateServer(int index) {
     try {
       WindowBlocker.blockWindow(this, true);
       if (index >= 0 && index < Updater.getMaxServerCount()) {
@@ -401,8 +391,8 @@ public class UpdaterSettings extends JDialog
           msg = "Unknown error";
         }
         if (msg != null) {
-          JOptionPane.showMessageDialog(this, String.format("Server %d: %s.", index+1, msg),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, String.format("Server %d: %s.", index + 1, msg), "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
         return false;
       }
@@ -412,17 +402,15 @@ public class UpdaterSettings extends JDialog
     return true;
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   // Manages all listener objects
-  private class Listeners implements ActionListener, DocumentListener
-  {
-    public Listeners() {}
+  private class Listeners implements ActionListener, DocumentListener {
+    public Listeners() {
+    }
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == cbAutoUpdate) {
         cbUpdateInterval.setEnabled(cbAutoUpdate.isSelected());
       } else if (e.getSource() == cbProxyEnabled) {
@@ -434,21 +422,21 @@ public class UpdaterSettings extends JDialog
       } else if (e.getSource() == bCancel) {
         cancel();
       } else if (e.getSource() instanceof JButton) {
-        int index = getServer().indexOf((JButton)e.getSource());
+        int index = getServer().indexOf((JButton) e.getSource());
         if (index >= 0) {
           String url = getServer().getServerUrl(index);
           if (!Utils.isUrlValid(url)) {
-            JOptionPane.showMessageDialog(UpdaterSettings.this, "The server URL is invalid.",
-                                          "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(UpdaterSettings.this, "The server URL is invalid.", "Error",
+                JOptionPane.ERROR_MESSAGE);
             getServer().getTextField(index).requestFocusInWindow();
             return;
           }
 
           if (!Utils.isSecureUrl(url)) {
-            String msg = "The server address does not specify a secure connection (https).\n" +
-                         "Do you still want to use it?";
+            String msg = "The server address does not specify a secure connection (https).\n"
+                + "Do you still want to use it?";
             if (JOptionPane.showConfirmDialog(UpdaterSettings.this, msg, "Warning", JOptionPane.YES_NO_OPTION,
-                                              JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
               return;
             }
           }
@@ -459,35 +447,30 @@ public class UpdaterSettings extends JDialog
     }
 
     @Override
-    public void insertUpdate(DocumentEvent e)
-    {
+    public void insertUpdate(DocumentEvent e) {
       getServer().setServerValidated(getServer().indexOf(e.getDocument()), false);
     }
 
     @Override
-    public void removeUpdate(DocumentEvent e)
-    {
+    public void removeUpdate(DocumentEvent e) {
       getServer().setServerValidated(getServer().indexOf(e.getDocument()), false);
     }
 
     @Override
-    public void changedUpdate(DocumentEvent e)
-    {
+    public void changedUpdate(DocumentEvent e) {
       getServer().setServerValidated(getServer().indexOf(e.getDocument()), false);
     }
   }
 
   // Manages server URL entries
-  private class Server
-  {
+  private class Server {
     private final List<JTextField> listServer = new ArrayList<>();
     private final List<JButton> listCheck = new ArrayList<>();
     private final List<Boolean> listValidated = new ArrayList<>();
 
     private final int numServers;
 
-    public Server(int count)
-    {
+    public Server(int count) {
       numServers = Math.max(0, count);
       for (int i = 0; i < numServers; i++) {
         JTextField tf = new JTextField();
@@ -501,11 +484,12 @@ public class UpdaterSettings extends JDialog
     }
 
     // Returns number of available servers
-    public int getServerCount() { return numServers; }
+    public int getServerCount() {
+      return numServers;
+    }
 
     // Returns the URL of the specified server
-    public String getServerUrl(int index)
-    {
+    public String getServerUrl(int index) {
       if (index >= 0 && index < getServerCount()) {
         return listServer.get(index).getText();
       }
@@ -513,17 +497,17 @@ public class UpdaterSettings extends JDialog
     }
 
     // Replaces the URL of the specified server
-    public void setServerUrl(int index, String url)
-    {
+    public void setServerUrl(int index, String url) {
       if (index >= 0 && index < getServerCount()) {
-        if (url == null) url = "";
+        if (url == null) {
+          url = "";
+        }
         listServer.get(index).setText(url);
       }
     }
 
     // Returns the text field of the specified server
-    public JTextField getTextField(int index)
-    {
+    public JTextField getTextField(int index) {
       if (index >= 0 && index < getServerCount()) {
         return listServer.get(index);
       }
@@ -531,8 +515,7 @@ public class UpdaterSettings extends JDialog
     }
 
     // Returns the Check button of the specified server
-    public JButton getCheckButton(int index)
-    {
+    public JButton getCheckButton(int index) {
       if (index >= 0 && index < getServerCount()) {
         return listCheck.get(index);
       }
@@ -540,25 +523,22 @@ public class UpdaterSettings extends JDialog
     }
 
     // Returns whether the server URL has already been validated
-    public boolean isValidated(int index)
-    {
+    public boolean isValidated(int index) {
       if (index >= 0 && index < getServerCount()) {
-        return listValidated.get(index).booleanValue();
+        return listValidated.get(index);
       }
       return false;
     }
 
     // Sets whether the server URL has been validated
-    public void setValidated(int index, boolean set)
-    {
+    public void setValidated(int index, boolean set) {
       if (index >= 0 && index < getServerCount()) {
-        listValidated.set(index, Boolean.valueOf(set));
+        listValidated.set(index, set);
       }
     }
 
     // Marks specified server as valid or invalid and sets state of associated text field and button.
-    public void setServerValidated(int index, boolean set)
-    {
+    public void setServerValidated(int index, boolean set) {
       if (index >= 0 && index < getServerCount()) {
         Document doc = getTextField(index).getDocument();
         setValidated(index, set || doc.getLength() == 0);
@@ -567,8 +547,7 @@ public class UpdaterSettings extends JDialog
     }
 
     // Returns the server index of the specified text field document
-    public int indexOf(Document doc)
-    {
+    public int indexOf(Document doc) {
       if (doc != null) {
         for (int i = 0, size = listServer.size(); i < size; i++) {
           if (listServer.get(i).getDocument() == doc) {
@@ -580,15 +559,14 @@ public class UpdaterSettings extends JDialog
     }
 
     // Returns the server index of the specified Check button
-    public int indexOf(JButton b)
-    {
+    public int indexOf(JButton b) {
       return listCheck.indexOf(b);
     }
 
-//    // Returns the server index of the specified text field
-//    public int indexOf(JTextField tf)
-//    {
-//      return listServer.indexOf(tf);
-//    }
+    // // Returns the server index of the specified text field
+    // public int indexOf(JTextField tf)
+    // {
+    // return listServer.indexOf(tf);
+    // }
   }
 }

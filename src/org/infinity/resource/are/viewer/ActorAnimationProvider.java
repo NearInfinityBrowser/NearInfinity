@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -22,30 +22,32 @@ import org.infinity.resource.graphics.ColorConvert;
 /**
  * Implements functionality for properly displaying actor sprites.
  */
-public class ActorAnimationProvider extends AbstractAnimationProvider
-{
-  private static final Color TransparentColor = new Color(0, true);
+public class ActorAnimationProvider extends AbstractAnimationProvider {
+  private static final Color TRANSPARENT_COLOR = new Color(0, true);
 
   private SpriteDecoder decoder;
   private SpriteBamControl control;
-  private boolean isLooping, isSelectionCircleEnabled, isPersonalSpaceEnabled;
-  private int lighting, orientation, cycle, startFrame, endFrame;
+  private boolean isLooping;
+  private boolean isSelectionCircleEnabled;
+  private boolean isPersonalSpaceEnabled;
+  private int lighting;
+  private int orientation;
+  private int cycle;
+  private int startFrame;
+  private int endFrame;
   private Rectangle imageRect;
 
-  public ActorAnimationProvider(SpriteDecoder decoder)
-  {
+  public ActorAnimationProvider(SpriteDecoder decoder) {
     setDefaults();
     setDecoder(decoder);
   }
 
   /** Returns the BAM sprite decoder instance. */
-  public SpriteDecoder getDecoder()
-  {
+  public SpriteDecoder getDecoder() {
     return decoder;
   }
 
-  public void setDecoder(SpriteDecoder decoder)
-  {
+  public void setDecoder(SpriteDecoder decoder) {
     this.decoder = Objects.requireNonNull(decoder, "Sprite decoder cannot be null");
     control = this.decoder.createControl();
     control.setMode(SpriteBamControl.Mode.INDIVIDUAL);
@@ -58,14 +60,12 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the selection circle underneath actor sprites is drawn. */
-  public boolean isSelectionCircleEnabled()
-  {
+  public boolean isSelectionCircleEnabled() {
     return isSelectionCircleEnabled;
   }
 
   /** Specify whether the selection circle underneath actor sprites should be drawn. */
-  public void setSelectionCircleEnabled(boolean enable)
-  {
+  public void setSelectionCircleEnabled(boolean enable) {
     if (enable != isSelectionCircleEnabled) {
       isSelectionCircleEnabled = enable;
       decoder.setSelectionCircleEnabled(isSelectionCircleEnabled);
@@ -75,14 +75,12 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the personal space indicator underneath actor sprites is drawn. */
-  public boolean isPersonalSpaceEnabled()
-  {
+  public boolean isPersonalSpaceEnabled() {
     return isPersonalSpaceEnabled;
   }
 
   /** Specify whether the selection circle underneath actor sprites should be drawn. */
-  public void setPersonalSpaceEnabled(boolean enable)
-  {
+  public void setPersonalSpaceEnabled(boolean enable) {
     if (enable != isPersonalSpaceEnabled) {
       isPersonalSpaceEnabled = enable;
       decoder.setPersonalSpaceVisible(isPersonalSpaceEnabled);
@@ -92,14 +90,12 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns the lighting condition of the animation. */
-  public int getLighting()
-  {
+  public int getLighting() {
     return lighting;
   }
 
   /** Defines a new lighting condition for the animation. No change if the animation is self-illuminated. */
-  public void setLighting(int state)
-  {
+  public void setLighting(int state) {
     switch (state) {
       case ViewerConstants.LIGHTING_DAY:
       case ViewerConstants.LIGHTING_TWILIGHT:
@@ -115,17 +111,15 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns the numeric orientation value of the actor sprite. */
-  public int getOrientation()
-  {
+  public int getOrientation() {
     return orientation;
   }
 
   /**
-   * Sets the specified orientation value and updates the sprite cycle accordingly.
-   * Should be called after a sprite sequence has been loaded.
+   * Sets the specified orientation value and updates the sprite cycle accordingly. Should be called after a sprite
+   * sequence has been loaded.
    */
-  public void setOrientation(int dir)
-  {
+  public void setOrientation(int dir) {
     dir = Math.abs(dir) % Direction.values().length;
     if (dir != orientation) {
       orientation = dir;
@@ -138,20 +132,16 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   /**
    * Returns the currently selected animation cycle.
    */
-  public int getCycle()
-  {
+  public int getCycle() {
     int idx = cycle < 0 ? (control.cycleCount() + cycle) : cycle;
     return Math.max(0, Math.min(control.cycleCount() - 1, idx));
   }
 
   /**
-   * Sets the current BAM cycle.
-   * Specify positive values to set an absolute cycle index.
-   * Specify negative values to set the cycle relative to the cycle length
-   * where -1 indicates the last BAM cycle.
+   * Sets the current BAM cycle. Specify positive values to set an absolute cycle index. Specify negative values to set
+   * the cycle relative to the cycle length where -1 indicates the last BAM cycle.
    */
-  public void setCycle(int cycleIdx)
-  {
+  public void setCycle(int cycleIdx) {
     cycleIdx = Math.min(control.cycleCount() - 1, cycleIdx);
     if (cycleIdx != cycle) {
       cycle = cycleIdx;
@@ -162,20 +152,17 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns the first frame of the current BAM cycle to be displayed. */
-  public int getStartFrame()
-  {
+  public int getStartFrame() {
     int idx = startFrame < 0 ? (control.cycleFrameCount() + startFrame) : startFrame;
     return Math.max(0, Math.min(control.cycleFrameCount() - 1, idx));
   }
 
   /**
-   * Sets the first frame of the current BAM cycle to be displayed.
-   * Specify positive values to set an absolute frame index.
-   * Specify negative values to set the start frame relative to the number of frames in the cycle
-   * where -1 indicates the last frame of the cycle.
+   * Sets the first frame of the current BAM cycle to be displayed. Specify positive values to set an absolute frame
+   * index. Specify negative values to set the start frame relative to the number of frames in the cycle where -1
+   * indicates the last frame of the cycle.
    */
-  public void setStartFrame(int frameIdx)
-  {
+  public void setStartFrame(int frameIdx) {
     frameIdx = Math.min(control.cycleFrameCount() - 1, frameIdx);
     if (frameIdx != startFrame) {
       startFrame = frameIdx;
@@ -184,21 +171,18 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns the frame index after which the animation sequence ends. */
-  public int getFrameCap()
-  {
+  public int getFrameCap() {
     int idx = endFrame < 0 ? (control.cycleFrameCount() + endFrame) : endFrame;
     return Math.max(0, Math.min(control.cycleFrameCount() - 1, idx));
   }
 
   /**
-   * Sets the frame index after which the animation sequence ends.
-   * Specify positive values to set an absolute frame index.
-   * Specify negative values to set the end frame relative to the number of frames in the cycle
-   * where -1 indicates the last frame of the cycle.
+   * Sets the frame index after which the animation sequence ends. Specify positive values to set an absolute frame
+   * index. Specify negative values to set the end frame relative to the number of frames in the cycle where -1
+   * indicates the last frame of the cycle.
    */
-  public void setFrameCap(int frameIdx)
-  {
-    frameIdx = Math.min(control.cycleFrameCount() -1, frameIdx);
+  public void setFrameCap(int frameIdx) {
+    frameIdx = Math.min(control.cycleFrameCount() - 1, frameIdx);
     if (frameIdx != endFrame) {
       endFrame = frameIdx;
       resetFrame();
@@ -206,58 +190,52 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Sets a new looping state. */
-  public void setLooping(boolean set)
-  {
+  public void setLooping(boolean set) {
     if (set != isLooping) {
       isLooping = set;
     }
   }
 
-//--------------------- Begin Interface BasicAnimationProvider ---------------------
+  // --------------------- Begin Interface BasicAnimationProvider ---------------------
 
   @Override
-  public boolean advanceFrame()
-  {
+  public boolean advanceFrame() {
     boolean retVal = control.cycleGetFrameIndex() < getFrameCap() - 1;
     if (retVal) {
       control.cycleNextFrame();
     }
-//    retVal = control.cycleNextFrame();
+    // retVal = control.cycleNextFrame();
     updateGraphics();
     return retVal;
   }
 
   @Override
-  public void resetFrame()
-  {
+  public void resetFrame() {
     control.cycleSetFrameIndex(getStartFrame());
     updateGraphics();
   }
 
   @Override
-  public boolean isLooping()
-  {
+  public boolean isLooping() {
     return isLooping;
   }
 
   @Override
-  public Point getLocationOffset()
-  {
+  public Point getLocationOffset() {
     return imageRect.getLocation();
   }
 
-//--------------------- End Interface BasicAnimationProvider ---------------------
+  // --------------------- End Interface BasicAnimationProvider ---------------------
 
   // Sets sane default values for all properties
-  private void setDefaults()
-  {
+  private void setDefaults() {
     setImage(null);
     setWorkingImage(null);
     setActive(true);
     isLooping = true;
     isSelectionCircleEnabled = true;
     isPersonalSpaceEnabled = false;
-    orientation = 0;  // south
+    orientation = 0; // south
     cycle = 0;
     startFrame = 0;
     endFrame = -1;
@@ -266,12 +244,11 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   }
 
   // Updates the global image object to match the shared size of the current BAM (cycle).
-  private void updateCanvas()
-  {
+  private void updateCanvas() {
     imageRect = control.calculateSharedCanvas(false);
-    BufferedImage image = (BufferedImage)getImage();
-    if (getWorkingImage() == null || image == null ||
-        image.getWidth() != imageRect.width || image.getHeight() != imageRect.height) {
+    BufferedImage image = (BufferedImage) getImage();
+    if (getWorkingImage() == null || image == null || image.getWidth() != imageRect.width
+        || image.getHeight() != imageRect.height) {
       setImage(ColorConvert.createCompatibleImage(imageRect.width, imageRect.height, true));
       setWorkingImage(new BufferedImage(imageRect.width, imageRect.height, BufferedImage.TYPE_INT_ARGB));
     }
@@ -279,9 +256,8 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
 
   // Renders the current frame
   @Override
-  protected synchronized void updateGraphics()
-  {
-    BufferedImage image = (BufferedImage)getImage();
+  protected synchronized void updateGraphics() {
+    BufferedImage image = (BufferedImage) getImage();
     if (image != null) {
       Graphics2D g;
       if (isActive()) {
@@ -289,7 +265,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
         try {
           // clearing old content
           g.setComposite(AlphaComposite.Src);
-          g.setColor(TransparentColor);
+          g.setColor(TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();
@@ -309,12 +285,12 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
           // rendering frame
           // fetching frame data
           BufferedImage working = getWorkingImage();
-          int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
+          int[] buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
           Arrays.fill(buffer, 0);
           decoder.frameGet(control, frameIndex, working);
 
           // post-processing frame
-          buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
+          buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
           int canvasWidth = working.getWidth();
           int canvasHeight = working.getHeight();
           int frameWidth = decoder.getFrameInfo(frameIndex).getWidth();
@@ -326,7 +302,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
           buffer = null;
 
           // rendering frame
-          g.drawImage(working, left, top, left+frameWidth, top+frameHeight, 0, 0, frameWidth, frameHeight, null);
+          g.drawImage(working, left, top, left + frameWidth, top + frameHeight, 0, 0, frameWidth, frameHeight, null);
         } finally {
           g.dispose();
           g = null;
@@ -336,7 +312,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
         g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.Src);
-          g.setColor(TransparentColor);
+          g.setColor(TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();

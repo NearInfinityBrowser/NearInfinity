@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.chu;
@@ -30,60 +30,62 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.tuples.Couple;
 
 /**
- * This resource describes the layout of the GUI screens (the graphics for the
- * screens are held in {@link MosResource MOS} and {@link BamResource BAM} files).
+ * This resource describes the layout of the GUI screens (the graphics for the screens are held in {@link MosResource
+ * MOS} and {@link BamResource BAM} files).
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm</a>
  */
-public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasChildStructs
+public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs // , HasChildStructs
 {
   // CHU-specific field labels
   public static final String CHU_NUM_PANELS       = "# panels";
   public static final String CHU_OFFSET_CONTROLS  = "Controls offset";
   public static final String CHU_OFFSET_PANELS    = "Panels offset";
 
+  // Note: Cannot be made final, because it's accessed indirectly from parent class constructor
   private List<Couple<Integer, Integer>> listControls;
-  private int ofsPanels, numPanels, sizePanels, ofsControls, numControls;
+
+  private int ofsPanels;
+  private int numPanels;
+  private int sizePanels;
+  private int ofsControls;
+  private int numControls;
   private Viewer detailViewer;
   private StructHexViewer hexViewer;
 
-  public ChuResource(ResourceEntry entry) throws Exception
-  {
+  public ChuResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     super.write(os);
     for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
-        ((Window)o).writeControlsTable(os);
+        ((Window) o).writeControlsTable(os);
       }
     }
     for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
-        ((Window)o).writeControls(os);
+        ((Window) o).writeControls(os);
       }
     }
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-// --------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 2;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     switch (index) {
       case 0:
         return StructViewer.TAB_VIEW;
@@ -94,18 +96,15 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     switch (index) {
-      case 0:
-      {
+      case 0: {
         if (detailViewer == null) {
           detailViewer = new Viewer(this);
         }
         return detailViewer;
       }
-      case 1:
-      {
+      case 1: {
         if (hexViewer == null) {
           BasicColorMap colorMap = new BasicColorMap(this, false);
           colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, Window.class);
@@ -119,16 +118,14 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return (index == 0);
   }
 
-// --------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   /** Write 'size' number of zeros to the output stream. */
-  void writeGap(OutputStream os, int startOfs, int endOfs) throws IOException
-  {
+  void writeGap(OutputStream os, int startOfs, int endOfs) throws IOException {
     while (startOfs < endOfs) {
       os.write(0);
       startOfs++;
@@ -136,32 +133,27 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   /** Returns the starting offset of available panels. */
-  public int getPanelsOffset()
-  {
+  public int getPanelsOffset() {
     return ofsPanels;
   }
 
   /** Returns the number of available panels. */
-  public int getPanelCount()
-  {
+  public int getPanelCount() {
     return numPanels;
   }
 
   /** Returns the starting offset of the control table. */
-  public int getControlsOffset()
-  {
+  public int getControlsOffset() {
     return ofsControls;
   }
 
   /** Returns the number of available controls. */
-  public int getControlCount()
-  {
+  public int getControlCount() {
     return numControls;
   }
 
   /** Returns the absolute starting offset of the control at the given index. */
-  public int getControlOffset(int index)
-  {
+  public int getControlOffset(int index) {
     if (index >= 0 && index < listControls.size()) {
       return listControls.get(index).getValue0();
     } else {
@@ -170,8 +162,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   /** Returns the size of the control at the given index. */
-  public int getControlSize(int index)
-  {
+  public int getControlSize(int index) {
     if (index >= 0 && index < listControls.size()) {
       return listControls.get(index).getValue1();
     } else {
@@ -180,24 +171,21 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   /** Returns the panel size in bytes. */
-  public int getPanelSize()
-  {
+  public int getPanelSize() {
     return sizePanels;
   }
 
   /** Returns the given panel. */
-  public Window getPanel(int index)
-  {
+  public Window getPanel(int index) {
     if (index >= 0 && index < getPanelCount()) {
-      return (Window)getAttribute(Window.CHU_WINDOW_PANEL + " " + index);
+      return (Window) getAttribute(Window.CHU_WINDOW_PANEL + " " + index);
     } else {
       return null;
     }
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     initData(buffer, offset);
 
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
@@ -230,22 +218,19 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -253,16 +238,14 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -270,8 +253,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   // initialize data required to reconstruct the original resource on save
-  private void initData(ByteBuffer buffer, int offset)
-  {
+  private void initData(ByteBuffer buffer, int offset) {
     // loading header data
     numPanels = buffer.getInt(offset + 8);
     ofsControls = buffer.getInt(offset + 12);
@@ -281,7 +263,11 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     } else {
       sizePanels = 28;
     }
-    if (sizePanels >= 36) sizePanels = 36; else if (sizePanels >= 28) sizePanels = 28;
+    if (sizePanels >= 36) {
+      sizePanels = 36;
+    } else if (sizePanels >= 28) {
+      sizePanels = 28;
+    }
 
     // loading controls data
     numControls = 0;
@@ -303,11 +289,11 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     for (int i = 0; i < numControls; i++, curOfs += 8) {
       ofs = buffer.getInt(curOfs);
       len = buffer.getInt(curOfs + 4);
-      listControls.add(Couple.with(Integer.valueOf(ofs), Integer.valueOf(len)));
+      listControls.add(Couple.with(ofs, len));
     }
 
     // adding virtual entry for determining the true size of the last control entry
     ofs = Math.max(ofs + len, buffer.limit());
-    listControls.add(Couple.with(Integer.valueOf(ofs), Integer.valueOf(0)));
+    listControls.add(Couple.with(ofs, 0));
   }
 }

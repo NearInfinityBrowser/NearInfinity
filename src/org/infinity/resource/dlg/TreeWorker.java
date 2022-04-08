@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -16,20 +16,20 @@ import javax.swing.tree.TreePath;
 //-------------------------- INNER CLASSES --------------------------
 
 /** Applies expand or collapse operations on a set of dialog tree nodes in a background task. */
-class TreeWorker extends SwingWorker<Void, Void>
-{
+class TreeWorker extends SwingWorker<Void, Void> {
   /** Path that must be collapsed or expanded. */
   private final TreePath path;
+
   /** If {@code true}, requested expanding of the tree, otherwise collapsing. */
   private final boolean expand;
 
   /** Tree on which operation is performed. */
   private final JTree dlgTree;
+
   /** Progress that shows if operation takes a long time (very deep tree). */
   private final ProgressMonitor progress;
 
-  public TreeWorker(JTree dlgTree, TreePath path, boolean expand)
-  {
+  public TreeWorker(JTree dlgTree, TreePath path, boolean expand) {
     this.dlgTree = dlgTree;
     this.path = path;
     this.expand = expand;
@@ -41,8 +41,7 @@ class TreeWorker extends SwingWorker<Void, Void>
   }
 
   @Override
-  protected Void doInBackground() throws Exception
-  {
+  protected Void doInBackground() throws Exception {
     try {
       if (expand) {
         expandNode(path);
@@ -56,11 +55,12 @@ class TreeWorker extends SwingWorker<Void, Void>
   }
 
   @Override
-  protected void done() { progress.close(); }
+  protected void done() {
+    progress.close();
+  }
 
   /** Advances the progress bar by one unit. May display a short notice after a while. */
-  private void advanceProgress()
-  {
+  private void advanceProgress() {
     final int current = progress.getMaximum();
     progress.setMaximum(current + 1);
     if (current % 100 == 0) {
@@ -70,23 +70,24 @@ class TreeWorker extends SwingWorker<Void, Void>
   }
 
   /** Expands all children and their children of the given path. */
-  private void expandNode(final TreePath path)
-  {
-    if (progress.isCanceled()) return;
+  private void expandNode(final TreePath path) {
+    if (progress.isCanceled()) {
+      return;
+    }
 
     final Object node = path.getLastPathComponent();
-    final boolean isRef = node instanceof ItemBase && ((ItemBase)node).getMain() != null;
+    final boolean isRef = node instanceof ItemBase && ((ItemBase) node).getMain() != null;
 
     // Do not try expand recursive structures
-    if (isRef) return;
+    if (isRef) {
+      return;
+    }
 
     advanceProgress();
     if (!dlgTree.isExpanded(path)) {
       try {
         SwingUtilities.invokeAndWait(() -> dlgTree.expandPath(path));
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
+      } catch (InterruptedException | InvocationTargetException e) {
         e.printStackTrace();
       }
     }
@@ -99,18 +100,21 @@ class TreeWorker extends SwingWorker<Void, Void>
   }
 
   /** Collapses all children and their children of the given path. */
-  private void collapseNode(final TreePath path)
-  {
-    if (progress.isCanceled()) return;
+  private void collapseNode(final TreePath path) {
+    if (progress.isCanceled()) {
+      return;
+    }
 
     final Object node = path.getLastPathComponent();
-    final boolean isRef = node instanceof ItemBase && ((ItemBase)node).getMain() != null;
+    final boolean isRef = node instanceof ItemBase && ((ItemBase) node).getMain() != null;
 
     // Do not try collapse recursive structures
     // This will collapse all main nodes (even under already collapsed nodes)
     // and will not collapse non-main nodes under collapsed nodes (but still
     // collapse non-main nodes under expanded nodes)
-    if (isRef && dlgTree.isCollapsed(path)) return;
+    if (isRef && dlgTree.isCollapsed(path)) {
+      return;
+    }
 
     advanceProgress();
     // Use access via model because it properly initializes items
@@ -121,9 +125,7 @@ class TreeWorker extends SwingWorker<Void, Void>
 
     try {
       SwingUtilities.invokeAndWait(() -> dlgTree.collapsePath(path));
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
+    } catch (InterruptedException | InvocationTargetException e) {
       e.printStackTrace();
     }
   }

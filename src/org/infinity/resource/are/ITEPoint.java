@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -22,8 +22,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
-{
+public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs {
   // ARE/Trigger-specific field labels
   public static final String ARE_TRIGGER                            = "Trigger";
   public static final String ARE_TRIGGER_NAME                       = "Name";
@@ -60,45 +59,39 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   public static final String ARE_TRIGGER_ACTIVATION_POINT_X         = "Activation point: X";
   public static final String ARE_TRIGGER_ACTIVATION_POINT_Y         = "Activation point: Y";
 
-  public static final String[] s_type = {"Proximity trigger", "Info trigger", "Travel trigger"};
-  public static final String[] s_flag = {"No flags set", "Locked", "Trap resets", "Party required", "Trap detectable",
-                                         "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
-                                         "Trigger deactivated", "Cannot be passed by NPC", "Use activation point",
-                                         "Connected to door"};
+  public static final String[] TYPE_ARRAY = { "Proximity trigger", "Info trigger", "Travel trigger" };
 
-  public ITEPoint() throws Exception
-  {
+  public static final String[] FLAG_ARRAY = { "No flags set", "Locked", "Trap resets", "Party required",
+      "Trap detectable", "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
+      "Trigger deactivated", "Cannot be passed by NPC", "Use activation point", "Connected to door" };
+
+  public ITEPoint() throws Exception {
     super(null, ARE_TRIGGER, StreamUtils.getByteBuffer(196), 0);
   }
 
-  public ITEPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  public ITEPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, ARE_TRIGGER + " " + number, buffer, offset);
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    return new AddRemovable[]{new Vertex()};
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] { new Vertex() };
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
   @Override
-  public void readVertices(ByteBuffer buffer, int offset) throws Exception
-  {
-    int firstVertex = ((IsNumeric)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
-    int numVertices = ((IsNumeric)getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception {
+    int firstVertex = ((IsNumeric) getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
+    int numVertices = ((IsNumeric) getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
     offset += firstVertex << 2;
     for (int i = 0; i < numVertices; i++) {
       addField(new Vertex(this, buffer, offset + 4 * i, i));
@@ -106,39 +99,36 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   }
 
   @Override
-  public int updateVertices(int offset, int number)
-  {
-    ((DecNumber)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).setValue(number);
+  public int updateVertices(int offset, int number) {
+    ((DecNumber) getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).setValue(number);
     int count = 0;
     for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
-        ((Vertex)entry).realignStructOffsets();
+        ((Vertex) entry).realignStructOffsets();
         offset += 4;
         count++;
       }
     }
-    ((DecNumber)getAttribute(ARE_TRIGGER_NUM_VERTICES)).setValue(count);
+    ((DecNumber) getAttribute(ARE_TRIGGER_NUM_VERTICES)).setValue(count);
     return count;
   }
 
   @Override
-  protected void setAddRemovableOffset(AddRemovable datatype)
-  {
+  protected void setAddRemovableOffset(AddRemovable datatype) {
     if (datatype instanceof Vertex) {
-      int index = ((IsNumeric)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
-      index += ((IsNumeric)getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
-      final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      int index = ((IsNumeric) getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
+      index += ((IsNumeric) getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
+      final int offset = ((IsNumeric) getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
-      ((AbstractStruct)datatype).realignStructOffsets();
+      ((AbstractStruct) datatype).realignStructOffsets();
     }
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 32, ARE_TRIGGER_NAME));
-    addField(new Bitmap(buffer, offset + 32, 2, ARE_TRIGGER_TYPE, s_type));
+    addField(new Bitmap(buffer, offset + 32, 2, ARE_TRIGGER_TYPE, TYPE_ARRAY));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_TRIGGER_BOUNDING_BOX_LEFT));
     addField(new DecNumber(buffer, offset + 36, 2, ARE_TRIGGER_BOUNDING_BOX_TOP));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_TRIGGER_BOUNDING_BOX_RIGHT));
@@ -149,7 +139,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     addField(new DecNumber(buffer, offset + 52, 4, ARE_TRIGGER_CURSOR_INDEX));
     addField(new ResourceRef(buffer, offset + 56, ARE_TRIGGER_DESTINATION_AREA, "ARE"));
     addField(new TextString(buffer, offset + 64, 32, ARE_TRIGGER_ENTRANCE_NAME));
-    addField(new Flag(buffer, offset + 96, 4, ARE_TRIGGER_FLAGS, s_flag));
+    addField(new Flag(buffer, offset + 96, 4, ARE_TRIGGER_FLAGS, FLAG_ARRAY));
     addField(new StringRef(buffer, offset + 100, ARE_TRIGGER_INFO_POINT_TEXT));
     addField(new DecNumber(buffer, offset + 104, 2, ARE_TRIGGER_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 106, 2, ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY));
@@ -166,15 +156,13 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
       addField(new DecNumber(buffer, offset + 182, 2, ARE_TRIGGER_SPEAKER_POINT_Y));
       addField(new StringRef(buffer, offset + 184, ARE_TRIGGER_SPEAKER_NAME));
       addField(new ResourceRef(buffer, offset + 188, ARE_TRIGGER_DIALOG, "DLG"));
-    }
-    else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
+    } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new DecNumber(buffer, offset + 132, 2, ARE_TRIGGER_OVERRIDE_POINT_X));
       addField(new DecNumber(buffer, offset + 134, 2, ARE_TRIGGER_OVERRIDE_POINT_Y));
       addField(new DecNumber(buffer, offset + 136, 4, ARE_TRIGGER_ALTERNATE_POINT_X));
       addField(new DecNumber(buffer, offset + 140, 4, ARE_TRIGGER_ALTERNATE_POINT_Y));
       addField(new Unknown(buffer, offset + 144, 52));
-    }
-    else {
+    } else {
       addField(new DecNumber(buffer, offset + 132, 2, ARE_TRIGGER_ACTIVATION_POINT_X));
       addField(new DecNumber(buffer, offset + 134, 2, ARE_TRIGGER_ACTIVATION_POINT_Y));
       if (Profile.getGame() == Profile.Game.PSTEE) {

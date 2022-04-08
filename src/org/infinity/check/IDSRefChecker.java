@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -13,23 +13,19 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
 
-public final class IDSRefChecker extends AbstractChecker
-{
+public final class IDSRefChecker extends AbstractChecker {
   /** Window with check results. */
   private final ReferenceHitFrame hitFrame;
 
-  public IDSRefChecker()
-  {
-    super("IDSRef Checker", "IDSRefChecker",
-          new String[]{"CRE", "EFF", "ITM", "PRO", "SPL"});
+  public IDSRefChecker() {
+    super("IDSRef Checker", "IDSRefChecker", new String[] { "CRE", "EFF", "ITM", "PRO", "SPL" });
     hitFrame = new ReferenceHitFrame("Unknown IDS references", NearInfinity.getInstance());
   }
 
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     if (runCheck(files)) {
       hitFrame.close();
     } else {
@@ -37,25 +33,23 @@ public final class IDSRefChecker extends AbstractChecker
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
-        search(entry, (AbstractStruct)resource);
+        search(entry, (AbstractStruct) resource);
       }
       advanceProgress();
     };
   }
 
-  private void search(ResourceEntry entry, AbstractStruct struct)
-  {
+  private void search(ResourceEntry entry, AbstractStruct struct) {
     for (final StructEntry e : struct.getFlatFields()) {
       if (e instanceof IdsBitmap) {
-        final IdsBitmap ref = (IdsBitmap)e;
+        final IdsBitmap ref = (IdsBitmap) e;
         final long value = ref.getLongValue();
         if (value != 0L && ref.getDataOf(value) == null) {
           synchronized (hitFrame) {

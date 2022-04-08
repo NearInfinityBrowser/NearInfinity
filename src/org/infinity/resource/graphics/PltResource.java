@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -69,14 +69,13 @@ import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
 
 /**
- * This resource describes the appearance of paperdolls displayed on the inventory
- * screen. A paperdoll can display several "materials" (e.g. skin, hair, leather,
- * metal) each of which is represented by a different colour set. The colours for
- * each material are set in the {@link CreResource CRE} file (major and minor colour
- * can be set within the game) which correspond to a colour gradient.
+ * This resource describes the appearance of paperdolls displayed on the inventory screen. A paperdoll can display
+ * several "materials" (e.g. skin, hair, leather, metal) each of which is represented by a different colour set. The
+ * colours for each material are set in the {@link CreResource CRE} file (major and minor colour can be set within the
+ * game) which correspond to a colour gradient.
  * <p>
- * Each pixel is mapped to a colour by the colour byte which is then given an
- * intensity by the intensity byte. The colours are listed below:
+ * Each pixel is mapped to a colour by the colour byte which is then given an intensity by the intensity byte. The
+ * colours are listed below:
  * <ul>
  * <li>0 - Skin</li>
  * <li>1 - Hair</li>
@@ -91,13 +90,12 @@ import tv.porst.jhexview.IDataChangedListener;
  * Colour maps 128 - 255 repeat this pattern.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm</a>
  */
-public class PltResource implements Resource, Closeable, Writeable, ItemListener, ActionListener,
-                                     ChangeListener, IDataChangedListener
-{
+public class PltResource
+    implements Resource, Closeable, Writeable, ItemListener, ActionListener, ChangeListener, IDataChangedListener {
   /** Available random colors for initial coloring. */
-  private static final int[][] CreColorRandomIndices = {
+  private static final int[][] CRE_COLOR_RANDOM_INDICES = {
       { 8, 9, 12, 12, 12, 13, 13, 87, 90, 114 },    // Skin
       { 0, 0, 0, 1, 2, 2, 3, 4, 5, 6 },             // Hair
       { 24, 25, 26, 27, 27, 29, 30, 30, 96, 100 },  // Metal
@@ -106,11 +104,17 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       { 39, 46, 48, 50, 54, 60, 63, 64, 66, 66 },   // Minor
       { 38, 40, 41, 47, 51, 52, 57, 60, 61, 63 },   // Major
   };
+
   /** Color types based on CRE field names. */
   private static final String[] ColorIndexNames = {
-      CreResource.CRE_COLOR_SKIN, CreResource.CRE_COLOR_HAIR, CreResource.CRE_COLOR_METAL,
-      CreResource.CRE_COLOR_ARMOR, CreResource.CRE_COLOR_LEATHER, CreResource.CRE_COLOR_MINOR,
-      CreResource.CRE_COLOR_MAJOR };
+      CreResource.CRE_COLOR_SKIN,
+      CreResource.CRE_COLOR_HAIR,
+      CreResource.CRE_COLOR_METAL,
+      CreResource.CRE_COLOR_ARMOR,
+      CreResource.CRE_COLOR_LEATHER,
+      CreResource.CRE_COLOR_MINOR,
+      CreResource.CRE_COLOR_MAJOR
+  };
 
   private static boolean scalePreview = false;
   private static boolean randomizeColors = true;
@@ -125,11 +129,12 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
   private JCheckBox cbScalePreview, cbRandomize;
   private RenderCanvas rcCanvas;
   private BufferedImage image;
-  private JPanel panelMain, panelRaw;
-  private JMenuItem miExport, miExportPNG;
+  private JPanel panelMain;
+  private JPanel panelRaw;
+  private JMenuItem miExport;
+  private JMenuItem miExportPNG;
 
-  public PltResource(ResourceEntry entry) throws Exception
-  {
+  public PltResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     this.buffer = (this.entry != null) ? this.entry.getResourceBuffer() : null;
     if (this.buffer != null) {
@@ -139,7 +144,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       }
       int w = buffer.getInt(0x10);
       int h = buffer.getInt(0x14);
-      if (w < 0 || h < 0 || buffer.limit() < 0x18 + w*h*2) {
+      if (w < 0 || h < 0 || buffer.limit() < 0x18 + w * h * 2) {
         throw new Exception("Invalid header data");
       }
     }
@@ -147,8 +152,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 
   @SuppressWarnings("unchecked")
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     // creating "View" tab
     JPanel pSelections = new JPanel(new WrapLayout(FlowLayout.CENTER, 16, 8));
     cbColors = new JComboBox[ColorIndexNames.length];
@@ -157,7 +161,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       cbColors[i] = new JComboBox<>(new ColorModel());
       cbColors[i].setRenderer(new ColorRenderer());
       if (randomizeColors) {
-        cbColors[i].setSelectedIndex(CreColorRandomIndices[i][rnd.nextInt(CreColorRandomIndices[i].length)]);
+        cbColors[i].setSelectedIndex(CRE_COLOR_RANDOM_INDICES[i][rnd.nextInt(CRE_COLOR_RANDOM_INDICES[i].length)]);
       } else {
         cbColors[i].setSelectedIndex(0);
       }
@@ -202,14 +206,14 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     hexViewer = null;
 
     // creating main panel
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
     miExportPNG = new JMenuItem("as PNG");
     miExportPNG.addActionListener(this);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportPNG}, false);
+    bpmExport.setMenuItems(new JMenuItem[] { miExport, miExportPNG }, false);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
@@ -228,16 +232,14 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
   }
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
 //--------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     if (isRawModified()) {
       ResourceFactory.closeResource(this, entry, panelMain);
     }
@@ -247,19 +249,17 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 
 //--------------------- Begin Interface Writeable ---------------------
 
- @Override
- public void write(OutputStream os) throws IOException
- {
-   StreamUtils.writeBytes(os, hexViewer.getData());
- }
+  @Override
+  public void write(OutputStream os) throws IOException {
+    StreamUtils.writeBytes(os, hexViewer.getData());
+  }
 
 //--------------------- End Interface Writeable ---------------------
 
 //--------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == cbScalePreview) {
       scalePreview = cbScalePreview.isSelected();
       rcCanvas.setScalingEnabled(scalePreview);
@@ -278,16 +278,15 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
           WindowBlocker.blockWindow(false);
         }
         if (bRet) {
-          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
-                                         fileName, panelMain.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName,
+              panelMain.getTopLevelAncestor());
         } else {
           throw new UnsupportedOperationException("PNG writing is not supported");
         }
       } catch (Exception ioe) {
         ioe.printStackTrace();
-        JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(),
-                                      "Error while exporting " + entry, "Error",
-                                      JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == e.getSource()) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
@@ -301,11 +300,10 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 //--------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent e)
-  {
+  public void itemStateChanged(ItemEvent e) {
     if (e.getSource() instanceof JComboBox<?>) {
       @SuppressWarnings("unchecked")
-      JComboBox<ColorItem> cb = (JComboBox<ColorItem>)e.getSource();
+      JComboBox<ColorItem> cb = (JComboBox<ColorItem>) e.getSource();
       ColorItem item = cb.getModel().getElementAt(cb.getSelectedIndex());
       if (item != null && item.isRandomColor()) {
         item.randomize();
@@ -320,18 +318,15 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 //--------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == tabbedPane) {
       if (tabbedPane.getSelectedComponent() == panelRaw) {
         // lazy initialization of hex viewer
         if (hexViewer == null) {
           // confirm action when opening first time
           int ret = JOptionPane.showConfirmDialog(panelMain,
-                                                  "Editing PLT resources directly may result in corrupt data. " +
-                                                      "Open hex editor?",
-                                                      "Warning", JOptionPane.YES_NO_OPTION,
-                                                      JOptionPane.WARNING_MESSAGE);
+              "Editing PLT resources directly may result in corrupt data. " + "Open hex editor?", "Warning",
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
           if (ret == JOptionPane.YES_OPTION) {
             try {
               WindowBlocker.blockWindow(true);
@@ -359,26 +354,21 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 //--------------------- Begin Interface IDataChangedListener ---------------------
 
   @Override
-  public void dataChanged(DataChangedEvent event)
-  {
+  public void dataChanged(DataChangedEvent event) {
     setRawModified(true);
   }
 
 //--------------------- End Interface IDataChangedListener ---------------------
 
-  public int getImageWidth()
-  {
+  public int getImageWidth() {
     return (buffer != null) ? buffer.getInt(0x10) : 0;
   }
 
-  public int getImageHeight()
-  {
+  public int getImageHeight() {
     return (buffer != null) ? buffer.getInt(0x14) : 0;
   }
 
-
-  public String getColorLabel(int index)
-  {
+  public String getColorLabel(int index) {
     if (index >= 0 && index < ColorIndexNames.length) {
       return ColorIndexNames[index] + " Color:";
     } else {
@@ -386,38 +376,40 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     }
   }
 
-  private ColorItem getSelectedColorItem(int type)
-  {
-    if (type < 0) type = 0;
-    if (type >= cbColors.length) type = cbColors.length - 1;
+  private ColorItem getSelectedColorItem(int type) {
+    if (type < 0)
+      type = 0;
+    if (type >= cbColors.length)
+      type = cbColors.length - 1;
     return getColorItem(type, cbColors[type].getSelectedIndex());
   }
 
-  private ColorItem getColorItem(int type, int index)
-  {
-    if (type < 0) type = 0;
-    if (type >= cbColors.length) type = cbColors.length - 1;
-    if (index < 0) index = 0;
+  private ColorItem getColorItem(int type, int index) {
+    if (type < 0)
+      type = 0;
+    if (type >= cbColors.length)
+      type = cbColors.length - 1;
+    if (index < 0)
+      index = 0;
     if (index >= cbColors[type].getModel().getSize()) {
       index = cbColors[type].getModel().getSize() - 1;
     }
     return cbColors[type].getModel().getElementAt(index);
   }
 
-  private BufferedImage updateImage()
-  {
+  private BufferedImage updateImage() {
     if (image == null) {
       image = new BufferedImage(getImageWidth(), getImageHeight(), BufferedImage.TYPE_INT_ARGB);
     }
     if (buffer != null) {
-      int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      int[] data = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
       buffer.position(0x18);
       for (int y = image.getHeight() - 1; y >= 0; --y) {
         int idx = y * image.getWidth();
         for (int x = 0, xmax = image.getWidth(); x < xmax; ++x, ++idx) {
           int v = buffer.getShort();
           int index = v & 0xff;
-          int type = (v >> 8) & 0x7f;   // ignore bit 8
+          int type = (v >> 8) & 0x7f; // ignore bit 8
           int color = 0;
           if (type < cbColors.length) {
             // color
@@ -433,8 +425,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     return image;
   }
 
-  private boolean isRawModified()
-  {
+  private boolean isRawModified() {
     if (hexViewer != null) {
       return hexViewer.isModified();
     } else {
@@ -442,8 +433,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     }
   }
 
-  private void setRawModified(boolean modified)
-  {
+  private void setRawModified(boolean modified) {
     if (hexViewer != null) {
       if (!modified) {
         hexViewer.clearModified();
@@ -455,51 +445,48 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 //--------------------------- INNER CLASSES ---------------------------
 
   /** Stores color index and value. */
-  private static class ColorItem
-  {
+  private static class ColorItem {
     /** Color index. */
     private final int index;
+
     private final Random rand = new Random();
 
     /** Full range of color entries as ARGB values ({@code 0xaarrggbb}). */
     private int[] range;
+
     /** Lookup for squared distances. */
     private int[] squareDist;
+
     /** Initialized if item refers to a random color. */
     private ColorItem[] randItems;
+
     private int randIndex;
 
-    public ColorItem(int index, int[] range)
-    {
+    public ColorItem(int index, int[] range) {
       this(index, range, null);
     }
 
-    public ColorItem(int index, int[] range, ColorItem[] randItems)
-    {
+    public ColorItem(int index, int[] range, ColorItem[] randItems) {
       this.index = index;
       init(range, randItems);
       initDistance();
     }
 
-    public int getIndex()
-    {
+    public int getIndex() {
       return index;
     }
 
-    public boolean isRandomColor()
-    {
+    public boolean isRandomColor() {
       return (randItems[randIndex] != this);
     }
 
-    public void randomize()
-    {
+    public void randomize() {
       if (randItems[randIndex] != this) {
         randIndex = rand.nextInt(randItems.length);
       }
     }
 
-    public int getColorValue()
-    {
+    public int getColorValue() {
       if (randItems[randIndex] != this) {
         return randItems[randIndex].getColorValue();
       } else {
@@ -507,8 +494,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       }
     }
 
-    public int[] getColorRange()
-    {
+    public int[] getColorRange() {
       if (randItems[randIndex] != this) {
         return randItems[randIndex].range;
       } else {
@@ -516,11 +502,12 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       }
     }
 
-    public int getColorAt(int index)
-    {
+    public int getColorAt(int index) {
       int[] colorRange = getColorRange();
-      if (index < 0) index = 0;
-      if (index >= colorRange.length) index = colorRange.length - 1;
+      if (index < 0)
+        index = 0;
+      if (index >= colorRange.length)
+        index = colorRange.length - 1;
       return colorRange[index];
     }
 
@@ -534,8 +521,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 //      return retVal;
 //    }
 
-    public int getDistance(int squared)
-    {
+    public int getDistance(int squared) {
       // handling special case first
       if (squared <= squareDist[0]) {
         return 0;
@@ -556,14 +542,14 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       if (squareDist[min] != squared) {
         int v1 = squared - squareDist[min];
         if (min > 0) {
-          int v2 = squared - squareDist[min-1];
-          if (v2*v2 < v1*v1) {
+          int v2 = squared - squareDist[min - 1];
+          if (v2 * v2 < v1 * v1) {
             --min;
           }
         }
         if (min < squareDist.length - 1) {
-          int v2 = squared - squareDist[min+1];
-          if (v2*v2 < v1*v1) {
+          int v2 = squared - squareDist[min + 1];
+          if (v2 * v2 < v1 * v1) {
             ++min;
           }
         }
@@ -573,8 +559,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       int value = getColorValue();
       String retVal = "Index=" + index + ", ";
       if (value != 0) {
@@ -585,70 +570,60 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       return retVal;
     }
 
-    private void init(int[] range, ColorItem[] randItems)
-    {
+    private void init(int[] range, ColorItem[] randItems) {
       this.range = range;
       if (randItems != null) {
         this.randItems = randItems;
       } else {
-        this.randItems = new ColorItem[]{this};
+        this.randItems = new ColorItem[] { this };
       }
     }
 
-    private void initDistance()
-    {
+    private void initDistance() {
       if (this.range != null) {
         squareDist = new int[range.length];
         for (int i = 0; i < squareDist.length; ++i) {
-          squareDist[i] = i*i;
+          squareDist[i] = i * i;
         }
       }
     }
   }
 
-
-  private static class ColorModel extends AbstractListModel<ColorItem> implements ComboBoxModel<ColorItem>
-  {
+  private static class ColorModel extends AbstractListModel<ColorItem> implements ComboBoxModel<ColorItem> {
     public static final String PAL_RESOURCE       = "MPAL256.BMP";
     public static final String RANDOM_COLOR_TABLE = "RANDCOLR.2DA";
 
     private ColorItem[] items;
     private ColorItem selectedItem;
 
-    public ColorModel()
-    {
+    public ColorModel() {
       this.selectedItem = null;
       init();
     }
 
     @Override
-    public int getSize()
-    {
+    public int getSize() {
       return items.length;
     }
 
     @Override
-    public ColorItem getElementAt(int index)
-    {
+    public ColorItem getElementAt(int index) {
       return (index >= 0 && index < items.length) ? items[index] : null;
     }
 
     @Override
-    public void setSelectedItem(Object anItem)
-    {
+    public void setSelectedItem(Object anItem) {
       if (anItem instanceof ColorItem) {
-        this.selectedItem = (ColorItem)anItem;
+        this.selectedItem = (ColorItem) anItem;
       }
     }
 
     @Override
-    public Object getSelectedItem()
-    {
+    public Object getSelectedItem() {
       return selectedItem;
     }
 
-    private void init()
-    {
+    private void init() {
       ResourceEntry entry = ResourceFactory.getResourceEntry(PAL_RESOURCE);
       if (entry != null) {
         try (InputStream is = entry.getResourceDataAsStream()) {
@@ -658,7 +633,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
           int[] buffer = null;
           if (image.getRaster().getDataBuffer() instanceof DataBufferByte) {
             int bytesPerPixel = image.getColorModel().getPixelSize() / 8;
-            byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+            byte[] srcBuffer = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
             buffer = new int[srcBuffer.length / bytesPerPixel];
             int srcOfs = 0, dstOfs = 0;
             while (srcOfs < srcBuffer.length) {
@@ -672,7 +647,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
               ++dstOfs;
             }
           } else if (image.getRaster().getDataBuffer() instanceof DataBufferInt) {
-            buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+            buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
           }
 
           int numItems = image.getHeight();
@@ -698,15 +673,15 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
             }
           }
 
-          items = new ColorItem[numItems+randomIndices.size()];
+          items = new ColorItem[numItems + randomIndices.size()];
 
           // adding fixed color ranges
           for (int itemIdx = 0; itemIdx < numItems; ++itemIdx) {
             int startOfs = itemIdx * image.getWidth();
             int[] range = new int[image.getWidth()];
             for (int idx = 0; idx < range.length; ++idx) {
-              range[idx] = buffer[startOfs + idx] | 0xff000000;  // alpha component required
-              if ((range[idx] & 0xffffff) == 0x00ff00) {         // RGB(0,255,0) = transparent
+              range[idx] = buffer[startOfs + idx] | 0xff000000; // alpha component required
+              if ((range[idx] & 0xffffff) == 0x00ff00) { // RGB(0,255,0) = transparent
                 range[idx] = 0;
               }
             }
@@ -721,18 +696,25 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
             for (int col = 1; col < numCols; ++col) {
               String s = table.get(0, col);
               int v = -1;
-              try { v = Integer.parseInt(s); } catch (NumberFormatException nfe) {}
+              try {
+                v = Integer.parseInt(s);
+              } catch (NumberFormatException nfe) {
+              }
               if (randomIndices.contains(Integer.valueOf(v))) {
                 int index = v;
                 ColorItem[] randItems = new ColorItem[numRows - 1];
                 for (int row = 1; row < numRows; ++row) {
                   s = table.get(row, col);
                   v = -1;
-                  try { v = Integer.parseInt(s); } catch (NumberFormatException nfe) {}
-                  if (v < 0 || v >= numItems) v = 0;
+                  try {
+                    v = Integer.parseInt(s);
+                  } catch (NumberFormatException nfe) {
+                  }
+                  if (v < 0 || v >= numItems)
+                    v = 0;
                   randItems[row - 1] = items[v];
                 }
-                items[numItems+idx] = new ColorItem(index, null, randItems);
+                items[numItems + idx] = new ColorItem(index, null, randItems);
                 idx++;
               }
             }
@@ -743,22 +725,19 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       }
       if (items == null) {
         items = new ColorItem[1];
-        items[0] = new ColorItem(0, new int[]{0});
+        items[0] = new ColorItem(0, new int[] { 0 });
       }
     }
   }
 
-
-  private static class ColorRenderer extends JLabel implements ListCellRenderer<ColorItem>
-  {
-    private static final int ICON_WIDTH = 33;
+  private static class ColorRenderer extends JLabel implements ListCellRenderer<ColorItem> {
+    private static final int ICON_WIDTH  = 33;
     private static final int ICON_HEIGHT = 33;
 
     private final ImageIcon icon;
     private final HashMap<Integer, int[]> iconIndexMap = new HashMap<>(350);
 
-    public ColorRenderer()
-    {
+    public ColorRenderer() {
       super();
       setOpaque(true);
       this.icon = new ImageIcon(new BufferedImage(ICON_WIDTH, ICON_HEIGHT, BufferedImage.TYPE_INT_ARGB));
@@ -772,9 +751,8 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends ColorItem> list, ColorItem value,
-                                                  int index, boolean isSelected, boolean cellHasFocus)
-    {
+    public Component getListCellRendererComponent(JList<? extends ColorItem> list, ColorItem value, int index,
+        boolean isSelected, boolean cellHasFocus) {
       if (value != null) {
         setText("Index " + value.getIndex());
         icon.setImage(getColorCircle(value));
@@ -789,13 +767,12 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       return this;
     }
 
-    private BufferedImage getColorCircle(ColorItem item)
-    {
+    private BufferedImage getColorCircle(ColorItem item) {
       BufferedImage image = new BufferedImage(ICON_WIDTH, ICON_HEIGHT, BufferedImage.TYPE_INT_ARGB);
       if (item.isRandomColor()) {
         // random color entry
         final String msg = "?";
-        Graphics2D g2 = (Graphics2D)image.getGraphics();
+        Graphics2D g2 = (Graphics2D) image.getGraphics();
         JLabel l = new JLabel();
         g2.setFont(l.getFont().deriveFont(Font.BOLD, l.getFont().getSize2D() + 3.0f));
         g2.setColor(Color.BLACK);
@@ -806,7 +783,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
         // fixed color range
         int[] indices = iconIndexMap.get(Integer.valueOf(item.getIndex()));
         if (indices == null) {
-          indices = new int[ICON_WIDTH*ICON_HEIGHT];
+          indices = new int[ICON_WIDTH * ICON_HEIGHT];
           int maxDist = (ICON_WIDTH - 1) / 2;
           int scale = (item.getColorRange().length - 1) / maxDist;
           scale = scale * 4 / 3; // scale to 75%
@@ -822,15 +799,15 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
               } else {
                 index = range.length - 2;
               }
-              indices[y*ICON_WIDTH + x] = index;
+              indices[y * ICON_WIDTH + x] = index;
             }
           }
           iconIndexMap.put(Integer.valueOf(item.getIndex()), indices);
         }
 
-        int[] buffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         int[] range = item.getColorRange();
-        for (int ofs = 0; ofs <indices.length; ++ofs) {
+        for (int ofs = 0; ofs < indices.length; ++ofs) {
           buffer[ofs] = range[indices[ofs]];
         }
       }

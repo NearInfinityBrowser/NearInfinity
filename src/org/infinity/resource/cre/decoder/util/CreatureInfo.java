@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -37,14 +37,12 @@ import org.infinity.util.tuples.Couple;
 /**
  * Provides useful information about a creature resource and their equipment.
  */
-public class CreatureInfo
-{
+public class CreatureInfo {
   /** Value to disable allegiance override. */
   public static final int OVERRIDE_NONE = -1;
 
   /**
-   * Identifies the equipment slot for an item.
-   * Entries in this enumeration are sorted by effect application order.
+   * Identifies the equipment slot for an item. Entries in this enumeration are sorted by effect application order.
    */
   public enum ItemSlots {
     /** Slot for helmets and ioun stones. */
@@ -78,8 +76,7 @@ public class CreatureInfo
 
   private int allegianceOverride;
 
-  public CreatureInfo(SpriteDecoder decoder, CreResource cre) throws Exception
-  {
+  public CreatureInfo(SpriteDecoder decoder, CreResource cre) throws Exception {
     this.effectInfo = new EffectInfo();
     this.decoder = Objects.requireNonNull(decoder, "SpriteDecoder instance cannot be null");
     this.cre = Objects.requireNonNull(cre, "CRE resource cannot be null");
@@ -88,64 +85,69 @@ public class CreatureInfo
   }
 
   /** Returns the {@code SpriteDecoder} instance associated with the creature resource. */
-  public SpriteDecoder getDecoder() { return decoder; }
+  public SpriteDecoder getDecoder() {
+    return decoder;
+  }
 
   /** Returns the {@code CreResource} instance of the creature resource. */
-  public CreResource getCreResource() { return cre; }
+  public CreResource getCreResource() {
+    return cre;
+  }
 
   /** Returns creature flags. */
-  public int getFlags() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_FLAGS)).getValue(); }
+  public int getFlags() {
+    return ((IsNumeric) cre.getAttribute(CreResource.CRE_FLAGS)).getValue();
+  }
 
   /** Returns the creature status. */
-  public int getStatus() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue(); }
+  public int getStatus() {
+    return ((IsNumeric) cre.getAttribute(CreResource.CRE_STATUS)).getValue();
+  }
 
   /** Returns whether the creature is panicked. */
-  public boolean isStatusPanic()
-  {
+  public boolean isStatusPanic() {
     return ((getStatus() & (1 << 2)) != 0);
   }
 
   /**
    * Returns {@code true} if the creature is under the stoneskin effect or status is set to petrification/stone death.
    */
-  public boolean isStoneEffect()
-  {
-    return ((getStatus() & (1 << 7)) != 0) || isEffectActive(SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_STONE_EFFECT);
+  public boolean isStoneEffect() {
+    return ((getStatus() & (1 << 7)) != 0)
+        || isEffectActive(SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_STONE_EFFECT);
   }
 
   /** Returns {@code true} if the creature status is set to "frozen death". */
-  public boolean isFrozenEffect()
-  {
+  public boolean isFrozenEffect() {
     return ((getStatus() & (1 << 6)) != 0);
   }
 
   /** Returns {@code true} if the creature status is set to "flame death". */
-  public boolean isBurnedEffect()
-  {
+  public boolean isBurnedEffect() {
     return ((getStatus() & (1 << 9)) != 0);
   }
 
   /** Returns {@code true} if the creature is under the effect of blur. */
-  public boolean isBlurEffect()
-  {
+  public boolean isBlurEffect() {
     return isEffectActive(SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_BLUR_EFFECT);
   }
 
   /** Returns the creature animation id. */
-  public int getAnimationId() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue(); }
+  public int getAnimationId() {
+    return ((IsNumeric) cre.getAttribute(CreResource.CRE_ANIMATION)).getValue();
+  }
 
   /**
-   * Returns the translucency strength of the creature. Values can range from 0 (fully opaque) to 255 (fully transparent).
-   * The method takes creature animation attributes and (EE only) creature attributes into account.
+   * Returns the translucency strength of the creature. Values can range from 0 (fully opaque) to 255 (fully
+   * transparent). The method takes creature animation attributes and (EE only) creature attributes into account.
    */
-  public int getTranslucency()
-  {
+  public int getTranslucency() {
     int retVal = 0;
     if (decoder.<Boolean>getAttribute(SpriteDecoder.KEY_TRANSLUCENT)) { // avoid circular dependencies
       retVal = 128;
     }
     if (Profile.isEnhancedEdition()) {
-      int v = ((IsNumeric)cre.getAttribute(CreResource.CRE_TRANSLUCENCY)).getValue();
+      int v = ((IsNumeric) cre.getAttribute(CreResource.CRE_TRANSLUCENCY)).getValue();
       if (v > 0) {
         retVal = 255 - Math.min(v, 255);
       }
@@ -154,19 +156,19 @@ public class CreatureInfo
   }
 
   /**
-   * Returns the translucency strength of the creature after evaluating all potential sources of translucency,
-   * which includes creature animation properties, creature properties (EE only) and item effects.
-   * Values can range from 0 (fully opaque) to 255 (fully transparent).
+   * Returns the translucency strength of the creature after evaluating all potential sources of translucency, which
+   * includes creature animation properties, creature properties (EE only) and item effects. Values can range from 0
+   * (fully opaque) to 255 (fully transparent).
    */
-  public int getEffectiveTranslucency()
-  {
+  public int getEffectiveTranslucency() {
     int retVal = -1;
 
     // getting translucency from item effect
     for (final ItemSlots slot : ItemSlots.values()) {
       ItemInfo info = getItemInfo(slot);
       if (info != null) {
-        EffectInfo.Effect fx = info.getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
+        EffectInfo.Effect fx = info.getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR,
+            EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
         if (fx != null && fx.getParameter2() == 0) {
           int amount = Math.max(0, Math.min(255, fx.getParameter1()));
           retVal = Math.max(retVal, 255 - amount);
@@ -175,7 +177,8 @@ public class CreatureInfo
     }
 
     // getting translucency from creature effect
-    EffectInfo.Effect fx = getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
+    EffectInfo.Effect fx = getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR,
+        EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
     if (fx != null && fx.getParameter2() == 0) {
       int amount = Math.max(0, Math.min(255, fx.getParameter1()));
       retVal = Math.max(retVal, 255 - amount);
@@ -191,11 +194,11 @@ public class CreatureInfo
 
   /**
    * Returns the (average or highest) class level of the creature. Returns 0 if level could not be determined.
+   *
    * @param highestOnly specify {@code false} to determine the average level of all (active and inactive) classes.
    *                    Specify {@code true} to return the highest level of all (active and inactive) classes.
    */
-  public int getClassLevel(boolean highestOnly)
-  {
+  public int getClassLevel(boolean highestOnly) {
     int retVal = 0;
     int ofsBase = cre.getExtraOffset();
 
@@ -206,7 +209,7 @@ public class CreatureInfo
       int maxLevel = 0;
       int numClasses = 0;
       for (int i = 0; i < 11; i++) {
-        int v = ((IsNumeric)cre.getAttribute(ofsBase + 0x8b + i)).getValue();
+        int v = ((IsNumeric) cre.getAttribute(ofsBase + 0x8b + i)).getValue();
         if (v > 0) {
           level += v;
           maxLevel = Math.max(maxLevel, v);
@@ -223,7 +226,7 @@ public class CreatureInfo
       }
     } else {
       // non-IWD2
-      int cls = ((IsNumeric)cre.getAttribute(CreResource.CRE_CLASS)).getValue();
+      int cls = ((IsNumeric) cre.getAttribute(CreResource.CRE_CLASS)).getValue();
       int numClasses;
       switch (cls) {
         case 7:
@@ -238,7 +241,7 @@ public class CreatureInfo
           break;
         case 10:
         case 17:
-          numClasses =3;
+          numClasses = 3;
           break;
         default:
           numClasses = 1;
@@ -246,7 +249,7 @@ public class CreatureInfo
       int level = 0;
       int maxLevel = 0;
       for (int i = 0; i < numClasses; i++) {
-        int v = ((IsNumeric)cre.getAttribute(ofsBase + 0x234 + i)).getValue();
+        int v = ((IsNumeric) cre.getAttribute(ofsBase + 0x234 + i)).getValue();
         level += v;
         maxLevel = Math.max(maxLevel, v);
       }
@@ -261,41 +264,39 @@ public class CreatureInfo
   }
 
   /** Returns the allegiance of the creature. May return overridden allegiance if set. */
-  public int getAllegiance()
-  {
+  public int getAllegiance() {
     return getAllegiance(true);
   }
 
   /**
    * Returns the allegiance of the creature.
+   *
    * @param allowOverride whether allegiance override of the parent sprite decoder is considered.
    * @return the (overridden) allegiance value of the creature.
    */
-  public int getAllegiance(boolean allowOverride)
-  {
+  public int getAllegiance(boolean allowOverride) {
     int retVal = OVERRIDE_NONE;
     if (allowOverride) {
       retVal = getAllegianceOverride();
     }
     if (retVal == OVERRIDE_NONE) {
-      retVal = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+      retVal = ((IsNumeric) cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
     }
     return retVal;
   }
 
   /** Returns the overridden allegiance. Returns {@link #OVERRIDE_NONE} if allegiance has not been overridden. */
-  public int getAllegianceOverride()
-  {
+  public int getAllegianceOverride() {
     return allegianceOverride;
   }
 
   /**
    * Overrides the creature's allegiance.
-   * @param allegiance new allegiance of the creature. Uses the same values as defined in EA.IDS.
-   *                   Specify {@link #OVERRIDE_NONE} to disable.
+   *
+   * @param allegiance new allegiance of the creature. Uses the same values as defined in EA.IDS. Specify
+   *                   {@link #OVERRIDE_NONE} to disable.
    */
-  public void setAllegianceOverride(int allegiance)
-  {
+  public void setAllegianceOverride(int allegiance) {
     allegiance = Math.max(OVERRIDE_NONE, Math.min(255, allegiance));
     if (allegianceOverride != allegiance) {
       allegianceOverride = allegiance;
@@ -304,17 +305,16 @@ public class CreatureInfo
   }
 
   /**
-   * Returns the ability index of the currently selected weapon.
-   * Returns -1 if no weapon (not even fist) is available or could not be determined.
+   * Returns the ability index of the currently selected weapon. Returns -1 if no weapon (not even fist) is available or
+   * could not be determined.
    */
-  public int getSelectedWeaponAbility()
-  {
+  public int getSelectedWeaponAbility() {
     int retVal = -1;
 
     ItemInfo itemInfo = equipment.get(ItemSlots.WEAPON);
     if (itemInfo != null) {
       int numAbils = itemInfo.getAbilityCount();
-      int idxAbil = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
+      int idxAbil = ((IsNumeric) cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
       retVal = Math.max(0, Math.min(numAbils - 1, idxAbil));
     }
     return retVal;
@@ -322,51 +322,51 @@ public class CreatureInfo
 
   /**
    * Returns the active weapon of the specified creature.
-   * @return The {@code ItemInfo} object for the item resource of the active weapon.
-   *         Returns {@code null} if no weapon is active.
+   *
+   * @return The {@code ItemInfo} object for the item resource of the active weapon. Returns {@code null} if no weapon
+   *         is active.
    */
-  public ItemInfo getEquippedWeapon()
-  {
+  public ItemInfo getEquippedWeapon() {
     return getItemInfo(ItemSlots.WEAPON);
   }
 
   /**
    * Returns the equipped helmet of the specified creature.
-   * @return The {@code ItemInfo} object for the item resource of the helmet.
-   *         Returns {@code null} if no helmet is equipped.
+   *
+   * @return The {@code ItemInfo} object for the item resource of the helmet. Returns {@code null} if no helmet is
+   *         equipped.
    */
-  public ItemInfo getEquippedHelmet()
-  {
+  public ItemInfo getEquippedHelmet() {
     return getItemInfo(ItemSlots.HELMET);
   }
 
   /**
    * Returns the equipped shield or left-handed weapon of the specified creature.
-   * @return The {@code ItemInfo} object for the item resource of the shield or left-handed weapon.
-   *         Returns {@code null} if left hand is empty.
+   *
+   * @return The {@code ItemInfo} object for the item resource of the shield or left-handed weapon. Returns {@code null}
+   *         if left hand is empty.
    */
-  public ItemInfo getEquippedShield()
-  {
+  public ItemInfo getEquippedShield() {
     return getItemInfo(ItemSlots.SHIELD);
   }
 
   /**
    * Returns the equipped armor or robe.
-   * @return The {@code ItemInfo} object for the item resource of armor or robe.
-   *         Returns {@code null} if no armor is equipped.
+   *
+   * @return The {@code ItemInfo} object for the item resource of armor or robe. Returns {@code null} if no armor is
+   *         equipped.
    */
-  public ItemInfo getEquippedArmor()
-  {
+  public ItemInfo getEquippedArmor() {
     return getItemInfo(ItemSlots.ARMOR);
   }
 
   /**
    * Returns the {@link ItemInfo} instance associated with the specified item slot.
+   *
    * @param slot the slot where the item is equipped.
    * @return {@code ItemInfo} instance of the item, {@code null} if no item equipped.
    */
-  public ItemInfo getItemInfo(ItemSlots slot)
-  {
+  public ItemInfo getItemInfo(ItemSlots slot) {
     if (slot == null) {
       return null;
     }
@@ -375,10 +375,10 @@ public class CreatureInfo
 
   /**
    * Returns a list of equipped items in the order of effect application.
+   *
    * @return List of {@code ItemInfo} instances in the order of effect application.
    */
-  public ItemInfo[] getEffectiveItemInfo()
-  {
+  public ItemInfo[] getEffectiveItemInfo() {
     ArrayList<ItemInfo> items = new ArrayList<>();
 
     for (final ItemSlots slot : ItemSlots.values()) {
@@ -392,25 +392,26 @@ public class CreatureInfo
   }
 
   /** Provides access to the {@link EffectInfo} instance which manages effects attached to the current creature. */
-  public EffectInfo getEffectInfo() { return effectInfo; }
+  public EffectInfo getEffectInfo() {
+    return effectInfo;
+  }
 
   /**
-   * Returns the number of defined color entries for the creature.
-   * Number can vary for PST or PST:EE creatures. Otherwise it always returns 7.
+   * Returns the number of defined color entries for the creature. Number can vary for PST or PST:EE creatures.
+   * Otherwise it always returns 7.
    */
-  public int getColorCount()
-  {
+  public int getColorCount() {
     int retVal = 7;
     String creVersion = getCreatureVersion();
     if ("V1.1".equals(creVersion) || "V1.2".equals(creVersion)) {
       if (decoder instanceof MonsterPlanescapeDecoder && decoder.isFalseColor()) {
-        retVal = ((MonsterPlanescapeDecoder)decoder).getColorLocationCount();
+        retVal = ((MonsterPlanescapeDecoder) decoder).getColorLocationCount();
       } else {
         retVal = 0;
       }
     } else if (Profile.getGame() == Profile.Game.PSTEE) {
       if (decoder instanceof MonsterPlanescapeDecoder) {
-        retVal = ((MonsterPlanescapeDecoder)decoder).getColorLocationCount();
+        retVal = ((MonsterPlanescapeDecoder) decoder).getColorLocationCount();
       }
     }
     return retVal;
@@ -418,11 +419,11 @@ public class CreatureInfo
 
   /**
    * Returns the number of defined color entries for the specified sprite overlay type.
+   *
    * @param type the sprite overlay type.
    * @return number of defined color entries for the sprite overlay type.
    */
-  public int getColorCount(SegmentDef.SpriteType type)
-  {
+  public int getColorCount(SegmentDef.SpriteType type) {
     int retVal = 0;
 
     if (type == null) {
@@ -460,20 +461,19 @@ public class CreatureInfo
   }
 
   /**
-   * Returns the color entry of the specified location index as defined by the creature resource.
-   * Color locations range from 0 to 6. For PST and PST:EE range can differ depending on creature animation.
-   * Returns -1 if color entry is not available.
+   * Returns the color entry of the specified location index as defined by the creature resource. Color locations range
+   * from 0 to 6. For PST and PST:EE range can differ depending on creature animation. Returns -1 if color entry is not
+   * available.
    */
-  public int getColorValue(int locationIndex)
-  {
+  public int getColorValue(int locationIndex) {
     int retVal = -1;
     if (locationIndex >= 0 && locationIndex < getColorCount()) {
       String creVersion = getCreatureVersion();
       if ("V1.1".equals(creVersion) || "V1.2".equals(creVersion)) {
-        retVal = ((IsNumeric)cre.getAttribute(String.format(CreResource.CRE_COLOR_FMT, locationIndex + 1))).getValue();
+        retVal = ((IsNumeric) cre.getAttribute(String.format(CreResource.CRE_COLOR_FMT, locationIndex + 1))).getValue();
       } else {
         int ofsBase = cre.getExtraOffset();
-        retVal = ((IsNumeric)cre.getAttribute(ofsBase + 0x2c + locationIndex)).getValue();
+        retVal = ((IsNumeric) cre.getAttribute(ofsBase + 0x2c + locationIndex)).getValue();
       }
     }
     return retVal;
@@ -481,12 +481,12 @@ public class CreatureInfo
 
   /**
    * Returns the color entry of the specified location index for the specified sprite overlay type.
-   * @param type the sprite overlay type.
+   *
+   * @param type          the sprite overlay type.
    * @param locationIndex the color location index.
    * @return color entry index. Returns -1 if color entry is not available.
    */
-  public int getColorValue(SegmentDef.SpriteType type, int locationIndex)
-  {
+  public int getColorValue(SegmentDef.SpriteType type, int locationIndex) {
     int retVal = -1;
 
     if (type == null) {
@@ -512,7 +512,8 @@ public class CreatureInfo
     }
 
     if (itemInfo != null) {
-      EffectInfo.Effect fx = itemInfo.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR, locationIndex);
+      EffectInfo.Effect fx = itemInfo.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR,
+          locationIndex);
       if (fx != null) {
         retVal = fx.getParameter1();
       }
@@ -522,28 +523,28 @@ public class CreatureInfo
   }
 
   /**
-   * Returns the color entry of the specified location index for the avatar sprite
-   * after applying all equipment and effect colors as well as the source of the color value.
-   * @param opcode filter by this opcode.
+   * Returns the color entry of the specified location index for the avatar sprite after applying all equipment and
+   * effect colors as well as the source of the color value.
+   *
+   * @param opcode        filter by this opcode.
    * @param locationIndex the color location index. Available range: [-1, 6]
-   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
-   * Returns {@code -1} for the color entry if value could not be determined.
+   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are
+   *         allowed. Returns {@code -1} for the color entry if value could not be determined.
    */
-  public Couple<Integer, Boolean> getEffectiveColorValue(int locationIndex)
-  {
+  public Couple<Integer, Boolean> getEffectiveColorValue(int locationIndex) {
     return getEffectiveColorValue(SegmentDef.SpriteType.AVATAR, locationIndex);
   }
 
   /**
-   * Returns the color entry of the location index for the specified sprite overlay type
-   * after applying all equipment and effect colors as well as the source of the color value.
-   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * Returns the color entry of the location index for the specified sprite overlay type after applying all equipment
+   * and effect colors as well as the source of the color value.
+   *
+   * @param type          the {@link SegmentDef.SpriteType SpriteType} target
    * @param locationIndex the color location index. Available range: [-1, 6]
-   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
-   * Returns {@code -1} for the color entry if value could not be determined.
+   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are
+   *         allowed. Returns {@code -1} for the color entry if value could not be determined.
    */
-  public Couple<Integer, Boolean> getEffectiveColorValue(SegmentDef.SpriteType type, int locationIndex)
-  {
+  public Couple<Integer, Boolean> getEffectiveColorValue(SegmentDef.SpriteType type, int locationIndex) {
     Couple<Integer, Boolean> retVal = Couple.with(-1, true);
 
     // using creature color by default
@@ -560,7 +561,8 @@ public class CreatureInfo
     // checking equipped items
     ItemInfo[] itemInfos = getEffectiveItemInfo();
     for (final ItemInfo info : itemInfos) {
-      EffectInfo.Effect fx = info.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR, locationIndex);
+      EffectInfo.Effect fx = info.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR,
+          locationIndex);
       if (fx != null) {
         retVal.setValue0(fx.getParameter1());
         retVal.setValue1(Boolean.FALSE);
@@ -579,13 +581,13 @@ public class CreatureInfo
 
   /**
    * Returns the color value of the specified location index for the specified sprite overlay type.
-   * @param type the sprite overlay type.
-   * @param opcode the opcode to filter.
+   *
+   * @param type          the sprite overlay type.
+   * @param opcode        the opcode to filter.
    * @param locationIndex the color location index.
    * @return color entry index. Returns -1 if color value is not available.
    */
-  public int getTintValue(SegmentDef.SpriteType type, int opcode, int locationIndex)
-  {
+  public int getTintValue(SegmentDef.SpriteType type, int opcode, int locationIndex) {
     if (type == null) {
       type = SegmentDef.SpriteType.AVATAR;
     }
@@ -595,22 +597,23 @@ public class CreatureInfo
   }
 
   /**
-   * Returns the color tint value of the location index for the specified sprite overlay type
-   * after applying all equipment and effect colors as well as the source of the color value.
-   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * Returns the color tint value of the location index for the specified sprite overlay type after applying all
+   * equipment and effect colors as well as the source of the color value.
+   *
+   * @param type          the {@link SegmentDef.SpriteType SpriteType} target
    * @param locationIndex the color location index. Available range: [-1, 6]
-   * @return a tuple with the effect opcode as well as the RGB color value.
-   * Returns {@code -1} for each of the tuple elements if value could not be determined.
+   * @return a tuple with the effect opcode as well as the RGB color value. Returns {@code -1} for each of the tuple
+   *         elements if value could not be determined.
    */
-  public Couple<Integer, Integer> getEffectiveTintValue(SegmentDef.SpriteType type, int locationIndex)
-  {
+  public Couple<Integer, Integer> getEffectiveTintValue(SegmentDef.SpriteType type, int locationIndex) {
     Couple<Integer, Integer> retVal = Couple.with(-1, -1);
 
     if (type == null) {
       type = SegmentDef.SpriteType.AVATAR;
     }
 
-    final int[] opcodes = {EffectInfo.OPCODE_TINT_BRIGHT, EffectInfo.OPCODE_TINT_SOLID, EffectInfo.OPCODE_SET_COLOR_GLOW};
+    final int[] opcodes = { EffectInfo.OPCODE_TINT_BRIGHT, EffectInfo.OPCODE_TINT_SOLID,
+        EffectInfo.OPCODE_SET_COLOR_GLOW };
 
     // checking equipped items
     int opcode = -1, value = -1;
@@ -650,23 +653,23 @@ public class CreatureInfo
 
   /**
    * Returns whether the specified effect is active.
-   * @param type the {@link SegmentDef.SpriteType SpriteType} target.
+   *
+   * @param type   the {@link SegmentDef.SpriteType SpriteType} target.
    * @param opcode the effect opcode to filter.
    * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
    */
-  public boolean isEffectActive(SegmentDef.SpriteType type, int opcode)
-  {
-    return isEffectActive(type, (fx) -> fx.getOpcode() == opcode);
+  public boolean isEffectActive(SegmentDef.SpriteType type, int opcode) {
+    return isEffectActive(type, fx -> fx.getOpcode() == opcode);
   }
 
   /**
    * Returns whether the specified effect is active with the given parameters.
+   *
    * @param type the {@link SegmentDef.SpriteType SpriteType} target
    * @param pred the predicate to filter.
    * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
    */
-  public boolean isEffectActive(SegmentDef.SpriteType type, Predicate<EffectInfo.Effect> pred)
-  {
+  public boolean isEffectActive(SegmentDef.SpriteType type, Predicate<EffectInfo.Effect> pred) {
     boolean retVal = false;
 
     // checking creature effects
@@ -689,15 +692,13 @@ public class CreatureInfo
   }
 
   /** Returns the creature resource version. */
-  private String getCreatureVersion()
-  {
-    String sig = ((IsTextual)cre.getAttribute(CreResource.COMMON_SIGNATURE)).getText().toUpperCase(Locale.ENGLISH);
-    String versionLabel = sig.equals("CHR ") ? CreResource.CHR_VERSION_2 : CreResource.COMMON_VERSION;
-    return ((IsTextual)cre.getAttribute(versionLabel)).getText().toUpperCase(Locale.ENGLISH);
+  private String getCreatureVersion() {
+    String sig = ((IsTextual) cre.getAttribute(AbstractStruct.COMMON_SIGNATURE)).getText().toUpperCase(Locale.ENGLISH);
+    String versionLabel = sig.equals("CHR ") ? CreResource.CHR_VERSION_2 : AbstractStruct.COMMON_VERSION;
+    return ((IsTextual) cre.getAttribute(versionLabel)).getText().toUpperCase(Locale.ENGLISH);
   }
 
-  private void init() throws Exception
-  {
+  private void init() throws Exception {
     // initialize attributes
     initCommon();
 
@@ -705,7 +706,7 @@ public class CreatureInfo
       case "V1.0":
         initV10();
         break;
-      case "V1.1":  // non-standard PST format
+      case "V1.1": // non-standard PST format
       case "V1.2":
         initV12();
         break;
@@ -722,130 +723,130 @@ public class CreatureInfo
   }
 
   // initialize common section of creature resources
-  private void initCommon() throws Exception
-  {
+  private void initCommon() throws Exception {
     // collecting opcode 7 effects
     initEffects();
   }
 
   // initialize BG/EE-style creature resources
-  private void initV10() throws Exception
-  {
+  private void initV10() throws Exception {
     // initializing equipment
-    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
-      put(ItemSlots.HELMET, 0);
-      put(ItemSlots.ARMOR, 1);
-      put(ItemSlots.SHIELD, 2);
-      put(ItemSlots.GAUNTLETS, 3);
-      put(ItemSlots.RING_LEFT, 4);
-      put(ItemSlots.RING_RIGHT, 5);
-      put(ItemSlots.AMULET, 6);
-      put(ItemSlots.BELT, 7);
-      put(ItemSlots.BOOTS, 8);
-      put(ItemSlots.WEAPON, 9);
-      put(ItemSlots.CLOAK, 17);
-    }};
+    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {
+      {
+        put(ItemSlots.HELMET, 0);
+        put(ItemSlots.ARMOR, 1);
+        put(ItemSlots.SHIELD, 2);
+        put(ItemSlots.GAUNTLETS, 3);
+        put(ItemSlots.RING_LEFT, 4);
+        put(ItemSlots.RING_RIGHT, 5);
+        put(ItemSlots.AMULET, 6);
+        put(ItemSlots.BELT, 7);
+        put(ItemSlots.BOOTS, 8);
+        put(ItemSlots.WEAPON, 9);
+        put(ItemSlots.CLOAK, 17);
+      }
+    };
 
     initEquipment(slotMap);
   }
 
   // initialize PST-style creature resources
-  private void initV12() throws Exception
-  {
+  private void initV12() throws Exception {
     // initializing equipment
-    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
-      put(ItemSlots.HELMET, 0);
-      put(ItemSlots.ARMOR, 1);
-      put(ItemSlots.SHIELD, 2);
-      put(ItemSlots.GAUNTLETS, 3);
-      put(ItemSlots.RING_LEFT, 4);
-      put(ItemSlots.RING_RIGHT, 5);
-      put(ItemSlots.AMULET, 6);
-      put(ItemSlots.BELT, 7);
-      put(ItemSlots.BOOTS, 8);
-      put(ItemSlots.WEAPON, 9);
-      put(ItemSlots.CLOAK, 19);
-    }};
+    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {
+      {
+        put(ItemSlots.HELMET, 0);
+        put(ItemSlots.ARMOR, 1);
+        put(ItemSlots.SHIELD, 2);
+        put(ItemSlots.GAUNTLETS, 3);
+        put(ItemSlots.RING_LEFT, 4);
+        put(ItemSlots.RING_RIGHT, 5);
+        put(ItemSlots.AMULET, 6);
+        put(ItemSlots.BELT, 7);
+        put(ItemSlots.BOOTS, 8);
+        put(ItemSlots.WEAPON, 9);
+        put(ItemSlots.CLOAK, 19);
+      }
+    };
 
     initEquipment(slotMap);
   }
 
   // initialize IWD2-style creature resources
-  private void initV22() throws Exception
-  {
+  private void initV22() throws Exception {
     // initializing equipment
-    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
-      put(ItemSlots.HELMET, 0);
-      put(ItemSlots.ARMOR, 1);
-      put(ItemSlots.GAUNTLETS, 3);
-      put(ItemSlots.RING_LEFT, 4);
-      put(ItemSlots.RING_RIGHT, 5);
-      put(ItemSlots.AMULET, 6);
-      put(ItemSlots.BELT, 7);
-      put(ItemSlots.BOOTS, 8);
-      put(ItemSlots.WEAPON, 9);
-      put(ItemSlots.SHIELD, 10);
-      put(ItemSlots.CLOAK, 21);
-    }};
+    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {
+      {
+        put(ItemSlots.HELMET, 0);
+        put(ItemSlots.ARMOR, 1);
+        put(ItemSlots.GAUNTLETS, 3);
+        put(ItemSlots.RING_LEFT, 4);
+        put(ItemSlots.RING_RIGHT, 5);
+        put(ItemSlots.AMULET, 6);
+        put(ItemSlots.BELT, 7);
+        put(ItemSlots.BOOTS, 8);
+        put(ItemSlots.WEAPON, 9);
+        put(ItemSlots.SHIELD, 10);
+        put(ItemSlots.CLOAK, 21);
+      }
+    };
 
     initEquipment(slotMap);
   }
 
   // initialize IWD-style creature resources
-  private void initV90() throws Exception
-  {
+  private void initV90() throws Exception {
     // initializing equipment
-    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
-      put(ItemSlots.HELMET, 0);
-      put(ItemSlots.ARMOR, 1);
-      put(ItemSlots.SHIELD, 2);
-      put(ItemSlots.GAUNTLETS, 3);
-      put(ItemSlots.RING_LEFT, 4);
-      put(ItemSlots.RING_RIGHT, 5);
-      put(ItemSlots.AMULET, 6);
-      put(ItemSlots.BELT, 7);
-      put(ItemSlots.BOOTS, 8);
-      put(ItemSlots.WEAPON, 9);
-      put(ItemSlots.CLOAK, 17);
-    }};
+    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {
+      {
+        put(ItemSlots.HELMET, 0);
+        put(ItemSlots.ARMOR, 1);
+        put(ItemSlots.SHIELD, 2);
+        put(ItemSlots.GAUNTLETS, 3);
+        put(ItemSlots.RING_LEFT, 4);
+        put(ItemSlots.RING_RIGHT, 5);
+        put(ItemSlots.AMULET, 6);
+        put(ItemSlots.BELT, 7);
+        put(ItemSlots.BOOTS, 8);
+        put(ItemSlots.WEAPON, 9);
+        put(ItemSlots.CLOAK, 17);
+      }
+    };
 
     initEquipment(slotMap);
   }
 
-  private void initEffects()
-  {
-    int fxType = ((IsNumeric)cre.getAttribute(CreResource.CRE_EFFECT_VERSION)).getValue();
+  private void initEffects() {
+    int fxType = ((IsNumeric) cre.getAttribute(CreResource.CRE_EFFECT_VERSION)).getValue();
     Class<? extends AbstractStruct> fxClass = (fxType == 1) ? Effect2.class : Effect.class;
-    List<StructEntry> fxList= cre.getFields(fxClass);
+    List<StructEntry> fxList = cre.getFields(fxClass);
     if (fxList != null) {
       for (final StructEntry se : fxList) {
         if (se instanceof AbstractStruct) {
-          initEffect((AbstractStruct)se);
+          initEffect((AbstractStruct) se);
         }
       }
     }
   }
 
-  private void initEffect(AbstractStruct as)
-  {
+  private void initEffect(AbstractStruct as) {
     if (as instanceof Effect) {
-      getEffectInfo().add(new EffectInfo.Effect((Effect)as));
+      getEffectInfo().add(new EffectInfo.Effect((Effect) as));
     } else if (as instanceof Effect2) {
-      getEffectInfo().add(new EffectInfo.Effect((Effect2)as));
+      getEffectInfo().add(new EffectInfo.Effect((Effect2) as));
     }
   }
 
-  private void initEquipment(HashMap<ItemSlots, Integer> slotMap)
-  {
+  private void initEquipment(HashMap<ItemSlots, Integer> slotMap) {
     List<StructEntry> itemList = cre.getFields(Item.class);
-    int ofsSlots = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
+    int ofsSlots = cre.getExtraOffset() + ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
     for (HashMap.Entry<ItemSlots, Integer> entry : slotMap.entrySet()) {
       ItemSlots slot = entry.getKey();
-      int slotIdx = entry.getValue().intValue();
+      int slotIdx = entry.getValue();
       int itemIdx = -1;
       if (slot == ItemSlots.WEAPON) {
         // special: determine active weapon slot
-        int selectedWeaponSlot = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_SLOT)).getValue();
+        int selectedWeaponSlot = ((IsNumeric) cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_SLOT)).getValue();
         int weaponIdx = getWeaponSlotIndex(selectedWeaponSlot);
         if (weaponIdx == 1000) {
           // selected weapon: fists
@@ -853,11 +854,11 @@ public class CreatureInfo
         } else if (weaponIdx >= 0) {
           weaponIdx = getEffectiveWeaponIndex(weaponIdx);
           if (weaponIdx >= 0) {
-            itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + weaponIdx * 2)).getValue();
+            itemIdx = ((IsNumeric) cre.getAttribute(ofsSlots + weaponIdx * 2)).getValue();
           }
         }
       } else {
-        itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + slotIdx * 2)).getValue();
+        itemIdx = ((IsNumeric) cre.getAttribute(ofsSlots + slotIdx * 2)).getValue();
       }
 
       initEquipmentItem(slot, itemIdx, itemList);
@@ -871,8 +872,7 @@ public class CreatureInfo
     }
   }
 
-  private void initEquipmentItem(ItemSlots slot, int itemIndex, List<StructEntry> itemList)
-  {
+  private void initEquipmentItem(ItemSlots slot, int itemIndex, List<StructEntry> itemList) {
     ResourceEntry itmEntry = null;
     boolean isUndroppable = false;
     if (itemIndex == 1000) {
@@ -880,10 +880,10 @@ public class CreatureInfo
       itmEntry = getFistWeapon();
     } else if (itemIndex >= 0 && itemIndex < itemList.size()) {
       if (itemList.get(itemIndex) instanceof Item) {
-        Item itm = (Item)itemList.get(itemIndex);
-        String itmResref = ((IsTextual)itm.getAttribute(Item.CRE_ITEM_RESREF)).getText();
+        Item itm = (Item) itemList.get(itemIndex);
+        String itmResref = ((IsTextual) itm.getAttribute(Item.CRE_ITEM_RESREF)).getText();
         itmEntry = ResourceFactory.getResourceEntry(itmResref + ".ITM");
-        isUndroppable = ((Flag)itm.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3);
+        isUndroppable = ((Flag) itm.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3);
       }
     }
 
@@ -899,8 +899,7 @@ public class CreatureInfo
   }
 
   // Removes any equipment set in the specified item slot. Returns the removed equipment.
-  private ItemInfo unsetItemSlot(ItemSlots slot)
-  {
+  private ItemInfo unsetItemSlot(ItemSlots slot) {
     ItemInfo retVal = null;
     if (slot != null) {
       retVal = equipment.remove(slot);
@@ -908,8 +907,7 @@ public class CreatureInfo
     return retVal;
   }
 
-  private ResourceEntry getFistWeapon()
-  {
+  private ResourceEntry getFistWeapon() {
     ResourceEntry retVal = null;
 
     if ((getAnimationId() & 0xff00) == 0x6500) {
@@ -944,39 +942,40 @@ public class CreatureInfo
   }
 
   /**
-   * Analyses the item at the specified slot index and returns the same index if the item can be used directly.
-   * If the item requires a launcher the method scans the weapon slots of the specified CRE resource and
-   * returns the slot index of a matching launcher item.
+   * Analyses the item at the specified slot index and returns the same index if the item can be used directly. If the
+   * item requires a launcher the method scans the weapon slots of the specified CRE resource and returns the slot index
+   * of a matching launcher item.
+   *
    * @param slotIndex the absolute slot index of the item to check
    * @return the absolute slot index of the effective weapon. Returns {@code -1} if no weapon could be determined.
    */
-  private int getEffectiveWeaponIndex(int slotIndex)
-  {
+  private int getEffectiveWeaponIndex(int slotIndex) {
     int retVal = -1;
     if (slotIndex < 0) {
       return retVal;
     }
 
     // getting item entry index
-    int ofsSlots = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
-    int itmIndex = ((IsNumeric)cre.getAttribute(ofsSlots + slotIndex * 2)).getValue();
-    int numItems = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEMS)).getValue();
+    int ofsSlots = cre.getExtraOffset() + ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
+    int itmIndex = ((IsNumeric) cre.getAttribute(ofsSlots + slotIndex * 2)).getValue();
+    int numItems = ((IsNumeric) cre.getAttribute(CreResource.CRE_NUM_ITEMS)).getValue();
     if (itmIndex < 0 || itmIndex >= numItems) {
       return retVal;
     }
 
     // loading referenced item
     ItemInfo info = null;
-    int ofsItems = Objects.requireNonNull(cre).getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
+    int ofsItems = Objects.requireNonNull(cre).getExtraOffset()
+        + ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
     try {
-      String itmResref = ((IsTextual)cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
+      String itmResref = ((IsTextual) cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
       info = ItemInfo.get(ResourceFactory.getResourceEntry(itmResref + ".ITM"));
     } catch (Exception e) {
       return retVal;
     }
 
     // check if item requires a launcher
-    int abilityIndex = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
+    int abilityIndex = ((IsNumeric) cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
     abilityIndex = Math.max(0, abilityIndex);
     int numAbil = info.getAbilityCount();
     abilityIndex = Math.min(abilityIndex, numAbil - 1);
@@ -993,14 +992,14 @@ public class CreatureInfo
       // launcher required: find a weapon in weapon slots 1-4 with a matching item category
       String creVer = getCreatureVersion();
       int idxWeaponSlots = 9;
-      int slotGroupSize = creVer.equals("V2.2") ? 2 : 1;  // IWD2 uses weapon/shield pairs
+      int slotGroupSize = creVer.equals("V2.2") ? 2 : 1; // IWD2 uses weapon/shield pairs
       for (int i = 0; i < 4; i++) {
         int ofs = ofsSlots + (idxWeaponSlots + i * slotGroupSize) * 2;
-        itmIndex = ((IsNumeric)cre.getAttribute(ofs)).getValue();
+        itmIndex = ((IsNumeric) cre.getAttribute(ofs)).getValue();
         if (itmIndex >= 0 && itmIndex < numItems) {
           int cat = -1;
           try {
-            String itmResref = ((IsTextual)cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
+            String itmResref = ((IsTextual) cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
             ResourceEntry itmEntry = ResourceFactory.getResourceEntry(itmResref + ".ITM");
             if (itmEntry != null) {
               try (InputStream is = itmEntry.getResourceDataAsStream()) {
@@ -1010,9 +1009,9 @@ public class CreatureInfo
               }
             }
             // checking if launcher type corresponds with item category
-            if (launcherType == 1 && cat == 15 ||   // Bow
-                launcherType == 2 && cat == 27 ||   // Crossbow
-                launcherType == 3 && cat == 18) {   // Sling
+            if (launcherType == 1 && cat == 15 || // Bow
+                launcherType == 2 && cat == 27 || // Crossbow
+                launcherType == 3 && cat == 18) { // Sling
               retVal = idxWeaponSlots + i * slotGroupSize;
               break;
             }
@@ -1026,14 +1025,15 @@ public class CreatureInfo
   }
 
   /**
-   * Determines the absolute item slot index of the specified weapon-related slot id.
-   * Special slots that cannot be mapped to slot indices are returned as -1.
-   * Only weapon-related slots are considered, which includes the actual weapon slot ids as well as the ammo ids.
+   * Determines the absolute item slot index of the specified weapon-related slot id. Special slots that cannot be
+   * mapped to slot indices are returned as -1. Only weapon-related slots are considered, which includes the actual
+   * weapon slot ids as well as the ammo ids.
+   *
    * @param slotId the slot id (as defined in SLOTS.IDS)
-   * @return absolute item slot index. Returns 1000 for fist slot. Returns -1 if slot id could not be mapped to a slot index.
+   * @return absolute item slot index. Returns 1000 for fist slot. Returns -1 if slot id could not be mapped to a slot
+   *         index.
    */
-  private int getWeaponSlotIndex(int slotId)
-  {
+  private int getWeaponSlotIndex(int slotId) {
     int retVal = -1;
     if (slotId == 1000) {
       // fist weapon
@@ -1041,20 +1041,20 @@ public class CreatureInfo
     }
 
     String creVer = getCreatureVersion();
-    slotId += 35;   // determine SLOTS.IDS value
+    slotId += 35; // determine SLOTS.IDS value
     switch (slotId) {
-      case 3:   // IWD2: ammo1
-      case 4:   // IWD2: ammo2
-      case 5:   // IWD2: ammo3
-      case 6:   // IWD2: ammo4
+      case 3: // IWD2: ammo1
+      case 4: // IWD2: ammo2
+      case 5: // IWD2: ammo3
+      case 6: // IWD2: ammo4
         if (creVer.equals("V2.2")) {
           retVal = slotId + 14;
         }
         break;
-      case 11:  // ammo1
-      case 12:  // ammo2
-      case 13:  // ammo3
-      case 14:  // ammo4
+      case 11: // ammo1
+      case 12: // ammo2
+      case 13: // ammo3
+      case 14: // ammo4
         if (!creVer.equals("V2.2")) {
           retVal = slotId + 2;
         }
@@ -1065,7 +1065,7 @@ public class CreatureInfo
           retVal = slotId + 2;
         }
         break;
-      case 34:  // magically created weapon
+      case 34: // magically created weapon
       {
         switch (creVer) {
           case "V1.2":
@@ -1074,11 +1074,10 @@ public class CreatureInfo
           case "V2.2":
             retVal = slotId + 15;
             break;
-          default:
-          {
+          default: {
             if (Profile.getGame() == Profile.Game.PSTEE) {
               // special: PSTEE party members have customized item slots
-              int numSlots = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEM_SLOTS)).getValue();
+              int numSlots = ((IsNumeric) cre.getAttribute(CreResource.CRE_NUM_ITEM_SLOTS)).getValue();
               if (numSlots > 0) {
                 Table2da table = Table2daCache.get("ITMSLOTS.2DA");
                 if (table != null) {
@@ -1097,14 +1096,14 @@ public class CreatureInfo
         }
         break;
       }
-      case 35:  // weapon1
-      case 36:  // weapon2 (IWD2: shield1)
-      case 37:  // weapon3 (IWD2: weapon2)
-      case 38:  // weapon4 (IWD2: shield2)
-      case 39:  // IWD2: weapon3
-      case 40:  // IWD2: shield3
-      case 41:  // IWD2: weapon4
-      case 42:  // IWD2: shield4
+      case 35: // weapon1
+      case 36: // weapon2 (IWD2: shield1)
+      case 37: // weapon3 (IWD2: weapon2)
+      case 38: // weapon4 (IWD2: shield2)
+      case 39: // IWD2: weapon3
+      case 40: // IWD2: shield3
+      case 41: // IWD2: weapon4
+      case 42: // IWD2: shield4
         retVal = slotId - 26;
         break;
     }
@@ -1112,36 +1111,24 @@ public class CreatureInfo
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = 7;
-    hash = 31 * hash + ((equipment == null) ? 0 : equipment.hashCode());
-    hash = 31 * hash + ((effectInfo == null) ? 0 : effectInfo.hashCode());
-    hash = 31 * hash + ((decoder == null) ? 0 : decoder.hashCode());
-    hash = 31 * hash + ((cre == null) ? 0 : cre.hashCode());
-    hash = 31 * hash + Integer.valueOf(allegianceOverride).hashCode();
-    return hash;
+  public int hashCode() {
+    return Objects.hash(allegianceOverride, cre, decoder, effectInfo, equipment);
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (o == this) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (!(o instanceof CreatureInfo)) {
+    if (obj == null) {
       return false;
     }
-    CreatureInfo other = (CreatureInfo)o;
-    boolean retVal = (this.equipment == null && other.equipment == null) ||
-                     (this.equipment != null && this.equipment.equals(other.equipment));
-    retVal &= (this.effectInfo == null && other.effectInfo == null) ||
-              (this.effectInfo != null && this.effectInfo.equals(other.effectInfo));
-    retVal &= (this.decoder == null && other.decoder == null) ||
-              (this.decoder != null && this.decoder.equals(other.decoder));
-    retVal &= (this.cre == null && other.cre == null) ||
-              (this.cre != null && this.cre.equals(other.cre));
-    retVal &= (this.allegianceOverride == other.allegianceOverride);
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    CreatureInfo other = (CreatureInfo) obj;
+    return allegianceOverride == other.allegianceOverride && Objects.equals(cre, other.cre)
+        && Objects.equals(decoder, other.decoder) && Objects.equals(effectInfo, other.effectInfo)
+        && Objects.equals(equipment, other.equipment);
   }
 }

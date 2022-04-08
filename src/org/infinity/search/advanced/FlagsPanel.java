@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search.advanced;
@@ -20,15 +20,15 @@ import org.infinity.gui.ViewerUtil;
 /**
  *
  */
-public class FlagsPanel extends JPanel implements ActionListener
-{
+public class FlagsPanel extends JPanel implements ActionListener {
   private final int size;
   private final JCheckBox[] cbFlags;
 
-  private JButton bAll, bNone, bInvert;
+  private JButton bAll;
+  private JButton bNone;
+  private JButton bInvert;
 
-  public FlagsPanel(int size, String[] labels)
-  {
+  public FlagsPanel(int size, String[] labels) {
     super(new BorderLayout());
     if (size < 1)
       size = 1;
@@ -40,14 +40,13 @@ public class FlagsPanel extends JPanel implements ActionListener
   }
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bAll || event.getSource() == bNone) {
       boolean op = (event.getSource() == bAll);
       for (JCheckBox cb : cbFlags)
         cb.setSelected(op);
     } else if (event.getSource() == bInvert) {
-      for (JCheckBox cb: cbFlags)
+      for (JCheckBox cb : cbFlags)
         cb.setSelected(!cb.isSelected());
     }
   }
@@ -62,18 +61,16 @@ public class FlagsPanel extends JPanel implements ActionListener
   }
 
   /** Sets the bits according to the specified value. */
-  public void setValue(int value)
-  {
+  public void setValue(int value) {
     for (int i = 0; i < cbFlags.length; i++) {
       cbFlags[i].setSelected((value & 1) != 0);
       value >>>= 1;
     }
   }
 
-  private void init(String[] labels)
-  {
+  private void init(String[] labels) {
     if (labels == null || labels.length == 0)
-      labels = new String[] {"Normal"};
+      labels = new String[] { "Normal" };
 
     GridBagConstraints c = new GridBagConstraints();
 
@@ -88,7 +85,8 @@ public class FlagsPanel extends JPanel implements ActionListener
         String label = (idx < labels.length) ? labels[idx] : "Unknown";
         cbFlags[idx] = new JCheckBox(label, false);
 
-        c = ViewerUtil.setGBC(c, col, row, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         pBits.add(cbFlags[idx], c);
       }
     }
@@ -104,19 +102,25 @@ public class FlagsPanel extends JPanel implements ActionListener
     bInvert.setMargin(new Insets(1, bInvert.getMargin().left, 1, bInvert.getMargin().right));
     bInvert.addActionListener(this);
     JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pButtons.add(bAll, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(bNone, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(bInvert, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(new JPanel(), c);
 
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pBits, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 8, 8), 0, 0);
     pMain.add(pButtons, c);
 
     add(pMain, BorderLayout.CENTER);

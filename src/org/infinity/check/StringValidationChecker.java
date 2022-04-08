@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -55,28 +56,29 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
-public class StringValidationChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
-{
+public class StringValidationChecker extends AbstractSearcher
+    implements Runnable, ActionListener, ListSelectionListener {
   private ChildFrame resultFrame;
   private SortableTable table;
-  private JButton bSave, bOpenLookup, bOpenStringTable;
+  private JButton bSave;
+  private JButton bOpenLookup;
+  private JButton bOpenStringTable;
 
-  public StringValidationChecker(Component parent)
-  {
+  public StringValidationChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
-//--------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
       final List<ResourceEntry> files = new ArrayList<>();
-      for (final Profile.Key key : new Profile.Key[] {Profile.Key.GET_GAME_DIALOG_FILE, Profile.Key.GET_GAME_DIALOGF_FILE}) {
+      for (final Profile.Key key : new Profile.Key[] { Profile.Key.GET_GAME_DIALOG_FILE,
+          Profile.Key.GET_GAME_DIALOGF_FILE }) {
         final Path path = Profile.getProperty(key);
         if (path != null) {
           final ResourceEntry entry = new FileResourceEntry(path);
@@ -88,21 +90,21 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
 
       if (files.isEmpty()) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Could not determine path of the string table.",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+            "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
 
-      table = new SortableTable(new String[] {"String table", "StringRef", "String", "Error message"},
-                                new Class<?>[] {ResourceEntry.class, Integer.class, String.class, String.class},
-                                new Integer[] {100, 75, 500, 300});
+      table = new SortableTable(new String[] { "String table", "StringRef", "String", "Error message" },
+          new Class<?>[] { ResourceEntry.class, Integer.class, String.class, String.class },
+          new Integer[] { 100, 75, 500, 300 });
 
       if (runSearch("Checking strings", files)) {
         return;
       }
 
       if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No string encoding errors found.",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No string encoding errors found.", "Info",
+            JOptionPane.INFORMATION_MESSAGE);
       } else {
         getResultFrame().setVisible(true);
       }
@@ -112,20 +114,19 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     }
   }
 
-//--------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
-  private ChildFrame getResultFrame()
-  {
+  private ChildFrame getResultFrame() {
     if (resultFrame == null) {
       table.tableComplete();
       resultFrame = new ChildFrame("Result of string validation", true);
-      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-      bOpenLookup = new JButton("Open in StringRef Lookup", Icons.getIcon(Icons.ICON_OPEN_16));
+      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+      bOpenLookup = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
       bOpenLookup.setMnemonic('l');
       bOpenLookup.setToolTipText("Only available for male strings.");
-      bOpenStringTable = new JButton("Open in String table", Icons.getIcon(Icons.ICON_OPEN_16));
+      bOpenStringTable = new JButton("Open in String table", Icons.ICON_OPEN_16.getIcon());
       bOpenStringTable.setMnemonic('t');
-      bSave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+      bSave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
       bSave.setMnemonic('s');
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
@@ -134,18 +135,19 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
       // counting individual strings
       HashSet<String> errorMap = new HashSet<>();
       for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
-        final StringErrorTableItem item = (StringErrorTableItem)table.getTableItemAt(row);
+        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
         errorMap.add(item.resource.toString() + item.strref);
       }
-      JLabel count = new JLabel(table.getRowCount() + " error(s) found in " + errorMap.size() + " string(s)", JLabel.CENTER);
-      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+      JLabel count = new JLabel(table.getRowCount() + " error(s) found in " + errorMap.size() + " string(s)",
+          SwingConstants.CENTER);
+      count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
 
       JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       panel.add(bOpenLookup);
       panel.add(bOpenStringTable);
       panel.add(bSave);
 
-      JPanel pane = (JPanel)resultFrame.getContentPane();
+      JPanel pane = (JPanel) resultFrame.getContentPane();
       pane.setLayout(new BorderLayout(0, 3));
       pane.add(count, BorderLayout.PAGE_START);
       pane.add(scrollTable, BorderLayout.CENTER);
@@ -157,18 +159,17 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
       table.getSelectionModel().addListSelectionListener(this);
       final MouseListener listener = new MouseAdapter() {
         @Override
-        public void mouseReleased(MouseEvent event)
-        {
+        public void mouseReleased(MouseEvent event) {
           if (event.getClickCount() == 2) {
-            SortableTable table = (SortableTable)event.getSource();
+            SortableTable table = (SortableTable) event.getSource();
             int row = table.getSelectedRow();
             if (row != -1) {
-              StringErrorTableItem item = (StringErrorTableItem)table.getTableItemAt(row);
+              StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
               if (event.isAltDown()) {
                 final StringTable.Type type = item.isFemaleDialog() ? StringTable.Type.FEMALE : StringTable.Type.MALE;
-                ChildFrame.show(StringEditor.class, () -> new StringEditor()).showEntry(type, item.strref);
+                ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(type, item.strref);
               } else if (!item.isFemaleDialog()) {
-                ChildFrame.show(StringLookup.class, () -> new StringLookup()).hitFound(item.strref);
+                ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
               }
             }
           }
@@ -187,12 +188,12 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
   }
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     // checking strings for malformed or unmappable UTF-8 characters
     return () -> {
       final Path dlgPath = entry.getActualPath();
-      final boolean isFemale = Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME_FEMALE).toString().equalsIgnoreCase(dlgPath.getFileName().toString());
+      final boolean isFemale = Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME_FEMALE).toString()
+          .equalsIgnoreCase(dlgPath.getFileName().toString());
 
       try (FileChannel ch = FileChannel.open(dlgPath, StandardOpenOption.READ)) {
         final int ENTRY_SIZE = 26;
@@ -229,7 +230,7 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
         CharsetDecoder decoder = StringTable.getCharset().newDecoder();
         decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
         decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
-        int maxCharLength = (int)Math.ceil(decoder.maxCharsPerByte() * maxLength);
+        int maxCharLength = (int) Math.ceil(decoder.maxCharsPerByte() * maxLength);
         final CharBuffer outBuf = CharBuffer.allocate(maxCharLength);
 
         // processing strings
@@ -247,7 +248,8 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
             inBuf.position(0);
             int len = ch.read(inBuf);
             if (len < lenString) {
-              throw new IOException(entry.toString() + ": Could not read string entry " + idx + " at file offset " + ofsString);
+              throw new IOException(
+                  String.format("%s: Could not read string entry %d at file offset %d", entry, idx, ofsString));
             }
             inBuf.flip();
             outBuf.position(0);
@@ -273,15 +275,13 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
   }
 
   /** Encodes the given byte array in the specified charset and reports any errors or potential errors. */
-  private void validateInput(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf,
-                             ResourceEntry entry, int strref, boolean isFemale)
-      throws IllegalStateException, CoderMalfunctionError
-  {
+  private void validateInput(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf, ResourceEntry entry,
+      int strref, boolean isFemale) throws IllegalStateException, CoderMalfunctionError {
     if (decoder == null || inBuf == null) {
       return;
     }
     if (outBuf == null) {
-      final int maxCharLength = (int)Math.ceil(decoder.maxCharsPerByte() * inBuf.limit());
+      final int maxCharLength = (int) Math.ceil(decoder.maxCharsPerByte() * inBuf.limit());
       outBuf = CharBuffer.allocate(maxCharLength);
     }
 
@@ -292,10 +292,8 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     }
   }
 
-  private void validateInputUnicode(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf,
-                                    ResourceEntry entry, int strref, boolean isFemale)
-      throws IllegalStateException, CoderMalfunctionError
-  {
+  private void validateInputUnicode(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf, ResourceEntry entry,
+      int strref, boolean isFemale) throws IllegalStateException, CoderMalfunctionError {
     outBuf.limit(outBuf.capacity());
     outBuf.position(0);
     int lenString = inBuf.limit();
@@ -305,7 +303,8 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
       final CoderResult cr = decoder.decode(inBuf, outBuf, true);
       if (cr.isError()) {
         synchronized (table) {
-          final String text = StringTable.getStringRef(isFemale ? StringTable.Type.FEMALE : StringTable.Type.MALE, strref);
+          final String text = StringTable.getStringRef(isFemale ? StringTable.Type.FEMALE : StringTable.Type.MALE,
+              strref);
           final String infoBytes = (cr.length() == 1) ? " byte" : " bytes";
           final String info = "offset " + outBuf.position() + ", length: " + cr.length() + infoBytes;
           if (cr.isMalformed()) {
@@ -319,7 +318,7 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
       if (inBuf.position() < inBuf.limit() && cr.length() > 0) {
         inBuf.position(inBuf.position() + cr.length());
         for (int i = cr.length(); i > 0; i--) {
-          outBuf.put('\ufffd');  // adding replacement character
+          outBuf.put('\ufffd'); // adding replacement character
         }
         lenString -= cr.length();
       } else {
@@ -328,10 +327,8 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     }
   }
 
-  private void validateInputAnsi(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf,
-                                 ResourceEntry entry, int strref, boolean isFemale)
-          throws IllegalStateException, CoderMalfunctionError
-  {
+  private void validateInputAnsi(CharsetDecoder decoder, ByteBuffer inBuf, CharBuffer outBuf, ResourceEntry entry,
+      int strref, boolean isFemale) throws IllegalStateException, CoderMalfunctionError {
     outBuf.limit(outBuf.capacity());
     outBuf.position(0);
     decoder.decode(inBuf, outBuf, true);
@@ -348,58 +345,59 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
       final String textUtf8 = outBuf.toString();
 
       boolean isError = false;
-      for (int ofs = 0, len1 = textAnsi.length(), len2 = textUtf8.length(); ofs < len1 && ofs < len2 && !isError; ofs++) {
+      for (int ofs = 0, len1 = textAnsi.length(), len2 = textUtf8.length(); ofs < len1 && ofs < len2
+          && !isError; ofs++) {
         final char ch1 = textAnsi.charAt(ofs);
         final char ch2 = textUtf8.charAt(ofs);
         if (ch1 != ch2) {
-          final String msg = "Possible encoding error found at offset " + ofs;
-          table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
-          isError = true;
+          synchronized(table) {
+            final String msg = "Possible encoding error found at offset " + ofs;
+            table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+            isError = true;
+          }
         }
       }
 
       if (!isError && textAnsi.length() > textUtf8.length()) {
-        final String msg = "Possible encoding error found at offset " + textUtf8.length();
-        table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+        synchronized (table) {
+          final String msg = "Possible encoding error found at offset " + textUtf8.length();
+          table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
+        }
       }
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     if (e.getSource() == bOpenLookup) {
       final int row = table.getSelectedRow();
       if (row >= 0) {
-        final StringErrorTableItem item = (StringErrorTableItem)table.getTableItemAt(row);
-        ChildFrame.show(StringLookup.class, () -> new StringLookup()).hitFound(item.strref);
+        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
+        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
       }
-    }
-    else if (e.getSource() == bOpenStringTable) {
+    } else if (e.getSource() == bOpenStringTable) {
       final int row = table.getSelectedRow();
       if (row >= 0) {
-        final StringErrorTableItem item = (StringErrorTableItem)table.getTableItemAt(row);
+        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
         final StringTable.Type type = item.isFemaleDialog() ? StringTable.Type.FEMALE : StringTable.Type.MALE;
-        ChildFrame.show(StringEditor.class, () -> new StringEditor()).showEntry(type, item.strref);
+        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(type, item.strref);
       }
-    }
-    else if (e.getSource() == bSave) {
+    } else if (e.getSource() == bSave) {
       table.saveCheckResult(resultFrame, "Encoding errors in game strings");
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e)
-  {
+  public void valueChanged(ListSelectionEvent e) {
     final int row = table.getSelectedRow();
     if (row >= 0) {
-      StringErrorTableItem item = (StringErrorTableItem)table.getTableItemAt(row);
+      StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
       bOpenLookup.setEnabled(!item.isFemaleDialog());
     } else {
       bOpenLookup.setEnabled(false);
@@ -407,12 +405,11 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     bOpenStringTable.setEnabled(row >= 0);
   }
 
-//--------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class StringErrorTableItem implements TableItem
-  {
+  private static final class StringErrorTableItem implements TableItem {
     private static final Pattern REGEX_LINEBREAK = Pattern.compile("\r?\n");
 
     private final ResourceEntry resource;
@@ -420,8 +417,7 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     private final String text;
     private final String message;
 
-    public StringErrorTableItem(ResourceEntry dlg, int strref, String text, String msg)
-    {
+    public StringErrorTableItem(ResourceEntry dlg, int strref, String text, String msg) {
       this.resource = dlg;
       this.strref = strref;
       this.text = text;
@@ -429,29 +425,31 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     }
 
     /** Returns whether the dialog resource contains female strings. */
-    public boolean isFemaleDialog()
-    {
+    public boolean isFemaleDialog() {
       final String dlgName = Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME_FEMALE);
       return (dlgName.equalsIgnoreCase(resource.getResourceName()));
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
+    public Object getObjectAt(int columnIndex) {
       switch (columnIndex) {
-        case 0:  return resource;
-        case 1:  return strref;
-        case 2:  return text;
-        case 3:  return message;
-        default: return strref;
+        case 0:
+          return resource;
+        case 1:
+          return strref;
+        case 2:
+          return text;
+        case 3:
+          return message;
+        default:
+          return strref;
       }
     }
 
     @Override
-    public String toString()
-    {
-      return String.format("String table: %s, StringRef: %d /* %s */, Error message: %s",
-                           resource.getResourceName(), strref, REGEX_LINEBREAK.matcher(text).replaceAll(" "), message);
+    public String toString() {
+      return String.format("String table: %s, StringRef: %d /* %s */, Error message: %s", resource.getResourceName(),
+          strref, REGEX_LINEBREAK.matcher(text).replaceAll(" "), message);
     }
   }
 }

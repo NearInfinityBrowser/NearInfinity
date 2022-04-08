@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -13,60 +13,54 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
 /** Specialized HashBitmap type for parsing "secondary type" entries. */
-public class SecTypeBitmap extends HashBitmap
-{
-  private static final String TableName = ResourceFactory.resourceExists("MSECTYPE.2DA") ? "MSECTYPE.2DA" : "";
-  private static final String[] s_category = {"None", "Spell protections", "Specific protections",
-                                              "Illusionary protections", "Magic attack",
-                                              "Divination attack", "Conjuration", "Combat protections",
-                                              "Contingency", "Battleground", "Offensive damage",
-                                              "Disabling", "Combination", "Non-combat"};
-  private static final TreeMap<Long, String> typeMap = new TreeMap<>();
+public class SecTypeBitmap extends HashBitmap {
+  private static final String TABLE_NAME = ResourceFactory.resourceExists("MSECTYPE.2DA") ? "MSECTYPE.2DA" : "";
 
-  public SecTypeBitmap(ByteBuffer buffer, int offset, int length, String name)
-  {
+  private static final String[] CATEGORY_ARRAY = { "None", "Spell protections", "Specific protections",
+      "Illusionary protections", "Magic attack", "Divination attack", "Conjuration", "Combat protections",
+      "Contingency", "Battleground", "Offensive damage", "Disabling", "Combination", "Non-combat" };
+
+  private static final TreeMap<Long, String> TYPE_MAP = new TreeMap<>();
+
+  public SecTypeBitmap(ByteBuffer buffer, int offset, int length, String name) {
     super(buffer, offset, length, name, getTypeTable());
   }
 
-  public static String getTableName()
-  {
-    return TableName;
+  public static String getTableName() {
+    return TABLE_NAME;
   }
 
-  public static String[] getTypeArray()
-  {
+  public static String[] getTypeArray() {
     final TreeMap<Long, String> map = getTypeTable();
     return map.values().toArray(new String[map.size()]);
   }
 
-  private static synchronized TreeMap<Long, String> getTypeTable()
-  {
-    if (typeMap.isEmpty()) {
-      if (ResourceFactory.resourceExists(TableName)) {
+  private static synchronized TreeMap<Long, String> getTypeTable() {
+    if (TYPE_MAP.isEmpty()) {
+      if (ResourceFactory.resourceExists(TABLE_NAME)) {
         // using MSECTYPE.2DA
-        Table2da table = Table2daCache.get(TableName);
+        Table2da table = Table2daCache.get(TABLE_NAME);
         if (table != null) {
           for (int row = 0, size = table.getRowCount(); row < size; row++) {
             long id = row;
             String label = table.get(row, 0).toUpperCase(Locale.ENGLISH);
-            typeMap.put(Long.valueOf(id), label);
+            TYPE_MAP.put(id, label);
           }
         }
       } else {
         // using predefined values
-        for (int i = 0; i < s_category.length; i++) {
-          typeMap.put(Long.valueOf(i), s_category[i].toUpperCase(Locale.ENGLISH));
+        for (int i = 0; i < CATEGORY_ARRAY.length; i++) {
+          TYPE_MAP.put((long) i, CATEGORY_ARRAY[i].toUpperCase(Locale.ENGLISH));
         }
       }
     }
-    return typeMap;
+    return TYPE_MAP;
   }
 
-  public static synchronized void resetTypeTable()
-  {
-    typeMap.clear();
-    if (TableName.endsWith(".2DA")) {
-      Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
+  public static synchronized void resetTypeTable() {
+    TYPE_MAP.clear();
+    if (TABLE_NAME.endsWith(".2DA")) {
+      Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TABLE_NAME));
     }
   }
 }

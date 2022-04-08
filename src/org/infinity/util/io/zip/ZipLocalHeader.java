@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
@@ -11,8 +11,7 @@ import java.nio.ByteBuffer;
 /**
  * Storage class for a single local zip header.
  */
-public class ZipLocalHeader extends ZipBaseHeader
-{
+public class ZipLocalHeader extends ZipBaseHeader {
   /** Required zip version to decode data. */
   public int version;
 
@@ -46,13 +45,11 @@ public class ZipLocalHeader extends ZipBaseHeader
   /** Optional extra data. (Is never {@code null}) */
   public byte[] extra;
 
-  protected ZipLocalHeader(long offset, long signature)
-  {
+  protected ZipLocalHeader(long offset, long signature) {
     super(offset, signature);
   }
 
-  public ZipLocalHeader(ByteBuffer buffer, long absOffset)
-  {
+  public ZipLocalHeader(ByteBuffer buffer, long absOffset) {
     super(absOffset, buffer.getInt());
     long headerStart = buffer.position() - 4L;
     if (this.signature != LOCSIG) {
@@ -83,12 +80,11 @@ public class ZipLocalHeader extends ZipBaseHeader
     if (extraLength > 0) {
       buffer.get(this.extra);
     }
-    this.size = (int)(buffer.position() - headerStart);
+    this.size = (int) (buffer.position() - headerStart);
   }
 
   /** Returns the absolute start offset to file data. */
-  public long getDataOffset()
-  {
+  public long getDataOffset() {
     return this.offset + this.size;
   }
 }

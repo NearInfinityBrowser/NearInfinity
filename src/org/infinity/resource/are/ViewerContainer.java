@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -18,10 +18,8 @@ import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.StructEntry;
 
-public final class ViewerContainer extends JPanel
-{
-  ViewerContainer(Container container)
-  {
+public final class ViewerContainer extends JPanel {
+  ViewerContainer(Container container) {
     JPanel fieldPanel = makeFieldPanel(container);
     JPanel itemPanel = ViewerUtil.makeListPanel("Items", container, Item.class, Item.ARE_ITEM_RESREF);
 
@@ -32,17 +30,14 @@ public final class ViewerContainer extends JPanel
     add(mainPanel);
   }
 
-  private JPanel makeFieldPanel(Container container)
-  {
+  private JPanel makeFieldPanel(Container container) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_NAME),
-                                 gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_TYPE),
-                                 gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_TYPE), gbl, gbc, true);
 
     StructEntry s1 = container.getAttribute(Container.ARE_CONTAINER_LOCATION_X);
     StructEntry s2 = container.getAttribute(Container.ARE_CONTAINER_LOCATION_Y);
@@ -76,20 +71,20 @@ public final class ViewerContainer extends JPanel
     gbl.setConstraints(tf2, gbc);
     fieldPanel.add(tf2);
 
-    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY),
-                                 gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY), gbl, gbc,
+        true);
     ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_TRAP_DETECTION_DIFFICULTY),
-                                 gbl, gbc, true);
+        gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY),
-                                 gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP), gbl, gbc, true);
+        gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP), gbl, gbc,
+        true);
     ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_KEY), gbl, gbc, true);
 
-    JComponent check1 = ViewerUtil.makeCheckPanel((Flag)container.getAttribute(Container.ARE_CONTAINER_FLAGS), 1);
-    JComponent check2 = ViewerUtil.makeCheckLabel(container.getAttribute(Container.ARE_CONTAINER_TRAPPED),
-                                                  "Yes (1)");
+    JComponent check1 = ViewerUtil.makeCheckPanel((Flag) container.getAttribute(Container.ARE_CONTAINER_FLAGS), 1);
+    JComponent check2 = ViewerUtil.makeCheckLabel(container.getAttribute(Container.ARE_CONTAINER_TRAPPED), "Yes (1)");
     JComponent check3 = ViewerUtil.makeCheckLabel(container.getAttribute(Container.ARE_CONTAINER_TRAP_DETECTED),
-                                                  "Yes (1)");
+        "Yes (1)");
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.NONE;
@@ -103,4 +98,3 @@ public final class ViewerContainer extends JPanel
     return fieldPanel;
   }
 }
-

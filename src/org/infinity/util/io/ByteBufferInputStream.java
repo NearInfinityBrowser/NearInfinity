@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io;
@@ -11,20 +11,18 @@ import java.nio.ByteBuffer;
 /**
  * A simple InputStream implementation which uses one or more {@link ByteBuffer} objects as backend.
  */
-public class ByteBufferInputStream extends InputStream
-{
+public class ByteBufferInputStream extends InputStream {
   private final ByteBuffer[] bufs;
 
   private int curBuf;
-  private int markBufIndex, markBufPosition;
+  private int markBufIndex;
+  private int markBufPosition;
 
-  public ByteBufferInputStream(ByteBuffer buf)
-  {
-    this(new ByteBuffer[]{buf});
+  public ByteBufferInputStream(ByteBuffer buf) {
+    this(new ByteBuffer[] { buf });
   }
 
-  public ByteBufferInputStream(ByteBuffer... bufs)
-  {
+  public ByteBufferInputStream(ByteBuffer... bufs) {
     if (bufs == null) {
       throw new NullPointerException();
     }
@@ -48,8 +46,7 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public int read() throws IOException
-  {
+  public int read() throws IOException {
     if (!isOpen()) {
       throw new IOException("Stream not open");
     }
@@ -61,8 +58,7 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public int read(byte[] bytes, int off, int len) throws IOException
-  {
+  public int read(byte[] bytes, int off, int len) throws IOException {
     if (bytes == null) {
       throw new NullPointerException();
     }
@@ -88,15 +84,14 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public long skip(long n) throws IOException
-  {
+  public long skip(long n) throws IOException {
     if (n <= 0) {
       return 0;
     }
-    byte[] tmp = new byte[Math.min(1024, (int)n)];
+    byte[] tmp = new byte[Math.min(1024, (int) n)];
     int read = 0;
     while (read < n) {
-      int remaining = Math.min(tmp.length, (int)n - read);
+      int remaining = Math.min(tmp.length, (int) n - read);
       int n2 = read(tmp, 0, remaining);
       if (n2 < 0) {
         break;
@@ -107,8 +102,7 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public int available() throws IOException
-  {
+  public int available() throws IOException {
     if (isOpen() && curBuf < bufs.length) {
       int idx = curBuf;
       int sum = bufs[idx++].remaining();
@@ -121,8 +115,7 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public void close() throws IOException
-  {
+  public void close() throws IOException {
     if (curBuf >= 0) {
       synchronized (this) {
         curBuf = -1;
@@ -131,14 +124,12 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public boolean markSupported()
-  {
+  public boolean markSupported() {
     return true;
   }
 
   @Override
-  public synchronized void mark(int readlimit)
-  {
+  public synchronized void mark(int readlimit) {
     if (isOpen()) {
       ByteBuffer buffer = getBuffer(true);
       if (buffer != null) {
@@ -152,8 +143,7 @@ public class ByteBufferInputStream extends InputStream
   }
 
   @Override
-  public synchronized void reset() throws IOException
-  {
+  public synchronized void reset() throws IOException {
     if (isOpen() && markBufIndex >= 0 && markBufIndex < bufs.length && markBufPosition >= 0) {
       curBuf = markBufIndex;
       bufs[curBuf].position(markBufPosition);
@@ -164,13 +154,11 @@ public class ByteBufferInputStream extends InputStream
     }
   }
 
-  private boolean isOpen()
-  {
+  private boolean isOpen() {
     return (curBuf >= 0);
   }
 
-  private void updateBuffer()
-  {
+  private void updateBuffer() {
     if (isOpen()) {
       if (curBuf < bufs.length) {
         if (bufs[curBuf].remaining() <= 0) {
@@ -182,8 +170,7 @@ public class ByteBufferInputStream extends InputStream
     }
   }
 
-  private ByteBuffer getBuffer(boolean update)
-  {
+  private ByteBuffer getBuffer(boolean update) {
     if (isOpen()) {
       if (update) {
         updateBuffer();

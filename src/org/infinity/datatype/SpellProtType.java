@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -22,16 +22,16 @@ import org.infinity.util.Table2daCache;
 /**
  * Specialized Bitmap type for translating SPLPROT.2DA data into human-readable descriptions.
  */
-public class SpellProtType extends Bitmap
-{
+public class SpellProtType extends Bitmap {
   public static final String DEFAULT_NAME_TYPE    = "Creature type";
   public static final String DEFAULT_NAME_VALUE   = "Creature value";
   public static final String DEFAULT_NAME_UNUSED  = "Unused";
-  public static final String[] s_relation = { "<=", "=", "<", ">", ">=", "!=",
-                                              "bit_l_e", "bit_g_e", "bit_eq",
-                                              "bit_uneq", "bit_greater", "bit_less" };
+
+  public static final String[] RELATION_ARRAY = { "<=", "=", "<", ">", ">=", "!=", "bit_l_e", "bit_g_e", "bit_eq",
+      "bit_uneq", "bit_greater", "bit_less" };
+
   // TODO: remove this array after all Enhanced Editions have been updated
-  public static final String[] s_cretype_ee = {
+  public static final String[] CRETYPE_EE_ARRAY = {
       // 0..9
       "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
       "Not humanoid", "Animal", "Not animal", "Elemental",
@@ -63,47 +63,46 @@ public class SpellProtType extends Bitmap
       "", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "SPECIFIC.IDS", "GENDER.IDS",
       "ALIGN.IDS", "KIT.IDS" };
 
-  private static final String tableName = "SPLPROT.2DA";
-  private static final TreeMap<Long, String> statIds = new TreeMap<>();
+  private static final String TABLE_NAME = "SPLPROT.2DA";
+  private static final TreeMap<Long, String> STAT_IDS = new TreeMap<>();
+
   private static String[] creType;
 
   static {
-    statIds.put(Long.valueOf(152L), "KIT.IDS");
-    statIds.put(Long.valueOf(0x106L), "AREATYPE.IDS");
-//    statIds.put(Long.valueOf(0x107L), "TIMEODAY.IDS");
-    statIds.put(Long.valueOf(0x10aL), "EA.IDS");
-    statIds.put(Long.valueOf(0x10bL), "GENERAL.IDS");
-    statIds.put(Long.valueOf(0x10cL), "RACE.IDS");
-    statIds.put(Long.valueOf(0x10dL), "CLASS.IDS");
-    statIds.put(Long.valueOf(0x10eL), "SPECIFIC.IDS");
-    statIds.put(Long.valueOf(0x10fL), "GENDER.IDS");
-    statIds.put(Long.valueOf(0x110L), "ALIGNMEN.IDS");
-    statIds.put(Long.valueOf(0x111L), "STATE.IDS");
-    statIds.put(Long.valueOf(0x112L), "SPLSTATE.IDS");
+    STAT_IDS.put(152L, "KIT.IDS");
+    STAT_IDS.put(0x106L, "AREATYPE.IDS");
+    //    statIds.put(Long.valueOf(0x107L), "TIMEODAY.IDS");
+    STAT_IDS.put(0x10aL, "EA.IDS");
+    STAT_IDS.put(0x10bL, "GENERAL.IDS");
+    STAT_IDS.put(0x10cL, "RACE.IDS");
+    STAT_IDS.put(0x10dL, "CLASS.IDS");
+    STAT_IDS.put(0x10eL, "SPECIFIC.IDS");
+    STAT_IDS.put(0x10fL, "GENDER.IDS");
+    STAT_IDS.put(0x110L, "ALIGNMEN.IDS");
+    STAT_IDS.put(0x111L, "STATE.IDS");
+    STAT_IDS.put(0x112L, "SPLSTATE.IDS");
   }
 
   private final int index;
   private final boolean isExternalized;
-  private boolean updateIdsValues;  // defines whether to update the "Creature value" field automatically
 
-  public SpellProtType(ByteBuffer buffer, int offset, int length)
-  {
+  private boolean updateIdsValues; // defines whether to update the "Creature value" field automatically
+
+  public SpellProtType(ByteBuffer buffer, int offset, int length) {
     this(buffer, offset, length, null, -1);
   }
 
-  public SpellProtType(ByteBuffer buffer, int offset, int length, String name, int idx)
-  {
+  public SpellProtType(ByteBuffer buffer, int offset, int length, String name, int idx) {
     super(buffer, offset, length, createFieldName(name, idx, DEFAULT_NAME_TYPE), getTypeTable());
     this.index = idx;
     this.isExternalized = isTableExternalized();
     this.updateIdsValues = true;
   }
 
-//--------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     boolean retVal = super.updateValue(struct);
     if (updateIdsValues && retVal) {
       int valueOffset = getOffset() - getSize();
@@ -125,20 +124,17 @@ public class SpellProtType extends Bitmap
     return retVal;
   }
 
-//--------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-  public StructEntry createCreatureValueFromType(ByteBuffer buffer)
-  {
+  public StructEntry createCreatureValueFromType(ByteBuffer buffer) {
     return createCreatureValueFromType(buffer, getOffset() - getSize(), getSize(), null);
   }
 
-  public StructEntry createCreatureValueFromType(ByteBuffer buffer, int offset)
-  {
+  public StructEntry createCreatureValueFromType(ByteBuffer buffer, int offset) {
     return createCreatureValueFromType(buffer, offset, getSize(), null);
   }
 
-  public StructEntry createCreatureValueFromType(ByteBuffer buffer, int offset, int size, String name)
-  {
+  public StructEntry createCreatureValueFromType(ByteBuffer buffer, int offset, int size, String name) {
     if (useCustomValue()) {
       String idsFile = getIdsFile();
       if (!idsFile.isEmpty()) {
@@ -151,57 +147,52 @@ public class SpellProtType extends Bitmap
   }
 
   /** Returns whether this SpellProtType instance automatically updates the associated creature value field. */
-  public boolean isUpdatingCreatureValues()
-  {
+  public boolean isUpdatingCreatureValues() {
     return updateIdsValues;
   }
 
   /** Specify whether this SpellProtType instance should automatically update the associated creature value field. */
-  public void setUpdateCreatureValues(boolean b)
-  {
+  public void setUpdateCreatureValues(boolean b) {
     updateIdsValues = b;
   }
 
   /** Returns whether this datatype makes use of the externalized table for creature types. */
-  public boolean isExternalized()
-  {
+  public boolean isExternalized() {
     return isExternalized;
   }
 
   /** Returns true if the specified creature type value depends on a user-defined value. */
-  public boolean useCustomValue()
-  {
+  public boolean useCustomValue() {
     int value = getValue();
     if (isExternalized()) {
-      Table2da table = Table2daCache.get(tableName);
+      Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         return (-1 == toNumber(table.get(value, 2), 0));
       }
     } else {
-      if (value >= 0 && value < s_cretype_ee.length) {
-        return s_cretype_ee[value].endsWith(".IDS");
+      if (value >= 0 && value < CRETYPE_EE_ARRAY.length) {
+        return CRETYPE_EE_ARRAY[value].endsWith(".IDS");
       }
     }
     return false;
   }
 
   /** Returns the IDS resource name use by the specified creature type. Returns an empty string if unused. */
-  public String getIdsFile()
-  {
+  public String getIdsFile() {
     int value = getValue();
     if (isExternalized()) {
-      Table2da table = Table2daCache.get(tableName);
+      Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         int id = toNumber(table.get(value, 1), -1);
-        String retVal = statIds.get(Long.valueOf((long)id));
+        String retVal = STAT_IDS.get(Long.valueOf(id));
         if (retVal != null) {
           return retVal;
         }
       }
     } else {
-      if (value >= 0 && value < s_cretype_ee.length) {
-        if (s_cretype_ee[value].endsWith(".IDS")) {
-          return s_cretype_ee[value];
+      if (value >= 0 && value < CRETYPE_EE_ARRAY.length) {
+        if (CRETYPE_EE_ARRAY[value].endsWith(".IDS")) {
+          return CRETYPE_EE_ARRAY[value];
         }
       }
     }
@@ -209,84 +200,77 @@ public class SpellProtType extends Bitmap
   }
 
   /** Returns whether creature table has been externalized into a 2DA file. */
-  public static boolean isTableExternalized()
-  {
+  public static boolean isTableExternalized() {
     if (Profile.isEnhancedEdition()) {
-      return ResourceFactory.resourceExists(tableName);
+      return ResourceFactory.resourceExists(TABLE_NAME);
     } else {
       return false;
     }
   }
 
   /** Returns name of the 2DA resource used as reference for the list. */
-  public static String getTableName()
-  {
-    return tableName;
+  public static String getTableName() {
+    return TABLE_NAME;
   }
 
   /** Returns true if the specified creature type value depends on a user-defined value. */
-  public static boolean useCustomValue(int value)
-  {
+  public static boolean useCustomValue(int value) {
     if (isTableExternalized()) {
-      Table2da table = Table2daCache.get(tableName);
+      Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         return (-1 == toNumber(table.get(value, 2), 0));
       }
     } else {
-      if (value >= 0 && value < s_cretype_ee.length) {
-        return s_cretype_ee[value].endsWith(".IDS");
+      if (value >= 0 && value < CRETYPE_EE_ARRAY.length) {
+        return CRETYPE_EE_ARRAY[value].endsWith(".IDS");
       }
     }
     return false;
   }
 
   /** Returns the IDS resource name use by the specified creature type. Returns an empty string if unused. */
-  public static String getIdsFile(int value)
-  {
+  public static String getIdsFile(int value) {
     if (isTableExternalized()) {
-      Table2da table = Table2daCache.get(tableName);
+      Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         boolean isCustom = (-1 == toNumber(table.get(value, 2), 0));
         if (isCustom) {
           int id = toNumber(table.get(value, 1), -1);
-          String retVal = statIds.get(Long.valueOf((long)id));
+          String retVal = STAT_IDS.get(Long.valueOf(id));
           if (retVal != null) {
             return retVal;
           }
         }
       }
-    } else if (value >= 0 && value < s_cretype_ee.length) {
-      if (s_cretype_ee[value].endsWith(".IDS")) {
-        return s_cretype_ee[value];
+    } else if (value >= 0 && value < CRETYPE_EE_ARRAY.length) {
+      if (CRETYPE_EE_ARRAY[value].endsWith(".IDS")) {
+        return CRETYPE_EE_ARRAY[value];
       }
     }
     return "";
   }
 
-  public static String[] getTypeTable()
-  {
+  public static String[] getTypeTable() {
     if (creType == null) {
       if (isTableExternalized()) {
         creType = getExternalizedTypeTable();
       } else {
-        creType = Arrays.copyOf(s_cretype_ee, s_cretype_ee.length);
+        creType = Arrays.copyOf(CRETYPE_EE_ARRAY, CRETYPE_EE_ARRAY.length);
       }
     }
     return creType;
   }
 
-  public static void resetTypeTable()
-  {
+  public static void resetTypeTable() {
     creType = null;
-    Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(tableName));
+    Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TABLE_NAME));
   }
 
   /** Returns an array of descriptions based on the entries in the 2DA resource. */
-  private static String[] getExternalizedTypeTable()
-  {
+  private static String[] getExternalizedTypeTable() {
     String[] retVal = null;
-    if (ResourceFactory.resourceExists(tableName)) {
-      Table2da table = Table2daCache.get(tableName);
+    if (ResourceFactory.resourceExists(TABLE_NAME)) {
+      Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         retVal = new String[table.getRowCount()];
         for (int row = 0, size = table.getRowCount(); row < size; row++) {
@@ -316,21 +300,24 @@ public class SpellProtType extends Bitmap
               break;
             case 0x105: // source and target morale match
               switch (rel) {
-                case 1: label = "Same morale alignment"; break;
-                case 5: label = "Not same morale alignment"; break;
-                default: label = "Morale alignment relation: " + getRelation(rel); break;
+                case 1:
+                  label = "Same morale alignment";
+                  break;
+                case 5:
+                  label = "Not same morale alignment";
+                  break;
+                default:
+                  label = "Morale alignment relation: " + getRelation(rel);
+                  break;
               }
               break;
             case 0x106: // areatype (like outdoors, forest, etc)
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("AREATYPE %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("AREATYPE %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("AREATYPE %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("AREATYPE %s %s", getRelation(rel),
+                    getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x107: // daytime
@@ -338,9 +325,15 @@ public class SpellProtType extends Bitmap
               break;
             case 0x108: // source and target ethical match
               switch (rel) {
-                case 1: label = "Same ethical alignment"; break;
-                case 5: label = "Not same ethical alignment"; break;
-                default: label = "Ethical alignment: " + getRelation(rel); break;
+                case 1:
+                  label = "Same ethical alignment";
+                  break;
+                case 5:
+                  label = "Not same ethical alignment";
+                  break;
+                default:
+                  label = "Ethical alignment: " + getRelation(rel);
+                  break;
               }
               break;
             case 0x109: // evasion
@@ -348,124 +341,109 @@ public class SpellProtType extends Bitmap
               break;
             case 0x10a: // EA
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("EA %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("EA.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("EA %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("EA.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("EA %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("EA.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("EA %s %s", getRelation(rel),
+                    getIdsValue("EA.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x10b: // GENERAL
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("GENERAL %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("GENERAL %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("GENERAL %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("GENERAL %s %s", getRelation(rel),
+                    getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x10c: // RACE
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("RACE %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("RACE %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("RACE %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("RACE %s %s", getRelation(rel),
+                    getIdsValue("RACE.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x10d: // CLASS
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("CLASS %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("CLASS %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("CLASS %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("CLASS %s %s", getRelation(rel),
+                    getIdsValue("CLASS.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x10e: // SPECIFIC
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("SPECIFIC %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("SPECIFIC %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("SPECIFIC %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("SPECIFIC %s %s", getRelation(rel),
+                    getIdsValue("SPECIFIC.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x10f: // GENDER
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("GENDER %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("GENDER %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("GENDER %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("GENDER %s %s", getRelation(rel),
+                    getIdsValue("GENDER.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x110: // ALIGNMENT
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("ALIGNMENT %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("ALIGNMENT %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("ALIGNMENT %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("ALIGNMENT %s %s", getRelation(rel),
+                    getIdsValue("ALIGNMEN.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x111: // STATE
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("STATE %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("STATE %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("STATE %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("STATE %s %s", getRelation(rel),
+                    getIdsValue("STATE.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x112: // SPELL STATE
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("SPLSTATE %s %s [0x%x]",
-                                      getRelation(rel),
-                                      getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)),
-                                      value);
+                label = String.format("SPLSTATE %s %s [0x%x]", getRelation(rel),
+                    getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)), value);
               } else {
-                label = String.format("SPLSTATE %s %s",
-                                      getRelation(rel),
-                                      getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)));
+                label = String.format("SPLSTATE %s %s", getRelation(rel),
+                    getIdsValue("SPLSTATE.IDS", value, isBitwiseRelation(rel)));
               }
               break;
             case 0x113: // source and target allies
               switch (rel) {
-                case 1: label = "Allies"; break;
-                case 5: label = "Not allies"; break;
-                default: label = "Allies match: " + getRelation(rel); break;
+                case 1:
+                  label = "Allies";
+                  break;
+                case 5:
+                  label = "Not allies";
+                  break;
+                default:
+                  label = "Allies match: " + getRelation(rel);
+                  break;
               }
               break;
             case 0x114: // source and target enemies
               switch (rel) {
-                case 1: label = "Enemies"; break;
-                case 5: label = "Not enemies"; break;
-                default: label = "Enemies match: " + getRelation(rel); break;
+                case 1:
+                  label = "Enemies";
+                  break;
+                case 5:
+                  label = "Not enemies";
+                  break;
+                default:
+                  label = "Enemies match: " + getRelation(rel);
+                  break;
               }
               break;
             case 0x115: // summon creature limit
@@ -474,22 +452,19 @@ public class SpellProtType extends Bitmap
             case 0x116: // chapter check
               label = String.format("Chapter %s specified value", getRelation(rel));
               break;
-            default:    // use values from STATS.IDS
+            default: // use values from STATS.IDS
               if (stat >= 0 && stat < 0x100) {
                 // valid stat
                 if (value == -1) {
                   label = String.format("STAT %s %s specified value",
-                                        getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
-                                        getRelation(rel));
+                      getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)), getRelation(rel));
                 } else {
                   if (isBitwiseRelation(rel)) {
-                    label = String.format("STAT %s %s %x",
-                                          getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
-                                          getRelation(rel), value);
+                    label = String.format("STAT %s %s %x", getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
+                        getRelation(rel), value);
                   } else {
-                    label = String.format("STAT %s %s %d",
-                                          getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
-                                          getRelation(rel), value);
+                    label = String.format("STAT %s %s %d", getIdsValue("STATS.IDS", stat, isBitwiseRelation(rel)),
+                        getRelation(rel), value);
                   }
                 }
               } else {
@@ -505,8 +480,7 @@ public class SpellProtType extends Bitmap
   }
 
   // Attempts to convert the specified string into a number. Returns the default value on error.
-  private static int toNumber(String value, int defValue)
-  {
+  private static int toNumber(String value, int defValue) {
     int retVal = defValue;
     if (value != null && !value.isEmpty()) {
       try {
@@ -523,14 +497,13 @@ public class SpellProtType extends Bitmap
 
   // Returns the IDS symbol based on the specified arguments.
   // Returns a decimal or hexadecimal number as string if symbol not found.
-  private static String getIdsValue(String idsFile, int value, boolean asHex)
-  {
+  private static String getIdsValue(String idsFile, int value, boolean asHex) {
     if (value == -1) {
       return "specified value";
     } else {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        IdsMapEntry entry = map.get((long)value);
+        IdsMapEntry entry = map.get(value);
         if (entry != null) {
           if (entry.getSymbol() != null && !entry.getSymbol().isEmpty()) {
             return entry.getSymbol();
@@ -545,20 +518,17 @@ public class SpellProtType extends Bitmap
   }
 
   // Returns a textual representation of the specified relation code
-  private static String getRelation(int rel)
-  {
-    return (rel >= 0 && rel < s_relation.length) ? s_relation[rel] : "";
+  private static String getRelation(int rel) {
+    return (rel >= 0 && rel < RELATION_ARRAY.length) ? RELATION_ARRAY[rel] : "";
   }
 
   // Returns whether specified code indicates a binary operator
-  private static boolean isBitwiseRelation(int rel)
-  {
+  private static boolean isBitwiseRelation(int rel) {
     return (rel >= 6 && rel <= 11);
   }
 
   // Creates a valid field name from the specified arguments
-  private static String createFieldName(String name, int index, String defName)
-  {
+  private static String createFieldName(String name, int index, String defName) {
     if (name == null) {
       name = (defName != null) ? defName : DEFAULT_NAME_TYPE;
     }

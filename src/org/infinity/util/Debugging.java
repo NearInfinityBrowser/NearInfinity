@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -7,54 +7,53 @@ package org.infinity.util;
 /**
  * Collection of static methods for debugging and profiling needs.
  */
-public class Debugging
-{
+public class Debugging {
   /**
    * Supported temporal resolutions for timer methods.
    */
-  public enum TimeFormat { NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS }
+  public enum TimeFormat {
+    NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS
+  }
 
   private static long timeBase = System.nanoTime();
 
   /**
    * Resets timer to current time.
    */
-  public static synchronized void timerReset()
-  {
+  public static synchronized void timerReset() {
     timeBase = System.nanoTime();
   }
 
   /**
    * Shows elapsed time in the desired resolution and resets timer.
+   *
    * @param msg Display an optional message
    * @param fmt The temporaral resolution of the elapsed time
    */
-  public static synchronized void timerShow(String msg, TimeFormat fmt)
-  {
-    if (msg != null && !msg.isEmpty())
+  public static synchronized void timerShow(String msg, TimeFormat fmt) {
+    if (msg != null && !msg.isEmpty()) {
       System.out.println("[" + msg + "] " + toTimeFormatString(fmt, System.nanoTime() - timeBase));
-    else
+    } else {
       System.out.println(toTimeFormatString(fmt, System.nanoTime() - timeBase));
+    }
     timerReset();
   }
 
   /**
    * Returns elapsed time in the desired resolution and resets timer.
+   *
    * @param fmt The temporal resolution of the elapsed time
    * @return The elapsed time in the specified resolution
    */
-  public static synchronized long timerGet(TimeFormat fmt)
-  {
+  public static synchronized long timerGet(TimeFormat fmt) {
     long time = toTimeFormat(fmt, System.nanoTime() - timeBase);
     timerReset();
     return time;
   }
 
+  // ------------------------------ PRIVATE METHODS ------------------------------
 
-// ------------------------------ PRIVATE METHODS ------------------------------
-
-  private static long toTimeFormat(TimeFormat fmt, long time)
-  {
+  private static long toTimeFormat(TimeFormat fmt, long time) {
     switch (fmt) {
       case MICROSECONDS:
         return time / 1000L;
@@ -67,8 +66,7 @@ public class Debugging
     }
   }
 
-  private static String toTimeFormatString(TimeFormat fmt, long time)
-  {
+  private static String toTimeFormatString(TimeFormat fmt, long time) {
     switch (fmt) {
       case NANOSECONDS:
         return toTimeFormat(fmt, time) + " ns";

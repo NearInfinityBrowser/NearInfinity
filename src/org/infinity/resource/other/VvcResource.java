@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -27,23 +27,23 @@ import org.infinity.resource.sound.SoundResource;
 import org.infinity.search.SearchOptions;
 
 /**
- * This resource describes visual "spell casting" effects ({@link BamResource BAM}
- * files) with optional sounds ({@link SoundResource WAVC} files). VVCs can be
- * invoked by some script actions (e.g. {@code CreateVisualEffect},
+ * This resource describes visual "spell casting" effects ({@link BamResource BAM} files) with optional sounds
+ * ({@link SoundResource WAVC} files). VVCs can be invoked by some script actions (e.g. {@code CreateVisualEffect},
  * {@code CreateVisualEffectObject}) and by some effects (e.g. "Play 3D effect").
  *
- * VVC Files use a 3D co-ordinates system when playing the exact location of VVC
- * animations. Infinity Engine Games are rendered from an isometric angle; this
- * means that the X-Y-Z axis need to be percieved within this isometric frame to
+ * VVC Files use a 3D co-ordinates system when playing the exact location of VVC animations. Infinity Engine Games are
+ * rendered from an isometric angle; this means that the X-Y-Z axis need to be percieved within this isometric frame to
  * properly understand how VVC files will play:
- * <code><pre>
+ *
+ * <pre>
  *     Z   Y
  *  O  |  /
  * /|\ | /
  * _+_ |/
  *      \
  *       \X
- * </pre></code>
+ * </pre>
+ *
  * <ul>
  * <li>X is up or down</li>
  * <li>Y is the distance between the feet of the character and the animation</li>
@@ -51,10 +51,9 @@ import org.infinity.search.SearchOptions;
  * </ul>
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vvc_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vvc_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vvc_v1.htm</a>
  */
-public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs
-{
+public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs {
   // VVC-specific field labels
   public static final String VVC_ANIMATION                = "Animation";
   public static final String VVC_SHADOW                   = "Shadow";
@@ -85,39 +84,38 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
   public static final String VVC_THIRD_ANIMATION_INDEX    = "Third animation number";
   public static final String VVC_SOUND_ENDING             = "Ending sound";
 
-  public static final String[] s_transparency = {
-      "No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
-      "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
-      "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
-      "2D blend", null, "Scale/center to view"};
-  public static final String[] s_tint = {
-      "No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", null,
-      "Internal gamma", "Non-reserved palette", "Full palette", "Blend with creature's 'Major color'",
-      "Dream palette"};
-  public static final String[] s_seq = {
-      "No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
-      "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
-  public static final String[] s_face = {"Use current", "Face target", "Follow target", "Follow path",
-                                         "Lock orientation"};
+  public static final String[] TRANSPARENCY_ARRAY = { "No flags set", "Transparent", "Translucent",
+      "Translucent shadow", "Blended", "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
+      "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette", "2D blend", null,
+      "Scale/center to view" };
+
+  public static final String[] TINT_ARRAY = { "No flags set", "Not light source", "Light source", "Internal brightness",
+      "Time stopped", null, "Internal gamma", "Non-reserved palette", "Full palette",
+      "Blend with creature's 'Major color'", "Dream palette" };
+
+  public static final String[] SEQ_ARRAY = { "No flags set", "Looping", "Special lighting", "Modify for height",
+      "Draw animation", "Custom palette", "Purgeable", "Not covered by wall", "Mid-level brighten",
+      "High-level brighten" };
+
+  public static final String[] FACE_ARRAY = { "Use current", "Face target", "Follow target", "Follow path",
+      "Lock orientation" };
 
   private StructHexViewer hexViewer;
 
-  public VvcResource(ResourceEntry entry) throws Exception
-  {
+  public VvcResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     addField(new ResourceRef(buffer, offset + 8, VVC_ANIMATION, "BAM"));
     addField(new ResourceRef(buffer, offset + 16, VVC_SHADOW, "BAM"));
-    addField(new Flag(buffer, offset + 24, 2, VVC_DRAWING, s_transparency));
-    addField(new Flag(buffer, offset + 26, 2, VVC_COLOR_ADJUSTMENT, s_tint));
+    addField(new Flag(buffer, offset + 24, 2, VVC_DRAWING, TRANSPARENCY_ARRAY));
+    addField(new Flag(buffer, offset + 26, 2, VVC_COLOR_ADJUSTMENT, TINT_ARRAY));
     addField(new Unknown(buffer, offset + 28, 4));
-    addField(new Flag(buffer, offset + 32, 4, VVC_SEQUENCING, s_seq));
+    addField(new Flag(buffer, offset + 32, 4, VVC_SEQUENCING, SEQ_ARRAY));
     addField(new Unknown(buffer, offset + 36, 4));
     addField(new DecNumber(buffer, offset + 40, 4, VVC_POSITION_X));
     addField(new DecNumber(buffer, offset + 44, 4, VVC_POSITION_Y));
@@ -125,7 +123,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     addField(new DecNumber(buffer, offset + 52, 4, VVC_FRAME_RATE));
     addField(new DecNumber(buffer, offset + 56, 4, VVC_NUM_ORIENTATIONS));
     addField(new DecNumber(buffer, offset + 60, 4, VVC_PRIMARY_ORIENTATION));
-    addField(new Flag(buffer, offset + 64, 4, VVC_TRAVEL_ORIENTATION, s_face));
+    addField(new Flag(buffer, offset + 64, 4, VVC_TRAVEL_ORIENTATION, FACE_ARRAY));
     addField(new ResourceRef(buffer, offset + 68, VVC_PALETTE, "BMP"));
     addField(new DecNumber(buffer, offset + 76, 4, VVC_POSITION_Z));
     addField(new DecNumber(buffer, offset + 80, 4, VVC_LIGHT_SPOT_WIDTH));
@@ -146,23 +144,20 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     return offset + 492;
   }
 
-//--------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
@@ -170,25 +165,21 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
-//--------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   /**
-   * Called by "Extended Search"
-   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search" Checks whether the specified resource entry matches all available search options.
    */
-  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
-  {
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions) {
     if (entry != null && searchOptions != null) {
       try {
         VvcResource vvc = new VvcResource(entry);
@@ -203,11 +194,11 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
           retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
         }
 
-        String[] keyList = new String[]{SearchOptions.VVC_Flags, SearchOptions.VVC_ColorAdjustment,
-                                        SearchOptions.VVC_Sequencing, SearchOptions.VVC_Orientation};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        String[] keyList = new String[] { SearchOptions.VVC_Flags, SearchOptions.VVC_ColorAdjustment,
+            SearchOptions.VVC_Sequencing, SearchOptions.VVC_Orientation };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
@@ -216,11 +207,11 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
           }
         }
 
-        keyList = new String[]{SearchOptions.VVC_Custom1, SearchOptions.VVC_Custom2,
-                               SearchOptions.VVC_Custom3, SearchOptions.VVC_Custom4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.VVC_Custom1, SearchOptions.VVC_Custom2, SearchOptions.VVC_Custom3,
+            SearchOptions.VVC_Custom4 };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             retVal &= SearchOptions.Utils.matchCustomFilter(vvc, o);
           } else {

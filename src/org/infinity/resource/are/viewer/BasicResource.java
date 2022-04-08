@@ -1,19 +1,16 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-
 /**
  * The base class for structures that can hold a unique identifier and their data.
  */
-public abstract class BasicResource
-{
+public abstract class BasicResource {
   private final String key;
 
-  protected BasicResource(String key)
-  {
+  protected BasicResource(String key) {
     if (key == null || key.isEmpty()) {
       throw new NullPointerException();
     }
@@ -23,8 +20,7 @@ public abstract class BasicResource
   /**
    * Returns the key value of the resource structure.
    */
-  public String getKey()
-  {
+  public String getKey() {
     return key;
   }
 

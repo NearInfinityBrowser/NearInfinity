@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -16,43 +16,37 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public final class NewProSettings extends NewAbstractSettings
-{
-  private static final String[] PRODESC = {"1 - No BAM", "2 - Single target", "3 - Area of effect"};
+public final class NewProSettings extends NewAbstractSettings {
+  private static final String[] PRO_DESC = { "1 - No BAM", "2 - Single target", "3 - Area of effect" };
 
   private JComboBox<String> cbType;
   private ProConfig config;
 
-  public NewProSettings(Window parent)
-  {
+  public NewProSettings(Window parent) {
     super(parent, "PRO settings");
     config = new ProConfig();
     initDialog(parent);
   }
 
-  public NewProSettings(Window parent, int proType)
-  {
+  public NewProSettings(Window parent, int proType) {
     super(parent, "PRO settings");
     config = new ProConfig(proType);
     initDialog(parent);
   }
 
   @Override
-  public ProConfig getConfig()
-  {
+  public ProConfig getConfig() {
     return config;
   }
 
   @Override
-  protected void accept()
-  {
+  protected void accept() {
     config.setProjectileType(cbType.getSelectedIndex() + 1);
     super.accept();
   }
 
-  private void initDialog(Window parent)
-  {
-    cbType = new JComboBox<>(PRODESC);
+  private void initDialog(Window parent) {
+    cbType = new JComboBox<>(PRO_DESC);
     cbType.setSelectedIndex(config.getProjectileType() - 1);
 
     JLabel label = new JLabel("Select projectile type:");
@@ -102,36 +96,33 @@ public final class NewProSettings extends NewAbstractSettings
     setVisible(true);
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public class ProConfig
-  {
-    private int proType;    // field at offset 0x08
+  public class ProConfig {
+    private int proType; // field at offset 0x08
 
-    public ProConfig()
-    {
+    public ProConfig() {
       super();
-      setProjectileType(2);   // defaults to 'single target'
+      setProjectileType(2); // defaults to 'single target'
     }
 
-    public ProConfig(int type)
-    {
+    public ProConfig(int type) {
       super();
       setProjectileType(type);
     }
 
-    public int getProjectileType()
-    {
+    public int getProjectileType() {
       return proType;
     }
 
-    private void setProjectileType(int newType)
-    {
+    private void setProjectileType(int newType) {
       proType = newType;
-      if (proType < 1)
+      if (proType < 1) {
         proType = 1;
-      if (proType > 3)
+      }
+      if (proType > 3) {
         proType = 3;
+      }
     }
   }
 }

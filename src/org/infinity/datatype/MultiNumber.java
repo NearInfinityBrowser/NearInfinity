@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -12,9 +12,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -23,7 +25,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
 import org.infinity.gui.BrowserMenuBar;
@@ -35,74 +36,71 @@ import org.infinity.util.Misc;
 /**
  * A Number object consisting of multiple values of a given number of bits.
  *
- * <h2>Bean property</h2>
- * When this field is child of {@link AbstractStruct}, then changes of its internal
- * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
- * struct.
+ * <h2>Bean property</h2> When this field is child of {@link AbstractStruct}, then changes of its internal value
+ * reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent} struct.
  * <ul>
  * <li>Property name: {@link #getName() name} of this field</li>
  * <li>Property type: {@code int}</li>
  * <li>Value meaning: OR'ed values of each individual subfield of this field</li>
  * </ul>
  */
-public class MultiNumber extends Datatype implements Editable, IsNumeric
-{
-  private int value;
+public class MultiNumber extends Datatype implements Editable, IsNumeric {
   private final ValueTableModel mValues;
+
+  private int value;
   private JTable tValues;
 
   /**
    * Constructs a Number object consisting of multiple unsigned values of a given number of bits.
    *
-   * @param buffer The buffer containing resource data for this type.
-   * @param offset Resource offset
-   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
-   * @param name Field name
-   * @param numBits Number of bits for each value being part of the Number object.
-   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
+   * @param buffer     The buffer containing resource data for this type.
+   * @param offset     Resource offset
+   * @param length     Resource length in bytes. Supported lengths: 1, 2, 3, 4
+   * @param name       Field name
+   * @param numBits    Number of bits for each value being part of the Number object.
+   * @param numValues  Number of values to consider. Supported range: [1, length*8/numBits]
    * @param valueNames List of individual field names for each contained value.
    */
-  public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
-                     int numBits, int numValues, String[] valueNames)
-  {
+  public MultiNumber(ByteBuffer buffer, int offset, int length, String name, int numBits, int numValues,
+      String[] valueNames) {
     this(buffer, offset, length, name, numBits, numValues, valueNames, false);
   }
 
   /**
    * Constructs a Number object consisting of multiple values of a given number of bits.
    *
-   * @param buffer The buffer containing resource data for this type.
-   * @param offset Resource offset
-   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
-   * @param name Field name
-   * @param numBits Number of bits for each value being part of the Number object.
-   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
+   * @param buffer     The buffer containing resource data for this type.
+   * @param offset     Resource offset
+   * @param length     Resource length in bytes. Supported lengths: 1, 2, 3, 4
+   * @param name       Field name
+   * @param numBits    Number of bits for each value being part of the Number object.
+   * @param numValues  Number of values to consider. Supported range: [1, length*8/numBits]
    * @param valueNames List of individual field names for each contained value.
-   * @param signed Whether values are signed.
+   * @param signed     Whether values are signed.
    */
-  public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
-                     int numBits, int numValues, String[] valueNames, boolean signed)
-  {
+  public MultiNumber(ByteBuffer buffer, int offset, int length, String name, int numBits, int numValues,
+      String[] valueNames, boolean signed) {
     super(offset, length, name);
 
     read(buffer, offset);
 
-    if (numBits < 1 || numBits > (length*8)) numBits = length*8;
+    if (numBits < 1 || numBits > (length * 8)) {
+      numBits = length * 8;
+    }
 
     if (numValues < 1) {
       numValues = 1;
-    } else if (numValues > (length*8/numBits)) {
-      numValues = length*8/numBits;
+    } else if (numValues > (length * 8 / numBits)) {
+      numValues = length * 8 / numBits;
     }
 
     mValues = new ValueTableModel(value, numBits, numValues, valueNames, signed);
   }
 
-//--------------------- Begin Interface Editable ---------------------
+  // --------------------- Begin Interface Editable ---------------------
 
   @Override
-  public JComponent edit(ActionListener container)
-  {
+  public JComponent edit(ActionListener container) {
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
@@ -116,15 +114,11 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     tValues.setIntercellSpacing(new Dimension(4, 0));
     tValues.setPreferredScrollableViewportSize(tValues.getPreferredSize());
     tValues.setCellSelectionEnabled(true);
-    tValues.getModel().addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(TableModelEvent e)
-      {
-        // update field value automatically
-        if (e.getType() == TableModelEvent.UPDATE) {
-          ActionEvent ae = new ActionEvent(tValues, 0, StructViewer.UPDATE_VALUE);
-          container.actionPerformed(ae);
-        }
+    tValues.getModel().addTableModelListener(e -> {
+      // update field value automatically
+      if (e.getType() == TableModelEvent.UPDATE) {
+        ActionEvent ae = new ActionEvent(tValues, 0, StructViewer.UPDATE_VALUE);
+        container.actionPerformed(ae);
       }
     });
 
@@ -134,8 +128,8 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     JPanel panel = new JPanel(new GridBagLayout());
 
     GridBagConstraints gbc = new GridBagConstraints();
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(scroll, gbc);
 
     Dimension dim = Misc.getScaledDimension(DIM_MEDIUM);
@@ -151,14 +145,12 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   }
 
   @Override
-  public void select()
-  {
+  public void select() {
     mValues.setValue(value);
   }
 
   @Override
-  public boolean updateValue(AbstractStruct struct)
-  {
+  public boolean updateValue(AbstractStruct struct) {
     long oldValue = getLongValue();
     setValueImpl(mValues.getValue());
 
@@ -170,23 +162,21 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     return true;
   }
 
-//--------------------- End Interface Editable ---------------------
+  // --------------------- End Interface Editable ---------------------
 
-//--------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     writeInt(os, value);
   }
 
-//--------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-//--------------------- Begin Interface Readable ---------------------
+  // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     buffer.position(offset);
     switch (getSize()) {
       case 1:
@@ -197,7 +187,8 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         break;
       case 3:
         value = buffer.getInt() & 0xffffff;
-        value <<= 8; value >>= 8; // sign-extend
+        value <<= 8;
+        value >>= 8; // sign-extend
         break;
       case 4:
         value = buffer.getInt();
@@ -209,82 +200,79 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     return offset + getSize();
   }
 
-//--------------------- End Interface Readable ---------------------
+  // --------------------- End Interface Readable ---------------------
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < getValueCount(); i++) {
       sb.append(String.format("%s: %d", getValueName(i), getValue(i)));
-      if (i+1 < getValueCount())
+      if (i + 1 < getValueCount()) {
         sb.append(", ");
+      }
     }
     return sb.toString();
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + Integer.hashCode(value);
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(value);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!super.equals(o) || !(o instanceof MultiNumber)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    MultiNumber other = (MultiNumber)o;
-    boolean retVal = (value == other.value);
-    return retVal;
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    MultiNumber other = (MultiNumber) obj;
+    return value == other.value;
   }
 
   /** Returns number of bits per value. */
-  public int getBits()
-  {
+  public int getBits() {
     return mValues.getBitsPerValue();
   }
 
   /** Returns number of values stored in the Number object. */
-  public int getValueCount()
-  {
+  public int getValueCount() {
     return mValues.getValueCount();
   }
 
   /** Returns the label associated with the specified value. */
-  public String getValueName(int idx)
-  {
+  public String getValueName(int idx) {
     return mValues.getValueName(idx);
   }
 
   /** Returns whether numbers are treated as signed values. */
-  public boolean isSigned()
-  {
+  public boolean isSigned() {
     return mValues.isSigned();
   }
 
-//--------------------- Begin Interface IsNumeric ---------------------
+  // --------------------- Begin Interface IsNumeric ---------------------
 
   @Override
-  public long getLongValue()
-  {
-    return (long)value & 0xffffffffL;
+  public long getLongValue() {
+    return value & 0xffffffffL;
   }
 
   @Override
-  public int getValue()
-  {
+  public int getValue() {
     return value;
   }
 
-//--------------------- End Interface IsNumeric ---------------------
+  // --------------------- End Interface IsNumeric ---------------------
 
   /** Returns the specified value. */
-  public int getValue(int idx)
-  {
+  public int getValue(int idx) {
     if (idx >= 0 && idx < mValues.getValueCount()) {
       if (getBits() < 32) {
         return bitRangeAsNumber(getValue(), getBits(), idx * getBits(), isSigned());
@@ -296,29 +284,29 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   }
 
   /** Set the value for the whole Number object. */
-  public void setValue(int value)
-  {
+  public void setValue(int value) {
     mValues.setValue(value);
     setValueImpl(mValues.getValue());
   }
 
   /** Sets the specified value. */
-  public void setValue(int idx, int value)
-  {
+  public void setValue(int idx, int value) {
     mValues.setValue(idx, value);
     setValueImpl(mValues.getValue());
   }
 
   /**
    * Helper function: Returns the bit range defined by the parameters as an individual number.
-   * @param data The source value to extract a bit range from.
-   * @param bits Number of bits to extract.
-   * @param pos Starting bit position of the new value.
+   *
+   * @param data   The source value to extract a bit range from.
+   * @param bits   Number of bits to extract.
+   * @param pos    Starting bit position of the new value.
    * @param signed Whether the returned number is signed.
    */
-  public static int bitRangeAsNumber(int data, int bits, int pos, boolean signed)
-  {
-    if (pos < 0) pos = 0;
+  public static int bitRangeAsNumber(int data, int bits, int pos, boolean signed) {
+    if (pos < 0) {
+      pos = 0;
+    }
     int retVal = (data >> pos) & ((1 << bits) - 1);
     if (signed && (retVal & (1 << (bits - 1))) != 0) {
       retVal |= -1 & ~((1 << bits) - 1);
@@ -326,8 +314,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     return retVal;
   }
 
-  private void setValueImpl(int newValue)
-  {
+  private void setValueImpl(int newValue) {
     final int oldValue = value;
     value = newValue;
     if (oldValue != newValue) {
@@ -335,11 +322,10 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /** Manages a fixed two columns table with a given number of rows. */
-  private static class ValueTableModel extends AbstractTableModel
-  {
+  private static class ValueTableModel extends AbstractTableModel {
     private static final int ATTRIBUTE = 0;
     private static final int VALUE = 1;
 
@@ -349,10 +335,15 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     private final int numValues;
     private boolean signed;
 
-    public ValueTableModel(int value, int bits, int numValues, String[] labels, boolean signed)
-    {
-      if (bits < 1) bits = 1; else if (bits > 32) bits = 32;
-      if (numValues < 1 || numValues > (32 / bits)) numValues = 32 / bits;
+    public ValueTableModel(int value, int bits, int numValues, String[] labels, boolean signed) {
+      if (bits < 1) {
+        bits = 1;
+      } else if (bits > 32) {
+        bits = 32;
+      }
+      if (numValues < 1 || numValues > (32 / bits)) {
+        numValues = 32 / bits;
+      }
 
       this.bits = bits;
       this.numValues = numValues;
@@ -362,29 +353,26 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         if (labels != null && i < labels.length && labels[i] != null) {
           data[ATTRIBUTE][i] = labels[i];
         } else {
-          data[ATTRIBUTE][i] = "Value " + Integer.toString(i+1);
+          data[ATTRIBUTE][i] = "Value " + Integer.toString(i + 1);
         }
         data[VALUE][i] = bitRangeAsNumber(value, bits, i * bits, this.signed);
       }
     }
 
-//--------------------- Begin Class AbstractTableModel ---------------------
+    // --------------------- Begin Class AbstractTableModel ---------------------
 
     @Override
-    public int getRowCount()
-    {
+    public int getRowCount() {
       return numValues;
     }
 
     @Override
-    public int getColumnCount()
-    {
-      return 2;   // fixed
+    public int getColumnCount() {
+      return 2; // fixed
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex)
-    {
+    public Object getValueAt(int rowIndex, int columnIndex) {
       if (rowIndex >= 0 && rowIndex < numValues && columnIndex >= 0 && columnIndex < 2) {
         return data[columnIndex][rowIndex];
       }
@@ -392,8 +380,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-    {
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
       if (columnIndex == 1) {
         if (rowIndex >= 0 && rowIndex < numValues) {
           try {
@@ -413,14 +400,12 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     }
 
     @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex)
-    {
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
       return (columnIndex == VALUE);
     }
 
     @Override
-    public Class<?> getColumnClass(int columnIndex)
-    {
+    public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex >= 0 && columnIndex < 2) {
         return getValueAt(0, columnIndex).getClass();
       } else {
@@ -429,8 +414,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     }
 
     @Override
-    public String getColumnName(int columnIndex)
-    {
+    public String getColumnName(int columnIndex) {
       switch (columnIndex) {
         case ATTRIBUTE:
           return "Attribute";
@@ -441,11 +425,10 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
       }
     }
 
-  //--------------------- End Class AbstractTableModel ---------------------
+    // --------------------- End Class AbstractTableModel ---------------------
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < numValues; i++) {
         if (i != 0) {
@@ -456,57 +439,49 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
       return sb.toString();
     }
 
-    public int getValue()
-    {
+    public int getValue() {
       int retVal = 0;
       for (int i = 0; i < numValues; i++) {
-        retVal |= (getValue(i) & ((1 << bits) - 1)) << (i*bits);
+        retVal |= (getValue(i) & ((1 << bits) - 1)) << (i * bits);
       }
       return retVal;
     }
 
-    public int getValue(int rowIndex)
-    {
+    public int getValue(int rowIndex) {
       if (rowIndex >= 0 && rowIndex < numValues) {
-        return ((Integer)data[VALUE][rowIndex]).intValue();
+        return ((Integer) data[VALUE][rowIndex]);
       }
       return 0;
     }
 
-    public void setValue(int v)
-    {
+    public void setValue(int v) {
       for (int i = 0; i < numValues; i++, v >>>= bits) {
         data[VALUE][i] = bitRangeAsNumber(v, bits, 0, signed);
       }
     }
 
-    public void setValue(int rowIndex, int v)
-    {
+    public void setValue(int rowIndex, int v) {
       if (rowIndex >= 0 && rowIndex < numValues) {
         data[VALUE][rowIndex] = bitRangeAsNumber(v, bits, 0, signed);
       }
     }
 
-    public int getValueCount()
-    {
+    public int getValueCount() {
       return numValues;
     }
 
-    public int getBitsPerValue()
-    {
+    public int getBitsPerValue() {
       return bits;
     }
 
-    public String getValueName(int rowIndex)
-    {
+    public String getValueName(int rowIndex) {
       if (rowIndex >= 0 && rowIndex < numValues) {
-        return (String)data[ATTRIBUTE][rowIndex];
+        return (String) data[ATTRIBUTE][rowIndex];
       }
       return "";
     }
 
-    public boolean isSigned()
-    {
+    public boolean isSigned() {
       return signed;
     }
   }

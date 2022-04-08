@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -56,15 +56,14 @@ import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * This resource describes static graphics in a tile based bitmap format.
- * Such files are used for mini-maps and GUI backgrounds.
+ * This resource describes static graphics in a tile based bitmap format. Such files are used for mini-maps and GUI
+ * backgrounds.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm</a>
  */
-public class MosResource implements Resource, Referenceable, ActionListener, PropertyChangeListener
-{
-  private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
+public class MosResource implements Resource, Referenceable, ActionListener, PropertyChangeListener {
+  private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
 
   private static boolean enableTransparency = true;
 
@@ -72,7 +71,10 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private MosDecoder.Type mosType;
-  private JMenuItem miExport, miExportMOSV1, miExportMOSC, miExportPNG;
+  private JMenuItem miExport;
+  private JMenuItem miExportMOSV1;
+  private JMenuItem miExportMOSC;
+  private JMenuItem miExportPNG;
   private JCheckBox cbTransparency;
   private RenderCanvas rcImage;
   private JPanel panel;
@@ -81,16 +83,14 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   private boolean exportCompressed;
   private WindowBlocker blocker;
 
-  public MosResource(ResourceEntry entry) throws Exception
-  {
+  public MosResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == cbTransparency) {
       enableTransparency = cbTransparency.isSelected();
       if (mosType == MosDecoder.Type.MOSV1 || mosType == MosDecoder.Type.MOSC) {
@@ -104,7 +104,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
       showProperties();
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
@@ -123,9 +123,8 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
             ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                          "Error while exporting " + entry, "Error",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+                JOptionPane.ERROR_MESSAGE);
           }
         }
       }
@@ -143,9 +142,8 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
           ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
         } catch (Exception e) {
           e.printStackTrace();
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Error while exporting " + entry, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     } else if (event.getSource() == miExportPNG) {
@@ -161,12 +159,11 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
           WindowBlocker.blockWindow(false);
         }
         if (bRet) {
-          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
-                                         fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName,
+              panel.getTopLevelAncestor());
         } else {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Error while exporting " + entry, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -174,16 +171,14 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() == workerConvert) {
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         if (blocker != null) {
           blocker.setBlocked(false);
           blocker = null;
@@ -201,65 +196,59 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         }
         if (mosData != null) {
           if (mosData.length > 0) {
-            ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(mosData),
-                                           entry.getResourceName(), panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(mosData), entry.getResourceName(),
+                panel.getTopLevelAncestor());
           } else {
-            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                          "Export has been cancelled." + entry, "Information",
-                                          JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Export has been cancelled." + entry,
+                "Information", JOptionPane.INFORMATION_MESSAGE);
           }
           mosData = null;
         } else {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Error while exporting " + entry, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new ReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     if (container instanceof RootPaneContainer) {
-      rpc = (RootPaneContainer)container;
+      rpc = (RootPaneContainer) container;
     } else {
       rpc = NearInfinity.getInstance();
     }
 
     mosType = MosDecoder.getType(entry);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
@@ -282,24 +271,28 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       }
     }
     List<JMenuItem> list = new ArrayList<>();
-    if (miExport != null)
+    if (miExport != null) {
       list.add(miExport);
-    if (miExportMOSV1 != null)
+    }
+    if (miExportMOSV1 != null) {
       list.add(miExportMOSV1);
-    if (miExportMOSC != null)
+    }
+    if (miExportMOSC != null) {
       list.add(miExportMOSC);
-    if (miExportPNG != null)
+    }
+    if (miExportPNG != null) {
       list.add(miExportPNG);
+    }
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
-    buttonPanel.addControl(bProperties, Properties);
+    buttonPanel.addControl(bProperties, PROPERTIES);
 
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
@@ -333,10 +326,9 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     return panel;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-  public BufferedImage getImage()
-  {
+  public BufferedImage getImage() {
     if (rcImage != null) {
       return ColorConvert.toBufferedImage(rcImage.getImage(), true);
     } else if (entry != null) {
@@ -346,8 +338,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   }
 
   // Shows message box about basic resource properties
-  private void showProperties()
-  {
+  private void showProperties() {
     MosDecoder decoder = null;
     try {
       decoder = MosDecoder.loadMos(entry);
@@ -364,12 +355,11 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         case MOSC:
           type = "MOS V1 (compressed)";
           break;
-        case MOSV2:
-        {
+        case MOSV2: {
           type = "MOS V2";
-          Set<Integer> pvrzPages = ((MosV2Decoder)decoder).getReferencedPVRZPages();
+          Set<Integer> pvrzPages = ((MosV2Decoder) decoder).getReferencedPVRZPages();
           int counter = 8;
-          for (Integer page: pvrzPages) {
+          for (Integer page : pvrzPages) {
             if (pageList.length() > 0) {
               pageList.append(", ");
               if (counter == 0) {
@@ -395,8 +385,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         sb.append(pageList.toString()).append(br);
       }
       sb.append("</div></html>");
-      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
-                                    JOptionPane.INFORMATION_MESSAGE);
+      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -406,8 +395,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     }
   }
 
-  private BufferedImage loadImage()
-  {
+  private BufferedImage loadImage() {
     BufferedImage image = null;
     mosType = MosDecoder.getType(entry);
     if (mosType != MosDecoder.Type.INVALID) {
@@ -416,7 +404,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         try {
           decoder = MosDecoder.loadMos(entry);
           if (decoder instanceof MosV1Decoder) {
-            ((MosV1Decoder)decoder).setTransparencyEnabled(enableTransparency);
+            ((MosV1Decoder) decoder).setTransparencyEnabled(enableTransparency);
           }
           mosType = decoder.getType();
           image = ColorConvert.toBufferedImage(decoder.getImage(), true);
@@ -437,15 +425,13 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   }
 
   // Creates a new MOS V1 or MOSC V1 resource from scratch. DO NOT call directly!
-  private byte[] convertToMosV1(boolean compressed) throws Exception
-  {
+  private byte[] convertToMosV1(boolean compressed) throws Exception {
     byte[] buf = null;
     if (rcImage != null && rcImage.getImage() != null) {
       // preparing source image
       Image img = rcImage.getImage();
-      BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null),
-                                                                  img.getHeight(null),
-                                                                  Transparency.BITMASK);
+      BufferedImage srcImage = ColorConvert.createCompatibleImage(img.getWidth(null), img.getHeight(null),
+          Transparency.BITMASK);
       Graphics2D g = srcImage.createGraphics();
       g.drawImage(getImage(), 0, 0, null);
       g.dispose();
@@ -458,47 +444,47 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       int rows = (height + 63) / 64;
       int tileCount = cols * rows;
       int palOfs = 24;
-      int tableOfs = palOfs + tileCount*1024;
-      int dataOfs = tableOfs + tileCount*4;
-      buf = new byte[dataOfs + width*height];
+      int tableOfs = palOfs + tileCount * 1024;
+      int dataOfs = tableOfs + tileCount * 4;
+      buf = new byte[dataOfs + width * height];
       System.arraycopy("MOS V1  ".getBytes(), 0, buf, 0, 8);
-      DynamicArray.putShort(buf, 8, (short)width);
-      DynamicArray.putShort(buf, 10, (short)height);
-      DynamicArray.putShort(buf, 12, (short)cols);
-      DynamicArray.putShort(buf, 14, (short)rows);
+      DynamicArray.putShort(buf, 8, (short) width);
+      DynamicArray.putShort(buf, 10, (short) height);
+      DynamicArray.putShort(buf, 12, (short) cols);
+      DynamicArray.putShort(buf, 14, (short) rows);
       DynamicArray.putInt(buf, 16, 64);
       DynamicArray.putInt(buf, 20, palOfs);
 
       String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
-      ProgressMonitor progress =
-          new ProgressMonitor(panel.getTopLevelAncestor(), "Converting MOS...",
-                              String.format(note, progressIndex, progressMax), 0, progressMax);
+      ProgressMonitor progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Converting MOS...",
+          String.format(note, progressIndex, progressMax), 0, progressMax);
       progress.setMillisToDecideToPopup(500);
       progress.setMillisToPopup(2000);
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols * rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
           int tileY = y * 64;
           int tileW = (tileX + 64 < width) ? 64 : (width - tileX);
           int tileH = (tileY + 64 < height) ? 64 : (height - tileY);
-          int[] rgbArray = new int[tileW*tileH];
+          int[] rgbArray = new int[tileW * tileH];
           srcImage.getRGB(tileX, tileY, tileW, tileH, rgbArray, 0, tileW);
           tileList.add(rgbArray);
         }
       }
-      srcImage.flush(); srcImage = null;
+      srcImage.flush();
+      srcImage = null;
 
       // applying color reduction to each tile
       int[] palette = new int[255];
       byte[] tilePalette = new byte[1024];
-      byte[] tileData = new byte[64*64];
+      byte[] tileData = new byte[64 * 64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
-      for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536); // caching RGBColor -> index
+      for (int[] pixels : tileList) {
         colorCache.clear();
         if (progress.isCanceled()) {
           buf = new byte[0];
@@ -510,17 +496,17 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
           progress.setNote(String.format(note, progressIndex, progressMax));
         }
 
-        int[] pixels = tileList.get(tileIdx);
         if (ColorConvert.medianCut(pixels, 255, palette, true)) {
           // filling palette
           // first palette entry denotes transparency
-          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+          tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
+          tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
-            tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
-            tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
+            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
+            tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
-            colorCache.put(palette[i - 1], (byte)(i - 1));
+            colorCache.put(palette[i - 1], (byte) (i - 1));
           }
           // filling pixel data
           for (int i = 0; i < pixels.length; i++) {
@@ -529,10 +515,10 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
             } else {
               Byte palIndex = colorCache.get(pixels[i]);
               if (palIndex != null) {
-                tileData[i] = (byte)(palIndex + 1);
+                tileData[i] = (byte) (palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
-                tileData[i] = (byte)(color + 1);
+                byte color = (byte) ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
+                tileData[i] = (byte) (color + 1);
                 colorCache.put(pixels[i], color);
               }
             }
@@ -549,8 +535,11 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         System.arraycopy(tileData, 0, buf, curDataOfs, pixels.length);
         curDataOfs += pixels.length;
       }
-      tileList.clear(); tileList = null;
-      tileData = null; tilePalette = null; palette = null;
+      tileList.clear();
+      tileList = null;
+      tileData = null;
+      tilePalette = null;
+      palette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {
@@ -564,13 +553,11 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   }
 
   // Starts the worker thread for MOS conversion
-  private void startConversion(boolean compressed)
-  {
+  private void startConversion(boolean compressed) {
     exportCompressed = compressed;
     workerConvert = new SwingWorker<List<byte[]>, Void>() {
       @Override
-      public List<byte[]> doInBackground()
-      {
+      public List<byte[]> doInBackground() {
         List<byte[]> list = new Vector<>(1);
         try {
           byte[] buf = convertToMosV1(exportCompressed);
@@ -588,8 +575,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   }
 
   /** Returns whether the specified PVRZ index can be found in the current MOS resource. */
-  public boolean containsPvrzReference(int index)
-  {
+  public boolean containsPvrzReference(int index) {
     boolean retVal = false;
     if (index >= 0 && index <= 99999) {
       try (InputStream is = entry.getResourceDataAsStream()) {
@@ -598,10 +584,13 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         byte[] buf = new byte[16];
         long len;
         long curOfs = 0;
-        if ((len = is.read(sig)) != sig.length) throw new Exception();
-        if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+        if (((len = is.read(sig)) != sig.length) || !"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) {
+          throw new Exception();
+        }
         curOfs += len;
-        if ((len = is.read(buf)) != buf.length) throw new Exception();
+        if ((len = is.read(buf)) != buf.length) {
+          throw new Exception();
+        }
         curOfs += len;
         int numBlocks = DynamicArray.getInt(buf, 8);
         int ofsBlocks = DynamicArray.getInt(buf, 12);
@@ -609,7 +598,9 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         if (curOfs > 0) {
           do {
             len = is.skip(curOfs);
-            if (len <= 0) throw new Exception();
+            if (len <= 0) {
+              throw new Exception();
+            }
             curOfs -= len;
           } while (curOfs > 0);
         }
@@ -617,7 +608,9 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         // parsing blocks
         buf = new byte[28];
         for (int i = 0; i < numBlocks && !retVal; i++) {
-          if (is.read(buf) != buf.length) throw new Exception();
+          if (is.read(buf) != buf.length) {
+            throw new Exception();
+          }
           int curIndex = DynamicArray.getInt(buf, 0);
           retVal = (curIndex == index);
         }

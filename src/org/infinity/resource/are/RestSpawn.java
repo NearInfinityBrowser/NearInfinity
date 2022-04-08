@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -14,8 +14,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 
-public final class RestSpawn extends AbstractStruct
-{
+public final class RestSpawn extends AbstractStruct {
   // ARE/Rest Encounters-specific field labels
   public static final String ARE_RESTSPAWN                      = "Rest encounters";
   public static final String ARE_RESTSPAWN_NAME                 = "Name";
@@ -31,22 +30,18 @@ public final class RestSpawn extends AbstractStruct
   public static final String ARE_RESTSPAWN_PROBABILITY_DAY      = "Probability (day)";
   public static final String ARE_RESTSPAWN_PROBABILITY_NIGHT    = "Probability (night)";
 
-  RestSpawn(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
-  {
+  RestSpawn(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception {
     super(superStruct, ARE_RESTSPAWN, buffer, offset);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 32, ARE_RESTSPAWN_NAME));
     for (int i = 0; i < 10; i++) {
-      addField(new StringRef(buffer, offset + 32 + (i * 4),
-                             String.format(ARE_RESTSPAWN_CREATURE_STRING_FMT, i+1)));
+      addField(new StringRef(buffer, offset + 32 + (i * 4), String.format(ARE_RESTSPAWN_CREATURE_STRING_FMT, i + 1)));
     }
     for (int i = 0; i < 10; i++) {
-      addField(new SpawnResourceRef(buffer, offset + 72 + i * 8,
-                                    String.format(ARE_RESTSPAWN_CREATURE_FMT, i+1)));
+      addField(new SpawnResourceRef(buffer, offset + 72 + i * 8, String.format(ARE_RESTSPAWN_CREATURE_FMT, i + 1)));
     }
     addField(new DecNumber(buffer, offset + 152, 2, ARE_RESTSPAWN_NUM_CREATURES));
     addField(new DecNumber(buffer, offset + 154, 2, ARE_RESTSPAWN_ENCOUNTER_DIFFICULTY));
@@ -61,4 +56,3 @@ public final class RestSpawn extends AbstractStruct
     return offset + 228;
   }
 }
-

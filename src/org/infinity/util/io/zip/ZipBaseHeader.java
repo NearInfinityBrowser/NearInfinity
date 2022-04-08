@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
@@ -12,8 +12,7 @@ import java.util.zip.ZipError;
 /**
  * Common base class for internal zip structures.
  */
-public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader>
-{
+public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader> {
   public static final int SIG_LOCAL       = 0x04034b50;
   public static final int SIG_CENTRAL     = 0x02014b50;
   public static final int SIG_CENTRAL_END = 0x06054b50;
@@ -27,16 +26,13 @@ public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader>
   /** Signature of the header structure. */
   public long signature;
 
-
-  protected ZipBaseHeader(long offset, long signature)
-  {
+  protected ZipBaseHeader(long offset, long signature) {
     this.offset = offset;
     this.signature = signature;
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int hash = 7;
     hash = 31 * hash + Long.hashCode(offset);
     hash = 31 * hash + Long.hashCode(size);
@@ -45,20 +41,18 @@ public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader>
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     } else if (o instanceof ZipBaseHeader) {
-      return (((ZipBaseHeader)o).offset == this.offset);
+      return (((ZipBaseHeader) o).offset == this.offset);
     } else {
       return false;
     }
   }
 
   @Override
-  public int compareTo(ZipBaseHeader o)
-  {
+  public int compareTo(ZipBaseHeader o) {
     if (this == o) {
       return 0;
     } else if (o != null) {
@@ -74,26 +68,20 @@ public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader>
     }
   }
 
-
-
-  static final long readFullyAt(SeekableByteChannel ch, byte[] buf, int ofs, long len, long pos)
-      throws IOException
-  {
+  protected static final long readFullyAt(SeekableByteChannel ch, byte[] buf, int ofs, long len, long pos) throws IOException {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     bb.position(ofs);
-    bb.limit((int)(ofs + len));
+    bb.limit((int) (ofs + len));
     return readFullyAt(ch, bb, pos);
   }
 
-  static final long readFullyAt(SeekableByteChannel ch, ByteBuffer bb, long pos) throws IOException
-  {
+  protected static final long readFullyAt(SeekableByteChannel ch, ByteBuffer bb, long pos) throws IOException {
     synchronized (ch) {
       return ch.position(pos).read(bb);
     }
   }
 
-  static final void zerror(String msg)
-  {
+  protected static final void zerror(String msg) {
     throw new ZipError(msg);
   }
 

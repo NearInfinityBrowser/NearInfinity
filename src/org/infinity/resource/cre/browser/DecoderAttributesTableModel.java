@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -25,48 +25,45 @@ import org.infinity.util.Misc;
 /**
  * A table model that handles key/value pairs of animation attributes stored in {@code SpriteDecoder} instances.
  */
-public class DecoderAttributesTableModel extends AbstractTableModel
-{
+public class DecoderAttributesTableModel extends AbstractTableModel {
   private final TreeMap<String, String> attributes = new TreeMap<>();
 
   private SpriteDecoder decoder;
+
   // working array for map keys to speed up lookup
   private String[] keys;
 
-  public DecoderAttributesTableModel()
-  {
+  public DecoderAttributesTableModel() {
     this(null);
   }
 
-  public DecoderAttributesTableModel(SpriteDecoder decoder)
-  {
+  public DecoderAttributesTableModel(SpriteDecoder decoder) {
     super();
     setDecoder(decoder);
   }
 
   /** Returns the currently assigned {@code SpriteDecoder}. */
-  public SpriteDecoder getDecoder() { return decoder; }
+  public SpriteDecoder getDecoder() {
+    return decoder;
+  }
 
   /**
-   * Assigns a {@code SpriteDecoder} instance to the table model and updates the list of available
-   * animation attributes.
+   * Assigns a {@code SpriteDecoder} instance to the table model and updates the list of available animation attributes.
+   *
    * @param decoder the {@code SpriteDecoder} instance
    */
-  public void setDecoder(SpriteDecoder decoder)
-  {
-    if (this.decoder == null && decoder != null ||
-        this.decoder != null && !this.decoder.equals(decoder)) {
+  public void setDecoder(SpriteDecoder decoder) {
+    if (this.decoder == null && decoder != null || this.decoder != null && !this.decoder.equals(decoder)) {
       this.decoder = decoder;
       reload();
     }
   }
 
   /**
-   * Discards the current list of animation attributes and loads a new list from the
-   * defined {@code SpriteDecoder} instance.
+   * Discards the current list of animation attributes and loads a new list from the defined {@code SpriteDecoder}
+   * instance.
    */
-  public void reload()
-  {
+  public void reload() {
     int oldSize = attributes.size();
     attributes.clear();
     if (oldSize > 0) {
@@ -75,9 +72,10 @@ public class DecoderAttributesTableModel extends AbstractTableModel
 
     if (decoder != null) {
       // Special: add animation id to list of attributes
-      attributes.put(Misc.prettifySymbol("animation_id"), String.format("0x%04x (%d)", decoder.getAnimationId(), decoder.getAnimationId()));
+      attributes.put(Misc.prettifySymbol("animation_id"),
+          String.format("0x%04x (%d)", decoder.getAnimationId(), decoder.getAnimationId()));
 
-      for (final Iterator<DecoderAttribute> iter = decoder.getAttributeIterator(); iter.hasNext(); ) {
+      for (final Iterator<DecoderAttribute> iter = decoder.getAttributeIterator(); iter.hasNext();) {
         DecoderAttribute att = iter.next();
 
         // skip selected attributes
@@ -88,8 +86,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel
         String key = "";
         String value = "";
         switch (att.getType()) {
-          case BOOLEAN:
-          {
+          case BOOLEAN: {
             Boolean b = decoder.getAttribute(att);
             if (b != null) {
               key = att.getName();
@@ -97,8 +94,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel
             }
             break;
           }
-          case DECIMAL:
-          {
+          case DECIMAL: {
             Double d = decoder.getAttribute(att);
             if (d != null) {
               key = att.getName();
@@ -106,8 +102,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel
             }
             break;
           }
-          case INT:
-          {
+          case INT: {
             Integer n = decoder.getAttribute(att);
             if (n != null) {
               key = att.getName();
@@ -115,8 +110,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel
             }
             break;
           }
-          case STRING:
-          {
+          case STRING: {
             String s = decoder.getAttribute(att);
             if (s != null) {
               key = att.getName();
@@ -124,8 +118,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel
             }
             break;
           }
-          default:
-          {
+          default: {
             Object o = decoder.getAttribute(att);
             if (o != null) {
               key = att.getName();
@@ -144,20 +137,17 @@ public class DecoderAttributesTableModel extends AbstractTableModel
   }
 
   @Override
-  public int getRowCount()
-  {
+  public int getRowCount() {
     return attributes.size();
   }
 
   @Override
-  public int getColumnCount()
-  {
+  public int getColumnCount() {
     return 2;
   }
 
   @Override
-  public Object getValueAt(int rowIndex, int columnIndex)
-  {
+  public Object getValueAt(int rowIndex, int columnIndex) {
     if (rowIndex >= 0 && rowIndex < keys.length && columnIndex >= 0 && columnIndex < 2) {
       String key = keys[rowIndex];
       switch (columnIndex) {
@@ -170,12 +160,10 @@ public class DecoderAttributesTableModel extends AbstractTableModel
     return "";
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public static class AttributesColumnModel extends DefaultTableColumnModel
-  {
-    public AttributesColumnModel()
-    {
+  public static class AttributesColumnModel extends DefaultTableColumnModel {
+    public AttributesColumnModel() {
       super();
       TableColumn column1 = new TableColumn(0, 125, new DefaultTableCellRenderer(), null);
       column1.setHeaderValue("Name");
@@ -188,30 +176,25 @@ public class DecoderAttributesTableModel extends AbstractTableModel
     }
   }
 
-  public static class AttributesListSelectionModel extends DefaultListSelectionModel
-  {
-    public AttributesListSelectionModel()
-    {
+  public static class AttributesListSelectionModel extends DefaultListSelectionModel {
+    public AttributesListSelectionModel() {
       super();
       setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
   }
 
-  public static class AttributesHeaderRenderer implements TableCellRenderer
-  {
+  public static class AttributesHeaderRenderer implements TableCellRenderer {
     private final DefaultTableCellRenderer renderer;
 
-    public AttributesHeaderRenderer(JTable table)
-    {
+    public AttributesHeaderRenderer(JTable table) {
       super();
-      this.renderer = (DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer();
+      this.renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
       this.renderer.setHorizontalAlignment(SwingConstants.LEADING);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-                                                   int row, int column)
-    {
+        int row, int column) {
       return renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
   }

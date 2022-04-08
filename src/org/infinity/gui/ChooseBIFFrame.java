@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -30,8 +30,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.AbstractBIFFReader;
 import org.infinity.resource.key.BIFFEntry;
 
-final class ChooseBIFFrame extends ChildFrame implements ActionListener
-{
+final class ChooseBIFFrame extends ChildFrame implements ActionListener {
   private final BIFFEditor editor;
   private final JButton bok = new JButton("OK");
   private final JButton bcancel = new JButton("Cancel");
@@ -43,10 +42,9 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
   private final JRadioButton rbcreate = new JRadioButton("Create new");
   private final JTextField tfbifname = new JTextField(10);
 
-  ChooseBIFFrame(BIFFEditor editor)
-  {
+  ChooseBIFFrame(BIFFEditor editor) {
     super("Edit BIFF: Select file", true);
-    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
+    setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
     this.editor = editor;
     bok.setMnemonic('o');
     bcancel.setMnemonic('c');
@@ -92,7 +90,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     cbbifname.setSelectedIndex(0);
     cbbifname.setEditable(false);
 
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
@@ -142,12 +140,12 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     gbl.setConstraints(label3, gbc);
     pane.add(label3);
 
-//    gbc.insets = new Insets(3, 6, 6, 6);
-//    gbc.fill = GridBagConstraints.NONE;
-//    gbc.weighty = 1.0;
-//    gbc.weightx = 0.0;
-//    gbl.setConstraints(format, gbc);
-//    pane.add(format);
+    // gbc.insets = new Insets(3, 6, 6, 6);
+    // gbc.fill = GridBagConstraints.NONE;
+    // gbc.weighty = 1.0;
+    // gbc.weightx = 0.0;
+    // gbl.setConstraints(format, gbc);
+    // pane.add(format);
 
     gbc.weighty = 0.0;
     gbl.setConstraints(lowerpanel, gbc);
@@ -158,30 +156,26 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     setVisible(true);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bcancel) {
       close();
-    }
-    else if (event.getSource() == rbedit) {
+    } else if (event.getSource() == rbedit) {
       cbbifname.setEnabled(true);
       tfbifname.setEnabled(false);
       rbbiff.setEnabled(false);
       rbbif.setEnabled(false);
       rbbifc.setEnabled(false);
-    }
-    else if (event.getSource() == rbcreate) {
+    } else if (event.getSource() == rbcreate) {
       cbbifname.setEnabled(false);
       tfbifname.setEnabled(true);
       rbbiff.setEnabled(true);
 
       rbbif.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF));
       rbbifc.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC));
-    }
-    else if (event.getSource() == bok || event.getSource() == tfbifname) {
+    } else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {
         // Check if name exists
         String name = tfbifname.getText().toLowerCase(Locale.ENGLISH);
@@ -201,19 +195,17 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
         }
         for (int i = 0; i < cbbifname.getItemCount(); i++) {
           if (name.equalsIgnoreCase(cbbifname.getItemAt(i).getFileName())) {
-            JOptionPane.showMessageDialog(this, "This BIFF already exists!", "Error",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "This BIFF already exists!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
           }
         }
         close();
         editor.makeEditor(new BIFFEntry(Profile.getChitinKey(), name), form);
-      }
-      else {
+      } else {
         // Edit existing
-        BIFFEntry entry = (BIFFEntry)cbbifname.getSelectedItem();
-        JOptionPane.showMessageDialog(this, "Make sure you have a backup of " + entry.getPath(),
-                                      "Warning", JOptionPane.WARNING_MESSAGE);
+        BIFFEntry entry = (BIFFEntry) cbbifname.getSelectedItem();
+        JOptionPane.showMessageDialog(this, "Make sure you have a backup of " + entry.getPath(), "Warning",
+            JOptionPane.WARNING_MESSAGE);
         try {
           AbstractBIFFReader file = ResourceFactory.getKeyfile().getBIFFFile(entry);
           close();
@@ -225,5 +217,5 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 }

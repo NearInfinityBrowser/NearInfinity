@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sav;
@@ -24,17 +24,16 @@ import org.infinity.util.FileDeletionHook;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
-public final class IOHandler implements Writeable
-{
+public final class IOHandler implements Writeable {
   private final ResourceEntry entry;
   private final TextString header;
-  private Path tempFolder;
   private final List<SavResourceEntry> fileEntries;
 
-  public IOHandler(ResourceEntry entry) throws Exception
-  {
+  private Path tempFolder;
+
+  public IOHandler(ResourceEntry entry) throws Exception {
     this.entry = entry;
-    ByteBuffer buffer = entry.getResourceBuffer(true);  // ignoreOverride - no real effect
+    ByteBuffer buffer = entry.getResourceBuffer(true); // ignoreOverride - no real effect
     header = new TextString(buffer, 0, 8, null);
     if (!header.getText().equals("SAV V1.0")) {
       throw new UnsupportedOperationException("Unsupported version: " + header);
@@ -49,24 +48,22 @@ public final class IOHandler implements Writeable
     Collections.sort(fileEntries);
   }
 
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     header.write(os);
-    for (final SavResourceEntry entry: fileEntries) {
+    for (final SavResourceEntry entry : fileEntries) {
       entry.write(os);
     }
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-  public void close()
-  {
+  public void close() {
     if (tempFolder != null && FileEx.create(tempFolder).isDirectory()) {
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(tempFolder)) {
-        for (final Path file: dstream) {
+        for (final Path file : dstream) {
           try {
             Files.delete(file);
           } catch (AccessDeniedException e) {
@@ -86,8 +83,7 @@ public final class IOHandler implements Writeable
     }
   }
 
-  public void compress(List<? extends ResourceEntry> entries) throws Exception
-  {
+  public void compress(List<? extends ResourceEntry> entries) throws Exception {
     fileEntries.clear();
     for (final ResourceEntry entry : entries) {
       fileEntries.add(new SavResourceEntry(entry));
@@ -95,8 +91,7 @@ public final class IOHandler implements Writeable
     close();
   }
 
-  public List<ResourceEntry> decompress() throws Exception
-  {
+  public List<ResourceEntry> decompress() throws Exception {
     tempFolder = createTempFolder();
     if (tempFolder == null) {
       throw new Exception("Unable to create temp folder");
@@ -105,7 +100,7 @@ public final class IOHandler implements Writeable
 
     // placing content of .sav resource in the temporary folder
     final List<ResourceEntry> entries = new ArrayList<>(fileEntries.size());
-    for (final SavResourceEntry entry: fileEntries) {
+    for (final SavResourceEntry entry : fileEntries) {
       Path file = tempFolder.resolve(entry.getResourceName());
       try (OutputStream os = StreamUtils.getOutputStream(file, true)) {
         StreamUtils.writeBytes(os, entry.decompress());
@@ -124,19 +119,16 @@ public final class IOHandler implements Writeable
     return entries;
   }
 
-  public List<? extends ResourceEntry> getFileEntries()
-  {
+  public List<? extends ResourceEntry> getFileEntries() {
     return fileEntries;
   }
 
-  public Path getTempFolder()
-  {
+  public Path getTempFolder() {
     return tempFolder;
   }
 
   /** Create a unique temp folder for current baldur.sav. */
-  private Path createTempFolder()
-  {
+  private Path createTempFolder() {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
       Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolderName(), idx));
       if (!FileEx.create(path).exists()) {

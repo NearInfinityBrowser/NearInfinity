@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -29,43 +29,44 @@ import org.infinity.util.Misc;
 /**
  * Transform filter: rotates each frame by a specified amount.
  */
-public class BamFilterTransformRotate extends BamFilterBaseTransform implements ActionListener
-{
-  private static final String FilterName = "Rotate BAM frames";
-  private static final String FilterDesc = "This filter allows you to rotate each BAM frame by a specified amount.";
+public class BamFilterTransformRotate extends BamFilterBaseTransform implements ActionListener {
+  private static final String FILTER_NAME = "Rotate BAM frames";
+  private static final String FILTER_DESC = "This filter allows you to rotate each BAM frame by a specified amount.";
 
-  private static final int ANGLE_90   = 0;
-  private static final int ANGLE_180  = 1;
-  private static final int ANGLE_270  = 2;
-  private static final String[] AngleItems = {"90\u00B0", "180\u00B0", "270\u00B0"};
+  private static final int ANGLE_90 = 0;
+  private static final int ANGLE_180 = 1;
+  private static final int ANGLE_270 = 2;
+  private static final String[] ANGLE_ITEMS = { "90\u00B0", "180\u00B0", "270\u00B0" };
 
-  private JRadioButton rbCW, rbCCW;
+  private JRadioButton rbCW;
+  private JRadioButton rbCCW;
   private JCheckBox cbAdjustCenter;
   private JComboBox<String> cbAngle;
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
 
-  public BamFilterTransformRotate(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
+
+  public BamFilterTransformRotate(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public PseudoBamFrameEntry process(PseudoBamFrameEntry entry) throws Exception
-  {
+  public PseudoBamFrameEntry process(PseudoBamFrameEntry entry) throws Exception {
     return applyEffect(entry);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
     return applyEffect(entry);
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(rbCW.isSelected() ? 0 : 1).append(';');
     sb.append(cbAngle.getSelectedIndex()).append(';');
@@ -74,8 +75,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -124,8 +124,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Orientation:");
@@ -137,58 +136,55 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
     rbCCW.addActionListener(this);
     bg.add(rbCW);
     bg.add(rbCCW);
-    cbAngle = new JComboBox<>(AngleItems);
+    cbAngle = new JComboBox<>(ANGLE_ITEMS);
     cbAngle.addActionListener(this);
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
     cbAdjustCenter.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     p.add(rbCW, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     p.add(rbCCW, c);
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p.add(l2, c);
-    ViewerUtil.setGBC(c, 1, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 8, 0, 0), 0, 0);
     p.add(cbAngle, c);
-    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(12, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(12, 0, 0, 0), 0, 0);
     p.add(new JPanel(), c);
-    ViewerUtil.setGBC(c, 1, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(12, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(12, 4, 0, 0), 0, 0);
     p.add(cbAdjustCenter, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == rbCW || event.getSource() == rbCCW || event.getSource() == cbAngle ||
-        event.getSource() == cbAdjustCenter) {
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == rbCW || event.getSource() == rbCCW || event.getSource() == cbAngle
+        || event.getSource() == cbAdjustCenter) {
       fireChangeListener();
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
-
-  private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry)
-  {
+  private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry) {
     if (entry != null && entry.getFrame() != null) {
       int width = entry.getFrame().getWidth();
       int height = entry.getFrame().getHeight();
@@ -197,26 +193,27 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
       switch (cbAngle.getSelectedIndex()) {
         case ANGLE_90:
         case ANGLE_270:
-          newWidth = height; newHeight = width;
+          newWidth = height;
+          newHeight = width;
           break;
         default:
-          newWidth = width; newHeight = height;
+          newWidth = width;
+          newHeight = height;
       }
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
       if (entry.getFrame().getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        srcB = ((DataBufferByte)entry.getFrame().getRaster().getDataBuffer()).getData();
-        IndexColorModel cm = (IndexColorModel)entry.getFrame().getColorModel();
+        srcB = ((DataBufferByte) entry.getFrame().getRaster().getDataBuffer()).getData();
+        IndexColorModel cm = (IndexColorModel) entry.getFrame().getColorModel();
         dstImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_BYTE_INDEXED, cm);
-        dstB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        dstB = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
       } else if (entry.getFrame().getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
-        srcI = ((DataBufferInt)entry.getFrame().getRaster().getDataBuffer()).getData();
+        srcI = ((DataBufferInt) entry.getFrame().getRaster().getDataBuffer()).getData();
         dstImage = new BufferedImage(newWidth, newHeight, entry.getFrame().getType());
-        dstI = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
+        dstI = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
       } else {
         return entry;
       }
-
 
       // normalizing rotation for easier processing
       int angle = cbAngle.getSelectedIndex();
@@ -245,7 +242,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
               nx = x;
               ny = y;
           }
-          int dstOfs = ny*newWidth + nx;
+          int dstOfs = ny * newWidth + nx;
           if (srcB != null) {
             dstB[dstOfs] = srcB[srcOfs];
           }

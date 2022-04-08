@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
@@ -13,8 +13,7 @@ import org.infinity.resource.graphics.ColorConvert;
 /**
  * Basic implementation of the BufferedRenderer interface.
  */
-public class BasicVideoBuffer implements VideoBuffer
-{
+public class BasicVideoBuffer implements VideoBuffer {
   private Image[] buffer;
   private Object[] extraData;
   private int numBuffers;
@@ -23,69 +22,65 @@ public class BasicVideoBuffer implements VideoBuffer
   /**
    * Creates an empty buffer chain.
    */
-  public BasicVideoBuffer()
-  {
+  public BasicVideoBuffer() {
     buffer = null;
     extraData = null;
   }
 
   /**
    * Creates a new BufferedRenderer with the specified parameters.
-   * @param numBuffers The number of buffers in the buffer chain (usually 1 to 3).
-   * @param width The image width in pixels.
-   * @param height The image height in pixels.
+   *
+   * @param numBuffers      The number of buffers in the buffer chain (usually 1 to 3).
+   * @param width           The image width in pixels.
+   * @param height          The image height in pixels.
    * @param hasTransparency Enable/Disable transparency/alpha support.
    */
-  public BasicVideoBuffer(int numBuffers, int width, int height, boolean hasTransparency)
-  {
+  public BasicVideoBuffer(int numBuffers, int width, int height, boolean hasTransparency) {
     buffer = null;
     extraData = null;
-    if (!create(numBuffers, width, height, hasTransparency))
+    if (!create(numBuffers, width, height, hasTransparency)) {
       throw new NullPointerException();
+    }
   }
 
   /**
    * Creates a BufferedRenderer using the specified BufferedImage objects for the buffer chain.
+   *
    * @param buffers The array of BufferedImage objects to use.
    */
-  public BasicVideoBuffer(Image[] buffers)
-  {
+  public BasicVideoBuffer(Image[] buffers) {
     buffer = null;
     extraData = null;
-    if (buffers == null)
+    if ((buffers == null) || !create(Arrays.asList(buffers))) {
       throw new NullPointerException();
-
-    if (!create(Arrays.asList(buffers)))
-      throw new NullPointerException();
+    }
   }
 
   /**
    * Creates a BufferedRenderer using the specified BufferedImage objects for the buffer chain.
+   *
    * @param buffers The collection of BufferedImage objects to use.
    */
-  public BasicVideoBuffer(Collection<Image> buffers)
-  {
+  public BasicVideoBuffer(Collection<Image> buffers) {
     buffer = null;
     extraData = null;
-    if (!create(buffers))
+    if (!create(buffers)) {
       throw new NullPointerException();
+    }
   }
 
   @Override
-  public Image frontBuffer()
-  {
+  public Image frontBuffer() {
     return (buffer != null) ? buffer[currentBuffer] : null;
   }
 
   @Override
-  public Image backBuffer()
-  {
+  public Image backBuffer() {
     return (buffer != null) ? buffer[(currentBuffer + numBuffers - 1) % numBuffers] : null;
   }
 
   @Override
-  public void flipBuffers()
-  {
+  public void flipBuffers() {
     if (buffer != null) {
       currentBuffer = (currentBuffer + 1) % numBuffers;
       extraData[(currentBuffer + numBuffers - 1) % numBuffers] = null;
@@ -93,14 +88,12 @@ public class BasicVideoBuffer implements VideoBuffer
   }
 
   @Override
-  public int bufferCount()
-  {
+  public int bufferCount() {
     return numBuffers;
   }
 
   @Override
-  public void attachData(Object data)
-  {
+  public void attachData(Object data) {
     if (extraData != null) {
       int bufferIndex = (currentBuffer + numBuffers - 1) % numBuffers;
       extraData[bufferIndex] = data;
@@ -108,8 +101,7 @@ public class BasicVideoBuffer implements VideoBuffer
   }
 
   @Override
-  public Object fetchData()
-  {
+  public Object fetchData() {
     if (extraData != null) {
       return extraData[currentBuffer];
     } else {
@@ -119,21 +111,22 @@ public class BasicVideoBuffer implements VideoBuffer
 
   /**
    * Initializes the buffer chain using the specified parameters. Old buffers will be discarded.
-   * @param numBuffers The number of buffers in the buffer chain (usually 1 to 3).
-   * @param width The image width in pixels
-   * @param height The image height in pixels
+   *
+   * @param numBuffers      The number of buffers in the buffer chain (usually 1 to 3).
+   * @param width           The image width in pixels
+   * @param height          The image height in pixels
    * @param hasTransparency Enable/Disable transparency/alpha support.
-   * @return {@code true} if the new buffer chain has been created successfully,
-   *         {@code false} otherwise.
+   * @return {@code true} if the new buffer chain has been created successfully, {@code false} otherwise.
    */
-  public boolean create(int numBuffers, int width, int height, boolean hasTransparency)
-  {
+  public boolean create(int numBuffers, int width, int height, boolean hasTransparency) {
     release();
 
-    if (width <= 0 || height <= 0)
+    if (width <= 0 || height <= 0) {
       return false;
-    if (numBuffers < 1)
+    }
+    if (numBuffers < 1) {
       numBuffers = 1;
+    }
 
     this.numBuffers = numBuffers;
     buffer = new Image[this.numBuffers];
@@ -152,24 +145,25 @@ public class BasicVideoBuffer implements VideoBuffer
   }
 
   /**
-   * Initializes the buffer chain using the BufferedImage objects from the specified list.
-   * Old buffers will be discarded.
+   * Initializes the buffer chain using the BufferedImage objects from the specified list. Old buffers will be
+   * discarded.
+   *
    * @param bufferList The collection of BufferedImage objects.
-   * @return {@code true} if the new buffer chain has been created successfully,
-   *         {@code false} otherwise.
+   * @return {@code true} if the new buffer chain has been created successfully, {@code false} otherwise.
    */
-  public boolean create(Collection<Image> bufferList)
-  {
+  public boolean create(Collection<Image> bufferList) {
     release();
 
-    if (bufferList == null)
+    if (bufferList == null) {
       throw new NullPointerException();
+    }
 
     // check for valid content
     int num = 0;
-    for (final Image image: bufferList) {
-      if (image != null)
+    for (final Image image : bufferList) {
+      if (image != null) {
         num++;
+      }
     }
 
     // add buffers to chain
@@ -178,7 +172,7 @@ public class BasicVideoBuffer implements VideoBuffer
       buffer = new Image[this.numBuffers];
       currentBuffer = 0;
       num = 0;
-      for (final Image image: bufferList) {
+      for (final Image image : bufferList) {
         if (image != null) {
           buffer[num++] = image;
         }
@@ -196,8 +190,7 @@ public class BasicVideoBuffer implements VideoBuffer
   /**
    * Releases old BufferedImage objects.
    */
-  public void release()
-  {
+  public void release() {
     if (buffer != null && extraData != null) {
       for (int i = 0; i < numBuffers; i++) {
         if (buffer[i] != null) {

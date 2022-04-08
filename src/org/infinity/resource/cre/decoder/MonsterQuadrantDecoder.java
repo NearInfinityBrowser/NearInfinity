@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -25,42 +25,45 @@ import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
 
 /**
- * Creature animation decoder for processing type 1000 (monster_quadrant) animations.
- * Available ranges: [1000,1fff]
+ * Creature animation decoder for processing type 1000 (monster_quadrant) animations. Available ranges: [1000,1fff]
  */
-public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
-{
+public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_QUADRANT;
 
-  public static final DecoderAttribute KEY_CASTER                 = DecoderAttribute.with("caster", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_PATH_SMOOTH            = DecoderAttribute.with("path_smooth", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_EXTEND_DIRECTION       = DecoderAttribute.with("extend_direction", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_EXTEND_DIRECTION_TEST  = DecoderAttribute.with("extend_direction_test", DecoderAttribute.DataType.INT);
+  public static final DecoderAttribute KEY_CASTER = DecoderAttribute.with("caster", DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_PATH_SMOOTH = DecoderAttribute.with("path_smooth",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_EXTEND_DIRECTION = DecoderAttribute.with("extend_direction",
+      DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_EXTEND_DIRECTION_TEST = DecoderAttribute.with("extend_direction_test",
+      DecoderAttribute.DataType.INT);
 
-  private static final HashMap<Sequence, Couple<String, Integer>> suffixMap = new HashMap<Sequence, Couple<String, Integer>>() {{
-    put(Sequence.WALK, Couple.with("G1", 0));
-    put(Sequence.STAND, Couple.with("G2", 0));
-    put(Sequence.STANCE, Couple.with("G2", 16));
-    put(Sequence.GET_HIT, Couple.with("G2", 32));
-    put(Sequence.DIE, Couple.with("G2", 48));
-    put(Sequence.SLEEP, get(Sequence.DIE));
-    put(Sequence.GET_UP, Couple.with("!G2", 48));
-    put(Sequence.TWITCH, Couple.with("G2", 64));
-    put(Sequence.ATTACK, Couple.with("G3", 0));
-    put(Sequence.ATTACK_2, Couple.with("G3", 16));
-    put(Sequence.ATTACK_3, Couple.with("G3", 32));
-    put(Sequence.CAST, get(Sequence.ATTACK_3));
-  }};
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+
+  static {
+    SUFFIX_MAP.put(Sequence.WALK, Couple.with("G1", 0));
+    SUFFIX_MAP.put(Sequence.STAND, Couple.with("G2", 0));
+    SUFFIX_MAP.put(Sequence.STANCE, Couple.with("G2", 16));
+    SUFFIX_MAP.put(Sequence.GET_HIT, Couple.with("G2", 32));
+    SUFFIX_MAP.put(Sequence.DIE, Couple.with("G2", 48));
+    SUFFIX_MAP.put(Sequence.SLEEP, SUFFIX_MAP.get(Sequence.DIE));
+    SUFFIX_MAP.put(Sequence.GET_UP, Couple.with("!G2", 48));
+    SUFFIX_MAP.put(Sequence.TWITCH, Couple.with("G2", 64));
+    SUFFIX_MAP.put(Sequence.ATTACK, Couple.with("G3", 0));
+    SUFFIX_MAP.put(Sequence.ATTACK_2, Couple.with("G3", 16));
+    SUFFIX_MAP.put(Sequence.ATTACK_3, Couple.with("G3", 32));
+    SUFFIX_MAP.put(Sequence.CAST, SUFFIX_MAP.get(Sequence.ATTACK_3));
+  }
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.
+   *
    * @param data a String array containing table values for a specific table entry.
-   * @return a {@code IniMap} instance with the value derived from the specified data array.
-   *         Returns {@code null} if no data could be derived.
+   * @return a {@code IniMap} instance with the value derived from the specified data array. Returns {@code null} if no
+   *         data could be derived.
    */
-  public static IniMap processTableData(String[] data)
-  {
+  public static IniMap processTableData(String[] data) {
     IniMap retVal = null;
     if (data == null || data.length < 16) {
       return retVal;
@@ -77,7 +80,7 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
     ResourceEntry bamEntry = ResourceFactory.getResourceEntry(resref + "G11.BAM");
     int numCycles = SpriteUtils.getBamCycles(bamEntry);
     if (numCycles == 8) {
-      extendDirectionTest = 5;  // TBC
+      extendDirectionTest = 5; // TBC
     }
 
     List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
@@ -94,42 +97,59 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
     return retVal;
   }
 
-  public MonsterQuadrantDecoder(int animationId, IniMap ini) throws Exception
-  {
+  public MonsterQuadrantDecoder(int animationId, IniMap ini) throws Exception {
     super(ANIMATION_TYPE, animationId, ini);
   }
 
-  public MonsterQuadrantDecoder(CreResource cre) throws Exception
-  {
+  public MonsterQuadrantDecoder(CreResource cre) throws Exception {
     super(ANIMATION_TYPE, cre);
   }
 
   /** Returns whether attack animations {@code Attack2} and {@code Attack3} are used as casting animations. */
-  public boolean isCaster() { return getAttribute(KEY_CASTER); }
-  protected void setCaster(boolean b) { setAttribute(KEY_CASTER, b); }
+  public boolean isCaster() {
+    return getAttribute(KEY_CASTER);
+  }
+
+  protected void setCaster(boolean b) {
+    setAttribute(KEY_CASTER, b);
+  }
 
   /** ??? */
-  public boolean isSmoothPath() { return getAttribute(KEY_PATH_SMOOTH); }
-  protected void setSmoothPath(boolean b) { setAttribute(KEY_PATH_SMOOTH, b); }
+  public boolean isSmoothPath() {
+    return getAttribute(KEY_PATH_SMOOTH);
+  }
+
+  protected void setSmoothPath(boolean b) {
+    setAttribute(KEY_PATH_SMOOTH, b);
+  }
 
   /** Returns whether eastern directions are available. */
-  public boolean isExtendedDirection() { return getAttribute(KEY_EXTEND_DIRECTION); }
-  protected void setExtendedDirection(boolean b) { setAttribute(KEY_EXTEND_DIRECTION, b); }
+  public boolean isExtendedDirection() {
+    return getAttribute(KEY_EXTEND_DIRECTION);
+  }
+
+  protected void setExtendedDirection(boolean b) {
+    setAttribute(KEY_EXTEND_DIRECTION, b);
+  }
 
   /** ??? */
-  public int getExtendedDirectionSize() { return getAttribute(KEY_EXTEND_DIRECTION_TEST); }
-  protected void setExtendedDirectionSize(int v) { setAttribute(KEY_EXTEND_DIRECTION_TEST, v); }
+  public int getExtendedDirectionSize() {
+    return getAttribute(KEY_EXTEND_DIRECTION_TEST);
+  }
+
+  protected void setExtendedDirectionSize(int v) {
+    setAttribute(KEY_EXTEND_DIRECTION_TEST, v);
+  }
 
   @Override
-  public List<String> getAnimationFiles(boolean essential)
-  {
+  public List<String> getAnimationFiles(boolean essential) {
     ArrayList<String> retVal = new ArrayList<>();
     String resref = getAnimationResref();
-    for (final String suffix : new String[] {"G1", "G2", "G3"}) {
+    for (final String suffix : new String[] { "G1", "G2", "G3" }) {
       for (int i = 0; i < getQuadrants(); i++) {
-        retVal.add(resref + suffix + (i+1) + ".BAM");
+        retVal.add(resref + suffix + (i + 1) + ".BAM");
         if (isExtendedDirection()) {
-          retVal.add(resref + suffix + (i+1) + "E.BAM");
+          retVal.add(resref + suffix + (i + 1) + "E.BAM");
         }
       }
     }
@@ -137,14 +157,12 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
   }
 
   @Override
-  public boolean isSequenceAvailable(Sequence seq)
-  {
+  public boolean isSequenceAvailable(Sequence seq) {
     return (getSequenceDefinition(seq) != null);
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     // setting properties
     super.init();
     IniMapSection section = getSpecificIniSection();
@@ -154,31 +172,27 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
     setExtendedDirection(section.getAsInteger(KEY_EXTEND_DIRECTION.getName(), 0) != 0);
     setExtendedDirectionSize(section.getAsInteger(KEY_EXTEND_DIRECTION_TEST.getName(), 9));
     setQuadrants(section.getAsInteger(KEY_QUADRANTS.getName(), 4));
-    Misc.requireCondition(getQuadrants() < 10, "Too many quadrants defined: " + getQuadrants(), IllegalArgumentException.class);
+    Misc.requireCondition(getQuadrants() < 10, "Too many quadrants defined: " + getQuadrants(),
+        IllegalArgumentException.class);
   }
 
   @Override
-  protected SeqDef getSequenceDefinition(Sequence seq)
-  {
+  protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
     String resref = getAnimationResref();
 
-    if (isCaster() && (seq == Sequence.ATTACK_3)) {
-      return retVal;
-    }
-
-    if (!isCaster() && (seq == Sequence.CAST)) {
+    if ((isCaster() && (seq == Sequence.ATTACK_3)) || (!isCaster() && (seq == Sequence.CAST))) {
       return retVal;
     }
 
     List<SegmentDef> cycleList = new ArrayList<>();
     List<SegmentDef> cycleListE = new ArrayList<>();
     boolean valid = true;
-    if (suffixMap.containsKey(seq) && (isCaster() || seq != Sequence.SPELL && seq != Sequence.CAST)) {
-      String suffix = suffixMap.get(seq).getValue0();
+    if (SUFFIX_MAP.containsKey(seq) && (isCaster() || seq != Sequence.SPELL && seq != Sequence.CAST)) {
+      String suffix = SUFFIX_MAP.get(seq).getValue0();
       SegmentDef.Behavior behavior = SegmentDef.getBehaviorOf(suffix);
       suffix = SegmentDef.fixBehaviorSuffix(suffix);
-      int cycleOfs = suffixMap.get(seq).getValue1().intValue();
+      int cycleOfs = SUFFIX_MAP.get(seq).getValue1();
       for (int i = 1; valid && i <= getQuadrants(); i++) {
         ResourceEntry entry = ResourceFactory.getResourceEntry(resref + suffix + i + ".BAM");
         ResourceEntry entryE = entry;

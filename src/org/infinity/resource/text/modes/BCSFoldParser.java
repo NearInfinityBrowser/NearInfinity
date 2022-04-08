@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text.modes;
@@ -16,22 +16,18 @@ import org.fife.ui.rsyntaxtextarea.folding.FoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldType;
 
 /**
- * A fold parser for BCS scripts. It supports folding of multiline comments
- * and IF/END blocks.
+ * A fold parser for BCS scripts. It supports folding of multiline comments and IF/END blocks.
  */
-public class BCSFoldParser implements FoldParser
-{
-  private static final char[] BLOCK_START = {'I', 'F'};
-  private static final char[] BLOCK_END = {'E', 'N', 'D'};
-  private static final char[] MLC_END = {'*', '/'};
+public class BCSFoldParser implements FoldParser {
+  private static final char[] BLOCK_START = { 'I', 'F' };
+  private static final char[] BLOCK_END = { 'E', 'N', 'D' };
+  private static final char[] MLC_END = { '*', '/' };
 
-  public BCSFoldParser()
-  {
+  public BCSFoldParser() {
   }
 
   @Override
-  public List<Fold> getFolds(RSyntaxTextArea textArea)
-  {
+  public List<Fold> getFolds(RSyntaxTextArea textArea) {
     List<Fold> folds = new ArrayList<>();
 
     Fold curFold = null;

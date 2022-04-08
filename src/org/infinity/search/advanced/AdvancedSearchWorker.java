@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search.advanced;
@@ -29,8 +29,7 @@ import org.infinity.search.ReferenceHitFrame;
 /**
  * Worker class for performing a full match against a resource entry.
  */
-public class AdvancedSearchWorker implements Runnable
-{
+public class AdvancedSearchWorker implements Runnable {
   private final List<ReferenceHitFrame.ReferenceHit> matched;
   private final AdvancedSearch.FilterMode filterOp;
   private final List<SearchOptions> searchOptions;
@@ -38,29 +37,27 @@ public class AdvancedSearchWorker implements Runnable
   private final JProgressBar progress;
 
   /**
-   * @param matched List containing search results.
+   * @param matched       List containing search results.
    * @param searchOptions List of search options.
-   * @param entry Resource entry to match.
+   * @param entry         Resource entry to match.
    */
   public AdvancedSearchWorker(List<ReferenceHitFrame.ReferenceHit> matched, AdvancedSearch.FilterMode filterOp,
-                              List<SearchOptions> searchOptions, ResourceEntry entry, JProgressBar progress)
-  {
+      List<SearchOptions> searchOptions, ResourceEntry entry, JProgressBar progress) {
     this.matched = matched;
-    this.filterOp = (filterOp != null) ? filterOp : AdvancedSearch.FilterMode.MatchAll;
+    this.filterOp = (filterOp != null) ? filterOp : AdvancedSearch.FilterMode.MATCH_ALL;
     this.searchOptions = searchOptions;
     this.entry = entry;
     this.progress = progress;
   }
 
   @Override
-  public void run()
-  {
+  public void run() {
     if (matched == null || searchOptions == null || entry == null)
       return;
 
     Resource res = ResourceFactory.getResource(entry);
     if (res instanceof AbstractStruct) {
-      AbstractStruct structRoot = (AbstractStruct)res;
+      AbstractStruct structRoot = (AbstractStruct) res;
       // storage for evaluated matches
       List<ReferenceHitFrame.ReferenceHit> entryMatches = new ArrayList<>();
       // stores number of grouped filters applied per structure level
@@ -102,15 +99,15 @@ public class AdvancedSearchWorker implements Runnable
 
       // evaluating filter mode
       switch (filterOp) {
-        case MatchAll:
+        case MATCH_ALL:
           if (matches >= searchOptions.size())
             matched.addAll(entryMatches);
           break;
-        case MatchAny:
+        case MATCH_ANY:
           if (matches > 0)
             matched.addAll(entryMatches);
           break;
-        case MatchOne:
+        case MATCH_ONE:
           if (matches == 1)
             matched.addAll(entryMatches);
           break;
@@ -125,8 +122,7 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Search for matching structures recursively
-  private List<AbstractStruct> collectStructures(AbstractStruct struct, SearchOptions so, int index)
-  {
+  private List<AbstractStruct> collectStructures(AbstractStruct struct, SearchOptions so, int index) {
     final List<AbstractStruct> list = new ArrayList<>();
 
     if (index < so.getStructure().size()) {
@@ -135,39 +131,31 @@ public class AdvancedSearchWorker implements Runnable
       if (so.isStructureRegex()) {
         pattern = Pattern.compile(so.getStructure().get(index), Pattern.CASE_INSENSITIVE);
       } else {
-        pattern = Pattern.compile(Pattern.quote(so.getStructure().get(index)) + "(\\s*[0-9]+)?", Pattern.CASE_INSENSITIVE);
+        pattern = Pattern.compile(Pattern.quote(so.getStructure().get(index)) + "(\\s*[0-9]+)?",
+            Pattern.CASE_INSENSITIVE);
       }
-      struct
-      .getFields()
-      .stream()
-      .filter(se -> se instanceof AbstractStruct && pattern.matcher(se.getName()).find())
-      .forEachOrdered(se -> {
-        // processing only matching AbstractStruct fields
-        AbstractStruct as = (AbstractStruct)se;
-        if (index + 1 < so.getStructure().size()) {
-          // traverse more substructures?
-          list.addAll(collectStructures(as, so, index + 1));
-        } else {
-          // leaf structure
-          list.add(as);
-          // search more substructures recursively?
-          if (so.isStructureRecursive()) {
-            as
-            .getFields()
-            .stream()
-            .filter(se2 -> se2 instanceof AbstractStruct)
-            .forEachOrdered(se2 -> list.addAll(collectStructures((AbstractStruct)se2, so, index + 1)));
-          }
-        }
-      });
+      struct.getFields().stream().filter(se -> se instanceof AbstractStruct && pattern.matcher(se.getName()).find())
+          .forEachOrdered(se -> {
+            // processing only matching AbstractStruct fields
+            AbstractStruct as = (AbstractStruct) se;
+            if (index + 1 < so.getStructure().size()) {
+              // traverse more substructures?
+              list.addAll(collectStructures(as, so, index + 1));
+            } else {
+              // leaf structure
+              list.add(as);
+              // search more substructures recursively?
+              if (so.isStructureRecursive()) {
+                as.getFields().stream().filter(se2 -> se2 instanceof AbstractStruct)
+                    .forEachOrdered(se2 -> list.addAll(collectStructures((AbstractStruct) se2, so, index + 1)));
+              }
+            }
+          });
     } else {
       list.add(struct);
       if (so.isStructureRecursive()) {
-        struct
-        .getFields()
-        .stream()
-        .filter(se -> se instanceof AbstractStruct)
-        .forEachOrdered(se -> list.addAll(collectStructures((AbstractStruct)se, so, index + 1)));
+        struct.getFields().stream().filter(se -> se instanceof AbstractStruct)
+            .forEachOrdered(se -> list.addAll(collectStructures((AbstractStruct) se, so, index + 1)));
       }
     }
 
@@ -175,8 +163,8 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Remove all incomplete group matches from the map
-  private void collapseGroupFilters(Map<List<String>, Set<StructEntry>> groupCache, Map<List<String>, Integer> groupFilters)
-  {
+  private void collapseGroupFilters(Map<List<String>, Set<StructEntry>> groupCache,
+      Map<List<String>, Integer> groupFilters) {
     Iterator<Map.Entry<List<String>, Set<StructEntry>>> iter = groupCache.entrySet().iterator();
     while (iter.hasNext()) {
       Map.Entry<List<String>, Set<StructEntry>> entry = iter.next();
@@ -195,15 +183,15 @@ public class AdvancedSearchWorker implements Runnable
           Set<StructEntry> structureSet = structureMap.get(as);
           if (structureSet != null) {
             switch (filterOp) {
-              case MatchAll:
+              case MATCH_ALL:
                 if (structureSet.size() < count)
                   groupSet.removeAll(structureSet);
                 break;
-              case MatchAny:
+              case MATCH_ANY:
                 if (structureSet.size() == 0)
                   groupSet.removeAll(structureSet);
                 break;
-              case MatchOne:
+              case MATCH_ONE:
                 if (structureSet.size() != 1)
                   groupSet.removeAll(structureSet);
                 break;
@@ -223,19 +211,16 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Collect filters grouped by structure
-  private void addGroupFilter(Map<List<String>, Set<StructEntry>> groupCache, StructEntry se, SearchOptions so)
-  {
+  private void addGroupFilter(Map<List<String>, Set<StructEntry>> groupCache, StructEntry se, SearchOptions so) {
     Set<StructEntry> set = groupCache.computeIfAbsent(so.getStructure(), s -> new HashSet<>());
     set.add(se);
   }
 
   // Search for matching fields in specified structure
   private boolean findMatches(List<ReferenceHitFrame.ReferenceHit> matchList,
-                              Map<List<String>, Set<StructEntry>> groupCache,
-                              AbstractStruct struct, SearchOptions so)
-  {
+      Map<List<String>, Set<StructEntry>> groupCache, AbstractStruct struct, SearchOptions so) {
     if (struct != null && so != null) {
-      if (so.getSearchType() == SearchOptions.FieldMode.ByName) {
+      if (so.getSearchType() == SearchOptions.FieldMode.BY_NAME) {
         // search by name
         Pattern pattern;
         int flags = so.isSearchNameCaseSensitive() ? 0 : Pattern.CASE_INSENSITIVE;
@@ -254,7 +239,7 @@ public class AdvancedSearchWorker implements Runnable
       } else {
         // search by offset (rel -> abs)
         int offset = so.getSearchOffset();
-        if (so.getSearchType() == SearchOptions.FieldMode.ByRelativeOffset) {
+        if (so.getSearchType() == SearchOptions.FieldMode.BY_RELATIVE_OFFSET) {
           offset += struct.getOffset();
         }
         return isMatch(matchList, groupCache, struct.getAttribute(offset), so);
@@ -264,22 +249,21 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Match value against search options
-  private boolean isMatch(List<ReferenceHitFrame.ReferenceHit> matchList, Map<List<String>, Set<StructEntry>> groupCache,
-                          StructEntry se, SearchOptions so)
-  {
+  private boolean isMatch(List<ReferenceHitFrame.ReferenceHit> matchList,
+      Map<List<String>, Set<StructEntry>> groupCache, StructEntry se, SearchOptions so) {
     boolean retVal = false;
     if (se != null && so != null) {
       switch (so.getValueType()) {
-        case Text:
+        case TEXT:
           retVal = isMatchText(se, so.getValueText(), so.isValueTextCaseSensitive(), so.isValueTextRegex());
           break;
-        case Number:
+        case NUMBER:
           retVal = isMatchNumber(se, so.getValueNumberMin(), so.getValueNumberMax());
           break;
-        case Resource:
+        case RESOURCE:
           retVal = isMatchResource(se, so.getValueResourceRef(), so.getValueResourceType());
           break;
-        case Bitfield:
+        case BITFIELD:
           retVal = isMatchBitfield(se, so.getValueBitfield(), so.getBitfieldMode());
           break;
       }
@@ -302,8 +286,7 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Match value textually
-  private boolean isMatchText(StructEntry se, String text, boolean caseSensitive, boolean regex)
-  {
+  private boolean isMatchText(StructEntry se, String text, boolean caseSensitive, boolean regex) {
     // check numeric values as well
     boolean isNumber = false;
     int number = 0;
@@ -327,13 +310,13 @@ public class AdvancedSearchWorker implements Runnable
     }
 
     if (se instanceof IsTextual) {
-      IsTextual textEntry = (IsTextual)se;
+      IsTextual textEntry = (IsTextual) se;
       if (pattern.matcher(textEntry.getText()).find())
         return true;
     }
 
     if (se instanceof IsReference) {
-      IsReference refEntry = (IsReference)se;
+      IsReference refEntry = (IsReference) se;
       String resName = refEntry.getResourceName();
       if (resName.equalsIgnoreCase("None"))
         resName = "";
@@ -350,7 +333,7 @@ public class AdvancedSearchWorker implements Runnable
     }
 
     if (se instanceof IsNumeric && isNumber) {
-      IsNumeric numberEntry = (IsNumeric)se;
+      IsNumeric numberEntry = (IsNumeric) se;
       if (numberEntry.getValue() == number)
         return true;
     }
@@ -363,20 +346,18 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Match value numerically
-  private boolean isMatchNumber(StructEntry se, int valueMin, int valueMax)
-  {
+  private boolean isMatchNumber(StructEntry se, int valueMin, int valueMax) {
     if (se instanceof IsNumeric) {
-      IsNumeric entry = (IsNumeric)se;
+      IsNumeric entry = (IsNumeric) se;
       return (entry.getValue() >= valueMin && entry.getValue() <= valueMax);
     }
     return false;
   }
 
   // Match value by resource
-  private boolean isMatchResource(StructEntry se, String resref, String ext)
-  {
+  private boolean isMatchResource(StructEntry se, String resref, String ext) {
     if (se instanceof IsReference) {
-      IsReference entry = (IsReference)se;
+      IsReference entry = (IsReference) se;
       String resName = entry.getResourceName();
       if (resName.equalsIgnoreCase("None"))
         resName = "";
@@ -389,19 +370,17 @@ public class AdvancedSearchWorker implements Runnable
   }
 
   // Match value as bitfield
-  private boolean isMatchBitfield(StructEntry se, int value, SearchOptions.BitFieldMode mode)
-  {
+  private boolean isMatchBitfield(StructEntry se, int value, SearchOptions.BitFieldMode mode) {
     if (se instanceof Flag) {
-      int bits = ((IsNumeric)se).getValue();
+      int bits = ((IsNumeric) se).getValue();
       switch (mode) {
-        case Exact:
+        case EXACT:
           return bits == value;
-        case And:
+        case AND:
           return (bits & value) == value;
-        case Or:
+        case OR:
           return (bits & value) != 0;
-        case Xor:
-        {
+        case XOR: {
           bits = bits & value;
           int cnt = 0;
           while (bits != 0 && cnt < 2) {

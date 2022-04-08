@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -29,39 +29,40 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 /**
  * Color filter: swaps individual color channels.
  */
-public class BamFilterColorSwap extends BamFilterBaseColor
-    implements ChangeListener, ActionListener
-{
-  private static final String FilterName = "Swap color channels";
-  private static final String FilterDesc = "This filter provides controls for swapping color " +
-                                           "channels in any desired order.";
+public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeListener, ActionListener {
+  private static final String FILTER_NAME = "Swap color channels";
+  private static final String FILTER_DESC = "This filter provides controls for swapping color "
+      + "channels in any desired order.";
 
   // Supported swap combinations
-  private static final String[] SwapTypeItems = {"RBG", "GRB", "GBR", "BGR", "BRG"};
-  private static final int[][] SwapTypeShift = { {0, -8, 8}, {-8, 8, 0}, {-16, 8, 8},
-                                                 {-16, 0, 16}, {-8, -8, 16} };
+  private static final String[] SWAP_TYPE_ITEMS = { "RBG", "GRB", "GBR", "BGR", "BRG" };
+  private static final int[][] SWAP_TYPE_SHIFT = {
+      { 0, -8, 8 }, { -8, 8, 0 }, { -16, 8, 8 }, { -16, 0, 16 }, { -8, -8, 16 },
+  };
 
   private JComboBox<String> cbSwapType;
   private ButtonPopupWindow bpwExclude;
   private BamFilterBaseColor.ExcludeColorsPanel pExcludeColors;
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
 
-  public BamFilterColorSwap(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
+
+  public BamFilterColorSwap(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public BufferedImage process(BufferedImage frame) throws Exception
-  {
+  public BufferedImage process(BufferedImage frame) throws Exception {
     return applyEffect(frame);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }
@@ -69,14 +70,12 @@ public class BamFilterColorSwap extends BamFilterBaseColor
   }
 
   @Override
-  public void updateControls()
-  {
+  public void updateControls() {
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(cbSwapType.getSelectedIndex()).append(';');
     sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
@@ -84,8 +83,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -94,7 +92,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor
         int[] indices = null;
 
         // parsing configuration data
-        if (params.length > 0) {  // set swap type
+        if (params.length > 0) { // set swap type
           type = decodeNumber(params[0], 0, cbSwapType.getModel().getSize() - 1, -1);
           if (type == -1) {
             return false;
@@ -121,88 +119,83 @@ public class BamFilterColorSwap extends BamFilterBaseColor
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Exclude colors:");
     pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
         getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     pExcludeColors.addChangeListener(this);
-    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon(Icons.ICON_ARROW_DOWN_15), pExcludeColors);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.ICON_ARROW_DOWN_15.getIcon(), pExcludeColors);
     bpwExclude.setIconTextGap(8);
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());
     JPanel pExclude = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pExclude.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pExclude.add(bpwExclude, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pExclude.add(new JPanel(), c);
 
     JLabel l = new JLabel("RGB =>");
-    cbSwapType = new JComboBox<>(SwapTypeItems);
+    cbSwapType = new JComboBox<>(SWAP_TYPE_ITEMS);
     cbSwapType.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p.add(l, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                        GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 4, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 4, 0);
     p.add(cbSwapType, c);
-    ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 4, 0);
+    ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 4, 0);
     p.add(pExclude, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == cbSwapType) {
       fireChangeListener();
     } else if (event.getSource() == bpwExclude) {
-      pExcludeColors.updatePalette(getConverter().getPaletteDialog().getPalette(
-          getConverter().getPaletteDialog().getPaletteType()));
+      pExcludeColors.updatePalette(
+          getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
-
-  private BufferedImage applyEffect(BufferedImage srcImage)
-  {
+  private BufferedImage applyEffect(BufferedImage srcImage) {
     if (srcImage != null) {
       int[] buffer;
       IndexColorModel cm = null;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         // paletted image
-        cm = (IndexColorModel)srcImage.getColorModel();
+        cm = (IndexColorModel) srcImage.getColorModel();
         buffer = new int[1 << cm.getPixelSize()];
         cm.getRGBs(buffer);
         // applying proper alpha
@@ -220,18 +213,17 @@ public class BamFilterColorSwap extends BamFilterBaseColor
         }
       } else if (srcImage.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
         // truecolor image
-        buffer = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        buffer = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
       } else {
         buffer = new int[0];
       }
 
       // shift contains shift values for r, g, b
       int idx = cbSwapType.getSelectedIndex();
-      int[] shift = SwapTypeShift[idx];
+      int[] shift = SWAP_TYPE_SHIFT[idx];
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) &&
-            (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
           int ir = buffer[i] & 0x00ff0000;
           int ig = buffer[i] & 0x0000ff00;
@@ -248,16 +240,17 @@ public class BamFilterColorSwap extends BamFilterBaseColor
 
       if (cm != null) {
         // recreating paletted image
-        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), buffer.length, buffer, 0,
-                                                  cm.hasAlpha(), cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
+        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), buffer.length, buffer, 0, cm.hasAlpha(),
+            cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         int width = srcImage.getWidth();
         int height = srcImage.getHeight();
         BufferedImage dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
-        byte[] srcPixels = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        byte[] dstPixels = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        byte[] srcPixels = ((DataBufferByte) srcImage.getRaster().getDataBuffer()).getData();
+        byte[] dstPixels = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
         System.arraycopy(srcPixels, 0, dstPixels, 0, srcPixels.length);
         srcImage = dstImage;
-        srcPixels = null; dstPixels = null;
+        srcPixels = null;
+        dstPixels = null;
       }
     }
 

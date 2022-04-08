@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -15,35 +15,40 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ViewerUtil;
 
 /**
- * Renderer for dialogue tree, drawing elements of each dialog with its own color
- * (maximum of {@link #OTHER_DIALOG_COLORS}{@code .length} different colors).
  * <p>
- * Also, draws non-main items in gray, broken references (items, that refers from
- * {@link State} or {@link Transition} but that do not exists in the target {@link
- * DlgResource}) in red and transition items in blue.
+ * Renderer for dialogue tree, drawing elements of each dialog with its own color (maximum of
+ * {@link #OTHER_DIALOG_COLORS}{@code .length} different colors).
+ * </p>
+ *
+ * <p>
+ * Also, draws non-main items in gray, broken references (items, that refers from {@link State} or {@link Transition}
+ * but that do not exists in the target {@link DlgResource}) in red and transition items in blue.
+ * </p>
  *
  * @author Mingun
  */
-final class DlgTreeCellRenderer extends DefaultTreeCellRenderer
-{
+final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
   /** Background colors for text in dialogs to that can refer main dialog. */
   private final HashMap<DlgResource, Color> dialogColors = new HashMap<>();
+
   /** Main dialogue that shown in the tree. */
   private final DlgResource dlg;
 
-  public DlgTreeCellRenderer(DlgResource dlg) { this.dlg = dlg; }
+  public DlgTreeCellRenderer(DlgResource dlg) {
+    this.dlg = dlg;
+  }
 
   @Override
-  public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-                                                boolean expanded, boolean leaf, int row,
-                                                boolean focused)
-  {
+  public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf,
+      int row, boolean focused) {
     final Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
     // Tree reuse component, so we need to clear background
     setBackgroundNonSelectionColor(null);
-    if (!(value instanceof ItemBase)) return c;
+    if (!(value instanceof ItemBase)) {
+      return c;
+    }
 
-    final ItemBase item = (ItemBase)value;
+    final ItemBase item = (ItemBase) value;
 
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
     setIcon(options.showDlgTreeIcons() ? item.getIcon() : null);
@@ -55,9 +60,8 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer
 
     if (item instanceof BrokenReference) {
       setForeground(Color.RED);// Broken reference
-    } else
-    if (item instanceof StateItem) {
-      final StateItem state = (StateItem)item;
+    } else if (item instanceof StateItem) {
+      final StateItem state = (StateItem) item;
       final State s = state.getEntry();
       if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
         setForeground(Color.GRAY);
@@ -69,13 +73,11 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer
     return c;
   }
 
-  private Color getColor(DlgResource dialog)
-  {
+  private Color getColor(DlgResource dialog) {
     if (dlg == dialog) {
       return null;
     }
     return dialogColors.computeIfAbsent(dialog,
-        d -> ViewerUtil.BACKGROUND_COLORS[dialogColors.size() % ViewerUtil.BACKGROUND_COLORS.length]
-    );
+        d -> ViewerUtil.BACKGROUND_COLORS[dialogColors.size() % ViewerUtil.BACKGROUND_COLORS.length]);
   }
 }
