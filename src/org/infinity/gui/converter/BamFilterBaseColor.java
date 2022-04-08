@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -31,25 +31,22 @@ import org.infinity.util.Misc;
 /**
  * The base class for filters that manipulate on color/pixel level.
  */
-public abstract class BamFilterBaseColor extends BamFilterBase
-{
-  protected BamFilterBaseColor(ConvertToBam parent, String name, String desc)
-  {
+public abstract class BamFilterBaseColor extends BamFilterBase {
+  protected BamFilterBaseColor(ConvertToBam parent, String name, String desc) {
     super(parent, name, desc, Type.COLOR);
   }
 
   /**
-   * Applies the filter to the specified BufferedImage object.
-   * The returned BufferedImage object can either ne the modified source image or a new copy.
+   * Applies the filter to the specified BufferedImage object. The returned BufferedImage object can either ne the
+   * modified source image or a new copy.
+   *
    * @param frame The BufferedImage object to modify.
    * @return The resulting BufferedImage object.
    */
   public abstract BufferedImage process(BufferedImage frame) throws Exception;
 
-
   /** Parses a list of palette indices from a parameter string of the format "[idx1,idx2,...]". */
-  protected int[] decodeColorList(String param)
-  {
+  protected int[] decodeColorList(String param) {
     int[] indices = null;
     if (param != null && param.matches("\\[.*\\]")) {
       String colorString = param.substring(1, param.length() - 1).trim();
@@ -71,8 +68,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
   }
 
   /** Converts a list of palette indices into a parameter string. */
-  protected String encodeColorList(int[] indices)
-  {
+  protected String encodeColorList(int[] indices) {
     StringBuilder sb = new StringBuilder();
     sb.append('[');
     if (indices != null) {
@@ -87,16 +83,14 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     return sb.toString();
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   /**
-   * Lets you select multiple color entries from the palette. It can be used to exclude the
-   * selected colors from filtering.
+   * Lets you select multiple color entries from the palette. It can be used to exclude the selected colors from
+   * filtering.
    */
-  public static class ExcludeColorsPanel extends JPanel
-      implements MouseOverListener, ActionListener
-  {
-    private static final String FmtInfoRGB    = "%d  %d  %d  %d";
+  public static class ExcludeColorsPanel extends JPanel implements MouseOverListener, ActionListener {
+    private static final String FmtInfoRGB = "%d  %d  %d  %d";
     private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
     private static final int[] AllColorIndices = new int[256];
     static {
@@ -111,19 +105,17 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     private JLabel lInfoIndex, lInfoRGB, lInfoHexRGB;
     private JButton bSelectAll, bSelectNone, bSelectInvert;
 
-    public ExcludeColorsPanel(int[] palette)
-    {
+    public ExcludeColorsPanel(int[] palette) {
       super(new GridBagLayout());
       init();
       updatePalette(palette);
     }
 
     /**
-     * Adds a ChangeListener to the listener list.
-     * ChangeListeners will be notified whenever the color selection changes.
+     * Adds a ChangeListener to the listener list. ChangeListeners will be notified whenever the color selection
+     * changes.
      */
-    public void addChangeListener(ChangeListener l)
-    {
+    public void addChangeListener(ChangeListener l) {
       if (l != null) {
         if (listChangeListeners.indexOf(l) < 0) {
           listChangeListeners.add(l);
@@ -132,8 +124,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     }
 
     /** Returns an array of all ChangeListeners added to this object. */
-    public ChangeListener[] getChangeListeners()
-    {
+    public ChangeListener[] getChangeListeners() {
       ChangeListener[] retVal = new ChangeListener[listChangeListeners.size()];
       for (int i = 0; i < listChangeListeners.size(); i++) {
         retVal[i] = listChangeListeners.get(i);
@@ -142,8 +133,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     }
 
     /** Removes a ChangeListener from the listener list. */
-    public void removeChangeListener(ChangeListener l)
-    {
+    public void removeChangeListener(ChangeListener l) {
       if (l != null) {
         int idx = listChangeListeners.indexOf(l);
         if (idx >= 0) {
@@ -152,10 +142,8 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       }
     }
 
-
     /** Applies the specified palette to the color grid component. */
-    public void updatePalette(int[] palette)
-    {
+    public void updatePalette(int[] palette) {
       for (int i = 0; i < cgPalette.getColorCount(); i++) {
         if (palette != null && i < palette.length) {
           cgPalette.setColor(i, new Color(palette[i], true));
@@ -166,43 +154,38 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     }
 
     /** Returns the selected color indices as an array of integers. */
-    public int[] getSelectedIndices()
-    {
+    public int[] getSelectedIndices() {
       return cgPalette.getSelectedIndices();
     }
 
     /** Returns whether the specified color index has been selected. */
-    public boolean isSelectedIndex(int index)
-    {
+    public boolean isSelectedIndex(int index) {
       return cgPalette.isSelectedIndex(index);
     }
 
     /** Selects the specified color indices. Previous selections will be cleared. */
-    public void setSelectedIndices(int[] indices)
-    {
+    public void setSelectedIndices(int[] indices) {
       cgPalette.clearSelection();
       if (indices != null) {
         cgPalette.setSelectedIndices(indices);
       }
     }
 
-    //--------------------- Begin Interface MouseOverListener ---------------------
+    // --------------------- Begin Interface MouseOverListener ---------------------
 
     @Override
-    public void mouseOver(MouseOverEvent event)
-    {
+    public void mouseOver(MouseOverEvent event) {
       if (event.getSource() == cgPalette) {
         updateInfoBox(event.getColorIndex());
       }
     }
 
-    //--------------------- End Interface MouseOverListener ---------------------
+    // --------------------- End Interface MouseOverListener ---------------------
 
-    //--------------------- Begin Interface ActionListener ---------------------
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent event)
-    {
+    public void actionPerformed(ActionEvent event) {
       if (event.getSource() == cgPalette) {
         fireChangeListener();
       } else if (event.getSource() == bSelectAll) {
@@ -231,10 +214,9 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       }
     }
 
-    //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
-    private void init()
-    {
+    private void init() {
       GridBagConstraints c = new GridBagConstraints();
 
       // creating palette section
@@ -247,8 +229,8 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       cgPalette.addActionListener(this);
       JPanel pPalette = new JPanel(new GridBagLayout());
       pPalette.setBorder(BorderFactory.createTitledBorder("Palette "));
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 4, 2, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 4, 2, 4), 0, 0);
       pPalette.add(cgPalette, c);
 
       // creating information panel
@@ -261,23 +243,23 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       lInfoIndex = new JLabel("1999");
       lInfoRGB = new JLabel(String.format(FmtInfoRGB, 1999, 1999, 1999, 1999));
       lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 0xAAA, 0xAAA, 0xAAA, 0xAAA));
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 4, 0, 0), 0, 0);
       pInfo.add(lInfoIndexTitle, c);
-      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 8, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 8, 0, 4), 0, 0);
       pInfo.add(lInfoIndex, c);
-      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 4, 0, 0), 0, 0);
       pInfo.add(lInfoRGBTitle, c);
-      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 8, 0, 4), 0, 0);
       pInfo.add(lInfoRGB, c);
-      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 4, 4, 0), 0, 0);
       pInfo.add(lInfoHexRGBTitle, c);
-      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 8, 4, 4), 0, 0);
       pInfo.add(lInfoHexRGB, c);
 
       // creating button section
@@ -291,52 +273,50 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       bSelectInvert = new JButton("Invert selection");
       bSelectInvert.setMnemonic('i');
       bSelectInvert.addActionListener(this);
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 4, 0, 4), 0, 0);
       pButtons.add(bSelectAll, c);
-      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 4, 0, 4), 0, 0);
       pButtons.add(bSelectNone, c);
-      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(4, 4, 4, 4), 0, 0);
       pButtons.add(bSelectInvert, c);
 
       // putting sidebar together
       JPanel pSideBar = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
       pSideBar.add(pInfo, c);
-      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 0), 0, 0);
       pSideBar.add(pButtons, c);
 
       // putting all together
       JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
       pMain.add(pPalette, c);
-      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 4, 0, 0), 0, 0);
       pMain.add(pSideBar, c);
 
       // and adding to main panel
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+          new Insets(4, 4, 4, 4), 0, 0);
       add(pMain, c);
 
       updateInfoBox(-1);
     }
 
     // Updates the information panel
-    private void updateInfoBox(int index)
-    {
+    private void updateInfoBox(int index) {
       if (index >= 0 && index < cgPalette.getColorCount()) {
         Color c = cgPalette.getColor(index);
         setLabelText(lInfoIndex, Integer.toString(index), null);
-        setLabelText(lInfoRGB, String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(),
-                                                         c.getAlpha()), null);
-        setLabelText(lInfoHexRGB, String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(),
-                                                               c.getAlpha()), null);
+        setLabelText(lInfoRGB, String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()), null);
+        setLabelText(lInfoHexRGB, String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()),
+            null);
       } else {
         setLabelText(lInfoIndex, "", null);
         setLabelText(lInfoRGB, "", null);
@@ -345,10 +325,11 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     }
 
     // Sets a new text to the specified JLabel component while retaining its preferred size
-    private void setLabelText(JLabel c, String text, Dimension d)
-    {
+    private void setLabelText(JLabel c, String text, Dimension d) {
       if (c != null) {
-        if (text == null) text = "";
+        if (text == null) {
+          text = "";
+        }
         if (d == null) {
           d = c.getPreferredSize();
         }
@@ -357,11 +338,10 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       }
     }
 
-    private void fireChangeListener()
-    {
+    private void fireChangeListener() {
       ChangeEvent event = new ChangeEvent(this);
-      for (int i = 0; i < listChangeListeners.size(); i++) {
-        listChangeListeners.get(i).stateChanged(event);
+      for (ChangeListener listChangeListener : listChangeListeners) {
+        listChangeListener.stateChanged(event);
       }
     }
   }

@@ -1,12 +1,11 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
 
 /** Represents resource that is just plain text in some format. */
-public interface TextResource extends Resource
-{
+public interface TextResource extends Resource {
   /** Returns text representation of the resource. */
   String getText();
 
@@ -14,9 +13,8 @@ public interface TextResource extends Resource
   void highlightText(int linenr, String text);
 
   /**
-   * Select all text from {@code startOfs} (inclusively) to {@code endOfs} (exclusively).
-   * Preferred method when selecting text spanning multiple lines.
+   * Select all text from {@code startOfs} (inclusively) to {@code endOfs} (exclusively). Preferred method when
+   * selecting text spanning multiple lines.
    */
   void highlightText(int startOfs, int endOfs);
 }
-

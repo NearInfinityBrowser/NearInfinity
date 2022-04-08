@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -22,8 +22,7 @@ import org.infinity.resource.graphics.BamDecoder;
 /**
  * Base class for layer type: Actor
  */
-public abstract class LayerObjectActor extends LayerObject
-{
+public abstract class LayerObjectActor extends LayerObject {
   /** Available creature allegiance types. */
   protected enum Allegiance {
     GOOD,
@@ -34,7 +33,8 @@ public abstract class LayerObjectActor extends LayerObject
   protected static final Color COLOR_FRAME_NORMAL = new Color(0xA02020FF, true);
   protected static final Color COLOR_FRAME_HIGHLIGHTED = new Color(0xFF2020FF, false);
 
-  // Default animation sequence to load if available; fall back to the first available sequence if no default is available
+  // Default animation sequence to load if available; fall back to the first available sequence if no default is
+  // available
   private static final Sequence[] DEFAULT_SEQUENCE = {
       Sequence.STAND,
       Sequence.STAND2,
@@ -47,6 +47,7 @@ public abstract class LayerObjectActor extends LayerObject
       Sequence.WALK,
       Sequence.PST_WALK,
   };
+
   // Potential sequences for "death" state
   private static final Sequence[] DEATH_SEQUENCE = {
       Sequence.TWITCH,
@@ -55,6 +56,7 @@ public abstract class LayerObjectActor extends LayerObject
       Sequence.PST_DIE_BACKWARD,
       Sequence.PST_DIE_COLLAPSE,
   };
+
   // Potential sequences for "frozen death" state
   private static final Sequence[] FROZEN_DEATH_SEQUENCE = {
       Sequence.STANCE,
@@ -70,6 +72,7 @@ public abstract class LayerObjectActor extends LayerObject
       Sequence.PST_DIE_BACKWARD,
       Sequence.PST_DIE_COLLAPSE,
   };
+
   // Potential sequences for "unconscious" state
   private static final Sequence[] SLEEP_SEQUENCE = {
       Sequence.SLEEP,
@@ -84,16 +87,12 @@ public abstract class LayerObjectActor extends LayerObject
   protected final Point location = new Point();
   protected final AbstractLayerItem[] items = new AbstractLayerItem[2];
 
-
-
-  protected LayerObjectActor(Class<? extends AbstractStruct> classType, AbstractStruct parent)
-  {
+  protected LayerObjectActor(Class<? extends AbstractStruct> classType, AbstractStruct parent) {
     super("Actor", classType, parent);
   }
 
   @Override
-  public void close()
-  {
+  public void close() {
     super.close();
     // removing cached references
     for (int i = 0; i < items.length; i++) {
@@ -113,30 +112,28 @@ public abstract class LayerObjectActor extends LayerObject
 
   /**
    * Returns the layer item of the specific state. (either ACTOR_ITEM_ICON or ACTOR_ITEM_REAL).
+   *
    * @param type The state of the item to be returned.
    * @return The desired layer item, or {@code null} if not available.
    */
   @Override
-  public AbstractLayerItem getLayerItem(int type)
-  {
+  public AbstractLayerItem getLayerItem(int type) {
     type = (type == ViewerConstants.ITEM_REAL) ? ViewerConstants.ITEM_REAL : ViewerConstants.ITEM_ICON;
     return items[type];
   }
 
   @Override
-  public AbstractLayerItem[] getLayerItems()
-  {
+  public AbstractLayerItem[] getLayerItems() {
     return items;
   }
 
   @Override
-  public void update(double zoomFactor)
-  {
+  public void update(double zoomFactor) {
     for (int i = 0; i < items.length; i++) {
-      items[i].setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
-                               (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
+      items[i].setItemLocation((int) (location.x * zoomFactor + (zoomFactor / 2.0)),
+          (int) (location.y * zoomFactor + (zoomFactor / 2.0)));
       if (i == ViewerConstants.ITEM_REAL) {
-        ((AnimatedLayerItem)items[i]).setZoomFactor(zoomFactor);
+        ((AnimatedLayerItem) items[i]).setZoomFactor(zoomFactor);
       }
     }
   }
@@ -147,25 +144,23 @@ public abstract class LayerObjectActor extends LayerObject
   public abstract void loadAnimation();
 
   /**
-   * Sets the lighting condition of the actor. Does nothing if the actor is flagged as
-   * self-illuminating.
+   * Sets the lighting condition of the actor. Does nothing if the actor is flagged as self-illuminating.
+   *
    * @param dayTime One of the constants: {@code TilesetRenderer.LIGHTING_DAY},
    *                {@code TilesetRenderer.LIGHTING_TWILIGHT}, {@code TilesetRenderer.LIGHTING_NIGHT}.
    */
-  public void setLighting(int dayTime)
-  {
-    AnimatedLayerItem item = (AnimatedLayerItem)items[ViewerConstants.ITEM_REAL];
+  public void setLighting(int dayTime) {
+    AnimatedLayerItem item = (AnimatedLayerItem) items[ViewerConstants.ITEM_REAL];
     BasicAnimationProvider provider = item.getAnimation();
     if (provider instanceof ActorAnimationProvider) {
-      ActorAnimationProvider anim = (ActorAnimationProvider)provider;
+      ActorAnimationProvider anim = (ActorAnimationProvider) provider;
       anim.setLighting(dayTime);
     }
     item.repaint();
   }
 
   /** Returns the allegiance of the specified EA value. */
-  protected static Allegiance getAllegiance(int ea)
-  {
+  protected static Allegiance getAllegiance(int ea) {
     if (ea >= 2 && ea <= 30) {
       return Allegiance.GOOD;
     } else if (ea >= 200) {
@@ -176,23 +171,23 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   /**
-   * Creates an {@code AnimationProvider} object and initializes it with the creature animation defined by the
-   * specified CRE resource.
+   * Creates an {@code AnimationProvider} object and initializes it with the creature animation defined by the specified
+   * CRE resource.
+   *
    * @param cre the CRE resource
    * @return a initialized {@link ActorAnimationProvider} instance
    * @throws Exception if animation provider could not be created or initialized.
    */
-  protected static ActorAnimationProvider createAnimationProvider(CreResource cre) throws Exception
-  {
+  protected static ActorAnimationProvider createAnimationProvider(CreResource cre) throws Exception {
     Objects.requireNonNull(cre);
     ActorAnimationProvider retVal = null;
     SpriteDecoder decoder = null;
 
-    final int maskDeath = 0xf00;  // actor uses regular death sequence?
+    final int maskDeath = 0xf00; // actor uses regular death sequence?
     final int maskFrozenDeath = 0x40; // actor status is "frozen death"?
-    final int maskStoneDeath = 0x80;  // actor status is "stone death"?
-    final int maskSleep = 0x01;   // actor uses sleep sequence?
-    int status = ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue();
+    final int maskStoneDeath = 0x80; // actor status is "stone death"?
+    final int maskSleep = 0x01; // actor uses sleep sequence?
+    int status = ((IsNumeric) cre.getAttribute(CreResource.CRE_STATUS)).getValue();
     boolean isDead = (status & maskDeath) != 0;
     boolean isFrozenDeath = (status & maskFrozenDeath) != 0;
     boolean isStoneDeath = (status & maskStoneDeath) != 0;
@@ -220,8 +215,7 @@ public abstract class LayerObjectActor extends LayerObject
 
       if (sequence == null) {
         // improve visualization of flying creatures
-        if (decoder.getAnimationType() == AnimationInfo.Type.FLYING &&
-            decoder.isSequenceAvailable(Sequence.WALK)) {
+        if (decoder.getAnimationType() == AnimationInfo.Type.FLYING && decoder.isSequenceAvailable(Sequence.WALK)) {
           sequence = Sequence.WALK;
         }
       }
@@ -241,7 +235,7 @@ public abstract class LayerObjectActor extends LayerObject
       } else {
         String creName = "";
         if (cre.getResourceEntry() != null) {
-          creName =  cre.getResourceEntry().getResourceName();
+          creName = cre.getResourceEntry().getResourceName();
         } else if (cre.getName() != null) {
           creName = cre.getName();
         }
@@ -252,9 +246,9 @@ public abstract class LayerObjectActor extends LayerObject
     } else {
       // use existing
       SharedResourceCache.add(SharedResourceCache.Type.ACTOR, key);
-      BamDecoder bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ACTOR, key)).getData();
+      BamDecoder bam = ((ResourceAnimation) SharedResourceCache.get(SharedResourceCache.Type.ACTOR, key)).getData();
       if (bam instanceof SpriteDecoder) {
-        decoder = (SpriteDecoder)bam;
+        decoder = (SpriteDecoder) bam;
       } else {
         throw new Exception("Could not load actor animation");
       }
@@ -277,8 +271,7 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   /** Returns a key which is identical for all actors based on the same CRE resource. */
-  protected static String createKey(CreResource cre)
-  {
+  protected static String createKey(CreResource cre) {
     String retVal;
     Objects.requireNonNull(cre);
 
@@ -293,15 +286,17 @@ public abstract class LayerObjectActor extends LayerObject
       retVal = Integer.toString(cre.hashCode());
     }
 
-    int status = ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue();
+    int status = ((IsNumeric) cre.getAttribute(CreResource.CRE_STATUS)).getValue();
     retVal += "?status=" + status;
 
     return retVal;
   }
 
-  /** Returns the first matching animation sequence listed in {@code sequences} that is available in the {@code SpriteDecoder} instance. */
-  protected static Sequence getMatchingSequence(SpriteDecoder decoder, Sequence[] sequences)
-  {
+  /**
+   * Returns the first matching animation sequence listed in {@code sequences} that is available in the
+   * {@code SpriteDecoder} instance.
+   */
+  protected static Sequence getMatchingSequence(SpriteDecoder decoder, Sequence[] sequences) {
     Sequence retVal = null;
     if (sequences == null) {
       sequences = Sequence.values();
@@ -320,5 +315,4 @@ public abstract class LayerObjectActor extends LayerObject
 
     return retVal;
   }
-
 }

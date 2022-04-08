@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -80,25 +80,22 @@ import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
 
 /**
- * This resource describes a "creature". Creatures have several stats (some visible
- * through the game UI) which are generally mapped to {@link IdsMap IDS} or
- * {@link Table2da 2DA} files.
+ * This resource describes a "creature". Creatures have several stats (some visible through the game UI) which are
+ * generally mapped to {@link IdsMap IDS} or {@link Table2da 2DA} files.
  * <p>
  * Planescape: Torment engine specific notes:
  * <ul>
- * <li>PST creature disguises are not stored as a field in the creature file, they
- * are held as a GLOBAL variable, named {@code 'appearance'}. A value of 1 equates
- * to zombie disguise, a value of 2 equates to dustman disguise.</li>
- * <li>Several fields for The Nameless One are generated dynamically, and as a result
- * changing fields in the relevant CRE file will have no effect.</li>
+ * <li>PST creature disguises are not stored as a field in the creature file, they are held as a GLOBAL variable, named
+ * {@code 'appearance'}. A value of 1 equates to zombie disguise, a value of 2 equates to dustman disguise.</li>
+ * <li>Several fields for The Nameless One are generated dynamically, and as a result changing fields in the relevant
+ * CRE file will have no effect.</li>
  * </ul>
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
  */
 public final class CreResource extends AbstractStruct
-  implements Resource, HasChildStructs, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
-{
+    implements Resource, HasChildStructs, AddRemovable, HasViewerTabs, ItemListener, UpdateListener {
   // CHR-specific field labels
   public static final String CHR_NAME                         = "Character name";
   public static final String CHR_OFFSET_CRE                   = "CRE structure offset";
@@ -423,119 +420,121 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_SELECTED_WEAPON_SLOT         = "Weapon slot selected";
   public static final String CRE_SELECTED_WEAPON_ABILITY      = "Weapon ability selected";
 
-  public static final String TAB_ANIMATION    = "Animation";
+  public static final String TAB_ANIMATION = "Animation";
 
   public static final int TAB_INDEX_VIEW      = 0;
   public static final int TAB_INDEX_ANIMATION = 1;
   public static final int TAB_INDEX_RAW       = 2;
 
-  private static final TreeMap<Long, String> m_magetype = new TreeMap<>();
-  private static final TreeMap<Long, String> m_colorPlacement = new TreeMap<>();
-  public static final String[] s_flag = {
-    "No flags set", "Identified", "No corpse", "Permanent corpse",
-    "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
-    "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-    "Export allowed", "Hide status", "Affected by alternate damage", "Moving between areas", "Been in party",
-    "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
-    "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
-    "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
-  public static final String[] s_flag_iwd2 = {
-      "No flags set", "Damage don't stop casting", "No corpse", "Permanent corpse",
-      null, null, null, null, null, null, "Fallen paladin", "Fallen ranger",
-      "Export allowed", null, "Quest critical", "Can activate non-NPC triggers", "Enabled",
-      "Seen party", "Invulnerable", "Non threatening enemy", "No talk", "Ignore return to start", "Ignore inhibit AI",
-      null, null, "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
-      "Specifics tracking", "Gender tracking", "Alignment tracking", "Corpse related?"
-  };
-  public static final String[] s_feats1 = {
-    "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
-    "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
-    "Dash", "Deflect arrows", "Dirty fighting", "Discipline", "Dodge", "Envenom weapon", "Exotic bastard",
-    "Expertise", "Extra rage", "Extra shapeshifting", "Extra smiting", "Extra turning", "Fiendslayer",
-    "Forester", "Great fortitude", "Hamstring", "Heretic's bane", "Heroic inspiration", "Improved critical",
-    "Improved evasion"};
-  public static final String[] s_feats2 = {
-    "No feats selected", "Improved initiative", "Improved turning", "Iron will", "Lightning reflexes",
-    "Lingering song", "Luck of heroes", "Martial axe", "Martial bow", "Martial flail", "Martial greatsword",
-    "Martial hammer", "Martial large sword", "Martial polearm", "Maximized attacks", "Mercantile background",
-    "Power attack", "Precise shot", "Rapid shot", "Resist poison", "Scion of storms", "Shield proficiency",
-    "Simple crossbow", "Simple mace", "Simple missile", "Simple quarterstaff", "Simple small blade",
-    "Slippery mind", "Snake blood", "Spell focus enchantment", "Spell focus evocation", "Spell focus necromancy",
-    "Spell focus transmutation"};
-  public static final String[] s_feats3 = {
-    "No feats selected", "Spell penetration", "Spirit of flame", "Strong back", "Stunning fist",
-    "Subvocal casting",
-    "Toughness", "Two-weapon fighting", "Weapon finesse", "Wild shape boar", "Wild shape panther",
-    "Wild shape shambler"};
-  public static final String[] s_subraces = {
-      "Pureblood",
-      "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
-      "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
-  public static final String[] s_attributes_pst = {
-    "No flags set", "Auto-calc marker rect", "Translucent", null, null, "Track script name", "Increment kill count",
-    "Script name only", "Track faction death", "Track team death", "Invulnerable",
-    "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
-    "No dialogue turn", "Call for help", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Death globals set (internal)", "Area supplemental"};
-  public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
-                                                    "Cannot be paladin", "Cannot be monk"};
-  public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
-  public static final String[] s_visible = {"Shown", "Hidden"};
-  public static final String[] s_profLabels = {"Active class", "Original class"};
-  public static final String[] s_effversion = {"Version 1", "Version 2"};
+  private static final TreeMap<Long, String> MAGE_TYPE_MAP = new TreeMap<>();
 
-  static
-  {
-    m_magetype.put((long)0x0000, "None");
-    m_magetype.put((long)0x0040, "Abjurer");
-    m_magetype.put((long)0x0080, "Conjurer");
-    m_magetype.put((long)0x0100, "Diviner");
-    m_magetype.put((long)0x0200, "Enchanter");
-    m_magetype.put((long)0x0400, "Illusionist");
-    m_magetype.put((long)0x0800, "Invoker");
-    m_magetype.put((long)0x1000, "Necromancer");
-    m_magetype.put((long)0x2000, "Transmuter");
-    m_magetype.put((long)0x4000, "Generalist");
+  private static final TreeMap<Long, String> COLOR_PLACEMENT_MAP = new TreeMap<>();
 
-    m_colorPlacement.put((long)0x80, "Metal");
-    m_colorPlacement.put((long)0x81, "Metal (hologram)");
-    m_colorPlacement.put((long)0x82, "Metal (pulsate)");
-    m_colorPlacement.put((long)0x83, "Metal (hologram/pulsate)");
-    m_colorPlacement.put((long)0x90, "Minor cloth");
-    m_colorPlacement.put((long)0x91, "Minor cloth (hologram)");
-    m_colorPlacement.put((long)0x92, "Minor cloth (pulsate)");
-    m_colorPlacement.put((long)0x93, "Minor cloth (hologram/pulsate)");
-    m_colorPlacement.put((long)0xA0, "Main cloth");
-    m_colorPlacement.put((long)0xA1, "Main cloth (hologram)");
-    m_colorPlacement.put((long)0xA2, "Main cloth (pulsate)");
-    m_colorPlacement.put((long)0xA3, "Main cloth (hologram/pulsate)");
-    m_colorPlacement.put((long)0xB0, "Skin");
-    m_colorPlacement.put((long)0xB1, "Skin (hologram)");
-    m_colorPlacement.put((long)0xB2, "Skin (pulsate)");
-    m_colorPlacement.put((long)0xB3, "Skin (hologram/pulsate)");
-    m_colorPlacement.put((long)0xC0, "Leather");
-    m_colorPlacement.put((long)0xC1, "Leather (hologram)");
-    m_colorPlacement.put((long)0xC2, "Leather (pulsate)");
-    m_colorPlacement.put((long)0xC3, "Leather (hologram/pulsate)");
-    m_colorPlacement.put((long)0xD0, "Armor");
-    m_colorPlacement.put((long)0xD1, "Armor (hologram)");
-    m_colorPlacement.put((long)0xD2, "Armor (pulsate)");
-    m_colorPlacement.put((long)0xD3, "Armor (hologram/pulsate)");
-    m_colorPlacement.put((long)0xE0, "Hair");
-    m_colorPlacement.put((long)0xE1, "Hair (hologram)");
-    m_colorPlacement.put((long)0xE2, "Hair (pulsate)");
-    m_colorPlacement.put((long)0xE3, "Hair (hologram/pulsate)");
-    m_colorPlacement.put((long)0x00, "Not used");
+  public static final String[] FLAGS_ARRAY = { "No flags set", "Identified", "No corpse", "Permanent corpse",
+      "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
+      "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger", "Export allowed",
+      "Hide status", "Affected by alternate damage", "Moving between areas", "Been in party", "Holding item",
+      "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode", "EE: No tooltip",
+      "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
+      "Gender tracking", "Alignment tracking", "Uninterruptible" };
+
+  public static final String[] FLAGS_IWD2_ARRAY = { "No flags set", "Damage don't stop casting", "No corpse",
+      "Permanent corpse", null, null, null, null, null, null, "Fallen paladin", "Fallen ranger", "Export allowed", null,
+      "Quest critical", "Can activate non-NPC triggers", "Enabled", "Seen party", "Invulnerable",
+      "Non threatening enemy", "No talk", "Ignore return to start", "Ignore inhibit AI", null, null,
+      "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
+      "Gender tracking", "Alignment tracking", "Corpse related?" };
+
+  public static final String[] FEATS1_ARRAY = { "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis",
+      "Armor proficiency", "Armored arcana", "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting",
+      "Courteous magocracy", "Crippling strike", "Dash", "Deflect arrows", "Dirty fighting", "Discipline", "Dodge",
+      "Envenom weapon", "Exotic bastard", "Expertise", "Extra rage", "Extra shapeshifting", "Extra smiting",
+      "Extra turning", "Fiendslayer", "Forester", "Great fortitude", "Hamstring", "Heretic's bane",
+      "Heroic inspiration", "Improved critical", "Improved evasion" };
+
+  public static final String[] FEATS2_ARRAY = { "No feats selected", "Improved initiative", "Improved turning",
+      "Iron will", "Lightning reflexes", "Lingering song", "Luck of heroes", "Martial axe", "Martial bow",
+      "Martial flail", "Martial greatsword", "Martial hammer", "Martial large sword", "Martial polearm",
+      "Maximized attacks", "Mercantile background", "Power attack", "Precise shot", "Rapid shot", "Resist poison",
+      "Scion of storms", "Shield proficiency", "Simple crossbow", "Simple mace", "Simple missile",
+      "Simple quarterstaff", "Simple small blade", "Slippery mind", "Snake blood", "Spell focus enchantment",
+      "Spell focus evocation", "Spell focus necromancy", "Spell focus transmutation" };
+
+  public static final String[] FEATS3_ARRAY = { "No feats selected", "Spell penetration", "Spirit of flame",
+      "Strong back", "Stunning fist", "Subvocal casting", "Toughness", "Two-weapon fighting", "Weapon finesse",
+      "Wild shape boar", "Wild shape panther", "Wild shape shambler" };
+
+  public static final String[] SUBRACES_ARRAY = { "Pureblood",
+      "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome", "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling" };
+
+  public static final String[] ATTRIBUTES_PST_ARRAY = { "No flags set", "Auto-calc marker rect", "Translucent", null,
+      null, "Track script name", "Increment kill count", "Script name only", "Track faction death", "Track team death",
+      "Invulnerable", "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
+      "No dialogue turn", "Call for help", null, null, null, null, null, null, null, null, null, null, null, null, null,
+      null, "Death globals set (internal)", "Area supplemental" };
+
+  public static final String[] ATTRIBUTES_IWD2_ARRAY = { "No flags set", "Mental fortitude", "Critical hit immunity",
+      "Cannot be paladin", "Cannot be monk" };
+
+  public static final String[] ATTACKS_ARRAY = { "0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2" };
+
+  public static final String[] VISIBLE_ARRAY = { "Shown", "Hidden" };
+
+  public static final String[] PROF_LABELS_ARRAY = { "Active class", "Original class" };
+
+  public static final String[] EFF_VERSION_ARRAY = { "Version 1", "Version 2" };
+
+  static {
+    MAGE_TYPE_MAP.put((long) 0x0000, "None");
+    MAGE_TYPE_MAP.put((long) 0x0040, "Abjurer");
+    MAGE_TYPE_MAP.put((long) 0x0080, "Conjurer");
+    MAGE_TYPE_MAP.put((long) 0x0100, "Diviner");
+    MAGE_TYPE_MAP.put((long) 0x0200, "Enchanter");
+    MAGE_TYPE_MAP.put((long) 0x0400, "Illusionist");
+    MAGE_TYPE_MAP.put((long) 0x0800, "Invoker");
+    MAGE_TYPE_MAP.put((long) 0x1000, "Necromancer");
+    MAGE_TYPE_MAP.put((long) 0x2000, "Transmuter");
+    MAGE_TYPE_MAP.put((long) 0x4000, "Generalist");
+
+    COLOR_PLACEMENT_MAP.put((long) 0x80, "Metal");
+    COLOR_PLACEMENT_MAP.put((long) 0x81, "Metal (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0x82, "Metal (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0x83, "Metal (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0x90, "Minor cloth");
+    COLOR_PLACEMENT_MAP.put((long) 0x91, "Minor cloth (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0x92, "Minor cloth (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0x93, "Minor cloth (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xA0, "Main cloth");
+    COLOR_PLACEMENT_MAP.put((long) 0xA1, "Main cloth (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0xA2, "Main cloth (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xA3, "Main cloth (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xB0, "Skin");
+    COLOR_PLACEMENT_MAP.put((long) 0xB1, "Skin (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0xB2, "Skin (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xB3, "Skin (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xC0, "Leather");
+    COLOR_PLACEMENT_MAP.put((long) 0xC1, "Leather (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0xC2, "Leather (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xC3, "Leather (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xD0, "Armor");
+    COLOR_PLACEMENT_MAP.put((long) 0xD1, "Armor (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0xD2, "Armor (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xD3, "Armor (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xE0, "Hair");
+    COLOR_PLACEMENT_MAP.put((long) 0xE1, "Hair (hologram)");
+    COLOR_PLACEMENT_MAP.put((long) 0xE2, "Hair (pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0xE3, "Hair (hologram/pulsate)");
+    COLOR_PLACEMENT_MAP.put((long) 0x00, "Not used");
   }
 
   private boolean isChr;
-  private JMenuItem miExport, miConvert;
+  private JMenuItem miExport;
+  private JMenuItem miConvert;
   private ButtonPopupMenu bExport;
   private StructHexViewer hexViewer;
   private Boolean hasRawTab;
 
-  public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames,
-                                   ResourceEntry entry)
-  {
+  public static void addScriptName(Map<String, Set<ResourceEntry>> scriptNames, ResourceEntry entry) {
     try {
       ByteBuffer buffer = entry.getResourceBuffer();
       String signature = StreamUtils.readString(buffer, 0, 4);
@@ -566,8 +565,8 @@ public final class CreResource extends AbstractStruct
         }
         if (scriptName.equals("") || scriptName.equalsIgnoreCase("None")) {
           return;
-        // Apparently script name is the only thing that matters
-  //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
+          // Apparently script name is the only thing that matters
+          // scriptName = entry.toString().substring(0, entry.toString().length() - 4);
         } else {
           scriptName = scriptName.toLowerCase(Locale.ENGLISH).replace(" ", "");
           if (scriptNames.containsKey(scriptName)) {
@@ -584,20 +583,20 @@ public final class CreResource extends AbstractStruct
           }
         }
       }
-    } catch (Exception e) {}
-  }
-
-  private static void adjustEntryOffsets(AbstractStruct struct, int amount)
-  {
-    for (final StructEntry structEntry : struct.getFields()) {
-      structEntry.setOffset(structEntry.getOffset() + amount);
-      if (structEntry instanceof AbstractStruct)
-        adjustEntryOffsets((AbstractStruct)structEntry, amount);
+    } catch (Exception e) {
     }
   }
 
-  public static void convertCHRtoCRE(ResourceEntry resourceEntry)
-  {
+  private static void adjustEntryOffsets(AbstractStruct struct, int amount) {
+    for (final StructEntry structEntry : struct.getFields()) {
+      structEntry.setOffset(structEntry.getOffset() + amount);
+      if (structEntry instanceof AbstractStruct) {
+        adjustEntryOffsets((AbstractStruct) structEntry, amount);
+      }
+    }
+  }
+
+  public static void convertCHRtoCRE(ResourceEntry resourceEntry) {
     if (!resourceEntry.getExtension().equalsIgnoreCase("CHR")) {
       return;
     }
@@ -605,7 +604,7 @@ public final class CreResource extends AbstractStruct
     final Path path = ResourceFactory.getExportFileDialog(NearInfinity.getInstance(), fileName, false);
     if (path != null) {
       try {
-        CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
+        CreResource crefile = (CreResource) ResourceFactory.getResource(resourceEntry);
         while (!crefile.getFields().get(0).toString().equals("CRE ")) {
           crefile.removeField(0);
         }
@@ -613,18 +612,17 @@ public final class CreResource extends AbstractStruct
         try (OutputStream os = StreamUtils.getOutputStream(path, true)) {
           crefile.write(os);
         }
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path,
-                                      "Conversion complete", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path, "Conversion complete",
+            JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Errors during conversion",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Errors during conversion", "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     }
   }
 
-  private static void convertToSemiStandard(CreResource crefile)
-  {
+  private static void convertToSemiStandard(CreResource crefile) {
     final List<StructEntry> fields = crefile.getFields();
     if (!fields.get(1).toString().equals("V1.0")) {
       System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
@@ -632,36 +630,37 @@ public final class CreResource extends AbstractStruct
     }
 
     // Order:
-    //  KnownSpell
-    //  SpellMemorizationInfo
-    //  MemorizedSpell
-    //  Effects
-    //  Items
-    //  ItemSlots
+    // KnownSpell
+    // SpellMemorizationInfo
+    // MemorizedSpell
+    // Effects
+    // Items
+    // ItemSlots
 
     // Adjust offsets first - Size of CHR header = 0x64
     adjustEntryOffsets(crefile, -0x64);
 
-    SectionOffset knownspells_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_KNOWN_SPELLS);
-    SectionOffset memspellinfo_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_MEMORIZATION_INFO);
-    SectionOffset memspells_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_MEMORIZED_SPELLS);
-    SectionOffset itemslots_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEM_SLOTS);
-    SectionOffset items_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEMS);
-    SectionOffset effects_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_EFFECTS);
+    SectionOffset knownSpellsOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_KNOWN_SPELLS);
+    SectionOffset memSpellInfoOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_MEMORIZATION_INFO);
+    SectionOffset memSpellsOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_MEMORIZED_SPELLS);
+    SectionOffset itemSlotsOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_ITEM_SLOTS);
+    SectionOffset itemsOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_ITEMS);
+    SectionOffset effectsOffset = (SectionOffset) crefile.getAttribute(CRE_OFFSET_EFFECTS);
 
-    final int indexStructs = fields.indexOf(effects_offset) + 3; // Start of non-permanent section
+    final int indexStructs = fields.indexOf(effectsOffset) + 3; // Start of non-permanent section
     final List<StructEntry> newlist = new ArrayList<>(fields.size());
-    for (int i = 0; i < indexStructs; i++)
+    for (int i = 0; i < indexStructs; i++) {
       newlist.add(fields.get(i));
+    }
 
     int offsetStructs = 0x2d4;
-    knownspells_offset.setValue(offsetStructs);
+    knownSpellsOffset.setValue(offsetStructs);
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, KnownSpells.class);
 
-    memspellinfo_offset.setValue(offsetStructs);
+    memSpellInfoOffset.setValue(offsetStructs);
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, SpellMemorization.class);
 
-    memspells_offset.setValue(offsetStructs);
+    memSpellsOffset.setValue(offsetStructs);
     // XXX: mem spells are not directly stored in crefile.list
     // and added by addFlatList on the Spell Memorization entries
     // (but the offsets are wrong, so we need to realign them with copyStruct)
@@ -669,17 +668,18 @@ public final class CreResource extends AbstractStruct
     for (int i = indexStructs; i < fields.size(); i++) {
       StructEntry entry = fields.get(i);
       if (entry instanceof SpellMemorization) {
-        offsetStructs = copyStruct(((SpellMemorization)entry).getFields(), trashlist, 0, offsetStructs, MemorizedSpells.class);
+        offsetStructs = copyStruct(((SpellMemorization) entry).getFields(), trashlist, 0, offsetStructs,
+            MemorizedSpells.class);
       }
     }
 
-    effects_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, effects_offset.getSection());
+    effectsOffset.setValue(offsetStructs);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, effectsOffset.getSection());
 
-    items_offset.setValue(offsetStructs);
+    itemsOffset.setValue(offsetStructs);
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
-    itemslots_offset.setValue(offsetStructs);
+    itemSlotsOffset.setValue(offsetStructs);
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, IndexNumber.class);
     copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
@@ -687,16 +687,15 @@ public final class CreResource extends AbstractStruct
     fields.addAll(newlist);
   }
 
-  private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist,
-                                int indexStructs, int offsetStructs,
-                                Class<? extends StructEntry> copyClass)
-  {
+  private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist, int indexStructs,
+      int offsetStructs, Class<? extends StructEntry> copyClass) {
     for (int i = indexStructs; i < oldlist.size(); i++) {
       StructEntry structEntry = oldlist.get(i);
       if (structEntry.getClass() == copyClass) {
         structEntry.setOffset(offsetStructs);
-        if (structEntry instanceof AbstractStruct)
-          ((AbstractStruct)structEntry).realignStructOffsets();
+        if (structEntry instanceof AbstractStruct) {
+          ((AbstractStruct) structEntry).realignStructOffsets();
+        }
         offsetStructs += structEntry.getSize();
         newlist.add(structEntry);
       }
@@ -704,8 +703,7 @@ public final class CreResource extends AbstractStruct
     return offsetStructs;
   }
 
-  public static String getSearchString(InputStream is) throws IOException
-  {
+  public static String getSearchString(InputStream is) throws IOException {
     String retVal = "";
     String sig = StreamUtils.readString(is, 4);
     is.skip(4);
@@ -723,76 +721,70 @@ public final class CreResource extends AbstractStruct
     return retVal.trim();
   }
 
-  public CreResource(String name) throws Exception
-  {
+  public CreResource(String name) throws Exception {
     super(null, name,
-          StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE,
-                                                         null, null).getBuffer(),
-          0);
+        StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE, null, null).getBuffer(), 0);
   }
 
-  public CreResource(ResourceEntry entry) throws Exception
-  {
+  public CreResource(ResourceEntry entry) throws Exception {
     super(entry);
     isChr = entry.getExtension().equalsIgnoreCase("CHR");
   }
 
-  public CreResource(AbstractStruct superStruct, String name, ByteBuffer data, int startoffset) throws Exception
-  {
+  public CreResource(AbstractStruct superStruct, String name, ByteBuffer data, int startoffset) throws Exception {
     super(superStruct, name, data, startoffset);
     isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
+  /** Returns whether the creature resource includes a CHR (character) header. */
+  public boolean isCharacter() {
+    return isChr;
+  }
+
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     JComponent c = getViewerTab(TAB_INDEX_ANIMATION);
     if (c instanceof ViewerAnimation) {
-      ((ViewerAnimation)c).close();
+      ((ViewerAnimation) c).close();
     }
     super.close();
   }
 
   @Override
-  public AddRemovable[] getPrototypes() throws Exception
-  {
-    IsNumeric effectVersion = (IsNumeric)getAttribute(CRE_EFFECT_VERSION);
+  public AddRemovable[] getPrototypes() throws Exception {
+    IsNumeric effectVersion = (IsNumeric) getAttribute(CRE_EFFECT_VERSION);
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       if (effectVersion.getValue() == 1) {
-        return new AddRemovable[]{new Item(), new Effect2()};
+        return new AddRemovable[] { new Item(), new Effect2() };
       } else {
-        return new AddRemovable[]{new Item(), new Effect()};
+        return new AddRemovable[] { new Item(), new Effect() };
       }
     } else {
       if (effectVersion.getValue() == 1) {
-        return new AddRemovable[]{new Item(), new Effect2(), new KnownSpells(), new SpellMemorization()};
+        return new AddRemovable[] { new Item(), new Effect2(), new KnownSpells(), new SpellMemorization() };
       } else {
-        return new AddRemovable[]{new Item(), new Effect(), new KnownSpells(), new SpellMemorization()};
+        return new AddRemovable[] { new Item(), new Effect(), new KnownSpells(), new SpellMemorization() };
       }
     }
   }
 
   @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
     return entry;
   }
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return showRawTab() ? 3 : 2;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     switch (index) {
       case TAB_INDEX_VIEW:
         return StructViewer.TAB_VIEW;
@@ -805,8 +797,7 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     switch (index) {
       case TAB_INDEX_VIEW:
         return new Viewer(this);
@@ -822,34 +813,30 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return (index == 0);
   }
 
   // Needed for embedded CRE resources
-  private boolean showRawTab()
-  {
+  private boolean showRawTab() {
     if (hasRawTab == null) {
-      hasRawTab = !(Boolean.valueOf(this.isChildOf(GamResource.class)) ||
-                    Boolean.valueOf(this.isChildOf(AreResource.class)));
+      hasRawTab = !(Boolean.valueOf(this.isChildOf(GamResource.class))
+          || Boolean.valueOf(this.isChildOf(AreResource.class)));
     }
-    return hasRawTab.booleanValue();
+    return hasRawTab;
   }
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     super.writeFlatFields(os);
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
     if (isChr) {
       ButtonPanel panel = viewer.getButtonPanel();
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
+      JButton b = (JButton) panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
       int idx = panel.getControlPosition(b);
       if (b != null && idx >= 0) {
         // replacing button with menu
@@ -858,30 +845,30 @@ public final class CreResource extends AbstractStruct
         miExport = new JMenuItem("original");
         miExport.setToolTipText(b.getToolTipText());
         miConvert = new JMenuItem("as CRE");
-        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.EXPORT_MENU);
-        bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
+        bExport = (ButtonPopupMenu) panel.addControl(idx, ButtonPanel.Control.EXPORT_MENU);
+        bExport.setMenuItems(new JMenuItem[] { miExport, miConvert });
         bExport.addItemListener(this);
       }
     }
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     updateOffsets(datatype, datatype.getSize());
-    if (datatype instanceof SpellMemorization)
+    if (datatype instanceof SpellMemorization) {
       updateMemorizedSpells();
+    }
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     updateOffsets(datatype, datatype.getSize());
-    if (datatype instanceof MemorizedSpells)
+    if (datatype instanceof MemorizedSpells) {
       updateMemorizedSpells();
+    }
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -889,22 +876,22 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     updateOffsets(datatype, -datatype.getSize());
-    if (datatype instanceof SpellMemorization)
+    if (datatype instanceof SpellMemorization) {
       updateMemorizedSpells();
+    }
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     updateOffsets(datatype, -datatype.getSize());
-    if (datatype instanceof MemorizedSpells)
+    if (datatype instanceof MemorizedSpells) {
       updateMemorizedSpells();
+    }
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -912,8 +899,7 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     setExtraOffset(getExtraOffset() + offset);
     TextString signature = new TextString(buffer, offset, 4, COMMON_SIGNATURE);
     addField(signature);
@@ -929,80 +915,67 @@ public final class CreResource extends AbstractStruct
       if (version.toString().equalsIgnoreCase("V2.2")) {
         for (int i = 0; i < 4; i++) {
           bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 4), 2,
-                                          String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+              String.format(CHR_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
           bitmap.addIdsMapEntry(entryNone);
           bitmap = addField(new IdsBitmap(buffer, offset + 50 + (i * 4), 2,
-                                          String.format(CHR_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+              String.format(CHR_QUICK_SHIELD_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
           bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 4; i++) {
-          addField(new DecNumber(buffer, offset + 64 + (i * 4), 2,
-                                 String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i+1)));
-          addField(new DecNumber(buffer, offset + 66 + (i * 4), 2,
-                                 String.format(CHR_QUICK_SHIELD_ABILITY_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 64 + (i * 4), 2, String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i + 1)));
+          addField(new DecNumber(buffer, offset + 66 + (i * 4), 2, String.format(CHR_QUICK_SHIELD_ABILITY_FMT, i + 1)));
         }
         for (int i = 0; i < 9; i++) {
-          addField(new ResourceRef(buffer, offset + 80 + (i * 8),
-                                   String.format(CHR_QUICK_SPELL_FMT, i+1), "SPL"));
+          addField(new ResourceRef(buffer, offset + 80 + (i * 8), String.format(CHR_QUICK_SPELL_FMT, i + 1), "SPL"));
         }
         for (int i = 0; i < 9; i++) {
-          addField(new IdsBitmap(buffer, offset + 152 + i, 1,
-                                 String.format(CHR_QUICK_SPELL_CLASS_FMT, i+1), "CLASS.IDS"));
+          addField(
+              new IdsBitmap(buffer, offset + 152 + i, 1, String.format(CHR_QUICK_SPELL_CLASS_FMT, i + 1), "CLASS.IDS"));
         }
         addField(new Unknown(buffer, offset + 161, 1));
         for (int i = 0; i < 3; i++) {
           bitmap = addField(new IdsBitmap(buffer, offset + 162 + (i * 2), 2,
-                                          String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+              String.format(CHR_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
           bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 3; i++) {
-          addField(new DecNumber(buffer, offset + 168 + (i * 2), 2,
-                                 String.format(CHR_QUICK_ITEM_ABILITY_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 168 + (i * 2), 2, String.format(CHR_QUICK_ITEM_ABILITY_FMT, i + 1)));
         }
         for (int i = 0; i < 9; i++) {
-          addField(new ResourceRef(buffer, offset + 174 + (i * 8),
-                                   String.format(CHR_QUICK_ABILITY_FMT, i+1), "SPL"));
+          addField(new ResourceRef(buffer, offset + 174 + (i * 8), String.format(CHR_QUICK_ABILITY_FMT, i + 1), "SPL"));
         }
         for (int i = 0; i < 9; i++) {
-          addField(new ResourceRef(buffer, offset + 246 + (i * 8),
-                                   String.format(CHR_QUICK_SONG_FMT, i+1), "SPL"));
+          addField(new ResourceRef(buffer, offset + 246 + (i * 8), String.format(CHR_QUICK_SONG_FMT, i + 1), "SPL"));
         }
         for (int i = 0; i < 9; i++) {
-          addField(new DecNumber(buffer, offset + 318 + (i * 4), 4,
-                                 String.format(CHR_QUICK_BUTTON_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 318 + (i * 4), 4, String.format(CHR_QUICK_BUTTON_FMT, i + 1)));
         }
         addField(new Unknown(buffer, offset + 354, 26));
         addField(new TextString(buffer, offset + 380, 8, CHR_VOICE_SET_PREFIX));
         addField(new TextString(buffer, offset + 388, 32, CHR_VOICE_SET));
         addField(new Unknown(buffer, offset + 420, 128));
-      }
-      else if (version.toString().equalsIgnoreCase("V1.0") ||
-               version.toString().equalsIgnoreCase("V2.0") ||
-               version.toString().equalsIgnoreCase("V2.1")) {
+      } else if (version.toString().equalsIgnoreCase("V1.0") || version.toString().equalsIgnoreCase("V2.0")
+          || version.toString().equalsIgnoreCase("V2.1")) {
         for (int i = 0; i < 4; i++) {
           bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
-                                          String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+              String.format(CHR_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
           bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 4; i++) {
-          addField(new DecNumber(buffer, offset + 56 + (i * 2), 2,
-                                 String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 56 + (i * 2), 2, String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i + 1)));
         }
         for (int i = 0; i < 3; i++) {
-          addField(new ResourceRef(buffer, offset + 64 + (i * 8),
-                                   String.format(CHR_QUICK_SPELL_FMT, i+1), "SPL"));
+          addField(new ResourceRef(buffer, offset + 64 + (i * 8), String.format(CHR_QUICK_SPELL_FMT, i + 1), "SPL"));
         }
         for (int i = 0; i < 3; i++) {
           bitmap = addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
-                                          String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+              String.format(CHR_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
           bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 3; i++) {
-          addField(new DecNumber(buffer, offset + 94 + (i * 2), 2,
-                                 String.format(CHR_QUICK_ITEM_ABILITY_FMT, i+1)));
+          addField(new DecNumber(buffer, offset + 94 + (i * 2), 2, String.format(CHR_QUICK_ITEM_ABILITY_FMT, i + 1)));
         }
-      }
-      else {
+      } else {
         addField(new Unknown(buffer, offset + 48, structOffset.getValue() - 48));
       }
       offset = structOffset.getValue();
@@ -1022,11 +995,10 @@ public final class CreResource extends AbstractStruct
   // Icewind Dale 2
   ////////////////////////
 
-  private int readIWD2(ByteBuffer buffer, int offset) throws Exception
-  {
+  private int readIWD2(ByteBuffer buffer, int offset) throws Exception {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
-    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag_iwd2));
+    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, FLAGS_IWD2_ARRAY));
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
@@ -1041,8 +1013,8 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, false));
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, false));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, false));
-    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
-    effect_version.addUpdateListener(this);
+    Bitmap effectVersion = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, EFF_VERSION_ARRAY));
+    effectVersion.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
@@ -1097,12 +1069,11 @@ public final class CreResource extends AbstractStruct
     }
     if (sndMap != null) {
       for (int i = 0; i < 64; i++) {
-        IdsMapEntry e = sndMap.get((long)i);
+        IdsMapEntry e = sndMap.get(i);
         String label = (e != null) ? e.getSymbol() : "Unknown";
         addField(new StringRef(buffer, offset + 164 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
       }
-    }
-    else {
+    } else {
       for (int i = 0; i < 64; i++) {
         addField(new StringRef(buffer, offset + 164 + (i * 4), CRE_SOUND_SLOT_GENERIC));
       }
@@ -1112,9 +1083,9 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 428, CRE_SCRIPT_SPECIAL_1, "BCS"));
     addField(new DecNumber(buffer, offset + 436, 1, CRE_ENCHANTMENT_LEVEL));
     addField(new Unknown(buffer, offset + 437, 3));
-    addField(new Flag(buffer, offset + 440, 4, CRE_FEATS_1, s_feats1));
-    addField(new Flag(buffer, offset + 444, 4, CRE_FEATS_2, s_feats2));
-    addField(new Flag(buffer, offset + 448, 4, CRE_FEATS_3, s_feats3));
+    addField(new Flag(buffer, offset + 440, 4, CRE_FEATS_1, FEATS1_ARRAY));
+    addField(new Flag(buffer, offset + 444, 4, CRE_FEATS_2, FEATS2_ARRAY));
+    addField(new Flag(buffer, offset + 448, 4, CRE_FEATS_3, FEATS3_ARRAY));
     addField(new Unknown(buffer, offset + 452, 12));
     addField(new DecNumber(buffer, offset + 464, 1, CRE_MW_BOW));
     addField(new DecNumber(buffer, offset + 465, 1, CRE_SW_CROSSBOW));
@@ -1162,10 +1133,9 @@ public final class CreResource extends AbstractStruct
     addField(new Unknown(buffer, offset + 544, 50));
     addField(new DecNumber(buffer, offset + 594, 1, CRE_CHALLENGE_RATING));
     for (int i = 0; i < 8; i++) {
-      addField(new IdsBitmap(buffer, offset + 595 + i, 1,
-                             String.format(CRE_FAVORED_ENEMY_FMT, i+1), "RACE.IDS"));
+      addField(new IdsBitmap(buffer, offset + 595 + i, 1, String.format(CRE_FAVORED_ENEMY_FMT, i + 1), "RACE.IDS"));
     }
-    addField(new Bitmap(buffer, offset + 603, 1, CRE_SUBRACE, s_subraces));
+    addField(new Bitmap(buffer, offset + 603, 1, CRE_SUBRACE, SUBRACES_ARRAY));
     addField(new Unknown(buffer, offset + 604, 1));
     addField(new IdsBitmap(buffer, offset + 605, 1, CRE_SEX, "GENDER.IDS"));
     addField(new DecNumber(buffer, offset + 606, 1, CRE_STRENGTH));
@@ -1183,12 +1153,12 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));
     addField(new ResourceRef(buffer, offset + 644, CRE_SCRIPT_SPECIAL_3, "BCS"));
     addField(new ResourceRef(buffer, offset + 652, CRE_SCRIPT_MOVEMENT, "BCS"));
-    addField(new Bitmap(buffer, offset + 660, 1, CRE_DEFAULT_VISIBILITY, s_visible));
+    addField(new Bitmap(buffer, offset + 660, 1, CRE_DEFAULT_VISIBILITY, VISIBLE_ARRAY));
     addField(new Bitmap(buffer, offset + 661, 1, CRE_SET_EXTRA_DEATH_VAR, OPTION_NOYES));
     addField(new Bitmap(buffer, offset + 662, 1, CRE_INCREMENT_KILL_COUNT, OPTION_NOYES));
     addField(new Unknown(buffer, offset + 663, 1));
     for (int i = 0; i < 5; i++) {
-      addField(new DecNumber(buffer, offset + 664 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
+      addField(new DecNumber(buffer, offset + 664 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i + 1)));
     }
     addField(new TextString(buffer, offset + 674, 32, CRE_DEATH_VAR_SET));
     addField(new TextString(buffer, offset + 706, 32, CRE_DEATH_VAR_INC));
@@ -1199,7 +1169,7 @@ public final class CreResource extends AbstractStruct
     addField(new Unknown(buffer, offset + 746, 15));
     addField(new DecNumber(buffer, offset + 761, 1, CRE_FADE_AMOUNT));
     addField(new DecNumber(buffer, offset + 762, 1, CRE_FADE_SPEED));
-    addField(new Flag(buffer, offset + 763, 1, CRE_ATTRIBUTES, s_attributes_iwd2));
+    addField(new Flag(buffer, offset + 763, 1, CRE_ATTRIBUTES, ATTRIBUTES_IWD2_ARRAY));
     addField(new DecNumber(buffer, offset + 764, 1, CRE_VISIBILITY));
     addField(new Unknown(buffer, offset + 765, 2));
     addField(new DecNumber(buffer, offset + 767, 1, CRE_SKILL_POINTS_UNUSED));
@@ -1211,7 +1181,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsBitmap(buffer, offset + 896, 1, CRE_SPECIFICS, "SPECIFIC.IDS"));
     addField(new IdsBitmap(buffer, offset + 897, 1, CRE_GENDER, "GENDER.IDS"));
     for (int i = 0; i < 5; i++) {
-      addField(new IdsBitmap(buffer, offset + 898 + i, 1, String.format(CRE_OBJECT_FMT, i+1), "OBJECT.IDS"));
+      addField(new IdsBitmap(buffer, offset + 898 + i, 1, String.format(CRE_OBJECT_FMT, i + 1), "OBJECT.IDS"));
     }
     addField(new IdsBitmap(buffer, offset + 903, 1, CRE_ALIGNMENT, "ALIGNMNT.IDS"));
     addField(new DecNumber(buffer, offset + 904, 2, CRE_IDENTIFIER_GLOBAL));
@@ -1223,180 +1193,178 @@ public final class CreResource extends AbstractStruct
 
     // Bard spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 946 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1198 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_BARD_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_BARD_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 946 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_BARD_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1198 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_BARD_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_BARD_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Cleric spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 982 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1234 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_CLERIC_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_CLERIC_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 982 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1234 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_CLERIC_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_CLERIC_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Druid spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1270 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_DRUID_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_DRUID_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1018 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1270 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_DRUID_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_DRUID_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Paladin spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1306 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_PALADIN_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_PALADIN_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1054 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1306 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_PALADIN_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_PALADIN_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Ranger spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1342 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_RANGER_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_RANGER_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1090 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1342 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_RANGER_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_RANGER_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Sorcerer spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1378 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_SORCERER_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_SORCERER_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1126 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1378 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_SORCERER_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_SORCERER_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Wizard spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1414 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_WIZARD_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_WIZARD_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1162 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1414 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_WIZARD_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_WIZARD_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Domain spells
     for (int i = 0; i < 9; i++) {
-      SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), Iwd2Spell.class);
-      DecNumber s_count = new DecNumber(buffer, offset + 1486 + (i * 4), 4,
-                                        String.format(CRE_NUM_SPELLS_DOMAIN_FMT, i+1));
-      addField(s_off);
-      addField(s_count);
-      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + s_off.getValue(), s_count,
-                                        String.format(CRE_SPELLS_DOMAIN_FMT, i+1), Iwd2Struct.TYPE_SPELL);
+      SectionOffset sectionOffset = new SectionOffset(buffer, offset + 1450 + (i * 4),
+          String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i + 1), Iwd2Spell.class);
+      DecNumber sectionCount = new DecNumber(buffer, offset + 1486 + (i * 4), 4,
+          String.format(CRE_NUM_SPELLS_DOMAIN_FMT, i + 1));
+      addField(sectionOffset);
+      addField(sectionCount);
+      AbstractStruct s = new Iwd2Struct(this, buffer, getExtraOffset() + sectionOffset.getValue(), sectionCount,
+          String.format(CRE_SPELLS_DOMAIN_FMT, i + 1), Iwd2Struct.TYPE_SPELL);
       addField(s);
     }
 
     // Innate abilities
-    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, Iwd2Ability.class);
-    DecNumber inn_num = new DecNumber(buffer, offset + 1526, 4, CRE_NUM_ABILITIES);
-    addField(inn_off);
-    addField(inn_num);
-    AbstractStruct inn_str = new Iwd2Struct(this, buffer, getExtraOffset() + inn_off.getValue(),
-                                            inn_num, CRE_ABILITIES, Iwd2Struct.TYPE_ABILITY);
-    addField(inn_str);
+    SectionOffset innateOffset = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, Iwd2Ability.class);
+    DecNumber innateCount = new DecNumber(buffer, offset + 1526, 4, CRE_NUM_ABILITIES);
+    addField(innateOffset);
+    addField(innateCount);
+    AbstractStruct innateStruct = new Iwd2Struct(this, buffer, getExtraOffset() + innateOffset.getValue(), innateCount, CRE_ABILITIES,
+        Iwd2Struct.TYPE_ABILITY);
+    addField(innateStruct);
 
     // Songs
-    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, Iwd2Song.class);
-    DecNumber song_num = new DecNumber(buffer, offset + 1534, 4, CRE_NUM_SONGS);
-    addField(song_off);
-    addField(song_num);
-    AbstractStruct song_str = new Iwd2Struct(this, buffer, getExtraOffset() + song_off.getValue(),
-                                             song_num, CRE_SONGS, Iwd2Struct.TYPE_SONG);
-    addField(song_str);
+    SectionOffset songOffset = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, Iwd2Song.class);
+    DecNumber songCount = new DecNumber(buffer, offset + 1534, 4, CRE_NUM_SONGS);
+    addField(songOffset);
+    addField(songCount);
+    AbstractStruct songStruct = new Iwd2Struct(this, buffer, getExtraOffset() + songOffset.getValue(), songCount, CRE_SONGS,
+        Iwd2Struct.TYPE_SONG);
+    addField(songStruct);
 
     // Shapes
-    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, Iwd2Shape.class);
-    DecNumber shape_num = new DecNumber(buffer, offset + 1542, 4, CRE_NUM_SHAPES);
-    addField(shape_off);
-    addField(shape_num);
-    AbstractStruct shape_str = new Iwd2Struct(this, buffer, getExtraOffset() + shape_off.getValue(),
-                                              shape_num, CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
-    addField(shape_str);
+    SectionOffset shapeOffset = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, Iwd2Shape.class);
+    DecNumber shapeCount = new DecNumber(buffer, offset + 1542, 4, CRE_NUM_SHAPES);
+    addField(shapeOffset);
+    addField(shapeCount);
+    AbstractStruct shapeStruct = new Iwd2Struct(this, buffer, getExtraOffset() + shapeOffset.getValue(), shapeCount,
+        CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
+    addField(shapeStruct);
 
-    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, IndexNumber.class);
-    addField(itemslots_offset);
-    SectionOffset items_offset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS,
-                                                   Item.class);
-    addField(items_offset);
-    SectionCount items_count = new SectionCount(buffer, offset + 1554, 4, CRE_NUM_ITEMS,
-                                                Item.class);
-    addField(items_count);
+    SectionOffset itemslotsOffset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, IndexNumber.class);
+    addField(itemslotsOffset);
+    SectionOffset itemsOffset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS, Item.class);
+    addField(itemsOffset);
+    SectionCount itemsCount = new SectionCount(buffer, offset + 1554, 4, CRE_NUM_ITEMS, Item.class);
+    addField(itemsCount);
 
-    SectionOffset effects_offset;
-    SectionCount effects_count;
-    if (effect_version.getValue() == 1) {
-      effects_offset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect2.class);
-      effects_count = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect2.class);
+    SectionOffset effectsOffset;
+    SectionCount effectsCount;
+    if (effectVersion.getValue() == 1) {
+      effectsOffset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect2.class);
+      effectsCount = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect2.class);
+    } else {
+      effectsOffset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect.class);
+      effectsCount = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect.class);
     }
-    else {
-      effects_offset = new SectionOffset(buffer, offset + 1558, CRE_OFFSET_EFFECTS, Effect.class);
-      effects_count = new SectionCount(buffer, offset + 1562, 4, CRE_NUM_EFFECTS, Effect.class);
-    }
-    addField(effects_offset);
-    addField(effects_count);
+    addField(effectsOffset);
+    addField(effectsCount);
     addField(new ResourceRef(buffer, offset + 1566, CRE_DIALOG, "DLG"));
 
-    offset = getExtraOffset() + effects_offset.getValue();
-    if (effect_version.getValue() == 1)
-      for (int i = 0; i < effects_count.getValue(); i++) {
+    offset = getExtraOffset() + effectsOffset.getValue();
+    if (effectVersion.getValue() == 1) {
+      for (int i = 0; i < effectsCount.getValue(); i++) {
         Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
         addField(eff);
       }
-    else
-      for (int i = 0; i < effects_count.getValue(); i++) {
+    } else {
+      for (int i = 0; i < effectsCount.getValue(); i++) {
         Effect eff = new Effect(this, buffer, offset, i);
         offset = eff.getEndOffset();
         addField(eff);
       }
+    }
 
-    offset = getExtraOffset() + items_offset.getValue();
-    for (int i = 0; i < items_count.getValue(); i++) {
+    offset = getExtraOffset() + itemsOffset.getValue();
+    for (int i = 0; i < itemsCount.getValue(); i++) {
       Item item = new Item(this, buffer, offset, i);
       offset = item.getEndOffset();
       addField(item);
     }
 
-    offset = getExtraOffset() + itemslots_offset.getValue();
+    offset = getExtraOffset() + itemslotsOffset.getValue();
     addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
     addField(new IndexNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
     addField(new IndexNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
@@ -1407,19 +1375,18 @@ public final class CreResource extends AbstractStruct
     addField(new IndexNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
     addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
     for (int i = 0; i < 4; i++) {
-      addField(new IndexNumber(buffer, offset + 18 + (i * 4), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
-      addField(new IndexNumber(buffer, offset + 20 + (i * 4), 2, String.format(CRE_ITEM_SLOT_SHIELD_FMT, i+1)));
+      addField(new IndexNumber(buffer, offset + 18 + (i * 4), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
+      addField(new IndexNumber(buffer, offset + 20 + (i * 4), 2, String.format(CRE_ITEM_SLOT_SHIELD_FMT, i + 1)));
     }
     for (int i = 0; i < 4; i++) {
-      addField(new IndexNumber(buffer, offset + 34 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+      addField(new IndexNumber(buffer, offset + 34 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
     }
     addField(new IndexNumber(buffer, offset + 42, 2, CRE_ITEM_SLOT_CLOAK));
     for (int i = 0; i < 3; i++) {
-      addField(new IndexNumber(buffer, offset + 44 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+      addField(new IndexNumber(buffer, offset + 44 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
     }
     for (int i = 0; i < 24; i++) {
-      addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2,
-                               String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+      addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
     }
     addField(new IndexNumber(buffer, offset + 98, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
     addField(new IndexNumber(buffer, offset + 100, 2, CRE_SELECTED_WEAPON_SLOT));
@@ -1438,11 +1405,10 @@ public final class CreResource extends AbstractStruct
   // Other IE games
   ////////////////////////
 
-  private int readOther(String version, ByteBuffer buffer, int offset) throws Exception
-  {
+  private int readOther(String version, ByteBuffer buffer, int offset) throws Exception {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
-    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag));
+    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, FLAGS_ARRAY));
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
@@ -1452,7 +1418,7 @@ public final class CreResource extends AbstractStruct
     final AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION);
     if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
       // TODO: resolve issues with Listener queue filled with duplicate entries on each "Update" button click
-//      animate.addUpdateListener(this);
+      // animate.addUpdateListener(this);
     }
     addField(animate);
     if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
@@ -1466,8 +1432,8 @@ public final class CreResource extends AbstractStruct
       addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, true));
       addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, true));
     }
-    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
-    effect_version.addUpdateListener(this);
+    Bitmap effectVersion = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, EFF_VERSION_ARRAY));
+    effectVersion.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
@@ -1485,7 +1451,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 70, 2, CRE_AC_MOD_PIERCING));
     addField(new DecNumber(buffer, offset + 72, 2, CRE_AC_MOD_SLASHING));
     addField(new DecNumber(buffer, offset + 74, 1, CRE_THAC0));
-    addField(new Bitmap(buffer, offset + 75, 1, CRE_ATTACKS_PER_ROUND, s_attacks));
+    addField(new Bitmap(buffer, offset + 75, 1, CRE_ATTACKS_PER_ROUND, ATTACKS_ARRAY));
     addField(new DecNumber(buffer, offset + 76, 1, CRE_SAVE_DEATH));
     addField(new DecNumber(buffer, offset + 77, 1, CRE_SAVE_WAND));
     addField(new DecNumber(buffer, offset + 78, 1, CRE_SAVE_POLYMORPH));
@@ -1517,14 +1483,14 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 100, 1, CRE_INTOXICATION));
     addField(new DecNumber(buffer, offset + 101, 1, CRE_LUCK));
     if (version.equals("V1.0")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_BLUNT, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_SPIKED, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_BLUNT, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_SPIKED, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_AXE, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_MISSILE, 3, 2, PROF_LABELS_ARRAY));
       if (Profile.isEnhancedEdition()) {
         if (Profile.getGame() == Profile.Game.PSTEE) {
           addField(new Unknown(buffer, offset + 110, 5));
@@ -1546,35 +1512,32 @@ public final class CreResource extends AbstractStruct
       } else {
         addField(new Unknown(buffer, offset + 110, 12));
       }
-    }
-    else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_FIST, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_EDGED_WEAPON, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_HAMMER, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_CLUB, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
+    } else if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_FIST, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_EDGED_WEAPON, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_HAMMER, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_AXE, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_CLUB, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_BOW, 3, 2, PROF_LABELS_ARRAY));
       addField(new Unknown(buffer, offset + 108, 14));
-    }
-    else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
-      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_GREATSWORD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_DAGGER, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 110, 1, CRE_PROFICIENCY_HALBERD, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 111, 1, CRE_PROFICIENCY_MACE, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 112, 1, CRE_PROFICIENCY_FLAIL, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 113, 1, CRE_PROFICIENCY_HAMMER, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 114, 1, CRE_PROFICIENCY_CLUB, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 115, 1, CRE_PROFICIENCY_QUARTERSTAFF, 3, 2, s_profLabels));
-      addField(new MultiNumber(buffer, offset + 116, 1, CRE_PROFICIENCY_CROSSBOW, 3, 2, s_profLabels));
+    } else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
+      addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 105, 1, CRE_PROFICIENCY_SPEAR, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 106, 1, CRE_PROFICIENCY_AXE, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_MISSILE, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_GREATSWORD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_DAGGER, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 110, 1, CRE_PROFICIENCY_HALBERD, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 111, 1, CRE_PROFICIENCY_MACE, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 112, 1, CRE_PROFICIENCY_FLAIL, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 113, 1, CRE_PROFICIENCY_HAMMER, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 114, 1, CRE_PROFICIENCY_CLUB, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 115, 1, CRE_PROFICIENCY_QUARTERSTAFF, 3, 2, PROF_LABELS_ARRAY));
+      addField(new MultiNumber(buffer, offset + 116, 1, CRE_PROFICIENCY_CROSSBOW, 3, 2, PROF_LABELS_ARRAY));
       addField(new Unknown(buffer, offset + 117, 5));
-    }
-    else {
+    } else {
       clearFields();
       throw new Exception("Unsupported version: " + version);
     }
@@ -1592,9 +1555,9 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 138, 1, CRE_DIALOG_ACTIVATION_RADIUS));
       addField(new DecNumber(buffer, offset + 139, 1, CRE_COLLISION_RADIUS));
       addField(new Flag(buffer, offset + 140, 1, CRE_SHIELD_FLAGS,
-                        new String[]{"No flags set", "Normal shield", "Black barbed shield"}));
+          new String[] { "No flags set", "Normal shield", "Black barbed shield" }));
       addField(new DecNumber(buffer, offset + 141, 1, CRE_FIELD_OF_VISION));
-      addField(new Flag(buffer, offset + 142, 4, CRE_ATTRIBUTES, s_attributes_pst));
+      addField(new Flag(buffer, offset + 142, 4, CRE_ATTRIBUTES, ATTRIBUTES_PST_ARRAY));
       addField(new Unknown(buffer, offset + 146, 10));
     } else {
       addField(new TextString(buffer, offset + 124, 32, CRE_TARGET));
@@ -1607,7 +1570,7 @@ public final class CreResource extends AbstractStruct
     }
     if (sndMap != null) {
       for (int i = 0; i < 100; i++) {
-        IdsMapEntry e = sndMap.get((long)i);
+        IdsMapEntry e = sndMap.get(i);
         String label = (e != null) ? e.getSymbol() : COMMON_UNKNOWN;
         addField(new StringRef(buffer, offset + 156 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
       }
@@ -1631,11 +1594,9 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 568, 1, CRE_MORALE_BREAK));
     addField(new IdsBitmap(buffer, offset + 569, 1, CRE_RACIAL_ENEMY, "RACE.IDS"));
     addField(new DecNumber(buffer, offset + 570, 2, CRE_MORALE_RECOVERY));
-    if (Profile.getGame() != Profile.Game.PSTEE &&
-        ResourceFactory.resourceExists("KIT.IDS")) {
+    if (Profile.getGame() != Profile.Game.PSTEE && ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new KitIdsBitmap(buffer, offset + 572, CRE_KIT));
-    }
-    else {
+    } else {
       if (ResourceFactory.resourceExists("DEITY.IDS")) {
         addField(new IdsBitmap(buffer, offset + 572, 2, CRE_DEITY, "DEITY.IDS"));
       } else if (ResourceFactory.resourceExists("DIETY.IDS")) {
@@ -1646,7 +1607,7 @@ public final class CreResource extends AbstractStruct
       if (ResourceFactory.resourceExists("MAGESPEC.IDS")) {
         addField(new IdsBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, "MAGESPEC.IDS", true, true, false));
       } else {
-        addField(new HashBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, m_magetype, true, false, true));
+        addField(new HashBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, MAGE_TYPE_MAP, true, false, true));
       }
     }
     addField(new ResourceRef(buffer, offset + 576, CRE_SCRIPT_OVERRIDE, "BCS"));
@@ -1664,7 +1625,7 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 664, 4, CRE_XP_THIRD_CLASS));
       IdsMap intMap = IdsMapCache.get("INTERNAL.IDS");
       for (int i = 0; i < 10; i++) {
-        IdsMapEntry e = intMap.get((long)i);
+        IdsMapEntry e = intMap.get(i);
         if (e != null) {
           addField(new DecNumber(buffer, offset + 668 + i * 2, 2, e.getSymbol()));
         } else {
@@ -1680,31 +1641,30 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 725, 1, CRE_COLLISION_RADIUS)); // 0x2dd
       addField(new Unknown(buffer, offset + 726, 1));
       addField(new DecNumber(buffer, offset + 727, 1, CRE_NUM_COLORS));
-      addField(new Flag(buffer, offset + 728, 4, CRE_ATTRIBUTES, s_attributes_pst));
+      addField(new Flag(buffer, offset + 728, 4, CRE_ATTRIBUTES, ATTRIBUTES_PST_ARRAY));
       for (int i = 0; i < 7; i++) {
-        addField(new ColorValue(buffer, offset + 732 + (i * 2), 2, String.format(CRE_COLOR_FMT, i+1), true,
-                                "PAL32.BMP"));
-//        addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
-//                               String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
+        addField(
+            new ColorValue(buffer, offset + 732 + (i * 2), 2, String.format(CRE_COLOR_FMT, i + 1), true, "PAL32.BMP"));
+        // addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
+        // String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
       }
       addField(new Unknown(buffer, offset + 746, 3));
       for (int i = 0; i < 7; i++) {
-        addField(new HashBitmap(buffer, offset + 749 + i, 1,
-                                String.format(CRE_COLOR_PLACEMENT_FMT, i+1), m_colorPlacement));
+        addField(new HashBitmap(buffer, offset + 749 + i, 1, String.format(CRE_COLOR_PLACEMENT_FMT, i + 1),
+            COLOR_PLACEMENT_MAP));
       }
       addField(new Unknown(buffer, offset + 756, 21));
       addField(new IdsBitmap(buffer, offset + 777, 1, CRE_SPECIES, "RACE.IDS"));
       addField(new IdsBitmap(buffer, offset + 778, 1, CRE_TEAM, "TEAM.IDS"));
       addField(new IdsBitmap(buffer, offset + 779, 1, CRE_FACTION, "FACTION.IDS"));
       offset += 164;
-    }
-    else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
-      addField(new Bitmap(buffer, offset + 616, 1, CRE_DEFAULT_VISIBILITY, s_visible));
+    } else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
+      addField(new Bitmap(buffer, offset + 616, 1, CRE_DEFAULT_VISIBILITY, VISIBLE_ARRAY));
       addField(new Bitmap(buffer, offset + 617, 1, CRE_SET_EXTRA_DEATH_VAR, OPTION_NOYES));
       addField(new Bitmap(buffer, offset + 618, 1, CRE_INCREMENT_KILL_COUNT, OPTION_NOYES));
       addField(new Unknown(buffer, offset + 619, 1));
       for (int i = 0; i < 5; i++) {
-        addField(new DecNumber(buffer, offset + 620 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
+        addField(new DecNumber(buffer, offset + 620 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i + 1)));
       }
       addField(new TextString(buffer, offset + 630, 32, CRE_DEATH_VAR_SET));
       addField(new TextString(buffer, offset + 662, 32, CRE_DEATH_VAR_INC));
@@ -1722,7 +1682,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsBitmap(buffer, offset + 620, 1, CRE_SPECIFICS, "SPECIFIC.IDS"));
     addField(new IdsBitmap(buffer, offset + 621, 1, CRE_GENDER, "GENDER.IDS"));
     for (int i = 0; i < 5; i++) {
-      addField(new IdsBitmap(buffer, offset + 622 + i, 1, String.format(CRE_OBJECT_FMT, i+1), "OBJECT.IDS"));
+      addField(new IdsBitmap(buffer, offset + 622 + i, 1, String.format(CRE_OBJECT_FMT, i + 1), "OBJECT.IDS"));
     }
     addField(new IdsBitmap(buffer, offset + 627, 1, CRE_ALIGNMENT, "ALIGNMEN.IDS"));
     addField(new DecNumber(buffer, offset + 628, 2, CRE_IDENTIFIER_GLOBAL));
@@ -1730,22 +1690,21 @@ public final class CreResource extends AbstractStruct
     addField(new TextString(buffer, offset + 632, 32, CRE_SCRIPT_NAME));
 
     SectionOffset offsetKnownSpells = new SectionOffset(buffer, offset + 664, CRE_OFFSET_KNOWN_SPELLS,
-                                                        KnownSpells.class);
+        KnownSpells.class);
     addField(offsetKnownSpells);
-    SectionCount countKnownSpells = new SectionCount(buffer, offset + 668, 4, CRE_NUM_KNOWN_SPELLS,
-                                                     KnownSpells.class);
+    SectionCount countKnownSpells = new SectionCount(buffer, offset + 668, 4, CRE_NUM_KNOWN_SPELLS, KnownSpells.class);
     addField(countKnownSpells);
     SectionOffset offsetMemSpellInfo = new SectionOffset(buffer, offset + 672, CRE_OFFSET_MEMORIZATION_INFO,
-                                                         SpellMemorization.class);
+        SpellMemorization.class);
     addField(offsetMemSpellInfo);
     SectionCount countMemSpellInfo = new SectionCount(buffer, offset + 676, 4, CRE_NUM_MEMORIZATION_INFO,
-                                                      SpellMemorization.class);
+        SpellMemorization.class);
     addField(countMemSpellInfo);
     SectionOffset offsetMemSpells = new SectionOffset(buffer, offset + 680, CRE_OFFSET_MEMORIZED_SPELLS,
-                                                      MemorizedSpells.class);
+        MemorizedSpells.class);
     addField(offsetMemSpells);
     SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, CRE_NUM_MEMORIZED_SPELLS,
-                                                   MemorizedSpells.class);
+        MemorizedSpells.class);
     addField(countMemSpells);
     SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, IndexNumber.class);
     addField(offsetItemslots);
@@ -1755,11 +1714,10 @@ public final class CreResource extends AbstractStruct
     addField(countItems);
     SectionOffset offsetEffects;
     SectionCount countEffects;
-    if (effect_version.getValue() == 1) {
+    if (effectVersion.getValue() == 1) {
       offsetEffects = new SectionOffset(buffer, offset + 700, CRE_OFFSET_EFFECTS, Effect2.class);
       countEffects = new SectionCount(buffer, offset + 704, 4, CRE_NUM_EFFECTS, Effect2.class);
-    }
-    else {
+    } else {
       offsetEffects = new SectionOffset(buffer, offset + 700, CRE_OFFSET_EFFECTS, Effect.class);
       countEffects = new SectionCount(buffer, offset + 704, 4, CRE_NUM_EFFECTS, Effect.class);
     }
@@ -1783,7 +1741,7 @@ public final class CreResource extends AbstractStruct
     }
 
     offset = getExtraOffset() + offsetEffects.getValue();
-    if (effect_version.getValue() == 1) {
+    if (effectVersion.getValue() == 1) {
       for (int i = 0; i < countEffects.getValue(); i++) {
         Effect2 eff = new Effect2(this, buffer, offset, i);
         offset = eff.getEndOffset();
@@ -1818,29 +1776,27 @@ public final class CreResource extends AbstractStruct
       addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
       slotCount += 9;
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2,
-                                 String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
       }
       slotCount += 4;
       for (int i = 0; i < 6; i++) {
-        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
       }
       addField(new IndexNumber(buffer, offset + 38, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
       slotCount += 7;
       for (int i = 0; i < 5; i++) {
-        addField(new IndexNumber(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
       }
       slotCount += 5;
       for (int i = 0; i < 20; i++) {
-        addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
       }
       slotCount += 20;
       addField(new IndexNumber(buffer, offset + 90, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
       addField(new IndexNumber(buffer, offset + 92, 2, CRE_SELECTED_WEAPON_SLOT));
       addField(new IndexNumber(buffer, offset + 94, 2, CRE_SELECTED_WEAPON_ABILITY));
       slotCount += 3;
-    }
-    else {
+    } else {
       if (Profile.getGame() == Profile.Game.PSTEE) {
         // REMEMBER: ITMSLOTS.2DA can be used as reference for item slot layout
         addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_LEFT_EARRING));
@@ -1866,11 +1822,11 @@ public final class CreResource extends AbstractStruct
         slotCount += 9;
       }
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
         slotCount++;
       }
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
         slotCount++;
       }
       if (Profile.getGame() == Profile.Game.PSTEE) {
@@ -1881,11 +1837,11 @@ public final class CreResource extends AbstractStruct
         slotCount++;
       }
       for (int i = 0; i < 3; i++) {
-        addField(new IndexNumber(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
         slotCount++;
       }
       for (int i = 0; i < 16; i++) {
-        addField(new IndexNumber(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+        addField(new IndexNumber(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
         slotCount++;
       }
       addField(new IndexNumber(buffer, offset + 74, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
@@ -1893,7 +1849,7 @@ public final class CreResource extends AbstractStruct
       StructEntry se = getAttribute(CRE_NUM_ITEM_SLOTS);
       int maxSlotCount = 0;
       if (se instanceof IsNumeric) {
-        maxSlotCount = ((IsNumeric)getAttribute(CRE_NUM_ITEM_SLOTS)).getValue();
+        maxSlotCount = ((IsNumeric) getAttribute(CRE_NUM_ITEM_SLOTS)).getValue();
       }
       if (Profile.getGame() == Profile.Game.PSTEE && slotCount + 8 < maxSlotCount) {
         // registered characters gain additional item slots
@@ -1905,7 +1861,7 @@ public final class CreResource extends AbstractStruct
         slotCount += 4;
         offset += 84;
         for (int i = 0; i < 4; i++) {
-          addField(new IndexNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+17)));
+          addField(new IndexNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 17)));
           slotCount++;
           offset += 2;
         }
@@ -1934,38 +1890,35 @@ public final class CreResource extends AbstractStruct
     return endoffset;
   }
 
-  private void updateMemorizedSpells()
-  {
+  private void updateMemorizedSpells() {
     // Assumes memorized spells offset is correct
-    int offset = ((IsNumeric)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
+    int offset = ((IsNumeric) getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
     for (final StructEntry o : getFields()) {
       if (o instanceof SpellMemorization) {
-        SpellMemorization info = (SpellMemorization)o;
+        SpellMemorization info = (SpellMemorization) o;
         int numSpells = info.updateSpells(offset, count);
         offset += 12 * numSpells;
         count += numSpells;
       }
     }
-    ((DecNumber)getAttribute(CRE_NUM_MEMORIZED_SPELLS)).setValue(count);
+    ((DecNumber) getAttribute(CRE_NUM_MEMORIZED_SPELLS)).setValue(count);
   }
 
-  private void updateOffsets(AddRemovable datatype, int size)
-  {
-    if (getFields().get(0).toString().equalsIgnoreCase("CHR "))
-      ((HexNumber)getAttribute(CHR_CRE_SIZE)).incValue(size);
-//    if (!(datatype instanceof MemorizedSpells)) {
-//      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
-//      if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
-//          datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
-//        offsetMemSpells.incValue(size);
-//    }
+  private void updateOffsets(AddRemovable datatype, int size) {
+    if (getFields().get(0).toString().equalsIgnoreCase("CHR ")) {
+      ((HexNumber) getAttribute(CHR_CRE_SIZE)).incValue(size);
+      // if (!(datatype instanceof MemorizedSpells)) {
+      // HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
+      // if (datatype.getOffset() < offsetMemSpells.getValue() + getExtraOffset() ||
+      // datatype.getOffset() == offsetMemSpells.getValue() + getExtraOffset() && size > 0)
+      // offsetMemSpells.incValue(size);
+      // }
+    }
   }
-
 
   // Adds or updates CRE color fields, returns offset behind last color field
-  private int setColorFieldsPSTEE(int animId, ByteBuffer buffer, int startOffset, boolean update)
-  {
+  private int setColorFieldsPSTEE(int animId, ByteBuffer buffer, int startOffset, boolean update) {
     int[] colorTypes = new int[7];
     if (animId >= 0xf000 && animId < 0x10000) {
       // determine color types
@@ -1978,7 +1931,7 @@ public final class CreResource extends AbstractStruct
           iniEntry = null;
           for (int i = 0; i < colorTypes.length; i++) {
             if (isClown) {
-              iniEntry = iniSection.getEntry("color" + (i+1));
+              iniEntry = iniSection.getEntry("color" + (i + 1));
             }
             if (iniEntry != null) {
               colorTypes[i] = Misc.toNumber(iniEntry.getValue(), -1) >> 4;
@@ -2026,13 +1979,14 @@ public final class CreResource extends AbstractStruct
   }
 
   // Removes characters from flag descriptions which are shared by all relevant ids entries.
-  private IdsFlag uniqueIdsFlag(IdsFlag field, String idsFile, char separatorChar)
-  {
-    if (field == null)
+  private IdsFlag uniqueIdsFlag(IdsFlag field, String idsFile, char separatorChar) {
+    if (field == null) {
       return field;
+    }
     IdsMap map = IdsMapCache.get(idsFile);
-    if (map == null)
+    if (map == null) {
       return field;
+    }
 
     String[] table = new String[field.getSize() * 8];
     // determine longest common prefix
@@ -2054,12 +2008,14 @@ public final class CreResource extends AbstractStruct
         }
       }
     }
-    if (prefix == null)
+    if (prefix == null) {
       prefix = "";
+    }
 
     // cut off prefix after last matching separator character
-    if (separatorChar != 0)
+    if (separatorChar != 0) {
       prefix = prefix.substring(0, prefix.lastIndexOf(separatorChar) + 1);
+    }
 
     // update flag descriptions
     entry = map.get(0L);
@@ -2075,13 +2031,13 @@ public final class CreResource extends AbstractStruct
 
   /**
    * Converts effect structures to the specified EFF version.
+   *
    * @param version Effect version (0=V1, 1=V2)
-   * @param so  Associated section offset instance.
-   * @param sc  Associated section count instance.
+   * @param so      Associated section offset instance.
+   * @param sc      Associated section count instance.
    * @return whether effect entries have been converted.
    */
-  private boolean convertEffects(int version, SectionOffset so, SectionCount sc)
-  {
+  private boolean convertEffects(int version, SectionOffset so, SectionCount sc) {
     boolean retVal = false;
     if (so != null && sc != null) {
       if (version == 0 && so.getSection().equals(Effect2.class)) {
@@ -2107,7 +2063,7 @@ public final class CreResource extends AbstractStruct
         while (!oldEntries.isEmpty()) {
           Effect2 oldEff = oldEntries.remove(0);
           try {
-            Effect newEff = (Effect)oldEff.clone(true);
+            Effect newEff = (Effect) oldEff.clone(true);
             addDatatype(newEff);
             retVal |= true;
           } catch (Exception e) {
@@ -2137,7 +2093,7 @@ public final class CreResource extends AbstractStruct
         while (!oldEntries.isEmpty()) {
           Effect oldEff = oldEntries.remove(0);
           try {
-            Effect2 newEff = (Effect2)oldEff.clone(true);
+            Effect2 newEff = (Effect2) oldEff.clone(true);
             addDatatype(newEff);
             retVal |= true;
           } catch (Exception e) {
@@ -2151,8 +2107,7 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (event.getSource() == bExport) {
       JMenuItem item = bExport.getSelectedItem();
       if (item == miExport) {
@@ -2164,23 +2119,22 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public boolean valueUpdated(UpdateEvent event)
-  {
+  public boolean valueUpdated(UpdateEvent event) {
     if (event.getSource() instanceof StructEntry) {
-      StructEntry se = (StructEntry)event.getSource();
+      StructEntry se = (StructEntry) event.getSource();
       if (se.getName().equals(CRE_EFFECT_VERSION)) {
-        int version = ((IsNumeric)se).getValue();
-        SectionCount cnt = (SectionCount)getAttribute(CRE_NUM_EFFECTS);
-        SectionOffset ofs = (SectionOffset)getAttribute(CRE_OFFSET_EFFECTS);
+        int version = ((IsNumeric) se).getValue();
+        SectionCount cnt = (SectionCount) getAttribute(CRE_NUM_EFFECTS);
+        SectionOffset ofs = (SectionOffset) getAttribute(CRE_OFFSET_EFFECTS);
         return convertEffects(version, ofs, cnt);
-//      } else if (se.getName().equals(CRE_ANIMATION)) {
-//        // TODO: Listener queue fills with duplicate entries with each click on AnimateBitmap's "Update" button
-//        boolean retVal = false;
-//        if (event.getSource() instanceof AnimateBitmap) {
-//          AnimateBitmap animate = (AnimateBitmap)event.getSource();
-//          retVal = setColorFieldsPSTEE(animate.getValue(), null, 0x2c, true) > 0;
-//        }
-//        return retVal;
+        // } else if (se.getName().equals(CRE_ANIMATION)) {
+        // // TODO: Listener queue fills with duplicate entries with each click on AnimateBitmap's "Update" button
+        // boolean retVal = false;
+        // if (event.getSource() instanceof AnimateBitmap) {
+        // AnimateBitmap animate = (AnimateBitmap)event.getSource();
+        // retVal = setColorFieldsPSTEE(animate.getValue(), null, 0x2c, true) > 0;
+        // }
+        // return retVal;
       }
     }
     return false;
@@ -2188,8 +2142,7 @@ public final class CreResource extends AbstractStruct
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.
-  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
-  {
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions) {
     if (entry != null && searchOptions != null) {
       try {
         CreResource cre = new CreResource(entry);
@@ -2201,51 +2154,50 @@ public final class CreResource extends AbstractStruct
         Object o;
 
         // preparing substructures
-        IsNumeric ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_EFFECTS, false);
-        IsNumeric cnt = (IsNumeric)cre.getAttribute(CRE_NUM_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric) cre.getAttribute(CRE_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric) cre.getAttribute(CRE_NUM_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Effect), idx);
-            effects[idx] = (AbstractStruct)cre.getAttribute(label, false);
+            effects[idx] = (AbstractStruct) cre.getAttribute(label, false);
           }
         } else {
           effects = new AbstractStruct[0];
         }
 
-        ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_ITEMS, false);
-        cnt = (IsNumeric)cre.getAttribute(CRE_NUM_ITEMS, false);
+        ofs = (IsNumeric) cre.getAttribute(CRE_OFFSET_ITEMS, false);
+        cnt = (IsNumeric) cre.getAttribute(CRE_NUM_ITEMS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Item), idx);
-            items[idx] = (AbstractStruct)cre.getAttribute(label, false);
+            items[idx] = (AbstractStruct) cre.getAttribute(label, false);
           }
         } else {
           items = new AbstractStruct[0];
         }
 
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          final String[] spellTypes = new String[]{
-              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard),
+          final String[] spellTypes = new String[] { SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellCleric),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDruid),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellPaladin),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellRanger),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellSorcerer),
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellWizard),
-              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDomain)};
+              SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDomain) };
           final String spellTypesStruct = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell);
           final String spellTypesRef = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell_ResRef);
           List<Datatype> listSpells = new ArrayList<>(64);
-          for (int i = 0; i < spellTypes.length; i++) {
+          for (String spellType : spellTypes) {
             for (int j = 1; j < 10; j++) {
-              String label = String.format(spellTypes[i], j);
-              AbstractStruct struct1 = (AbstractStruct)cre.getAttribute(label, false);
+              String label = String.format(spellType, j);
+              AbstractStruct struct1 = (AbstractStruct) cre.getAttribute(label, false);
               if (struct1 != null) {
-                AbstractStruct struct2 = (AbstractStruct)struct1.getAttribute(spellTypesStruct, false);
+                AbstractStruct struct2 = (AbstractStruct) struct1.getAttribute(spellTypesStruct, false);
                 if (struct2 != null) {
-                  Datatype struct3 = (Datatype)struct2.getAttribute(spellTypesRef, false);
+                  Datatype struct3 = (Datatype) struct2.getAttribute(spellTypesRef, false);
                   if (struct3 != null) {
                     listSpells.add(struct3);
                   }
@@ -2258,15 +2210,15 @@ public final class CreResource extends AbstractStruct
             spells[i] = listSpells.get(i);
           }
         } else {
-          ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_KNOWN_SPELLS, false);
-          cnt = (IsNumeric)cre.getAttribute(CRE_NUM_KNOWN_SPELLS, false);
+          ofs = (IsNumeric) cre.getAttribute(CRE_OFFSET_KNOWN_SPELLS, false);
+          cnt = (IsNumeric) cre.getAttribute(CRE_NUM_KNOWN_SPELLS, false);
           if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
             spells = new Datatype[cnt.getValue()];
             final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);
             for (int idx = 0; idx < cnt.getValue(); idx++) {
               String label = String.format(SearchOptions.getResourceName(SearchOptions.CRE_Spell), idx);
-              AbstractStruct struct = (AbstractStruct)cre.getAttribute(label, false);
-              spells[idx] = (Datatype)struct.getAttribute(spellLabel, false);
+              AbstractStruct struct = (AbstractStruct) cre.getAttribute(label, false);
+              spells[idx] = (Datatype) struct.getAttribute(spellLabel, false);
             }
           } else {
             spells = new Datatype[0];
@@ -2274,10 +2226,10 @@ public final class CreResource extends AbstractStruct
         }
 
         // checking options
-        String[] keyList = new String[]{SearchOptions.CRE_Name, SearchOptions.CRE_ScriptName};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        String[] keyList = new String[] { SearchOptions.CRE_Name, SearchOptions.CRE_ScriptName };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
@@ -2286,35 +2238,33 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Script1, SearchOptions.CRE_Script2};
+        keyList = new String[] { SearchOptions.CRE_Script1, SearchOptions.CRE_Script2 };
         String[] scriptFields;
         if (Profile.getEngine() == Profile.Engine.IWD2) {
-          scriptFields = new String[]{CRE_SCRIPT_TEAM, CRE_SCRIPT_SPECIAL_1, CRE_SCRIPT_OVERRIDE,
-                                      CRE_SCRIPT_SPECIAL_2, CRE_SCRIPT_COMBAT, CRE_SCRIPT_SPECIAL_3,
-                                      CRE_SCRIPT_MOVEMENT};
+          scriptFields = new String[] { CRE_SCRIPT_TEAM, CRE_SCRIPT_SPECIAL_1, CRE_SCRIPT_OVERRIDE,
+              CRE_SCRIPT_SPECIAL_2, CRE_SCRIPT_COMBAT, CRE_SCRIPT_SPECIAL_3, CRE_SCRIPT_MOVEMENT };
         } else {
-          scriptFields = new String[]{CRE_SCRIPT_OVERRIDE, CRE_SCRIPT_CLASS, CRE_SCRIPT_RACE,
-                                      CRE_SCRIPT_GENERAL, CRE_SCRIPT_DEFAULT};
+          scriptFields = new String[] { CRE_SCRIPT_OVERRIDE, CRE_SCRIPT_CLASS, CRE_SCRIPT_RACE, CRE_SCRIPT_GENERAL,
+              CRE_SCRIPT_DEFAULT };
         }
-        for (int idx = 0; idx < keyList.length; idx++) {
+        for (String element : keyList) {
           if (retVal) {
             boolean found = false;
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
-            for (int idx2 = 0; idx2 < scriptFields.length; idx2++) {
-              StructEntry struct = cre.getAttribute(scriptFields[idx2], false);
+            for (String scriptField : scriptFields) {
+              StructEntry struct = cre.getAttribute(scriptField, false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
             retVal &= found;
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Flags, SearchOptions.CRE_Feats1,
-                               SearchOptions.CRE_Feats2, SearchOptions.CRE_Feats3,
-                               SearchOptions.CRE_Attributes};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Flags, SearchOptions.CRE_Feats1, SearchOptions.CRE_Feats2,
+            SearchOptions.CRE_Feats3, SearchOptions.CRE_Attributes };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchFlags(struct, o);
@@ -2323,21 +2273,17 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Animation, SearchOptions.CRE_General,
-                               SearchOptions.CRE_Class, SearchOptions.CRE_Specifics,
-                               SearchOptions.CRE_Alignment, SearchOptions.CRE_Gender,
-                               SearchOptions.CRE_Sex, SearchOptions.CRE_Race,
-                               SearchOptions.CRE_Allegiance, SearchOptions.CRE_Kit,
-                               SearchOptions.CRE_Level1, SearchOptions.CRE_Level2, SearchOptions.CRE_Level3,
-                               SearchOptions.CRE_IWD2LevelTotal, SearchOptions.CRE_IWD2LevelBarbarian,
-                               SearchOptions.CRE_IWD2LevelBard, SearchOptions.CRE_IWD2LevelCleric,
-                               SearchOptions.CRE_IWD2LevelDruid, SearchOptions.CRE_IWD2LevelFighter,
-                               SearchOptions.CRE_IWD2LevelMonk, SearchOptions.CRE_IWD2LevelPaladin,
-                               SearchOptions.CRE_IWD2LevelRanger, SearchOptions.CRE_IWD2LevelRogue,
-                               SearchOptions.CRE_IWD2LevelSorcerer, SearchOptions.CRE_IWD2LevelWizard};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Animation, SearchOptions.CRE_General, SearchOptions.CRE_Class,
+            SearchOptions.CRE_Specifics, SearchOptions.CRE_Alignment, SearchOptions.CRE_Gender, SearchOptions.CRE_Sex,
+            SearchOptions.CRE_Race, SearchOptions.CRE_Allegiance, SearchOptions.CRE_Kit, SearchOptions.CRE_Level1,
+            SearchOptions.CRE_Level2, SearchOptions.CRE_Level3, SearchOptions.CRE_IWD2LevelTotal,
+            SearchOptions.CRE_IWD2LevelBarbarian, SearchOptions.CRE_IWD2LevelBard, SearchOptions.CRE_IWD2LevelCleric,
+            SearchOptions.CRE_IWD2LevelDruid, SearchOptions.CRE_IWD2LevelFighter, SearchOptions.CRE_IWD2LevelMonk,
+            SearchOptions.CRE_IWD2LevelPaladin, SearchOptions.CRE_IWD2LevelRanger, SearchOptions.CRE_IWD2LevelRogue,
+            SearchOptions.CRE_IWD2LevelSorcerer, SearchOptions.CRE_IWD2LevelWizard };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
             retVal &= SearchOptions.Utils.matchNumber(struct, o);
@@ -2346,17 +2292,17 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Effect_Type1, SearchOptions.CRE_Effect_Type2,
-                               SearchOptions.CRE_Effect_Type3, SearchOptions.CRE_Effect_Type4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Effect_Type1, SearchOptions.CRE_Effect_Type2,
+            SearchOptions.CRE_Effect_Type3, SearchOptions.CRE_Effect_Type4 };
+        for (String element : keyList) {
           if (retVal) {
             boolean found = false;
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
-            for (int idx2 = 0; idx2 < effects.length; idx2++) {
+            for (AbstractStruct effect : effects) {
               if (!found) {
-                if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
+                if (effect != null) {
+                  StructEntry struct = effect.getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
@@ -2369,17 +2315,17 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Item_Item1, SearchOptions.CRE_Item_Item2,
-                               SearchOptions.CRE_Item_Item3, SearchOptions.CRE_Item_Item4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Item_Item1, SearchOptions.CRE_Item_Item2,
+            SearchOptions.CRE_Item_Item3, SearchOptions.CRE_Item_Item4 };
+        for (String element : keyList) {
           if (retVal) {
             boolean found = false;
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
-            for (int idx2 = 0; idx2 < items.length; idx2++) {
+            for (AbstractStruct item : items) {
               if (!found) {
-                if (items[idx2] != null) {
-                  StructEntry struct = items[idx2].getAttribute(SearchOptions.getResourceName(key), false);
+                if (item != null) {
+                  StructEntry struct = item.getAttribute(SearchOptions.getResourceName(key), false);
                   found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
                 }
               } else {
@@ -2392,17 +2338,17 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Spell_Spell1, SearchOptions.CRE_Spell_Spell2,
-                               SearchOptions.CRE_Spell_Spell3, SearchOptions.CRE_Spell_Spell4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Spell_Spell1, SearchOptions.CRE_Spell_Spell2,
+            SearchOptions.CRE_Spell_Spell3, SearchOptions.CRE_Spell_Spell4 };
+        for (String element : keyList) {
           if (retVal) {
             boolean found = false;
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
-            for (int idx2 = 0; idx2 < spells.length; idx2++) {
+            for (Datatype spell : spells) {
               if (!found) {
-                if (spells[idx2] != null) {
-                  found |= SearchOptions.Utils.matchResourceRef(spells[idx2], o, false);
+                if (spell != null) {
+                  found |= SearchOptions.Utils.matchResourceRef(spell, o, false);
                 }
               } else {
                 break;
@@ -2414,11 +2360,11 @@ public final class CreResource extends AbstractStruct
           }
         }
 
-        keyList = new String[]{SearchOptions.CRE_Custom1, SearchOptions.CRE_Custom2,
-                               SearchOptions.CRE_Custom3, SearchOptions.CRE_Custom4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.CRE_Custom1, SearchOptions.CRE_Custom2, SearchOptions.CRE_Custom3,
+            SearchOptions.CRE_Custom4 };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             retVal &= SearchOptions.Utils.matchCustomFilter(cre, o);
           } else {

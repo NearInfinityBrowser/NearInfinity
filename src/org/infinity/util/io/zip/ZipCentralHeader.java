@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io.zip;
@@ -19,8 +19,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Storage class for a single central directory entry.
  */
-public class ZipCentralHeader extends ZipLocalHeader
-{
+public class ZipCentralHeader extends ZipLocalHeader {
   /** Zip version of compression tool that encoded the file. */
   public int versionCreated;
 
@@ -42,8 +41,7 @@ public class ZipCentralHeader extends ZipLocalHeader
   // Cached local header
   private ZipLocalHeader localHeader;
 
-  public ZipCentralHeader(ByteBuffer buffer, long absOffset)
-  {
+  public ZipCentralHeader(ByteBuffer buffer, long absOffset) {
     super(absOffset, buffer.getInt() & 0xffffffffL);
     long headerStart = buffer.position() - 4L;
     if (this.signature != CENSIG) {
@@ -84,26 +82,25 @@ public class ZipCentralHeader extends ZipLocalHeader
     if (commentLength > 0) {
       buffer.get(this.comment);
     }
-    this.size = (int)(buffer.position() - headerStart);
+    this.size = (int) (buffer.position() - headerStart);
 
     this.localHeader = null;
   }
 
   /**
    * Returns the absolute offset to the start of file data.
+   *
    * @param ch ByteChannel of the zip archive.
    * @return Absolute offset to data start from beginning of zip archive.
    */
-  public long getDataOffset(SeekableByteChannel ch) throws IOException
-  {
+  public long getDataOffset(SeekableByteChannel ch) throws IOException {
     synchronized (ch) {
       return getLocalHeader(ch).getDataOffset();
     }
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     int hash = super.hashCode();
     hash = 31 * hash + versionCreated;
     hash = 31 * hash + idxDisk;
@@ -116,26 +113,24 @@ public class ZipCentralHeader extends ZipLocalHeader
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     } else if (o instanceof ZipCentralHeader) {
-      return (((ZipCentralHeader)o).ofsLocalHeader == this.ofsLocalHeader);
+      return (((ZipCentralHeader) o).ofsLocalHeader == this.ofsLocalHeader);
     } else {
       return false;
     }
   }
 
   @Override
-  public int compareTo(ZipBaseHeader o)
-  {
+  public int compareTo(ZipBaseHeader o) {
     if (this == o) {
       return 0;
     } else if (o instanceof ZipCentralHeader) {
-      if (this.ofsLocalHeader < ((ZipCentralHeader)o).ofsLocalHeader) {
+      if (this.ofsLocalHeader < ((ZipCentralHeader) o).ofsLocalHeader) {
         return -1;
-      } else if (this.ofsLocalHeader > ((ZipCentralHeader)o).ofsLocalHeader) {
+      } else if (this.ofsLocalHeader > ((ZipCentralHeader) o).ofsLocalHeader) {
         return 1;
       } else {
         return 0;
@@ -147,9 +142,7 @@ public class ZipCentralHeader extends ZipLocalHeader
     }
   }
 
-
-  private ZipLocalHeader getLocalHeader(SeekableByteChannel ch) throws IOException
-  {
+  private ZipLocalHeader getLocalHeader(SeekableByteChannel ch) throws IOException {
     if (localHeader == null) {
       // reading base LOC header
       int locSize = LOCHDR;
@@ -169,10 +162,10 @@ public class ZipCentralHeader extends ZipLocalHeader
       }
       locBuf.flip();
       ZipLocalHeader locHeader = new ZipLocalHeader(locBuf, ofsLocalHeader);
-      if (!Arrays.equals(this.fileName, locHeader.fileName)) {  // just in case
+      if (!Arrays.equals(this.fileName, locHeader.fileName)) { // just in case
         zerror("Filename mismatch between CEN and LOC");
       }
-      if (sizeCompressed != locHeader.sizeCompressed) {    // just in case
+      if (sizeCompressed != locHeader.sizeCompressed) { // just in case
         zerror("File size mismatch between CEN and LOC");
       }
       localHeader = locHeader;

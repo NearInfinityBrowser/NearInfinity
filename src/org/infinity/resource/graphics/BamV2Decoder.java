@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -26,37 +27,32 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-
 /**
  * Handles BAM v2 resources.
  */
-public class BamV2Decoder extends BamDecoder
-{
+public class BamV2Decoder extends BamDecoder {
   private final TreeSet<Integer> pvrIndices = new TreeSet<>();
   private final List<BamV2FrameEntry> listFrames = new ArrayList<>();
   private final List<CycleEntry> listCycles = new ArrayList<>();
   private final BamV2FrameEntry defaultFrameInfo = new BamV2FrameEntry(null, 0, 0);
 
   private BamV2Control defaultControl;
-  private ByteBuffer bamBuffer;           // contains the raw (uncompressed) BAM v2 data
-  private Path bamPath;                   // base path of the BAM resource (or null if BAM is biffed)
-  private int numDataBlocks;              // number of PVRZ data blocks
+  private ByteBuffer bamBuffer; // contains the raw (uncompressed) BAM v2 data
+  private Path bamPath; // base path of the BAM resource (or null if BAM is biffed)
+  private int numDataBlocks; // number of PVRZ data blocks
 
-  public BamV2Decoder(ResourceEntry bamEntry)
-  {
+  public BamV2Decoder(ResourceEntry bamEntry) {
     super(bamEntry);
     init();
   }
 
   @Override
-  public BamV2Control createControl()
-  {
+  public BamV2Control createControl() {
     return new BamV2Control(this);
   }
 
   @Override
-  public BamV2FrameEntry getFrameInfo(int frameIdx)
-  {
+  public BamV2FrameEntry getFrameInfo(int frameIdx) {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       return listFrames.get(frameIdx);
     } else {
@@ -65,8 +61,7 @@ public class BamV2Decoder extends BamDecoder
   }
 
   @Override
-  public void close()
-  {
+  public void close() {
     PvrDecoder.flushCache();
     bamBuffer = null;
     listFrames.clear();
@@ -75,32 +70,27 @@ public class BamV2Decoder extends BamDecoder
   }
 
   @Override
-  public boolean isOpen()
-  {
+  public boolean isOpen() {
     return (bamBuffer != null);
   }
 
   @Override
-  public void reload()
-  {
+  public void reload() {
     init();
   }
 
   @Override
-  public ByteBuffer getResourceBuffer()
-  {
+  public ByteBuffer getResourceBuffer() {
     return bamBuffer;
   }
 
   @Override
-  public int frameCount()
-  {
+  public int frameCount() {
     return listFrames.size();
   }
 
   @Override
-  public Image frameGet(BamControl control, int frameIdx)
-  {
+  public Image frameGet(BamControl control, int frameIdx) {
     if (frameIdx >= 0 && frameIdx < listFrames.size()) {
       if (control == null) {
         control = defaultControl;
@@ -124,10 +114,9 @@ public class BamV2Decoder extends BamDecoder
   }
 
   @Override
-  public void frameGet(BamControl control, int frameIdx, Image canvas)
-  {
+  public void frameGet(BamControl control, int frameIdx, Image canvas) {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
-      if(control == null) {
+      if (control == null) {
         control = defaultControl;
       }
       int w, h;
@@ -146,19 +135,16 @@ public class BamV2Decoder extends BamDecoder
   }
 
   /** Returns the number of PVRZ data blocks referred to in this BAM. */
-  public int getDataBlockCount()
-  {
+  public int getDataBlockCount() {
     return numDataBlocks;
   }
 
   /** Returns the set of referenced PVRZ pages by this BAM. */
-  public Set<Integer> getReferencedPVRZPages()
-  {
+  public Set<Integer> getReferencedPVRZPages() {
     return Collections.unmodifiableSet(pvrIndices);
   }
 
-  private void init()
-  {
+  private void init() {
     // resetting data
     close();
 
@@ -171,7 +157,7 @@ public class BamV2Decoder extends BamDecoder
           // Skip path if it denotes an override folder of the game
           List<Path> list = Profile.getOverrideFolders(true);
           if (list != null) {
-            for (final Path path: list) {
+            for (final Path path : list) {
               if (bamPath.equals(path)) {
                 bamPath = null;
                 break;
@@ -224,7 +210,7 @@ public class BamV2Decoder extends BamDecoder
         ofs = ofsCycles;
         for (int i = 0; i < cyclesCount; i++) {
           int cnt = bamBuffer.getShort(ofs) & 0xffff;
-          int idx = bamBuffer.getShort(ofs+2) & 0xffff;
+          int idx = bamBuffer.getShort(ofs + 2) & 0xffff;
           listCycles.add(new CycleEntry(idx, cnt));
           ofs += 4;
         }
@@ -241,10 +227,9 @@ public class BamV2Decoder extends BamDecoder
   }
 
   // Returns and caches the PVRZ resource of the specified page
-  private PvrDecoder getPVR(int page)
-  {
+  private PvrDecoder getPVR(int page) {
     try {
-      pvrIndices.add(Integer.valueOf(page));
+      pvrIndices.add(page);
       String name = String.format("MOS%04d.PVRZ", page);
       ResourceEntry entry = null;
       if (bamPath != null) {
@@ -268,8 +253,7 @@ public class BamV2Decoder extends BamDecoder
   }
 
   // Draws the absolute frame onto the canvas. Takes BAM mode into account.
-  private void renderFrame(BamControl control, int frameIdx, Image canvas)
-  {
+  private void renderFrame(BamControl control, int frameIdx, Image canvas) {
     if (canvas != null && frameIdx >= 0 && frameIdx < listFrames.size()) {
       if (control == null) {
         control = defaultControl;
@@ -279,17 +263,17 @@ public class BamV2Decoder extends BamDecoder
       BufferedImage image = ColorConvert.toBufferedImage(canvas, true, true);
       int dstWidth = image.getWidth();
       int dstHeight = image.getHeight();
-      int[] dstBuffer = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      int[] dstBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
-      int[] srcBuffer = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
+      int[] srcBuffer = ((DataBufferInt) listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
       if (control.getMode() == BamControl.Mode.SHARED) {
         // drawing on shared canvas
         int left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
         int top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;
         int maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
         int maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
-        int srcOfs = 0, dstOfs = top*dstWidth + left;
+        int srcOfs = 0, dstOfs = top * dstWidth + left;
         for (int y = 0; y < maxHeight; y++) {
           System.arraycopy(srcBuffer, srcOfs, dstBuffer, dstOfs, maxWidth);
           srcOfs += srcWidth;
@@ -310,7 +294,7 @@ public class BamV2Decoder extends BamDecoder
 
       // rendering resulting image onto the canvas if needed
       if (image != canvas) {
-        Graphics2D g = (Graphics2D)canvas.getGraphics();
+        Graphics2D g = (Graphics2D) canvas.getGraphics();
         try {
           if (getComposite() != null) {
             g.setComposite(getComposite());
@@ -327,62 +311,52 @@ public class BamV2Decoder extends BamDecoder
   }
 
   @Override
-  public int hashCode()
-  {
-    int hash = super.hashCode();
-    hash = 31 * hash + ((pvrIndices == null) ? 0 : pvrIndices.hashCode());
-    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
-    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
-    hash = 31 * hash + ((bamBuffer == null) ? 0 : bamBuffer.hashCode());
-    hash = 31 * hash + ((bamPath == null) ? 0 : bamPath.hashCode());
-    hash = 31 * hash + numDataBlocks;
-    return hash;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(bamBuffer, bamPath, listCycles, listFrames, numDataBlocks, pvrIndices);
+    return result;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
-    if (!(o instanceof BamV2Decoder)) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
       return false;
     }
-    boolean retVal = super.equals(o);
-    if (retVal) {
-      BamV2Decoder other = (BamV2Decoder)o;
-      retVal &= (this.pvrIndices == null && other.pvrIndices == null) ||
-                (this.pvrIndices != null && this.pvrIndices.equals(other.pvrIndices));
-      retVal &= (this.listFrames == null && other.listFrames == null) ||
-                (this.listFrames != null && this.listFrames.equals(other.listFrames));
-      retVal &= (this.listCycles == null && other.listCycles == null) ||
-                (this.listCycles != null && this.listCycles.equals(other.listCycles));
-      retVal &= (this.bamBuffer == null && other.bamBuffer == null) ||
-                (this.bamBuffer != null && this.bamBuffer.equals(other.bamBuffer));
-      retVal &= (this.bamPath == null && other.bamPath == null) ||
-                (this.bamPath != null && this.bamPath.equals(other.bamPath));
-      retVal &= (this.numDataBlocks == other.numDataBlocks);
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-    return retVal;
+    BamV2Decoder other = (BamV2Decoder) obj;
+    return Objects.equals(bamBuffer, other.bamBuffer) && Objects.equals(bamPath, other.bamPath)
+        && Objects.equals(listCycles, other.listCycles) && Objects.equals(listFrames, other.listFrames)
+        && numDataBlocks == other.numDataBlocks && Objects.equals(pvrIndices, other.pvrIndices);
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   // Stores information for a single frame entry
-  public class BamV2FrameEntry implements BamDecoder.FrameEntry
-  {
-    private final int dataBlockSize = 0x1c;   // size of a single data block
+  public class BamV2FrameEntry implements BamDecoder.FrameEntry {
+    private final int dataBlockSize = 0x1c; // size of a single data block
 
-    private int width, height, centerX, centerY;
-    private int overrideCenterX, overrideCenterY;
+    private int width;
+    private int height;
+    private int centerX;
+    private int centerY;
+    private int overrideCenterX;
+    private int overrideCenterY;
     private BufferedImage frame;
 
-    private BamV2FrameEntry(ByteBuffer buffer, int ofsFrame, int ofsBlocks)
-    {
+    private BamV2FrameEntry(ByteBuffer buffer, int ofsFrame, int ofsBlocks) {
       if (buffer != null && ofsFrame < buffer.limit() && ofsBlocks < buffer.limit()) {
         width = buffer.getShort(ofsFrame) & 0xffff;
-        height = buffer.getShort(ofsFrame+2) & 0xffff;
-        centerX = overrideCenterX = buffer.getShort(ofsFrame+4);
-        centerY = overrideCenterY = buffer.getShort(ofsFrame+6);
-        int blockStart = buffer.getShort(ofsFrame+8) & 0xffff;
-        int blockCount = buffer.getShort(ofsFrame+10) & 0xffff;
+        height = buffer.getShort(ofsFrame + 2) & 0xffff;
+        centerX = overrideCenterX = buffer.getShort(ofsFrame + 4);
+        centerY = overrideCenterY = buffer.getShort(ofsFrame + 6);
+        int blockStart = buffer.getShort(ofsFrame + 8) & 0xffff;
+        int blockCount = buffer.getShort(ofsFrame + 10) & 0xffff;
         decodeImage(buffer, ofsBlocks, blockStart, blockCount);
       } else {
         width = height = centerX = centerY = 0;
@@ -391,52 +365,98 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public int getWidth() { return width; }
-    @Override
-    public int getHeight() { return height; }
-    @Override
-    public int getCenterX() { return overrideCenterX; }
-    @Override
-    public int getCenterY() { return overrideCenterY; }
-
-    @Override
-    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
-    @Override
-    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
-    @Override
-    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
-
-    public Image getImage() { return frame; }
-
-    @Override
-    public String toString()
-    {
-      return "[width=" + getWidth() + ", height=" + getHeight() +
-             ", centerX=" + getCenterX() + ", centerY=" + getCenterY() + "]" ;
+    public int getWidth() {
+      return width;
     }
 
-    private void decodeImage(ByteBuffer buffer, int ofsBlocks, int start, int count)
-    {
+    @Override
+    public int getHeight() {
+      return height;
+    }
+
+    @Override
+    public int getCenterX() {
+      return overrideCenterX;
+    }
+
+    @Override
+    public int getCenterY() {
+      return overrideCenterY;
+    }
+
+    @Override
+    public void setCenterX(int x) {
+      overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x));
+    }
+
+    @Override
+    public void setCenterY(int y) {
+      overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y));
+    }
+
+    @Override
+    public void resetCenter() {
+      overrideCenterX = centerX;
+      overrideCenterY = centerY;
+    }
+
+    public Image getImage() {
+      return frame;
+    }
+
+    @Override
+    public String toString() {
+      return "[width=" + getWidth() + ", height=" + getHeight() + ", centerX=" + getCenterX() + ", centerY="
+          + getCenterY() + "]";
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result
+          + Objects.hash(centerX, centerY, dataBlockSize, height, overrideCenterX, overrideCenterY, width);
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      BamV2FrameEntry other = (BamV2FrameEntry) obj;
+      return centerX == other.centerX && centerY == other.centerY && dataBlockSize == other.dataBlockSize
+          && height == other.height && overrideCenterX == other.overrideCenterX
+          && overrideCenterY == other.overrideCenterY && width == other.width;
+    }
+
+    private void decodeImage(ByteBuffer buffer, int ofsBlocks, int start, int count) {
       frame = null;
       if (width > 0 && height > 0) {
         frame = ColorConvert.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
 
-        int ofs = ofsBlocks + start*dataBlockSize;
+        int ofs = ofsBlocks + start * dataBlockSize;
         for (int i = 0; i < count; i++) {
           int page = buffer.getInt(ofs);
-          int srcX = buffer.getInt(ofs+0x04);
-          int srcY = buffer.getInt(ofs+0x08);
-          int w = buffer.getInt(ofs+0x0c);
-          int h = buffer.getInt(ofs+0x10);
-          int dstX = buffer.getInt(ofs+0x14);
-          int dstY = buffer.getInt(ofs+0x18);
+          int srcX = buffer.getInt(ofs + 0x04);
+          int srcY = buffer.getInt(ofs + 0x08);
+          int w = buffer.getInt(ofs + 0x0c);
+          int h = buffer.getInt(ofs + 0x10);
+          int dstX = buffer.getInt(ofs + 0x14);
+          int dstY = buffer.getInt(ofs + 0x18);
           ofs += dataBlockSize;
 
           PvrDecoder decoder = getPVR(page);
           if (decoder != null) {
             try {
               BufferedImage srcImage = decoder.decode(srcX, srcY, w, h);
-              Graphics2D g = (Graphics2D)frame.getGraphics();
+              Graphics2D g = (Graphics2D) frame.getGraphics();
               if (getComposite() != null) {
                 g.setComposite(getComposite());
               }
@@ -454,33 +474,28 @@ public class BamV2Decoder extends BamDecoder
     }
   }
 
-
   /** Provides access to cycle-specific functionality. */
-  public static class BamV2Control extends BamControl
-  {
-    private int currentCycle, currentFrame;
+  public static class BamV2Control extends BamControl {
+    private int currentCycle;
+    private int currentFrame;
 
-    protected BamV2Control(BamV2Decoder decoder)
-    {
+    protected BamV2Control(BamV2Decoder decoder) {
       super(decoder);
       init();
     }
 
     @Override
-    public BamV2Decoder getDecoder()
-    {
-      return (BamV2Decoder)super.getDecoder();
+    public BamV2Decoder getDecoder() {
+      return (BamV2Decoder) super.getDecoder();
     }
 
     @Override
-    public int cycleCount()
-    {
+    public int cycleCount() {
       return getDecoder().listCycles.size();
     }
 
     @Override
-    public int cycleFrameCount()
-    {
+    public int cycleFrameCount() {
       if (currentCycle < getDecoder().listCycles.size()) {
         return getDecoder().listCycles.get(currentCycle).framesCount;
       } else {
@@ -489,8 +504,7 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleFrameCount(int cycleIdx)
-    {
+    public int cycleFrameCount(int cycleIdx) {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
         return getDecoder().listCycles.get(cycleIdx).framesCount;
       } else {
@@ -499,14 +513,12 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleGet()
-    {
+    public int cycleGet() {
       return currentCycle;
     }
 
     @Override
-    public boolean cycleSet(int cycleIdx)
-    {
+    public boolean cycleSet(int cycleIdx) {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && currentCycle != cycleIdx) {
         currentCycle = cycleIdx;
         if (isSharedPerCycle()) {
@@ -519,8 +531,7 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public boolean cycleHasNextFrame()
-    {
+    public boolean cycleHasNextFrame() {
       if (currentCycle < getDecoder().listCycles.size()) {
         return (currentFrame < getDecoder().listCycles.get(currentCycle).framesCount - 1);
       } else {
@@ -529,8 +540,7 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public boolean cycleNextFrame()
-    {
+    public boolean cycleNextFrame() {
       if (cycleHasNextFrame()) {
         currentFrame++;
         return true;
@@ -540,50 +550,43 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public void cycleReset()
-    {
+    public void cycleReset() {
       currentFrame = 0;
     }
 
     @Override
-    public Image cycleGetFrame()
-    {
+    public Image cycleGetFrame() {
       int frameIdx = cycleGetFrameIndexAbsolute();
       return getDecoder().frameGet(this, frameIdx);
     }
 
     @Override
-    public void cycleGetFrame(Image canvas)
-    {
+    public void cycleGetFrame(Image canvas) {
       int frameIdx = cycleGetFrameIndexAbsolute();
       getDecoder().frameGet(this, frameIdx, canvas);
     }
 
     @Override
-    public Image cycleGetFrame(int frameIdx)
-    {
+    public Image cycleGetFrame(int frameIdx) {
       frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
       return getDecoder().frameGet(this, frameIdx);
     }
 
     @Override
-    public void cycleGetFrame(int frameIdx, Image canvas)
-    {
+    public void cycleGetFrame(int frameIdx, Image canvas) {
       frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
       getDecoder().frameGet(this, frameIdx, canvas);
     }
 
     @Override
-    public int cycleGetFrameIndex()
-    {
+    public int cycleGetFrameIndex() {
       return currentFrame;
     }
 
     @Override
-    public boolean cycleSetFrameIndex(int frameIdx)
-    {
-      if (currentCycle < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(currentCycle).framesCount) {
+    public boolean cycleSetFrameIndex(int frameIdx) {
+      if (currentCycle < getDecoder().listCycles.size() && frameIdx >= 0
+          && frameIdx < getDecoder().listCycles.get(currentCycle).framesCount) {
         currentFrame = frameIdx;
         return true;
       } else {
@@ -592,50 +595,89 @@ public class BamV2Decoder extends BamDecoder
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute()
-    {
+    public int cycleGetFrameIndexAbsolute() {
       return cycleGetFrameIndexAbsolute(currentCycle, currentFrame);
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute(int frameIdx)
-    {
+    public int cycleGetFrameIndexAbsolute(int frameIdx) {
       return cycleGetFrameIndexAbsolute(currentCycle, frameIdx);
     }
 
     @Override
-    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx)
-    {
-      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() &&
-          frameIdx >= 0 && frameIdx < getDecoder().listCycles.get(cycleIdx).framesCount) {
+    public int cycleGetFrameIndexAbsolute(int cycleIdx, int frameIdx) {
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && frameIdx >= 0
+          && frameIdx < getDecoder().listCycles.get(cycleIdx).framesCount) {
         return getDecoder().listCycles.get(cycleIdx).startIndex + frameIdx;
       } else {
         return -1;
       }
     }
 
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = super.hashCode();
+      result = prime * result + Objects.hash(currentCycle, currentFrame);
+      return result;
+    }
 
-    private void init()
-    {
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!super.equals(obj)) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      BamV2Control other = (BamV2Control) obj;
+      return currentCycle == other.currentCycle && currentFrame == other.currentFrame;
+    }
+
+    private void init() {
       currentCycle = currentFrame = 0;
       updateSharedBamSize();
     }
   }
 
-
   // Stores information for a single cycle
-  private class CycleEntry
-  {
-    public int startIndex, framesCount;
+  private class CycleEntry {
+    public int startIndex;
+    public int framesCount;
 
-    public CycleEntry(int startIndex, int framesCount)
-    {
+    public CycleEntry(int startIndex, int framesCount) {
       if (startIndex >= 0 && framesCount > 0) {
         this.startIndex = startIndex;
         this.framesCount = framesCount;
       } else {
         this.startIndex = this.framesCount = 0;
       }
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + Objects.hash(framesCount, startIndex);
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      CycleEntry other = (CycleEntry) obj;
+      return framesCount == other.framesCount && startIndex == other.startIndex;
     }
   }
 }

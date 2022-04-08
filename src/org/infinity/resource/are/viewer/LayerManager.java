@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -14,40 +14,40 @@ import org.infinity.resource.wed.WedResource;
 /**
  * Manages all layer objects of a single ARE map.
  */
-public final class LayerManager
-{
+public final class LayerManager {
   // Defines order of drawing
-  public static final LayerType[] LayerOrdered = {
-    LayerType.ACTOR,
-    LayerType.ENTRANCE,
-    LayerType.AMBIENT,
-    LayerType.PRO_TRAP,
-    LayerType.ANIMATION,
-    LayerType.SPAWN_POINT,
-    LayerType.AUTOMAP,
-    LayerType.CONTAINER,
-    LayerType.DOOR,
-    LayerType.REGION,
-    LayerType.TRANSITION,
-    LayerType.DOOR_POLY,
-    LayerType.WALL_POLY
+  public static final LayerType[] LAYER_ORDERED = {
+      LayerType.ACTOR,
+      LayerType.ENTRANCE,
+      LayerType.AMBIENT,
+      LayerType.PRO_TRAP,
+      LayerType.ANIMATION,
+      LayerType.SPAWN_POINT,
+      LayerType.AUTOMAP,
+      LayerType.CONTAINER,
+      LayerType.DOOR,
+      LayerType.REGION,
+      LayerType.TRANSITION,
+      LayerType.DOOR_POLY,
+      LayerType.WALL_POLY
   };
 
-  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<>(LayerType.class);
+  private static final EnumMap<LayerType, String> LAYER_LABELS = new EnumMap<>(LayerType.class);
+
   static {
-    LayerLabels.put(LayerType.ACTOR, "Actors");
-    LayerLabels.put(LayerType.REGION, "Regions");
-    LayerLabels.put(LayerType.ENTRANCE, "Entrances");
-    LayerLabels.put(LayerType.CONTAINER, "Containers");
-    LayerLabels.put(LayerType.AMBIENT, "Ambient Sounds");
-    LayerLabels.put(LayerType.DOOR, "Doors");
-    LayerLabels.put(LayerType.ANIMATION, "Background Animations");
-    LayerLabels.put(LayerType.AUTOMAP, "Automap Notes");
-    LayerLabels.put(LayerType.SPAWN_POINT, "Spawn Points");
-    LayerLabels.put(LayerType.TRANSITION, "Map Transitions");
-    LayerLabels.put(LayerType.PRO_TRAP, "Projectile Traps");
-    LayerLabels.put(LayerType.DOOR_POLY, "Door Polygons");
-    LayerLabels.put(LayerType.WALL_POLY, "Wall Polygons");
+    LAYER_LABELS.put(LayerType.ACTOR, "Actors");
+    LAYER_LABELS.put(LayerType.REGION, "Regions");
+    LAYER_LABELS.put(LayerType.ENTRANCE, "Entrances");
+    LAYER_LABELS.put(LayerType.CONTAINER, "Containers");
+    LAYER_LABELS.put(LayerType.AMBIENT, "Ambient Sounds");
+    LAYER_LABELS.put(LayerType.DOOR, "Doors");
+    LAYER_LABELS.put(LayerType.ANIMATION, "Background Animations");
+    LAYER_LABELS.put(LayerType.AUTOMAP, "Automap Notes");
+    LAYER_LABELS.put(LayerType.SPAWN_POINT, "Spawn Points");
+    LAYER_LABELS.put(LayerType.TRANSITION, "Map Transitions");
+    LAYER_LABELS.put(LayerType.PRO_TRAP, "Projectile Traps");
+    LAYER_LABELS.put(LayerType.DOOR_POLY, "Door Polygons");
+    LAYER_LABELS.put(LayerType.WALL_POLY, "Wall Polygons");
   }
 
   private final EnumMap<LayerType, BasicLayer<?, ?>> layers = new EnumMap<>(LayerType.class);
@@ -55,7 +55,8 @@ public final class LayerManager
 
   private AreResource are;
   private WedResource wed;
-  private boolean scheduleEnabled, animForcedInterpolation;
+  private boolean scheduleEnabled;
+  private boolean animForcedInterpolation;
   private int schedule;
   private Object animInterpolationType;
   private double animFrameRate;
@@ -63,16 +64,14 @@ public final class LayerManager
   /**
    * Returns the number of supported layer types.
    */
-  public static int getLayerTypeCount()
-  {
+  public static int getLayerTypeCount() {
     return LayerType.values().length;
   }
 
   /**
    * Returns the layer type located at the specified index.
    */
-  public static LayerType getLayerType(int index)
-  {
+  public static LayerType getLayerType(int index) {
     if (index >= 0 && index < LayerType.values().length) {
       return LayerType.values()[index];
     } else {
@@ -83,8 +82,7 @@ public final class LayerManager
   /**
    * Returns the index of the specified layer.
    */
-  public static int getLayerTypeIndex(LayerType layer)
-  {
+  public static int getLayerTypeIndex(LayerType layer) {
     LayerType[] lt = LayerType.values();
     for (int i = 0; i < lt.length; i++) {
       if (lt[i] == layer) {
@@ -97,9 +95,8 @@ public final class LayerManager
   /**
    * Returns the label associated with the specified layer.
    */
-  public static String getLayerTypeLabel(LayerType layer)
-  {
-    String s = LayerLabels.get(layer);
+  public static String getLayerTypeLabel(LayerType layer) {
+    String s = LAYER_LABELS.get(layer);
     if (s != null) {
       return s;
     } else {
@@ -109,33 +106,35 @@ public final class LayerManager
 
   /**
    * Converts hours into scheduled time indices.
+   *
    * @param hour The hour to convert (0..23).
    * @return The schedule index.
    */
-  public static int toSchedule(int hour)
-  {
+  public static int toSchedule(int hour) {
     int schedule = hour - 1;
-    while (schedule < 0) { schedule += 24; }
+    while (schedule < 0) {
+      schedule += 24;
+    }
     schedule %= 24;
     return schedule;
   }
 
   /**
    * Converts scheduled time indices into hours.
+   *
    * @param schedule The schedule index to convert (0..23).
    * @return The hour.
    */
-  public static int toHour(int schedule)
-  {
+  public static int toHour(int schedule) {
     int hour = schedule + 1;
-    while (hour < 0) { hour += 24; }
+    while (hour < 0) {
+      hour += 24;
+    }
     hour %= 24;
     return hour;
   }
 
-
-  public LayerManager(AreResource are, WedResource wed, AreaViewer viewer)
-  {
+  public LayerManager(AreResource are, WedResource wed, AreaViewer viewer) {
     this.viewer = viewer;
     init(are, wed, true);
   }
@@ -143,25 +142,23 @@ public final class LayerManager
   /**
    * Returns the associated area viewer instance.
    */
-  public AreaViewer getViewer()
-  {
+  public AreaViewer getViewer() {
     return viewer;
   }
 
   /**
    * Returns the currently used ARE resource structure.
    */
-  public AreResource getAreResource()
-  {
+  public AreResource getAreResource() {
     return are;
   }
 
   /**
    * Specify a new ARE resource structure. Automatically reloads related layer objects.
+   *
    * @param are The new ARE resource structure.
    */
-  public void setAreResource(AreResource are)
-  {
+  public void setAreResource(AreResource are) {
     if (this.are != are) {
       init(are, wed, false);
     }
@@ -170,30 +167,28 @@ public final class LayerManager
   /**
    * Returns the currently used WED resource structure.
    */
-  public WedResource getWedResource()
-  {
+  public WedResource getWedResource() {
     return wed;
   }
 
   /**
    * Specify a new WED resource structure. Automatically reloads related layer objects.
+   *
    * @param wed The new WED resource structure.
    */
-  public void setWedResource(WedResource wed)
-  {
+  public void setWedResource(WedResource wed) {
     if (this.wed != wed) {
       init(are, wed, false);
     }
   }
 
   /**
-   * Returns a formatted string that indicates how many objects of the specified layer type have been
-   * loaded.
+   * Returns a formatted string that indicates how many objects of the specified layer type have been loaded.
+   *
    * @param layer The layer to query.
    * @return A formatted string telling about number of layer objects.
    */
-  public String getLayerAvailability(LayerType layer)
-  {
+  public String getLayerAvailability(LayerType layer) {
     if (layers.containsKey(layer)) {
       return layers.get(layer).getAvailability();
     }
@@ -201,14 +196,14 @@ public final class LayerManager
   }
 
   /**
-   * Same as {@link #getLayerAvailability(LayerType)}, but also considers special states for layer
-   * managers that supports it.
+   * Same as {@link #getLayerAvailability(LayerType)}, but also considers special states for layer managers that
+   * supports it.
+   *
    * @param layer The layer to query.
-   * @param type A layer-specific type (currently only LayerAmbient is supported).
+   * @param type  A layer-specific type (currently only LayerAmbient is supported).
    * @return A formatted string telling about number of layer objects.
    */
-  public String getLayerAvailability(LayerType layer, int type)
-  {
+  public String getLayerAvailability(LayerType layer, int type) {
     if (layer == LayerType.AMBIENT) {
       return getLayerAvailability(layer, type);
     } else {
@@ -219,20 +214,18 @@ public final class LayerManager
   /**
    * Returns whether time schedules for layer items will be considered in their visibility state.
    */
-  public boolean isScheduleEnabled()
-  {
+  public boolean isScheduleEnabled() {
     return scheduleEnabled;
   }
 
   /**
    * Specify whether time schedules for layer items will be considered.
    */
-  public void setScheduleEnabled(boolean enable)
-  {
+  public void setScheduleEnabled(boolean enable) {
     if (enable != scheduleEnabled) {
       scheduleEnabled = enable;
       for (int i = 0, ltCount = getLayerTypeCount(); i < ltCount; i++) {
-          BasicLayer<?, ?> bl = getLayer(getLayerType(i));
+        BasicLayer<?, ?> bl = getLayer(getLayerType(i));
         if (bl != null) {
           bl.setScheduleEnabled(scheduleEnabled);
         }
@@ -243,18 +236,19 @@ public final class LayerManager
   /**
    * Returns the currently defined schedule value (hour = schedule + 1).
    */
-  public int getSchedule()
-  {
+  public int getSchedule() {
     return schedule;
   }
 
   /**
    * Specifiy the current schedule for layer items.
+   *
    * @param schedule The schedule value (0 = 00:30-01:29, ..., 23 = 23:30-00:29)
    */
-  public void setSchedule(int schedule)
-  {
-    while (schedule < 0) { schedule += 24; }
+  public void setSchedule(int schedule) {
+    while (schedule < 0) {
+      schedule += 24;
+    }
     schedule %= 24;
     if (schedule != this.schedule) {
       this.schedule = schedule;
@@ -269,12 +263,12 @@ public final class LayerManager
 
   /**
    * Returns whether the specified layer object is active at the current scheduled time.
+   *
    * @param obj The layer object to query
-   * @return {@code true} if the layer object is scheduled at the currently set hour or
-   *         schedule is disabled, {@code false} otherwise.
+   * @return {@code true} if the layer object is scheduled at the currently set hour or schedule is disabled,
+   *         {@code false} otherwise.
    */
-  public boolean isScheduled(LayerObject obj)
-  {
+  public boolean isScheduled(LayerObject obj) {
     if (obj != null) {
       return !isScheduleEnabled() || (isScheduleEnabled() && obj.isScheduled(getSchedule()));
     }
@@ -284,18 +278,17 @@ public final class LayerManager
   /**
    * Reloads all objects in every supported layer.
    */
-  public void reload()
-  {
+  public void reload() {
     init(are, wed, true);
   }
 
   /**
    * Reloads objects of the specified layer.
+   *
    * @param layer The layer to reload.
    * @return Number of layer objects found.
    */
-  public int reload(LayerType layer)
-  {
+  public int reload(LayerType layer) {
     close(layer);
     return loadLayer(layer, true);
   }
@@ -303,9 +296,8 @@ public final class LayerManager
   /**
    * Removes all layer objects from memory.
    */
-  public void close()
-  {
-    for (LayerType layer: LayerType.values()) {
+  public void close() {
+    for (LayerType layer : LayerType.values()) {
       BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
         bl.close();
@@ -319,8 +311,7 @@ public final class LayerManager
   /**
    * Removes the specified layer from memory.
    */
-  public void close(LayerType layer)
-  {
+  public void close(LayerType layer) {
     if (layer != null) {
       BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
@@ -331,11 +322,11 @@ public final class LayerManager
 
   /**
    * Returns a layer-specific manager.
+   *
    * @param layer
    * @return
    */
-  public BasicLayer<?, ?> getLayer(LayerType layer)
-  {
+  public BasicLayer<?, ?> getLayer(LayerType layer) {
     if (layer != null) {
       return layers.get(layer);
     } else {
@@ -345,11 +336,11 @@ public final class LayerManager
 
   /**
    * Returns the number of objects in the specified layer.
+   *
    * @param layer The layer to check.
    * @return Number of objects in the specified layer.
    */
-  public int getLayerObjectCount(LayerType layer)
-  {
+  public int getLayerObjectCount(LayerType layer) {
     BasicLayer<?, ?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObjectCount();
@@ -359,11 +350,11 @@ public final class LayerManager
 
   /**
    * Returns a list of objects associated with the specified layer.
+   *
    * @param layer The layer of the objects
    * @return A list of objects or {@code null} if not found.
    */
-  public List<? extends LayerObject> getLayerObjects(LayerType layer)
-  {
+  public List<? extends LayerObject> getLayerObjects(LayerType layer) {
     BasicLayer<?, ?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObjects();
@@ -373,30 +364,28 @@ public final class LayerManager
 
   /**
    * Returns the current state of the door.
+   *
    * @return Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
-  public int getDoorState()
-  {
-    return ((LayerDoor)getLayer(LayerType.DOOR)).getDoorState();
+  public int getDoorState() {
+    return ((LayerDoor) getLayer(LayerType.DOOR)).getDoorState();
   }
 
   /**
-   * Sets the door state used by certain layers. Automatically updates the visibility state of
-   * related layers.
+   * Sets the door state used by certain layers. Automatically updates the visibility state of related layers.
+   *
    * @param state Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
-  public void setDoorState(int state)
-  {
-    ((LayerDoor)getLayer(LayerType.DOOR)).setDoorState(state);
-    ((LayerDoorPoly)getLayer(LayerType.DOOR_POLY)).setDoorState(state);
+  public void setDoorState(int state) {
+    ((LayerDoor) getLayer(LayerType.DOOR)).setDoorState(state);
+    ((LayerDoorPoly) getLayer(LayerType.DOOR_POLY)).setDoorState(state);
   }
 
   /**
    * Returns whether to show iconic representations of actors or the real thing.
    */
-  public boolean isRealActorEnabled()
-  {
-    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+  public boolean isRealActorEnabled() {
+    LayerActor layer = (LayerActor) getLayer(ViewerConstants.LayerType.ACTOR);
     if (layer != null) {
       return layer.isRealActorEnabled();
     }
@@ -406,9 +395,8 @@ public final class LayerManager
   /**
    * Specify whether to show iconic representations of actors or the real thing.
    */
-  public void setRealActorEnabled(boolean enable)
-  {
-    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+  public void setRealActorEnabled(boolean enable) {
+    LayerActor layer = (LayerActor) getLayer(ViewerConstants.LayerType.ACTOR);
     if (layer != null) {
       layer.setRealActorEnabled(enable);
     }
@@ -417,9 +405,8 @@ public final class LayerManager
   /**
    * Returns whether to show iconic representations of background animations or the real thing.
    */
-  public boolean isRealAnimationEnabled()
-  {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
+  public boolean isRealAnimationEnabled() {
+    LayerAnimation layer = (LayerAnimation) getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       return layer.isRealAnimationEnabled();
     }
@@ -429,9 +416,8 @@ public final class LayerManager
   /**
    * Specify whether to show iconic representations of background animations or the real thing.
    */
-  public void setRealAnimationEnabled(boolean enable)
-  {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
+  public void setRealAnimationEnabled(boolean enable) {
+    LayerAnimation layer = (LayerAnimation) getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationEnabled(enable);
     }
@@ -440,9 +426,8 @@ public final class LayerManager
   /**
    * Returns whether real actor sprites are enabled and animated.
    */
-  public boolean isRealActorPlaying()
-  {
-    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+  public boolean isRealActorPlaying() {
+    LayerActor layer = (LayerActor) getLayer(ViewerConstants.LayerType.ACTOR);
     if (layer != null) {
       return layer.isRealActorPlaying();
     }
@@ -450,12 +435,10 @@ public final class LayerManager
   }
 
   /**
-   * Specify whether to animate real actor sprites. Setting to {@code true} implicitly
-   * enables real actors.
+   * Specify whether to animate real actor sprites. Setting to {@code true} implicitly enables real actors.
    */
-  public void setRealActorPlaying(boolean play)
-  {
-    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+  public void setRealActorPlaying(boolean play) {
+    LayerActor layer = (LayerActor) getLayer(ViewerConstants.LayerType.ACTOR);
     if (layer != null) {
       layer.setRealActorPlaying(play);
     }
@@ -464,9 +447,8 @@ public final class LayerManager
   /**
    * Returns whether real animations are enabled and animated.
    */
-  public boolean isRealAnimationPlaying()
-  {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
+  public boolean isRealAnimationPlaying() {
+    LayerAnimation layer = (LayerAnimation) getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       return layer.isRealAnimationPlaying();
     }
@@ -474,12 +456,10 @@ public final class LayerManager
   }
 
   /**
-   * Specify whether to animate real background animations. Setting to {@code true} implicitly
-   * enables real animations.
+   * Specify whether to animate real background animations. Setting to {@code true} implicitly enables real animations.
    */
-  public void setRealAnimationPlaying(boolean play)
-  {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
+  public void setRealAnimationPlaying(boolean play) {
+    LayerAnimation layer = (LayerAnimation) getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationPlaying(play);
     }
@@ -487,30 +467,29 @@ public final class LayerManager
 
   /**
    * Returns the currently active interpolation type for real animations.
-   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
-   *         or ViewerConstants.TYPE_BICUBIC.
+   *
+   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR or
+   *         ViewerConstants.TYPE_BICUBIC.
    */
-  public Object getRealAnimationInterpolation()
-  {
+  public Object getRealAnimationInterpolation() {
     return animInterpolationType;
   }
 
   /**
    * Sets the interpolation type for real animations.
-   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
-   *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
+   *
+   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
+   *                          or ViewerConstants.TYPE_BICUBIC.
    */
-  public void setRealAnimationInterpolation(Object interpolationType)
-  {
-    if (interpolationType == ViewerConstants.TYPE_NEAREST_NEIGHBOR ||
-        interpolationType == ViewerConstants.TYPE_BILINEAR ||
-        interpolationType == ViewerConstants.TYPE_BICUBIC) {
+  public void setRealAnimationInterpolation(Object interpolationType) {
+    if (interpolationType == ViewerConstants.TYPE_NEAREST_NEIGHBOR || interpolationType == ViewerConstants.TYPE_BILINEAR
+        || interpolationType == ViewerConstants.TYPE_BICUBIC) {
       animInterpolationType = interpolationType;
-      LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+      LayerAnimation layerAnim = (LayerAnimation) getLayer(LayerType.ANIMATION);
       if (layerAnim != null) {
         layerAnim.setRealAnimationInterpolation(animInterpolationType);
       }
-      LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+      LayerActor layerActor = (LayerActor) getLayer(LayerType.ACTOR);
       if (layerActor != null) {
         layerActor.setRealActorInterpolation(animInterpolationType);
       }
@@ -518,26 +497,24 @@ public final class LayerManager
   }
 
   /**
-   * Returns whether to force the specified interpolation type or use the best one available, depending
-   * on the current zoom factor.
+   * Returns whether to force the specified interpolation type or use the best one available, depending on the current
+   * zoom factor.
    */
-  public boolean isRealAnimationForcedInterpolation()
-  {
+  public boolean isRealAnimationForcedInterpolation() {
     return animForcedInterpolation;
   }
 
   /**
-   * Specify whether to force the specified interpolation type or use the best one available, depending
-   * on the current zoom factor.
+   * Specify whether to force the specified interpolation type or use the best one available, depending on the current
+   * zoom factor.
    */
-  public void setRealAnimationForcedInterpolation(boolean forced)
-  {
+  public void setRealAnimationForcedInterpolation(boolean forced) {
     animForcedInterpolation = forced;
-    LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+    LayerAnimation layerAnim = (LayerAnimation) getLayer(LayerType.ANIMATION);
     if (layerAnim != null) {
       layerAnim.setRealAnimationForcedInterpolation(animForcedInterpolation);
     }
-    LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+    LayerActor layerActor = (LayerActor) getLayer(LayerType.ACTOR);
     if (layerActor != null) {
       layerActor.setRealActorForcedInterpolation(animForcedInterpolation);
     }
@@ -545,27 +522,27 @@ public final class LayerManager
 
   /**
    * Returns the frame rate used for playing back background animations.
+   *
    * @return Frame rate in frames/second.
    */
-  public double getRealAnimationFrameRate()
-  {
+  public double getRealAnimationFrameRate() {
     return animFrameRate;
   }
 
   /**
    * Specify a new frame rate for background animations.
+   *
    * @param frameRate Frame rate in frames/second.
    */
-  public void setRealAnimationFrameRate(double frameRate)
-  {
+  public void setRealAnimationFrameRate(double frameRate) {
     frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
     if (frameRate != this.animFrameRate) {
       animFrameRate = frameRate;
-      LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+      LayerAnimation layerAnim = (LayerAnimation) getLayer(LayerType.ANIMATION);
       if (layerAnim != null) {
         layerAnim.setRealAnimationFrameRate(animFrameRate);
       }
-      LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+      LayerActor layerActor = (LayerActor) getLayer(LayerType.ACTOR);
       if (layerActor != null) {
         layerActor.setRealActorFrameRate(animFrameRate);
       }
@@ -574,11 +551,11 @@ public final class LayerManager
 
   /**
    * Returns whether the items of the specified layer are visible.
+   *
    * @param layer The layer to check for visibility.
    * @return {@code true} if one or more items of the specified layer are visible, {@code false} otherwise.
    */
-  public boolean isLayerVisible(LayerType layer)
-  {
+  public boolean isLayerVisible(LayerType layer) {
     if (layer != null) {
       BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
@@ -589,13 +566,13 @@ public final class LayerManager
   }
 
   /**
-   * Sets the items of the specified layer to the specified visibility state.
-   * (Note: For items that support opened/closed state, only the current state will be considered.)
-   * @param layer The layer of the items to change.
+   * Sets the items of the specified layer to the specified visibility state. (Note: For items that support
+   * opened/closed state, only the current state will be considered.)
+   *
+   * @param layer   The layer of the items to change.
    * @param visible The visibility state to set.
    */
-  public void setLayerVisible(LayerType layer, boolean visible)
-  {
+  public void setLayerVisible(LayerType layer, boolean visible) {
     if (layer != null) {
       BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
@@ -606,8 +583,7 @@ public final class LayerManager
 
   // Loads objects for each layer if the parent resource (are, wed) has changed.
   // If forceReload is true, layer objects are always reloaded.
-  private void init(AreResource are, WedResource wed, boolean forced)
-  {
+  private void init(AreResource are, WedResource wed, boolean forced) {
     if (are != null && wed != null) {
       boolean areChanged = (are != this.are);
       boolean wedChanged = (wed != this.wed);
@@ -620,7 +596,7 @@ public final class LayerManager
         this.wed = wed;
       }
 
-      for (final LayerType layer: LayerType.values()) {
+      for (final LayerType layer : LayerType.values()) {
         switch (layer) {
           case ACTOR:
           case REGION:
@@ -647,13 +623,11 @@ public final class LayerManager
   }
 
   // (Re-)loads the specified layer
-  private int loadLayer(LayerType layer, boolean forced)
-  {
+  private int loadLayer(LayerType layer, boolean forced) {
     int retVal = 0;
     if (layer != null) {
       switch (layer) {
-        case ACTOR:
-        {
+        case ACTOR: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -663,8 +637,7 @@ public final class LayerManager
           }
           break;
         }
-        case REGION:
-        {
+        case REGION: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -674,8 +647,7 @@ public final class LayerManager
           }
           break;
         }
-        case ENTRANCE:
-        {
+        case ENTRANCE: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -685,8 +657,7 @@ public final class LayerManager
           }
           break;
         }
-        case CONTAINER:
-        {
+        case CONTAINER: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -696,8 +667,7 @@ public final class LayerManager
           }
           break;
         }
-        case AMBIENT:
-        {
+        case AMBIENT: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -707,8 +677,7 @@ public final class LayerManager
           }
           break;
         }
-        case DOOR:
-        {
+        case DOOR: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -718,8 +687,7 @@ public final class LayerManager
           }
           break;
         }
-        case ANIMATION:
-        {
+        case ANIMATION: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -729,8 +697,7 @@ public final class LayerManager
           }
           break;
         }
-        case AUTOMAP:
-        {
+        case AUTOMAP: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -740,8 +707,7 @@ public final class LayerManager
           }
           break;
         }
-        case SPAWN_POINT:
-        {
+        case SPAWN_POINT: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -751,8 +717,7 @@ public final class LayerManager
           }
           break;
         }
-        case TRANSITION:
-        {
+        case TRANSITION: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -762,8 +727,7 @@ public final class LayerManager
           }
           break;
         }
-        case PRO_TRAP:
-        {
+        case PRO_TRAP: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -773,8 +737,7 @@ public final class LayerManager
           }
           break;
         }
-        case DOOR_POLY:
-        {
+        case DOOR_POLY: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
@@ -784,8 +747,7 @@ public final class LayerManager
           }
           break;
         }
-        case WALL_POLY:
-        {
+        case WALL_POLY: {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
           } else {

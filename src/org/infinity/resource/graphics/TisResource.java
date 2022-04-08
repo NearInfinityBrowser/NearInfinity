@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -55,6 +55,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
 import javax.swing.RootPaneContainer;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -68,6 +69,7 @@ import org.infinity.gui.TileGrid;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
+import org.infinity.gui.converter.ConvertToTis.TileEntry;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Referenceable;
@@ -92,45 +94,41 @@ import org.infinity.util.io.StreamUtils;
  * <ol>
  * <li><b>Palette-based TIS</b>
  * <p>
- * TIS files are generally comprised of a large number of tiles, each of which
- * consists of a palette and a rectangular block of pixels. Each pixel is an
- * index into the associated palette. Each tile has its own palette and a block
- * of pixels. The pixel data is not compressed.
+ * TIS files are generally comprised of a large number of tiles, each of which consists of a palette and a rectangular
+ * block of pixels. Each pixel is an index into the associated palette. Each tile has its own palette and a block of
+ * pixels. The pixel data is not compressed.
  * <p>
- * Each tile consists of a 256 colour palette, with each entry being an RGBA value
- * stored in BGRA order (note that the Alpha value is unused), followed by 8-bit
- * pixel values, which are indices into the palette. The pixel values are row by
- * row, from left to right and top to bottom. Index 0 is hardcoded to be the
- * transparent index.
- * </li>
+ * Each tile consists of a 256 colour palette, with each entry being an RGBA value stored in BGRA order (note that the
+ * Alpha value is unused), followed by 8-bit pixel values, which are indices into the palette. The pixel values are row
+ * by row, from left to right and top to bottom. Index 0 is hardcoded to be the transparent index.</li>
  * <li><b>PVRZ-based TIS</b>
  * <p>
- * This variant is only supported by {@link Profile.Engine#EE Enhanced Edition}
- * games. Each tile definition refers to a block of pixels within an associated
- * {@link PvrzResource PVRZ} file.
+ * This variant is only supported by {@link Profile.Engine#EE Enhanced Edition} games. Each tile definition refers to a
+ * block of pixels within an associated {@link PvrzResource PVRZ} file.
  * <p>
  * Each tile consists of a block of pixels that is defined in an associated PVRZ file.</li>
  * </ol>
- * TIS files contain only the graphics for an area - the location information is
- * stored in a {@link WedResource WED} file.
+ * TIS files contain only the graphics for an area - the location information is stored in a {@link WedResource WED}
+ * file.
  * <p>
  * Engine specific notes:
  * <ul>
  * <li>PST can only load TIS files when they are stored in a {@link BIFFResourceEntry BIFF} file.</li>
- * <li>Palette-based TIS induces a noticeable performance hit and occasional visual
- * glitches when used in {@link Profile.Engine#EE Enhanced Edition} games. It is
- * highly recommended to use PVRZ-based TIS instead.</li>
+ * <li>Palette-based TIS induces a noticeable performance hit and occasional visual glitches when used in
+ * {@link Profile.Engine#EE Enhanced Edition} games. It is highly recommended to use PVRZ-based TIS instead.</li>
  * </ul>
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm</a>
  */
-public class TisResource implements Resource, Closeable, Referenceable, ActionListener, ChangeListener,
-                                     ItemListener, KeyListener, PropertyChangeListener
-{
-  private enum Status { SUCCESS, CANCELLED, ERROR, UNSUPPORTED }
+public class TisResource implements Resource, Closeable, Referenceable, ActionListener, ChangeListener, ItemListener,
+    KeyListener, PropertyChangeListener {
+  private enum Status {
+    SUCCESS, CANCELLED, ERROR, UNSUPPORTED
+  }
 
-  private static final Color TransparentColor = new Color(0, true);
+  private static final Color TRANSPARENT_COLOR = new Color(0, true);
+
   private static final int DEFAULT_COLUMNS = 5;
 
   private static boolean showGrid = false;
@@ -139,29 +137,32 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private TisDecoder decoder;
-  private List<Image> tileImages;         // stores one tile per image
-  private TileGrid tileGrid;              // the main component for displaying the tileset
-  private JSlider slCols;                 // changes the tiles per row
-  private JTextField tfCols;              // input/output tiles per row
-  private JCheckBox cbGrid;               // show/hide frame around each tile
-  private JMenuItem miExport, miExportPaletteTis, miExportPvrzTis, miExportPNG;
-  private JPanel panel;                   // top-level panel of the viewer
+  private List<Image> tileImages; // stores one tile per image
+  private TileGrid tileGrid;      // the main component for displaying the tileset
+  private JSlider slCols;         // changes the tiles per row
+  private JTextField tfCols;      // input/output tiles per row
+  private JCheckBox cbGrid;       // show/hide frame around each tile
+  private JMenuItem miExport;
+  private JMenuItem miExportPaletteTis;
+  private JMenuItem miExportPvrzTis;
+  private JMenuItem miExportPNG;
+  private JPanel panel; // top-level panel of the viewer
   private RootPaneContainer rpc;
-  private SwingWorker<Status, Void> workerToPalettedTis, workerToPvrzTis, workerExport;
+  private SwingWorker<Status, Void> workerToPalettedTis;
+  private SwingWorker<Status, Void> workerToPvrzTis;
+  private SwingWorker<Status, Void> workerExport;
   private WindowBlocker blocker;
   private int defaultWidth;
 
-  public TisResource(ResourceEntry entry) throws Exception
-  {
+  public TisResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     initTileset();
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
@@ -173,8 +174,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         blocker.setBlocked(true);
         workerToPalettedTis = new SwingWorker<Status, Void>() {
           @Override
-          public Status doInBackground()
-          {
+          public Status doInBackground() {
             Status retVal = Status.ERROR;
             try {
               retVal = convertToPaletteTis(tisFile, true);
@@ -194,8 +194,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         blocker.setBlocked(true);
         workerToPvrzTis = new SwingWorker<Status, Void>() {
           @Override
-          public Status doInBackground()
-          {
+          public Status doInBackground() {
             Status retVal = Status.ERROR;
             try {
               retVal = convertToPvrzTis(tisFile, true);
@@ -215,8 +214,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         blocker.setBlocked(true);
         workerExport = new SwingWorker<Status, Void>() {
           @Override
-          public Status doInBackground()
-          {
+          public Status doInBackground() {
             Status retVal = Status.ERROR;
             try {
               retVal = exportPNG(pngFile, true);
@@ -232,14 +230,12 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
+  public void stateChanged(ChangeEvent event) {
     if (event.getSource() == slCols) {
       int cols = slCols.getValue();
       tfCols.setText(Integer.toString(cols));
@@ -247,26 +243,24 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (event.getSource() == cbGrid) {
       showGrid = cbGrid.isSelected();
       tileGrid.setShowGrid(showGrid);
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-//--------------------- Begin Interface KeyListener ---------------------
+  // --------------------- Begin Interface KeyListener ---------------------
 
   @Override
-  public void keyPressed(KeyEvent event)
-  {
+  public void keyPressed(KeyEvent event) {
     if (event.getSource() == tfCols) {
       if (event.getKeyCode() == KeyEvent.VK_ENTER) {
         int cols;
@@ -277,45 +271,41 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           tfCols.setText(Integer.toString(slCols.getValue()));
         }
         if (cols != slCols.getValue()) {
-          if (cols <= 0)
+          if (cols <= 0) {
             cols = 1;
-          if (cols >= decoder.getTileCount())
+          }
+          if (cols >= decoder.getTileCount()) {
             cols = decoder.getTileCount();
+          }
           slCols.setValue(cols);
           tfCols.setText(Integer.toString(slCols.getValue()));
           tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), cols));
         }
-        slCols.requestFocus();    // remove focus from textfield
+        slCols.requestFocus(); // remove focus from textfield
       }
     }
   }
 
-
   @Override
-  public void keyReleased(KeyEvent event)
-  {
+  public void keyReleased(KeyEvent event) {
     // nothing to do
   }
 
-
   @Override
-  public void keyTyped(KeyEvent event)
-  {
+  public void keyTyped(KeyEvent event) {
     // nothing to do
   }
 
-//--------------------- End Interface KeyListener ---------------------
+  // --------------------- End Interface KeyListener ---------------------
 
-//--------------------- Begin Interface PropertyChangeListener ---------------------
+  // --------------------- Begin Interface PropertyChangeListener ---------------------
 
   @Override
-  public void propertyChange(PropertyChangeEvent event)
-  {
+  public void propertyChange(PropertyChangeEvent event) {
     if (event.getSource() instanceof SwingWorker<?, ?>) {
       @SuppressWarnings("unchecked")
-      SwingWorker<Status, Void> worker = (SwingWorker<Status, Void>)event.getSource();
-      if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+      SwingWorker<Status, Void> worker = (SwingWorker<Status, Void>) event.getSource();
+      if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         if (blocker != null) {
           blocker.setBlocked(false);
           blocker = null;
@@ -331,33 +321,28 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         }
 
         if (retVal == Status.SUCCESS) {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "File exported successfully.", "Export complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "File exported successfully.", "Export complete",
+              JOptionPane.INFORMATION_MESSAGE);
         } else if (retVal == Status.CANCELLED) {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Export has been cancelled.", "Information",
-                                        JOptionPane.INFORMATION_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Export has been cancelled.", "Information",
+              JOptionPane.INFORMATION_MESSAGE);
         } else if (retVal == Status.UNSUPPORTED) {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Operation not (yet) supported.", "Information",
-                                        JOptionPane.INFORMATION_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Operation not (yet) supported.", "Information",
+              JOptionPane.INFORMATION_MESSAGE);
         } else {
-          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                        "Error while exporting " + entry, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
   }
 
-//--------------------- End Interface PropertyChangeListener ---------------------
+  // --------------------- End Interface PropertyChangeListener ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     if (workerToPalettedTis != null) {
       if (!workerToPalettedTis.isDone()) {
         workerToPalettedTis.cancel(true);
@@ -391,42 +376,37 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     System.gc();
   }
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new ReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     if (container instanceof RootPaneContainer) {
-      rpc = (RootPaneContainer)container;
+      rpc = (RootPaneContainer) container;
     } else {
       rpc = NearInfinity.getInstance();
     }
@@ -448,7 +428,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     tPanel1.add(tfCols);
 
     // 1.2. creating slider
-    slCols = new JSlider(JSlider.HORIZONTAL, 1, tileCount, defaultColumns);
+    slCols = new JSlider(SwingConstants.HORIZONTAL, 1, tileCount, defaultColumns);
     if (tileCount > 1000) {
       slCols.setMinorTickSpacing(100);
       slCols.setMajorTickSpacing(1000);
@@ -510,22 +490,24 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     miExportPNG.addActionListener(this);
 
     List<JMenuItem> list = new ArrayList<>();
-    if (miExport != null)
+    if (miExport != null) {
       list.add(miExport);
+    }
     if (miExportPaletteTis != null) {
       list.add(miExportPaletteTis);
     }
     if (miExportPvrzTis != null) {
       list.add(miExportPvrzTis);
     }
-    if (miExportPNG != null)
+    if (miExportPNG != null) {
       list.add(miExportPNG);
+    }
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
     // 4. packing all together
@@ -537,17 +519,15 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     return panel;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
   // Returns detected or guessed number of tiles per row of the current TIS
-  private int getDefaultTilesPerRow()
-  {
+  private int getDefaultTilesPerRow() {
     return defaultWidth;
   }
 
   // Returns an output filename for a TIS file
-  private Path getTisFileName(Component parent, boolean enforceValidName)
-  {
+  private Path getTisFileName(Component parent, boolean enforceValidName) {
     Path retVal = null;
     JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
@@ -562,17 +542,15 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
         retVal = fc.getSelectedFile().toPath();
         if (enforceValidName && !isTisFileNameValid(retVal)) {
-          JOptionPane.showMessageDialog(parent,
-                                        "PVRZ-based TIS filenames have to be 2 up to 7 characters long.",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(parent, "PVRZ-based TIS filenames have to be 2 up to 7 characters long.",
+              "Error", JOptionPane.ERROR_MESSAGE);
         } else {
           repeat = false;
         }
         if (FileEx.create(retVal).exists()) {
-          final String options[] = {"Overwrite", "Cancel"};
+          final String options[] = { "Overwrite", "Cancel" };
           if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
-                                           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                           null, options, options[0]) != 0) {
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
             retVal = null;
             repeat = false;
           }
@@ -585,8 +563,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Returns output filename for a PNG file
-  private Path getPngFileName(Component parent)
-  {
+  private Path getPngFileName(Component parent) {
     Path retVal = null;
     JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
@@ -594,14 +571,14 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG files (*.png)", "png");
     fc.addChoosableFileFilter(filter);
     fc.setFileFilter(filter);
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".TIS", ".PNG")));
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(),
+        getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".TIS", ".PNG")));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       retVal = fc.getSelectedFile().toPath();
       if (FileEx.create(retVal).exists()) {
-        final String options[] = {"Overwrite", "Cancel"};
+        final String options[] = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
-                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                         null, options, options[0]) != 0) {
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           retVal = null;
         }
       }
@@ -609,8 +586,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     return retVal;
   }
 
-  private void initTileset()
-  {
+  private void initTileset() {
     try {
       WindowBlocker.blockWindow(true);
 
@@ -631,19 +607,19 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     } catch (Exception e) {
       e.printStackTrace();
       WindowBlocker.blockWindow(false);
-      if (tileImages == null)
+      if (tileImages == null) {
         tileImages = new ArrayList<>();
-      if (tileImages.isEmpty())
+      }
+      if (tileImages.isEmpty()) {
         tileImages.add(ColorConvert.createCompatibleImage(1, 1, Transparency.BITMASK));
+      }
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                    "Error while loading TIS resource: " + entry.getResourceName(),
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error while loading TIS resource: " + entry.getResourceName(), "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
   // Converts the current PVRZ-based tileset into the old tileset variant.
-  public Status convertToPaletteTis(Path output, boolean showProgress)
-  {
+  public Status convertToPaletteTis(Path output, boolean showProgress) {
     Status retVal = Status.ERROR;
     if (output != null) {
       if (tileImages != null && !tileImages.isEmpty()) {
@@ -652,7 +628,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         ProgressMonitor progress = null;
         if (showProgress) {
           progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...",
-                                         String.format(note, progressIndex, progressMax), 0, progressMax);
+              String.format(note, progressIndex, progressMax), 0, progressMax);
           progress.setMillisToDecideToPopup(500);
           progress.setMillisToPopup(2000);
         }
@@ -672,11 +648,10 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           // writing tile data
           int[] palette = new int[255];
           byte[] tilePalette = new byte[1024];
-          byte[] tileData = new byte[64*64];
-          BufferedImage image =
-              ColorConvert.createCompatibleImage(decoder.getTileWidth(), decoder.getTileHeight(),
-                                                 Transparency.BITMASK);
-          IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1800);   // caching RGBColor -> index
+          byte[] tileData = new byte[64 * 64];
+          BufferedImage image = ColorConvert.createCompatibleImage(decoder.getTileWidth(), decoder.getTileHeight(),
+              Transparency.BITMASK);
+          IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1800); // caching RGBColor -> index
           for (int tileIdx = 0; tileIdx < decoder.getTileCount(); tileIdx++) {
             colorCache.clear();
             if (progress != null && progress.isCanceled()) {
@@ -692,7 +667,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             Graphics2D g = image.createGraphics();
             try {
               g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-              g.setColor(TransparentColor);
+              g.setColor(TRANSPARENT_COLOR);
               g.fillRect(0, 0, image.getWidth(), image.getHeight());
               g.drawImage(tileImages.get(tileIdx), 0, 0, null);
             } finally {
@@ -700,17 +675,18 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
               g = null;
             }
 
-            int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+            int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             if (ColorConvert.medianCut(pixels, 255, palette, true)) {
               // filling palette
               // first palette entry denotes transparency
-              tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
+              tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
+              tilePalette[1] = (byte) 255;
               for (int i = 1; i < 256; i++) {
-                tilePalette[(i << 2) + 0] = (byte)(palette[i - 1] & 0xff);
-                tilePalette[(i << 2) + 1] = (byte)((palette[i - 1] >>> 8) & 0xff);
-                tilePalette[(i << 2) + 2] = (byte)((palette[i - 1] >>> 16) & 0xff);
+                tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+                tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
+                tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
                 tilePalette[(i << 2) + 3] = 0;
-                colorCache.put(palette[i - 1], (byte)(i - 1));
+                colorCache.put(palette[i - 1], (byte) (i - 1));
               }
               // filling pixel data
               for (int i = 0; i < tileData.length; i++) {
@@ -719,10 +695,10 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
                 } else {
                   Byte palIndex = colorCache.get(pixels[i]);
                   if (palIndex != null) {
-                    tileData[i] = (byte)(palIndex + 1);
+                    tileData[i] = (byte) (palIndex + 1);
                   } else {
-                    byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
-                    tileData[i] = (byte)(color + 1);
+                    byte color = (byte) ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
+                    tileData[i] = (byte) (color + 1);
                     colorCache.put(pixels[i], color);
                   }
                 }
@@ -734,8 +710,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             bos.write(tilePalette);
             bos.write(tileData);
           }
-          image.flush(); image = null;
-          tileData = null; tilePalette = null; palette = null;
+          image.flush();
+          image = null;
+          tileData = null;
+          tilePalette = null;
+          palette = null;
         } catch (Exception e) {
           retVal = Status.ERROR;
           e.printStackTrace();
@@ -758,15 +737,13 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Converts the current palette-based tileset into the new PVRZ-based variant.
-  public Status convertToPvrzTis(Path output, boolean showProgress)
-  {
+  public Status convertToPvrzTis(Path output, boolean showProgress) {
     Status retVal = Status.ERROR;
     if (output != null) {
       try {
         ProgressMonitor progress = null;
         if (showProgress) {
-          progress = new ProgressMonitor(panel.getTopLevelAncestor(),
-                                         "Converting TIS...", "Preparing TIS", 0, 5);
+          progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...", "Preparing TIS", 0, 5);
           progress.setMillisToDecideToPopup(0);
           progress.setMillisToPopup(0);
         }
@@ -781,7 +758,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           if (ResourceFactory.resourceExists(wedName)) {
             wed = new WedResource(ResourceFactory.getResourceEntry(wedName));
             if (wed != null) {
-              ovl = (Overlay)wed.getAttribute(Overlay.WED_OVERLAY + " 0");
+              ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
             }
           }
         } catch (Exception e) {
@@ -802,16 +779,16 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
           // processing tiles
           final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
-          final int pageDim = 16;   // 16 tiles a 64x64 pixels
+          final int pageDim = 16; // 16 tiles a 64x64 pixels
           int tisWidth = 1;
           if (ovl != null) {
-            tisWidth = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+            tisWidth = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
           }
-          int tisHeight = (numTiles+tisWidth-1) / tisWidth;
+          int tisHeight = (numTiles + tisWidth - 1) / tisWidth;
           int numTilesPrimary = numTiles;
           if (ovl != null) {
-            tisWidth = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
-            tisHeight = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+            tisWidth = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+            tisHeight = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
             numTilesPrimary = tisWidth * tisHeight;
           }
           boolean[] markedTiles = new boolean[numTiles];
@@ -835,32 +812,34 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
           // defining additional regions from WED door structures
           if (wed != null) {
-            int numDoors = ((IsNumeric)wed.getAttribute(WedResource.WED_NUM_DOORS)).getValue();
+            int numDoors = ((IsNumeric) wed.getAttribute(WedResource.WED_NUM_DOORS)).getValue();
             for (int doorIdx = 0; doorIdx < numDoors; doorIdx++) {
               // for each door...
-              Door door = (Door)wed.getAttribute(Door.WED_DOOR + " " + doorIdx);
-              int numDoorTiles = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
+              Door door = (Door) wed.getAttribute(Door.WED_DOOR + " " + doorIdx);
+              int numDoorTiles = ((IsNumeric) door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
               if (numDoorTiles > 0) {
                 Point[] doorTiles = new Point[numDoorTiles];
                 Arrays.fill(doorTiles, null);
                 // getting actual tile indices
                 for (int doorTileIdx = 0; doorTileIdx < numDoorTiles; doorTileIdx++) {
                   // for each door tilemap...
-                  Point p = new Point();  // x=tilemap, y=tilemap index
-                  int doorTile = ((IsNumeric)door.getAttribute(Door.WED_DOOR_TILEMAP_INDEX + " " + doorTileIdx)).getValue();
+                  Point p = new Point(); // x=tilemap, y=tilemap index
+                  int doorTile = ((IsNumeric) door.getAttribute(Door.WED_DOOR_TILEMAP_INDEX + " " + doorTileIdx))
+                      .getValue();
                   p.x = doorTile;
-                  Tilemap tileMap = (Tilemap)ovl.getAttribute(Tilemap.WED_TILEMAP + " " + doorTile);
+                  Tilemap tileMap = (Tilemap) ovl.getAttribute(Tilemap.WED_TILEMAP + " " + doorTile);
                   // we need both primary and secondary tile index
-                  int index = ((IsNumeric)tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
+                  int index = ((IsNumeric) tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
                   if (index > numTilesPrimary) {
                     // found already!
                     p.y = index;
                     doorTiles[doorTileIdx] = p;
                   } else {
                     // processing another redirection for getting the primary tile index
-                    index = ((IsNumeric)tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
+                    index = ((IsNumeric) tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
                     if (index >= 0 && index < numTilesPrimary) {
-                      index = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_TILEMAP_INDEX + " " + index)).getValue();
+                      index = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_TILEMAP_INDEX + " " + index))
+                          .getValue();
                       if (index > numTilesPrimary) {
                         // found!
                         p.y = index;
@@ -873,7 +852,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
                 int left = Integer.MAX_VALUE, right = Integer.MIN_VALUE;
                 int top = Integer.MAX_VALUE, bottom = Integer.MIN_VALUE;
                 boolean initialized = false;
-                for (Point p: doorTiles) {
+                for (Point p : doorTiles) {
                   if (p != null) {
                     initialized = true;
                     left = Math.min(p.x % tisWidth, left);
@@ -896,12 +875,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
                       int w = Math.min(pageDim, doorWidth - x);
 
                       TileRect rect = new TileRect(w, h);
-                      for (Point p: doorTiles) {
+                      for (Point p : doorTiles) {
                         if (p != null) {
                           int dx = (p.x % tisWidth) - left;
                           int dy = (p.x / tisWidth) - top;
-                          if (dx >= x && dx < x+w && dy >= y && dy < y+h &&
-                              rect.setMarked(dx, dy, p.y)) {
+                          if (dx >= x && dx < x + w && dy >= y && dy < y + h && rect.setMarked(dx, dy, p.y)) {
                             markedTiles[p.y] = true;
                           }
                         }
@@ -915,7 +893,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
             // handling remaining unmarked tiles
             for (int idx = 0; idx < markedTiles.length; idx++) {
-              if (markedTiles[idx] == false) {
+              if (!markedTiles[idx]) {
                 TileRect rect = new TileRect(1, 1);
                 rect.setMarked(0, 0, idx);
                 listRegions.add(rect);
@@ -926,7 +904,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           // packing tileset regions
           List<ConvertToTis.TileEntry> entryList = new ArrayList<>(numTiles);
           List<BinPack2D> pageList = new ArrayList<>();
-          for (TileRect rect: listRegions) {
+          for (TileRect rect : listRegions) {
             Dimension space = new Dimension(rect.bounds);
             int pageIndex = -1;
             Rectangle rectMatch = null;
@@ -953,8 +931,8 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
               int y = rect.getY(idx);
               ConvertToTis.TileEntry entry;
               if (rect.indices[idx] >= 0) {
-                entry = new ConvertToTis.TileEntry(rect.indices[idx], pageIndex,
-                                                   (rectMatch.x + x) * 64, (rectMatch.y + y) * 64);
+                entry = new ConvertToTis.TileEntry(rect.indices[idx], pageIndex, (rectMatch.x + x) * 64,
+                    (rectMatch.y + y) * 64);
                 entryList.add(entry);
               }
             }
@@ -962,8 +940,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
           // writing TIS entries
           Collections.sort(entryList, ConvertToTis.TileEntry.CompareByIndex);
-          for (int i = 0; i < entryList.size(); i++) {
-            ConvertToTis.TileEntry entry = entryList.get(i);
+          for (TileEntry entry : entryList) {
             bos.write(DynamicArray.convertInt(entry.page));
             bos.write(DynamicArray.convertInt(entry.x));
             bos.write(DynamicArray.convertInt(entry.y));
@@ -993,8 +970,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Converts the tileset into the PNG format.
-  public Status exportPNG(Path output, boolean showProgress)
-  {
+  public Status exportPNG(Path output, boolean showProgress) {
     Status retVal = Status.ERROR;
     if (output != null) {
       if (tileImages != null && !tileImages.isEmpty()) {
@@ -1009,28 +985,28 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             progress.setMillisToPopup(0);
             progress.setProgress(0);
           }
-            image = ColorConvert.createCompatibleImage(tilesX*64, tilesY*64, Transparency.BITMASK);
-            Graphics2D g = image.createGraphics();
-            for (int idx = 0; idx < tileImages.size(); idx++) {
-              if (tileImages.get(idx) != null) {
-                int tx = idx % tilesX;
-                int ty = idx / tilesX;
-                g.drawImage(tileImages.get(idx), tx*64, ty*64, null);
-              }
+          image = ColorConvert.createCompatibleImage(tilesX * 64, tilesY * 64, Transparency.BITMASK);
+          Graphics2D g = image.createGraphics();
+          for (int idx = 0; idx < tileImages.size(); idx++) {
+            if (tileImages.get(idx) != null) {
+              int tx = idx % tilesX;
+              int ty = idx / tilesX;
+              g.drawImage(tileImages.get(idx), tx * 64, ty * 64, null);
             }
-            g.dispose();
+          }
+          g.dispose();
 
-            if (progress != null) {
-              progress.setProgress(1);
+          if (progress != null) {
+            progress.setProgress(1);
+          }
+          try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
+            if (ImageIO.write(image, "png", os)) {
+              retVal = Status.SUCCESS;
             }
-            try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
-              if (ImageIO.write(image, "png", os)) {
-                retVal = Status.SUCCESS;
-              }
-            } catch (IOException e) {
-              retVal = Status.ERROR;
-              e.printStackTrace();
-            }
+          } catch (IOException e) {
+            retVal = Status.ERROR;
+            e.printStackTrace();
+          }
           if (progress != null && progress.isCanceled()) {
             retVal = Status.CANCELLED;
           }
@@ -1052,12 +1028,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Generates PVRZ files based on the current TIS resource and the specified parameters
-  private Status writePvrzPages(Path tisFile, List<BinPack2D> pageList,
-                                 List<ConvertToTis.TileEntry> entryList, ProgressMonitor progress)
-  {
+  private Status writePvrzPages(Path tisFile, List<BinPack2D> pageList, List<ConvertToTis.TileEntry> entryList,
+      ProgressMonitor progress) {
     Status retVal = Status.SUCCESS;
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    int dxtCode = 7;  // PVR code for DXT1
+    int dxtCode = 7; // PVR code for DXT1
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
     String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
@@ -1073,7 +1048,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             return retVal;
           }
           progress.setProgress(pageIdx + 1);
-          progress.setNote(String.format(note, pageIdx+1, pageList.size()));
+          progress.setNote(String.format(note, pageIdx + 1, pageList.size()));
         }
 
         Path pvrzFile = generatePvrzFileName(tisFile, pageIdx);
@@ -1090,11 +1065,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           g.setBackground(new Color(0, true));
           g.setColor(new Color(0, true));
           g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-          for (final ConvertToTis.TileEntry entry: entryList) {
+          for (final ConvertToTis.TileEntry entry : entryList) {
             if (entry.page == pageIdx) {
               Image tileImg = decoder.getTile(entry.tileIndex);
               int dx = entry.x, dy = entry.y;
-              g.drawImage(tileImg, dx, dy, dx+64, dy+64, 0, 0, 64, 64, null);
+              g.drawImage(tileImg, dx, dy, dx + 64, dy + 64, 0, 0, 64, 64, null);
             }
           }
         } finally {
@@ -1102,7 +1077,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           g = null;
         }
 
-        int[] textureData = ((DataBufferInt)texture.getRaster().getDataBuffer()).getData();
+        int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
         try {
           // compressing PVRZ
           int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
@@ -1148,8 +1123,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Generates PVRZ filename with full path from the given parameters
-  private Path generatePvrzFileName(Path tisFile, int page)
-  {
+  private Path generatePvrzFileName(Path tisFile, int page) {
     if (tisFile != null) {
       Path path = tisFile.getParent();
       String tisName = tisFile.getFileName().toString();
@@ -1159,7 +1133,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       }
       if (Pattern.matches(".{2,7}", tisName)) {
         String pvrzName = String.format("%s%s%02d.PVRZ", tisName.substring(0, 1),
-                                        tisName.substring(2, tisName.length()), page);
+            tisName.substring(2, tisName.length()), page);
         return path.resolve(pvrzName);
       }
     }
@@ -1167,8 +1141,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Returns true only if TIS filename can be used to generate PVRZ filenames from
-  public static boolean isTisFileNameValid(Path fileName)
-  {
+  public static boolean isTisFileNameValid(Path fileName) {
     if (fileName != null) {
       String name = fileName.getFileName().toString();
       int extOfs = name.lastIndexOf('.');
@@ -1181,8 +1154,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // Attempts to fix the specified filename to make it compatible with the naming scheme of TIS V2 files
-  public static Path makeTisFileNameValid(Path fileName)
-  {
+  public static Path makeTisFileNameValid(Path fileName) {
     if (fileName != null && !isTisFileNameValid(fileName)) {
       Path path = fileName.getParent();
       String name = fileName.getFileName().toString();
@@ -1203,8 +1175,14 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         String fmt, newName = null;
         int maxNum;
         switch (name.length()) {
-          case 0:  fmt = name + "%s02d"; maxNum = 99; break;
-          default: fmt = name + "%s01d"; maxNum = 9; break;
+          case 0:
+            fmt = name + "%s02d";
+            maxNum = 99;
+            break;
+          default:
+            fmt = name + "%s01d";
+            maxNum = 9;
+            break;
         }
         for (int i = 0; i < maxNum; i++) {
           String s = String.format(fmt, i) + (isNight ? "N" : "") + ext;
@@ -1223,13 +1201,13 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
   /**
    * Attempts to calculate the TIS width from an associated WED file.
-   * @param entry The TIS resource entry.
-   * @param tileCount An optional tile count that will be used to "guess" the correct number of tiles
-   *                  per row if no associated WED resource has been found.
+   *
+   * @param entry     The TIS resource entry.
+   * @param tileCount An optional tile count that will be used to "guess" the correct number of tiles per row if no
+   *                  associated WED resource has been found.
    * @return The number of tiles per row for the specified TIS resource.
    */
-  public static int calcTileWidth(ResourceEntry entry, int tileCount)
-  {
+  public static int calcTileWidth(ResourceEntry entry, int tileCount) {
     // Try to fetch the correct width from an associated WED if available
     if (entry != null) {
       try {
@@ -1253,7 +1231,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
               int numOvl = wed.getInt(8);
               int ofsOvl = wed.getInt(16);
               for (int i = 0; i < numOvl; i++) {
-                int ofs = ofsOvl + i*sizeOvl;
+                int ofs = ofsOvl + i * sizeOvl;
                 String tisName = StreamUtils.readString(wed, ofs + 4, 8);
                 if (tisName.equalsIgnoreCase(tisNameBase)) {
                   int width = wed.getShort(ofs);
@@ -1270,28 +1248,27 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     }
     // If WED is not available: approximate the most commonly used aspect ratio found in TIS files
     // Disadvantage: does not take extra tiles into account
-    return (tileCount < 9) ? tileCount : (int)(Math.sqrt(tileCount)*1.18);
+    return (tileCount < 9) ? tileCount : (int) (Math.sqrt(tileCount) * 1.18);
   }
 
   // Calculates a Dimension structure with the correct number of columns and rows from the specified arguments
-  private static Dimension calcGridSize(int imageCount, int colSize)
-  {
+  private static Dimension calcGridSize(int imageCount, int colSize) {
     if (imageCount >= 0 && colSize > 0) {
       int rowSize = imageCount / colSize;
-      if (imageCount % colSize > 0)
+      if (imageCount % colSize > 0) {
         rowSize++;
+      }
       return new Dimension(colSize, Math.max(1, rowSize));
     }
     return null;
   }
 
   /** Returns whether the specified PVRZ index can be found in the current TIS resource. */
-  public boolean containsPvrzReference(int index)
-  {
+  public boolean containsPvrzReference(int index) {
     boolean retVal = false;
     if (index >= 0 && index <= 99) {
       if (decoder instanceof TisV2Decoder) {
-        TisV2Decoder tisv2 = (TisV2Decoder)decoder;
+        TisV2Decoder tisv2 = (TisV2Decoder) decoder;
         for (int i = 0, count = tisv2.getTileCount(); i < count && !retVal; i++) {
           retVal = (tisv2.getPvrzPage(i) == index);
         }
@@ -1300,35 +1277,31 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     return retVal;
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   // Tracks regions of tiles used for the tile -> pvrz packing algorithm
-  private static class TileRect
-  {
-    Dimension bounds;
-    int[] indices;
+  private static class TileRect {
+    private Dimension bounds;
+    private int[] indices;
 
     /** Creates an empty TileRect structure. */
-    TileRect(int width, int height)
-    {
+    TileRect(int width, int height) {
       width = Math.max(1, width);
       height = Math.max(1, height);
       bounds = new Dimension(width, height);
-      indices = new int[width*height];
+      indices = new int[width * height];
       Arrays.fill(indices, -1);
     }
 
     /** Automatically fills the TileRect structure with valid tile indices. */
-    TileRect(int left, int top, int width, int height, int rowLength, int numTiles,
-             boolean[] markedTiles)
-    {
+    TileRect(int left, int top, int width, int height, int rowLength, int numTiles, boolean[] markedTiles) {
       left = Math.max(0, left);
       top = Math.max(0, top);
       width = Math.max(1, width);
       height = Math.max(1, height);
       rowLength = Math.max(width, rowLength);
       bounds = new Dimension(width, height);
-      indices = new int[width*height];
+      indices = new int[width * height];
       for (int by = 0; by < height; by++) {
         int idx = by * width;
         int ofs = (top + by) * rowLength;
@@ -1346,15 +1319,15 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       }
     }
 
-    /** Sets the specified tile index in the TileRect structure. x and y specify a position
-     *  within the TileRect structure. tileIndex is the absolute tile index. */
-    public boolean setMarked(int x, int y, int tileIndex)
-    {
+    /**
+     * Sets the specified tile index in the TileRect structure. x and y specify a position within the TileRect
+     * structure. tileIndex is the absolute tile index.
+     */
+    public boolean setMarked(int x, int y, int tileIndex) {
       tileIndex = Math.max(-1, tileIndex);
       if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
         int index = y * bounds.width + x;
-        if ((tileIndex != -1 && indices[index] == -1) ||
-            (tileIndex == -1 && indices[index] != -1)) {
+        if ((tileIndex != -1 && indices[index] == -1) || (tileIndex == -1 && indices[index] != -1)) {
           indices[index] = tileIndex;
           return true;
         }
@@ -1362,13 +1335,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       return false;
     }
 
-    public int getX(int index)
-    {
+    public int getX(int index) {
       return (index >= 0 && index < bounds.width * bounds.height) ? index % bounds.width : -1;
     }
 
-    public int getY(int index)
-    {
+    public int getY(int index) {
       return (index >= 0 && index < bounds.width * bounds.height) ? index / bounds.width : -1;
     }
   }

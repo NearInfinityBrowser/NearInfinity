@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
@@ -8,15 +8,16 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 
-public class MvePlayer
-{
-  private boolean playing, paused, stopped;
-  private long startTime, delayTime;
+public class MvePlayer {
+  private boolean playing;
+  private boolean paused;
+  private boolean stopped;
+  private long startTime;
+  private long delayTime;
   private AudioQueue audioQueue;
   private SourceDataLine dataLine;
 
-  public MvePlayer()
-  {
+  public MvePlayer() {
     playing = true;
     paused = false;
     stopped = true;
@@ -24,10 +25,10 @@ public class MvePlayer
     audioQueue = new AudioQueue();
   }
 
-  public void play(ImageRenderer renderer, MveDecoder decoder) throws Exception
-  {
-    if (renderer == null || renderer.bufferCount() <= 0 || decoder == null || !decoder.isOpen())
+  public void play(ImageRenderer renderer, MveDecoder decoder) throws Exception {
+    if (renderer == null || renderer.bufferCount() <= 0 || decoder == null || !decoder.isOpen()) {
       return;
+    }
 
     setPlaying(true);
     setStopped(false);
@@ -42,8 +43,9 @@ public class MvePlayer
       if (decoder.processNextFrame()) {
         // attached frame data contains current frame delay as Integer object
         renderer.attachData(decoder.getFrameDelay());
-        if (decoder.audioInitialized())
+        if (decoder.audioInitialized()) {
           initAudio(decoder);
+        }
       } else {
         decoder.setDefaultAudioOutput(null);
         stopPlay();
@@ -57,7 +59,7 @@ public class MvePlayer
     while (isPlaying() && decoder.hasNextFrame()) {
       Object dataObj = renderer.fetchData();
       if (dataObj instanceof Integer) {
-        setTimerDelay(((Integer)dataObj).longValue() * 1000L + timeRemaining());
+        setTimerDelay(((Integer) dataObj).longValue() * 1000L + timeRemaining());
       } else {
         // audio-only frames do not contain timing information
         setTimerDelay(0L);
@@ -72,8 +74,9 @@ public class MvePlayer
           dataLine.start();
           outputAudioFrame(true);
           // flushing video buffer chain
-          for (int i = 0; i < renderer.bufferCount(); i++)
+          for (int i = 0; i < renderer.bufferCount(); i++) {
             renderer.flipBuffers();
+          }
         }
       } else {
         decoder.setDefaultAudioOutput(null);
@@ -82,8 +85,9 @@ public class MvePlayer
       }
 
       // skip audio-only frames
-      if (timeRemaining() == 0L)
+      if (timeRemaining() == 0L) {
         continue;
+      }
 
       outputAudioFrame(false);
 
@@ -128,8 +132,7 @@ public class MvePlayer
     setStopped(true);
   }
 
-  public void stopPlay()
-  {
+  public void stopPlay() {
     setPlaying(false);
     while (!isStopped()) {
       try {
@@ -143,67 +146,57 @@ public class MvePlayer
     }
   }
 
-  public void pausePlay()
-  {
+  public void pausePlay() {
     if (!isStopped()) {
       setPaused(true);
     }
   }
 
-  public void continuePlay()
-  {
+  public void continuePlay() {
     if (!isStopped()) {
       setPaused(false);
     }
   }
 
-  public boolean isPlaying()
-  {
+  public boolean isPlaying() {
     return playing;
   }
 
-  public boolean isPaused()
-  {
+  public boolean isPaused() {
     return paused;
   }
 
-  public boolean isStopped()
-  {
+  public boolean isStopped() {
     return stopped;
   }
 
-  private synchronized void setStopped(boolean b)
-  {
+  private synchronized void setStopped(boolean b) {
     if (b != stopped) {
       stopped = b;
     }
   }
 
-  private synchronized void setPaused(boolean b)
-  {
+  private synchronized void setPaused(boolean b) {
     if (b != paused) {
       paused = b;
     }
   }
 
-  private synchronized void setPlaying(boolean b)
-  {
+  private synchronized void setPlaying(boolean b) {
     if (b != playing) {
       playing = b;
     }
   }
 
-
-  private void setTimerDelay(long nanoseconds)
-  {
-    if (nanoseconds < 0L)
+  private void setTimerDelay(long nanoseconds) {
+    if (nanoseconds < 0L) {
       nanoseconds = 0L;
+    }
     startTime = System.nanoTime() & Long.MAX_VALUE;
     delayTime = nanoseconds;
   }
 
-  private long timeRemaining()
-  {
+  private long timeRemaining() {
     long res = 0L;
     long curTime = System.nanoTime() & Long.MAX_VALUE;
     if (curTime < startTime) {
@@ -211,14 +204,14 @@ public class MvePlayer
     } else {
       res = delayTime - (curTime - startTime);
     }
-    if (res < 0L)
+    if (res < 0L) {
       res = 0L;
+    }
     return res;
   }
 
   // waits until only 'remaining' time (in ns) of the current timer remains
-  private void sleepUntil(long remaining)
-  {
+  private void sleepUntil(long remaining) {
     if (timeRemaining() > 2000000L) {
       while (timeRemaining() > remaining) {
         // sleep as much as possible
@@ -235,8 +228,7 @@ public class MvePlayer
     }
   }
 
-  private void initAudio(MveDecoder decoder) throws Exception
-  {
+  private void initAudio(MveDecoder decoder) throws Exception {
     if (decoder != null) {
       // closing old source data line
       if (dataLine != null) {
@@ -258,8 +250,7 @@ public class MvePlayer
     }
   }
 
-  private void outputAudioFrame(boolean autoRemove)
-  {
+  private void outputAudioFrame(boolean autoRemove) {
     if (audioQueue.hasNext()) {
       byte[] audioBlock = autoRemove ? audioQueue.getNextData() : audioQueue.peekNextData();
       if (audioBlock != null) {

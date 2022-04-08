@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -21,23 +21,23 @@ import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 
-public final class ViewFrame extends ChildFrame implements ViewableContainer
-{
+public final class ViewFrame extends ChildFrame implements ViewableContainer {
   private final StatusBar statusBar = new StatusBar();
+
   private Viewable viewable;
 
   /**
    * Returns a formatted string consisting of the name and optional description of the {@code Viewable} if available.
+   *
    * @param viewable The {@code Viewable} object.
    * @return A string describing the {@code Viewable}.
    */
-  private static String getViewableTitle(Viewable viewable)
-  {
+  private static String getViewableTitle(Viewable viewable) {
     if (viewable == null) {
       return "";
     }
     if (viewable instanceof Resource) {
-      final Resource res = (Resource)viewable;
+      final Resource res = (Resource) viewable;
       final ResourceEntry entry = res.getResourceEntry();
       if (entry != null) {
         final String sn = entry.getSearchString();
@@ -52,50 +52,46 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     return viewable.getClass().getName();
   }
 
-  public ViewFrame(Component parent, Viewable viewable)
-  {
+  public ViewFrame(Component parent, Viewable viewable) {
     super(getViewableTitle(viewable), true);
     setViewable(viewable);
-    if (viewable instanceof AbstractStruct || viewable instanceof TextResource ||
-        viewable instanceof BamResource)
+    if (viewable instanceof AbstractStruct || viewable instanceof TextResource || viewable instanceof BamResource) {
       setSize(NearInfinity.getInstance().getWidth() - 200, NearInfinity.getInstance().getHeight() - 45);
-    else
+    } else {
       pack();
+    }
     Center.center(this, parent.getBounds());
     setVisible(true);
   }
 
-// --------------------- Begin Interface ViewableContainer ---------------------
+  // --------------------- Begin Interface ViewableContainer ---------------------
 
   @Override
-  public StatusBar getStatusBar()
-  {
+  public StatusBar getStatusBar() {
     return statusBar;
   }
 
   @Override
-  public Viewable getViewable()
-  {
+  public Viewable getViewable() {
     return viewable;
   }
 
   @Override
-  public void setViewable(Viewable viewable)
-  {
+  public void setViewable(Viewable viewable) {
     this.viewable = viewable;
-    if (viewable instanceof Resource && ((Resource)viewable).getResourceEntry() != null) {
-      ResourceEntry entry = ((Resource)viewable).getResourceEntry();
-//      setTitle(entry.toString());
+    if (viewable instanceof Resource && ((Resource) viewable).getResourceEntry() != null) {
+      ResourceEntry entry = ((Resource) viewable).getResourceEntry();
+      // setTitle(entry.toString());
       setIconImage(entry.getIcon().getImage());
       statusBar.setMessage(entry.getActualPath().toString());
-    }
-    else {
+    } else {
       setIconImage(Keyfile.ICON_STRUCT.getImage());
-      setTitle(((StructEntry)viewable).getName());
-      if (((StructEntry)viewable).getParent() != null)
-        statusBar.setMessage("Parent structure: " + ((StructEntry)viewable).getParent().getName());
+      setTitle(((StructEntry) viewable).getName());
+      if (((StructEntry) viewable).getParent() != null) {
+        statusBar.setMessage("Parent structure: " + ((StructEntry) viewable).getParent().getName());
+      }
     }
-    JPanel pane = (JPanel)getContentPane();
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout());
     pane.removeAll();
     pane.add(viewable.makeViewer(this), BorderLayout.CENTER);
@@ -104,13 +100,13 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     pane.revalidate();
   }
 
-// --------------------- End Interface ViewableContainer ---------------------
+  // --------------------- End Interface ViewableContainer ---------------------
 
   @Override
-  protected boolean windowClosing(boolean forced) throws Exception
-  {
-    if (viewable instanceof Closeable)
-      ((Closeable)viewable).close();
+  protected boolean windowClosing(boolean forced) throws Exception {
+    if (viewable instanceof Closeable) {
+      ((Closeable) viewable).close();
+    }
 
     this.viewable = null;
     this.getContentPane().removeAll();

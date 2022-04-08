@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search.advanced;
@@ -49,6 +49,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -78,16 +79,15 @@ import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
-public class AdvancedSearch extends ChildFrame implements Runnable
-{
+public class AdvancedSearch extends ChildFrame implements Runnable {
   /** Indicates how to evaluate filter matches against a resource. */
   public enum FilterMode {
     /** All filter must match. */
-    MatchAll,
+    MATCH_ALL,
     /** At least one filter must match. */
-    MatchAny,
+    MATCH_ANY,
     /** Only one filter must match. */
-    MatchOne,
+    MATCH_ONE,
   }
 
   // Wiki link to "Advanced Search" documentation
@@ -105,31 +105,42 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   private static final int MENU_FILTER_REMOVE_ALL = 4;
 
   // Not all resource types are available for all games
-  private static final HashMap<String, Profile.Key[]> SupportedResourceTypes = new HashMap<>(25);
+  private static final HashMap<String, Profile.Key[]> SUPPORTED_RESOURCE_TYPES = new HashMap<>(25);
+
   static {
-    SupportedResourceTypes.put("ARE", new Profile.Key[] {Profile.Key.IS_SUPPORTED_ARE_V10, Profile.Key.IS_SUPPORTED_ARE_V91});
-    SupportedResourceTypes.put("CHR", new Profile.Key[] {Profile.Key.IS_SUPPORTED_CHR_V10, Profile.Key.IS_SUPPORTED_CHR_V20,
-                                                         Profile.Key.IS_SUPPORTED_CHR_V21, Profile.Key.IS_SUPPORTED_CHR_V22});
-    SupportedResourceTypes.put("CHU", new Profile.Key[] {Profile.Key.IS_SUPPORTED_CHU});
-    SupportedResourceTypes.put("CRE", new Profile.Key[] {Profile.Key.IS_SUPPORTED_CRE_V10, Profile.Key.IS_SUPPORTED_CRE_V12,
-                                                         Profile.Key.IS_SUPPORTED_CRE_V22, Profile.Key.IS_SUPPORTED_CRE_V90});
-    SupportedResourceTypes.put("DLG", new Profile.Key[] {Profile.Key.IS_SUPPORTED_DLG});
-    SupportedResourceTypes.put("EFF", new Profile.Key[] {Profile.Key.IS_SUPPORTED_EFF});
-    SupportedResourceTypes.put("GAM", new Profile.Key[] {Profile.Key.IS_SUPPORTED_GAM_V11, Profile.Key.IS_SUPPORTED_GAM_V20,
-                                                         Profile.Key.IS_SUPPORTED_GAM_V21, Profile.Key.IS_SUPPORTED_GAM_V22});
-    SupportedResourceTypes.put("ITM", new Profile.Key[] {Profile.Key.IS_SUPPORTED_ITM_V10, Profile.Key.IS_SUPPORTED_ITM_V11,
-                                                         Profile.Key.IS_SUPPORTED_ITM_V20});
-    SupportedResourceTypes.put("PRO", new Profile.Key[] {Profile.Key.IS_SUPPORTED_PRO});
-    SupportedResourceTypes.put("SPL", new Profile.Key[] {Profile.Key.IS_SUPPORTED_SPL_V1, Profile.Key.IS_SUPPORTED_SPL_V2});
-    SupportedResourceTypes.put("SRC", new Profile.Key[] {Profile.Key.IS_SUPPORTED_SRC_PST});
-    SupportedResourceTypes.put("STO", new Profile.Key[] {Profile.Key.IS_SUPPORTED_STO_V10, Profile.Key.IS_SUPPORTED_STO_V11,
-                                                         Profile.Key.IS_SUPPORTED_STO_V90});
-    SupportedResourceTypes.put("VAR", new Profile.Key[] {Profile.Key.IS_SUPPORTED_VAR});
-    SupportedResourceTypes.put("VEF", new Profile.Key[] {Profile.Key.IS_SUPPORTED_VEF});
-    SupportedResourceTypes.put("VVC", new Profile.Key[] {Profile.Key.IS_SUPPORTED_VVC});
-    SupportedResourceTypes.put("WED", new Profile.Key[] {Profile.Key.IS_SUPPORTED_WED});
-    SupportedResourceTypes.put("WFX", new Profile.Key[] {Profile.Key.IS_SUPPORTED_WFX});
-    SupportedResourceTypes.put("WMP", new Profile.Key[] {Profile.Key.IS_SUPPORTED_WMP});
+    SUPPORTED_RESOURCE_TYPES.put("ARE", new Profile.Key[] { Profile.Key.IS_SUPPORTED_ARE_V10,
+                                                            Profile.Key.IS_SUPPORTED_ARE_V91 });
+    SUPPORTED_RESOURCE_TYPES.put("CHR", new Profile.Key[] { Profile.Key.IS_SUPPORTED_CHR_V10,
+                                                            Profile.Key.IS_SUPPORTED_CHR_V20,
+                                                            Profile.Key.IS_SUPPORTED_CHR_V21,
+                                                            Profile.Key.IS_SUPPORTED_CHR_V22 });
+    SUPPORTED_RESOURCE_TYPES.put("CHU", new Profile.Key[] { Profile.Key.IS_SUPPORTED_CHU });
+    SUPPORTED_RESOURCE_TYPES.put("CRE", new Profile.Key[] { Profile.Key.IS_SUPPORTED_CRE_V10,
+                                                            Profile.Key.IS_SUPPORTED_CRE_V12,
+                                                            Profile.Key.IS_SUPPORTED_CRE_V22,
+                                                            Profile.Key.IS_SUPPORTED_CRE_V90 });
+    SUPPORTED_RESOURCE_TYPES.put("DLG", new Profile.Key[] { Profile.Key.IS_SUPPORTED_DLG });
+    SUPPORTED_RESOURCE_TYPES.put("EFF", new Profile.Key[] { Profile.Key.IS_SUPPORTED_EFF });
+    SUPPORTED_RESOURCE_TYPES.put("GAM", new Profile.Key[] { Profile.Key.IS_SUPPORTED_GAM_V11,
+                                                            Profile.Key.IS_SUPPORTED_GAM_V20,
+                                                            Profile.Key.IS_SUPPORTED_GAM_V21,
+                                                            Profile.Key.IS_SUPPORTED_GAM_V22 });
+    SUPPORTED_RESOURCE_TYPES.put("ITM", new Profile.Key[] { Profile.Key.IS_SUPPORTED_ITM_V10,
+                                                            Profile.Key.IS_SUPPORTED_ITM_V11,
+                                                            Profile.Key.IS_SUPPORTED_ITM_V20 });
+    SUPPORTED_RESOURCE_TYPES.put("PRO", new Profile.Key[] { Profile.Key.IS_SUPPORTED_PRO });
+    SUPPORTED_RESOURCE_TYPES.put("SPL", new Profile.Key[] { Profile.Key.IS_SUPPORTED_SPL_V1,
+                                                            Profile.Key.IS_SUPPORTED_SPL_V2 });
+    SUPPORTED_RESOURCE_TYPES.put("SRC", new Profile.Key[] { Profile.Key.IS_SUPPORTED_SRC_PST });
+    SUPPORTED_RESOURCE_TYPES.put("STO", new Profile.Key[] { Profile.Key.IS_SUPPORTED_STO_V10,
+                                                            Profile.Key.IS_SUPPORTED_STO_V11,
+                                                            Profile.Key.IS_SUPPORTED_STO_V90 });
+    SUPPORTED_RESOURCE_TYPES.put("VAR", new Profile.Key[] { Profile.Key.IS_SUPPORTED_VAR });
+    SUPPORTED_RESOURCE_TYPES.put("VEF", new Profile.Key[] { Profile.Key.IS_SUPPORTED_VEF });
+    SUPPORTED_RESOURCE_TYPES.put("VVC", new Profile.Key[] { Profile.Key.IS_SUPPORTED_VVC });
+    SUPPORTED_RESOURCE_TYPES.put("WED", new Profile.Key[] { Profile.Key.IS_SUPPORTED_WED });
+    SUPPORTED_RESOURCE_TYPES.put("WFX", new Profile.Key[] { Profile.Key.IS_SUPPORTED_WFX });
+    SUPPORTED_RESOURCE_TYPES.put("WMP", new Profile.Key[] { Profile.Key.IS_SUPPORTED_WMP });
   }
 
   private final Listeners listeners = new Listeners();
@@ -139,23 +150,28 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   private JComboBox<String> cbResourceTypes;
   private ButtonGroup bgFilterMode;
   private JList<SearchOptions> filterList;
-  private JButton bFilterSave, bFilterLoad;
-  private JButton bFilterAdd, bFilterClone, bFilterEdit, bFilterRemove, bFilterRemoveAll;
-  private JButton bSearch, bOpen, bOpenNew, bSave;
+  private JButton bFilterSave;
+  private JButton bFilterLoad;
+  private JButton bFilterAdd;
+  private JButton bFilterClone;
+  private JButton bFilterEdit;
+  private JButton bFilterRemove;
+  private JButton bFilterRemoveAll;
+  private JButton bSearch;
+  private JButton bOpen;
+  private JButton bOpenNew;
+  private JButton bSave;
   private SortableTable listResults;
   private JLabel lResultsStatus;
   private CardLayout clBottomBar;
   private JPanel pBottomBar;
   private JProgressBar pbProgress;
 
-
-  public AdvancedSearch()
-  {
+  public AdvancedSearch() {
     super("Advanced search");
     (new SwingWorker<Void, Void>() {
       @Override
-      public Void doInBackground()
-      {
+      public Void doInBackground() {
         try {
           init();
         } catch (Exception e) {
@@ -171,16 +187,15 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Returns the currently selected resource type. */
-  public String getResourceType()
-  {
+  public String getResourceType() {
     return cbResourceTypes.getSelectedItem().toString();
   }
 
   /** Sets the specified resource type if available. Returns success state. */
-  public boolean setResourceType(String type)
-  {
-    if (type == null)
+  public boolean setResourceType(String type) {
+    if (type == null) {
       return false;
+    }
 
     type = type.toUpperCase();
     for (int i = 0, cnt = cbResourceTypes.getModel().getSize(); i < cnt; i++) {
@@ -193,13 +208,12 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /**
-   * Adds the specified SearchOptions instance to the filter list.
-   * If the specified filter already exists it will be updated instead.
+   * Adds the specified SearchOptions instance to the filter list. If the specified filter already exists it will be
+   * updated instead.
    */
-  public void addFilter(SearchOptions filter)
-  {
+  public void addFilter(SearchOptions filter) {
     if (filter != null) {
-      SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+      SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>) filterList.getModel();
       int idx = model.indexOf(filter);
       if (idx >= 0) {
         model.set(idx, filter);
@@ -212,33 +226,33 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Returns the number of defined filters. */
-  public int getFilterCount()
-  {
+  public int getFilterCount() {
     return filterList.getModel().getSize();
   }
 
   /** Returns the filter instance at the specified index. */
-  public SearchOptions getFilter(int index)
-  {
-    if (index >= 0 && index < filterList.getModel().getSize())
+  public SearchOptions getFilter(int index) {
+    if (index >= 0 && index < filterList.getModel().getSize()) {
       return filterList.getModel().getElementAt(index);
+    }
     return null;
   }
 
   /**
-   * Removes the filter at the specified index from the filter list.
-   * Optionally selects the next available entry in the list.
+   * Removes the filter at the specified index from the filter list. Optionally selects the next available entry in the
+   * list.
    */
-  public boolean removeFilter(int idx, boolean autoSelect)
-  {
-    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+  public boolean removeFilter(int idx, boolean autoSelect) {
+    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>) filterList.getModel();
     if (idx >= 0 && idx < model.getSize()) {
       model.remove(idx);
       if (autoSelect) {
-        if (idx >= model.getSize())
+        if (idx >= model.getSize()) {
           idx--;
-        if (idx >= 0)
+        }
+        if (idx >= 0) {
           filterList.setSelectedIndex(idx);
+        }
       }
       return true;
     }
@@ -247,22 +261,21 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Removes all filters from the filter list. */
-  private void removeAllFilters()
-  {
-    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+  private void removeAllFilters() {
+    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>) filterList.getModel();
     model.clear();
   }
 
-  private void init() throws Exception
-  {
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+  private void init() throws Exception {
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
 
     GridBagConstraints c = new GridBagConstraints();
 
     // preparing popup menu for the filter list
     menuFilters = new JPopupMenu();
     menuFilters.addPopupMenuListener(listeners);
-    for (String s : new String[] {"Add filter...", "Clone filter...", "Edit filter...", "Remove filter", "Remove all filters"}) {
+    for (String s : new String[] { "Add filter...", "Clone filter...", "Edit filter...", "Remove filter",
+        "Remove all filters" }) {
       JMenuItem mi = new JMenuItem(s);
       mi.addActionListener(listeners);
       menuFilters.add(mi);
@@ -273,22 +286,24 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     cbResourceTypes.addActionListener(listeners);
 
     JPanel pResourceTypes = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pResourceTypes.add(lResourceTypes, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
     pResourceTypes.add(cbResourceTypes, c);
 
     JRadioButton rb = new JRadioButton("Match all (AND)");
     bgFilterMode = new ButtonGroup();
-    rb.setModel(new ToggleButtonDataModel(FilterMode.MatchAll));
+    rb.setModel(new ToggleButtonDataModel(FilterMode.MATCH_ALL));
     rb.setToolTipText("All filters must match");
     bgFilterMode.add(rb);
     rb = new JRadioButton("Match any (OR)");
-    rb.setModel(new ToggleButtonDataModel(FilterMode.MatchAny));
+    rb.setModel(new ToggleButtonDataModel(FilterMode.MATCH_ANY));
     rb.setToolTipText("One or more filters must match");
     bgFilterMode.add(rb);
     rb = new JRadioButton("Match one (XOR)");
-    rb.setModel(new ToggleButtonDataModel(FilterMode.MatchOne));
+    rb.setModel(new ToggleButtonDataModel(FilterMode.MATCH_ONE));
     rb.setToolTipText("Only one filter must match");
     bgFilterMode.add(rb);
 
@@ -296,14 +311,16 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     pFilterMode.setBorder(BorderFactory.createTitledBorder("Filter mode:"));
     for (Enumeration<AbstractButton> list = bgFilterMode.getElements(); list.hasMoreElements();) {
       AbstractButton b = list.nextElement();
-      b.setSelected(FilterMode.MatchAll.equals(((ToggleButtonDataModel)b.getModel()).getData()));
+      b.setSelected(FilterMode.MATCH_ALL.equals(((ToggleButtonDataModel) b.getModel()).getData()));
       pFilterMode.add(b);
     }
 
     JPanel pFilterSettings = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFilterSettings.add(pResourceTypes, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 16, 0, 0), 0, 0);
     pFilterSettings.add(pFilterMode, c);
 
     // clickable help link
@@ -312,9 +329,11 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
     JLabel lFilterList = new JLabel("Filter list:");
     JPanel pFilterListTitle = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFilterListTitle.add(lFilterList, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 16, 0, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 16, 0, 4), 0, 0);
     pFilterListTitle.add(lDocLink, c);
 
     filterList = new JList<>(new SimpleListModel<>());
@@ -324,14 +343,16 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     filterList.addListSelectionListener(listeners);
     filterList.getModel().addListDataListener(listeners);
     filterList.addMouseListener(listeners);
-    JScrollPane scrollFilterList = new JScrollPane(filterList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    scrollFilterList.setMinimumSize(new Dimension(filterList.getFixedCellWidth() + 8, filterList.getFixedCellHeight() * 6));
+    JScrollPane scrollFilterList = new JScrollPane(filterList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollFilterList
+        .setMinimumSize(new Dimension(filterList.getFixedCellWidth() + 8, filterList.getFixedCellHeight() * 6));
     scrollFilterList.setPreferredSize(new Dimension(8, scrollFilterList.getMinimumSize().height));
 
-    bFilterSave = new JButton("Save filters...", Icons.getIcon(Icons.ICON_IMPORT_16));
+    bFilterSave = new JButton("Save filters...", Icons.ICON_IMPORT_16.getIcon());
     bFilterSave.setEnabled(false);
     bFilterSave.addActionListener(listeners);
-    bFilterLoad = new JButton("Load filters...", Icons.getIcon(Icons.ICON_EXPORT_16));
+    bFilterLoad = new JButton("Load filters...", Icons.ICON_EXPORT_16.getIcon());
     bFilterLoad.addActionListener(listeners);
 
     bFilterAdd = new JButton("Add...");
@@ -354,26 +375,25 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     bFilterRemoveAll.addActionListener(listeners);
     bFilterRemoveAll.setToolTipText("Remove all filters");
 
-    bSearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+    bSearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
     bSearch.setEnabled(false);
     bSearch.addActionListener(listeners);
 
-    bOpen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+    bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
     bOpen.setMnemonic('o');
     bOpen.setEnabled(false);
     bOpen.addActionListener(listeners);
-    bOpenNew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+    bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
     bOpenNew.setMnemonic('n');
     bOpenNew.setEnabled(false);
     bOpenNew.addActionListener(listeners);
-    bSave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+    bSave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
     bSave.setMnemonic('s');
     bSave.setEnabled(false);
     bSave.addActionListener(listeners);
 
-    listResults = new SortableTable(new String[]{"File", "Name", "Attribute"},
-                                    new Class<?>[]{ResourceEntry.class, String.class, String.class},
-                                    new Integer[]{100, 150, 300});
+    listResults = new SortableTable(new String[] { "File", "Name", "Attribute" },
+        new Class<?>[] { ResourceEntry.class, String.class, String.class }, new Integer[] { 100, 150, 300 });
     listResults.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     listResults.setRowHeight(listResults.getFontMetrics(listResults.getFont()).getHeight() + 1);
     listResults.setPreferredScrollableViewportSize(new Dimension(100, listResults.getRowHeight() * 10));
@@ -397,61 +417,83 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
     // filter buttons
     JPanel pFilterButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFilterButtons.add(bFilterSave, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterLoad, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFilterButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterAdd, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterClone, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterEdit, c);
-    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterRemove, c);
-    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterRemoveAll, c);
-    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 16, 0, 0), 0, 0);
     pFilterButtons.add(bSearch, c);
 
     // whole filter section
     JPanel pFilters = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pFilters.add(pFilterSettings, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pFilters.add(pFilterListTitle, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(2, 0, 0, 0), 0, 0);
     pFilters.add(scrollFilterList, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 0, 0, 0), 0, 0);
     pFilters.add(pFilterButtons, c);
 
     // search results
     JPanel pResultList = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pResultList.add(lResult, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
     pResultList.add(lResultsStatus, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(2, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(2, 0, 0, 0), 0, 0);
     pResultList.add(scrollListResults, c);
 
     // button bar below search results
     JPanel pResultButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pResultButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pResultButtons.add(bOpen, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pResultButtons.add(bOpenNew, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     pResultButtons.add(bSave, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
     pResultButtons.add(new JPanel(), c);
 
     // progress bar
     JPanel pProgress = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
     pProgress.add(pbProgress, c);
 
     // button bar shares space with progress bar
@@ -463,16 +505,20 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
     // whole bottom bar
     JPanel pResultsMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pResultsMain.add(pBottomBar, c);
 
     // combine everything
     JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pFilters, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 0, 8), 0, 0);
     pMain.add(pResultList, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 8), 0, 0);
     pMain.add(pResultsMain, c);
 
     getContentPane().setLayout(new BorderLayout());
@@ -485,10 +531,8 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     setVisible(true);
   }
 
-
   @Override
-  public void run()
-  {
+  public void run() {
     listResults.clear();
     listResults.setEnabled(false);
     bOpen.setEnabled(false);
@@ -547,9 +591,8 @@ public class AdvancedSearch extends ChildFrame implements Runnable
           resourceCount = found.stream().filter(e -> entrySet.add(e.getResource())).collect(Collectors.toList()).size();
         }
 
-        lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)",
-                                             found.size(), found.size() == 1 ? "" : "es",
-                                             resourceCount, resourceCount == 1 ? "" : "s"));
+        lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
+            found.size() == 1 ? "" : "es", resourceCount, resourceCount == 1 ? "" : "s"));
       } finally {
         Debugging.timerShow("Advanced Search", Debugging.TimeFormat.MILLISECONDS);
         blocker.setBlocked(false);
@@ -560,8 +603,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Called whenever the content of a list control changes. */
-  public void listDataChanged(Object source)
-  {
+  public void listDataChanged(Object source) {
     if (source == filterList.getModel()) {
       bSearch.setEnabled(filterList.getModel().getSize() > 0);
       bFilterSave.setEnabled(filterList.getModel().getSize() > 0);
@@ -570,60 +612,56 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Attempts to show the requested structure or substructure of a resource in a viewer. */
-  private void showEntryInViewer(int row, Viewable viewable)
-  {
+  private void showEntryInViewer(int row, Viewable viewable) {
     if (viewable instanceof DlgResource) {
       DlgResource dlgRes = (DlgResource) viewable;
       JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      dlgRes.selectInEdit(((ReferenceHitFrame.ReferenceHit)listResults.getTableItemAt(row)).getStructEntry());
+      dlgRes.selectInEdit(((ReferenceHitFrame.ReferenceHit) listResults.getTableItemAt(row)).getStructEntry());
       // make sure we see the detail viewer
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
     } else if (viewable instanceof AbstractStruct) {
-      ((AbstractStruct)viewable).getViewer().selectEntry(((ReferenceHitFrame.ReferenceHit)listResults.getTableItemAt(row)).getStructEntry().getOffset());
+      ((AbstractStruct) viewable).getViewer()
+          .selectEntry(((ReferenceHitFrame.ReferenceHit) listResults.getTableItemAt(row)).getStructEntry().getOffset());
     }
   }
 
   /** Returns the currently selected filter mode. Returns {@code null} on error. */
-  private FilterMode getCurrentFilterMode()
-  {
+  private FilterMode getCurrentFilterMode() {
     try {
-      return (FilterMode)((ToggleButtonDataModel)bgFilterMode.getSelection()).getData();
+      return (FilterMode) ((ToggleButtonDataModel) bgFilterMode.getSelection()).getData();
     } catch (Exception e) {
     }
     return null;
   }
 
   /** Returns a list of currently defined search options. */
-  private List<SearchOptions> getSearchOptions()
-  {
-    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+  private List<SearchOptions> getSearchOptions() {
+    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>) filterList.getModel();
     return Collections.list(model.elements());
   }
 
   /** Returns the currently selected filter mode. */
-  private FilterMode getSelectedFilterMode()
-  {
-    Object o = ((ToggleButtonDataModel)bgFilterMode.getSelection()).getData();
-    if (o instanceof FilterMode)
-      return (FilterMode)o;
-    return FilterMode.MatchAll;
+  private FilterMode getSelectedFilterMode() {
+    Object o = ((ToggleButtonDataModel) bgFilterMode.getSelection()).getData();
+    if (o instanceof FilterMode) {
+      return (FilterMode) o;
+    }
+    return FilterMode.MATCH_ALL;
   }
 
   /** Sets filter mode according to specified parameter. */
-  private void setFilterMode(FilterMode mode)
-  {
+  private void setFilterMode(FilterMode mode) {
     if (mode != null) {
       for (Enumeration<AbstractButton> list = bgFilterMode.getElements(); list.hasMoreElements();) {
         AbstractButton b = list.nextElement();
-        b.setSelected(mode.equals(((ToggleButtonDataModel)b.getModel()).getData()));
+        b.setSelected(mode.equals(((ToggleButtonDataModel) b.getModel()).getData()));
       }
     }
   }
 
   /** Imports a new search configuration from the specified xml file. */
-  private boolean importConfig(File xmlFile)
-  {
+  private boolean importConfig(File xmlFile) {
     try {
       XmlConfig cfg = XmlConfig.Import(xmlFile);
       cbResourceTypes.setSelectedItem(cfg.getResourceType());
@@ -632,8 +670,9 @@ public class AdvancedSearch extends ChildFrame implements Runnable
       for (final SearchOptions so : cfg.getFilters()) {
         addFilter(so);
       }
-      if (filterList.getModel().getSize() > 0)
+      if (filterList.getModel().getSize() > 0) {
         filterList.setSelectedIndex(0);
+      }
     } catch (Exception e) {
       e.printStackTrace();
       return false;
@@ -642,10 +681,10 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Exports the current serach configuration to the specified xml file. */
-  private boolean exportConfig(File xmlFile)
-  {
+  private boolean exportConfig(File xmlFile) {
     try {
-      return XmlConfig.Export(xmlFile, cbResourceTypes.getSelectedItem().toString(), getSelectedFilterMode(), getSearchOptions());
+      return XmlConfig.Export(xmlFile, cbResourceTypes.getSelectedItem().toString(), getSelectedFilterMode(),
+          getSearchOptions());
     } catch (Exception e) {
       e.printStackTrace();
       return false;
@@ -653,33 +692,30 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   }
 
   /** Returns a list of supported structured resource types by the game, based on list of available resource types. */
-  public static Vector<String> getAvailableResourceTypes()
-  {
+  public static Vector<String> getAvailableResourceTypes() {
     Vector<String> list = new Vector<>();
-    for (Map.Entry<String, Profile.Key[]> e : SupportedResourceTypes.entrySet()) {
+    for (Map.Entry<String, Profile.Key[]> e : SUPPORTED_RESOURCE_TYPES.entrySet()) {
       boolean supported = false;
       for (Profile.Key key : e.getValue()) {
         boolean b = Profile.getProperty(key);
         supported |= b;
       }
-      if (supported)
+      if (supported) {
         list.add(e.getKey());
+      }
     }
     Collections.sort(list);
     return list;
   }
 
-
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
   private class Listeners
-    implements ActionListener, MouseListener, ListSelectionListener, ListDataListener, PopupMenuListener
-  {
+      implements ActionListener, MouseListener, ListSelectionListener, ListDataListener, PopupMenuListener {
     // --------------------- Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent event)
-    {
+    public void actionPerformed(ActionEvent event) {
       if (event.getSource() == cbResourceTypes) {
         // update border label in Filter input dialog when resource type changes
         FilterInput dlg = ChildFrame.getFirstFrame(FilterInput.class);
@@ -692,19 +728,21 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         if (chooser.showSaveDialog(AdvancedSearch.this) == JFileChooser.APPROVE_OPTION) {
           // autocomplete file extension of none present
           File selectedFile = chooser.getSelectedFile();
-          if (chooser.getFileFilter().getDescription().contains("*.xml") &&
-              selectedFile.getName().indexOf('.') < 0)
+          if (chooser.getFileFilter().getDescription().contains("*.xml") && selectedFile.getName().indexOf('.') < 0) {
             selectedFile = new File(selectedFile.getAbsolutePath() + ".xml");
-          if (!selectedFile.exists() ||
-              JOptionPane.showOptionDialog(AdvancedSearch.this, String.format("%s exists. Overwrite?", selectedFile), "Save configuration",
-                                           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                                           new String[] {"Overwrite", "Cancel"}, "Overwrite") == JOptionPane.YES_OPTION) {
+          }
+          if (!selectedFile.exists()
+              || JOptionPane.showOptionDialog(AdvancedSearch.this, String.format("%s exists. Overwrite?", selectedFile),
+                  "Save configuration", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                  new String[] { "Overwrite", "Cancel" }, "Overwrite") == JOptionPane.YES_OPTION) {
             if (exportConfig(selectedFile)) {
-              JOptionPane.showMessageDialog(AdvancedSearch.this, String.format("Search configuration saved to\n%s.", selectedFile),
-                                            "Save configuration", JOptionPane.INFORMATION_MESSAGE);
+              JOptionPane.showMessageDialog(AdvancedSearch.this,
+                  String.format("Search configuration saved to\n%s.", selectedFile), "Save configuration",
+                  JOptionPane.INFORMATION_MESSAGE);
             } else {
-              JOptionPane.showMessageDialog(AdvancedSearch.this, String.format("Could not save configuration to\n%s.", selectedFile),
-                                            "Save configuration", JOptionPane.ERROR_MESSAGE);
+              JOptionPane.showMessageDialog(AdvancedSearch.this,
+                  String.format("Could not save configuration to\n%s.", selectedFile), "Save configuration",
+                  JOptionPane.ERROR_MESSAGE);
             }
           }
         }
@@ -713,38 +751,45 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         chooser.setDialogTitle("Load advanced search settings");
         if (chooser.showOpenDialog(AdvancedSearch.this) == JFileChooser.APPROVE_OPTION) {
           if (!chooser.getSelectedFile().exists()) {
-            JOptionPane.showMessageDialog(AdvancedSearch.this, String.format("Could not find file\n%s.", chooser.getSelectedFile()),
-                                          "Load configuration", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(AdvancedSearch.this,
+                String.format("Could not find file\n%s.", chooser.getSelectedFile()), "Load configuration",
+                JOptionPane.ERROR_MESSAGE);
           } else if (importConfig(chooser.getSelectedFile())) {
-            JOptionPane.showMessageDialog(AdvancedSearch.this, String.format("Search configuration loaded from\n%s.", chooser.getSelectedFile()),
-                                          "Load configuration", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(AdvancedSearch.this,
+                String.format("Search configuration loaded from\n%s.", chooser.getSelectedFile()), "Load configuration",
+                JOptionPane.INFORMATION_MESSAGE);
           } else {
-            JOptionPane.showMessageDialog(AdvancedSearch.this, String.format("Could not load configuration data from\n%s.", chooser.getSelectedFile()),
-                                          "Load configuration", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(AdvancedSearch.this,
+                String.format("Could not load configuration data from\n%s.", chooser.getSelectedFile()),
+                "Load configuration", JOptionPane.ERROR_MESSAGE);
           }
         }
       } else if (event.getSource() == bFilterAdd) {
         // add new filter entry
-        FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
-        if (dlg != null)
+        FilterInput dlg = ChildFrame.show(FilterInput.class, FilterInput::new);
+        if (dlg != null) {
           dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(), null);
+        }
       } else if (event.getSource() == bFilterClone) {
         // create duplicate of existing filter entry
-        FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
-        if (dlg != null)
+        FilterInput dlg = ChildFrame.show(FilterInput.class, FilterInput::new);
+        if (dlg != null) {
           dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(),
-                         new SearchOptions(filterList.getSelectedValue()), true);
+              new SearchOptions(filterList.getSelectedValue()), true);
+        }
       } else if (event.getSource() == bFilterEdit) {
         // edit existing filter entry
-        FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
-        if (dlg != null)
-          dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(), filterList.getSelectedValue());
+        FilterInput dlg = ChildFrame.show(FilterInput.class, FilterInput::new);
+        if (dlg != null) {
+          dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(),
+              filterList.getSelectedValue());
+        }
       } else if (event.getSource() == bFilterRemove) {
         // remove single filter entry
         int idx = filterList.getSelectedIndex();
         if (idx >= 0) {
           if (JOptionPane.showConfirmDialog(AdvancedSearch.this, "Remove selected filter?", "Confirm removal",
-                                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+              JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             removeFilter(idx, true);
           }
         }
@@ -752,7 +797,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         // remove all filter entries
         if (filterList.getModel().getSize() > 0) {
           if (JOptionPane.showConfirmDialog(AdvancedSearch.this, "Remove all filters?", "Confirm removal",
-                                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+              JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             removeAllFilters();
           }
         }
@@ -762,8 +807,8 @@ public class AdvancedSearch extends ChildFrame implements Runnable
           (new Thread(AdvancedSearch.this)).start();
         } else {
           JOptionPane.showMessageDialog(AdvancedSearch.this,
-                                        String.format("No filter definitions specified for \"%s\".", cbResourceTypes.getSelectedItem()),
-                                        "Advanced Search", JOptionPane.ERROR_MESSAGE);
+              String.format("No filter definitions specified for \"%s\".", cbResourceTypes.getSelectedItem()),
+              "Advanced Search", JOptionPane.ERROR_MESSAGE);
         }
       } else if (event.getSource() == bSave) {
         // save current result list to file
@@ -772,27 +817,29 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         // open search result
         int row = listResults.getSelectedRow();
         if (row != -1) {
-          ResourceEntry entry = (ResourceEntry)listResults.getValueAt(row, 0);
+          ResourceEntry entry = (ResourceEntry) listResults.getValueAt(row, 0);
           if (entry != null) {
             NearInfinity.getInstance().showResourceEntry(entry);
             Viewable viewable = NearInfinity.getInstance().getViewable();
             showEntryInViewer(row, viewable);
-            if (viewable instanceof DlgResource)
+            if (viewable instanceof DlgResource) {
               NearInfinity.getInstance().toFront();
+            }
           }
         }
       } else if (event.getSource() == bOpenNew) {
         // open search result in new window
         int row = listResults.getSelectedRow();
         if (row != -1) {
-          Resource res = ResourceFactory.getResource((ResourceEntry)listResults.getValueAt(row, 0));
+          Resource res = ResourceFactory.getResource((ResourceEntry) listResults.getValueAt(row, 0));
           new ViewFrame(AdvancedSearch.this, res);
           showEntryInViewer(row, res);
         }
       } else if (event.getSource() instanceof JMenuItem) {
         // process menu items from filter popup menu
-        JMenuItem mi = (JMenuItem)event.getSource();
-        List<Component> list = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem).collect(Collectors.toList());
+        JMenuItem mi = (JMenuItem) event.getSource();
+        List<Component> list = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+            .collect(Collectors.toList());
         switch (list.indexOf(mi)) {
           case MENU_FILTER_ADD:
             actionPerformed(new ActionEvent(bFilterAdd, 0, null));
@@ -816,8 +863,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     // --------------------- Interface MouseListener ---------------------
 
     @Override
-    public void mouseClicked(MouseEvent event)
-    {
+    public void mouseClicked(MouseEvent event) {
       if (event.getSource() == filterList) {
         if (!event.isPopupTrigger() && event.getClickCount() == 2) {
           // double click triggers filter edit
@@ -830,42 +876,39 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     }
 
     @Override
-    public void mousePressed(MouseEvent event)
-    {
+    public void mousePressed(MouseEvent event) {
       if (event.getSource() == filterList) {
         if (event.isPopupTrigger()) {
-          if (!menuFilters.isVisible())
+          if (!menuFilters.isVisible()) {
             menuFilters.show(filterList, event.getX(), event.getY());
+          }
         }
       }
     }
 
     @Override
-    public void mouseReleased(MouseEvent event)
-    {
+    public void mouseReleased(MouseEvent event) {
       if (event.getSource() == filterList) {
         if (event.isPopupTrigger()) {
-          if (!menuFilters.isVisible())
+          if (!menuFilters.isVisible()) {
             menuFilters.show(filterList, event.getX(), event.getY());
+          }
         }
       }
     }
 
     @Override
-    public void mouseEntered(MouseEvent event)
-    {
+    public void mouseEntered(MouseEvent event) {
     }
 
     @Override
-    public void mouseExited(MouseEvent event)
-    {
+    public void mouseExited(MouseEvent event) {
     }
 
     // --------------------- Interface ListSelectionListener ---------------------
 
     @Override
-    public void valueChanged(ListSelectionEvent event)
-    {
+    public void valueChanged(ListSelectionEvent event) {
       if (event.getSource() == filterList) {
         bFilterClone.setEnabled(filterList.getSelectedIndex() != -1);
         bFilterEdit.setEnabled(filterList.getSelectedIndex() != -1);
@@ -880,33 +923,30 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     // --------------------- Interface ListDataListener ---------------------
 
     @Override
-    public void intervalAdded(ListDataEvent event)
-    {
+    public void intervalAdded(ListDataEvent event) {
       listDataChanged(event.getSource());
     }
 
     @Override
-    public void intervalRemoved(ListDataEvent event)
-    {
+    public void intervalRemoved(ListDataEvent event) {
       listDataChanged(event.getSource());
     }
 
     @Override
-    public void contentsChanged(ListDataEvent event)
-    {
+    public void contentsChanged(ListDataEvent event) {
       listDataChanged(event.getSource());
     }
 
     // --------------------- Interface PopupMenuListener ---------------------
 
     @Override
-    public void popupMenuWillBecomeVisible(PopupMenuEvent event)
-    {
+    public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
       if (event.getSource() == menuFilters) {
         // update menu item states based on current filter list state
-        List<Component> items = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem).collect(Collectors.toList());
+        List<Component> items = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+            .collect(Collectors.toList());
         for (int i = 0, cnt = items.size(); i < cnt; i++) {
-          JMenuItem mi = (JMenuItem)items.get(i);
+          JMenuItem mi = (JMenuItem) items.get(i);
           switch (i) {
             case MENU_FILTER_ADD:
               // always enabled
@@ -925,13 +965,11 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     }
 
     @Override
-    public void popupMenuWillBecomeInvisible(PopupMenuEvent event)
-    {
+    public void popupMenuWillBecomeInvisible(PopupMenuEvent event) {
     }
 
     @Override
-    public void popupMenuCanceled(PopupMenuEvent event)
-    {
+    public void popupMenuCanceled(PopupMenuEvent event) {
     }
   }
 }

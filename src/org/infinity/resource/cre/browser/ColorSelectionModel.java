@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -45,9 +45,8 @@ import org.infinity.util.Table2daCache;
  * {@code ComboBoxModel} for the color selection combo box used in the Creature Animation Browser.
  */
 public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.ColorEntry>
-implements ComboBoxModel<ColorSelectionModel.ColorEntry>
-{
-  private static final HashMap<Integer, String> randomColors = new HashMap<>();
+    implements ComboBoxModel<ColorSelectionModel.ColorEntry> {
+  private static final HashMap<Integer, String> RANDOM_COLORS_MAP = new HashMap<>();
 
   private final List<ColorEntry> colorList = new ArrayList<>(256);
   private final ColorCellRenderer renderer = new ColorCellRenderer();
@@ -56,29 +55,30 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
   private ResourceEntry colorEntry;
   private IdsMap colorMap;
 
-  public ColorSelectionModel()
-  {
+  public ColorSelectionModel() {
     this(null);
   }
 
-  public ColorSelectionModel(ResourceEntry bmpResource)
-  {
+  public ColorSelectionModel(ResourceEntry bmpResource) {
     super();
     this.colorMap = ResourceFactory.resourceExists("CLOWNCLR.IDS") ? IdsMapCache.get("CLOWNCLR.IDS") : null;
     setColorRangesEntry(bmpResource);
   }
 
   /** Returns the {@code ListCellRenderer} instance associated with the list model. */
-  public ColorCellRenderer getRenderer() { return renderer; }
+  public ColorCellRenderer getRenderer() {
+    return renderer;
+  }
 
   /**
-   * Returns the {@code ResourceEntry} instance of the BMP resource containing color ranges.
-   * Returns {@code null} if no BMP resource is available.
+   * Returns the {@code ResourceEntry} instance of the BMP resource containing color ranges. Returns {@code null} if no
+   * BMP resource is available.
    */
-  public ResourceEntry getColorRangesEntry() { return colorEntry; }
+  public ResourceEntry getColorRangesEntry() {
+    return colorEntry;
+  }
 
-  public void setColorRangesEntry(ResourceEntry bmpResource)
-  {
+  public void setColorRangesEntry(ResourceEntry bmpResource) {
     if (bmpResource == null) {
       if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
         bmpResource = ResourceFactory.getResourceEntry("PAL32.BMP");
@@ -90,43 +90,37 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
       }
     }
 
-    if ((colorEntry != null && !colorEntry.equals(bmpResource)) ||
-        (colorEntry == null && bmpResource != null)) {
+    if ((colorEntry != null && !colorEntry.equals(bmpResource)) || (colorEntry == null && bmpResource != null)) {
       colorEntry = bmpResource;
       init();
     }
   }
 
-  public void reload()
-  {
+  public void reload() {
     initRandomColors(true);
     init();
   }
 
   /**
    * Returns the index-position of the specified object in the list.
+   *
    * @param anItem a {@code ColorEntry} object or {@code Number} object.
-   * @return an int representing the index position, where 0 is the first position. Returns -1
-   *         if the item could not be found in the list.
+   * @return an int representing the index position, where 0 is the first position. Returns -1 if the item could not be
+   *         found in the list.
    */
-  public int getIndexOf(Object anItem)
-  {
+  public int getIndexOf(Object anItem) {
     if (anItem instanceof ColorEntry) {
       return colorList.indexOf(anItem);
     } else if (anItem instanceof Number) {
-      final int colIdx = ((Number)anItem).intValue();
-      return IntStream
-          .range(0, colorList.size())
-          .filter(i -> colorList.get(i).getIndex() == colIdx)
-          .findAny()
+      final int colIdx = ((Number) anItem).intValue();
+      return IntStream.range(0, colorList.size()).filter(i -> colorList.get(i).getIndex() == colIdx).findAny()
           .orElse(-1);
     }
     return -1;
   }
 
   /** Empties the list. */
-  public void removeAllElements()
-  {
+  public void removeAllElements() {
     if (!colorList.isEmpty()) {
       int oldSize = colorList.size();
       colorList.clear();
@@ -139,17 +133,15 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     }
   }
 
-//--------------------- Begin Interface ListModel ---------------------
+  // --------------------- Begin Interface ListModel ---------------------
 
   @Override
-  public int getSize()
-  {
+  public int getSize() {
     return colorList.size();
   }
 
   @Override
-  public ColorEntry getElementAt(int index)
-  {
+  public ColorEntry getElementAt(int index) {
     if (index >= 0 && index < colorList.size()) {
       return colorList.get(index);
     } else {
@@ -157,44 +149,43 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     }
   }
 
-//--------------------- End Interface ListModel ---------------------
+  // --------------------- End Interface ListModel ---------------------
 
-//--------------------- Begin Interface ComboBoxModel ---------------------
+  // --------------------- Begin Interface ComboBoxModel ---------------------
 
   @Override
-  public void setSelectedItem(Object anItem)
-  {
-    if ((selectedItem != null && !selectedItem.equals(anItem)) ||
-        selectedItem == null && anItem != null) {
+  public void setSelectedItem(Object anItem) {
+    if ((selectedItem != null && !selectedItem.equals(anItem)) || selectedItem == null && anItem != null) {
       selectedItem = anItem;
       fireContentsChanged(this, -1, -1);
     }
   }
 
   @Override
-  public Object getSelectedItem()
-  {
+  public Object getSelectedItem() {
     return selectedItem;
   }
 
-//--------------------- End Interface ComboBoxModel ---------------------
+  // --------------------- End Interface ComboBoxModel ---------------------
 
-  private void init()
-  {
+  private void init() {
     removeAllElements();
 
     initRandomColors(false);
 
     BufferedImage image = null;
-    try {image = new GraphicsResource(getColorRangesEntry()).getImage(); } catch (Exception e) {}
+    try {
+      image = new GraphicsResource(getColorRangesEntry()).getImage();
+    } catch (Exception e) {
+    }
 
     int max = (image != null) ? image.getHeight() - 1 : 0;
-    if (!randomColors.isEmpty()) {
-      max = Math.max(max, Collections.max(randomColors.keySet()));
+    if (!RANDOM_COLORS_MAP.isEmpty()) {
+      max = Math.max(max, Collections.max(RANDOM_COLORS_MAP.keySet()));
     }
 
     for (int i = 0; i <= max; i++) {
-      String name = randomColors.get(Integer.valueOf(i));
+      String name = RANDOM_COLORS_MAP.get(Integer.valueOf(i));
       if (name != null) {
         colorList.add(new ColorEntry(i, name, true));
       } else {
@@ -214,13 +205,12 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     setSelectedItem(getElementAt(0));
   }
 
-  private static synchronized void initRandomColors(boolean forced)
-  {
+  private static synchronized void initRandomColors(boolean forced) {
     if (forced) {
-      randomColors.clear();
+      RANDOM_COLORS_MAP.clear();
     }
 
-    if (randomColors.isEmpty()) {
+    if (RANDOM_COLORS_MAP.isEmpty()) {
       ResourceEntry randomEntry = ResourceFactory.getResourceEntry("RANDCOLR.2DA");
 
       // collecting valid random color indices
@@ -230,33 +220,30 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
           int index = Misc.toNumber(table.get(0, col), -1);
           String name = Misc.prettifySymbol(table.getHeader(col));
           if (index >= 0 && index < 256) {
-            randomColors.put(index, name);
+            RANDOM_COLORS_MAP.put(index, name);
           }
         }
       }
     }
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public static class ColorCellRenderer extends DefaultListCellRenderer
-  {
+  public static class ColorCellRenderer extends DefaultListCellRenderer {
     private static final Border DEFAULT_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
 
-    public ColorCellRenderer()
-    {
+    public ColorCellRenderer() {
       super();
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                  boolean isSelected, boolean cellHasFocus)
-    {
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
       if (value == null || !(value instanceof ColorEntry)) {
         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
 
-      ColorEntry entry = (ColorEntry)value;
+      ColorEntry entry = (ColorEntry) value;
       if (isSelected) {
         setBackground(list.getSelectionBackground());
         setForeground(list.getSelectionForeground());
@@ -297,8 +284,7 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     }
   }
 
-  public static class ColorEntry implements Comparable<ColorEntry>
-  {
+  public static class ColorEntry implements Comparable<ColorEntry> {
     public enum State {
       /** Indicates a fixed color entry. */
       FIXED,
@@ -312,20 +298,20 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     // take global font scaling into account
     private static final int DEFAULT_IMAGE_HEIGHT = 20 * BrowserMenuBar.getInstance().getGlobalFontSize() / 100;
 
-    private static final Color COLOR_INVALID      = new Color(0xe0e0e0);
-    private static final Color COLOR_RANDOM       = Color.LIGHT_GRAY;
+    private static final Color COLOR_INVALID = new Color(0xe0e0e0);
+    private static final Color COLOR_RANDOM = Color.LIGHT_GRAY;
 
-    private static final String LABEL_INVALID     = "(Invalid)";
-    private static final String LABEL_RANDOM      = "(Random)";
+    private static final String LABEL_INVALID = "(Invalid)";
+    private static final String LABEL_RANDOM = "(Random)";
 
     private final int index;
     private final Image image;
+
     private String name;
     private State state;
 
     /** Creates a fixed color entry. */
-    public ColorEntry(BufferedImage ranges, int index, String name)
-    {
+    public ColorEntry(BufferedImage ranges, int index, String name) {
       this.index = Math.max(0, Math.min(255, index));
       this.name = (name != null) ? name.trim() : "";
       this.image = createFixedColor(ranges, index);
@@ -333,30 +319,39 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
 
     /**
      * Creates a random color or invalid color entry.
+     *
      * @param name
      * @param isRandom
      */
-    public ColorEntry(int index, String name, boolean isRandom)
-    {
+    public ColorEntry(int index, String name, boolean isRandom) {
       this.index = Math.max(0, Math.min(255, index));
       this.name = (name != null) ? name.trim() : "";
       this.image = isRandom ? createRandomColor() : createInvalidColor();
     }
 
-    public int getIndex() { return index; }
-    public Image getImage() { return image; }
-    public String getName() { return name; }
-    public State getState() { return state; }
+    public int getIndex() {
+      return index;
+    }
+
+    public Image getImage() {
+      return image;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public State getState() {
+      return state;
+    }
 
     @Override
-    public int compareTo(ColorEntry o)
-    {
+    public int compareTo(ColorEntry o) {
       return getIndex() - o.getIndex();
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       if (getName().isEmpty()) {
         return Integer.toString(getIndex());
       } else {
@@ -364,8 +359,7 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
       }
     }
 
-    private Image createFixedColor(BufferedImage image, int index)
-    {
+    private Image createFixedColor(BufferedImage image, int index) {
       if (image == null || index < 0 || index >= image.getHeight()) {
         return createInvalidColor();
       }
@@ -385,12 +379,15 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
       return range;
     }
 
-    private Image createRandomColor() { return createCustomColor(COLOR_RANDOM, LABEL_RANDOM); }
+    private Image createRandomColor() {
+      return createCustomColor(COLOR_RANDOM, LABEL_RANDOM);
+    }
 
-    private Image createInvalidColor() { return createCustomColor(COLOR_INVALID, LABEL_INVALID); }
+    private Image createInvalidColor() {
+      return createCustomColor(COLOR_INVALID, LABEL_INVALID);
+    }
 
-    private Image createCustomColor(Color color, String label)
-    {
+    private Image createCustomColor(Color color, String label) {
       state = (color != null) ? State.RANDOM : State.INVALID;
       Color col = (color != null) ? color : COLOR_INVALID;
       String text = (label != null) ? label : LABEL_INVALID;
@@ -407,9 +404,8 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
           g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
           FontMetrics fm = g.getFontMetrics();
           Rectangle2D rect = fm.getStringBounds(label, g);
-          g.drawString(text,
-                       (float)(range.getWidth() - rect.getWidth()) / 2.0f,
-                       (float)(range.getHeight() - rect.getY()) / 2.0f);
+          g.drawString(text, (float) (range.getWidth() - rect.getWidth()) / 2.0f,
+              (float) (range.getHeight() - rect.getY()) / 2.0f);
         }
       } finally {
         g.dispose();

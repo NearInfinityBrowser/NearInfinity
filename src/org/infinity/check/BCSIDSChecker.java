@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -20,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -42,94 +43,87 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
-public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
-{
+public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener {
   private ChildFrame resultFrame;
-  private JButton bopen, bopennew, bsave;
+  private JButton bopen;
+  private JButton bopennew;
+  private JButton bsave;
+
   /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
 
-  public BCSIDSChecker(Component parent)
-  {
+  public BCSIDSChecker(Component parent) {
     super(CHECK_ONE_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        BcsResource bcsfile = (BcsResource)NearInfinity.getInstance().getViewable();
-        bcsfile.highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+        BcsResource bcsfile = (BcsResource) NearInfinity.getInstance().getViewable();
+        bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
       }
-    }
-    else if (event.getSource() == bopennew) {
+    } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         Resource resource = ResourceFactory.getResource(resourceEntry);
         ViewFrame viewFrame = new ViewFrame(resultFrame, resource);
-        BcsResource bcsfile = (BcsResource)viewFrame.getViewable();
-        bcsfile.highlightText(((Integer)table.getValueAt(row, 2)).intValue(), null);
+        BcsResource bcsfile = (BcsResource) viewFrame.getViewable();
+        bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
       }
-    }
-    else if (event.getSource() == bsave) {
+    } else if (event.getSource() == bsave) {
       table.saveCheckResult(resultFrame, "Unknown IDS references in BCS & BS files");
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bopen.setEnabled(true);
     bopennew.setEnabled(true);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
       final List<ResourceEntry> bcsFiles = ResourceFactory.getResources("BCS");
       bcsFiles.addAll(ResourceFactory.getResources("BS"));
 
-      table = new SortableTable(new String[]{"File", "Error message", "Line"},
-                                new Class<?>[]{ResourceEntry.class, String.class, Integer.class},
-                                new Integer[]{100, 300, 50});
+      table = new SortableTable(new String[] { "File", "Error message", "Line" },
+          new Class<?>[] { ResourceEntry.class, String.class, Integer.class }, new Integer[] { 100, 300, 50 });
 
       if (runSearch("Checking", bcsFiles)) {
         return;
       }
 
       if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unknown references found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unknown references found", "Info",
+            JOptionPane.INFORMATION_MESSAGE);
       } else {
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
-        JLabel count = new JLabel(table.getRowCount() + " hits(s) found", JLabel.CENTER);
-        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+        JLabel count = new JLabel(table.getRowCount() + " hits(s) found", SwingConstants.CENTER);
+        count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
         bopen.setMnemonic('o');
         bopennew.setMnemonic('n');
         bsave.setMnemonic('s');
@@ -140,7 +134,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
         panel.add(bsave);
         JScrollPane scrollTable = new JScrollPane(table);
         scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel)resultFrame.getContentPane();
+        JPanel pane = (JPanel) resultFrame.getContentPane();
         pane.setLayout(new BorderLayout(0, 3));
         pane.add(count, BorderLayout.NORTH);
         pane.add(scrollTable, BorderLayout.CENTER);
@@ -150,15 +144,13 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
         table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
-        table.addMouseListener(new MouseAdapter()
-        {
+        table.addMouseListener(new MouseAdapter() {
           @Override
-          public void mouseReleased(MouseEvent event)
-          {
+          public void mouseReleased(MouseEvent event) {
             if (event.getClickCount() == 2) {
               int row = table.getSelectedRow();
               if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
                 Resource resource = ResourceFactory.getResource(resourceEntry);
                 new ViewFrame(resultFrame, resource);
               }
@@ -178,11 +170,10 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry)
-  {
+  protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       try {
         checkScript(new BcsResource(entry));
@@ -202,8 +193,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
    *
    * @throws Exception If {@code script} contains invalid code
    */
-  private void checkScript(BcsResource script) throws Exception
-  {
+  private void checkScript(BcsResource script) throws Exception {
     final Decompiler decompiler = new Decompiler(script.getCode(), ScriptType.BCS, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
@@ -211,11 +201,8 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
     for (final Map.Entry<Integer, String> e : decompiler.getIdsErrors().entrySet()) {
       final Integer lineNr = e.getKey();
       final String error = e.getValue();
-      if (!error.contains("GTIMES.IDS") &&
-          !error.contains("SCROLL.IDS") &&
-          !error.contains("SHOUTIDS.IDS") &&
-          !error.contains("SPECIFIC.IDS") &&
-          !error.contains("TIME.IDS")) {
+      if (!error.contains("GTIMES.IDS") && !error.contains("SCROLL.IDS") && !error.contains("SHOUTIDS.IDS")
+          && !error.contains("SPECIFIC.IDS") && !error.contains("TIME.IDS")) {
         synchronized (table) {
           table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
         }
@@ -223,36 +210,32 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private static final class BCSIDSErrorTableLine implements TableItem
-  {
+  private static final class BCSIDSErrorTableLine implements TableItem {
     private final ResourceEntry resourceEntry;
     private final String error;
     private final Integer lineNr;
 
-    private BCSIDSErrorTableLine(ResourceEntry resourceEntry, String error, Integer lineNr)
-    {
+    private BCSIDSErrorTableLine(ResourceEntry resourceEntry, String error, Integer lineNr) {
       this.resourceEntry = resourceEntry;
       this.error = error;
       this.lineNr = lineNr;
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
-      if (columnIndex == 0)
+    public Object getObjectAt(int columnIndex) {
+      if (columnIndex == 0) {
         return resourceEntry;
-      else if (columnIndex == 1)
+      } else if (columnIndex == 1) {
         return error;
+      }
       return lineNr;
     }
 
     @Override
-    public String toString()
-    {
-      return String.format("File: %s, Line: %d, Error: %s",
-                           resourceEntry.getResourceName(), lineNr, error);
+    public String toString() {
+      return String.format("File: %s, Line: %d, Error: %s", resourceEntry.getResourceName(), lineNr, error);
     }
   }
 }

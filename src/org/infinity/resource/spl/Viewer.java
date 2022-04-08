@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.spl;
@@ -26,26 +26,27 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 
-public final class Viewer extends JPanel
-{
-  private static final HashMap<Integer, String> SpellPrefix = new HashMap<>();
-  private static final HashMap<String, Integer> SpellType = new HashMap<>();
+public final class Viewer extends JPanel {
+  private static final HashMap<Integer, String> SPELL_PREFIX_MAP = new HashMap<>();
+
+  private static final HashMap<String, Integer> SPELL_TYPE_MAP = new HashMap<>();
+
   static {
-    SpellPrefix.put(Integer.valueOf(0), "MARW");
-    SpellPrefix.put(Integer.valueOf(1), "SPPR");
-    SpellPrefix.put(Integer.valueOf(2), "SPWI");
-    SpellPrefix.put(Integer.valueOf(3), "SPIN");
-    SpellPrefix.put(Integer.valueOf(4), "SPCL");
-    SpellType.put("MARW", Integer.valueOf(0));
-    SpellType.put("SPPR", Integer.valueOf(1));
-    SpellType.put("SPWI", Integer.valueOf(2));
-    SpellType.put("SPIN", Integer.valueOf(3));
-    SpellType.put("SPCL", Integer.valueOf(4));
+    SPELL_PREFIX_MAP.put(0, "MARW");
+    SPELL_PREFIX_MAP.put(1, "SPPR");
+    SPELL_PREFIX_MAP.put(2, "SPWI");
+    SPELL_PREFIX_MAP.put(3, "SPIN");
+    SPELL_PREFIX_MAP.put(4, "SPCL");
+
+    SPELL_TYPE_MAP.put("MARW", 0);
+    SPELL_TYPE_MAP.put("SPPR", 1);
+    SPELL_TYPE_MAP.put("SPWI", 2);
+    SPELL_TYPE_MAP.put("SPIN", 3);
+    SPELL_TYPE_MAP.put("SPCL", 4);
   }
 
   // Returns an (optionally formatted) String containing the symbolic spell name as defined in SPELL.IDS
-  public static String getSymbolicName(ResourceEntry entry, boolean formatted)
-  {
+  public static String getSymbolicName(ResourceEntry entry, boolean formatted) {
     if (entry != null) {
       String ext = entry.getExtension().toUpperCase(Locale.ENGLISH);
       String name = entry.getResourceRef().toUpperCase(Locale.ENGLISH);
@@ -54,8 +55,8 @@ public final class Viewer extends JPanel
         // fetching spell type
         String s = name.substring(0, 4);
         int type = 0;
-        if (SpellType.containsKey(s)) {
-          type = SpellType.get(s).intValue();
+        if (SPELL_TYPE_MAP.containsKey(s)) {
+          type = SPELL_TYPE_MAP.get(s);
         }
 
         // fetching spell code
@@ -69,14 +70,14 @@ public final class Viewer extends JPanel
         // returning symbolic spell name
         if (code >= 0) {
           // Note: type >= 10 is technically possible, but is skipped for performance reasons
-          int[] types = (type >= 1 && type <= 4) ? new int[]{type} : new int[]{0, 5, 6, 7, 8, 9};
-          for (int curType: types) {
-            int value = curType*1000 + code;
+          int[] types = (type >= 1 && type <= 4) ? new int[] { type } : new int[] { 0, 5, 6, 7, 8, 9 };
+          for (int curType : types) {
+            int value = curType * 1000 + code;
             IdsMap ids = IdsMapCache.get("SPELL.IDS");
             IdsMapEntry idsEntry = ids.get(value);
             if (idsEntry != null) {
               if (formatted) {
-                return String.format("%s (%d)", idsEntry.getSymbol(), (int)idsEntry.getID());
+                return String.format("%s (%d)", idsEntry.getSymbol(), (int) idsEntry.getID());
               } else {
                 return idsEntry.getSymbol();
               }
@@ -89,13 +90,12 @@ public final class Viewer extends JPanel
   }
 
   // Returns the resource filename associated with the specified symbolic name as defined in SPELL.IDS
-  public static String getResourceName(String symbol, boolean extension)
-  {
+  public static String getResourceName(String symbol, boolean extension) {
     if (symbol != null) {
       IdsMap ids = IdsMapCache.get("SPELL.IDS");
       IdsMapEntry idsEntry = ids.lookup(symbol);
       if (idsEntry != null) {
-        int value = (int)idsEntry.getID();
+        int value = (int) idsEntry.getID();
         return getResourceName(value, extension);
       }
     }
@@ -103,12 +103,13 @@ public final class Viewer extends JPanel
   }
 
   // Returns the resource filename associated with the specified spell code as defined in SPELL.IDS
-  public static String getResourceName(int value, boolean extension)
-  {
+  public static String getResourceName(int value, boolean extension) {
     int type = value / 1000;
-    if (type > 4) { type = 0; }
+    if (type > 4) {
+      type = 0;
+    }
     int code = value % 1000;
-    String prefix = SpellPrefix.get(Integer.valueOf(type));
+    String prefix = SPELL_PREFIX_MAP.get(Integer.valueOf(type));
     if (prefix != null) {
       String nameBase = String.format("%s%03d", prefix, code);
       return extension ? nameBase + ".SPL" : nameBase;
@@ -116,8 +117,7 @@ public final class Viewer extends JPanel
     return null;
   }
 
-  private static JPanel makeFieldPanel(SplResource spl)
-  {
+  private static JPanel makeFieldPanel(SplResource spl) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldPanel = new JPanel(gbl);
@@ -135,9 +135,8 @@ public final class Viewer extends JPanel
     return fieldPanel;
   }
 
-  Viewer(SplResource spl)
-  {
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)spl.getAttribute(SplResource.SPL_ICON), 0, 0);
+  Viewer(SplResource spl) {
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) spl.getAttribute(SplResource.SPL_ICON), 0, 0);
     JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
     JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class, AbstractAbility.ABILITY_TYPE);
     JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute(SplResource.SPL_DESCRIPTION));
@@ -155,4 +154,3 @@ public final class Viewer extends JPanel
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
   }
 }
-

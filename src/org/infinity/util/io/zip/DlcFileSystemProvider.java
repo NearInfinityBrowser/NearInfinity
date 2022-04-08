@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -68,30 +68,27 @@ import java.util.Set;
 /**
  * FileSystemProvider implementation for DLC archives in zip format.
  */
-public class DlcFileSystemProvider extends FileSystemProvider
-{
+public class DlcFileSystemProvider extends FileSystemProvider {
   /** Returns the URI scheme that identifies this provider. */
   public static final String SCHEME = "dlc";
 
   private final Map<Path, DlcFileSystem> filesystems = new HashMap<>();
 
-  public DlcFileSystemProvider() {}
+  public DlcFileSystemProvider() {
+  }
 
   @Override
-  public String getScheme()
-  {
+  public String getScheme() {
     return SCHEME;
   }
 
   @Override
-  public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
-  {
+  public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
     return newFileSystem(uriToPath(uri), env);
   }
 
   @Override
-  public FileSystem newFileSystem(Path path, Map<String, ?> env) throws IOException
-  {
+  public FileSystem newFileSystem(Path path, Map<String, ?> env) throws IOException {
     if (path.getFileSystem() != FileSystems.getDefault()) {
       throw new UnsupportedOperationException();
     }
@@ -109,7 +106,7 @@ public class DlcFileSystemProvider extends FileSystemProvider
         dlcfs = new DlcFileSystem(this, path, env);
       } catch (DlcError de) {
         String pname = path.toString();
-        if(pname.endsWith(".zip") || pname.endsWith(".mod")) {
+        if (pname.endsWith(".zip") || pname.endsWith(".mod")) {
           throw de;
         }
         // assume NOT a zip file
@@ -121,8 +118,7 @@ public class DlcFileSystemProvider extends FileSystemProvider
   }
 
   @Override
-  public FileSystem getFileSystem(URI uri)
-  {
+  public FileSystem getFileSystem(URI uri) {
     synchronized (filesystems) {
       DlcFileSystem dlcfs = null;
       try {
@@ -139,132 +135,108 @@ public class DlcFileSystemProvider extends FileSystemProvider
   }
 
   @Override
-  public Path getPath(URI uri)
-  {
+  public Path getPath(URI uri) {
     String spec = uri.getSchemeSpecificPart();
     int sep = spec.indexOf("!/");
     if (sep == -1) {
-      throw new IllegalArgumentException("URI: " + uri +
-                                         " does not contain path info ex. dlc:file:/c:/foo.zip!/BAR");
+      throw new IllegalArgumentException("URI: " + uri + " does not contain path info ex. dlc:file:/c:/foo.zip!/BAR");
     }
     return getFileSystem(uri).getPath(spec.substring(sep + 1));
   }
 
   @Override
-  public InputStream newInputStream(Path path, OpenOption... options) throws IOException
-  {
+  public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
     return toDlcPath(path).newInputStream(options);
   }
 
   @Override
-  public OutputStream newOutputStream(Path path, OpenOption... options) throws IOException
-  {
+  public OutputStream newOutputStream(Path path, OpenOption... options) throws IOException {
     return toDlcPath(path).newOutputStream(options);
   }
 
   @Override
-  public FileChannel newFileChannel(Path path, Set<? extends OpenOption> options,
-                                    FileAttribute<?>... attrs) throws IOException
-  {
+  public FileChannel newFileChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
+      throws IOException {
     return toDlcPath(path).newFileChannel(options, attrs);
   }
 
   @Override
-  public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options,
-                                            FileAttribute<?>... attrs) throws IOException
-  {
+  public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
+      throws IOException {
     return toDlcPath(path).newByteChannel(options, attrs);
   }
 
   @Override
-  public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter)
-      throws IOException
-  {
+  public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
     return toDlcPath(dir).newDirectoryStream(filter);
   }
 
   @Override
-  public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException
-  {
+  public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
     toDlcPath(dir).createDirectory(attrs);
   }
 
   @Override
-  public void delete(Path path) throws IOException
-  {
+  public void delete(Path path) throws IOException {
     toDlcPath(path).delete();
   }
 
   @Override
-  public void copy(Path source, Path target, CopyOption... options) throws IOException
-  {
+  public void copy(Path source, Path target, CopyOption... options) throws IOException {
     toDlcPath(source).copy(toDlcPath(target), options);
   }
 
   @Override
-  public void move(Path source, Path target, CopyOption... options) throws IOException
-  {
+  public void move(Path source, Path target, CopyOption... options) throws IOException {
     toDlcPath(source).move(toDlcPath(target), options);
   }
 
   @Override
-  public boolean isSameFile(Path path, Path path2) throws IOException
-  {
+  public boolean isSameFile(Path path, Path path2) throws IOException {
     return toDlcPath(path).isSameFile(path2);
   }
 
   @Override
-  public boolean isHidden(Path path) throws IOException
-  {
+  public boolean isHidden(Path path) throws IOException {
     return toDlcPath(path).isHidden();
   }
 
   @Override
-  public FileStore getFileStore(Path path) throws IOException
-  {
+  public FileStore getFileStore(Path path) throws IOException {
     return toDlcPath(path).getFileStore();
   }
 
   @Override
-  public void checkAccess(Path path, AccessMode... modes) throws IOException
-  {
+  public void checkAccess(Path path, AccessMode... modes) throws IOException {
     toDlcPath(path).checkAccess(modes);
   }
 
   @Override
-  public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type,
-                                                              LinkOption... options)
-  {
+  public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
     return DlcFileAttributeView.get(toDlcPath(path), type);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type,
-                                                          LinkOption... options) throws IOException
-  {
+  public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
+      throws IOException {
     if (type == BasicFileAttributes.class || type == DlcFileAttributes.class) {
-      return (A)toDlcPath(path).getAttributes();
+      return (A) toDlcPath(path).getAttributes();
     }
     return null;
   }
 
   @Override
-  public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options)
-      throws IOException
-  {
+  public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
     return toDlcPath(path).readAttributes(attributes, options);
   }
 
   @Override
-  public void setAttribute(Path path, String attribute, Object value, LinkOption... options)
-      throws IOException
-  {
+  public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
     toDlcPath(path).setAttribute(attribute, value, options);
   }
 
-  protected Path uriToPath(URI uri)
-  {
+  protected Path uriToPath(URI uri) {
     String scheme = uri.getScheme();
     if ((scheme == null) || !scheme.equalsIgnoreCase(getScheme())) {
       throw new IllegalArgumentException("URI scheme is not '" + getScheme() + "'");
@@ -282,8 +254,7 @@ public class DlcFileSystemProvider extends FileSystemProvider
     }
   }
 
-  private boolean ensureFile(Path path)
-  {
+  private boolean ensureFile(Path path) {
     try {
       BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
       if (!attrs.isRegularFile()) {
@@ -296,8 +267,7 @@ public class DlcFileSystemProvider extends FileSystemProvider
   }
 
   // Checks that the given file is a UnixPath
-  static final DlcPath toDlcPath(Path path)
-  {
+  protected static final DlcPath toDlcPath(Path path) {
     if (path == null) {
       throw new NullPointerException();
     }
@@ -307,10 +277,8 @@ public class DlcFileSystemProvider extends FileSystemProvider
     return (DlcPath) path;
   }
 
-
   //////////////////////////////////////////////////////////////
-  void removeFileSystem(Path dfpath, DlcFileSystem dfs) throws IOException
-  {
+  protected void removeFileSystem(Path dfpath, DlcFileSystem dfs) throws IOException {
     synchronized (filesystems) {
       dfpath = dfpath.toRealPath();
       if (filesystems.get(dfpath) == dfs) {

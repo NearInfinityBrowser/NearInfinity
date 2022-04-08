@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.infinity.resource.Profile;
@@ -30,8 +29,7 @@ import org.infinity.util.io.StreamUtils;
  * General-purpose creature animation decoder for handling non-existing or unknown animation types.
  * Available ranges: [0000,ffff]
  */
-public class PlaceholderDecoder extends SpriteDecoder
-{
+public class PlaceholderDecoder extends SpriteDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.PLACEHOLDER;
 
@@ -39,8 +37,7 @@ public class PlaceholderDecoder extends SpriteDecoder
   private static final ResourceEntry BAM_PLACEHOLDER = loadPlaceholderBam();
 
   /** Loads the placeholder animation into memory as a virtual resource entry object. */
-  private static ResourceEntry loadPlaceholderBam()
-  {
+  private static ResourceEntry loadPlaceholderBam() {
     ResourceEntry retVal = null;
     // REMEMBER: BAM file path is relative to PlaceholderDecoder class path
     try (InputStream is = PlaceholderDecoder.class.getResourceAsStream("placeholder.bam")) {
@@ -58,19 +55,16 @@ public class PlaceholderDecoder extends SpriteDecoder
     return retVal;
   }
 
-  public PlaceholderDecoder(int animationId, IniMap ini) throws Exception
-  {
+  public PlaceholderDecoder(int animationId, IniMap ini) throws Exception {
     super(ANIMATION_TYPE, animationId, ini);
   }
 
-  public PlaceholderDecoder(CreResource cre) throws Exception
-  {
+  public PlaceholderDecoder(CreResource cre) throws Exception {
     super(ANIMATION_TYPE, cre);
   }
 
   @Override
-  public List<String> getAnimationFiles(boolean essential)
-  {
+  public List<String> getAnimationFiles(boolean essential) {
     String resref = getAnimationResref();
     ArrayList<String> retVal = new ArrayList<>();
     retVal.add(resref + ".BAM");
@@ -78,19 +72,16 @@ public class PlaceholderDecoder extends SpriteDecoder
   }
 
   @Override
-  public boolean isSequenceAvailable(Sequence seq)
-  {
+  public boolean isSequenceAvailable(Sequence seq) {
     return (getSequenceDefinition(seq) != null);
   }
 
   @Override
-  protected IniMapSection getSpecificIniSection()
-  {
+  protected IniMapSection getSpecificIniSection() {
     IniMapSection retVal = null;
     IniMap ini = getAnimationInfo();
     if (ini != null) {
-      for (final Iterator<IniMapSection> iter = ini.iterator(); iter.hasNext(); ) {
-        IniMapSection section = iter.next();
+      for (IniMapSection section : ini) {
         switch (section.getName().toLowerCase()) {
           case "general":
           case "sounds":
@@ -112,16 +103,14 @@ public class PlaceholderDecoder extends SpriteDecoder
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     // setting properties
     initDefaults(getAnimationInfo());
 
     // autodetecting animation attributes
     IniMapSection section = getSpecificIniSection();
     setAttribute(KEY_ANIMATION_SECTION, section.getName()); // override with animation-specific name
-    for (final Iterator<IniMapEntry> iter = section.iterator(); iter.hasNext(); ) {
-      IniMapEntry entry = iter.next();
+    for (IniMapEntry entry : section) {
       String key = entry.getKey();
       String value = entry.getValue();
       try {
@@ -138,22 +127,21 @@ public class PlaceholderDecoder extends SpriteDecoder
   }
 
   @Override
-  protected SeqDef getSequenceDefinition(Sequence seq)
-  {
+  protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
 
     switch (Profile.getGame()) {
       case PST:
       case PSTEE:
         if (seq == Sequence.PST_STAND) {
-          retVal = SeqDef.createSequence(seq, new Direction[] {Direction.S}, false,
-                                         BAM_PLACEHOLDER, 0, SegmentDef.SpriteType.AVATAR);
+          retVal = SeqDef.createSequence(seq, new Direction[] { Direction.S }, false, BAM_PLACEHOLDER, 0,
+              SegmentDef.SpriteType.AVATAR);
         }
         break;
       default:
         if (seq == Sequence.STAND) {
-          retVal = SeqDef.createSequence(seq, new Direction[] {Direction.S}, false,
-                                         BAM_PLACEHOLDER, 0, SegmentDef.SpriteType.AVATAR);
+          retVal = SeqDef.createSequence(seq, new Direction[] { Direction.S }, false, BAM_PLACEHOLDER, 0,
+              SegmentDef.SpriteType.AVATAR);
         }
     }
     return retVal;

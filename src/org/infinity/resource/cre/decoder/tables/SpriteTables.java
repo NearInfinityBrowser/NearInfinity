@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.tables;
@@ -26,8 +26,7 @@ import org.infinity.util.Table2da;
 /**
  * A static class that provides information and methods for hardcoded creature animations.
  */
-public class SpriteTables
-{
+public class SpriteTables {
   // Number of non-PST table columns (id column included)
   public static final int NUM_COLUMNS           = 16;
   // Number of PST table columns (id column included)
@@ -61,55 +60,59 @@ public class SpriteTables
   public static final int COLUMN_PST_ARMOR      = 7;    // int
   public static final int COLUMN_PST_BESTIARY   = 8;    // int
 
-  private static final EnumMap<Profile.Game, List<String>> TableMaps = new EnumMap<Profile.Game, List<String>>(Profile.Game.class) {{
-    put(Profile.Game.BG1, Arrays.asList("avatars-bg1.2da"));
-    put(Profile.Game.BG1TotSC, get(Profile.Game.BG1));
+  private static final EnumMap<Profile.Game, List<String>> TABLE_MAPS = new EnumMap<Profile.Game, List<String>>(Profile.Game.class);
 
-    put(Profile.Game.IWD, Arrays.asList("avatars-iwd.2da"));
-    put(Profile.Game.IWDHoW, Arrays.asList("avatars-iwdhow.2da", "avatars-iwd.2da"));
-    put(Profile.Game.IWDHowTotLM, get(Profile.Game.IWDHoW));
+  static {
+    TABLE_MAPS.put(Profile.Game.BG1, Arrays.asList("avatars-bg1.2da"));
+    TABLE_MAPS.put(Profile.Game.BG1TotSC, TABLE_MAPS.get(Profile.Game.BG1));
 
-    put(Profile.Game.IWD2, Arrays.asList("avatars-iwd2.2da"));
+    TABLE_MAPS.put(Profile.Game.IWD, Arrays.asList("avatars-iwd.2da"));
+    TABLE_MAPS.put(Profile.Game.IWDHoW, Arrays.asList("avatars-iwdhow.2da", "avatars-iwd.2da"));
+    TABLE_MAPS.put(Profile.Game.IWDHowTotLM, TABLE_MAPS.get(Profile.Game.IWDHoW));
 
-    put(Profile.Game.PST, Arrays.asList("avatars-pst.2da"));
+    TABLE_MAPS.put(Profile.Game.IWD2, Arrays.asList("avatars-iwd2.2da"));
 
-    put(Profile.Game.BG2SoA, Arrays.asList("avatars-bg2soa.2da"));
-    put(Profile.Game.BG2ToB, Arrays.asList("avatars-bg2tob.2da", "avatars-bg2soa.2da"));
-    put(Profile.Game.Tutu, get(Profile.Game.BG2ToB));
-    put(Profile.Game.BGT, get(Profile.Game.BG2ToB));
-    put(Profile.Game.Unknown, get(Profile.Game.BG2ToB));
+    TABLE_MAPS.put(Profile.Game.PST, Arrays.asList("avatars-pst.2da"));
 
-    put(Profile.Game.BG1EE, Arrays.asList("avatars-bgee.2da", "avatars-bg2ee.2da", "avatars-bg2tob.2da"));
-    put(Profile.Game.BG1SoD, get(Profile.Game.BG1EE));
-    put(Profile.Game.BG2EE, Arrays.asList("avatars-bg2ee.2da", "avatars-bgee.2da", "avatars-bg2tob.2da"));
-    put(Profile.Game.EET, Arrays.asList("avatars-eet.2da", "avatars-bgee.2da", "avatars-bg2ee.2da", "avatars-bg2tob.2da"));
+    TABLE_MAPS.put(Profile.Game.BG2SoA, Arrays.asList("avatars-bg2soa.2da"));
+    TABLE_MAPS.put(Profile.Game.BG2ToB, Arrays.asList("avatars-bg2tob.2da", "avatars-bg2soa.2da"));
+    TABLE_MAPS.put(Profile.Game.Tutu, TABLE_MAPS.get(Profile.Game.BG2ToB));
+    TABLE_MAPS.put(Profile.Game.BGT, TABLE_MAPS.get(Profile.Game.BG2ToB));
+    TABLE_MAPS.put(Profile.Game.Unknown, TABLE_MAPS.get(Profile.Game.BG2ToB));
 
-    put(Profile.Game.IWDEE, Arrays.asList("avatars-iwdee.2da", "avatars-bgee.2da", "avatars-bg2ee.2da"));
+    TABLE_MAPS.put(Profile.Game.BG1EE, Arrays.asList("avatars-bgee.2da", "avatars-bg2ee.2da", "avatars-bg2tob.2da"));
+    TABLE_MAPS.put(Profile.Game.BG1SoD, TABLE_MAPS.get(Profile.Game.BG1EE));
+    TABLE_MAPS.put(Profile.Game.BG2EE, Arrays.asList("avatars-bg2ee.2da", "avatars-bgee.2da", "avatars-bg2tob.2da"));
+    TABLE_MAPS.put(Profile.Game.EET,
+        Arrays.asList("avatars-eet.2da", "avatars-bgee.2da", "avatars-bg2ee.2da", "avatars-bg2tob.2da"));
 
-    put(Profile.Game.PSTEE, Arrays.asList("avatars-pstee.2da"));
-  }};
+    TABLE_MAPS.put(Profile.Game.IWDEE, Arrays.asList("avatars-iwdee.2da", "avatars-bgee.2da", "avatars-bg2ee.2da"));
 
+    TABLE_MAPS.put(Profile.Game.PSTEE, Arrays.asList("avatars-pstee.2da"));
+
+  }
 
   /**
    * Creates a creature animation INI definition from the table associated with the specified animation id.
+   *
    * @param animationId the creature animation id
-   * @return a list of {@link IniMap} instances containing animation information.
-   *         Returns an empty {@code IniMap} list if no information could be determined.
+   * @return a list of {@link IniMap} instances containing animation information. Returns an empty {@code IniMap} list
+   *         if no information could be determined.
    */
-  public static List<IniMap> createIniMaps(int animationId)
-  {
+  public static List<IniMap> createIniMaps(int animationId) {
     return createIniMaps(Profile.getGame(), animationId);
   }
 
   /**
-   * Creates a creature animation INI definition from the game-specific table associated with the specified animation id.
-   * @param game considers only table definitions for the specified game.
+   * Creates a creature animation INI definition from the game-specific table associated with the specified animation
+   * id.
+   *
+   * @param game        considers only table definitions for the specified game.
    * @param animationId the creature animation id
-   * @return a list of {@link IniMap} instances containing animation information.
-   *         Returns {@code null} if no information could be determined.
+   * @return a list of {@link IniMap} instances containing animation information. Returns {@code null} if no information
+   *         could be determined.
    */
-  public static List<IniMap> createIniMaps(Profile.Game game, int animationId)
-  {
+  public static List<IniMap> createIniMaps(Profile.Game game, int animationId) {
     List<IniMap> retVal = new ArrayList<>();
     if (game == null) {
       game = Profile.getGame();
@@ -139,14 +142,14 @@ public class SpriteTables
 
   /**
    * Attempts to create a list of potential {@link IniMap} instances based on the specified arguments.
-   * @param game considers only table definitions for the specified game.
-   * @param table hardcoded table data used as source for generating a list of {@code IniMap} instances.
+   *
+   * @param game        considers only table definitions for the specified game.
+   * @param table       hardcoded table data used as source for generating a list of {@code IniMap} instances.
    * @param animationId the creature animation id.
-   * @return a list of {@link IniMap} instances containing animation information.
-   *         Returns an empty {@code IniMap} list if no information could be determined.
+   * @return a list of {@link IniMap} instances containing animation information. Returns an empty {@code IniMap} list
+   *         if no information could be determined.
    */
-  public static List<IniMap> processTable(Profile.Game game, Table2da table, int animationId)
-  {
+  public static List<IniMap> processTable(Profile.Game game, Table2da table, int animationId) {
     List<IniMap> retVal = null;
     if (game == null || table == null) {
       return retVal;
@@ -162,8 +165,7 @@ public class SpriteTables
   }
 
   /** Processes tables for non-PST games. */
-  private static List<IniMap> processTable(Table2da table, int animationId)
-  {
+  private static List<IniMap> processTable(Table2da table, int animationId) {
     List<IniMap> retVal = new ArrayList<>();
     if (table == null) {
       return retVal;
@@ -200,7 +202,7 @@ public class SpriteTables
         Method method = cls.getMethod("processTableData", String[].class);
         Object o = method.invoke(null, new Object[] { data });
         if (o instanceof IniMap) {
-          retVal.add((IniMap)o);
+          retVal.add((IniMap) o);
         }
       } catch (InvocationTargetException ite) {
         if (ite.getCause() != null) {
@@ -217,8 +219,7 @@ public class SpriteTables
   }
 
   /** Processes PST-style tables. */
-  private static List<IniMap> processTablePst(Table2da table, int animationId)
-  {
+  private static List<IniMap> processTablePst(Table2da table, int animationId) {
     List<IniMap> retVal = new ArrayList<>();
     if (table == null) {
       return retVal;
@@ -229,7 +230,7 @@ public class SpriteTables
     // try special animations first
     int id = animationId;
     for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
-      int v = valueToInt(new String[] {table.get(row, 0)}, 0, -1);
+      int v = valueToInt(new String[] { table.get(row, 0) }, 0, -1);
       if (v == id) {
         rowIndex = row;
         break;
@@ -240,7 +241,7 @@ public class SpriteTables
     if (rowIndex < 0) {
       id = animationId & 0x0fff;
       for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
-        int v = valueToInt(new String[] {table.get(row, 0)}, 0, -1);
+        int v = valueToInt(new String[] { table.get(row, 0) }, 0, -1);
         if (v == id) {
           rowIndex = row;
           break;
@@ -271,21 +272,18 @@ public class SpriteTables
   }
 
   /** Helper method for finding matching Infinity Animations entries. */
-  private static List<IniMap> processInfinityAnimations(int animationId)
-  {
+  private static List<IniMap> processInfinityAnimations(int animationId) {
     if (Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS) > 0) {
       return InfinityTables.createIniMaps(animationId);
     }
     return new ArrayList<>();
   }
 
-
   /**
-   * Convenience method: Safely retrieves an array item and returns it.
-   * Returns a default value if the item could not be retrieved or is {@code null}.
+   * Convenience method: Safely retrieves an array item and returns it. Returns a default value if the item could not be
+   * retrieved or is {@code null}.
    */
-  public static String valueToString(String[] arr, int arrIdx, String defValue)
-  {
+  public static String valueToString(String[] arr, int arrIdx, String defValue) {
     String retVal = defValue;
     try {
       retVal = arr[arrIdx];
@@ -298,8 +296,7 @@ public class SpriteTables
   }
 
   /** Convenience method: Converts an array item into a numeric value. */
-  public static int valueToInt(String[] arr, int arrIdx, int defValue)
-  {
+  public static int valueToInt(String[] arr, int arrIdx, int defValue) {
     int retVal = defValue;
     try {
       String s = arr[arrIdx];
@@ -314,8 +311,7 @@ public class SpriteTables
   }
 
   /** Convenience method: Returns the animation id from the specified array value. */
-  public static int valueToAnimationId(String[] arr, int arrIdx, int defValue)
-  {
+  public static int valueToAnimationId(String[] arr, int arrIdx, int defValue) {
     try {
       return valueToInt(arr[arrIdx].split("_"), 0, defValue);
     } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
@@ -324,8 +320,7 @@ public class SpriteTables
   }
 
   /** Convenience method: Checks if the specified animation id is covered by the id value (and mask) from the table. */
-  public static boolean valueMatchesAnimationId(String value, int animationId)
-  {
+  public static boolean valueMatchesAnimationId(String value, int animationId) {
     boolean retVal = false;
     if (value == null) {
       return retVal;
@@ -333,11 +328,11 @@ public class SpriteTables
 
     String[] parts = value.split("_");
     if (parts.length > 0) {
-      int base = valueToInt(new String[] {parts[0]}, 0, -1);
+      int base = valueToInt(new String[] { parts[0] }, 0, -1);
       if (base >= 0) {
         int range = 0;
         if (parts.length > 1) {
-          range = valueToInt(new String[] {"0x" + parts[1]}, 0, 0);
+          range = valueToInt(new String[] { "0x" + parts[1] }, 0, 0);
           base &= ~range;
         }
         retVal = (animationId >= base && animationId <= (base + range));
@@ -349,12 +344,12 @@ public class SpriteTables
 
   /**
    * Returns a list of names for tables associated with the specified game.
+   *
    * @param game The game type.
    * @return List of table names ordered by relevance. Returns an empty list if no tables could be determined.
    */
-  public static List<String> findTables(Profile.Game game)
-  {
-    List<String> retVal = TableMaps.get(game);
+  public static List<String> findTables(Profile.Game game) {
+    List<String> retVal = TABLE_MAPS.get(game);
     if (retVal == null) {
       retVal = new ArrayList<>();
     }
@@ -363,12 +358,12 @@ public class SpriteTables
 
   /**
    * Returns a virtual {@code ResourceEntry} instance providing access to the underlying table data.
+   *
    * @param fileName The filename of the table (without path).
-   * @return a {@link ResourceEntry} instance linked to the specified table.
-   *         Returns {@code null} if table could not be opened.
+   * @return a {@link ResourceEntry} instance linked to the specified table. Returns {@code null} if table could not be
+   *         opened.
    */
-  public static ResourceEntry getTableResource(String fileName)
-  {
+  public static ResourceEntry getTableResource(String fileName) {
     ResourceEntry entry = null;
     try {
       try (ByteArrayOutputStream bos = new ByteArrayOutputStream(128 * 1024)) {
@@ -387,8 +382,7 @@ public class SpriteTables
   }
 
   /** Returns an InputStream instance for reading from the specified resource. */
-  static InputStream getResourceAsStream(Class<?> c, String fileName)
-  {
+  static InputStream getResourceAsStream(Class<?> c, String fileName) {
     InputStream retVal = null;
     if (!fileName.isEmpty()) {
       if (c == null) {
@@ -406,5 +400,6 @@ public class SpriteTables
     return retVal;
   }
 
-  private SpriteTables() { }
+  private SpriteTables() {
+  }
 }

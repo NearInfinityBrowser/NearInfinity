@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sound;
@@ -9,33 +9,30 @@ import org.infinity.resource.sound.AudioBuffer.AudioOverride;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.StreamUtils;
 
-public class AudioFactory
-{
+public class AudioFactory {
   // supported audio formats
   private static enum AudioFormat {
     FMT_UNKNOWN, FMT_WAV, FMT_ACM, FMT_WAVC, FMT_OGG
   }
 
   /**
-   * Attempts to detect the resource format of the specified resource and returns a
-   * matching AudioBuffer object.
+   * Attempts to detect the resource format of the specified resource and returns a matching AudioBuffer object.
+   *
    * @param entry The audio resource to decode.
    * @return An AudioBuffer object, or null if resource format could not be determined.
    */
-  public static AudioBuffer getAudioBuffer(ResourceEntry entry)
-  {
+  public static AudioBuffer getAudioBuffer(ResourceEntry entry) {
     return getAudioBuffer(entry, null);
   }
 
   /**
-   * Attempts to detect the resource format of the specified resource and returns a
-   * matching AudioBuffer object.
-   * @param entry The audio resource to decode.
+   * Attempts to detect the resource format of the specified resource and returns a matching AudioBuffer object.
+   *
+   * @param entry    The audio resource to decode.
    * @param override An optional AudioOverride object containing audio properties to override.
    * @return An AudioBuffer object, or null if resource format could not be determined.
    */
-  public static AudioBuffer getAudioBuffer(ResourceEntry entry, AudioOverride override)
-  {
+  public static AudioBuffer getAudioBuffer(ResourceEntry entry, AudioOverride override) {
     if (entry != null) {
       try {
         return getAudioBuffer(StreamUtils.toArray(entry.getResourceBuffer()), 0, override);
@@ -48,27 +45,25 @@ public class AudioFactory
   }
 
   /**
-   * Attempts to detect the resource format of the specified data and returns a
-   * matching AudioBuffer object.
+   * Attempts to detect the resource format of the specified data and returns a matching AudioBuffer object.
+   *
    * @param buffer A buffer containing unprocessed audio data.
    * @param offset Start offset of the audio data.
    * @return An AudioBuffer object, or null on error or if audio format could not be determined.
    */
-  public static AudioBuffer getAudioBuffer(byte[] buffer, int offset)
-  {
+  public static AudioBuffer getAudioBuffer(byte[] buffer, int offset) {
     return getAudioBuffer(buffer, offset, null);
   }
 
   /**
-   * Attempts to detect the resource format of the specified data and returns a
-   * matching AudioBuffer object.
-   * @param buffer A buffer containing unprocessed audio data.
-   * @param offset Start offset of the audio data.
+   * Attempts to detect the resource format of the specified data and returns a matching AudioBuffer object.
+   *
+   * @param buffer   A buffer containing unprocessed audio data.
+   * @param offset   Start offset of the audio data.
    * @param override An optional AudioOverride object containing audio properties to override.
    * @return An AudioBuffer object, or null on error or if audio format could not be determined.
    */
-  public static AudioBuffer getAudioBuffer(byte[] buffer, int offset, AudioOverride override)
-  {
+  public static AudioBuffer getAudioBuffer(byte[] buffer, int offset, AudioOverride override) {
     try {
       switch (detectFormat(buffer, offset)) {
         case FMT_WAV:
@@ -90,22 +85,22 @@ public class AudioFactory
 
   /**
    * Convenience method: Returns a buffer containing decoded audio data including WAV header.
+   *
    * @param entry The audio resource to decode.
    * @return A buffer containing decoded audio data including WAV header or null on error.
    */
-  public static byte[] convertAudio(ResourceEntry entry)
-  {
+  public static byte[] convertAudio(ResourceEntry entry) {
     return convertAudio(entry, null);
   }
 
   /**
    * Convenience method: Returns a buffer containing decoded audio data including WAV header.
-   * @param entry The audio resource to decode.
+   *
+   * @param entry    The audio resource to decode.
    * @param override An optional AudioOverride object containing audio properties to override.
    * @return A buffer containing decoded audio data including WAV header or null on error.
    */
-  public static byte[] convertAudio(ResourceEntry entry, AudioOverride override)
-  {
+  public static byte[] convertAudio(ResourceEntry entry, AudioOverride override) {
     if (entry != null) {
       try {
         return convertAudio(StreamUtils.toArray(entry.getResourceBuffer()), 0, override);
@@ -119,28 +114,29 @@ public class AudioFactory
 
   /**
    * Convenience method: Returns a buffer containing decoded audio data including WAV header.
+   *
    * @param buffer A buffer containing unprocessed audio data.
    * @param offset Start offset of the audio data.
    * @return A buffer containing decoded audio data including WAV header or null on error.
    */
-  public static byte[] convertAudio(byte[] buffer, int offset)
-  {
+  public static byte[] convertAudio(byte[] buffer, int offset) {
     return convertAudio(buffer, offset, null);
   }
 
   /**
    * Convenience method: Returns a buffer containing decoded audio data including WAV header.
-   * @param buffer A buffer containing unprocessed audio data.
-   * @param offset Start offset of the audio data.
+   *
+   * @param buffer   A buffer containing unprocessed audio data.
+   * @param offset   Start offset of the audio data.
    * @param override An optional AudioOverride object containing audio properties to override.
    * @return A buffer containing decoded audio data including WAV header or null on error.
    */
-  public static byte[] convertAudio(byte[] buffer, int offset, AudioOverride override)
-  {
+  public static byte[] convertAudio(byte[] buffer, int offset, AudioOverride override) {
     try {
-        AudioBuffer ab = getAudioBuffer(buffer, offset, override);
-        if (ab != null)
-          return ab.getAudioData();
+      AudioBuffer ab = getAudioBuffer(buffer, offset, override);
+      if (ab != null) {
+        return ab.getAudioData();
+      }
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -148,10 +144,8 @@ public class AudioFactory
     return null;
   }
 
-
   // Detects supported audio formats
-  private static AudioFormat detectFormat(byte[] buffer, int offset)
-  {
+  private static AudioFormat detectFormat(byte[] buffer, int offset) {
     AudioFormat af = AudioFormat.FMT_UNKNOWN;
     try {
       if (buffer != null && offset >= 0 && offset + 4 < buffer.length) {

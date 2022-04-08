@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -62,10 +62,9 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
-final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
-{
-  private final JButton bOpen = new JButton("Open selected", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bSelectDir = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
+final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener {
+  private final JButton bOpen = new JButton("Open selected", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bSelectDir = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
@@ -77,34 +76,32 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final JRadioButton rbOtherDir = new JRadioButton("Other ", false);
   private final JTabbedPane tabbedPane = new JTabbedPane();
   private final JTextField tfOtherDir = new JTextField(10);
+
   /** List of the {@link CompileError} objects. */
   private final SortableTable table;
+
   private final WindowBlocker blocker;
 
-  BcsDropFrame()
-  {
+  BcsDropFrame() {
     super("Script Drop Zone");
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     blocker = new WindowBlocker(this);
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
     decompZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    table = new SortableTable(new String[]{"File", "Errors/Warnings", "Line"},
-                              new Class<?>[]{FileResourceEntry.class, String.class, Integer.class},
-                              new Integer[]{200, 400, 100});
+    table = new SortableTable(new String[] { "File", "Errors/Warnings", "Line" },
+        new Class<?>[] { FileResourceEntry.class, String.class, Integer.class }, new Integer[] { 200, 400, 100 });
 
     table.getSelectionModel().addListSelectionListener(this);
-    table.addMouseListener(new MouseAdapter()
-    {
+    table.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseReleased(MouseEvent e)
-      {
+      public void mouseReleased(MouseEvent e) {
         if (e.getClickCount() == 2) {
-          FileResourceEntry resourceEntry = (FileResourceEntry)table.getValueAt(table.getSelectedRow(), 0);
-          if (resourceEntry != null)
-            new ViewFrame(table.getTopLevelAncestor(),
-                          ResourceFactory.getResource(resourceEntry));
+          FileResourceEntry resourceEntry = (FileResourceEntry) table.getValueAt(table.getSelectedRow(), 0);
+          if (resourceEntry != null) {
+            new ViewFrame(table.getTopLevelAncestor(), ResourceFactory.getResource(resourceEntry));
+          }
         }
       }
     });
@@ -187,9 +184,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     tabbedPane.add("Options", optionsPanel);
 
     statusMsg.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
-                                                           BorderFactory.createLineBorder(
-                                                                   UIManager.getColor("controlShadow"))));
-    JPanel pane = (JPanel)getContentPane();
+        BorderFactory.createLineBorder(UIManager.getColor("controlShadow"))));
+    JPanel pane = (JPanel) getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(tabbedPane, BorderLayout.CENTER);
     pane.add(statusMsg, BorderLayout.SOUTH);
@@ -202,45 +198,40 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bOpen) {
-      FileResourceEntry resourceEntry = (FileResourceEntry)table.getValueAt(table.getSelectedRow(), 0);
-      if (resourceEntry != null)
+      FileResourceEntry resourceEntry = (FileResourceEntry) table.getValueAt(table.getSelectedRow(), 0);
+      if (resourceEntry != null) {
         new ViewFrame(this, ResourceFactory.getResource(resourceEntry));
-    }
-    else if (event.getSource() == rbOrigDir) {
+      }
+    } else if (event.getSource() == rbOrigDir) {
       bSelectDir.setEnabled(false);
       tfOtherDir.setEnabled(false);
-    }
-    else if (event.getSource() == rbOtherDir) {
+    } else if (event.getSource() == rbOtherDir) {
       bSelectDir.setEnabled(true);
       tfOtherDir.setEnabled(true);
-    }
-    else if (event.getSource() == bSelectDir) {
-      if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
+    } else if (event.getSource() == bSelectDir) {
+      if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION) {
         tfOtherDir.setText(fc.getSelectedFile().toString());
+      }
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
+  public void valueChanged(ListSelectionEvent event) {
     bOpen.setEnabled(table.getSelectedRowCount() > 0);
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-  private SortedSet<ScriptMessage> compileFile(Path file)
-  {
+  private SortedSet<ScriptMessage> compileFile(Path file) {
     final StringBuilder source = new StringBuilder();
     try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
@@ -261,7 +252,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     }
     if (errors.isEmpty()) {
       String filename = file.getFileName().toString();
-      filename = filename.substring(0, filename.lastIndexOf((int)'.'));
+      filename = filename.substring(0, filename.lastIndexOf('.'));
       if (rbSaveBCS.isSelected()) {
         filename += ".BCS";
       } else {
@@ -283,8 +274,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     return errors;
   }
 
-  private boolean decompileFile(Path file)
-  {
+  private boolean decompileFile(Path file) {
     final StringBuilder code = new StringBuilder();
     try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
@@ -297,7 +287,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       return false;
     }
     String filename = file.getFileName().toString();
-    filename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".BAF";
+    filename = filename.substring(0, filename.lastIndexOf('.')) + ".BAF";
     Path output;
     if (rbOrigDir.isSelected()) {
       output = file.getParent().resolve(filename);
@@ -316,8 +306,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     return true;
   }
 
-  private void filesDropped(Component component, List<File> files)
-  {
+  private void filesDropped(Component component, List<File> files) {
     blocker.setBlocked(true);
     table.clear();
     long startTime = System.currentTimeMillis();
@@ -327,14 +316,13 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
         Path file = f.toPath();
         if (FileEx.create(file).isDirectory()) {
           try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
-            for (final Path p: dstream) {
+            for (final Path p : dstream) {
               files.add(p.toFile());
             }
           } catch (IOException e) {
             e.printStackTrace();
           }
-        }
-        else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BAF")) {
+        } else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BAF")) {
           SortedSet<ScriptMessage> errors = compileFile(file);
           if (errors == null) {
             failed++;
@@ -342,7 +330,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
             if (errors.isEmpty()) {
               ok++;
             } else {
-              for (final ScriptMessage sm: errors) {
+              for (final ScriptMessage sm : errors) {
                 table.addTableItem(new CompileError(file, sm.getLine(), sm.getMessage()));
               }
               failed++;
@@ -353,21 +341,19 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       if (failed > 0) {
         tabbedPane.setSelectedIndex(1);
       }
-    }
-    else if (component == decompZone) {
+    } else if (component == decompZone) {
       for (File f : files) {
         final Path file = f.toPath();
         if (FileEx.create(file).isDirectory()) {
           try (final DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
-            for (final Path p: dstream) {
+            for (final Path p : dstream) {
               files.add(p.toFile());
             }
           } catch (IOException e) {
             e.printStackTrace();
           }
-        }
-        else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BCS") ||
-                 file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BS")) {
+        } else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BCS")
+            || file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BS")) {
           if (decompileFile(file)) {
             ok++;
           } else {
@@ -382,49 +368,42 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     blocker.setBlocked(false);
   }
 
-// -------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private final class MyDropTargetListener implements DropTargetListener, Runnable
-  {
+  private final class MyDropTargetListener implements DropTargetListener, Runnable {
     private final Component component;
     private List<File> files;
 
-    private MyDropTargetListener(Component component)
-    {
+    private MyDropTargetListener(Component component) {
       this.component = component;
     }
 
     @Override
-    public void dragEnter(DropTargetDragEvent event)
-    {
+    public void dragEnter(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dragOver(DropTargetDragEvent event)
-    {
+    public void dragOver(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dropActionChanged(DropTargetDragEvent event)
-    {
+    public void dropActionChanged(DropTargetDragEvent event) {
     }
 
     @Override
-    public void dragExit(DropTargetEvent event)
-    {
+    public void dragExit(DropTargetEvent event) {
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void drop(DropTargetDropEvent event)
-    {
+    public void drop(DropTargetDropEvent event) {
       if (event.isLocalTransfer() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
         event.rejectDrop();
         return;
       }
       try {
         event.acceptDrop(DnDConstants.ACTION_COPY);
-        files = (List<File>)event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
         e.printStackTrace();
         event.dropComplete(false);
@@ -435,35 +414,31 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
       filesDropped(component, new ArrayList<>(files));
     }
   }
 
-  private static final class CompileError implements TableItem
-  {
+  private static final class CompileError implements TableItem {
     private final FileResourceEntry resourceEntry;
     private final Integer linenr;
     private final String error;
 
-    private CompileError(Path file, int linenr, String error)
-    {
+    private CompileError(Path file, int linenr, String error) {
       resourceEntry = new FileResourceEntry(file);
       this.linenr = linenr;
       this.error = error;
     }
 
     @Override
-    public Object getObjectAt(int columnIndex)
-    {
-      if (columnIndex == 0)
+    public Object getObjectAt(int columnIndex) {
+      if (columnIndex == 0) {
         return resourceEntry;
-      else if (columnIndex == 1)
+      } else if (columnIndex == 1) {
         return error;
-      else
+      } else {
         return linenr;
+      }
     }
   }
 }
-

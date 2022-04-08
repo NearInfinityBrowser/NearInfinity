@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.pro;
@@ -40,8 +40,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 
 /**
- * This resource describes projectiles, and the files are referenced spells and
- * projectile weapons. Projectile files can control:
+ * This resource describes projectiles, and the files are referenced spells and projectile weapons. Projectile files can
+ * control:
  * <ul>
  * <li>Projectile graphics</li>
  * <li>Projectile speed</li>
@@ -50,94 +50,88 @@ import org.infinity.search.SearchOptions;
  * </ul>
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
  */
-public final class ProResource extends AbstractStruct implements Resource, HasViewerTabs, UpdateListener
-{
+public final class ProResource extends AbstractStruct implements Resource, HasViewerTabs, UpdateListener {
   // PRO-specific field labels
-  public static final String PRO_TYPE = "Projectile type";
-  public static final String PRO_SPEED = "Speed";
-  public static final String PRO_BEHAVIOR = "Behavior";
-  public static final String PRO_SOUND_FIRE = "Fire sound";
-  public static final String PRO_SOUND_IMPACT = "Impact sound";
-  public static final String PRO_SOURCE_ANIMATION = "Source animation";
-  public static final String PRO_PARTICLE_COLOR = "Particle color";
-  public static final String PRO_WIDTH = "Projectile width";
-  public static final String PRO_EX_FLAGS = "Extended flags";
-  public static final String PRO_STRING = "String";
-  public static final String PRO_COLOR = "Color";
-  public static final String PRO_COLOR_SPEED = "Color speed";
-  public static final String PRO_SCREEN_SHAKE_AMOUNT = "Screen shake amount";
-  public static final String PRO_CREATURE_TYPE = "Creature type";
-  public static final String PRO_SPELL_DEFAULT = "Default spell";
-  public static final String PRO_SPELL_SUCCESS = "Success spell";
-  public static final String PRO_SPELL_ANGLE_MIN = "Angle increase minimum";
-  public static final String PRO_SPELL_ANGLE_MAX = "Angle increase maximum";
-  public static final String PRO_SPELL_CURVE_MIN = "Curve minimum";
-  public static final String PRO_SPELL_CURVE_MAX = "Curve maximum";
-  public static final String PRO_SPELL_THAC0_BONUS = "THAC0 bonus";
-  public static final String PRO_SPELL_THAC0_BONUS_2 = "THAC0 bonus (non-actor)";
-  public static final String PRO_SPELL_RADIUS_MIN = "Radius minimum";
-  public static final String PRO_SPELL_RADIUS_MAX = "Radius maximum";
+  public static final String PRO_TYPE                 = "Projectile type";
+  public static final String PRO_SPEED                = "Speed";
+  public static final String PRO_BEHAVIOR             = "Behavior";
+  public static final String PRO_SOUND_FIRE           = "Fire sound";
+  public static final String PRO_SOUND_IMPACT         = "Impact sound";
+  public static final String PRO_SOURCE_ANIMATION     = "Source animation";
+  public static final String PRO_PARTICLE_COLOR       = "Particle color";
+  public static final String PRO_WIDTH                = "Projectile width";
+  public static final String PRO_EX_FLAGS             = "Extended flags";
+  public static final String PRO_STRING               = "String";
+  public static final String PRO_COLOR                = "Color";
+  public static final String PRO_COLOR_SPEED          = "Color speed";
+  public static final String PRO_SCREEN_SHAKE_AMOUNT  = "Screen shake amount";
+  public static final String PRO_CREATURE_TYPE        = "Creature type";
+  public static final String PRO_SPELL_DEFAULT        = "Default spell";
+  public static final String PRO_SPELL_SUCCESS        = "Success spell";
+  public static final String PRO_SPELL_ANGLE_MIN      = "Angle increase minimum";
+  public static final String PRO_SPELL_ANGLE_MAX      = "Angle increase maximum";
+  public static final String PRO_SPELL_CURVE_MIN      = "Curve minimum";
+  public static final String PRO_SPELL_CURVE_MAX      = "Curve maximum";
+  public static final String PRO_SPELL_THAC0_BONUS    = "THAC0 bonus";
+  public static final String PRO_SPELL_THAC0_BONUS_2  = "THAC0 bonus (non-actor)";
+  public static final String PRO_SPELL_RADIUS_MIN     = "Radius minimum";
+  public static final String PRO_SPELL_RADIUS_MAX     = "Radius maximum";
 
-  public static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
-                                           "Green", "Purple", "Red", "White", "Ice",
-                                           "Stone", "Magenta", "Orange"};
-  public static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
-                                            "Loop fire sound", "Loop impact sound", "Ignore center",
-                                            "Draw as background",
-                                            "EE: Allow saving;Allows you to save the game while the projectile is still active.",
-                                            "EE: Loop spread animation"};
-  public static final String[] s_flagsEx = {
-    "No flags set", "Bounce from walls", "Pass target", "Draw center VVC once", "Hit immediately",
-    "Face target", "Curved path", "Start random frame", "Pillar", "Semi-trans. trail puff VEF",
-    "Tinted trail puff VEF", "Multiple proj.", "Default spell on missed", "Falling path", "Comet",
-    "Lined up AoE", "Rectangular AoE", "Draw behind target", "Casting glow fx", "Travel door",
-    "Stop/fade after hit", "Display string", "Random path", "Start random seq.", "Color pulse on hit",
-    "Touch projectile", "Negate IDS1", "Negate IDS2", "Use either IDS", "Delayed payload",
-    "Limited path count", "IWD style check", "Caster affected"};
+  public static final String[] TYPES_ARRAY = new String[] { "VEF", "VVC", "BAM" };
 
-  public static final TreeMap<Long, String> m_projtype = new TreeMap<>();
+  public static final String[] COLOR_ARRAY = { "", "Black", "Blue", "Chromatic", "Gold", "Green", "Purple", "Red",
+      "White", "Ice", "Stone", "Magenta", "Orange" };
+
+  public static final String[] BEHAVE_ARRAY = { "No flags set", "Show sparks", "Use height", "Loop fire sound",
+      "Loop impact sound", "Ignore center", "Draw as background",
+      "EE: Allow saving;Allows you to save the game while the projectile is still active.",
+      "EE: Loop spread animation" };
+
+  public static final String[] FLAGS_EX_ARRAY = { "No flags set", "Bounce from walls", "Pass target",
+      "Draw center VVC once", "Hit immediately", "Face target", "Curved path", "Start random frame", "Pillar",
+      "Semi-trans. trail puff VEF", "Tinted trail puff VEF", "Multiple proj.", "Default spell on missed",
+      "Falling path", "Comet", "Lined up AoE", "Rectangular AoE", "Draw behind target", "Casting glow fx",
+      "Travel door", "Stop/fade after hit", "Display string", "Random path", "Start random seq.", "Color pulse on hit",
+      "Touch projectile", "Negate IDS1", "Negate IDS2", "Use either IDS", "Delayed payload", "Limited path count",
+      "IWD style check", "Caster affected" };
+
+  public static final TreeMap<Long, String> PROJECTILE_TYPES_MAP = new TreeMap<>();
+
   static {
-    m_projtype.put(1L, "No BAM");
-    m_projtype.put(2L, "Single target");
-    m_projtype.put(3L, "Area of effect");
+    PROJECTILE_TYPES_MAP.put(1L, "No BAM");
+    PROJECTILE_TYPES_MAP.put(2L, "Single target");
+    PROJECTILE_TYPES_MAP.put(3L, "Area of effect");
   }
 
   private StructHexViewer hexViewer;
 
   /** Returns associated projectile description based on MISSILE.IDS or PROJECTL.IDS entries. */
-  public static String getSearchString(ResourceEntry entry)
-  {
+  public static String getSearchString(ResourceEntry entry) {
     String retVal = null;
     if (entry != null) {
-      ResourceBitmap.RefEntry re = ProRef.createRefList(ResourceFactory.resourceExists("MISSILE.IDS"))
-                                  .stream()
-                                  .filter(e -> entry.getResourceName().equalsIgnoreCase(e.getResourceName()))
-                                  .findFirst()
-                                  .orElse(null);
-      if (re != null &&
-          !entry.getResourceRef().equalsIgnoreCase(re.getSearchString()) &&
-          !"unnamed".equalsIgnoreCase(re.getSearchString())) {
+      ResourceBitmap.RefEntry re = ProRef.createRefList(ResourceFactory.resourceExists("MISSILE.IDS")).stream()
+          .filter(e -> entry.getResourceName().equalsIgnoreCase(e.getResourceName())).findFirst().orElse(null);
+      if (re != null && !entry.getResourceRef().equalsIgnoreCase(re.getSearchString())
+          && !"unnamed".equalsIgnoreCase(re.getSearchString())) {
         retVal = re.getSearchString();
-        if (retVal != null)
-          retVal = retVal.replace('_', ' ');  // "beautify" search string
+        if (retVal != null) {
+          retVal = retVal.replace('_', ' '); // "beautify" search string
+        }
       }
     }
     return retVal;
   }
 
-  public ProResource(ResourceEntry entry) throws Exception
-  {
+  public ProResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public boolean valueUpdated(UpdateEvent event)
-  {
-    if (event.getSource() instanceof Flag &&
-        ((StructEntry)event.getSource()).getName().equals(PRO_EX_FLAGS)) {
-      boolean isIwdStyle = ((Flag)event.getSource()).isFlagSet(30);
+  public boolean valueUpdated(UpdateEvent event) {
+    if (event.getSource() instanceof Flag && ((StructEntry) event.getSource()).getName().equals(PRO_EX_FLAGS)) {
+      boolean isIwdStyle = ((Flag) event.getSource()).isFlagSet(30);
       AbstractStruct struct = event.getStructure();
       boolean bRet = false;
       if (isIwdStyle) {
@@ -148,29 +142,30 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
         bRet |= setOldStyleIdsType(struct, 64, 2);
       }
       return bRet;
-    }
-    else if (event.getSource() instanceof IsNumeric &&
-             ((StructEntry)event.getSource()).getName().equals(PRO_TYPE)) {
-      IsNumeric proType = (IsNumeric)event.getSource();
+    } else if (event.getSource() instanceof IsNumeric && ((StructEntry) event.getSource()).getName().equals(PRO_TYPE)) {
+      IsNumeric proType = (IsNumeric) event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasChildStructs) {
-        if (proType.getValue() == 3L) {         // area of effect
+        if (proType.getValue() == 3L) { // area of effect
           StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           try {
-            if (!(entry instanceof ProSingleType) && !(entry instanceof ProAreaType))
+            if (!(entry instanceof ProSingleType) && !(entry instanceof ProAreaType)) {
               struct.addDatatype(new ProSingleType(), struct.getFields().size());
+            }
             entry = struct.getFields().get(struct.getFields().size() - 1);
-            if (!(entry instanceof ProAreaType))
+            if (!(entry instanceof ProAreaType)) {
               struct.addDatatype(new ProAreaType(), struct.getFields().size());
+            }
           } catch (Exception e) {
             e.printStackTrace();
             return false;
           }
-        } else if (proType.getValue() == 2L) {  // single target
+        } else if (proType.getValue() == 2L) { // single target
           StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
-          if (entry instanceof ProAreaType)
-            struct.removeDatatype((AddRemovable)entry, false);
+          if (entry instanceof ProAreaType) {
+            struct.removeDatatype((AddRemovable) entry, false);
+          }
           entry = struct.getFields().get(struct.getFields().size() - 1);
           if (!(entry instanceof ProSingleType)) {
             try {
@@ -180,14 +175,16 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
               return false;
             }
           }
-        } else if (proType.getValue() == 1L) {  // no bam
+        } else if (proType.getValue() == 1L) { // no bam
           if (struct.getFields().size() > 2) {
             StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
-            if (entry instanceof ProAreaType)
-              struct.removeDatatype((AddRemovable)entry, false);
+            if (entry instanceof ProAreaType) {
+              struct.removeDatatype((AddRemovable) entry, false);
+            }
             entry = struct.getFields().get(struct.getFields().size() - 1);
-            if (entry instanceof ProSingleType)
-              struct.removeDatatype((AddRemovable)entry, false);
+            if (entry instanceof ProSingleType) {
+              struct.removeDatatype((AddRemovable) entry, false);
+            }
           }
         } else {
           return false;
@@ -199,20 +196,17 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       BasicColorMap colorMap = new BasicColorMap(this, false);
       colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, ProSingleType.class);
@@ -223,30 +217,26 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
-    final String[] s_types = new String[]{"VEF", "VVC", "BAM"};
-
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
-    HashBitmap projtype = new HashBitmap(buffer, offset + 8, 2, PRO_TYPE, m_projtype);
+    HashBitmap projtype = new HashBitmap(buffer, offset + 8, 2, PRO_TYPE, PROJECTILE_TYPES_MAP);
     projtype.addUpdateListener(this);
     addField(projtype);
     addField(new DecNumber(buffer, offset + 10, 2, PRO_SPEED));
-    addField(new Flag(buffer, offset + 12, 4, PRO_BEHAVIOR, s_behave));
+    addField(new Flag(buffer, offset + 12, 4, PRO_BEHAVIOR, BEHAVE_ARRAY));
     addField(new ResourceRef(buffer, offset + 16, PRO_SOUND_FIRE, "WAV"));
     addField(new ResourceRef(buffer, offset + 24, PRO_SOUND_IMPACT, "WAV"));
-    addField(new ResourceRef(buffer, offset + 32, PRO_SOURCE_ANIMATION, s_types));
-    addField(new Bitmap(buffer, offset + 40, 2, PRO_PARTICLE_COLOR, s_color));
+    addField(new ResourceRef(buffer, offset + 32, PRO_SOURCE_ANIMATION, TYPES_ARRAY));
+    addField(new Bitmap(buffer, offset + 40, 2, PRO_PARTICLE_COLOR, COLOR_ARRAY));
     if (Profile.isEnhancedEdition()) {
       addField(new DecNumber(buffer, offset + 42, 2, PRO_WIDTH));
-      Flag flag = new Flag(buffer, offset + 44, 4, PRO_EX_FLAGS, s_flagsEx);
+      Flag flag = new Flag(buffer, offset + 44, 4, PRO_EX_FLAGS, FLAGS_EX_ARRAY);
       addField(flag);
       addField(new StringRef(buffer, offset + 48, PRO_STRING));
       addField(new ColorPicker(buffer, offset + 52, PRO_COLOR, ColorPicker.Format.BGRX));
@@ -303,22 +293,19 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   @Override
-  protected void datatypeAdded(AddRemovable datatype)
-  {
+  protected void datatypeAdded(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeAddedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -326,16 +313,14 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  protected void datatypeRemoved(AddRemovable datatype)
-  {
+  protected void datatypeRemoved(AddRemovable datatype) {
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
   }
 
   @Override
-  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
-  {
+  protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype) {
     super.datatypeRemovedInChild(child, datatype);
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -343,8 +328,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   /** Updates current IDS targeting to IWD style and returns true if changes have been made. */
-  private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr)
-  {
+  private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr) {
     if (struct != null && offset >= 0) {
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
@@ -365,8 +349,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   /** Updates current IDS targeting to old BG style and returns true if changes have been made. */
-  private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr)
-  {
+  private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr) {
     if (struct != null && offset >= 0) {
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
@@ -387,24 +370,23 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   }
 
   /**
-   * Checks whether the specified resource entry matches all available search options.
-   * Called by "Extended Search"
+   * Checks whether the specified resource entry matches all available search options. Called by "Extended Search"
    */
-  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
-  {
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions) {
     if (entry != null && searchOptions != null) {
       try {
         ProResource pro = new ProResource(entry);
-        ProSingleType single = (ProSingleType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_SingleTarget), false);
-        ProAreaType area = (ProAreaType)pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_AreaOfEffect), false);
+        ProSingleType single = (ProSingleType) pro
+            .getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_SingleTarget), false);
+        ProAreaType area = (ProAreaType) pro.getAttribute(SearchOptions.getResourceName(SearchOptions.PRO_AreaOfEffect),
+            false);
         boolean retVal = true;
         String key;
         Object o;
 
-        String[] keyList = new String[]{SearchOptions.PRO_Type, SearchOptions.PRO_Speed,
-                                        SearchOptions.PRO_TrapSize, SearchOptions.PRO_ExplosionSize,
-                                        SearchOptions.PRO_ExplosionEffect};
-        AbstractStruct[] structList = new AbstractStruct[]{pro, pro, area, area, area};
+        String[] keyList = new String[] { SearchOptions.PRO_Type, SearchOptions.PRO_Speed, SearchOptions.PRO_TrapSize,
+            SearchOptions.PRO_ExplosionSize, SearchOptions.PRO_ExplosionEffect };
+        AbstractStruct[] structList = new AbstractStruct[] { pro, pro, area, area, area };
         for (int idx = 0; idx < keyList.length; idx++) {
           if (retVal) {
             key = keyList[idx];
@@ -420,9 +402,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
           }
         }
 
-        keyList = new String[]{SearchOptions.PRO_Behavior, SearchOptions.PRO_Flags,
-                               SearchOptions.PRO_AreaFlags};
-        structList = new AbstractStruct[]{pro, single, area};
+        keyList = new String[] { SearchOptions.PRO_Behavior, SearchOptions.PRO_Flags, SearchOptions.PRO_AreaFlags };
+        structList = new AbstractStruct[] { pro, single, area };
         for (int idx = 0; idx < keyList.length; idx++) {
           if (retVal) {
             key = keyList[idx];
@@ -449,11 +430,11 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
           }
         }
 
-        keyList = new String[]{SearchOptions.PRO_Custom1, SearchOptions.PRO_Custom2,
-                               SearchOptions.PRO_Custom3, SearchOptions.PRO_Custom4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.PRO_Custom1, SearchOptions.PRO_Custom2, SearchOptions.PRO_Custom3,
+            SearchOptions.PRO_Custom4 };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             retVal &= SearchOptions.Utils.matchCustomFilter(pro, o);
           } else {

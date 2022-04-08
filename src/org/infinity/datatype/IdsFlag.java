@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -10,10 +10,8 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 
-public final class IdsFlag extends Flag
-{
-  public IdsFlag(ByteBuffer buffer, int offset, int length, String name, String resource)
-  {
+public final class IdsFlag extends Flag {
+  public IdsFlag(ByteBuffer buffer, int offset, int length, String name, String resource) {
     super(buffer, offset, length, name);
     final IdsMap idsMap = IdsMapCache.get(resource);
     if (idsMap != null) {
@@ -23,7 +21,7 @@ public final class IdsFlag extends Flag
       // fetching flag labels from IDS
       final String[] stable = new String[8 * length];
       for (int i = 0; i < stable.length; i++) {
-        entry = idsMap.get(Long.valueOf(1L << i));
+        entry = idsMap.get(1L << i);
         stable[i] = (entry != null) ? entry.getSymbol() : null;
       }
       setFlagDescriptions(length, stable, 0);

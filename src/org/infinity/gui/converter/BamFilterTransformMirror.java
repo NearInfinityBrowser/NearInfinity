@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -22,37 +22,39 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 /**
  * Transform filter: mirrors BAM frames horizontally or vertically.
  */
-public class BamFilterTransformMirror extends BamFilterBaseTransform implements ActionListener
-{
-  private static final String FilterName = "Mirror BAM frames";
-  private static final String FilterDesc = "This filter allows you to mirror each BAM frame " +
-                                            "horizontally, vertically or along both axes.";
+public class BamFilterTransformMirror extends BamFilterBaseTransform implements ActionListener {
+  private static final String FILTER_NAME = "Mirror BAM frames";
+  private static final String FILTER_DESC = "This filter allows you to mirror each BAM frame "
+                                            + "horizontally, vertically or along both axes.";
 
-  private JCheckBox cbHorizontal, cbVertical, cbAdjustCenter;
+  private JCheckBox cbHorizontal;
+  private JCheckBox cbVertical;
+  private JCheckBox cbAdjustCenter;
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
 
-  public BamFilterTransformMirror(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
+
+  public BamFilterTransformMirror(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public PseudoBamFrameEntry process(PseudoBamFrameEntry entry) throws Exception
-  {
+  public PseudoBamFrameEntry process(PseudoBamFrameEntry entry) throws Exception {
     return applyEffect(entry);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
     return applyEffect(entry);
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(cbHorizontal.isSelected()).append(';');
     sb.append(cbVertical.isSelected()).append(';');
@@ -61,8 +63,7 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -107,8 +108,7 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     cbHorizontal = new JCheckBox("Mirror horizontally");
@@ -119,62 +119,62 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
     cbAdjustCenter.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p.add(cbHorizontal, c);
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p.add(cbVertical, c);
-    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     p.add(cbAdjustCenter, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(p, c);
 
     return panel;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (event.getSource() == cbHorizontal || event.getSource() == cbVertical ||
-        event.getSource() == cbAdjustCenter) {
+  public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == cbHorizontal || event.getSource() == cbVertical || event.getSource() == cbAdjustCenter) {
       fireChangeListener();
     }
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
-
-  private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry)
-  {
+  private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry) {
     if (entry != null && entry.getFrame() != null) {
       int width = entry.getFrame().getWidth();
       int height = entry.getFrame().getHeight();
       byte[] pixelsB = null;
       int[] pixelsI = null;
       if (entry.getFrame().getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_BYTE) {
-        pixelsB = ((DataBufferByte)entry.getFrame().getRaster().getDataBuffer()).getData();
+        pixelsB = ((DataBufferByte) entry.getFrame().getRaster().getDataBuffer()).getData();
       } else if (entry.getFrame().getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
-        pixelsI = ((DataBufferInt)entry.getFrame().getRaster().getDataBuffer()).getData();
+        pixelsI = ((DataBufferInt) entry.getFrame().getRaster().getDataBuffer()).getData();
       }
 
       if (cbHorizontal.isSelected()) {
         // mirror horizontally
         for (int y = 0; y < height; y++) {
-          int left = y*width;
+          int left = y * width;
           int right = left + width - 1;
           while (left < right) {
             if (pixelsB != null) {
-              byte v = pixelsB[left]; pixelsB[left] = pixelsB[right]; pixelsB[right] = v;
+              byte v = pixelsB[left];
+              pixelsB[left] = pixelsB[right];
+              pixelsB[right] = v;
             }
             if (pixelsI != null) {
-              int v = pixelsI[left]; pixelsI[left] = pixelsI[right]; pixelsI[right] = v;
+              int v = pixelsI[left];
+              pixelsI[left] = pixelsI[right];
+              pixelsI[right] = v;
             }
             left++;
             right--;
@@ -191,13 +191,17 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
         // mirror vertically
         for (int x = 0; x < width; x++) {
           int top = x;
-          int bottom = (height - 1)*width + x;
+          int bottom = (height - 1) * width + x;
           while (top < bottom) {
             if (pixelsB != null) {
-              byte v = pixelsB[top]; pixelsB[top] = pixelsB[bottom]; pixelsB[bottom] = v;
+              byte v = pixelsB[top];
+              pixelsB[top] = pixelsB[bottom];
+              pixelsB[bottom] = v;
             }
             if (pixelsI != null) {
-              int v = pixelsI[top]; pixelsI[top] = pixelsI[bottom]; pixelsI[bottom] = v;
+              int v = pixelsI[top];
+              pixelsI[top] = pixelsI[bottom];
+              pixelsI[bottom] = v;
             }
             top += width;
             bottom -= width;

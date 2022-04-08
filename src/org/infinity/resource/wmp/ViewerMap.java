@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -51,34 +51,35 @@ import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
-import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.gui.ViewerUtil.StructListPanel;
+import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
-public class ViewerMap extends JPanel
-{
+public class ViewerMap extends JPanel {
   /** Needed to determine map edges to travel from/to. */
-  private enum Direction { NORTH, WEST, SOUTH, EAST }
+  private enum Direction {
+    NORTH, WEST, SOUTH, EAST
+  }
 
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
   private final JMenuItem miExportMap = new JMenuItem("Export as PNG...");
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
   private final JCheckBoxMenuItem miShowIconLabels = new JCheckBoxMenuItem("Show icons labels", true);
   private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances", false);
-  private final JCheckBoxMenuItem miScaling =
-      new JCheckBoxMenuItem("Scale map icons", Profile.getGame() == Profile.Game.PSTEE);
+  private final JCheckBoxMenuItem miScaling = new JCheckBoxMenuItem("Scale map icons",
+      Profile.getGame() == Profile.Game.PSTEE);
   private final BufferedImage iconDot;
   private final Listeners listeners = new Listeners();
   private final MapEntry mapEntry;
@@ -93,8 +94,7 @@ public class ViewerMap extends JPanel
   private int dotX, dotY;
   private JLabel lInfoSize, lInfoPos;
 
-  ViewerMap(MapEntry wmpMap)
-  {
+  ViewerMap(MapEntry wmpMap) {
     super();
     WindowBlocker.blockWindow(true);
     try {
@@ -123,7 +123,8 @@ public class ViewerMap extends JPanel
       miShowDistances.addActionListener(listeners);
       miScaling.setMnemonic('s');
       miScaling.addActionListener(listeners);
-      miScaling.setToolTipText("Scales map icon locations according to the worldmap's scaling factor. (Needed for some games)");
+      miScaling.setToolTipText(
+          "Scales map icon locations according to the worldmap's scaling factor. (Needed for some games)");
       pmOptions.add(miExportMap);
       pmOptions.addSeparator();
       pmOptions.add(miShowIcons);
@@ -133,7 +134,7 @@ public class ViewerMap extends JPanel
 
       try {
         mapIcons = null;
-        IsReference iconRef = (IsReference)wmpMap.getAttribute(MapEntry.WMP_MAP_ICONS);
+        IsReference iconRef = (IsReference) wmpMap.getAttribute(MapEntry.WMP_MAP_ICONS);
         if (iconRef != null) {
           ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
           if (iconEntry != null) {
@@ -144,31 +145,37 @@ public class ViewerMap extends JPanel
 
         mapOrig = loadMap();
 
-        int mapTargetWidth = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_WIDTH)).getValue();
-        if (mapTargetWidth <= 0) { mapTargetWidth = (mapOrig != null) ? mapOrig.getWidth() : 640; }
-        int mapTargetHeight = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_HEIGHT)).getValue();
-        if (mapTargetHeight <= 0) { mapTargetHeight = (mapOrig != null) ? mapOrig.getHeight() : 480; }
+        int mapTargetWidth = ((IsNumeric) mapEntry.getAttribute(MapEntry.WMP_MAP_WIDTH)).getValue();
+        if (mapTargetWidth <= 0) {
+          mapTargetWidth = (mapOrig != null) ? mapOrig.getWidth() : 640;
+        }
+        int mapTargetHeight = ((IsNumeric) mapEntry.getAttribute(MapEntry.WMP_MAP_HEIGHT)).getValue();
+        if (mapTargetHeight <= 0) {
+          mapTargetHeight = (mapOrig != null) ? mapOrig.getHeight() : 480;
+        }
 
-        if (mapOrig == null)
+        if (mapOrig == null) {
           mapOrig = ColorConvert.createCompatibleImage(mapTargetWidth, mapTargetHeight, false);
+        }
 
         rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
         rcMap.addMouseListener(listeners);
         rcMap.addMouseMotionListener(listeners);
 
-        mapScaleX = (float)mapOrig.getWidth() / (float)mapTargetWidth;
-        mapScaleY = (float)mapOrig.getHeight() / (float)mapTargetHeight;
+        mapScaleX = (float) mapOrig.getWidth() / (float) mapTargetWidth;
+        mapScaleY = (float) mapOrig.getHeight() / (float) mapTargetHeight;
 
-        listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, AreaEntry.WMP_AREA_CURRENT,
-                                                              new WmpAreaListRenderer(mapIcons), listeners);
+        listPanel = (StructListPanel) ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class,
+            AreaEntry.WMP_AREA_CURRENT, new WmpAreaListRenderer(mapIcons), listeners);
         JScrollPane mapScroll = new JScrollPane(rcMap);
         mapScroll.getVerticalScrollBar().setUnitIncrement(16);
         mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
         mapScroll.setBorder(BorderFactory.createEmptyBorder());
 
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, listPanel);
-        int viewerWidth = NearInfinity.getInstance().getWidth() - NearInfinity.getInstance().getResourceTree().getWidth();
-        split.setDividerLocation(viewerWidth - viewerWidth / 4);  // have area list occupy ca. 25% of resource view width
+        int viewerWidth = NearInfinity.getInstance().getWidth()
+            - NearInfinity.getInstance().getResourceTree().getWidth();
+        split.setDividerLocation(viewerWidth - viewerWidth / 4); // have area list occupy ca. 25% of resource view width
         setLayout(new BorderLayout());
         add(split, BorderLayout.CENTER);
 
@@ -193,33 +200,29 @@ public class ViewerMap extends JPanel
   }
 
   /** Returns current map entry structure. */
-  private MapEntry getEntry()
-  {
+  private MapEntry getEntry() {
     return mapEntry;
   }
 
   /** Load and return map graphics. */
-  private BufferedImage loadMap()
-  {
-    String mapName = ((IsReference)getEntry().getAttribute(MapEntry.WMP_MAP_RESREF)).getResourceName();
+  private BufferedImage loadMap() {
+    String mapName = ((IsReference) getEntry().getAttribute(MapEntry.WMP_MAP_RESREF)).getResourceName();
     if (ResourceFactory.resourceExists(mapName)) {
       MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(mapName));
       if (mos != null) {
-        return (BufferedImage)mos.getImage();
+        return (BufferedImage) mos.getImage();
       }
     }
     return null;
   }
 
   /** Show popup menu. */
-  private void showPopup(Component invoker, int x, int y)
-  {
+  private void showPopup(Component invoker, int x, int y) {
     pmOptions.show(invoker, x, y);
   }
 
   /** Display either or both map icons and travel distances. */
-  private void showOverlays(boolean showIcons, boolean showIconLabels, boolean showDistances)
-  {
+  private void showOverlays(boolean showIcons, boolean showIconLabels, boolean showDistances) {
     resetMap();
     if (showIcons) {
       showMapIcons();
@@ -230,20 +233,19 @@ public class ViewerMap extends JPanel
         showMapDistances(listPanel.getList().getSelectedIndex());
       }
     }
-    showDot((AreaEntry)listPanel.getList().getSelectedValue(), false);
+    showDot((AreaEntry) listPanel.getList().getSelectedValue(), false);
     rcMap.repaint();
   }
 
   /** Draws map icons onto the map. */
-  private void showMapIcons()
-  {
+  private void showMapIcons() {
     if (mapIcons != null) {
-      Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+      Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
       try {
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
           AreaEntry area = getAreaEntry(i, true);
           if (area != null) {
-            int iconIndex = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
+            int iconIndex = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
             if (frameIndex >= 0) {
               final Image mapIcon = mapIcons.frameGet(mapIconsCtrl, frameIndex);
@@ -254,7 +256,7 @@ public class ViewerMap extends JPanel
               int cy = mapIcons.getFrameInfo(frameIndex).getCenterY();
               p.x -= cx;
               p.y -= cy;
-              g.drawImage(mapIcon, p.x, p.y, p.x+width, p.y+height, 0, 0, width, height, null);
+              g.drawImage(mapIcon, p.x, p.y, p.x + width, p.y + height, 0, 0, width, height, null);
             }
           }
         }
@@ -266,24 +268,23 @@ public class ViewerMap extends JPanel
   }
 
   /** Draws map icon labels onto the map. */
-  private void showMapIconLabels()
-  {
+  private void showMapIconLabels() {
     if (mapIcons != null) {
-      Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+      Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
       try {
         g.setFont(Misc.getScaledFont(g.getFont()));
-        g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.9f));
+        g.setFont(g.getFont().deriveFont(g.getFont().getSize2D() * 0.9f));
         final Color WHITE_BLENDED = new Color(0xc0ffffff, true);
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
           AreaEntry area = getAreaEntry(i, true);
           if (area != null) {
-            int iconIndex = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
+            int iconIndex = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
             if (frameIndex >= 0) {
               // getting area name
-              int strref = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NAME)).getValue();
+              int strref = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NAME)).getValue();
               if (strref < 0) {
-                strref = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
+                strref = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
               }
               String mapName = (strref >= 0) ? StringTable.getStringRef(strref) : null;
               if (mapName != null && mapName.trim().length() == 0) {
@@ -291,7 +292,7 @@ public class ViewerMap extends JPanel
               }
 
               // getting area code
-              String mapCode = ((IsReference)area.getAttribute(AreaEntry.WMP_AREA_CURRENT)).getResourceName();
+              String mapCode = ((IsReference) area.getAttribute(AreaEntry.WMP_AREA_CURRENT)).getResourceName();
               if (ResourceFactory.resourceExists(mapCode)) {
                 mapCode = mapCode.replace(".ARE", "");
               } else {
@@ -319,7 +320,7 @@ public class ViewerMap extends JPanel
                 }
 
                 int ofsY = 0;
-                for (final String label: labels) {
+                for (final String label : labels) {
                   Rectangle2D rectText = g.getFont().getStringBounds(label, g.getFontRenderContext());
                   int boxWidth = rectText.getBounds().width;
                   int boxHeight = rectText.getBounds().height;
@@ -331,7 +332,7 @@ public class ViewerMap extends JPanel
 
                   g.setColor(Color.BLACK);
                   LineMetrics lm = g.getFont().getLineMetrics(label, g.getFontRenderContext());
-                  g.drawString(label, (float)textX, (float)textY + lm.getAscent() + lm.getLeading());
+                  g.drawString(label, textX, textY + lm.getAscent() + lm.getLeading());
                   ofsY += boxHeight;
                 }
               }
@@ -346,34 +347,33 @@ public class ViewerMap extends JPanel
   }
 
   /** Displays all map distances from the specified area (by index). */
-  private void showMapDistances(int areaIndex)
-  {
+  private void showMapDistances(int areaIndex) {
     AreaEntry area = getAreaEntry(areaIndex, true);
     if (area != null) {
       final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
       final Color[] dirColor = { Color.GREEN, Color.RED, Color.CYAN, Color.YELLOW };
       final int[] links = new int[8];
-      final int linkSize = 216;   // size of a single area link structure
-      int ofsLinkBase = ((IsNumeric)getEntry().getAttribute(MapEntry.WMP_MAP_OFFSET_AREA_LINKS)).getValue();
+      final int linkSize = 216; // size of a single area link structure
+      int ofsLinkBase = ((IsNumeric) getEntry().getAttribute(MapEntry.WMP_MAP_OFFSET_AREA_LINKS)).getValue();
 
-      links[0] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_NORTH)).getValue();
-      links[1] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_NORTH)).getValue();
-      links[2] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_WEST)).getValue();
-      links[3] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_WEST)).getValue();
-      links[4] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_SOUTH)).getValue();
-      links[5] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_SOUTH)).getValue();
-      links[6] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_EAST)).getValue();
-      links[7] = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_EAST)).getValue();
+      links[0] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_NORTH)).getValue();
+      links[1] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_NORTH)).getValue();
+      links[2] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_WEST)).getValue();
+      links[3] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_WEST)).getValue();
+      links[4] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_SOUTH)).getValue();
+      links[5] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_SOUTH)).getValue();
+      links[6] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_EAST)).getValue();
+      links[7] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_EAST)).getValue();
       for (int dir = 0; dir < srcDir.length; dir++) {
         Direction curDir = srcDir[dir];
         Point ptOrigin = getMapIconCoordinate(areaIndex, curDir, true);
         for (int dirIndex = 0, dirCount = links[dir * 2 + 1]; dirIndex < dirCount; dirIndex++) {
-          int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex)*linkSize;
-          AreaLink destLink = (AreaLink)area.getAttribute(ofsLink, false);
+          int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex) * linkSize;
+          AreaLink destLink = (AreaLink) area.getAttribute(ofsLink, false);
 
           if (destLink != null) {
-            int dstAreaIndex = ((IsNumeric)destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
-            Flag flag = (Flag)destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
+            int dstAreaIndex = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
+            Flag flag = (Flag) destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
             Direction dstDir = Direction.NORTH;
             if (flag.isFlagSet(1)) {
               dstDir = Direction.EAST;
@@ -386,11 +386,10 @@ public class ViewerMap extends JPanel
 
             // checking for random encounters during travels
             boolean hasRandomEncounters = false;
-            if (((IsNumeric)destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
+            if (((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
               for (int rnd = 1; rnd < 6; rnd++) {
-                String rndArea = ((IsReference)destLink
-                    .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd)))
-                    .getResourceName();
+                String rndArea = ((IsReference) destLink
+                    .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd))).getResourceName();
                 if (ResourceFactory.resourceExists(rndArea)) {
                   hasRandomEncounters = true;
                   break;
@@ -398,21 +397,22 @@ public class ViewerMap extends JPanel
               }
             }
 
-            Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
-            g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.8f));
+            Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
+            g.setFont(g.getFont().deriveFont(g.getFont().getSize2D() * 0.8f));
             try {
               // drawing line
               g.setColor(dirColor[dir]);
               if (hasRandomEncounters) {
                 g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f,
-                            new float[]{6.0f, 4.0f}, 0.0f));
+                    new float[] { 6.0f, 4.0f }, 0.0f));
               } else {
                 g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
               }
               g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
 
               // printing travel time (in hours)
-              String duration = String.format("%d h", ((IsNumeric)destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
+              String duration = String.format("%d h",
+                  ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
               LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
               Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
               int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 2;
@@ -422,7 +422,7 @@ public class ViewerMap extends JPanel
               g.setColor(Color.LIGHT_GRAY);
               g.fillRect(textX - 2, textY, textWidth + 4, textHeight);
               g.setColor(Color.BLUE);
-              g.drawString(duration, (float)textX, (float)textY + lm.getAscent() + lm.getLeading());
+              g.drawString(duration, textX, textY + lm.getAscent() + lm.getLeading());
             } finally {
               g.dispose();
               g = null;
@@ -434,27 +434,25 @@ public class ViewerMap extends JPanel
   }
 
   /** Returns a properly scaled map icon position. */
-  private Point getAreaEntryPosition(AreaEntry areaEntry, boolean scaled)
-  {
+  private Point getAreaEntryPosition(AreaEntry areaEntry, boolean scaled) {
     Point p = new Point();
     if (areaEntry != null) {
-      p.x = ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      p.y = ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      p.x = ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      p.y = ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
       if (scaled) {
-        p.x = (int)(p.x * mapScaleX);
-        p.y = (int)(p.y * mapScaleY);
+        p.x = (int) (p.x * mapScaleX);
+        p.y = (int) (p.y * mapScaleY);
       }
     }
     return p;
   }
 
   /** Returns a pixel coordinate for one of the edges of the specified area icon. */
-  private Point getMapIconCoordinate(int areaIndex, Direction dir, boolean byPanel)
-  {
+  private Point getMapIconCoordinate(int areaIndex, Direction dir, boolean byPanel) {
     AreaEntry area = getAreaEntry(areaIndex, byPanel);
     if (area != null) {
       Point p = getAreaEntryPosition(area, isScaling());
-      int iconIndex = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
+      int iconIndex = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
       int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
       int width, height;
       if (frameIndex >= 0) {
@@ -490,18 +488,17 @@ public class ViewerMap extends JPanel
   }
 
   /** Returns area structure of specified item index. */
-  private AreaEntry getAreaEntry(int index, boolean byPanel)
-  {
+  private AreaEntry getAreaEntry(int index, boolean byPanel) {
     AreaEntry retVal = null;
     if (byPanel) {
       if (index >= 0 && index < listPanel.getList().getModel().getSize()) {
-        retVal = (AreaEntry)listPanel.getList().getModel().getElementAt(index);
+        retVal = (AreaEntry) listPanel.getList().getModel().getElementAt(index);
       }
     } else {
-      if (index >= 0 && index < ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_NUM_AREAS)).getValue()) {
+      if (index >= 0 && index < ((IsNumeric) mapEntry.getAttribute(MapEntry.WMP_MAP_NUM_AREAS)).getValue()) {
         StructEntry e = mapEntry.getAttribute(AreaEntry.WMP_AREA + " " + index);
         if (e instanceof AreaEntry) {
-          retVal = (AreaEntry)e;
+          retVal = (AreaEntry) e;
         }
       }
     }
@@ -509,25 +506,24 @@ public class ViewerMap extends JPanel
   }
 
   /** Show "dot" on specified map icon, optionally restore background graphics. */
-  private void showDot(AreaEntry entry, boolean restore)
-  {
+  private void showDot(AreaEntry entry, boolean restore) {
     if (restore) {
       restoreDot();
     }
     if (entry != null) {
       storeDot(entry);
-      int x = ((IsNumeric)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      x = (int)(x * mapScaleX);
-      int y = ((IsNumeric)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
-      y = (int)(y * mapScaleY);
+      int x = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      x = (int) (x * mapScaleX);
+      int y = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      y = (int) (y * mapScaleY);
       int width = iconDot.getWidth();
       int height = iconDot.getHeight();
       int xofs = width / 2;
       int yofs = height / 2;
-      Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+      Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
-        g.drawImage(iconDot, x-xofs, y-yofs, x-xofs+width, y-yofs+height, 0, 0, width, height, null);
+        g.drawImage(iconDot, x - xofs, y - yofs, x - xofs + width, y - yofs + height, 0, 0, width, height, null);
       } finally {
         g.dispose();
         g = null;
@@ -536,13 +532,12 @@ public class ViewerMap extends JPanel
   }
 
   /** Stores background graphics of "dot". */
-  private void storeDot(AreaEntry entry)
-  {
+  private void storeDot(AreaEntry entry) {
     if (entry != null) {
-      int x = ((IsNumeric)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      x = (int)(x * mapScaleX);
-      int y = ((IsNumeric)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
-      y = (int)(y * mapScaleY);
+      int x = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      x = (int) (x * mapScaleX);
+      int y = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      y = (int) (y * mapScaleY);
       int width = dotBackup.getWidth();
       int height = dotBackup.getHeight();
       int xofs = width / 2;
@@ -550,9 +545,10 @@ public class ViewerMap extends JPanel
       Graphics2D g = dotBackup.createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
-        g.drawImage(rcMap.getImage(), 0, 0, width, height, x-xofs, y-yofs, x-xofs+width, y-yofs+height, null);
-        dotX = x-xofs;
-        dotY = y-yofs;
+        g.drawImage(rcMap.getImage(), 0, 0, width, height, x - xofs, y - yofs, x - xofs + width, y - yofs + height,
+            null);
+        dotX = x - xofs;
+        dotY = y - yofs;
       } finally {
         g.dispose();
         g = null;
@@ -561,17 +557,16 @@ public class ViewerMap extends JPanel
   }
 
   /** Restores background graphics of "dot". */
-  private void restoreDot()
-  {
+  private void restoreDot() {
     if (dotX != -1 && dotY != -1) {
       int x = dotX;
       int y = dotY;
       int width = dotBackup.getWidth();
       int height = dotBackup.getHeight();
-      Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+      Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
-        g.drawImage(dotBackup, x, y, x+width, y+height, 0, 0, width, height, null);
+        g.drawImage(dotBackup, x, y, x + width, y + height, 0, 0, width, height, null);
         dotX = -1;
         dotY = -1;
       } finally {
@@ -582,9 +577,8 @@ public class ViewerMap extends JPanel
   }
 
   /** Attempts to restore the whole map graphics. */
-  private void resetMap()
-  {
-    Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+  private void resetMap() {
+    Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
     try {
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
@@ -597,14 +591,12 @@ public class ViewerMap extends JPanel
   }
 
   /** Returns whether to apply map scaling factor. */
-  private boolean isScaling()
-  {
+  private boolean isScaling() {
     return miScaling.isSelected();
   }
 
   /** Shows specified coordinates as text info. Hides display for negative coordinates. */
-  private void updateCursorInfo(int x, int y)
-  {
+  private void updateCursorInfo(int x, int y) {
     if (lInfoPos != null) {
       if (x >= 0 && y >= 0) {
         lInfoPos.setText(String.format("Cursor at (%d, %d)", x, y));
@@ -615,57 +607,49 @@ public class ViewerMap extends JPanel
   }
 
   /** Exports current map to PNG. */
-  private void exportMap()
-  {
+  private void exportMap() {
     final Window wnd = SwingUtilities.getWindowAncestor(this);
     WindowBlocker.blockWindow(wnd, true);
 
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        boolean bRet = false;
-        try {
-          restoreDot();
-          BufferedImage srcImage = (BufferedImage)rcMap.getImage();
-          BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
-                                                                      srcImage.getHeight(),
-                                                                      srcImage.getTransparency());
-          Graphics2D g = dstImage.createGraphics();
-          g.drawImage(srcImage, 0, 0, null);
-          g.dispose();
-          srcImage = null;
-          bRet = ImageIO.write(dstImage, "png", os);
-          dstImage.flush();
-          dstImage = null;
-        } catch (Exception e) {
-          e.printStackTrace();
-        } finally {
-          showDot((AreaEntry)listPanel.getList().getSelectedValue(), false);
-          WindowBlocker.blockWindow(wnd, false);
-        }
-        if (bRet) {
-          final ResourceEntry entry = getEntry().getParent().getResourceEntry();
-          final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
-          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
-        } else {
-          JOptionPane.showMessageDialog(wnd, "Error while exporting map as graphics.", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-        }
+    SwingUtilities.invokeLater(() -> {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      boolean bRet = false;
+      try {
+        restoreDot();
+        BufferedImage srcImage = (BufferedImage) rcMap.getImage();
+        BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(), srcImage.getHeight(),
+            srcImage.getTransparency());
+        Graphics2D g = dstImage.createGraphics();
+        g.drawImage(srcImage, 0, 0, null);
+        g.dispose();
+        srcImage = null;
+        bRet = ImageIO.write(dstImage, "png", os);
+        dstImage.flush();
+        dstImage = null;
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        showDot((AreaEntry) listPanel.getList().getSelectedValue(), false);
+        WindowBlocker.blockWindow(wnd, false);
+      }
+      if (bRet) {
+        final ResourceEntry entry = getEntry().getParent().getResourceEntry();
+        final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
+        ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
+      } else {
+        JOptionPane.showMessageDialog(wnd, "Error while exporting map as graphics.", "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     });
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ListSelectionListener
-  {
-    //--------------------- Begin Interface ActionListener ---------------------
+  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ListSelectionListener {
+    // --------------------- Begin Interface ActionListener ---------------------
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       if (e.getSource() == miShowIcons) {
         try {
           WindowBlocker.blockWindow(true);
@@ -710,47 +694,46 @@ public class ViewerMap extends JPanel
       }
     }
 
-    //--------------------- End Interface ActionListener ---------------------
+    // --------------------- End Interface ActionListener ---------------------
 
-    //--------------------- Begin Interface MouseListener ---------------------
-
-    @Override
-    public void mouseClicked(MouseEvent e) {}
+    // --------------------- Begin Interface MouseListener ---------------------
 
     @Override
-    public void mousePressed(MouseEvent e)
-    {
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
       if (e.isPopupTrigger() && e.getComponent() == rcMap) {
         showPopup(e.getComponent(), e.getX(), e.getY());
       }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e)
-    {
+    public void mouseReleased(MouseEvent e) {
       if (e.isPopupTrigger() && e.getComponent() == rcMap) {
         showPopup(e.getComponent(), e.getX(), e.getY());
       }
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    @Override
-    public void mouseExited(MouseEvent e) {}
-
-    //--------------------- End Interface MouseListener ---------------------
-
-    //--------------------- Begin Interface MouseMotionListener ---------------------
-
-    @Override
-    public void mouseDragged(MouseEvent e)
-    {
+    public void mouseEntered(MouseEvent e) {
     }
 
     @Override
-    public void mouseMoved(MouseEvent e)
-    {
+    public void mouseExited(MouseEvent e) {
+    }
+
+    // --------------------- End Interface MouseListener ---------------------
+
+    // --------------------- Begin Interface MouseMotionListener ---------------------
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
       if (e.getSource() == rcMap) {
         int ctrlWidth = rcMap.getWidth();
         int ctrlHeight = rcMap.getHeight();
@@ -769,19 +752,18 @@ public class ViewerMap extends JPanel
       }
     }
 
-    //--------------------- End Interface MouseMotionListener ---------------------
+    // --------------------- End Interface MouseMotionListener ---------------------
 
     // --------------------- Begin Interface ListSelectionListener ---------------------
 
     @Override
-    public void valueChanged(ListSelectionEvent event)
-    {
+    public void valueChanged(ListSelectionEvent event) {
       if (!event.getValueIsAdjusting()) {
-        JList<?> list = (JList<?>)event.getSource();
+        JList<?> list = (JList<?>) event.getSource();
         if (miShowDistances.isSelected()) {
           showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
         } else {
-          showDot((AreaEntry)list.getSelectedValue(), true);
+          showDot((AreaEntry) list.getSelectedValue(), true);
         }
         repaint();
       }
@@ -790,28 +772,23 @@ public class ViewerMap extends JPanel
     // --------------------- End Interface ListSelectionListener ---------------------
   }
 
-
-  private static final class WmpAreaListRenderer extends DefaultListCellRenderer
-      implements ListValueRenderer
-  {
+  private static final class WmpAreaListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
     private final BamDecoder bam;
     private final BamControl ctrl;
 
-    private WmpAreaListRenderer(BamDecoder decoder)
-    {
+    private WmpAreaListRenderer(BamDecoder decoder) {
       bam = decoder;
       ctrl = (bam != null) ? bam.createControl() : null;
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                                                  boolean cellHasFocus)
-    {
-      JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        boolean cellHasFocus) {
+      JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setText(getListValue(value, true));
 
-      AbstractStruct struct = (AbstractStruct)value;
-      IsNumeric animNr = (IsNumeric)struct.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX);
+      AbstractStruct struct = (AbstractStruct) value;
+      IsNumeric animNr = (IsNumeric) struct.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX);
       setIcon(null);
       if (ctrl != null) {
         setIcon(new ImageIcon(bam.frameGet(ctrl, ctrl.cycleGetFrameIndexAbsolute(animNr.getValue(), 0))));
@@ -820,22 +797,20 @@ public class ViewerMap extends JPanel
     }
 
     @Override
-    public String getListValue(Object value)
-    {
+    public String getListValue(Object value) {
       return getListValue(value, false);
     }
 
-    private String getListValue(Object value, boolean showFull)
-    {
+    private String getListValue(Object value, boolean showFull) {
       if (value instanceof AbstractStruct) {
-        AbstractStruct struct = (AbstractStruct)value;
+        AbstractStruct struct = (AbstractStruct) value;
 
-        StringRef areaName = (StringRef)struct.getAttribute(AreaEntry.WMP_AREA_NAME);
-        IsReference areaRef = (IsReference)struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
+        StringRef areaName = (StringRef) struct.getAttribute(AreaEntry.WMP_AREA_NAME);
+        IsReference areaRef = (IsReference) struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
         String text1 = null, text2 = null;
         if (areaName.getValue() >= 0) {
           StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
-                                                                              : StringTable.Format.NONE;
+              : StringTable.Format.NONE;
           text1 = areaName.toString(fmt);
         } else {
           text1 = "";

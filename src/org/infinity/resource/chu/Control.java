@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.chu;
@@ -25,8 +25,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
-final class Control extends AbstractStruct // implements AddRemovable
-{
+final class Control extends AbstractStruct { // implements AddRemovable
   // CHU/Control-specific field labels
   public static final String CHU_CONTROL                                = "Control";
   public static final String CHU_CONTROL_OFFSET                         = "Offset";
@@ -96,69 +95,58 @@ final class Control extends AbstractStruct // implements AddRemovable
   public static final String CHU_CONTROL_SB_FRAME_INDEX_SLIDER          = "Frame number: Slider";
   public static final String CHU_CONTROL_SB_TEXT_ID                     = "Text area ID";
 
-  private static final String[] s_type = {"Button", "", "Slider", "Text field", "",
-                                          "Text area", "Label", "Scroll bar"};
-  private static final String[] s_button = {"Center", "Left justify", "Right justify",
-                                            "Top justify", "Bottom justify", "Anchor",
-                                            "Reduce size", "Don't wrap"};
-  private static final String[] s_label = {"Center", "Use color", "Truecolor", "Center justify",
-                                           "Left justify", "Right justify", "Top justify",
-                                           "Middle justify", "Bottom justify", "Word wrap"};
-  private static final String[] s_case = {"Normal case", "Upper case only", "Lower case only"};
+  private static final String[] TYPE_ARRAY = { "Button", "", "Slider", "Text field", "", "Text area", "Label",
+      "Scroll bar" };
+  private static final String[] BUTTON_ARRAY = { "Center", "Left justify", "Right justify", "Top justify", "Bottom justify",
+      "Anchor", "Reduce size", "Don't wrap" };
+  private static final String[] LABEL_ARRAY = { "Center", "Use color", "Truecolor", "Center justify", "Left justify",
+      "Right justify", "Top justify", "Middle justify", "Bottom justify", "Word wrap" };
+  private static final String[] CASE_ARRAY = { "Normal case", "Upper case only", "Lower case only" };
 
   private final int size;
 
-  Control(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number, int size) throws Exception
-  {
+  Control(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number, int size) throws Exception {
     super(superStruct, CHU_CONTROL + " " + number, buffer, offset);
     this.size = size;
   }
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     getFields().get(0).write(os);
     getFields().get(1).write(os);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset)
-  {
+  public int read(ByteBuffer buffer, int offset) {
     addField(new HexNumber(buffer, offset, 4, CHU_CONTROL_OFFSET));
     addField(new HexNumber(buffer, offset + 4, 4, CHU_CONTROL_LENGTH));
     return offset + 8;
   }
 
   /** Returns the control id. */
-  public int getControlId()
-  {
-    return ((IsNumeric)getAttribute(CHU_CONTROL_ID)).getValue();
+  public int getControlId() {
+    return ((IsNumeric) getAttribute(CHU_CONTROL_ID)).getValue();
   }
 
   /** Returns the x and y position of the control. */
-  public Point getControlPosition()
-  {
-    return new Point(((IsNumeric)getAttribute(CHU_CONTROL_POSITION_X)).getValue(),
-                     ((IsNumeric)getAttribute(CHU_CONTROL_POSITION_Y)).getValue());
+  public Point getControlPosition() {
+    return new Point(((IsNumeric) getAttribute(CHU_CONTROL_POSITION_X)).getValue(),
+        ((IsNumeric) getAttribute(CHU_CONTROL_POSITION_Y)).getValue());
   }
 
   /** Returns the width and height of the control. */
-  public Dimension getControlDimensions()
-  {
-    return new Dimension(((IsNumeric)getAttribute(CHU_CONTROL_WIDTH)).getValue(),
-                         ((IsNumeric)getAttribute(CHU_CONTROL_HEIGHT)).getValue());
+  public Dimension getControlDimensions() {
+    return new Dimension(((IsNumeric) getAttribute(CHU_CONTROL_WIDTH)).getValue(),
+        ((IsNumeric) getAttribute(CHU_CONTROL_HEIGHT)).getValue());
   }
 
   /** Returns the control type. */
-  public int getControlType()
-  {
-    return ((IsNumeric)getAttribute(CHU_CONTROL_TYPE)).getValue();
+  public int getControlType() {
+    return ((IsNumeric) getAttribute(CHU_CONTROL_TYPE)).getValue();
   }
 
-
-  public int readControl(ByteBuffer buffer)
-  {
-    int offset = ((IsNumeric)getAttribute(CHU_CONTROL_OFFSET)).getValue();
+  public int readControl(ByteBuffer buffer) {
+    int offset = ((IsNumeric) getAttribute(CHU_CONTROL_OFFSET)).getValue();
     final int endOffset = offset + size;
     addField(new DecNumber(buffer, offset, 2, CHU_CONTROL_ID));
     addField(new DecNumber(buffer, offset + 2, 2, CHU_CONTROL_BUFFER_LENGTH));
@@ -166,7 +154,7 @@ final class Control extends AbstractStruct // implements AddRemovable
     addField(new DecNumber(buffer, offset + 6, 2, CHU_CONTROL_POSITION_Y));
     addField(new DecNumber(buffer, offset + 8, 2, CHU_CONTROL_WIDTH));
     addField(new DecNumber(buffer, offset + 10, 2, CHU_CONTROL_HEIGHT));
-    Bitmap type = new Bitmap(buffer, offset + 12, 1, CHU_CONTROL_TYPE, s_type);
+    Bitmap type = new Bitmap(buffer, offset + 12, 1, CHU_CONTROL_TYPE, TYPE_ARRAY);
     addField(type);
     addField(new Unknown(buffer, offset + 13, 1));
 
@@ -174,7 +162,7 @@ final class Control extends AbstractStruct // implements AddRemovable
       case 0: // Button
         addField(new ResourceRef(buffer, offset + 14, CHU_CONTROL_BTN_RESREF, "BAM"));
         addField(new DecNumber(buffer, offset + 22, 1, CHU_CONTROL_BTN_ANIMATION_INDEX));
-        addField(new Flag(buffer, offset + 23, 1, CHU_CONTROL_BTN_FLAGS, s_button));
+        addField(new Flag(buffer, offset + 23, 1, CHU_CONTROL_BTN_FLAGS, BUTTON_ARRAY));
         addField(new DecNumber(buffer, offset + 24, 1, CHU_CONTROL_BTN_FRAME_INDEX_UNPRESSED));
         addField(new DecNumber(buffer, offset + 25, 1, CHU_CONTROL_BTN_TEXT_ANCHOR_LEFT));
         addField(new DecNumber(buffer, offset + 26, 1, CHU_CONTROL_BTN_FRAME_INDEX_PRESSED));
@@ -219,7 +207,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         addField(new Unknown(buffer, offset + 66, 2));
         addField(new TextString(buffer, offset + 68, 32, CHU_CONTROL_TF_TEXT));
         addField(new DecNumber(buffer, offset + 100, 2, CHU_CONTROL_TF_FIELD_LENGTH));
-        addField(new Bitmap(buffer, offset + 102, 4, CHU_CONTROL_TF_ALLOWED_CSE, s_case));
+        addField(new Bitmap(buffer, offset + 102, 4, CHU_CONTROL_TF_ALLOWED_CSE, CASE_ARRAY));
         offset += 106;
         break;
       case 5: // Text area
@@ -245,7 +233,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         }
         addField(new ColorPicker(buffer, offset + 26, CHU_CONTROL_LBL_COLOR_1, ColorPicker.Format.RGBX));
         addField(new ColorPicker(buffer, offset + 30, CHU_CONTROL_LBL_COLOR_2, ColorPicker.Format.RGBX));
-        addField(new Flag(buffer, offset + 34, 2, CHU_CONTROL_LBL_FLAGS, s_label));
+        addField(new Flag(buffer, offset + 34, 2, CHU_CONTROL_LBL_FLAGS, LABEL_ARRAY));
         offset += 36;
         break;
       case 7: // Scroll bar
@@ -261,7 +249,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += 40;
         break;
       default:
-        IsNumeric len = (IsNumeric)getAttribute(CHU_CONTROL_LENGTH);
+        IsNumeric len = (IsNumeric) getAttribute(CHU_CONTROL_LENGTH);
         addField(new Unknown(buffer, offset + 14, len.getValue() - 14));
         offset += len.getValue();
         break;
@@ -276,8 +264,7 @@ final class Control extends AbstractStruct // implements AddRemovable
     return offset;
   }
 
-  public void writeControl(OutputStream os) throws IOException
-  {
+  public void writeControl(OutputStream os) throws IOException {
     final List<StructEntry> fields = getFields();
     for (int i = 2; i < fields.size(); i++) {
       fields.get(i).write(os);

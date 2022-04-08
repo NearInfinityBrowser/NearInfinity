@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -13,37 +13,32 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
-public final class Drink extends AbstractStruct implements AddRemovable
-{
+public final class Drink extends AbstractStruct implements AddRemovable {
   // STO/Drink-specific field labels
   public static final String STO_DRINK            = "Drink";
   public static final String STO_DRINK_NAME       = "Drink name";
   public static final String STO_DRINK_PRICE      = "Price";
   public static final String STO_DRINK_RUMOR_RATE = "Rumor rate";
 
-  Drink() throws Exception
-  {
+  Drink() throws Exception {
     super(null, STO_DRINK, StreamUtils.getByteBuffer(20), 0);
   }
 
-  Drink(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  Drink(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, STO_DRINK + " " + number, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new Unknown(buffer, offset, 8));
     addField(new StringRef(buffer, offset + 8, STO_DRINK_NAME));
     addField(new DecNumber(buffer, offset + 12, 4, STO_DRINK_PRICE));
@@ -51,4 +46,3 @@ public final class Drink extends AbstractStruct implements AddRemovable
     return offset + 20;
   }
 }
-

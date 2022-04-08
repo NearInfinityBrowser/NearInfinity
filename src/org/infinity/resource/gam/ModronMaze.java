@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -10,8 +10,7 @@ import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
 
-public final class ModronMaze extends AbstractStruct
-{
+public final class ModronMaze extends AbstractStruct {
   // GAM/ModronMaze-specific field labels
   public static final String GAM_MAZE                     = "Modron maze state";
   public static final String GAM_MAZE_SIZE_X              = "Size: X";
@@ -29,14 +28,12 @@ public final class ModronMaze extends AbstractStruct
   public static final String GAM_MAZE_MAZE_BLOCKER_MADE   = "Foyer maze blocker made";
   public static final String GAM_MAZE_ENGINE_BLOCKER_MADE = "Foyer engine blocker made";
 
-  public ModronMaze(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
-  {
+  public ModronMaze(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception {
     super(superStruct, GAM_MAZE, buffer, offset);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     int curOfs = offset;
 
     // adding room data

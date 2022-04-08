@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -29,8 +29,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.StreamUtils;
 
-public final class GraphicsResource implements Resource, Referenceable, ActionListener
-{
+public final class GraphicsResource implements Resource, Referenceable, ActionListener {
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
@@ -38,17 +37,15 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
   private JPanel panel;
   private Palette palette;
 
-  public GraphicsResource(ResourceEntry entry) throws Exception
-  {
+  public GraphicsResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     init();
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
@@ -56,47 +53,42 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-// --------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return true;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new ReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-// --------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     RenderCanvas rcCanvas = new RenderCanvas(image);
     JScrollPane scroll = new JScrollPane(rcCanvas);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
@@ -106,20 +98,17 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     return panel;
   }
 
-// --------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-  public BufferedImage getImage()
-  {
+  public BufferedImage getImage() {
     return image;
   }
 
-  public Palette getPalette()
-  {
+  public Palette getPalette() {
     return palette;
   }
 
-  private void init() throws Exception
-  {
+  private void init() throws Exception {
     ByteBuffer buffer = entry.getResourceBuffer();
     // Checking signature
     boolean isBMP = false;
@@ -170,8 +159,7 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     }
   }
 
-  private void setPixels(ByteBuffer buffer, int offset, int bitcount, int width, int y, Palette palette)
-  {
+  private void setPixels(ByteBuffer buffer, int offset, int bitcount, int width, int y, Palette palette) {
     if (bitcount == 4) {
       int pix = 0;
       for (int x = 0; x < width; x++) {
@@ -181,26 +169,22 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
         int color2 = color & 0x0f;
         image.setRGB(pix++, y, palette.getColor(color2));
       }
-    }
-    else if (bitcount == 8) {
+    } else if (bitcount == 8) {
       for (int x = 0; x < width; x++) {
         image.setRGB(x, y, palette.getColor(buffer.get(offset + x) & 0xff));
       }
-    }
-    else if (bitcount == 24) {
+    } else if (bitcount == 24) {
       for (int x = 0; x < width / 3; x++) {
-        int rgb = (buffer.get(offset + 3*x + 2) & 0xff) << 16;
-        rgb |= (buffer.get(offset + 3*x + 1) & 0xff) << 8;
-        rgb |= buffer.get(offset + 3*x) & 0xff;
+        int rgb = (buffer.get(offset + 3 * x + 2) & 0xff) << 16;
+        rgb |= (buffer.get(offset + 3 * x + 1) & 0xff) << 8;
+        rgb |= buffer.get(offset + 3 * x) & 0xff;
         image.setRGB(x, y, rgb);
       }
-    }
-    else if (bitcount == 32) {
+    } else if (bitcount == 32) {
       for (int x = 0; x < width / 4; x++) {
-        int rgb = buffer.getInt(offset + 4*x);
+        int rgb = buffer.getInt(offset + 4 * x);
         image.setRGB(x, y, rgb);
       }
     }
   }
 }
-

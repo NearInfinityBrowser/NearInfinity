@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -12,10 +12,8 @@ import org.infinity.util.StringBufferStream;
 /**
  * Base class for BCS trigger, action and object handling classes.
  */
-public abstract class BcsStructureBase
-{
-  protected char determineParamType(StringBufferStream sbs)
-  {
+public abstract class BcsStructureBase {
+  protected char determineParamType(StringBufferStream sbs) {
     char ch = 0;
     if ("-0123456789".indexOf(sbs.peek()) >= 0) {
       ch = 'I';
@@ -29,8 +27,7 @@ public abstract class BcsStructureBase
     return ch;
   }
 
-  protected long parseNumber(StringBufferStream sbs) throws Exception
-  {
+  protected long parseNumber(StringBufferStream sbs) throws Exception {
     String s = sbs.getMatch("-?[0-9]+");
     if (s == null) {
       throw new Exception();
@@ -42,8 +39,7 @@ public abstract class BcsStructureBase
     }
   }
 
-  protected String parseString(StringBufferStream sbs) throws Exception
-  {
+  protected String parseString(StringBufferStream sbs) throws Exception {
     String s = sbs.getMatch("\"[^\"]*\"");
     if (s == null || s.length() < 2) {
       throw new Exception();
@@ -51,8 +47,7 @@ public abstract class BcsStructureBase
     return s.substring(1, s.length() - 1);
   }
 
-  protected BcsObject parseObject(StringBufferStream sbs) throws Exception
-  {
+  protected BcsObject parseObject(StringBufferStream sbs) throws Exception {
     if (sbs.skip("OB")) {
       return new BcsObject(sbs);
     } else {
@@ -60,21 +55,18 @@ public abstract class BcsStructureBase
     }
   }
 
-  protected Point parsePoint(StringBufferStream sbs) throws Exception
-  {
-    int[] values = parseNumberArray(sbs, '[', ']',',', 2);
+  protected Point parsePoint(StringBufferStream sbs) throws Exception {
+    int[] values = parseNumberArray(sbs, '[', ']', ',', 2);
     return new Point(values[0], values[1]);
   }
 
-  protected Rectangle parseRectangle(StringBufferStream sbs) throws Exception
-  {
-    int[] values = parseNumberArray(sbs, '[', ']','.', 4);
+  protected Rectangle parseRectangle(StringBufferStream sbs) throws Exception {
+    int[] values = parseNumberArray(sbs, '[', ']', '.', 4);
     return new Rectangle(values[0], values[1], values[2], values[3]);
   }
 
-  protected int[] parseNumberArray(StringBufferStream sbs, char tagOpen, char tagClose,
-                                   char separator, int numItems) throws Exception
-  {
+  protected int[] parseNumberArray(StringBufferStream sbs, char tagOpen, char tagClose, char separator, int numItems)
+      throws Exception {
     int[] retVal = new int[numItems];
     boolean success = true;
     success = (sbs.get() == tagOpen);
@@ -103,16 +95,16 @@ public abstract class BcsStructureBase
 
   /**
    * Returns the string argument for the specified function at the requested relative string position.
+   *
    * @param function Function prototype
    * @param position Relative position of string argument (in range: [0, 4])
-   * @param strings Available strings parameters containing the requested string argument.
+   * @param strings  Available strings parameters containing the requested string argument.
    * @return Requested string argument, empty string otherwise.
    * @throws IllegalArgumentException if position is out of range
    */
-  public String getStringParam(Signatures.Function function, int position, String[] strings)
-  {
+  public String getStringParam(Signatures.Function function, int position, String[] strings) {
     String retVal = null;
-    if (function != null && position < strings.length*2) {
+    if (function != null && position < strings.length * 2) {
       int scnt = 0, spos = 0;
       for (int i = 0, cnt = function.getNumParameters(); i < cnt; i++) {
         Signatures.Function.Parameter p = function.getParameter(i);
@@ -148,15 +140,15 @@ public abstract class BcsStructureBase
   }
 
   /**
-   * Stores the specified array of strings into two string parameters using hints from the Function
-   * object regarding how and what to combine.
+   * Stores the specified array of strings into two string parameters using hints from the Function object regarding how
+   * and what to combine.
+   *
    * @param function Function prototype
-   * @param strings Array of string arguments that should be stored in the two string parameters.
+   * @param strings  Array of string arguments that should be stored in the two string parameters.
    * @return The two string parameters.
    */
-  public String[] setStringParams(Signatures.Function function, String[] strings)
-  {
-    String[] retVal = {"", ""};
+  public String[] setStringParams(Signatures.Function function, String[] strings) {
+    String[] retVal = { "", "" };
 
     if (strings != null) {
       int srcIndex = 0, dstIndex = 0;

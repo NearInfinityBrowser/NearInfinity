@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -17,21 +17,20 @@ import org.infinity.util.tuples.Couple;
 /**
  * Static class containing animation slot and type information.
  */
-public class AnimationInfo
-{
+public class AnimationInfo {
   // Predefined sets of games with common animation slot mappings
   private static final EnumSet<Profile.Game> TYPE_GAME_BG1      = EnumSet.of(Profile.Game.BG1, Profile.Game.BG1TotSC);
   private static final EnumSet<Profile.Game> TYPE_GAME_BG2_TOB  = EnumSet.of(Profile.Game.BG2ToB, Profile.Game.BGT, Profile.Game.Tutu);
   // all BG2 game variants
   private static final EnumSet<Profile.Game> TYPE_GAME_BG2      = EnumSet.of(Profile.Game.BG2SoA, Profile.Game.BG2ToB, Profile.Game.BGT,
-                                                                             Profile.Game.Tutu);
+      Profile.Game.Tutu);
   private static final EnumSet<Profile.Game> TYPE_GAME_IWD      = EnumSet.of(Profile.Game.IWD);
   private static final EnumSet<Profile.Game> TYPE_GAME_IWD_HOW  = EnumSet.of(Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM);
   private static final EnumSet<Profile.Game> TYPE_GAME_IWD2     = EnumSet.of(Profile.Game.IWD2);
   private static final EnumSet<Profile.Game> TYPE_GAME_PST      = EnumSet.of(Profile.Game.PST);
   // all EE games
   private static final EnumSet<Profile.Game> TYPE_GAME_EE       = EnumSet.of(Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                                                             Profile.Game.EET, Profile.Game.IWDEE, Profile.Game.PSTEE);
+      Profile.Game.EET, Profile.Game.IWDEE, Profile.Game.PSTEE);
   private static final EnumSet<Profile.Game> TYPE_GAME_PSTEE    = EnumSet.of(Profile.Game.PSTEE);
   // all games except PST
   private static final EnumSet<Profile.Game> TYPE_GAME_ALL      = EnumSet.complementOf(EnumSet.of(Profile.Game.Unknown, Profile.Game.PST));
@@ -40,45 +39,45 @@ public class AnimationInfo
   private static final List<NumberRange> RANGE_EFFECT                 = Arrays.asList(new NumberRange(0, 0xfff));
   private static final List<NumberRange> RANGE_MONSTER_QUADRANT       = Arrays.asList(new NumberRange(0x1000, 0x1ff));
   private static final List<NumberRange> RANGE_MONSTER_MULTI          = Arrays.asList(new NumberRange(0x1200, 0xff),
-                                                                                      new NumberRange(0x1400, 0xbff));
+      new NumberRange(0x1400, 0xbff));
   private static final List<NumberRange> RANGE_MONSTER_MULTI_NEW      = Arrays.asList(new NumberRange(0x1300, 0xff));
   private static final List<NumberRange> RANGE_MONSTER_LAYERED        = Arrays.asList(new NumberRange(0x8000, 0xfff));
   private static final List<NumberRange> RANGE_MONSTER_LAYERED_SPELL  = Arrays.asList(new NumberRange(0x2000, 0xfff));
   private static final List<NumberRange> RANGE_MONSTER_ANKHEG         = Arrays.asList(new NumberRange(0x3000, 0xfff));
   private static final List<NumberRange> RANGE_TOWN_STATIC            = Arrays.asList(new NumberRange(0x4000, 0xfff));
   private static final List<NumberRange> RANGE_CHARACTER              = Arrays.asList(new NumberRange(0x5000, 0x3ff),
-                                                                                      new NumberRange(0x5500, 0xff),
-                                                                                      new NumberRange(0x6000, 0x3ff),
-                                                                                      new NumberRange(0x6500, 0xff));
+      new NumberRange(0x5500, 0xff),
+      new NumberRange(0x6000, 0x3ff),
+      new NumberRange(0x6500, 0xff));
   private static final List<NumberRange> RANGE_CHARACTER_IA           = Arrays.asList(new NumberRange(0x6600, 0x4ff));
   private static final List<NumberRange> RANGE_CHARACTER_OLD          = Arrays.asList(new NumberRange(0x5400, 0xff),
-                                                                                      new NumberRange(0x5600, 0x9ff),
-                                                                                      new NumberRange(0x6400, 0xff),
-                                                                                      new NumberRange(0x6600, 0x9ff));
+      new NumberRange(0x5600, 0x9ff),
+      new NumberRange(0x6400, 0xff),
+      new NumberRange(0x6600, 0x9ff));
   private static final List<NumberRange> RANGE_MONSTER                = Arrays.asList(new NumberRange(0x7002, 0xd, 0x00, 0x1f, 4),
-                                                                                      new NumberRange(0x7004, 0xb, 0x20, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0xf, 0x30, 0x0f, 4),
-                                                                                      new NumberRange(0x7003, 0xc, 0x40, 0x0f, 4),
-                                                                                      new NumberRange(0x7002, 0xd, 0x50, 0x0f, 4),
-                                                                                      new NumberRange(0x7003, 0xc, 0x70, 0x0f, 4),
-                                                                                      new NumberRange(0x7005, 0xa, 0x90, 0x1f, 4),
-                                                                                      new NumberRange(0x7007, 0x8, 0xb0, 0x0f, 4),
-                                                                                      new NumberRange(0x7002, 0xd, 0xc0, 0x0f, 4),
-                                                                                      new NumberRange(0x7002, 0xd, 0xe0, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0xf, 0xf0, 0x0f, 4));
+      new NumberRange(0x7004, 0xb, 0x20, 0x0f, 4),
+      new NumberRange(0x7000, 0xf, 0x30, 0x0f, 4),
+      new NumberRange(0x7003, 0xc, 0x40, 0x0f, 4),
+      new NumberRange(0x7002, 0xd, 0x50, 0x0f, 4),
+      new NumberRange(0x7003, 0xc, 0x70, 0x0f, 4),
+      new NumberRange(0x7005, 0xa, 0x90, 0x1f, 4),
+      new NumberRange(0x7007, 0x8, 0xb0, 0x0f, 4),
+      new NumberRange(0x7002, 0xd, 0xc0, 0x0f, 4),
+      new NumberRange(0x7002, 0xd, 0xe0, 0x0f, 4),
+      new NumberRange(0x7000, 0xf, 0xf0, 0x0f, 4));
   private static final List<NumberRange> RANGE_MONSTER_IA             = Arrays.asList(new NumberRange(0x5b00, 0x4ff));
   private static final List<NumberRange> RANGE_MONSTER_OLD            = Arrays.asList(new NumberRange(0x7000, 0x1, 0x00, 0x1f, 4),
-                                                                                      new NumberRange(0x7000, 0x3, 0x20, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x2, 0x40, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x1, 0x50, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0xf, 0x60, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x2, 0x70, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0xf, 0x80, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x4, 0x90, 0x1f, 4),
-                                                                                      new NumberRange(0x7000, 0x6, 0xb0, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x1, 0xc0, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0xf, 0xd0, 0x0f, 4),
-                                                                                      new NumberRange(0x7000, 0x1, 0xe0, 0x0f, 4));
+      new NumberRange(0x7000, 0x3, 0x20, 0x0f, 4),
+      new NumberRange(0x7000, 0x2, 0x40, 0x0f, 4),
+      new NumberRange(0x7000, 0x1, 0x50, 0x0f, 4),
+      new NumberRange(0x7000, 0xf, 0x60, 0x0f, 4),
+      new NumberRange(0x7000, 0x2, 0x70, 0x0f, 4),
+      new NumberRange(0x7000, 0xf, 0x80, 0x0f, 4),
+      new NumberRange(0x7000, 0x4, 0x90, 0x1f, 4),
+      new NumberRange(0x7000, 0x6, 0xb0, 0x0f, 4),
+      new NumberRange(0x7000, 0x1, 0xc0, 0x0f, 4),
+      new NumberRange(0x7000, 0xf, 0xd0, 0x0f, 4),
+      new NumberRange(0x7000, 0x1, 0xe0, 0x0f, 4));
   private static final List<NumberRange> RANGE_MONSTER_OLD_IA         = Arrays.asList(new NumberRange(0x547a, 0x479));
   private static final List<NumberRange> RANGE_MONSTER_LARGE          = Arrays.asList(new NumberRange(0x9000, 0xfff));
   private static final List<NumberRange> RANGE_MONSTER_LARGE_16       = Arrays.asList(new NumberRange(0xa000, 0xfff));
@@ -173,10 +172,10 @@ public class AnimationInfo
 
     /** Pseudo animation type: fallback option for non-existing animations */
     PLACEHOLDER(new int[] {0x0000, 0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000, 0x7000,
-                           0x8000, 0x9000, 0xa000, 0xb000, 0xc000, 0xd000, 0xe000, 0xf000},
-          "placeholder",
-          Arrays.asList(Couple.with(TYPE_GAME_ALL, Arrays.asList(new NumberRange(0x0000, 0xffff)))),
-          null);
+        0x8000, 0x9000, 0xa000, 0xb000, 0xc000, 0xd000, 0xe000, 0xf000},
+        "placeholder",
+        Arrays.asList(Couple.with(TYPE_GAME_ALL, Arrays.asList(new NumberRange(0x0000, 0xffff)))),
+        null);
 
     private final EnumMap<Profile.Game, List<NumberRange>> rangeMap = new EnumMap<>(Profile.Game.class);
     private final List<NumberRange> iaRanges;
@@ -184,14 +183,13 @@ public class AnimationInfo
     private final String sectionName;
 
     /**
-     * @param type slot base range
+     * @param type        slot base range
      * @param sectionName INI section name
-     * @param entries list of games and their associated slot ranges.
+     * @param entries     list of games and their associated slot ranges.
      */
     private Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
-        throws IllegalArgumentException
-    {
-      this(new int[] {type}, sectionName, entries, null);
+        throws IllegalArgumentException {
+      this(new int[] { type }, sectionName, entries, null);
     }
 
     /**
@@ -202,10 +200,8 @@ public class AnimationInfo
      * @throws IllegalArgumentException
      */
     private Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
-                 List<NumberRange> infinityAnimationRanges)
-        throws IllegalArgumentException
-    {
-      this(new int[] {type}, sectionName, entries, infinityAnimationRanges);
+        List<NumberRange> infinityAnimationRanges) throws IllegalArgumentException {
+      this(new int[] { type }, sectionName, entries, infinityAnimationRanges);
     }
 
     /**
@@ -215,23 +211,23 @@ public class AnimationInfo
      * @throws IllegalArgumentException
      */
     private Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
-        throws IllegalArgumentException
-    {
+        throws IllegalArgumentException {
       this(types, sectionName, entries, null);
     }
 
     /**
-     * @param type list of slot base ranges
+     * @param type        list of slot base ranges
      * @param sectionName INI section name
-     * @param entries list of games and their associated slot ranges.
+     * @param entries     list of games and their associated slot ranges.
      * @throws IllegalArgumentException
      */
     private Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
-                 List<NumberRange> infinityAnimationRanges) throws IllegalArgumentException
-    {
+        List<NumberRange> infinityAnimationRanges) throws IllegalArgumentException {
       try {
-        Misc.requireCondition(types != null && types.length > 0, "Type cannot be empty", IllegalArgumentException.class);
-        Misc.requireCondition(sectionName != null && !sectionName.isEmpty(), "Section name cannot be empty", IllegalArgumentException.class);
+        Misc.requireCondition(types != null && types.length > 0, "Type cannot be empty",
+            IllegalArgumentException.class);
+        Misc.requireCondition(sectionName != null && !sectionName.isEmpty(), "Section name cannot be empty",
+            IllegalArgumentException.class);
       } catch (IllegalArgumentException iae) {
         throw iae;
       } catch (Exception e) {
@@ -256,29 +252,38 @@ public class AnimationInfo
     }
 
     /** Returns the name for the type-specific INI section. */
-    public String getSectionName() { return sectionName; }
+    public String getSectionName() {
+      return sectionName;
+    }
 
     /** Returns the first available base animation type associated with the enum instance. */
-    public int getType() { return animationTypes[0]; }
+    public int getType() {
+      return animationTypes[0];
+    }
 
     /** Returns the number of defined base animation types associated with the enum instance. */
-    public int getTypeCount() { return animationTypes.length; }
+    public int getTypeCount() {
+      return animationTypes.length;
+    }
 
     /** Returns the specified base animation type associated with the enum instance. */
-    public int getType(int idx) { return animationTypes[idx]; }
+    public int getType(int idx) {
+      return animationTypes[idx];
+    }
 
     /**
-     * Returns whether the specified value is covered by the ranges associated with the enum instance
-     * for the current game.
+     * Returns whether the specified value is covered by the ranges associated with the enum instance for the current
+     * game.
      */
-    public boolean contains(int value) { return contains(Profile.getGame(), value); }
+    public boolean contains(int value) {
+      return contains(Profile.getGame(), value);
+    }
 
     /**
-     * Returns whether the specified value is covered by the ranges associated with the enum instance
-     * for the specified game.
+     * Returns whether the specified value is covered by the ranges associated with the enum instance for the specified
+     * game.
      */
-    public boolean contains(Profile.Game game, int value)
-    {
+    public boolean contains(Profile.Game game, int value) {
       if (game == null) {
         game = Profile.getGame();
       }
@@ -298,24 +303,22 @@ public class AnimationInfo
     }
 
     // Checks whether specified value is covered by the given ranges
-    private static boolean contains(int value, List<NumberRange> ranges)
-    {
+    private static boolean contains(int value, List<NumberRange> ranges) {
       if (ranges != null) {
-        return ranges
-            .parallelStream()
-            .anyMatch(r -> r.contains(value));
+        return ranges.stream().anyMatch(r -> r.contains(value));
       }
       return false;
     }
 
     /**
-     * Determines the {@code AnimationType} enum where a defined Infinity Animations (IA) range covers the specied value.
+     * Determines the {@code AnimationType} enum where a defined Infinity Animations (IA) range covers the specied
+     * value.
+     *
      * @param value the value to check.
-     * @return {@code AnimationType} enum supporting the specified IA value.
-     *         Returns {@code null} if value is not covered by any IA range.
+     * @return {@code AnimationType} enum supporting the specified IA value. Returns {@code null} if value is not
+     *         covered by any IA range.
      */
-    public static Type containsInfinityAnimations(int value)
-    {
+    public static Type containsInfinityAnimations(int value) {
       Type retVal = null;
       if (Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS) > 0) {
         for (Type type : Type.values()) {
@@ -330,11 +333,11 @@ public class AnimationInfo
 
     /**
      * Returns the {@code AnimationType} enum covering the specified animation id.
+     *
      * @param animationId the animation id
      * @return {@code AnimationType} enum that covers the specified animation id. Returns {@code null} otherwise.
      */
-    public static Type typeOfId(int animationId)
-    {
+    public static Type typeOfId(int animationId) {
       for (final Type type : values()) {
         if (type.contains(animationId)) {
           return type;
@@ -344,8 +347,6 @@ public class AnimationInfo
     }
   }
 
-
-  private AnimationInfo()
-  {
+  private AnimationInfo() {
   }
 }

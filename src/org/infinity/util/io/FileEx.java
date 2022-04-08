@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util.io;
@@ -30,79 +30,67 @@ import org.infinity.util.FileDeletionHook;
 /**
  * Expands the {@link File} class by custom filesystem support.
  */
-public class FileEx extends File
-{
+public class FileEx extends File {
   private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
 
   private final Path path;
 
   /**
    * Constructs a FileEx instance from the specified Path argument.
+   *
    * @param path The path definition with associated filesystem.
-   * @throws  NullPointerException
-   *          If {@code path} is {@code null}
+   * @throws NullPointerException If {@code path} is {@code null}
    */
-  public static FileEx create(Path path)
-  {
+  public static FileEx create(Path path) {
     return new FileEx(path);
   }
 
   /**
-   * Creates a new {@code FileEx} instance by converting the given
-   * pathname string into an abstract pathname using the default filesystem.
-   * If the given string is the empty string, then the result is the empty
-   * abstract pathname.
+   * Creates a new {@code FileEx} instance by converting the given pathname string into an abstract pathname using the
+   * default filesystem. If the given string is the empty string, then the result is the empty abstract pathname.
+   *
    * @param pathname A pathname string
-   * @throws  NullPointerException
-   *          If the {@code pathname} argument is {@code null}
+   * @throws NullPointerException If the {@code pathname} argument is {@code null}
    */
-  public FileEx(String pathname)
-  {
-    this(pathname, (FileSystem)null);
+  public FileEx(String pathname) {
+    this(pathname, (FileSystem) null);
   }
 
   /**
-   * Creates a new {@code FileEx} instance by converting the given
-   * pathname string into an abstract pathname using the specified filesystem.
-   * If the given string is the empty string, then the result is the empty
-   * abstract pathname.
-   * @param pathname A pathname string
-   * @param filesystem The associated filesystem. Specify {@code null} to use
-   *                   the default filesystem.
-   * @throws  NullPointerException
-   *          If the {@code pathname} argument is {@code null}
+   * Creates a new {@code FileEx} instance by converting the given pathname string into an abstract pathname using the
+   * specified filesystem. If the given string is the empty string, then the result is the empty abstract pathname.
+   *
+   * @param pathname   A pathname string
+   * @param filesystem The associated filesystem. Specify {@code null} to use the default filesystem.
+   * @throws NullPointerException If the {@code pathname} argument is {@code null}
    */
-  public FileEx(String pathname, FileSystem filesystem)
-  {
+  public FileEx(String pathname, FileSystem filesystem) {
     super(pathname);
     path = validatePath(validateFileSystem(filesystem).getPath(pathname));
   }
 
   /**
-   * Creates a new {@code FileEx} instance from a parent pathname string
-   * and a child pathname string using the default filesystem.
-   * @param   parent  The parent pathname string
-   * @param   child   The child pathname string
-   * @throws  NullPointerException
-   *          If {@code child} is {@code null}
+   * Creates a new {@code FileEx} instance from a parent pathname string and a child pathname string using the default
+   * filesystem.
+   *
+   * @param parent The parent pathname string
+   * @param child  The child pathname string
+   * @throws NullPointerException If {@code child} is {@code null}
    */
-  public FileEx(String parent, String child)
-  {
+  public FileEx(String parent, String child) {
     this(parent, child, null);
   }
 
   /**
-   * Creates a new {@code FileEx} instance from a parent pathname string
-   * and a child pathname string with the specified filesystem.
-   * @param   parent  The parent pathname string
-   * @param   child   The child pathname string
-   * @param filesystem The associated filesystem. Specify {@code null} to use
-   *                   the default filesystem.
-   * @throws  NullPointerException
-   *          If {@code child} is {@code null}
+   * Creates a new {@code FileEx} instance from a parent pathname string and a child pathname string with the specified
+   * filesystem.
+   *
+   * @param parent     The parent pathname string
+   * @param child      The child pathname string
+   * @param filesystem The associated filesystem. Specify {@code null} to use the default filesystem.
+   * @throws NullPointerException If {@code child} is {@code null}
    */
-  public FileEx(String parent, String child, FileSystem filesystem)
-  {
+  public FileEx(String parent, String child, FileSystem filesystem) {
     super(parent, child);
     if (parent == null) {
       path = validatePath(validateFileSystem(filesystem).getPath(child));
@@ -112,34 +100,29 @@ public class FileEx extends File
   }
 
   /**
-   * Creates a new {@code FileEx} instance from a parent abstract
-   * pathname and a child pathname string with the default filesystem.
-   * @param   parent  The parent abstract pathname
-   * @param   child   The child pathname string
-   * @throws  NullPointerException
-   *          If {@code child} is {@code null}
-   * @throws InvalidPathException If no valid path can be constructed from the
-   *         specified arguments.
+   * Creates a new {@code FileEx} instance from a parent abstract pathname and a child pathname string with the default
+   * filesystem.
+   *
+   * @param parent The parent abstract pathname
+   * @param child  The child pathname string
+   * @throws NullPointerException If {@code child} is {@code null}
+   * @throws InvalidPathException If no valid path can be constructed from the specified arguments.
    */
-  public FileEx(File parent, String child)
-  {
+  public FileEx(File parent, String child) {
     this(parent, child, null);
   }
 
   /**
-   * Creates a new {@code FileEx} instance from a parent abstract
-   * pathname and a child pathname string with the specified filesystem.
-   * @param   parent  The parent abstract pathname
-   * @param   child   The child pathname string
-   * @param filesystem The associated filesystem. Specify {@code null} to use
-   *                   the default filesystem.
-   * @throws  NullPointerException
-   *          If {@code child} is {@code null}
-   * @throws InvalidPathException If no valid path can be constructed from the
-   *         specified arguments.
+   * Creates a new {@code FileEx} instance from a parent abstract pathname and a child pathname string with the
+   * specified filesystem.
+   *
+   * @param parent     The parent abstract pathname
+   * @param child      The child pathname string
+   * @param filesystem The associated filesystem. Specify {@code null} to use the default filesystem.
+   * @throws NullPointerException If {@code child} is {@code null}
+   * @throws InvalidPathException If no valid path can be constructed from the specified arguments.
    */
-  public FileEx(File parent, String child, FileSystem filesystem)
-  {
+  public FileEx(File parent, String child, FileSystem filesystem) {
     super(parent, child);
     if (parent == null) {
       path = validatePath(validateFileSystem(filesystem).getPath(child));
@@ -150,79 +133,67 @@ public class FileEx extends File
 
   /**
    * Constructs a {@code FileEx} instance from the specified Path argument.
+   *
    * @param path The path definition with associated filesystem.
-   * @throws  NullPointerException
-   *          If {@code path} is {@code null}
+   * @throws NullPointerException If {@code path} is {@code null}
    */
-  public FileEx(Path path)
-  {
+  public FileEx(Path path) {
     super((path != null) ? path.toString() : null);
     this.path = validatePath(path);
   }
 
   @Override
-  public boolean isAbsolute()
-  {
+  public boolean isAbsolute() {
     return (path == null) ? super.isAbsolute() : path.isAbsolute();
   }
 
   @Override
-  public String getAbsolutePath()
-  {
+  public String getAbsolutePath() {
     return (path == null) ? super.getAbsolutePath() : path.toAbsolutePath().toString();
   }
 
   @Override
-  public File getAbsoluteFile()
-  {
+  public File getAbsoluteFile() {
     return (path == null) ? super.getAbsoluteFile() : new FileEx(path.toAbsolutePath());
   }
 
   @Override
-  public String getCanonicalPath() throws IOException
-  {
+  public String getCanonicalPath() throws IOException {
     return (path == null) ? super.getCanonicalPath() : path.toAbsolutePath().normalize().toString();
   }
 
   @Override
-  public File getCanonicalFile() throws IOException
-  {
+  public File getCanonicalFile() throws IOException {
     return (path == null) ? super.getCanonicalFile() : new FileEx(path.toAbsolutePath().normalize());
   }
 
   @Override
-  public boolean canRead()
-  {
+  public boolean canRead() {
     return (path == null) ? super.canRead() : Files.isReadable(path);
   }
 
   @Override
-  public boolean canWrite()
-  {
+  public boolean canWrite() {
     return (path == null) ? super.canWrite() : Files.isWritable(path);
   }
 
   @Override
-  public boolean exists()
-  {
+  public boolean exists() {
     return (path == null) ? super.exists() : Files.exists(path, LinkOption.NOFOLLOW_LINKS);
   }
 
   @Override
-  public boolean isDirectory()
-  {
+  public boolean isDirectory() {
     return (path == null) ? super.isDirectory() : Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
   }
 
   @Override
-  public boolean isFile()
-  {
+  public boolean isFile() {
     return (path == null) ? super.isFile() : Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
   }
 
   @Override
-  public boolean isHidden()
-  {
+  public boolean isHidden() {
     try {
       return (path == null) ? super.isHidden() : Files.isHidden(path);
     } catch (IOException ex) {
@@ -231,18 +202,17 @@ public class FileEx extends File
   }
 
   @Override
-  public long lastModified()
-  {
+  public long lastModified() {
     try {
-      return (path == null) ? super.lastModified() : Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis();
+      return (path == null) ? super.lastModified()
+          : Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis();
     } catch (IOException ex) {
       return 0L;
     }
   }
 
   @Override
-  public long length()
-  {
+  public long length() {
     try {
       return (path == null) ? super.length() : Files.size(path);
     } catch (IOException ex) {
@@ -251,11 +221,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean createNewFile() throws IOException
-  {
-    if (path == null)
+  public boolean createNewFile() throws IOException {
+    if (path == null) {
       return super.createNewFile();
-    else {
+    } else {
       try {
         Files.createFile(path);
         return true;
@@ -266,11 +235,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean delete()
-  {
-    if (path == null)
+  public boolean delete() {
+    if (path == null) {
       return super.delete();
-    else {
+    } else {
       try {
         Files.delete(path);
         return true;
@@ -281,25 +249,25 @@ public class FileEx extends File
   }
 
   @Override
-  public void deleteOnExit()
-  {
-    if (path == null)
+  public void deleteOnExit() {
+    if (path == null) {
       super.deleteOnExit();
-    else
+    } else {
       FileDeletionHook.getInstance().registerFile(path);
+    }
   }
 
   @Override
-  public String[] list()
-  {
-    if (path == null)
+  public String[] list() {
+    if (path == null) {
       return super.list();
-    else {
+    } else {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<String> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext(); )
+          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
             list.add(iter.next().getFileName().toString());
+          }
           return list.toArray(new String[list.size()]);
         } catch (Exception ex) {
         }
@@ -309,19 +277,19 @@ public class FileEx extends File
   }
 
   @Override
-  public String[] list(FilenameFilter filter)
-  {
-    if (path == null)
+  public String[] list(FilenameFilter filter) {
+    if (path == null) {
       return super.list(filter);
-    else {
+    } else {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           File dir = new FileEx(path);
           ArrayList<String> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext(); ) {
+          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
             String s = iter.next().getFileName().toString();
-            if (filter == null || filter.accept(dir, s))
+            if (filter == null || filter.accept(dir, s)) {
               list.add(s);
+            }
           }
           return list.toArray(new String[list.size()]);
         } catch (Exception ex) {
@@ -332,16 +300,16 @@ public class FileEx extends File
   }
 
   @Override
-  public File[] listFiles()
-  {
-    if (path == null)
+  public File[] listFiles() {
+    if (path == null) {
       return super.listFiles();
-    else {
+    } else {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<File> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext(); )
+          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
             list.add(new FileEx(iter.next()));
+          }
           return list.toArray(new File[list.size()]);
         } catch (Exception ex) {
         }
@@ -351,19 +319,18 @@ public class FileEx extends File
   }
 
   @Override
-  public File[] listFiles(FilenameFilter filter)
-  {
-    if (path == null)
+  public File[] listFiles(FilenameFilter filter) {
+    if (path == null) {
       return super.listFiles();
-    else {
+    } else {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           File dir = new FileEx(path);
           ArrayList<File> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext(); ) {
-            Path p = iter.next();
-            if (filter == null || filter.accept(dir, p.getFileName().toString()))
+          for (Path p : ds) {
+            if (filter == null || filter.accept(dir, p.getFileName().toString())) {
               list.add(new FileEx(p));
+            }
           }
           return list.toArray(new File[list.size()]);
         } catch (Exception ex) {
@@ -374,18 +341,18 @@ public class FileEx extends File
   }
 
   @Override
-  public File[] listFiles(FileFilter filter)
-  {
-    if (path == null)
+  public File[] listFiles(FileFilter filter) {
+    if (path == null) {
       return super.listFiles();
-    else {
+    } else {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<File> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext(); ) {
+          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
             File f = new FileEx(iter.next());
-            if (filter == null || filter.accept(f))
+            if (filter == null || filter.accept(f)) {
               list.add(f);
+            }
           }
           return list.toArray(new File[list.size()]);
         } catch (Exception ex) {
@@ -396,11 +363,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean mkdir()
-  {
-    if (path == null)
+  public boolean mkdir() {
+    if (path == null) {
       return super.mkdir();
-    else {
+    } else {
       try {
         Files.createDirectory(path);
         return true;
@@ -411,11 +377,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean mkdirs()
-  {
-    if (path == null)
+  public boolean mkdirs() {
+    if (path == null) {
       return super.mkdirs();
-    else {
+    } else {
       try {
         Files.createDirectories(path);
         return true;
@@ -426,11 +391,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean renameTo(File dest)
-  {
-    if (path == null)
+  public boolean renameTo(File dest) {
+    if (path == null) {
       return super.renameTo(dest);
-    else {
+    } else {
       Path target = path.getFileSystem().getPath(dest.toString());
       try {
         Files.move(path, target);
@@ -442,12 +406,13 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean setLastModified(long time)
-  {
-    if (path == null)
+  public boolean setLastModified(long time) {
+    if (path == null) {
       return super.setLastModified(time);
-    else {
-      if (time < 0L) throw new IllegalArgumentException("Negative time");
+    } else {
+      if (time < 0L) {
+        throw new IllegalArgumentException("Negative time");
+      }
       try {
         Files.setLastModifiedTime(path, FileTime.fromMillis(time));
         return true;
@@ -458,11 +423,10 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean setReadOnly()
-  {
-    if (path == null)
+  public boolean setReadOnly() {
+    if (path == null) {
       return super.setReadOnly();
-    else {
+    } else {
       try {
         FileStore fs = Files.getFileStore(path);
         if (fs.supportsFileAttributeView(DosFileAttributeView.class)) {
@@ -485,17 +449,15 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean setWritable(boolean writable)
-  {
+  public boolean setWritable(boolean writable) {
     return setWritable(writable, true);
   }
 
   @Override
-  public boolean setWritable(boolean writable, boolean ownerOnly)
-  {
-    if (path == null)
+  public boolean setWritable(boolean writable, boolean ownerOnly) {
+    if (path == null) {
       return super.setWritable(writable, ownerOnly);
-    else {
+    } else {
       try {
         FileStore fs = Files.getFileStore(path);
         if (fs.supportsFileAttributeView(DosFileAttributeView.class)) {
@@ -520,21 +482,19 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean setReadable(boolean readable)
-  {
+  public boolean setReadable(boolean readable) {
     return setReadable(readable, true);
   }
 
   @Override
-  public boolean setReadable(boolean readable, boolean ownerOnly)
-  {
-    if (path == null)
+  public boolean setReadable(boolean readable, boolean ownerOnly) {
+    if (path == null) {
       return super.setReadable(readable, ownerOnly);
-    else {
+    } else {
       try {
         FileStore fs = Files.getFileStore(path);
         if (fs.supportsFileAttributeView(DosFileAttributeView.class)) {
-          return true;  // always true
+          return true; // always true
         } else if (fs.supportsFileAttributeView(PosixFileAttributeView.class)) {
           PosixFileAttributeView pfav = Files.getFileAttributeView(path, PosixFileAttributeView.class);
           Set<PosixFilePermission> set = pfav.readAttributes().permissions();
@@ -555,21 +515,19 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean setExecutable(boolean executable)
-  {
+  public boolean setExecutable(boolean executable) {
     return setExecutable(executable, true);
   }
 
   @Override
-  public boolean setExecutable(boolean executable, boolean ownerOnly)
-  {
-    if (path == null)
+  public boolean setExecutable(boolean executable, boolean ownerOnly) {
+    if (path == null) {
       return super.setExecutable(executable, ownerOnly);
-    else {
+    } else {
       try {
         FileStore fs = Files.getFileStore(path);
         if (fs.supportsFileAttributeView(DosFileAttributeView.class)) {
-          return true;  // always true
+          return true; // always true
         } else if (fs.supportsFileAttributeView(PosixFileAttributeView.class)) {
           PosixFileAttributeView pfav = Files.getFileAttributeView(path, PosixFileAttributeView.class);
           Set<PosixFilePermission> set = pfav.readAttributes().permissions();
@@ -590,16 +548,15 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean canExecute()
-  {
+  public boolean canExecute() {
     return (path == null) ? super.canExecute() : Files.isExecutable(path);
   }
 
   @Override
-  public int compareTo(File pathname)
-  {
-    if (pathname == null)
+  public int compareTo(File pathname) {
+    if (pathname == null) {
       throw new NullPointerException();
+    }
 
     if (path == null && !(pathname instanceof FileEx)) {
       return super.compareTo(pathname);
@@ -609,57 +566,54 @@ public class FileEx extends File
   }
 
   @Override
-  public boolean equals(Object obj)
-  {
-    if (obj instanceof File)
-      return compareTo((File)obj) == 0;
+  public boolean equals(Object obj) {
+    if (obj instanceof File) {
+      return compareTo((File) obj) == 0;
+    }
     return false;
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     return (path == null) ? super.hashCode() : path.hashCode();
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return (path == null) ? super.toString() : path.toString();
   }
 
   /**
-   * Returns a {@link Path java.nio.file.Path} object constructed from the
-   * this abstract path and the associated {@link java.nio.file.FileSystem}.
+   * Returns a {@link Path java.nio.file.Path} object constructed from the this abstract path and the associated
+   * {@link java.nio.file.FileSystem}.
+   *
    * @return a {@code Path} constructed from this abstract path.
    */
   @Override
-  public Path toPath()
-  {
+  public Path toPath() {
     return (path == null) ? super.toPath() : path;
   }
 
   /**
    * Returns the file system associated with this object.
+   *
    * @return the file system associated with this object
    */
-  public FileSystem getFileSystem()
-  {
+  public FileSystem getFileSystem() {
     return (path == null) ? DEFAULT_FS : path.getFileSystem();
   }
 
   // Ensures that the returned FileSystem is always non-null.
-  private static FileSystem validateFileSystem(FileSystem fs)
-  {
+  private static FileSystem validateFileSystem(FileSystem fs) {
     return (fs != null) ? fs : DEFAULT_FS;
   }
 
   // Returns a well-defined Path instance for internal use.
-  private static Path validatePath(Path path)
-  {
+  private static Path validatePath(Path path) {
     if (path != null) {
-      if (path.getFileSystem() == null || DEFAULT_FS.equals(path.getFileSystem()))
+      if (path.getFileSystem() == null || DEFAULT_FS.equals(path.getFileSystem())) {
         path = null;
+      }
     }
     return path;
   }

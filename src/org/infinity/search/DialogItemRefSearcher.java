@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -19,9 +19,7 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.StateTrigger;
 import org.infinity.resource.dlg.Transition;
 
-
 public class DialogItemRefSearcher implements Runnable {
-
   private final DlgResource dlg;
   private final Object item;
   private final Component parent;
@@ -67,13 +65,11 @@ public class DialogItemRefSearcher implements Runnable {
         int stateNumber = state.getNumber();
         Transition trans = (Transition) entry;
         String nextDialog = trans.getNextDialog().getResourceName();
-        if ((trans.getNextDialogState() == stateNumber)
-            && (nextDialog.equalsIgnoreCase(dlg.getName()))) {
+        if ((trans.getNextDialogState() == stateNumber) && (nextDialog.equalsIgnoreCase(dlg.getName()))) {
           found = true;
         }
       }
-    }
-    else if (item instanceof Transition) {
+    } else if (item instanceof Transition) {
       // check states
       if (entry instanceof State) {
         Transition trans = (Transition) item;
@@ -81,13 +77,11 @@ public class DialogItemRefSearcher implements Runnable {
         int transNumber = trans.getNumber();
         int firstTrans = state.getFirstTrans();
         int transCount = state.getTransCount();
-        if ((transNumber >= firstTrans)
-            && (transNumber < (firstTrans + transCount))) {
+        if ((transNumber >= firstTrans) && (transNumber < (firstTrans + transCount))) {
           found = true;
         }
       }
-    }
-    else if (item instanceof StateTrigger) {
+    } else if (item instanceof StateTrigger) {
       // check states
       if (entry instanceof State) {
         StateTrigger trigger = (StateTrigger) item;
@@ -97,8 +91,7 @@ public class DialogItemRefSearcher implements Runnable {
           found = true;
         }
       }
-    }
-    else if (item instanceof ResponseTrigger) {
+    } else if (item instanceof ResponseTrigger) {
       // check transitions
       if (entry instanceof Transition) {
         ResponseTrigger trigger = (ResponseTrigger) item;
@@ -108,8 +101,7 @@ public class DialogItemRefSearcher implements Runnable {
           found = true;
         }
       }
-    }
-    else if (item instanceof Action) {
+    } else if (item instanceof Action) {
       // check transitions
       if (entry instanceof Transition) {
         Action action = (Action) item;
@@ -132,7 +124,8 @@ public class DialogItemRefSearcher implements Runnable {
     if (posSpace != -1) {
       try {
         return Integer.parseInt(name.substring(posSpace + 1));
-      } catch (NumberFormatException nfe) {}
+      } catch (NumberFormatException nfe) {
+      }
     }
     return -1;
   }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sound;
@@ -40,20 +40,22 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Handles all kinds of supported single track audio files.
  */
-public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable
-{
+public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable {
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private AudioPlayer player;
   private AudioBuffer audioBuffer = null;
-  private JButton bPlay, bStop;
-  private JMenuItem miExport, miConvert;
+  private JButton bPlay;
+  private JButton bStop;
+  private JMenuItem miExport;
+  private JMenuItem miConvert;
   private JPanel panel;
-  private boolean isWAV, isReference, isClosed;
+  private boolean isWAV;
+  private boolean isReference;
+  private boolean isClosed;
 
-  public SoundResource(ResourceEntry entry) throws Exception
-  {
+  public SoundResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     player = new AudioPlayer();
     isWAV = false;
@@ -61,11 +63,10 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     isClosed = false;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bPlay) {
       new Thread(this).start();
     } else if (event.getSource() == bStop) {
@@ -77,15 +78,14 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ItemListener ---------------------
+  // --------------------- Begin Interface ItemListener ---------------------
 
   @Override
-  public void itemStateChanged(ItemEvent event)
-  {
+  public void itemStateChanged(ItemEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_MENU) == event.getSource()) {
-      ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
+      ButtonPopupMenu bpmExport = (ButtonPopupMenu) event.getSource();
       if (bpmExport.getSelectedItem() == miExport) {
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
@@ -96,13 +96,12 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
   }
 
-//--------------------- End Interface ItemListener ---------------------
+  // --------------------- End Interface ItemListener ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     setClosed(true);
     if (player != null) {
       player.stopPlay();
@@ -112,39 +111,35 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     panel = null;
   }
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-//--------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-//--------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-//--------------------- Begin Interface Referenceable ---------------------
+  // --------------------- Begin Interface Referenceable ---------------------
 
   @Override
-  public boolean isReferenceable()
-  {
+  public boolean isReferenceable() {
     return isReference;
   }
 
   @Override
-  public void searchReferences(Component parent)
-  {
+  public void searchReferences(Component parent) {
     new WavReferenceSearcher(entry, parent);
   }
 
-//--------------------- End Interface Referenceable ---------------------
+  // --------------------- End Interface Referenceable ---------------------
 
-//--------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     bPlay.setEnabled(false);
     bStop.setEnabled(true);
     if (audioBuffer != null) {
@@ -160,13 +155,12 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     bPlay.setEnabled(true);
   }
 
-//--------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
-//--------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     JPanel controlPanel = new JPanel();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -174,11 +168,11 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     gbc.insets = new Insets(3, 3, 3, 3);
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    bPlay = new JButton(Icons.getIcon(Icons.ICON_PLAY_16));
+    bPlay = new JButton(Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
     gbl.setConstraints(bPlay, gbc);
     controlPanel.add(bPlay);
-    bStop = new JButton(Icons.getIcon(Icons.ICON_STOP_16));
+    bStop = new JButton(Icons.ICON_STOP_16.getIcon());
     bStop.addActionListener(this);
     bStop.setEnabled(false);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -190,14 +184,14 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
     if (isReference) {
       // only available for WAV resource types
-      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+      ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
 
     miExport = new JMenuItem("original");
     miConvert = new JMenuItem("as WAV");
     miConvert.setEnabled(!isWAV);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
+    bpmExport.setMenuItems(new JMenuItem[] { miExport, miConvert });
     bpmExport.addItemListener(this);
 
     panel = new JPanel(new BorderLayout());
@@ -211,48 +205,42 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   }
 
   // Returns the top level container associated with this viewer
-  private Container getContainer()
-  {
+  private Container getContainer() {
     if (panel != null) {
       return panel.getTopLevelAncestor();
-    } else
+    } else {
       return NearInfinity.getInstance();
+    }
   }
 
-  private void loadSoundResource()
-  {
+  private void loadSoundResource() {
     setLoaded(false);
     (new SwingWorker<Boolean, Void>() {
       @Override
-      public Boolean doInBackground()
-      {
+      public Boolean doInBackground() {
         return loadAudio();
       }
     }).execute();
   }
 
-  private synchronized void setLoaded(boolean b)
-  {
+  private synchronized void setLoaded(boolean b) {
     if (bPlay != null) {
       bPlay.setEnabled(b);
     }
     miConvert.setEnabled(b);
   }
 
-  private synchronized void setClosed(boolean b)
-  {
+  private synchronized void setClosed(boolean b) {
     if (b != isClosed) {
       isClosed = b;
     }
   }
 
-  private synchronized boolean isClosed()
-  {
+  private synchronized boolean isClosed() {
     return isClosed;
   }
 
-  private boolean loadAudio()
-  {
+  private boolean loadAudio() {
     try {
       AudioBuffer.AudioOverride override = null;
       AudioBuffer buffer = null;
@@ -274,11 +262,10 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
       }
     } catch (Exception e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
     return false;
   }
 
-//--------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 }

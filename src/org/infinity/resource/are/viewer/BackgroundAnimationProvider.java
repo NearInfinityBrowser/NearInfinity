@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -20,49 +20,53 @@ import org.infinity.resource.graphics.ColorConvert;
 /**
  * Implements functionality for properly displaying background animations.
  */
-public class BackgroundAnimationProvider extends AbstractAnimationProvider
-{
-  private static final Color TransparentColor = new Color(0, true);
+public class BackgroundAnimationProvider extends AbstractAnimationProvider {
+  private static final Color TRANSPARENT_COLOR = new Color(0, true);
 
   // upscaled luma weights for use with faster right-shift (by 16)
-  private static final int LumaR = 19595, LumaG = 38470, LumaB = 7471;
+  private static final int LUMA_R = 19595;
+  private static final int LUMA_G = 38470;
+  private static final int LUMA_B = 7471;
 
   // lookup table for alpha transparency on blended animations
-  private static final int[] TableAlpha = new int[256];
+  private static final int[] TABLE_ALPHA = new int[256];
+
   static {
-    for (int i = 0; i < TableAlpha.length; i++) {
-      TableAlpha[i] = (int)(Math.pow((double)i / 255.0, 0.5) * 256.0);
+    for (int i = 0; i < TABLE_ALPHA.length; i++) {
+      TABLE_ALPHA[i] = (int) (Math.pow(i / 255.0, 0.5) * 256.0);
     }
   }
 
   private BamDecoder bam;
   private BamDecoder.BamControl control;
-  private boolean isBlended, isMirrored, isLooping, isSelfIlluminated,
-                  isMultiPart, isPaletteEnabled;
-  private int lighting, baseAlpha;
-  private int firstFrame, lastFrame;
-  private int[] palette;    // external palette
+  private boolean isBlended;
+  private boolean isMirrored;
+  private boolean isLooping;
+  private boolean isSelfIlluminated;
+  private boolean isMultiPart;
+  private boolean isPaletteEnabled;
+  private int lighting;
+  private int baseAlpha;
+  private int firstFrame;
+  private int lastFrame;
+  private int[] palette; // external palette
   private Rectangle imageRect;
 
-  public BackgroundAnimationProvider()
-  {
+  public BackgroundAnimationProvider() {
     this(null);
   }
 
-  public BackgroundAnimationProvider(BamDecoder bam)
-  {
+  public BackgroundAnimationProvider(BamDecoder bam) {
     setDefaults();
     setAnimation(bam);
   }
 
   /** Returns the BAM animation object. */
-  public BamDecoder getAnimation()
-  {
+  public BamDecoder getAnimation() {
     return bam;
   }
 
-  public void setAnimation(BamDecoder bam)
-  {
+  public void setAnimation(BamDecoder bam) {
     if (bam != null) {
       this.bam = bam;
     } else {
@@ -79,8 +83,7 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Sets an external palette that can be used to recolor the BAM animation. */
-  public void setPalette(int[] palette)
-  {
+  public void setPalette(int[] palette) {
     if (palette != null && palette.length >= 256) {
       this.palette = new int[256];
       System.arraycopy(palette, 0, this.palette, 0, 256);
@@ -88,25 +91,23 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
       this.palette = null;
     }
     if (isPaletteEnabled() && control instanceof BamV1Decoder.BamV1Control) {
-      ((BamV1Decoder.BamV1Control)control).setExternalPalette(this.palette);
+      ((BamV1Decoder.BamV1Control) control).setExternalPalette(this.palette);
     }
     updateGraphics();
   }
 
-  public boolean isPaletteEnabled()
-  {
+  public boolean isPaletteEnabled() {
     return isPaletteEnabled;
   }
 
-  public void setPaletteEnabled(boolean set)
-  {
+  public void setPaletteEnabled(boolean set) {
     if (set != isPaletteEnabled) {
       isPaletteEnabled = set;
       if (control instanceof BamV1Decoder.BamV1Control) {
         if (isPaletteEnabled) {
-          ((BamV1Decoder.BamV1Control)control).setExternalPalette(this.palette);
+          ((BamV1Decoder.BamV1Control) control).setExternalPalette(this.palette);
         } else {
-          ((BamV1Decoder.BamV1Control)control).setExternalPalette(null);
+          ((BamV1Decoder.BamV1Control) control).setExternalPalette(null);
         }
       }
       updateGraphics();
@@ -114,14 +115,12 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the current frame of all available cycles are displayed simultanuously. */
-  public boolean isMultiPart()
-  {
+  public boolean isMultiPart() {
     return isMultiPart;
   }
 
   /** Sets whether the current frame of all available cycles are displayed simultanuously. */
-  public void setMultiPart(boolean set)
-  {
+  public void setMultiPart(boolean set) {
     if (set != isMultiPart) {
       isMultiPart = set;
       control.setSharedPerCycle(!isMultiPart);
@@ -131,14 +130,12 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the animation uses brightness as alpha transparency. */
-  public boolean isBlended()
-  {
+  public boolean isBlended() {
     return isBlended;
   }
 
   /** Sets whether the animation uses its brightness as alpha transparency. */
-  public void setBlended(boolean set)
-  {
+  public void setBlended(boolean set) {
     if (set != isBlended) {
       isBlended = set;
       updateGraphics();
@@ -146,14 +143,12 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the animation is drawn mirrored on the x axis. */
-  public boolean isMirrored()
-  {
+  public boolean isMirrored() {
     return isMirrored;
   }
 
   /** Sets whether the animation is mirrored on the x axis. */
-  public void setMirrored(boolean set)
-  {
+  public void setMirrored(boolean set) {
     if (set != isMirrored) {
       isMirrored = set;
       updateCanvas();
@@ -162,14 +157,12 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns whether the animation ignores lighting conditions. */
-  public boolean isSelfIlluminated()
-  {
+  public boolean isSelfIlluminated() {
     return isSelfIlluminated;
   }
 
   /** Sets whether the animation ignores lighting conditions */
-  public void setSelfIlluminated(boolean set)
-  {
+  public void setSelfIlluminated(boolean set) {
     if (set != isSelfIlluminated) {
       isSelfIlluminated = set;
       updateGraphics();
@@ -177,14 +170,12 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Returns the lighting condition of the animation. */
-  public int getLighting()
-  {
+  public int getLighting() {
     return lighting;
   }
 
   /** Defines a new lighting condition for the animation. No change if the animation is self-illuminated. */
-  public void setLighting(int state)
-  {
+  public void setLighting(int state) {
     switch (state) {
       case ViewerConstants.LIGHTING_DAY:
       case ViewerConstants.LIGHTING_TWILIGHT:
@@ -199,13 +190,11 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
     }
   }
 
-  public int getBaseAlpha()
-  {
+  public int getBaseAlpha() {
     return baseAlpha;
   }
 
-  public void setBaseAlpha(int alpha)
-  {
+  public void setBaseAlpha(int alpha) {
     if (alpha >= 0 && alpha < 256 && alpha != baseAlpha) {
       baseAlpha = alpha;
       updateGraphics();
@@ -213,8 +202,7 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   /** Sets a new looping state. */
-  public void setLooping(boolean set)
-  {
+  public void setLooping(boolean set) {
     if (set != isLooping) {
       isLooping = set;
     }
@@ -222,10 +210,10 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
 
   /**
    * Returns the currently selected cycle if {@link #isMultiPart()} is {@code false}.
+   *
    * @return The currently selected cycle
    */
-  public int getCycle()
-  {
+  public int getCycle() {
     if (!isMultiPart()) {
       return control.cycleGet();
     } else {
@@ -235,10 +223,10 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
 
   /**
    * Sets the current BAM cycle. Does nothing if {@link #isMultiPart()} is {@code true}.
+   *
    * @param cycle The BAM cycle to set.
    */
-  public void setCycle(int cycle)
-  {
+  public void setCycle(int cycle) {
     control.cycleSet(cycle);
     updateCanvas();
     updateGraphics();
@@ -246,19 +234,19 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
 
   /**
    * Returns the initial starting frame of the animation when starting playback.
+   *
    * @return The starting frame of the animation.
    */
-  public int getStartFrame()
-  {
+  public int getStartFrame() {
     return firstFrame;
   }
 
   /**
    * Sets the initial starting frame of the animation when starting playback.
+   *
    * @param frameIdx The starting frame of the animation.
    */
-  public void setStartFrame(int frameIdx)
-  {
+  public void setStartFrame(int frameIdx) {
     if (frameIdx >= 0 && frameIdx < control.cycleFrameCount()) {
       if (lastFrame >= 0 && frameIdx > lastFrame) {
         firstFrame = lastFrame;
@@ -275,18 +263,16 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   /**
    * Returns the frame index after which the animation sequence ends.
    */
-  public int getFrameCap()
-  {
+  public int getFrameCap() {
     return (lastFrame < 0) ? control.cycleFrameCount() - 1 : lastFrame;
   }
 
   /**
    * Sets the frame index after which the animation sequence ends.
-   * @param frameIdx Index of the last frame in the animation sequence to be displayed.
-   *                 Set to -1 to disable frame cap.
+   *
+   * @param frameIdx Index of the last frame in the animation sequence to be displayed. Set to -1 to disable frame cap.
    */
-  public void setFrameCap(int frameIdx)
-  {
+  public void setFrameCap(int frameIdx) {
     if (frameIdx < 0) {
       lastFrame = -1;
     } else if (frameIdx < control.cycleFrameCount()) {
@@ -301,11 +287,10 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
     }
   }
 
-//--------------------- Begin Interface BasicAnimationProvider ---------------------
+  // --------------------- Begin Interface BasicAnimationProvider ---------------------
 
   @Override
-  public boolean advanceFrame()
-  {
+  public boolean advanceFrame() {
     boolean retVal = false;
     if (lastFrame >= 0) {
       if (control.cycleGetFrameIndex() < lastFrame) {
@@ -319,29 +304,25 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   @Override
-  public void resetFrame()
-  {
+  public void resetFrame() {
     control.cycleSetFrameIndex(getStartFrame());
     updateGraphics();
   }
 
   @Override
-  public boolean isLooping()
-  {
+  public boolean isLooping() {
     return isLooping;
   }
 
   @Override
-  public Point getLocationOffset()
-  {
+  public Point getLocationOffset() {
     return imageRect.getLocation();
   }
 
-//--------------------- End Interface BasicAnimationProvider ---------------------
+  // --------------------- End Interface BasicAnimationProvider ---------------------
 
   // Sets sane default values for all properties
-  private void setDefaults()
-  {
+  private void setDefaults() {
     setImage(null);
     setWorkingImage(null);
     setActive(true);
@@ -361,12 +342,11 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   // Updates the global image object to match the shared size of the current BAM (cycle).
-  private void updateCanvas()
-  {
+  private void updateCanvas() {
     imageRect = control.calculateSharedCanvas(isMirrored());
-    BufferedImage image = (BufferedImage)getImage();
-    if (getWorkingImage() == null || image == null ||
-        image.getWidth() != imageRect.width || image.getHeight() != imageRect.height) {
+    BufferedImage image = (BufferedImage) getImage();
+    if (getWorkingImage() == null || image == null || image.getWidth() != imageRect.width
+        || image.getHeight() != imageRect.height) {
       setImage(ColorConvert.createCompatibleImage(imageRect.width, imageRect.height, true));
       setWorkingImage(new BufferedImage(imageRect.width, imageRect.height, BufferedImage.TYPE_INT_ARGB));
     }
@@ -374,9 +354,8 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
 
   // Renders the current frame
   @Override
-  protected synchronized void updateGraphics()
-  {
-    BufferedImage image = (BufferedImage)getImage();
+  protected synchronized void updateGraphics() {
+    BufferedImage image = (BufferedImage) getImage();
     if (image != null) {
       if (isActive() || isActiveIgnored()) {
         // preparing frames
@@ -387,34 +366,34 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
             frameIndices[i] = control.cycleGetFrameIndexAbsolute(i, control.cycleGetFrameIndex());
           }
         } else {
-          frameIndices = new int[]{control.cycleGetFrameIndexAbsolute()};
+          frameIndices = new int[] { control.cycleGetFrameIndexAbsolute() };
         }
 
         // clearing old content
         Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TransparentColor);
+          g.setColor(TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
           // rendering frame
           BufferedImage working = getWorkingImage();
-          for (int i = 0; i < frameIndices.length; i++) {
+          for (int frameIndex : frameIndices) {
             // fetching frame data
-            int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
+            int[] buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
             Arrays.fill(buffer, 0);
             if (bam instanceof BamV1Decoder) {
-              ((BamV1Decoder)bam).frameGet(control, frameIndices[i], working);
+              ((BamV1Decoder) bam).frameGet(control, frameIndex, working);
             } else {
-              bam.frameGet(control, frameIndices[i], working);
+              bam.frameGet(control, frameIndex, working);
             }
 
             // post-processing frame
-            buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
+            buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
             int canvasWidth = working.getWidth();
             int canvasHeight = working.getHeight();
-            int frameWidth = bam.getFrameInfo(frameIndices[i]).getWidth();
-            int frameHeight = bam.getFrameInfo(frameIndices[i]).getHeight();
+            int frameWidth = bam.getFrameInfo(frameIndex).getWidth();
+            int frameHeight = bam.getFrameInfo(frameIndex).getHeight();
 
             if (isMirrored()) {
               mirrorImage(buffer, canvasWidth, canvasHeight, frameWidth, frameHeight);
@@ -433,14 +412,15 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
             // rendering frame
             int left, top;
             if (isMirrored()) {
-              left = -imageRect.x - (bam.getFrameInfo(frameIndices[i]).getWidth() - bam.getFrameInfo(frameIndices[i]).getCenterX() - 1);
-              top = -imageRect.y - bam.getFrameInfo(frameIndices[i]).getCenterY();
+              left = -imageRect.x
+                  - (bam.getFrameInfo(frameIndex).getWidth() - bam.getFrameInfo(frameIndex).getCenterX() - 1);
+              top = -imageRect.y - bam.getFrameInfo(frameIndex).getCenterY();
             } else {
-              left = -imageRect.x - bam.getFrameInfo(frameIndices[i]).getCenterX();
-              top = -imageRect.y - bam.getFrameInfo(frameIndices[i]).getCenterY();
+              left = -imageRect.x - bam.getFrameInfo(frameIndex).getCenterX();
+              top = -imageRect.y - bam.getFrameInfo(frameIndex).getCenterY();
             }
 
-            g.drawImage(working, left, top, left+frameWidth, top+frameHeight, 0, 0, frameWidth, frameHeight, null);
+            g.drawImage(working, left, top, left + frameWidth, top + frameHeight, 0, 0, frameWidth, frameHeight, null);
           }
         } finally {
           g.dispose();
@@ -450,7 +430,7 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
         Graphics2D g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TransparentColor);
+          g.setColor(TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();
@@ -461,19 +441,18 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   // Mirrors image along the x axis
-  private void mirrorImage(int[] buffer, int cw, int ch, int fw, int fh)
-  {
+  private void mirrorImage(int[] buffer, int cw, int ch, int fw, int fh) {
     if (buffer != null && cw > 0 && ch > 0 && fw > 0 && fh > 0) {
-      int maxOfs = fh*cw;
+      int maxOfs = fh * cw;
       if (buffer.length >= maxOfs) {
         int ofs = 0;
         while (ofs < maxOfs) {
           int left = 0;
           int right = fw - 1;
           while (left < right) {
-            int pixel = buffer[ofs+left];
-            buffer[ofs+left] = buffer[ofs+right];
-            buffer[ofs+right] = pixel;
+            int pixel = buffer[ofs + left];
+            buffer[ofs + left] = buffer[ofs + right];
+            buffer[ofs + right] = pixel;
             left++;
             right--;
           }
@@ -484,21 +463,24 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   // applies a global alpha value to all pixels
-  private void applyAlpha(int[] buffer, int cw, int ch, int fw, int fh, int alpha)
-  {
+  private void applyAlpha(int[] buffer, int cw, int ch, int fw, int fh, int alpha) {
     if (buffer != null && cw > 0 && ch > 0 && fw > 0 && fh > 0) {
-      int maxOfs = fh*cw;
+      int maxOfs = fh * cw;
       if (buffer.length >= maxOfs) {
-        if (alpha < 0) alpha = 0; else if (alpha > 255) alpha = 255;
-        alpha *= 65793;   // upscaling for use with faster right-shift (by 24)
+        if (alpha < 0) {
+          alpha = 0;
+        } else if (alpha > 255) {
+          alpha = 255;
+        }
+        alpha *= 65793; // upscaling for use with faster right-shift (by 24)
         int ofs = 0;
         while (ofs < maxOfs) {
           for (int x = 0; x < fw; x++) {
-            int pixel = buffer[ofs+x];
+            int pixel = buffer[ofs + x];
             if ((pixel & 0xff000000) != 0) {
-              int a = (pixel >>> 24) & 0xff;    // using right shift because of upscaled alpha
-              a = (a*alpha) >>> 24;
-              buffer[ofs+x] = (a << 24) | (pixel & 0x00ffffff);
+              int a = (pixel >>> 24) & 0xff; // using right shift because of upscaled alpha
+              a = (a * alpha) >>> 24;
+              buffer[ofs + x] = (a << 24) | (pixel & 0x00ffffff);
             }
           }
           ofs += cw;
@@ -508,23 +490,24 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider
   }
 
   // Blends pixels based on their brightness
-  private void applyBlending(int[] buffer, int cw, int ch, int fw, int fh)
-  {
+  private void applyBlending(int[] buffer, int cw, int ch, int fw, int fh) {
     if (buffer != null && cw > 0 && ch > 0 && fw > 0 && fh > 0) {
-      int maxOfs = fh*cw;
+      int maxOfs = fh * cw;
       if (buffer.length >= maxOfs) {
         int ofs = 0;
         while (ofs < maxOfs) {
           for (int x = 0; x < fw; x++) {
-            int pixel = buffer[ofs+x];
+            int pixel = buffer[ofs + x];
             if ((pixel & 0xff000000) != 0) {
               int a = (pixel >>> 24) & 0xff;
               int r = (pixel >>> 16) & 0xff;
               int g = (pixel >>> 8) & 0xff;
               int b = pixel & 0xff;
-              a = (a*TableAlpha[((r*LumaR) + (g*LumaG) + (b*LumaB)) >>> 16]) >>> 8;
-              if (a > 255) a = 255;
-              buffer[ofs+x] = (a << 24) | (pixel & 0x00ffffff);
+              a = (a * TABLE_ALPHA[((r * LUMA_R) + (g * LUMA_G) + (b * LUMA_B)) >>> 16]) >>> 8;
+              if (a > 255) {
+                a = 255;
+              }
+              buffer[ofs + x] = (a << 24) | (pixel & 0x00ffffff);
             }
           }
           ofs += cw;

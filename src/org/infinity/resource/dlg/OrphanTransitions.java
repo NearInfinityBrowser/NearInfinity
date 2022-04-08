@@ -1,11 +1,12 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
 
-import java.util.ArrayList;
 import static java.util.Collections.enumeration;
+
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -15,60 +16,91 @@ import javax.swing.Icon;
 import javax.swing.tree.TreeNode;
 
 /**
- * Represents node in the dialog tree that contains transitions, that not accessible
- * from any other dialog
+ * Represents node in the dialog tree that contains transitions, that not accessible from any other dialog
  *
  * @author Mingun
  */
-final class OrphanTransitions extends TransitionOwnerItem
-{
+final class OrphanTransitions extends TransitionOwnerItem {
   private final DlgTreeModel parent;
-  final List<TransitionItem> trans = new ArrayList<>();
 
-  public OrphanTransitions(DlgTreeModel parent) { this.parent = parent; }
+  protected final List<TransitionItem> trans = new ArrayList<>();
 
-  @Override
-  public String toString() { return "Orphan responses"; }
-
-  @Override
-  public TransitionItem getChildAt(int childIndex) { return trans.get(childIndex); }
+  public OrphanTransitions(DlgTreeModel parent) {
+    this.parent = parent;
+  }
 
   @Override
-  public int getChildCount() { return trans.size(); }
+  public String toString() {
+    return "Orphan responses";
+  }
 
   @Override
-  public TreeNode getParent() { return parent; }
+  public TransitionItem getChildAt(int childIndex) {
+    return trans.get(childIndex);
+  }
 
   @Override
-  public int getIndex(TreeNode node) { return trans.indexOf(node); }
+  public int getChildCount() {
+    return trans.size();
+  }
 
   @Override
-  public boolean getAllowsChildren() { return true; }
+  public TreeNode getParent() {
+    return parent;
+  }
 
   @Override
-  public boolean isLeaf() { return trans.isEmpty(); }
+  public int getIndex(TreeNode node) {
+    return trans.indexOf(node);
+  }
 
   @Override
-  public Enumeration<? extends TransitionItem> children() { return enumeration(trans); }
+  public boolean getAllowsChildren() {
+    return true;
+  }
 
   @Override
-  public Iterator<TransitionItem> iterator() { return trans.iterator(); }
+  public boolean isLeaf() {
+    return trans.isEmpty();
+  }
 
   @Override
-  public TreeItemEntry getEntry() { return null; }
+  public Enumeration<? extends TransitionItem> children() {
+    return enumeration(trans);
+  }
 
   @Override
-  public ItemBase getMain() { return null; }
+  public Iterator<TransitionItem> iterator() {
+    return trans.iterator();
+  }
 
   @Override
-  public DlgResource getDialog() { return parent.getDialog(); }
+  public TreeItemEntry getEntry() {
+    return null;
+  }
 
   @Override
-  public Icon getIcon() { return null; }
+  public ItemBase getMain() {
+    return null;
+  }
 
   @Override
-  public boolean removeChild(ItemBase child) { return trans.remove(child); }
+  public DlgResource getDialog() {
+    return parent.getDialog();
+  }
 
   @Override
-  public void traverseChildren(Consumer<ItemBase> action) { trans.forEach(action); }
+  public Icon getIcon() {
+    return null;
+  }
+
+  @Override
+  public boolean removeChild(ItemBase child) {
+    return trans.remove(child);
+  }
+
+  @Override
+  public void traverseChildren(Consumer<ItemBase> action) {
+    trans.forEach(action);
+  }
 }

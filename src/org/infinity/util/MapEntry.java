@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -12,58 +12,51 @@ import java.util.Map.Entry;
  * @param <K> The type of key.
  * @param <V> The type of value.
  */
-public class MapEntry<K, V> implements Entry<K, V>
-{
+public class MapEntry<K, V> implements Entry<K, V> {
   private K key;
   private V value;
 
-  public MapEntry()
-  {
+  public MapEntry() {
     this(null, null);
   }
 
-  public MapEntry(K key)
-  {
+  public MapEntry(K key) {
     this(key, null);
   }
 
-  public MapEntry(K key, V value)
-  {
+  public MapEntry(K key, V value) {
     this.key = key;
     this.value = value;
   }
 
-//--------------------- Begin Interface Map.Entry ---------------------
+  // --------------------- Begin Interface Map.Entry ---------------------
 
   @Override
-  public K getKey()
-  {
+  public K getKey() {
     return key;
   }
 
   @Override
-  public V getValue()
-  {
+  public V getValue() {
     return value;
   }
 
   @Override
-  public V setValue(V value)
-  {
+  public V setValue(V value) {
     V retVal = this.value;
     this.value = value;
     return retVal;
   }
 
-//--------------------- End Interface Map.Entry ---------------------
+  // --------------------- End Interface Map.Entry ---------------------
 
   /**
    * Replaces the current key with the specified argument.
+   *
    * @param key The new key.
    * @return The old key.
    */
-  public K setKey(K key)
-  {
+  public K setKey(K key) {
     K retVal = this.key;
     this.key = key;
     return retVal;

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -24,33 +24,28 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 
 /**
- * This resource describes an effect (opcode) and its parameters. The resource of
- * version 1 is only ever found embedded in other files, but resource of version 2
- * is an extended version of that found embedded in creatures, items and spells,
- * and is a replacement for the version 1 embedded effects used in BG1.
+ * This resource describes an effect (opcode) and its parameters. The resource of version 1 is only ever found embedded
+ * in other files, but resource of version 2 is an extended version of that found embedded in creatures, items and
+ * spells, and is a replacement for the version 1 embedded effects used in BG1.
  * <p>
- * The engine appears to roll a probability for each valid target type, rather than
- * one probability per attack.
+ * The engine appears to roll a probability for each valid target type, rather than one probability per attack.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/eff_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/eff_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/eff_v1.htm</a>
  */
-public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
-{
+public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs {
   // EFF-specific field labels
   public static final String EFF_SIGNATURE_2  = "Signature 2";
   public static final String EFF_VERSION_2    = "Version 2";
 
   private StructHexViewer hexViewer;
 
-  public EffResource(ResourceEntry entry) throws Exception
-  {
+  public EffResource(ResourceEntry entry) throws Exception {
     super(entry);
   }
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     addField(new TextString(buffer, offset + 8, 4, EFF_SIGNATURE_2));
@@ -68,23 +63,20 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     return offset + 216;
   }
 
-//--------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_RAW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     if (hexViewer == null) {
       hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
     }
@@ -92,25 +84,21 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return false;
   }
 
-//--------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
+  protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
   }
 
   /**
-   * Called by "Extended Search"
-   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search" Checks whether the specified resource entry matches all available search options.
    */
-  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
-  {
+  public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions) {
     if (entry != null && searchOptions != null) {
       try {
         EffResource eff = new EffResource(entry);
@@ -118,12 +106,11 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
         String key;
         Object o;
 
-        String[] keyList = new String[]{SearchOptions.EFF_Effect, SearchOptions.EFF_Param1,
-                                        SearchOptions.EFF_Param2, SearchOptions.EFF_TimingMode,
-                                        SearchOptions.EFF_Duration};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        String[] keyList = new String[] { SearchOptions.EFF_Effect, SearchOptions.EFF_Param1, SearchOptions.EFF_Param2,
+            SearchOptions.EFF_TimingMode, SearchOptions.EFF_Duration };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
@@ -145,11 +132,11 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
           retVal &= SearchOptions.Utils.matchFlags(struct, o);
         }
 
-        keyList = new String[]{SearchOptions.EFF_Resource1, SearchOptions.EFF_Resource2,
-                               SearchOptions.EFF_Resource3};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.EFF_Resource1, SearchOptions.EFF_Resource2,
+            SearchOptions.EFF_Resource3 };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             StructEntry struct;
             if (SearchOptions.isResourceByOffset(key)) {
@@ -164,11 +151,11 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
           }
         }
 
-        keyList = new String[]{SearchOptions.EFF_Custom1, SearchOptions.EFF_Custom2,
-                               SearchOptions.EFF_Custom3, SearchOptions.EFF_Custom4};
-        for (int idx = 0; idx < keyList.length; idx++) {
+        keyList = new String[] { SearchOptions.EFF_Custom1, SearchOptions.EFF_Custom2, SearchOptions.EFF_Custom3,
+            SearchOptions.EFF_Custom4 };
+        for (String element : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = element;
             o = searchOptions.getOption(key);
             retVal &= SearchOptions.Utils.matchCustomFilter(eff, o);
           } else {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -10,17 +10,16 @@ import java.awt.Point;
 /**
  * Required by the AnimatedLayerItem class to properly draw graphical data.
  */
-public interface BasicAnimationProvider
-{
+public interface BasicAnimationProvider {
   /**
-   * Returns the graphical data of the current frame.
-   * (Note: Subclasses have to make sure that this method always returns a valid and up to date
-   * graphics object.)
+   * Returns the graphical data of the current frame. (Note: Subclasses have to make sure that this method always
+   * returns a valid and up to date graphics object.)
    */
   public Image getImage();
 
   /**
    * Advances the animation by one frame. Does not wrap around after reaching the last frame.
+   *
    * @return Whether the frame has been advanced successfully.
    */
   public boolean advanceFrame();

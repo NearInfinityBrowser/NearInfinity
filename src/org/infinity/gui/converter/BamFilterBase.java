@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -16,8 +16,7 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 /**
  * The base class for BAM converter effects filters.
  */
-public abstract class BamFilterBase
-{
+public abstract class BamFilterBase {
   /** Supported filter types. */
   public enum Type {
     /** Specifies an filter type that manipulates on color/pixel level only. (Examples: Brightness, Color balance) */
@@ -34,8 +33,7 @@ public abstract class BamFilterBase
   private final List<ChangeListener> listChangeListeners = new ArrayList<>();
   private final JPanel controls;
 
-  protected BamFilterBase(ConvertToBam converter, String name, String desc, Type type)
-  {
+  protected BamFilterBase(ConvertToBam converter, String name, String desc, Type type) {
     if (converter == null) {
       throw new NullPointerException();
     }
@@ -47,75 +45,71 @@ public abstract class BamFilterBase
   }
 
   /** Returns the associated {@code ConvertToBam} instance. */
-  public ConvertToBam getConverter()
-  {
+  public ConvertToBam getConverter() {
     return converter;
   }
 
   /** Returns the name of the filter. Will be used to identify the filter in the filters list. */
-  public String getName()
-  {
+  public String getName() {
     return name;
   }
 
   /** Returns an optional description of the filter. Will be shown when the filter has been selected. */
-  public String getDescription()
-  {
+  public String getDescription() {
     return description;
   }
 
   /** Returns the filter type/category. Will be used internally. */
-  public Type getType()
-  {
+  public Type getType() {
     return type;
   }
 
   /**
    * Returns a panel with controls that can be used for setting specific filter parameters.
    */
-  public JPanel getControls()
-  {
+  public JPanel getControls() {
     return controls;
   }
 
   /** This method is called whenever a change has occured in associated the ConvertToBam instance. */
-  public void updateControls()
-  {
+  public void updateControls() {
     // does nothing by default
   }
 
   /**
-   * Returns the current filter configuration as string data.
-   * The format string should be in the format <pre>value1;"string1";[complex,"string2",value2];value3</pre>
+   * Returns the current filter configuration as string data. The format string should be in the format
+   *
+   * <pre>
+   * value1;"string1";[complex,"string2",value2];value3
+   * </pre>
    */
   public abstract String getConfiguration();
 
   /**
    * Applies the specified configuration data to the filter.
+   *
    * @param config The configuration data as string data.
-   * @return {@code true} if configuration have been applied successfully,
-   *         {@code false} otherwise.
+   * @return {@code true} if configuration have been applied successfully, {@code false} otherwise.
    */
   public abstract boolean setConfiguration(String config);
 
   /** Cleans up class-specific resource. Call whenever you want to release this instance from memory. */
-  public void close() {}
+  public void close() {
+  }
 
   /**
    * Modifies the specified BufferedImage object to reflect the current settings of the filter.<br>
    * <b>Note:</b> For optimization purposes, prevent creating a new BufferedImage object if possible.
+   *
    * @param frame The PseudoBamFrameEntry object to modify.
    * @return The updated PseudoBamFrameEntry object.
    */
   public abstract PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame);
 
-
   /**
-   * Adds a ChangeListener to the listener list.
-   * ChangeListeners will be notified whenever the filter settings change.
+   * Adds a ChangeListener to the listener list. ChangeListeners will be notified whenever the filter settings change.
    */
-  public void addChangeListener(ChangeListener l)
-  {
+  public void addChangeListener(ChangeListener l) {
     if (l != null) {
       if (listChangeListeners.indexOf(l) < 0) {
         listChangeListeners.add(l);
@@ -124,8 +118,7 @@ public abstract class BamFilterBase
   }
 
   /** Returns an array of all ChangeListeners added to this filter object. */
-  public ChangeListener[] getChangeListeners()
-  {
+  public ChangeListener[] getChangeListeners() {
     ChangeListener[] retVal = new ChangeListener[listChangeListeners.size()];
     for (int i = 0; i < retVal.length; i++) {
       retVal[i] = listChangeListeners.get(i);
@@ -134,8 +127,7 @@ public abstract class BamFilterBase
   }
 
   /** Removes a ChangeListener from the listener list. */
-  public void removeChangeListener(ChangeListener l)
-  {
+  public void removeChangeListener(ChangeListener l) {
     if (l != null) {
       int idx = listChangeListeners.indexOf(l);
       if (idx >= 0) {
@@ -144,10 +136,8 @@ public abstract class BamFilterBase
     }
   }
 
-
   @Override
-  public String toString()
-  {
+  public String toString() {
     return name;
   }
 
@@ -155,20 +145,18 @@ public abstract class BamFilterBase
   protected abstract JPanel loadControls();
 
   /**
-   * Triggers a ChangeEvent in all registered components.
-   * Should be called by subclasses whenever a filter setting has been changed.
+   * Triggers a ChangeEvent in all registered components. Should be called by subclasses whenever a filter setting has
+   * been changed.
    */
-  protected void fireChangeListener()
-  {
+  protected void fireChangeListener() {
     ChangeEvent event = new ChangeEvent(this);
-    for (int i = 0; i < listChangeListeners.size(); i++) {
-      listChangeListeners.get(i).stateChanged(event);
+    for (ChangeListener listChangeListener : listChangeListeners) {
+      listChangeListener.stateChanged(event);
     }
   }
 
   /** Parses a single numeric value from a parameter string in the given limits. Returns defValue on error. */
-  protected static int decodeNumber(String param, int min, int max, int defValue)
-  {
+  protected static int decodeNumber(String param, int min, int max, int defValue) {
     if (param != null) {
       try {
         int value = Integer.parseInt(param);
@@ -182,8 +170,7 @@ public abstract class BamFilterBase
   }
 
   /** Parses a single floating point value from a parameter string in the given limits. Returns defValue on error. */
-  protected static double decodeDouble(String param, double min, double max, double defValue)
-  {
+  protected static double decodeDouble(String param, double min, double max, double defValue) {
     if (param != null) {
       try {
         double value = Double.parseDouble(param);

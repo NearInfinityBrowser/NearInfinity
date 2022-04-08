@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -13,24 +13,17 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 
-public final class IwdRef extends ResourceBitmap
-{
+public final class IwdRef extends ResourceBitmap {
   private static final String NONE = "None";
 
-  public IwdRef(ByteBuffer buffer, int offset, String name, String idsFile)
-  {
+  public IwdRef(ByteBuffer buffer, int offset, String name, String idsFile) {
     super(buffer, offset, 4, name, createIwdRefList(idsFile), NONE, FMT_REF_NAME);
   }
 
-  public long getValue(String ref)
-  {
+  public long getValue(String ref) {
     if (ref != null && !ref.isEmpty()) {
-      RefEntry entry = getBitmap()
-          .values()
-          .parallelStream()
-          .filter(re -> re.getResourceName().equalsIgnoreCase(ref))
-          .findAny()
-          .orElse(null);
+      RefEntry entry = getBitmap().values().stream().filter(re -> re.getResourceName().equalsIgnoreCase(ref))
+          .findAny().orElse(null);
       if (entry != null) {
         return entry.getValue();
       }
@@ -38,8 +31,7 @@ public final class IwdRef extends ResourceBitmap
     return -1L;
   }
 
-  public String getValueRef()
-  {
+  public String getValueRef() {
     String retVal = getResourceName();
     if (retVal.isEmpty()) {
       retVal = NONE;
@@ -47,21 +39,19 @@ public final class IwdRef extends ResourceBitmap
     return retVal;
   }
 
-  public String getValueRef(long id)
-  {
-    RefEntry result = getBitmap().values().parallelStream().filter(re -> re.getValue() == id).findAny().orElse(null);
+  public String getValueRef(long id) {
+    RefEntry result = getBitmap().values().stream().filter(re -> re.getValue() == id).findAny().orElse(null);
     if (result != null) {
       return result.getResourceName();
     }
     return NONE;
   }
 
-  private static List<RefEntry> createIwdRefList(String idsFile)
-  {
+  private static List<RefEntry> createIwdRefList(String idsFile) {
     IdsMap idsMap = IdsMapCache.get(idsFile);
 
     final List<RefEntry> retVal = new ArrayList<>(idsMap.size());
-    for (final IdsMapEntry e: idsMap.getAllValues()) {
+    for (final IdsMapEntry e : idsMap.getAllValues()) {
       retVal.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".SPL"));
     }
 

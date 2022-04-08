@@ -5,6 +5,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/rsyntaxtextarea/rsyntaxtextarea.jar" sourcepath="lib/rsyntaxtextarea/RSyntaxTextArea-3.1.1-light.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/jhexview/jhexview.jar" sourcepath="lib/jhexview/jhexview-current.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/montemedia/montemedia.jar" sourcepath="lib/montemedia/MonteMedia-0.7.7.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/apng-writer/apng-writer-core.jar" sourcepath="lib/apng-writer/apng-writer-core-src.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

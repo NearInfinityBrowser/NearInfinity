@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs.parser;
@@ -22,22 +22,19 @@ import org.infinity.resource.bcs.Signatures;
 import org.infinity.util.IdsMapCache;
 
 /**
- * Transforms the raw parse tree into a node tree that more closely resembles the resulting
- * BCS bytecode structure.
+ * Transforms the raw parse tree into a node tree that more closely resembles the resulting BCS bytecode structure.
  */
-public class BafNodeTransformer
-{
+public class BafNodeTransformer {
   private final Signatures triggers;
   private final Signatures actions;
   private final Set<ScriptMessage> errors;
   private final Set<ScriptMessage> warnings;
 
-  private boolean verbose;      // whether to increase number if warnings
-  private boolean exactMatch;   // indicates whether to enforce exact function name matches
+  private boolean verbose; // whether to increase number if warnings
+  private boolean exactMatch; // indicates whether to enforce exact function name matches
   private boolean octSupported; // indicates whether octal notation is supported
 
-  public BafNodeTransformer(Set<ScriptMessage> errors, Set<ScriptMessage> warnings, boolean verbose)
-  {
+  public BafNodeTransformer(Set<ScriptMessage> errors, Set<ScriptMessage> warnings, boolean verbose) {
     this.triggers = Signatures.getTriggers();
     this.actions = Signatures.getActions();
     this.errors = (errors != null) ? errors : new TreeSet<>();
@@ -46,24 +43,24 @@ public class BafNodeTransformer
   }
 
   /**
-   * Transforms the node tree from the initial parse process into a node tree that much more
-   * resembles the resulting BCS bytecode structure.
+   * Transforms the node tree from the initial parse process into a node tree that much more resembles the resulting BCS
+   * bytecode structure.
+   *
    * @param root The root node. Supported types: JJTSC, JJTSEQ_TR and JJTSEQ_AC
    * @return Root node of the transformed ScriptNode tree.
    * @throws ParseException if nodes don't conform to a valid script state.
    */
-  public ScriptNode transformParseNodes(BafNode root) throws ParseException
-  {
+  public ScriptNode transformParseNodes(BafNode root) throws ParseException {
     if (root == null) {
       throw new NullPointerException();
     }
 
     ScriptNode scriptRoot = null;
-    if (root.getId() == BafParser.JJTSC) {
+    if (root.getId() == BafParserTreeConstants.JJTSC) {
       scriptRoot = transformSC(root);
-    } else if (root.getId() == BafParser.JJTSEQ_TR) {
+    } else if (root.getId() == BafParserTreeConstants.JJTSEQ_TR) {
       scriptRoot = transformSEQ_TR(root);
-    } else if (root.getId() == BafParser.JJTSEQ_AC) {
+    } else if (root.getId() == BafParserTreeConstants.JJTSEQ_AC) {
       scriptRoot = transformSEQ_AC(root);
     } else {
       throw new ParseException("Unsupported script type");
@@ -73,9 +70,8 @@ public class BafNodeTransformer
   }
 
   // Transforms full BAF script
-  private ScriptNode transformSC(BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTSC) {
+  private ScriptNode transformSC(BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTSC) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return null;
     }
@@ -84,15 +80,14 @@ public class BafNodeTransformer
     setOctSupported(true);
     ScriptNode retVal = new ScriptNode(null, "SC", baf.jjtGetFirstToken());
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      transformCR(retVal, (BafNode)baf.jjtGetChild(i));
+      transformCR(retVal, (BafNode) baf.jjtGetChild(i));
     }
     return retVal;
   }
 
   // Transforms sequence of triggers
-  private ScriptNode transformSEQ_TR(BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTSEQ_TR) {
+  private ScriptNode transformSEQ_TR(BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTSEQ_TR) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return null;
     }
@@ -101,15 +96,14 @@ public class BafNodeTransformer
     setOctSupported(false);
     ScriptNode retVal = new ScriptNode(null, "SEQ_TR", baf.jjtGetFirstToken());
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      transformTR(retVal, (BafNode)baf.jjtGetChild(i));
+      transformTR(retVal, (BafNode) baf.jjtGetChild(i));
     }
     return retVal;
   }
 
   // Transforms sequence of actions
-  private ScriptNode transformSEQ_AC(BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTSEQ_AC) {
+  private ScriptNode transformSEQ_AC(BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTSEQ_AC) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return null;
     }
@@ -118,14 +112,13 @@ public class BafNodeTransformer
     setOctSupported(false);
     ScriptNode retVal = new ScriptNode(null, "SEQ_AC", baf.jjtGetFirstToken());
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      transformAC(retVal, (BafNode)baf.jjtGetChild(i));
+      transformAC(retVal, (BafNode) baf.jjtGetChild(i));
     }
     return retVal;
   }
 
-  private void transformCR(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTCR) {
+  private void transformCR(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTCR) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -133,18 +126,17 @@ public class BafNodeTransformer
     ScriptNode nodeCR = new ScriptNode(parent, "CR", baf.jjtGetFirstToken());
     parent.addChild(nodeCR);
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTCO) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTCO) {
         transformCO(nodeCR, child);
-      } else if (child.getId() == BafParser.JJTRS) {
+      } else if (child.getId() == BafParserTreeConstants.JJTRS) {
         transformRS(nodeCR, child);
       }
     }
   }
 
-  private void transformCO(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTCO) {
+  private void transformCO(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTCO) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -152,16 +144,15 @@ public class BafNodeTransformer
     ScriptNode nodeCO = new ScriptNode(parent, "CO", baf.jjtGetFirstToken());
     parent.addChild(nodeCO);
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTTR) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTTR) {
         transformTR(nodeCO, child);
       }
     }
   }
 
-  private void transformRS(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTRS) {
+  private void transformRS(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTRS) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -169,16 +160,15 @@ public class BafNodeTransformer
     ScriptNode nodeRS = new ScriptNode(parent, "RS", baf.jjtGetFirstToken());
     parent.addChild(nodeRS);
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTRE) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTRE) {
         transformRE(nodeRS, child);
       }
     }
   }
 
-  private void transformRE(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTRE) {
+  private void transformRE(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTRE) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -186,26 +176,26 @@ public class BafNodeTransformer
     ScriptNode nodeRE = new ScriptNode(parent, "RE", baf.jjtGetFirstToken());
     parent.addChild(nodeRE);
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTUINT) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTUINT) {
         // response probability
         long value = 100;
         try {
           value = parseNumber(child.getTokenString());
         } catch (Exception e) {
-          warnings.add(new ScriptMessage("Invalid response probability: " + child.getTokenString() + " (using defaults)",
-                                         child.jjtGetFirstToken(), child.jjtGetLastToken()));
+          warnings
+              .add(new ScriptMessage("Invalid response probability: " + child.getTokenString() + " (using defaults)",
+                  child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         nodeRE.code = value;
-      } else if (child.getId() == BafParser.JJTAC) {
+      } else if (child.getId() == BafParserTreeConstants.JJTAC) {
         transformAC(nodeRE, child);
       }
     }
   }
 
-  private void transformTR(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTTR) {
+  private void transformTR(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTTR) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -214,30 +204,30 @@ public class BafNodeTransformer
     parent.addChild(nodeTR);
     Signatures.Function func = null;
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTNEG) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTNEG) {
         // trigger is negated
         nodeTR.negated = true;
-      } else if (child.getId() == BafParser.JJTNAME) {
+      } else if (child.getId() == BafParserTreeConstants.JJTNAME) {
         // determine trigger signature
         Token token = child.jjtGetFirstToken();
         func = getTriggerSignatures().getFunction(token.toString(), isExactMatch());
         if (func == null) {
           errors.add(new ScriptMessage(getSymbolNotFoundMessage(token.toString(), "TRIGGER.IDS"),
-                                       child.jjtGetFirstToken(), child.jjtGetLastToken()));
+              child.jjtGetFirstToken(), child.jjtGetLastToken()));
           return;
         } else if (verbose && !token.toString().equals(func.getName())) {
           warnings.add(new ScriptMessage("No exact match: " + token.toString() + " vs. " + func.getName(),
-                                         child.jjtGetFirstToken(), child.jjtGetLastToken()));
+              child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         nodeTR.code = func.getId();
         nodeTR.function = func;
-      } else if (child.getId() == BafParser.JJTPARAM) {
+      } else if (child.getId() == BafParserTreeConstants.JJTPARAM) {
         // process trigger parameters
         nodeTR.index++;
-        BafNode paramChild = (BafNode)child.jjtGetChild(0);
-        if (nodeTR.index < func.getNumParameters() &&
-            func.getParameter(nodeTR.index).getType() == Signatures.Function.Parameter.TYPE_TRIGGER) {
+        BafNode paramChild = (BafNode) child.jjtGetChild(0);
+        if (nodeTR.index < func.getNumParameters()
+            && func.getParameter(nodeTR.index).getType() == Signatures.Function.Parameter.TYPE_TRIGGER) {
           // special: nested trigger is added as child node to current trigger node
           transformTR(nodeTR, paramChild);
         } else {
@@ -248,9 +238,8 @@ public class BafNodeTransformer
     }
   }
 
-  private void transformAC(ScriptNode parent, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTAC) {
+  private void transformAC(ScriptNode parent, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTAC) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
@@ -259,27 +248,27 @@ public class BafNodeTransformer
     parent.addChild(nodeAC);
     Signatures.Function func = null;
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTNAME) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTNAME) {
         // determine trigger signature
         Token token = child.jjtGetFirstToken();
         func = getActionSignatures().getFunction(token.toString(), isExactMatch());
         if (func == null) {
           errors.add(new ScriptMessage(getSymbolNotFoundMessage(token.toString(), "ACTION.IDS"),
-                                       child.jjtGetFirstToken(), child.jjtGetLastToken()));
+              child.jjtGetFirstToken(), child.jjtGetLastToken()));
           return;
         } else if (verbose && !token.toString().equals(func.getName())) {
           warnings.add(new ScriptMessage("No exact match: " + token.toString() + " vs. " + func.getName(),
-                                         child.jjtGetFirstToken(), child.jjtGetLastToken()));
+              child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         nodeAC.code = func.getId();
         nodeAC.function = func;
-      } else if (child.getId() == BafParser.JJTPARAM) {
+      } else if (child.getId() == BafParserTreeConstants.JJTPARAM) {
         // process action parameters
         nodeAC.index++;
-        BafNode paramChild = (BafNode)child.jjtGetChild(0);
-        if (nodeAC.index < func.getNumParameters() &&
-            func.getParameter(nodeAC.index).getType() == Signatures.Function.Parameter.TYPE_ACTION) {
+        BafNode paramChild = (BafNode) child.jjtGetChild(0);
+        if (nodeAC.index < func.getNumParameters()
+            && func.getParameter(nodeAC.index).getType() == Signatures.Function.Parameter.TYPE_ACTION) {
           // special: nested action is added as child node to current action node
           transformAC(nodeAC, paramChild);
         } else {
@@ -290,15 +279,14 @@ public class BafNodeTransformer
     }
   }
 
-  private void processPARAM(ScriptNode funcNode, Signatures.Function function, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTPARAM) {
+  private void processPARAM(ScriptNode funcNode, Signatures.Function function, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTPARAM) {
       errors.add(new ScriptMessage(getUnexpectedNodeMessage(baf), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
 
     if (funcNode.index < function.getNumParameters()) {
-      BafNode child = (BafNode)baf.jjtGetChild(0);
+      BafNode child = (BafNode) baf.jjtGetChild(0);
       Signatures.Function.Parameter param = function.getParameter(funcNode.index);
       if (param.getType() == Signatures.Function.Parameter.TYPE_STRING) {
         // String parameter expected
@@ -311,7 +299,7 @@ public class BafNodeTransformer
         processParamPoint(funcNode, param, child);
       } else if (param.getType() == Signatures.Function.Parameter.TYPE_OBJECT) {
         // Object parameter expected
-        BafNode rect = getObjectRegion((child.getId() == BafParser.JJTOBJECT) ? baf : child);
+        BafNode rect = getObjectRegion((child.getId() == BafParserTreeConstants.JJTOBJECT) ? baf : child);
         processParamObject(funcNode, param, child, rect);
       } else if (param.getType() == Signatures.Function.Parameter.TYPE_TRIGGER) {
         errors.add(new ScriptMessage("Too many nested triggers", baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
@@ -321,40 +309,40 @@ public class BafNodeTransformer
         return;
       }
     } else {
-      warnings.add(new ScriptMessage("Too many arguments for [" + function.getName() + "] (allowed: " + function.getNumParameters() + ")",
-                                     baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+      warnings.add(new ScriptMessage(
+          "Too many arguments for [" + function.getName() + "] (allowed: " + function.getNumParameters() + ")",
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
     }
   }
 
-  private void processParamString(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTPARAM_STR) {
-      errors.add(new ScriptMessage("Invalid string: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processParamString(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTPARAM_STR) {
+      errors.add(new ScriptMessage("Invalid string: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
-    String s = processString((BafNode)baf.jjtGetChild(0));
+    String s = processString((BafNode) baf.jjtGetChild(0));
     funcNode.strings.push(s);
   }
 
-  private String processString(BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTSTRING) {
-      errors.add(new ScriptMessage("Invalid string parameter: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private String processString(BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTSTRING) {
+      errors.add(new ScriptMessage("Invalid string parameter: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return "";
     }
 
     String s = unquoteString(baf.getTokenString());
     if (s == null) {
-      errors.add(new ScriptMessage("Invalid string parameter: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+      errors.add(new ScriptMessage("Invalid string parameter: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return "";
     }
 
     if (s.indexOf('"') >= 0) {
       errors.add(new ScriptMessage("Double quote character not allowed inside string parameter: " + s,
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return "";
     }
 
@@ -363,7 +351,7 @@ public class BafNodeTransformer
       if (s.length() > 32) {
         int excess = s.length() - 32;
         warnings.add(new ScriptMessage("String is too long by " + excess + " character(s): " + s,
-                                       baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+            baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       }
       // special (umlaut) characters may cause issues
       int count = 0;
@@ -374,50 +362,45 @@ public class BafNodeTransformer
       }
       if (count > 0) {
         warnings.add(new ScriptMessage("String contains " + count + " non-ascii character(s): " + s,
-                                       baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+            baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       }
     }
 
     return s;
   }
 
-  private void processParamNumeric(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTPARAM_NUM &&
-        baf.getId() != BafParser.JJTPARAM_SYM &&
-        baf.getId() != BafParser.JJTPARAM_STR) {
-      errors.add(new ScriptMessage("Invalid number of symbol: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processParamNumeric(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTPARAM_NUM && baf.getId() != BafParserTreeConstants.JJTPARAM_SYM
+        && baf.getId() != BafParserTreeConstants.JJTPARAM_STR) {
+      errors.add(new ScriptMessage("Invalid number of symbol: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
-    BafNode child = (BafNode)baf.jjtGetChild(0);
+    BafNode child = (BafNode) baf.jjtGetChild(0);
     long value = processNumberExpression(param.getIdsRef(), child);
 
     // handling optional expressions
     for (int i = 1, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTOR_EXPR) {
+      child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTOR_EXPR) {
         value |= processOrExpression(param, child);
       }
     }
 
     if (verbose && (value > Integer.MAX_VALUE || value < Integer.MIN_VALUE)) {
       warnings.add(new ScriptMessage("Numeric value is out of range: " + param.toString(true) + " - " + value,
-                                     baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
     }
 
-    funcNode.numbers.push(Long.valueOf(value));
+    funcNode.numbers.push(value);
   }
 
-  private long processNumberExpression(String ids, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTSINT &&
-        baf.getId() != BafParser.JJTUINT &&
-        baf.getId() != BafParser.JJTNAME &&
-        baf.getId() != BafParser.JJTSTRING) {
+  private long processNumberExpression(String ids, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTSINT && baf.getId() != BafParserTreeConstants.JJTUINT
+        && baf.getId() != BafParserTreeConstants.JJTNAME && baf.getId() != BafParserTreeConstants.JJTSTRING) {
       errors.add(new ScriptMessage("Invalid numeric or symbolic value: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return 0;
     }
 
@@ -425,34 +408,34 @@ public class BafNodeTransformer
     int id = baf.getId();
 
     // string may be number or symbol
-    if (baf.getId() == BafParser.JJTSTRING) {
+    if (baf.getId() == BafParserTreeConstants.JJTSTRING) {
       svalue = unquoteString(svalue);
       try {
         // check number first
         parseNumber(svalue);
-        id = BafParser.JJTSINT;
+        id = BafParserTreeConstants.JJTSINT;
       } catch (Exception e) {
         // may be symbol instead
-        id = BafParser.JJTNAME;
+        id = BafParserTreeConstants.JJTNAME;
       }
     }
 
     if (svalue == null) {
       errors.add(new ScriptMessage("Invalid numeric or symbolic value: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return 0;
     }
 
     long value = 0;
-    if (id == BafParser.JJTSINT || id == BafParser.JJTUINT) {
+    if (id == BafParserTreeConstants.JJTSINT || id == BafParserTreeConstants.JJTUINT) {
       try {
         value = parseNumber(svalue);
       } catch (Exception e) {
-        errors.add(new ScriptMessage("Invalid number: " + baf.jjtGetFirstToken(),
-                                     baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+        errors.add(new ScriptMessage("Invalid number: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+            baf.jjtGetLastToken()));
         return 0;
       }
-    } else if (id == BafParser.JJTNAME) {
+    } else if (id == BafParserTreeConstants.JJTNAME) {
       String idsRef = ids.toUpperCase(Locale.ENGLISH);
       if (!idsRef.isEmpty() && idsRef.lastIndexOf('.') < 0) {
         idsRef += ".IDS";
@@ -462,19 +445,18 @@ public class BafNodeTransformer
       boolean exact = isExactMatch() && IdsMapCache.isCaseSensitiveMatch(idsRef);
       Long number = IdsMapCache.getIdsValue(idsRef, symbol, exact, null);
       if (number != null) {
-        value = (int)number.longValue();  // treat as signed 32-bit integer
+        value = (int) number.longValue(); // treat as signed 32-bit integer
       } else {
         if (idsRef.isEmpty()) {
-          errors.add(new ScriptMessage("Cannot resolve symbol [" + symbol + ']',
-                                       baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          errors.add(new ScriptMessage("Cannot resolve symbol [" + symbol + ']', baf.jjtGetFirstToken(),
+              baf.jjtGetLastToken()));
           return 0;
         } else if (ResourceFactory.resourceExists(idsRef)) {
-          errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, idsRef),
-                                       baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, idsRef), baf.jjtGetFirstToken(),
+              baf.jjtGetLastToken()));
           return 0;
         } else {
-          errors.add(new ScriptMessage("Resource not found: " + idsRef,
-                                       baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          errors.add(new ScriptMessage("Resource not found: " + idsRef, baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
           return 0;
         }
       }
@@ -484,55 +466,50 @@ public class BafNodeTransformer
   }
 
   // Processes numeric or symbolic OR expressions
-  private long processOrExpression(Signatures.Function.Parameter param, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTOR_EXPR) {
+  private long processOrExpression(Signatures.Function.Parameter param, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTOR_EXPR) {
       errors.add(new ScriptMessage("Invalid numeric or symbolic expression: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return 0;
     }
 
-    BafNode child = (BafNode)baf.jjtGetChild(0);
-    if (child.getId() == BafParser.JJTNUMERIC) {
-      return processNumberExpression(param.getIdsRef(), (BafNode)child.jjtGetChild(0));
+    BafNode child = (BafNode) baf.jjtGetChild(0);
+    if (child.getId() == BafParserTreeConstants.JJTNUMERIC) {
+      return processNumberExpression(param.getIdsRef(), (BafNode) child.jjtGetChild(0));
     } else {
       errors.add(new ScriptMessage("Invalid numeric or symbolic expression: " + child.jjtGetFirstToken(),
-                                   child.jjtGetFirstToken(), child.jjtGetLastToken()));
+          child.jjtGetFirstToken(), child.jjtGetLastToken()));
       return 0;
     }
   }
 
-  private void processParamPoint(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTPARAM_TGT) {
-      errors.add(new ScriptMessage("Invalid point: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processParamPoint(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTPARAM_TGT) {
+      errors.add(
+          new ScriptMessage("Invalid point: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
       return;
     }
 
-    BafNode child = (BafNode)baf.jjtGetChild(0);
-    if (child.getId() == BafParser.JJTTARGET && child.jjtGetNumChildren() == 2) {
-      BafNode childNumeric = (BafNode)child.jjtGetChild(0);
-      funcNode.point.x = (int)processNumberExpression(param.getIdsRef(), (BafNode)childNumeric.jjtGetChild(0));
-      childNumeric = (BafNode)child.jjtGetChild(1);
-      funcNode.point.y = (int)processNumberExpression(param.getIdsRef(), (BafNode)childNumeric.jjtGetChild(0));
+    BafNode child = (BafNode) baf.jjtGetChild(0);
+    if (child.getId() == BafParserTreeConstants.JJTTARGET && child.jjtGetNumChildren() == 2) {
+      BafNode childNumeric = (BafNode) child.jjtGetChild(0);
+      funcNode.point.x = (int) processNumberExpression(param.getIdsRef(), (BafNode) childNumeric.jjtGetChild(0));
+      childNumeric = (BafNode) child.jjtGetChild(1);
+      funcNode.point.y = (int) processNumberExpression(param.getIdsRef(), (BafNode) childNumeric.jjtGetChild(0));
     } else {
-      errors.add(new ScriptMessage("Invalid point value: " + child.jjtGetFirstToken(),
-                                   child.jjtGetFirstToken(), child.jjtGetLastToken()));
+      errors.add(new ScriptMessage("Invalid point value: " + child.jjtGetFirstToken(), child.jjtGetFirstToken(),
+          child.jjtGetLastToken()));
       return;
     }
   }
 
-  private void processParamObject(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf, BafNode rect) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTTR &&
-        baf.getId() != BafParser.JJTAC &&
-        baf.getId() != BafParser.JJTOBJECT &&
-        baf.getId() != BafParser.JJTPARAM_STR &&
-        baf.getId() != BafParser.JJTPARAM_SYM &&
-        baf.getId() != BafParser.JJTPARAM_TGT) {
-      errors.add(new ScriptMessage("Invalid object: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processParamObject(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf, BafNode rect)
+      throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTTR && baf.getId() != BafParserTreeConstants.JJTAC
+        && baf.getId() != BafParserTreeConstants.JJTOBJECT && baf.getId() != BafParserTreeConstants.JJTPARAM_STR
+        && baf.getId() != BafParserTreeConstants.JJTPARAM_SYM && baf.getId() != BafParserTreeConstants.JJTPARAM_TGT) {
+      errors.add(new ScriptMessage("Invalid object: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
@@ -548,39 +525,35 @@ public class BafNodeTransformer
     }
   }
 
-  private void processObject(ScriptNode objNode, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTTR &&
-        baf.getId() != BafParser.JJTAC &&
-        baf.getId() != BafParser.JJTOBJECT &&
-        baf.getId() != BafParser.JJTPARAM_STR &&
-        baf.getId() != BafParser.JJTPARAM_SYM &&
-        baf.getId() != BafParser.JJTPARAM_TGT) {
-      errors.add(new ScriptMessage("Invalid object: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processObject(ScriptNode objNode, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTTR && baf.getId() != BafParserTreeConstants.JJTAC
+        && baf.getId() != BafParserTreeConstants.JJTOBJECT && baf.getId() != BafParserTreeConstants.JJTPARAM_STR
+        && baf.getId() != BafParserTreeConstants.JJTPARAM_SYM && baf.getId() != BafParserTreeConstants.JJTPARAM_TGT) {
+      errors.add(new ScriptMessage("Invalid object: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
-    BafNode child = (BafNode)baf.jjtGetChild(0);
-    if (baf.getId() == BafParser.JJTPARAM_SYM) {
+    BafNode child = (BafNode) baf.jjtGetChild(0);
+    if (baf.getId() == BafParserTreeConstants.JJTPARAM_SYM) {
       // single target identifier
       String symbol = child.getTokenString();
       Long value = IdsMapCache.getIdsValue("OBJECT.IDS", symbol, null);
       if (value != null) {
         objNode.numbers2.push(value);
       } else {
-        errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, "OBJECT.IDS"),
-                                     child.jjtGetFirstToken(), child.jjtGetLastToken()));
+        errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, "OBJECT.IDS"), child.jjtGetFirstToken(),
+            child.jjtGetLastToken()));
         return;
       }
-    } else if (baf.getId() == BafParser.JJTPARAM_STR) {
+    } else if (baf.getId() == BafParserTreeConstants.JJTPARAM_STR) {
       // script name
       String s = processString(child);
       objNode.strings.push(s);
-    } else if (baf.getId() == BafParser.JJTPARAM_TGT) {
+    } else if (baf.getId() == BafParserTreeConstants.JJTPARAM_TGT) {
       // IDS target
       processIdsTarget(objNode, child);
-    } else if (baf.getId() == BafParser.JJTOBJECT) {
+    } else if (baf.getId() == BafParserTreeConstants.JJTOBJECT) {
       // target identifiers with arguments
       processObjectIdentifier(objNode, baf);
     } else {
@@ -589,91 +562,86 @@ public class BafNodeTransformer
     }
   }
 
-  private void processIdsTarget(ScriptNode objNode, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTTARGET) {
-      errors.add(new ScriptMessage("Invalid IDS target: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processIdsTarget(ScriptNode objNode, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTTARGET) {
+      errors.add(new ScriptMessage("Invalid IDS target: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
     String[] targetIds = ScriptInfo.getInfo().getObjectIdsList();
     for (int i = 0, cnt = Math.min(targetIds.length, baf.jjtGetNumChildren()); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTNUMERIC) {
-        long value = processNumberExpression(targetIds[i], (BafNode)child.jjtGetChild(0));
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTNUMERIC) {
+        long value = processNumberExpression(targetIds[i], (BafNode) child.jjtGetChild(0));
         boolean special = "SUBRACE".equalsIgnoreCase(targetIds[i]); // exclude SUBRACE from range check
 
         if (verbose && !special && (value > 255 || value < 0)) {
-          warnings.add(new ScriptMessage("IDS target value is out of range: " + value,
-                                         baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+          warnings.add(new ScriptMessage("IDS target value is out of range: " + value, baf.jjtGetFirstToken(),
+              baf.jjtGetLastToken()));
         }
 
         objNode.numbers.push(value);
       } else {
-        errors.add(new ScriptMessage("Invalid numeric value: " + child.jjtGetFirstToken(),
-                                     child.jjtGetFirstToken(), child.jjtGetLastToken()));
+        errors.add(new ScriptMessage("Invalid numeric value: " + child.jjtGetFirstToken(), child.jjtGetFirstToken(),
+            child.jjtGetLastToken()));
         return;
       }
     }
     if (baf.jjtGetNumChildren() > targetIds.length) {
       // Too many IDS targets defined
-      warnings.add(new ScriptMessage("Too many IDS targets (allowed: " + targetIds.length + ")",
-                                     baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+      warnings.add(new ScriptMessage("Too many IDS targets (allowed: " + targetIds.length + ")", baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
     }
   }
 
-  private void processObjectIdentifier(ScriptNode objNode, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTOBJECT) {
-      errors.add(new ScriptMessage("Invalid object identifier: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processObjectIdentifier(ScriptNode objNode, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTOBJECT) {
+      errors.add(new ScriptMessage("Invalid object identifier: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTNAME) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTNAME) {
         processObjectName(objNode, child);
-      } else if (child.getId() == BafParser.JJTOBJECT) {
+      } else if (child.getId() == BafParserTreeConstants.JJTOBJECT) {
         processObjectIdentifier(objNode, child);
-      } else if (child.getId() == BafParser.JJTSTRING) {
+      } else if (child.getId() == BafParserTreeConstants.JJTSTRING) {
         String s = processString(child);
         objNode.strings.push(s);
-      } else if (child.getId() == BafParser.JJTTARGET) {
+      } else if (child.getId() == BafParserTreeConstants.JJTTARGET) {
         processIdsTarget(objNode, child);
-      } else if (child.getId() == BafParser.JJTSYMBOL) {
-        long value = processNumberExpression("OBJECT", (BafNode)child.jjtGetChild(0));
-        objNode.numbers2.push(Long.valueOf(value));
+      } else if (child.getId() == BafParserTreeConstants.JJTSYMBOL) {
+        long value = processNumberExpression("OBJECT", (BafNode) child.jjtGetChild(0));
+        objNode.numbers2.push(value);
       }
     }
   }
 
-  private void processObjectIdentifierTRAC(ScriptNode objNode, BafNode baf) throws ParseException
-  {
-    if (baf.getId() != BafParser.JJTTR &&
-        baf.getId() != BafParser.JJTAC) {
-      errors.add(new ScriptMessage("Invalid object identifier: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processObjectIdentifierTRAC(ScriptNode objNode, BafNode baf) throws ParseException {
+    if (baf.getId() != BafParserTreeConstants.JJTTR && baf.getId() != BafParserTreeConstants.JJTAC) {
+      errors.add(new ScriptMessage("Invalid object identifier: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTNAME) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTNAME) {
         processObjectName(objNode, child);
       } else if (child.jjtGetNumChildren() > 0) {
-        child = (BafNode)child.jjtGetChild(0);
+        child = (BafNode) child.jjtGetChild(0);
         processObject(objNode, child);
       }
     }
   }
 
-  private void processObjectName(ScriptNode objNode, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTNAME) {
-      errors.add(new ScriptMessage("Invalid object name: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processObjectName(ScriptNode objNode, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTNAME) {
+      errors.add(new ScriptMessage("Invalid object name: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
@@ -682,51 +650,57 @@ public class BafNodeTransformer
     if (value != null) {
       objNode.numbers2.push(value);
     } else {
-      errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, "OBJECT.IDS"),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+      errors.add(new ScriptMessage(getSymbolNotFoundMessage(symbol, "OBJECT.IDS"), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
   }
 
-  private void processRectangle(ScriptNode objNode, BafNode baf)
-  {
-    if (baf.getId() != BafParser.JJTRECT) {
-      errors.add(new ScriptMessage("Invalid region: " + baf.jjtGetFirstToken(),
-                                   baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+  private void processRectangle(ScriptNode objNode, BafNode baf) {
+    if (baf.getId() != BafParserTreeConstants.JJTRECT) {
+      errors.add(new ScriptMessage("Invalid region: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+          baf.jjtGetLastToken()));
       return;
     }
 
     for (int i = 0, cnt = baf.jjtGetNumChildren(); i < cnt; i++) {
-      BafNode child  = (BafNode)baf.jjtGetChild(i);
-      if (child.getId() == BafParser.JJTSINT) {
+      BafNode child = (BafNode) baf.jjtGetChild(i);
+      if (child.getId() == BafParserTreeConstants.JJTSINT) {
         int value = 0;
         try {
-          value = (int)parseNumber(child.getTokenString());
+          value = (int) parseNumber(child.getTokenString());
         } catch (Exception e) {
           warnings.add(new ScriptMessage("Invalid region value: " + child.getTokenString() + " (using defaults)",
-                                         child.jjtGetFirstToken(), child.jjtGetLastToken()));
+              child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         switch (i) {
-          case 0: objNode.region.x = value; break;
-          case 1: objNode.region.y = value; break;
-          case 2: objNode.region.width = value; break;
-          case 3: objNode.region.height = value; break;
+          case 0:
+            objNode.region.x = value;
+            break;
+          case 1:
+            objNode.region.y = value;
+            break;
+          case 2:
+            objNode.region.width = value;
+            break;
+          case 3:
+            objNode.region.height = value;
+            break;
         }
       } else {
-        errors.add(new ScriptMessage("Invalid numeric value: " + baf.jjtGetFirstToken(),
-                                     baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
+        errors.add(new ScriptMessage("Invalid numeric value: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(),
+            baf.jjtGetLastToken()));
         return;
       }
     }
   }
 
-  private BafNode getObjectRegion(BafNode parent)
-  {
+  private BafNode getObjectRegion(BafNode parent) {
     BafNode retVal = null;
     if (parent != null) {
       for (int i = 0, cnt = parent.jjtGetNumChildren(); i < cnt; i++) {
-        BafNode child = (BafNode)parent.jjtGetChild(i);
-        if (child.getId() == BafParser.JJTRECT) {
+        BafNode child = (BafNode) parent.jjtGetChild(i);
+        if (child.getId() == BafParserTreeConstants.JJTRECT) {
           retVal = child;
           break;
         }
@@ -736,8 +710,7 @@ public class BafNodeTransformer
   }
 
   // Attempts to convert the specified string into a usable numeric value (dec/hex/oct supported)
-  private long parseNumber(String number) throws Exception
-  {
+  private long parseNumber(String number) throws Exception {
     if (number != null && number.length() > 0) {
       int signPos = "-+".indexOf(number.charAt(0));
       if (signPos >= 0) {
@@ -766,8 +739,7 @@ public class BafNodeTransformer
   }
 
   // Handles special symbol expressions
-  private String getNormalizedSymbol(String symbol)
-  {
+  private String getNormalizedSymbol(String symbol) {
     if (symbol != null) {
       if (symbol.length() >= 10 && symbol.startsWith("\"\"\"\"\"") && symbol.endsWith("\"\"\"\"\"")) {
         symbol = symbol.substring(5, symbol.length() - 5);
@@ -776,8 +748,7 @@ public class BafNodeTransformer
     return symbol;
   }
 
-  private String unquoteString(String s)
-  {
+  private String unquoteString(String s) {
     String retVal = null;
 
     if (s != null) {
@@ -797,32 +768,41 @@ public class BafNodeTransformer
     return retVal;
   }
 
-  private String getUnexpectedNodeMessage(BafNode baf)
-  {
+  private String getUnexpectedNodeMessage(BafNode baf) {
     return "Unexpected node type: " + BafParser.getNodeName(baf.getId());
   }
 
-  private String getSymbolNotFoundMessage(String symbol, String idsFile)
-  {
+  private String getSymbolNotFoundMessage(String symbol, String idsFile) {
     return '[' + symbol + "] not found in " + idsFile.toUpperCase(Locale.ENGLISH);
   }
 
-  private Signatures getTriggerSignatures() { return this.triggers; }
+  private Signatures getTriggerSignatures() {
+    return this.triggers;
+  }
 
-  private Signatures getActionSignatures() { return this.actions; }
+  private Signatures getActionSignatures() {
+    return this.actions;
+  }
 
-  private boolean isExactMatch() { return exactMatch; }
+  private boolean isExactMatch() {
+    return exactMatch;
+  }
 
-  private void setExactMatch(boolean set) { exactMatch = set; }
+  private void setExactMatch(boolean set) {
+    exactMatch = set;
+  }
 
-  private boolean isOctSupported() { return octSupported; }
+  private boolean isOctSupported() {
+    return octSupported;
+  }
 
-  private void setOctSupported(boolean set) { octSupported = set; }
+  private void setOctSupported(boolean set) {
+    octSupported = set;
+  }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public static class ScriptNode
-  {
+  public static class ScriptNode {
     // default state for undefined numeric values
     public static final int NONE = -1;
 
@@ -856,8 +836,7 @@ public class BafNodeTransformer
     // Parameter info for objects
     public Signatures.Function.Parameter parameter;
 
-    public ScriptNode(ScriptNode parent, String type, Token token)
-    {
+    public ScriptNode(ScriptNode parent, String type, Token token) {
       this.parent = parent;
       this.type = type;
       this.token = token;
@@ -865,32 +844,39 @@ public class BafNodeTransformer
       this.index = NONE;
     }
 
-    public ScriptNode getParent() { return parent; }
+    public ScriptNode getParent() {
+      return parent;
+    }
 
-    public ScriptNode setParent(ScriptNode newParent)
-    {
+    public ScriptNode setParent(ScriptNode newParent) {
       ScriptNode retVal = this.parent;
       this.parent = newParent;
       return retVal;
     }
 
-    public int getNumChildren() { return children.size(); }
+    public int getNumChildren() {
+      return children.size();
+    }
 
-    public ScriptNode getChild(int index) throws IndexOutOfBoundsException { return children.get(index); }
+    public ScriptNode getChild(int index) throws IndexOutOfBoundsException {
+      return children.get(index);
+    }
 
-    public Iterator<ScriptNode> getChildren() { return children.iterator(); }
+    public Iterator<ScriptNode> getChildren() {
+      return children.iterator();
+    }
 
-    public int addChild(ScriptNode child) { return addChild(child, getNumChildren()); }
+    public int addChild(ScriptNode child) {
+      return addChild(child, getNumChildren());
+    }
 
-    public int addChild(ScriptNode child, int index)
-    {
+    public int addChild(ScriptNode child, int index) {
       index = Math.max(0, Math.min(getNumChildren(), index));
       children.add(index, child);
       return index;
     }
 
-    public String toString(String prefix)
-    {
+    public String toString(String prefix) {
       String s = prefix + "Type: " + type;
       if (code != NONE) {
         s += ", code: " + code;
@@ -905,20 +891,19 @@ public class BafNodeTransformer
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
       return toString("");
     }
 
-    public void dump(PrintStream output, String prefix)
-    {
+    public void dump(PrintStream output, String prefix) {
       dump(output, prefix, 0);
     }
 
-    public void dump(PrintStream output, String prefix, int level)
-    {
+    public void dump(PrintStream output, String prefix, int level) {
       String prefix2 = "";
-      for (int i = 0; i < level; i++) { prefix2 += prefix; }
+      for (int i = 0; i < level; i++) {
+        prefix2 += prefix;
+      }
       System.out.println(toString(prefix2));
       Iterator<ScriptNode> iter = getChildren();
       while (iter.hasNext()) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -122,36 +122,43 @@ public enum Sequence {
   PST_MISC19("Custom sequence 19"),
   PST_MISC20("Custom sequence 20");
 
-  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>() {{
-    add(Sequence.STAND);
-    add(Sequence.STAND2);
-    add(Sequence.STAND3);
-    add(Sequence.STAND_EMERGED);
-    add(Sequence.PST_STAND);
-    add(Sequence.STANCE);
-    add(Sequence.STANCE2);
-    add(Sequence.PST_STANCE);
-    add(Sequence.WALK);
-    add(Sequence.PST_WALK);
-  }};
+  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>();
+
+  static {
+    DEFAULT_SEQUENCES.add(Sequence.STAND);
+    DEFAULT_SEQUENCES.add(Sequence.STAND2);
+    DEFAULT_SEQUENCES.add(Sequence.STAND3);
+    DEFAULT_SEQUENCES.add(Sequence.STAND_EMERGED);
+    DEFAULT_SEQUENCES.add(Sequence.PST_STAND);
+    DEFAULT_SEQUENCES.add(Sequence.STANCE);
+    DEFAULT_SEQUENCES.add(Sequence.STANCE2);
+    DEFAULT_SEQUENCES.add(Sequence.PST_STANCE);
+    DEFAULT_SEQUENCES.add(Sequence.WALK);
+    DEFAULT_SEQUENCES.add(Sequence.PST_WALK);
+  }
 
   private final String desc;
 
   /** Creates a new {@code AnimationSequence} with an empty label. */
-  private Sequence() { this(null); }
+  private Sequence() {
+    this(null);
+  }
 
   /** Creates a new {@code AnimationSequence} with the specified label. */
-  private Sequence(String desc) { this.desc = desc; }
+  private Sequence(String desc) {
+    this.desc = desc;
+  }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return (desc != null) ? desc : super.toString();
   }
 
   /**
-   * Returns a list of default animation sequences that are safe for initializing a new
-   * creature animation in order of preference.
+   * Returns a list of default animation sequences that are safe for initializing a new creature animation in order of
+   * preference.
    */
-  public static List<Sequence> getDefaultSequences() { return DEFAULT_SEQUENCES; }
+  public static List<Sequence> getDefaultSequences() {
+    return DEFAULT_SEQUENCES;
+  }
 }

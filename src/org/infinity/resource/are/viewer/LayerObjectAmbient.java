@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -16,7 +16,6 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.Ambient;
 import org.infinity.resource.are.AreResource;
@@ -24,46 +23,49 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Ambient Sound and Ambient Sound Range
+ *
  * Note: Ambient returns two layer items: 0=icon, 1=range (if available)
  */
-public class LayerObjectAmbient extends LayerObject
-{
-  private static final Image[] ICONS_GLOBAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
-                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
-  private static final Image[] ICONS_LOCAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
+public class LayerObjectAmbient extends LayerObject {
+  private static final Image[] ICONS_GLOBAL = { ViewerIcons.ICON_ITM_AMBIENT_G_1.getIcon().getImage(),
+                                                ViewerIcons.ICON_ITM_AMBIENT_G_2.getIcon().getImage() };
+
+  private static final Image[] ICONS_LOCAL = { ViewerIcons.ICON_ITM_AMBIENT_L_1.getIcon().getImage(),
+                                               ViewerIcons.ICON_ITM_AMBIENT_L_2.getIcon().getImage() };
+
   private static final Point CENTER = new Point(16, 16);
-  private static final Color[] COLOR_RANGE = {new Color(0xA0000080, true), new Color(0xA0000080, true),
-                                              new Color(0x00204080, true), new Color(0x004060C0, true)};
+
+  private static final Color[] COLOR_RANGE = { new Color(0xA0000080, true), new Color(0xA0000080, true),
+                                               new Color(0x00204080, true), new Color(0x004060C0, true) };
 
   private final Ambient ambient;
   private final Point location = new Point();
 
   /** Center of sound emitter. */
   private final IconLayerItem itemIcon;
+
   /** Area of the local sound. */
   private ShapedLayerItem itemShape;
+
   private int radiusLocal;
   private int volume;
   private Flag scheduleFlags;
 
-
-  public LayerObjectAmbient(AreResource parent, Ambient ambient)
-  {
+  public LayerObjectAmbient(AreResource parent, Ambient ambient) {
     super("Sound", Ambient.class, parent);
     this.ambient = ambient;
     String msg = null;
     boolean isLocal = false;
     final Color[] color = new Color[COLOR_RANGE.length];
     try {
-      location.x = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
-      location.y = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
-      radiusLocal = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
-      volume = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
+      location.x = ((IsNumeric) ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
+      location.y = ((IsNumeric) ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
+      radiusLocal = ((IsNumeric) ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
+      volume = ((IsNumeric) ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
       // Bit 2 - Ignore radius
-      isLocal = !((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2);
+      isLocal = !((Flag) ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2);
 
-      scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
+      scheduleFlags = ((Flag) ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
       msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
     } catch (Exception e) {
@@ -85,7 +87,7 @@ public class LayerObjectAmbient extends LayerObject
       final double minAlpha = 0.0;
       final double maxAlpha = 64.0;
       final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
-      final int alpha = (int)alphaF & 0xff;
+      final int alpha = (int) alphaF & 0xff;
       color[0] = COLOR_RANGE[0];
       color[1] = COLOR_RANGE[1];
       color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
@@ -108,20 +110,19 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public Viewable getViewable()
-  {
+  public Viewable getViewable() {
     return ambient;
   }
 
   /**
    * Returns the layer item of specified type.
+   *
    * @param type The type of the item to return (either {@code ViewerConstants.AMBIENT_ITEM_ICON} or
-   *              {@code ViewerConstants.AMBIENT_ITEM_RANGE}).
+   *             {@code ViewerConstants.AMBIENT_ITEM_RANGE}).
    * @return The layer item of specified type.
    */
   @Override
-  public AbstractLayerItem getLayerItem(int type)
-  {
+  public AbstractLayerItem getLayerItem(int type) {
     if (type == ViewerConstants.AMBIENT_ITEM_RANGE) {
       return itemShape;
     }
@@ -132,20 +133,18 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public AbstractLayerItem[] getLayerItems()
-  {
+  public AbstractLayerItem[] getLayerItems() {
     if (itemShape != null) {
-      return new AbstractLayerItem[]{itemIcon, itemShape};
+      return new AbstractLayerItem[] { itemIcon, itemShape };
     } else {
-      return new AbstractLayerItem[]{itemIcon};
+      return new AbstractLayerItem[] { itemIcon };
     }
   }
 
   @Override
-  public void update(double zoomFactor)
-  {
-    int x = (int)(location.x*zoomFactor + (zoomFactor / 2.0));
-    int y = (int)(location.y*zoomFactor + (zoomFactor / 2.0));
+  public void update(double zoomFactor) {
+    int x = (int) (location.x * zoomFactor + (zoomFactor / 2.0));
+    int y = (int) (location.y * zoomFactor + (zoomFactor / 2.0));
 
     itemIcon.setItemLocation(x, y);
 
@@ -159,8 +158,7 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public boolean isScheduled(int schedule)
-  {
+  public boolean isScheduled(int schedule) {
     if (schedule >= ViewerConstants.TIME_0 && schedule <= ViewerConstants.TIME_23) {
       return (scheduleFlags.isFlagSet(schedule));
     } else {
@@ -171,15 +169,13 @@ public class LayerObjectAmbient extends LayerObject
   /**
    * Returns whether the ambient sound uses a local sound radius.
    */
-  public boolean isLocal()
-  {
+  public boolean isLocal() {
     return (itemShape != null);
   }
 
-  private Shape createShape(double zoomFactor)
-  {
+  private Shape createShape(double zoomFactor) {
     if (radiusLocal > 0) {
-      float diameter = (float)(radiusLocal*zoomFactor + (zoomFactor / 2.0)) * 2.0f;
+      float diameter = (float) (radiusLocal * zoomFactor + (zoomFactor / 2.0)) * 2.0f;
       return new Ellipse2D.Float(0.0f, 0.0f, diameter, diameter);
     }
     return null;

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sav;
@@ -53,26 +53,22 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 
 /**
- * This resource acts as a standalone compressed archive. The file is zlib compressed,
- * and allows incremental updates to be carried out quickly and easily.
+ * This resource acts as a standalone compressed archive. The file is zlib compressed, and allows incremental updates to
+ * be carried out quickly and easily.
  *
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sav_v1.htm">
- * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sav_v1.htm</a>
+ *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sav_v1.htm</a>
  */
-public final class SavResource implements Resource, Closeable, Writeable,
-                                          ActionListener, ListSelectionListener
-{
-  private static final JLabel lhelp = new JLabel("<html><b>Instructions:</b><ol>" +
-                                                 "<li>Decompress the SAV file." +
-                                                 "<li>View/edit the individual files." +
-                                                 "<li>If any changes have been made, " +
-                                                 "Compress to rebuild SAV file.</ol></html>");
+public final class SavResource implements Resource, Closeable, Writeable, ActionListener, ListSelectionListener {
+  private static final JLabel HELP_LABEL = new JLabel(
+      "<html><b>Instructions:</b><ol>" + "<li>Decompress the SAV file." + "<li>View/edit the individual files."
+          + "<li>If any changes have been made, " + "Compress to rebuild SAV file.</ol></html>");
 
-  private static final ButtonPanel.Control CtrlCompress   = ButtonPanel.Control.CUSTOM_1;
-  private static final ButtonPanel.Control CtrlDecompress = ButtonPanel.Control.CUSTOM_2;
-  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.CUSTOM_3;
-  private static final ButtonPanel.Control CtrlDelete     = ButtonPanel.Control.CUSTOM_4;
-  private static final ButtonPanel.Control CtrlAdd        = ButtonPanel.Control.ADD;
+  private static final ButtonPanel.Control CTRL_COMPRESS    = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CTRL_DECOMPRESS  = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CTRL_EDIT        = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CTRL_DELETE      = ButtonPanel.Control.CUSTOM_4;
+  private static final ButtonPanel.Control CTRL_ADD         = ButtonPanel.Control.ADD;
 
   private final IOHandler handler;
   private final ResourceEntry entry;
@@ -85,34 +81,30 @@ public final class SavResource implements Resource, Closeable, Writeable,
   private JMenuItem miAddExternal;
   private JMenuItem miAddInternal;
 
-  public SavResource(ResourceEntry entry) throws Exception
-  {
+  public SavResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     handler = new IOHandler(entry);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
-    if (buttonPanel.getControlByType(CtrlCompress) == event.getSource()) {
+  public void actionPerformed(ActionEvent event) {
+    if (buttonPanel.getControlByType(CTRL_COMPRESS) == event.getSource()) {
       compressData(true);
-    } else if (buttonPanel.getControlByType(CtrlDecompress) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(CTRL_DECOMPRESS) == event.getSource()) {
       decompressData(true);
-    } else if (buttonPanel.getControlByType(CtrlEdit) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(CTRL_EDIT) == event.getSource()) {
       ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(CTRL_DELETE) == event.getSource()) {
       if (!filelist.isSelectionEmpty()) {
         String fileName = filelist.getSelectedValue().toString();
-        int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(),
-                                                "Delete file " + fileName + "?",
-                                                "Delete file", JOptionPane.YES_NO_OPTION,
-                                                JOptionPane.QUESTION_MESSAGE);
+        int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(), "Delete file " + fileName + "?",
+            "Delete file", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ret == JOptionPane.YES_OPTION) {
           removeResource(filelist.getSelectedIndex());
         }
@@ -123,8 +115,8 @@ public final class SavResource implements Resource, Closeable, Writeable,
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setMultiSelectionEnabled(false);
-      FileNameExtensionFilter filter =
-          new FileNameExtensionFilter("Supported file types", Profile.getAvailableResourceTypes());
+      FileNameExtensionFilter filter = new FileNameExtensionFilter("Supported file types",
+          Profile.getAvailableResourceTypes());
       fc.addChoosableFileFilter(filter);
       fc.setFileFilter(filter);
       if (fc.showOpenDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
@@ -138,67 +130,59 @@ public final class SavResource implements Resource, Closeable, Writeable,
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-// --------------------- Begin Interface ListSelectionListener ---------------------
+  // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e)
-  {
+  public void valueChanged(ListSelectionEvent e) {
     if (filelist.isEnabled()) {
-      buttonPanel.getControlByType(CtrlDelete).setEnabled(!filelist.isSelectionEmpty());
-      buttonPanel.getControlByType(CtrlEdit).setEnabled(!filelist.isSelectionEmpty());
+      buttonPanel.getControlByType(CTRL_DELETE).setEnabled(!filelist.isSelectionEmpty());
+      buttonPanel.getControlByType(CTRL_EDIT).setEnabled(!filelist.isSelectionEmpty());
     }
   }
 
-// --------------------- End Interface ListSelectionListener ---------------------
+  // --------------------- End Interface ListSelectionListener ---------------------
 
-// --------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close()
-  {
-    if (buttonPanel.getControlByType(CtrlCompress).isEnabled()) {
+  public void close() {
+    if (buttonPanel.getControlByType(CTRL_COMPRESS).isEnabled()) {
       final String msg = getResourceEntry().getResourceName() + " is still decompressed. Compress it?";
       if (JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(), msg, "Question", JOptionPane.YES_NO_OPTION,
-                                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+          JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
         compressData(true);
       }
     }
     handler.close();
   }
 
-// --------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
-
-// --------------------- Begin Interface Resource ---------------------
+  // --------------------- Begin Interface Resource ---------------------
 
   @Override
-  public ResourceEntry getResourceEntry()
-  {
+  public ResourceEntry getResourceEntry() {
     return entry;
   }
 
-// --------------------- End Interface Resource ---------------------
+  // --------------------- End Interface Resource ---------------------
 
-
-// --------------------- Begin Interface Viewable ---------------------
+  // --------------------- Begin Interface Viewable ---------------------
 
   @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
+  public JComponent makeViewer(ViewableContainer container) {
     listModel = new SimpleListModel<>();
-    for (int i = 0; i < handler.getFileEntries().size(); i++) {
-      listModel.addElement(handler.getFileEntries().get(i));
+    for (ResourceEntry element : handler.getFileEntries()) {
+      listModel.addElement(element);
     }
     filelist = new JList<>(listModel);
     filelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     filelist.addListSelectionListener(this);
-    filelist.addMouseListener(new MouseAdapter()
-    {
+    filelist.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent event)
-      {
+      public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
           ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
           Resource res = ResourceFactory.getResource(fileentry);
@@ -207,16 +191,16 @@ public final class SavResource implements Resource, Closeable, Writeable,
       }
     });
 
-    JButton bDecompress = new JButton("Decompress", Icons.getIcon(Icons.ICON_EXPORT_16));
+    JButton bDecompress = new JButton("Decompress", Icons.ICON_EXPORT_16.getIcon());
     bDecompress.setMnemonic('d');
     bDecompress.addActionListener(this);
 
-    JButton bEdit = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+    JButton bEdit = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bEdit.setMnemonic('v');
     bEdit.addActionListener(this);
     bEdit.setEnabled(false);
 
-    JButton bDelete = new JButton("Delete file", Icons.getIcon(Icons.ICON_DELETE_16));
+    JButton bDelete = new JButton("Delete file", Icons.ICON_DELETE_16.getIcon());
     bDelete.addActionListener(this);
     bDelete.setEnabled(false);
 
@@ -224,11 +208,11 @@ public final class SavResource implements Resource, Closeable, Writeable,
     miAddExternal.addActionListener(this);
     miAddInternal = new JMenuItem("Game resource");
     miAddInternal.addActionListener(this);
-    ButtonPopupMenu bpmAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miAddExternal, miAddInternal});
-    bpmAdd.setIcon(Icons.getIcon(Icons.ICON_ADD_16));
+    ButtonPopupMenu bpmAdd = new ButtonPopupMenu("Add...", new JMenuItem[] { miAddExternal, miAddInternal });
+    bpmAdd.setIcon(Icons.ICON_ADD_16.getIcon());
     bpmAdd.setEnabled(false);
 
-    JButton bCompress = new JButton("Compress", Icons.getIcon(Icons.ICON_IMPORT_16));
+    JButton bCompress = new JButton("Compress", Icons.ICON_IMPORT_16.getIcon());
     bCompress.setMnemonic('c');
     bCompress.addActionListener(this);
     bCompress.setEnabled(false);
@@ -243,7 +227,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     JLabel label = new JLabel("Contents of " + entry.toString());
     JScrollPane scroll = new JScrollPane(filelist);
     Dimension size = scroll.getPreferredSize();
-    scroll.setPreferredSize(new Dimension(2 * (int)size.getWidth(), 2 * (int)size.getHeight()));
+    scroll.setPreferredSize(new Dimension(2 * (int) size.getWidth(), 2 * (int) size.getHeight()));
 
     gbc.weightx = 0.0;
     gbc.weighty = 0.0;
@@ -261,15 +245,15 @@ public final class SavResource implements Resource, Closeable, Writeable,
     centerpanel.add(scroll);
 
     gbc.weighty = 0.0;
-    gbl.setConstraints(lhelp, gbc);
-    centerpanel.add(lhelp);
+    gbl.setConstraints(HELP_LABEL, gbc);
+    centerpanel.add(HELP_LABEL);
 
-    buttonPanel.addControl(bDecompress, CtrlDecompress);
-    buttonPanel.addControl(bEdit, CtrlEdit);
-    buttonPanel.addControl(bpmAdd, CtrlAdd);
-    buttonPanel.addControl(bDelete, CtrlDelete);
-    buttonPanel.addControl(bCompress, CtrlCompress);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    buttonPanel.addControl(bDecompress, CTRL_DECOMPRESS);
+    buttonPanel.addControl(bEdit, CTRL_EDIT);
+    buttonPanel.addControl(bpmAdd, CTRL_ADD);
+    buttonPanel.addControl(bDelete, CTRL_DELETE);
+    buttonPanel.addControl(bCompress, CTRL_COMPRESS);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     panel = new JPanel(new BorderLayout());
     panel.add(centerpanel, BorderLayout.CENTER);
@@ -279,38 +263,34 @@ public final class SavResource implements Resource, Closeable, Writeable,
     return panel;
   }
 
-// --------------------- End Interface Viewable ---------------------
+  // --------------------- End Interface Viewable ---------------------
 
-
-// --------------------- Begin Interface Writeable ---------------------
+  // --------------------- Begin Interface Writeable ---------------------
 
   @Override
-  public void write(OutputStream os) throws IOException
-  {
+  public void write(OutputStream os) throws IOException {
     handler.write(os);
   }
 
-// --------------------- End Interface Writeable ---------------------
+  // --------------------- End Interface Writeable ---------------------
 
-  public IOHandler getFileHandler()
-  {
+  public IOHandler getFileHandler() {
     return handler;
   }
 
-  private boolean compressData(boolean showError)
-  {
+  private boolean compressData(boolean showError) {
     try {
       WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
       try {
         block.setBlocked(true);
         handler.compress(entries);
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-        buttonPanel.getControlByType(CtrlDecompress).setEnabled(true);
+        buttonPanel.getControlByType(CTRL_DECOMPRESS).setEnabled(true);
         filelist.setEnabled(false);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
-        buttonPanel.getControlByType(CtrlAdd).setEnabled(false);
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
-        buttonPanel.getControlByType(CtrlCompress).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_EDIT).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_ADD).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_DELETE).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_COMPRESS).setEnabled(false);
       } finally {
         block.setBlocked(false);
         block = null;
@@ -325,19 +305,18 @@ public final class SavResource implements Resource, Closeable, Writeable,
     return true;
   }
 
-  private boolean decompressData(boolean showError)
-  {
+  private boolean decompressData(boolean showError) {
     try {
       WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
       try {
         block.setBlocked(true);
         entries = handler.decompress();
-        buttonPanel.getControlByType(CtrlCompress).setEnabled(true);
+        buttonPanel.getControlByType(CTRL_COMPRESS).setEnabled(true);
         filelist.setEnabled(true);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(true);
-        buttonPanel.getControlByType(CtrlAdd).setEnabled(true);
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(true);
-        buttonPanel.getControlByType(CtrlDecompress).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_EDIT).setEnabled(true);
+        buttonPanel.getControlByType(CTRL_ADD).setEnabled(true);
+        buttonPanel.getControlByType(CTRL_DELETE).setEnabled(true);
+        buttonPanel.getControlByType(CTRL_DECOMPRESS).setEnabled(false);
         filelist.setSelectedIndex(0);
       } finally {
         block.setBlocked(false);
@@ -353,21 +332,18 @@ public final class SavResource implements Resource, Closeable, Writeable,
     return true;
   }
 
-  private void addResource(String resourceName)
-  {
+  private void addResource(String resourceName) {
     addResource(ResourceFactory.getResourceEntry(resourceName));
   }
 
-  private void addResource(ResourceEntry resourceEntry)
-  {
+  private void addResource(ResourceEntry resourceEntry) {
     if (resourceEntry != null) {
       Path output = handler.getTempFolder().resolve(resourceEntry.getResourceName());
       try {
         if (FileEx.create(output).exists()) {
           String msg = "File " + resourceEntry.getResourceName() + " already exists. Overwrite?";
-          int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(),
-                                                  msg, "Overwrite file?", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.QUESTION_MESSAGE);
+          int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(), msg, "Overwrite file?",
+              JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
           if (ret != JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Operation cancelled.");
             return;
@@ -396,18 +372,16 @@ public final class SavResource implements Resource, Closeable, Writeable,
           filelist.ensureIndexIsVisible(idx);
         }
 
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(filelist.getSelectedIndex() >= 0);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(filelist.getSelectedIndex() >= 0);
+        buttonPanel.getControlByType(CTRL_DELETE).setEnabled(filelist.getSelectedIndex() >= 0);
+        buttonPanel.getControlByType(CTRL_EDIT).setEnabled(filelist.getSelectedIndex() >= 0);
       } catch (Exception e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                      e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
 
-  private void removeResource(int entryIndex)
-  {
+  private void removeResource(int entryIndex) {
     if (entryIndex >= 0 && entryIndex < entries.size()) {
       ResourceEntry resourceEntry = entries.get(entryIndex);
       Path file = resourceEntry.getActualPath();
@@ -427,13 +401,12 @@ public final class SavResource implements Resource, Closeable, Writeable,
       filelist.revalidate();
       filelist.repaint();
       if (listModel.size() == 0) {
-        buttonPanel.getControlByType(CtrlDelete).setEnabled(false);
-        buttonPanel.getControlByType(CtrlEdit).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_DELETE).setEnabled(false);
+        buttonPanel.getControlByType(CTRL_EDIT).setEnabled(false);
       }
     } else {
-      JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
-                                    "Error removing selected resource from the list.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error removing selected resource from the list.",
+          "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 }

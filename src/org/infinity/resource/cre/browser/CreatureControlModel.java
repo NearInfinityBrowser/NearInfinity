@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.browser;
@@ -22,11 +22,10 @@ import org.infinity.resource.cre.decoder.util.ItemInfo.ItemPredicate;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
- * This model controls the relationships between creature controls and provides access to the various
- * creature-specific options.
+ * This model controls the relationships between creature controls and provides access to the various creature-specific
+ * options.
  */
-public class CreatureControlModel
-{
+public class CreatureControlModel {
   private final List<ColorSelectionModel> colorModels = new ArrayList<>();
   private final CreatureControlPanel panel;
 
@@ -39,39 +38,39 @@ public class CreatureControlModel
   private ItemSelectionModel modelItemWeapon;
   private int hashCreature;
   private boolean canApply, canReset;
-
   private SpriteDecoder decoder;
 
   /**
    * Creates a new {@code CreatureControlModel} object.
+   *
    * @param panel the {@code CreatureControlPanel} instance associated with this model.
    */
-  public CreatureControlModel(CreatureControlPanel panel)
-  {
+  public CreatureControlModel(CreatureControlPanel panel) {
     super();
     this.panel = Objects.requireNonNull(panel);
     init();
   }
 
   /**
-   * Returns the {@link SpriteDecoder} instance associated with the currently selected creature animation.
-   * Returns {@code null} if no creature resource has been selected.
+   * Returns the {@link SpriteDecoder} instance associated with the currently selected creature animation. Returns
+   * {@code null} if no creature resource has been selected.
    */
-  public SpriteDecoder getDecoder() { return decoder; }
+  public SpriteDecoder getDecoder() {
+    return decoder;
+  }
 
   /** Recreates the {@code SpriteDecoder} instance with the specified {@code CreResource}. */
-  public void resetDecoder(CreResource cre) throws Exception
-  {
+  public void resetDecoder(CreResource cre) throws Exception {
     decoder = SpriteDecoder.importSprite(cre);
   }
 
   /**
    * Selects the specified CRE resource and initializes related fields.
+   *
    * @param entry {@code ResourceEntry} instance of the creature
    * @throws Exception if creature resource could not be initialized
    */
-  public void setSelectedCreature(ResourceEntry entry) throws Exception
-  {
+  public void setSelectedCreature(ResourceEntry entry) throws Exception {
     if (getModelCreature().getSize() == 0) {
       getModelCreature().reload();
     }
@@ -83,11 +82,11 @@ public class CreatureControlModel
 
   /**
    * Selects the specified CRE resource and initializes related fields.
+   *
    * @param entry {@code CreResource} instance of the creature
    * @throws Exception if creature resource could not be initialized
    */
-  public void setSelectedCreature(CreResource cre) throws Exception
-  {
+  public void setSelectedCreature(CreResource cre) throws Exception {
     Object selection = cre;
     if (selection == null) {
       selection = CreatureSelectionModel.CreatureItem.getDefault();
@@ -107,8 +106,7 @@ public class CreatureControlModel
   }
 
   /** Selects the specified creature animation and updates related fields. */
-  public void setSelectedAnimation(int value)
-  {
+  public void setSelectedAnimation(int value) {
     if (getModelAnimation().getSize() == 0) {
       getModelAnimation().reload();
     }
@@ -123,8 +121,7 @@ public class CreatureControlModel
   }
 
   /** Selects the specified creature allegiance and updates related fields. */
-  public void setSelectedAllegiance(int value)
-  {
+  public void setSelectedAllegiance(int value) {
     if (getModelAllegiance().getSize() == 0) {
       getModelAllegiance().reload();
     }
@@ -135,8 +132,7 @@ public class CreatureControlModel
   }
 
   /** Selects the specified helmet item and updates related fields. */
-  public void setSelectedHelmet(ItemInfo item)
-  {
+  public void setSelectedHelmet(ItemInfo item) {
     if (getModelHelmet().getSize() == 0) {
       getModelHelmet().reload();
     }
@@ -147,8 +143,7 @@ public class CreatureControlModel
   }
 
   /** Selects the specified armor item and updates related fields. */
-  public void setSelectedArmor(ItemInfo item)
-  {
+  public void setSelectedArmor(ItemInfo item) {
     if (getModelArmor().getSize() == 0) {
       getModelArmor().reload();
     }
@@ -161,8 +156,7 @@ public class CreatureControlModel
   /**
    * Selects the specified shield or left-handed weapon item and updates related fields.
    */
-  public void setSelectedShield(ItemInfo item)
-  {
+  public void setSelectedShield(ItemInfo item) {
     if (getModelShield().getSize() == 0) {
       getModelShield().reload();
     }
@@ -173,12 +167,10 @@ public class CreatureControlModel
   }
 
   /**
-   * Selects the specified weapon item and updates related fields.
-   * This method should be called <b>BEFORE</b> {@link #setSelectedShield(ItemInfo)} to ensure
-   * shield item list is compatible with the selected weapon.
+   * Selects the specified weapon item and updates related fields. This method should be called <b>BEFORE</b>
+   * {@link #setSelectedShield(ItemInfo)} to ensure shield item list is compatible with the selected weapon.
    */
-  public void setSelectedWeapon(ItemInfo item)
-  {
+  public void setSelectedWeapon(ItemInfo item) {
     if (getModelWeapon().getSize() == 0) {
       getModelWeapon().reload();
     }
@@ -190,11 +182,11 @@ public class CreatureControlModel
 
   /**
    * Selects the specified color entry for the given location.
+   *
    * @param index the color location index
    * @param color the color value
    */
-  public void setSelectedColor(int index, int color)
-  {
+  public void setSelectedColor(int index, int color) {
     final ColorSelectionModel model = getModelColor(index);
     if (model == null) {
       return;
@@ -210,56 +202,47 @@ public class CreatureControlModel
   }
 
   /** Returns the control panel associated with the model. */
-  public CreatureControlPanel getPanel()
-  {
+  public CreatureControlPanel getPanel() {
     return panel;
   }
 
   /** Returns the model of the creature selection combobox. */
-  public CreatureSelectionModel getModelCreature()
-  {
+  public CreatureSelectionModel getModelCreature() {
     return modelCreSelection;
   }
 
   /** Returns the model of the creature animation combobox. */
-  public CreatureAnimationModel getModelAnimation()
-  {
+  public CreatureAnimationModel getModelAnimation() {
     return modelCreAnimation;
   }
 
   /** Returns the model of the creature allegiance combobox. */
-  public CreatureStatusModel getModelAllegiance()
-  {
+  public CreatureStatusModel getModelAllegiance() {
     return modelCreAllegiance;
   }
 
   /** Returns the model of the helmet combobox. */
-  public ItemSelectionModel getModelHelmet()
-  {
+  public ItemSelectionModel getModelHelmet() {
     return modelItemHelmet;
   }
 
   /** Returns the model of the armor combobox. */
-  public ItemSelectionModel getModelArmor()
-  {
+  public ItemSelectionModel getModelArmor() {
     return modelItemArmor;
   }
 
   /** Returns the model of the shield combobox. */
-  public ItemSelectionModel getModelShield()
-  {
+  public ItemSelectionModel getModelShield() {
     return modelItemShield;
   }
 
   /** Returns the model of the weapon combobox. */
-  public ItemSelectionModel getModelWeapon()
-  {
+  public ItemSelectionModel getModelWeapon() {
     return modelItemWeapon;
   }
 
   /** Returns the model of the specified color combobox. */
-  public ColorSelectionModel getModelColor(int index)
-  {
+  public ColorSelectionModel getModelColor(int index) {
     if (index >= 0 && index < colorModels.size()) {
       return colorModels.get(index);
     }
@@ -267,35 +250,32 @@ public class CreatureControlModel
   }
 
   /** Returns an iterator over the list of color models. */
-  public Iterator<ColorSelectionModel> getColorModelIterator()
-  {
+  public Iterator<ColorSelectionModel> getColorModelIterator() {
     return colorModels.iterator();
   }
 
   /**
-   * Returns the {@code CreatureItem} instance of the currently selected CRE resource.
-   * Returns {@code null} if no creature is selected.
+   * Returns the {@code CreatureItem} instance of the currently selected CRE resource. Returns {@code null} if no
+   * creature is selected.
    */
-  public CreatureItem getSelectedCreature()
-  {
+  public CreatureItem getSelectedCreature() {
     if (modelCreSelection != null && modelCreSelection.getSelectedItem() instanceof CreatureItem) {
-      return (CreatureItem)modelCreSelection.getSelectedItem();
+      return (CreatureItem) modelCreSelection.getSelectedItem();
     } else {
       return null;
     }
   }
 
   /**
-   * Returns the {@code AnimateEntry} instance of the currently selected creature animation.
-   * Returns {@code null} if valid entry is not available.
+   * Returns the {@code AnimateEntry} instance of the currently selected creature animation. Returns {@code null} if
+   * valid entry is not available.
    */
-  public AnimateEntry getSelectedAnimation()
-  {
+  public AnimateEntry getSelectedAnimation() {
     AnimateEntry retVal = null;
     if (modelCreAnimation != null && modelCreAnimation.getSelectedItem() != null) {
       Object o = modelCreAnimation.getSelectedItem();
       if (o instanceof AnimateEntry) {
-        retVal = (AnimateEntry)o;
+        retVal = (AnimateEntry) o;
       } else {
         int value = modelCreAnimation.parseValue(o);
         if (value >= 0) {
@@ -307,65 +287,60 @@ public class CreatureControlModel
   }
 
   /**
-   * Returns the {@code AnimateEntry} instance of the currently selected creature allegiance.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code AnimateEntry} instance of the currently selected creature allegiance. Returns {@code null} if
+   * entry is not available.
    */
-  public StatusEntry getSelectedAllegiance()
-  {
+  public StatusEntry getSelectedAllegiance() {
     if (modelCreAllegiance != null && modelCreAllegiance.getSelectedItem() instanceof StatusEntry) {
-      return (StatusEntry)modelCreAllegiance.getSelectedItem();
+      return (StatusEntry) modelCreAllegiance.getSelectedItem();
     } else {
       return null;
     }
   }
 
   /**
-   * Returns the {@code ItemInfo} instance of the currently equipped helmet.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code ItemInfo} instance of the currently equipped helmet. Returns {@code null} if entry is not
+   * available.
    */
-  public ItemInfo getSelectedHelmet(ItemSelectionModel model)
-  {
+  public ItemInfo getSelectedHelmet(ItemSelectionModel model) {
     return getItem(modelItemHelmet);
   }
 
   /**
-   * Returns the {@code ItemInfo} instance of the currently equipped armor.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code ItemInfo} instance of the currently equipped armor. Returns {@code null} if entry is not
+   * available.
    */
-  public ItemInfo getSelectedArmor(ItemSelectionModel model)
-  {
+  public ItemInfo getSelectedArmor(ItemSelectionModel model) {
     return getItem(modelItemArmor);
   }
 
   /**
-   * Returns the {@code ItemInfo} instance of the currently equipped shield.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code ItemInfo} instance of the currently equipped shield. Returns {@code null} if entry is not
+   * available.
    */
-  public ItemInfo getSelectedShield(ItemSelectionModel model)
-  {
+  public ItemInfo getSelectedShield(ItemSelectionModel model) {
     return getItem(modelItemShield);
   }
 
   /**
-   * Returns the {@code ItemInfo} instance of the currently equipped weapon.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code ItemInfo} instance of the currently equipped weapon. Returns {@code null} if entry is not
+   * available.
    */
-  public ItemInfo getSelectedWeapon(ItemSelectionModel model)
-  {
+  public ItemInfo getSelectedWeapon(ItemSelectionModel model) {
     return getItem(modelItemWeapon);
   }
 
   /**
-   * Returns the {@code ColorEntry} instance of the specified color location.
-   * Returns {@code null} if entry is not available.
+   * Returns the {@code ColorEntry} instance of the specified color location. Returns {@code null} if entry is not
+   * available.
+   *
    * @param index color location index (range: [0, 7])
    */
-  public ColorEntry getSelectedColor(int index)
-  {
+  public ColorEntry getSelectedColor(int index) {
     try {
       ColorSelectionModel model = colorModels.get(index);
       if (model != null && model.getSelectedItem() instanceof ColorEntry) {
-        return (ColorEntry)model.getSelectedItem();
+        return (ColorEntry) model.getSelectedItem();
       }
     } catch (IndexOutOfBoundsException e) {
     }
@@ -373,17 +348,16 @@ public class CreatureControlModel
   }
 
   /** This method updates relevant settings when creature resource selection has changed. */
-  public void creSelectionChanged() throws Exception
-  {
+  public void creSelectionChanged() throws Exception {
     Object item = getModelCreature().getSelectedItem();
     if (item != null) {
       CreResource cre;
       if (item instanceof CreatureItem) {
-        cre = new CreResource(((CreatureItem)item).getResourceEntry());
+        cre = new CreResource(((CreatureItem) item).getResourceEntry());
       } else if (item instanceof CreResource) {
-        cre = (CreResource)item;
+        cre = (CreResource) item;
       } else if (item instanceof ResourceEntry) {
-        cre = new CreResource((ResourceEntry)item);
+        cre = new CreResource((ResourceEntry) item);
       } else {
         throw new IllegalArgumentException("No valid creature resource selected");
       }
@@ -430,53 +404,46 @@ public class CreatureControlModel
   }
 
   /** This method updates relevant settings when creature animation selection has changed. */
-  public void creAnimationChanged()
-  {
+  public void creAnimationChanged() {
     // nothing to do
     setModified();
   }
 
   /** This method updates relevant settings when creature allegiance selection has changed. */
-  public void creAllegianceChanged()
-  {
+  public void creAllegianceChanged() {
     // nothing to do
     setModified();
   }
 
-  public void crePanicChanged()
-  {
+  public void crePanicChanged() {
     // nothing to do
     setModified();
   }
 
   /** This method updates relevant settings when helmet equipment has changed. */
-  public void itemHelmetChanged()
-  {
+  public void itemHelmetChanged() {
     // nothing to do
     setModified();
   }
 
   /** This method updates relevant settings when armor equipment has changed. */
-  public void itemArmorChanged()
-  {
+  public void itemArmorChanged() {
     // nothing to do
     setModified();
   }
 
   /** This method updates relevant settings when shield/left-handed weapon equipment has changed. */
-  public void itemShieldChanged()
-  {
+  public void itemShieldChanged() {
     // nothing to do
     setModified();
   }
 
   /** This method updates relevant settings when weapon equipment has changed. */
-  public void itemWeaponChanged()
-  {
+  public void itemWeaponChanged() {
     // update shield equipment list depending on selected weapon type
     if (getModelWeapon().getSelectedItem() instanceof ItemInfo) {
       // determining valid filters for shield slot
-      ItemInfo info = (ItemInfo)getModelWeapon().getSelectedItem();
+      ItemInfo info = (ItemInfo) getModelWeapon().getSelectedItem();
       boolean isMelee = (info.getAbilityCount() > 0) && (info.getAbility(0).getAbilityType() == 1);
       boolean isTwoHanded = (info.getFlags() & (1 << 1)) != 0;
       isTwoHanded |= Profile.isEnhancedEdition() && ((info.getFlags() & (1 << 12)) != 0);
@@ -484,7 +451,8 @@ public class CreatureControlModel
       if (!isTwoHanded) {
         shieldPred = (shieldPred == null) ? ItemInfo.FILTER_SHIELD : shieldPred.or(ItemInfo.FILTER_SHIELD);
         if (isMelee) {
-          shieldPred = (shieldPred == null) ? ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED : shieldPred.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
+          shieldPred = (shieldPred == null) ? ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED
+              : shieldPred.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
         }
       }
       if (shieldPred == null) {
@@ -502,15 +470,13 @@ public class CreatureControlModel
   }
 
   /** This method updates relevant settings when specified color entry has changed. */
-  public void colorChanged(int index)
-  {
+  public void colorChanged(int index) {
     // nothing to do
     setModified();
   }
 
   /** Resets settings to the defaults as defined by the currently selected creature resource. */
-  public void reset()
-  {
+  public void reset() {
     try {
       creSelectionChanged();
     } catch (Exception e) {
@@ -519,32 +485,28 @@ public class CreatureControlModel
   }
 
   /** Returns whether the specified color entry is a random color. */
-  public boolean isColorRandom(int index)
-  {
+  public boolean isColorRandom(int index) {
     boolean retVal = false;
     if (index >= 0 && index < colorModels.size()) {
       Object item = colorModels.get(index).getSelectedItem();
       if (item instanceof ColorSelectionModel.ColorEntry) {
-        retVal = (((ColorSelectionModel.ColorEntry)item).getState() == ColorSelectionModel.ColorEntry.State.RANDOM);
+        retVal = (((ColorSelectionModel.ColorEntry) item).getState() == ColorSelectionModel.ColorEntry.State.RANDOM);
       }
     }
     return retVal;
   }
 
   /** Returns whether settings have been modified since the last "Reset" or "Apply" operation. */
-  public boolean canApply()
-  {
+  public boolean canApply() {
     return canApply;
   }
 
   /** Returns whether creature selection changed since the last "Reset" operation. */
-  public boolean canReset()
-  {
+  public boolean canReset() {
     return canReset;
   }
 
-  protected void setModified()
-  {
+  protected void setModified() {
     if (!canApply || !canReset) {
       canApply = true;
       canReset = isCreatureModified();
@@ -552,8 +514,7 @@ public class CreatureControlModel
     }
   }
 
-  protected void resetModified()
-  {
+  protected void resetModified() {
     if (canApply || canReset) {
       boolean randomColor = false;
       for (int i = 0; i < colorModels.size() && !randomColor; i++) {
@@ -566,31 +527,29 @@ public class CreatureControlModel
   }
 
   /** Returns whether modifications have been applied to the currently selected creature entry. */
-  public boolean isCreatureModified()
-  {
+  public boolean isCreatureModified() {
     int hash = getDecoder().getCreResource().hashCode();
     return (hashCreature != hash);
   }
 
   /** Returns the currently selected item in the specified selection model. */
-  private ItemInfo getItem(ItemSelectionModel model)
-  {
+  private ItemInfo getItem(ItemSelectionModel model) {
     if (model != null && model.getSelectedItem() instanceof ItemInfo) {
-      return (ItemInfo)model.getSelectedItem();
+      return (ItemInfo) model.getSelectedItem();
     } else {
       return null;
     }
   }
 
-  private void init()
-  {
+  private void init() {
     // perform lazy initialization: time-consuming initializations are performed on demand
     modelCreSelection = new CreatureSelectionModel(false);
     modelCreAnimation = new CreatureAnimationModel();
     modelCreAllegiance = new CreatureStatusModel();
     modelItemHelmet = new ItemSelectionModel(ItemInfo.FILTER_HELMET, false);
     modelItemArmor = new ItemSelectionModel(ItemInfo.FILTER_ARMOR, false);
-    modelItemShield = new ItemSelectionModel(ItemInfo.FILTER_SHIELD.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED), false);
+    modelItemShield = new ItemSelectionModel(ItemInfo.FILTER_SHIELD.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED),
+        false);
     modelItemWeapon = new ItemSelectionModel(ItemInfo.FILTER_WEAPON, false);
     for (int i = 0; i < 7; i++) {
       colorModels.add(new ColorSelectionModel());

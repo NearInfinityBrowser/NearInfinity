@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder;
@@ -22,7 +22,6 @@ import org.infinity.resource.cre.decoder.util.AnimationInfo;
 import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.resource.cre.decoder.util.DirDef;
 import org.infinity.resource.cre.decoder.util.Direction;
-import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
@@ -35,183 +34,181 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 
 /**
- * Creature animation decoder for processing type F000 (monster_planescape) animations.
- * Available ranges: [f000,ffff]
+ * Creature animation decoder for processing type F000 (monster_planescape) animations. Available ranges: [f000,ffff]
  */
-public class MonsterPlanescapeDecoder extends SpriteDecoder
-{
+public class MonsterPlanescapeDecoder extends SpriteDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_PLANESCAPE;
 
-  public static final DecoderAttribute KEY_BESTIARY         = DecoderAttribute.with("bestiary", DecoderAttribute.DataType.INT);
-  public static final DecoderAttribute KEY_CLOWN            = DecoderAttribute.with("clown", DecoderAttribute.DataType.BOOLEAN);
-  public static final DecoderAttribute KEY_ARMOR            = DecoderAttribute.with("armor", DecoderAttribute.DataType.INT);
-  public static final DecoderAttribute KEY_WALKSCALE        = DecoderAttribute.with("walkscale", DecoderAttribute.DataType.DECIMAL);
-  public static final DecoderAttribute KEY_RUNSCALE         = DecoderAttribute.with("runscale", DecoderAttribute.DataType.DECIMAL);
-  public static final DecoderAttribute KEY_COLOR_LOCATION   = DecoderAttribute.with("color", DecoderAttribute.DataType.USERDEFINED, new int[0]);
-  public static final DecoderAttribute KEY_SHADOW           = DecoderAttribute.with("shadow", DecoderAttribute.DataType.STRING);
-  public static final DecoderAttribute KEY_RESREF2          = DecoderAttribute.with("resref2", DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_BESTIARY = DecoderAttribute.with("bestiary", DecoderAttribute.DataType.INT);
+  public static final DecoderAttribute KEY_CLOWN = DecoderAttribute.with("clown", DecoderAttribute.DataType.BOOLEAN);
+  public static final DecoderAttribute KEY_ARMOR = DecoderAttribute.with("armor", DecoderAttribute.DataType.INT);
+  public static final DecoderAttribute KEY_WALKSCALE = DecoderAttribute.with("walkscale",
+      DecoderAttribute.DataType.DECIMAL);
+  public static final DecoderAttribute KEY_RUNSCALE = DecoderAttribute.with("runscale",
+      DecoderAttribute.DataType.DECIMAL);
+  public static final DecoderAttribute KEY_COLOR_LOCATION = DecoderAttribute.with("color",
+      DecoderAttribute.DataType.USERDEFINED, new int[0]);
+  public static final DecoderAttribute KEY_SHADOW = DecoderAttribute.with("shadow", DecoderAttribute.DataType.STRING);
+  public static final DecoderAttribute KEY_RESREF2 = DecoderAttribute.with("resref2", DecoderAttribute.DataType.STRING);
 
-  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = new BeforeSourceBam() {
-    @Override
-    public void accept(BamV1Control control, SegmentDef sd)
-    {
-      String resref = sd.getEntry().getResourceRef();
+  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = (control, sd) -> {
+    String resref = sd.getEntry().getResourceRef();
 
-      // fix hardcoded "Pillar of Skulls" shadow center: shift by: [193.59]
-      if (resref.equalsIgnoreCase("POSSHAD")) {
-        BamV1Decoder decoder = control.getDecoder();
-        for (int idx = 0, count = decoder.frameCount(); idx < count; idx++) {
-          BamV1FrameEntry entry = decoder.getFrameInfo(idx);
-          entry.resetCenter();
-          entry.setCenterX(entry.getCenterX() + 193);
-          entry.setCenterY(entry.getCenterY() + 59);
-        }
+    // fix hardcoded "Pillar of Skulls" shadow center: shift by: [193.59]
+    if (resref.equalsIgnoreCase("POSSHAD")) {
+      BamV1Decoder decoder = control.getDecoder();
+      for (int idx = 0, count = decoder.frameCount(); idx < count; idx++) {
+        BamV1FrameEntry entry = decoder.getFrameInfo(idx);
+        entry.resetCenter();
+        entry.setCenterX(entry.getCenterX() + 193);
+        entry.setCenterY(entry.getCenterY() + 59);
       }
+    }
 
-      // "Pillar of Skulls" uses separate shadow animation
-      if (!resref.equalsIgnoreCase("POSMAIN")) {
-        SpriteUtils.fixShadowColor(control, isTransparentShadow());
-      }
+    // "Pillar of Skulls" uses separate shadow animation
+    if (!resref.equalsIgnoreCase("POSMAIN")) {
+      SpriteUtils.fixShadowColor(control, isTransparentShadow());
+    }
 
-      if (isPaletteReplacementEnabled() && isFalseColor()) {
-        applyFalseColors(control, sd);
-      }
+    if (isPaletteReplacementEnabled() && isFalseColor()) {
+      applyFalseColors(control, sd);
+    }
 
-      if ((isTranslucencyEnabled() && isTranslucent()) ||
-          (isBlurEnabled() && isBlurred())) {
-        int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
-        applyTranslucency(control, minVal);
-      }
+    if ((isTranslucencyEnabled() && isTranslucent()) || (isBlurEnabled() && isBlurred())) {
+      int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
+      applyTranslucency(control, minVal);
     }
   };
 
   // available animation slot names
-  private static final HashMap<Sequence, String> Slots = new HashMap<Sequence, String>() {{
-    put(Sequence.PST_ATTACK1, "attack1");
-    put(Sequence.PST_ATTACK2, "attack2");
-    put(Sequence.PST_ATTACK3, "attack3");
-    put(Sequence.PST_GET_HIT, "gethit");
-    put(Sequence.PST_RUN, "run");
-    put(Sequence.PST_WALK, "walk");
-    put(Sequence.PST_SPELL1, "spell1");
-    put(Sequence.PST_SPELL2, "spell2");
-    put(Sequence.PST_SPELL3, "spell3");
-    put(Sequence.PST_GET_UP, "getup");
-    put(Sequence.PST_DIE_FORWARD, "dieforward");
-    put(Sequence.PST_DIE_BACKWARD, "diebackward");
-    put(Sequence.PST_DIE_COLLAPSE, "diecollapse");
-    put(Sequence.PST_TALK1, "talk1");
-    put(Sequence.PST_TALK2, "talk2");
-    put(Sequence.PST_TALK3, "talk3");
-    put(Sequence.PST_STAND_FIDGET1, "standfidget1");
-    put(Sequence.PST_STAND_FIDGET2, "standfidget2");
-    put(Sequence.PST_STANCE_FIDGET1, "stancefidget1");
-    put(Sequence.PST_STANCE_FIDGET2, "stancefidget2");
-    put(Sequence.PST_STAND, "stand");
-    put(Sequence.PST_STANCE, "stance");
-    put(Sequence.PST_STANCE_TO_STAND, "stance2stand");
-    put(Sequence.PST_STAND_TO_STANCE, "stand2stance");
-    put(Sequence.PST_MISC1, "misc1");
-    put(Sequence.PST_MISC2, "misc2");
-    put(Sequence.PST_MISC3, "misc3");
-    put(Sequence.PST_MISC4, "misc4");
-    put(Sequence.PST_MISC5, "misc5");
-    put(Sequence.PST_MISC6, "misc6");
-    put(Sequence.PST_MISC7, "misc7");
-    put(Sequence.PST_MISC8, "misc8");
-    put(Sequence.PST_MISC9, "misc9");
-    put(Sequence.PST_MISC10, "misc10");
-    put(Sequence.PST_MISC11, "misc11");
-    put(Sequence.PST_MISC12, "misc12");
-    put(Sequence.PST_MISC13, "misc13");
-    put(Sequence.PST_MISC14, "misc14");
-    put(Sequence.PST_MISC15, "misc15");
-    put(Sequence.PST_MISC16, "misc16");
-    put(Sequence.PST_MISC17, "misc17");
-    put(Sequence.PST_MISC18, "misc18");
-    put(Sequence.PST_MISC19, "misc19");
-    put(Sequence.PST_MISC20, "misc20");
-  }};
+  private static final HashMap<Sequence, String> SLOT_MAP = new HashMap<Sequence, String>();
 
   // action prefixes used to determine BAM resref for animation sequences
-  private static final HashMap<Sequence, String> ActionPrefixes = new HashMap<Sequence, String>() {{
-    put(Sequence.PST_ATTACK1, "at1");
-    put(Sequence.PST_ATTACK2, "at2");
-    put(Sequence.PST_ATTACK3, "at2");
-    put(Sequence.PST_GET_HIT, "hit");
-    put(Sequence.PST_RUN, "run");
-    put(Sequence.PST_WALK, "wlk");
-    put(Sequence.PST_SPELL1, "sp1");
-    put(Sequence.PST_SPELL2, "sp2");
-    put(Sequence.PST_SPELL3, "sp3");
-    put(Sequence.PST_GET_UP, "gup");
-    put(Sequence.PST_DIE_FORWARD, "dff");
-    put(Sequence.PST_DIE_BACKWARD, "dfb");
-    put(Sequence.PST_DIE_COLLAPSE, "dcl");
-    put(Sequence.PST_TALK1, "tk1");
-    put(Sequence.PST_TALK2, "tk2");
-    put(Sequence.PST_TALK3, "tk3");
-    put(Sequence.PST_STAND_FIDGET1, "sf1");
-    put(Sequence.PST_STAND_FIDGET2, "sf2");
-    put(Sequence.PST_STANCE_FIDGET1, "cf1");
-    put(Sequence.PST_STANCE_FIDGET2, "cf2");
-    put(Sequence.PST_STAND, "std");
-    put(Sequence.PST_STANCE, "stc");
-    put(Sequence.PST_STANCE_TO_STAND, "c2s");
-    put(Sequence.PST_STAND_TO_STANCE, "s2c");
-    put(Sequence.PST_MISC1, "ms1");
-    put(Sequence.PST_MISC2, "ms2");
-    put(Sequence.PST_MISC3, "ms3");
-    put(Sequence.PST_MISC4, "ms4");
-    put(Sequence.PST_MISC5, "ms5");
-    put(Sequence.PST_MISC6, "ms6");
-    put(Sequence.PST_MISC7, "ms7");
-    put(Sequence.PST_MISC8, "ms8");
-    put(Sequence.PST_MISC9, "ms9");
-    // guessed action prefixes
-    put(Sequence.PST_MISC10, "msa");
-    put(Sequence.PST_MISC11, "msb");
-    put(Sequence.PST_MISC12, "msc");
-    put(Sequence.PST_MISC13, "msd");
-    put(Sequence.PST_MISC14, "mse");
-    put(Sequence.PST_MISC15, "msf");
-    put(Sequence.PST_MISC16, "msg");
-    put(Sequence.PST_MISC17, "msh");
-    put(Sequence.PST_MISC18, "msi");
-    put(Sequence.PST_MISC19, "msj");
-    put(Sequence.PST_MISC20, "msk");
-  }};
+  private static final HashMap<Sequence, String> ACTION_PREFIX_MAP = new HashMap<Sequence, String>();
 
-  /**
-   * Returns the action command associated with the specified action sequence.
-   * @param seq the action sequence.
-   * @return the action command, {@code null} otherwise.
-   */
-  public static String getActionCommand(Sequence seq)
-  {
-    return Slots.get(seq);
+  static {
+    SLOT_MAP.put(Sequence.PST_ATTACK1, "attack1");
+    SLOT_MAP.put(Sequence.PST_ATTACK2, "attack2");
+    SLOT_MAP.put(Sequence.PST_ATTACK3, "attack3");
+    SLOT_MAP.put(Sequence.PST_GET_HIT, "gethit");
+    SLOT_MAP.put(Sequence.PST_RUN, "run");
+    SLOT_MAP.put(Sequence.PST_WALK, "walk");
+    SLOT_MAP.put(Sequence.PST_SPELL1, "spell1");
+    SLOT_MAP.put(Sequence.PST_SPELL2, "spell2");
+    SLOT_MAP.put(Sequence.PST_SPELL3, "spell3");
+    SLOT_MAP.put(Sequence.PST_GET_UP, "getup");
+    SLOT_MAP.put(Sequence.PST_DIE_FORWARD, "dieforward");
+    SLOT_MAP.put(Sequence.PST_DIE_BACKWARD, "diebackward");
+    SLOT_MAP.put(Sequence.PST_DIE_COLLAPSE, "diecollapse");
+    SLOT_MAP.put(Sequence.PST_TALK1, "talk1");
+    SLOT_MAP.put(Sequence.PST_TALK2, "talk2");
+    SLOT_MAP.put(Sequence.PST_TALK3, "talk3");
+    SLOT_MAP.put(Sequence.PST_STAND_FIDGET1, "standfidget1");
+    SLOT_MAP.put(Sequence.PST_STAND_FIDGET2, "standfidget2");
+    SLOT_MAP.put(Sequence.PST_STANCE_FIDGET1, "stancefidget1");
+    SLOT_MAP.put(Sequence.PST_STANCE_FIDGET2, "stancefidget2");
+    SLOT_MAP.put(Sequence.PST_STAND, "stand");
+    SLOT_MAP.put(Sequence.PST_STANCE, "stance");
+    SLOT_MAP.put(Sequence.PST_STANCE_TO_STAND, "stance2stand");
+    SLOT_MAP.put(Sequence.PST_STAND_TO_STANCE, "stand2stance");
+    SLOT_MAP.put(Sequence.PST_MISC1, "misc1");
+    SLOT_MAP.put(Sequence.PST_MISC2, "misc2");
+    SLOT_MAP.put(Sequence.PST_MISC3, "misc3");
+    SLOT_MAP.put(Sequence.PST_MISC4, "misc4");
+    SLOT_MAP.put(Sequence.PST_MISC5, "misc5");
+    SLOT_MAP.put(Sequence.PST_MISC6, "misc6");
+    SLOT_MAP.put(Sequence.PST_MISC7, "misc7");
+    SLOT_MAP.put(Sequence.PST_MISC8, "misc8");
+    SLOT_MAP.put(Sequence.PST_MISC9, "misc9");
+    SLOT_MAP.put(Sequence.PST_MISC10, "misc10");
+    SLOT_MAP.put(Sequence.PST_MISC11, "misc11");
+    SLOT_MAP.put(Sequence.PST_MISC12, "misc12");
+    SLOT_MAP.put(Sequence.PST_MISC13, "misc13");
+    SLOT_MAP.put(Sequence.PST_MISC14, "misc14");
+    SLOT_MAP.put(Sequence.PST_MISC15, "misc15");
+    SLOT_MAP.put(Sequence.PST_MISC16, "misc16");
+    SLOT_MAP.put(Sequence.PST_MISC17, "misc17");
+    SLOT_MAP.put(Sequence.PST_MISC18, "misc18");
+    SLOT_MAP.put(Sequence.PST_MISC19, "misc19");
+    SLOT_MAP.put(Sequence.PST_MISC20, "misc20");
+
+    ACTION_PREFIX_MAP.put(Sequence.PST_ATTACK1, "at1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_ATTACK2, "at2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_ATTACK3, "at2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_GET_HIT, "hit");
+    ACTION_PREFIX_MAP.put(Sequence.PST_RUN, "run");
+    ACTION_PREFIX_MAP.put(Sequence.PST_WALK, "wlk");
+    ACTION_PREFIX_MAP.put(Sequence.PST_SPELL1, "sp1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_SPELL2, "sp2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_SPELL3, "sp3");
+    ACTION_PREFIX_MAP.put(Sequence.PST_GET_UP, "gup");
+    ACTION_PREFIX_MAP.put(Sequence.PST_DIE_FORWARD, "dff");
+    ACTION_PREFIX_MAP.put(Sequence.PST_DIE_BACKWARD, "dfb");
+    ACTION_PREFIX_MAP.put(Sequence.PST_DIE_COLLAPSE, "dcl");
+    ACTION_PREFIX_MAP.put(Sequence.PST_TALK1, "tk1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_TALK2, "tk2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_TALK3, "tk3");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STAND_FIDGET1, "sf1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STAND_FIDGET2, "sf2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STANCE_FIDGET1, "cf1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STANCE_FIDGET2, "cf2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STAND, "std");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STANCE, "stc");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STANCE_TO_STAND, "c2s");
+    ACTION_PREFIX_MAP.put(Sequence.PST_STAND_TO_STANCE, "s2c");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC1, "ms1");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC2, "ms2");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC3, "ms3");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC4, "ms4");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC5, "ms5");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC6, "ms6");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC7, "ms7");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC8, "ms8");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC9, "ms9");
+    // guessed action prefixes
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC10, "msa");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC11, "msb");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC12, "msc");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC13, "msd");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC14, "mse");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC15, "msf");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC16, "msg");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC17, "msh");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC18, "msi");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC19, "msj");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC20, "msk");
   }
 
   /**
-   * Returns the action prefix associated with the command of the associated action sequence
-   * according to the default naming scheme.
+   * Returns the action command associated with the specified action sequence.
+   *
+   * @param seq the action sequence.
+   * @return the action command, {@code null} otherwise.
+   */
+  public static String getActionCommand(Sequence seq) {
+    return SLOT_MAP.get(seq);
+  }
+
+  /**
+   * Returns the action prefix associated with the command of the associated action sequence according to the default
+   * naming scheme.
+   *
    * @param seq the action sequence.
    * @return the action prefix, {@code null} otherwise.
    */
-  public static String getActionPrefix(Sequence seq)
-  {
-    return ActionPrefixes.get(seq);
+  public static String getActionPrefix(Sequence seq) {
+    return ACTION_PREFIX_MAP.get(seq);
   }
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.
+   *
    * @param data a String array containing table values for a specific table entry.
-   * @return a {@code IniMap} instance with the value derived from the specified data array.
-   *         Returns {@code null} if no data could be derived.
+   * @return a {@code IniMap} instance with the value derived from the specified data array. Returns {@code null} if no
+   *         data could be derived.
    */
-  public static IniMap processTableData(String[] data)
-  {
+  public static IniMap processTableData(String[] data) {
     IniMap retVal = null;
     if (data == null || data.length < 9) {
       return retVal;
@@ -232,11 +229,11 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     String suffix = isSpecial ? "" : s.substring(s.length() - 1, s.length());
     TreeMap<String, String> actions = new TreeMap<>();
     if (isSpecial) {
-      actions.put(Slots.get(Sequence.PST_STAND), resref);
+      actions.put(SLOT_MAP.get(Sequence.PST_STAND), resref);
     } else {
-      for (final Sequence seq : Slots.keySet()) {
-        String action = Slots.get(seq);
-        String actionPrefix = ActionPrefixes.get(seq);
+      for (final Sequence seq : SLOT_MAP.keySet()) {
+        String action = SLOT_MAP.get(seq);
+        String actionPrefix = ACTION_PREFIX_MAP.get(seq);
         if (action != null && actionPrefix != null) {
           String bamRes = prefix + actionPrefix + resref;
           if (ResourceFactory.resourceExists(bamRes + suffix + ".BAM")) {
@@ -246,7 +243,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
       }
       if (actions.isEmpty()) {
         if (ResourceFactory.resourceExists(prefix + resref + suffix + ".BAM")) {
-          actions.put(Slots.get(Sequence.PST_STAND), prefix + resref);
+          actions.put(SLOT_MAP.get(Sequence.PST_STAND), prefix + resref);
         }
       }
     }
@@ -277,36 +274,53 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     return retVal;
   }
 
-  public MonsterPlanescapeDecoder(int animationId, IniMap ini) throws Exception
-  {
+  public MonsterPlanescapeDecoder(int animationId, IniMap ini) throws Exception {
     super(ANIMATION_TYPE, animationId, ini);
   }
 
-  public MonsterPlanescapeDecoder(CreResource cre) throws Exception
-  {
+  public MonsterPlanescapeDecoder(CreResource cre) throws Exception {
     super(ANIMATION_TYPE, cre);
     setTransparentShadow(false);
   }
 
   /** Returns the bestiary entry index. */
-  public int getBestiaryIndex() { return getAttribute(KEY_BESTIARY); }
-  protected void setBestiaryIndex(int v) { setAttribute(KEY_BESTIARY, v); }
+  public int getBestiaryIndex() {
+    return getAttribute(KEY_BESTIARY);
+  }
+
+  protected void setBestiaryIndex(int v) {
+    setAttribute(KEY_BESTIARY, v);
+  }
 
   /** ??? */
-  public int getArmor() { return getAttribute(KEY_ARMOR); }
-  protected void setArmor(int v) { setAttribute(KEY_ARMOR, v); }
+  public int getArmor() {
+    return getAttribute(KEY_ARMOR);
+  }
+
+  protected void setArmor(int v) {
+    setAttribute(KEY_ARMOR, v);
+  }
 
   /** Returns the walking speed of the creature animation. */
-  public double getWalkScale() { return getAttribute(KEY_WALKSCALE); }
-  protected void setWalkScale(double d) { setAttribute(KEY_WALKSCALE, d); }
+  public double getWalkScale() {
+    return getAttribute(KEY_WALKSCALE);
+  }
+
+  protected void setWalkScale(double d) {
+    setAttribute(KEY_WALKSCALE, d);
+  }
 
   /** Returns the running speed of the creature animation. */
-  public double getRunScale() { return getAttribute(KEY_RUNSCALE); }
-  protected void setRunScale(double d) { setAttribute(KEY_RUNSCALE, d); }
+  public double getRunScale() {
+    return getAttribute(KEY_RUNSCALE);
+  }
+
+  protected void setRunScale(double d) {
+    setAttribute(KEY_RUNSCALE, d);
+  }
 
   @Override
-  protected int getColorOffset(int locationIndex)
-  {
+  protected int getColorOffset(int locationIndex) {
     int retVal = -1;
     int numLocations = getColorLocationCount();
     if (locationIndex >= 0 && locationIndex < numLocations) {
@@ -316,15 +330,13 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   /** Returns the number of available false color ranges. */
-  public int getColorLocationCount()
-  {
+  public int getColorLocationCount() {
     List<Integer> color = getAttribute(KEY_COLOR_LOCATION);
     return color.size();
   }
 
   /** Returns the specified color location. */
-  public int getColorLocation(int index) throws IndexOutOfBoundsException
-  {
+  public int getColorLocation(int index) throws IndexOutOfBoundsException {
     List<Integer> color = getAttribute(KEY_COLOR_LOCATION);
     if (index < 0 || index >= color.size()) {
       throw new IndexOutOfBoundsException();
@@ -333,8 +345,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   /** Returns a list of all valid color locations. */
-  private List<Integer> setColorLocations(IniMapSection section)
-  {
+  private List<Integer> setColorLocations(IniMapSection section) {
     List<Integer> retVal = null;
     if (Profile.getGame() == Profile.Game.PST) {
       retVal = setColorLocationsCre();
@@ -348,43 +359,40 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   /** Returns a list of all valid color locations defined in the associated INI file. (PSTEE) */
-  private List<Integer> setColorLocationsIni(IniMapSection section)
-  {
+  private List<Integer> setColorLocationsIni(IniMapSection section) {
     final HashSet<Integer> usedColors = new HashSet<>();
     List<Integer> retVal = new ArrayList<>(7);
     for (int i = 0; i < 7; i++) {
       int v = section.getAsInteger(KEY_COLOR_LOCATION.getName() + (i + 1), 0);
       if (v >= 128 && v < 240 && !usedColors.contains(v & 0xf0)) {
         usedColors.add(v & 0xf0);
-        retVal.add(Integer.valueOf(v));
+        retVal.add(v);
       }
     }
     return retVal;
   }
 
   /** Returns a list of all valid color locations from the CRE resource. (original PST) */
-  private List<Integer> setColorLocationsCre()
-  {
+  private List<Integer> setColorLocationsCre() {
     final HashSet<Integer> usedColors = new HashSet<>();
     CreResource cre = getCreResource();
-    int numColors = Math.max(0, Math.min(7, ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_COLORS)).getValue()));
+    int numColors = Math.max(0, Math.min(7, ((IsNumeric) cre.getAttribute(CreResource.CRE_NUM_COLORS)).getValue()));
     List<Integer> retVal = new ArrayList<>(numColors);
     for (int i = 0; i < numColors; i++) {
-      int l = ((IsNumeric)cre.getAttribute(String.format(CreResource.CRE_COLOR_PLACEMENT_FMT, i + 1))).getValue();
+      int l = ((IsNumeric) cre.getAttribute(String.format(CreResource.CRE_COLOR_PLACEMENT_FMT, i + 1))).getValue();
       if (l > 0 && !usedColors.contains(l & 0xf0)) {
         usedColors.add(l & 0xf0);
-        retVal.add(Integer.valueOf(l));
+        retVal.add(l);
       }
     }
     return retVal;
   }
 
   @Override
-  public List<String> getAnimationFiles(boolean essential)
-  {
+  public List<String> getAnimationFiles(boolean essential) {
     ArrayList<String> retVal = new ArrayList<>();
     IniMapSection section = getAnimationInfo().getSection(getAnimationSectionName());
-    for (final HashMap.Entry<Sequence, String> e : Slots.entrySet()) {
+    for (final HashMap.Entry<Sequence, String> e : SLOT_MAP.entrySet()) {
       String resref = section.getAsString(e.getValue(), "");
       if (!resref.isEmpty()) {
         resref = resref.toUpperCase(Locale.ENGLISH);
@@ -399,20 +407,18 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   @Override
-  public boolean isSequenceAvailable(Sequence seq)
-  {
+  public boolean isSequenceAvailable(Sequence seq) {
     return (getSequenceDefinition(seq) != null);
   }
 
   @Override
-  protected void initDefaults(IniMap ini) throws Exception
-  {
+  protected void initDefaults(IniMap ini) throws Exception {
     IniMapSection section = getGeneralIniSection(Objects.requireNonNull(ini, "INI object cannot be null"));
 
     Objects.requireNonNull(section.getAsString(KEY_ANIMATION_TYPE.getName()), "animation_type required");
     Misc.requireCondition(getAnimationType().contains(getAnimationId()),
-                          String.format("Animation slot (%04X) is not compatible with animation type (%s)",
-                                        getAnimationId(), getAnimationType().toString()));
+        String.format("Animation slot (%04X) is not compatible with animation type (%s)", getAnimationId(),
+            getAnimationType().toString()));
 
     setMoveScale(section.getAsDouble(KEY_MOVE_SCALE.getName(), 0.0));
     setEllipse(section.getAsInteger(KEY_ELLIPSE.getName(), 16));
@@ -420,8 +426,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   @Override
-  protected void init() throws Exception
-  {
+  protected void init() throws Exception {
     // setting properties
     initDefaults(getAnimationInfo());
     IniMapSection section = getSpecificIniSection();
@@ -433,15 +438,15 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     setAttribute(KEY_COLOR_LOCATION, setColorLocations(section));
 
     // hardcoded stuff
-    String resref = section.getAsString(Slots.get(Sequence.PST_STAND), "");
+    String resref = section.getAsString(SLOT_MAP.get(Sequence.PST_STAND), "");
     if ("POSMAIN".equalsIgnoreCase(resref)) {
       // Pillar of Skulls: relocate shadow center
       setAttribute(KEY_SHADOW, "POSSHAD");
     }
-//    if ("IGHEAD".equalsIgnoreCase(resref)) {
-//      // "Coaxmetal" (iron golem): relocate center of arm segments
-//      setAttribute(KEY_RESREF2, "IGARM");
-//    }
+    // if ("IGHEAD".equalsIgnoreCase(resref)) {
+    // // "Coaxmetal" (iron golem): relocate center of arm segments
+    // setAttribute(KEY_RESREF2, "IGARM");
+    // }
     if ((getAnimationId() & 0x0fff) == 0x000e) {
       // Deionarra
       setBrightest(true);
@@ -450,21 +455,21 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   @Override
-  protected void createSequence(Sequence seq, Direction[] directions) throws Exception
-  {
-    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+  protected void createSequence(Sequence seq, Direction[] directions) throws Exception {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq),
+        "Sequence not available: " + (seq != null ? seq : "(null)"));
     if (directions == null) {
       directions = Direction.values();
     }
-    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME,
+        FN_AFTER_DST_FRAME);
   }
 
   @Override
-  protected SeqDef getSequenceDefinition(Sequence seq)
-  {
+  protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
     IniMapSection section = getAnimationInfo().getSection(getAnimationSectionName());
-    if (Slots.containsKey(seq)) {
+    if (SLOT_MAP.containsKey(seq)) {
       ArrayList<ResourceEntry> resrefList = new ArrayList<>();
 
       // Shadow resref?
@@ -477,7 +482,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
       }
 
       // Sprite resref
-      String name = Slots.get(seq);
+      String name = SLOT_MAP.get(seq);
       resref = section.getAsString(name, "");
       if (resref.isEmpty()) {
         return retVal;
@@ -521,7 +526,8 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
           mirror = false;
           directions = new Direction[SeqDef.DIR_REDUCED.length];
           System.arraycopy(SeqDef.DIR_REDUCED_W, 0, directions, 0, SeqDef.DIR_REDUCED_W.length);
-          System.arraycopy(SeqDef.DIR_REDUCED_E, 0, directions, SeqDef.DIR_REDUCED_W.length, SeqDef.DIR_REDUCED_E.length);
+          System.arraycopy(SeqDef.DIR_REDUCED_E, 0, directions, SeqDef.DIR_REDUCED_W.length,
+              SeqDef.DIR_REDUCED_E.length);
         } else if (dirCount == SeqDef.DIR_FULL_W.length) {
           // full directions, mirrored east
           directions = SeqDef.DIR_FULL_W;

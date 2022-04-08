@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -39,44 +39,46 @@ import org.infinity.util.io.FileManager;
 /**
  * Output filter: split BAM and output each part into a separate file.
  */
-public class BamFilterOutputSplitted extends BamFilterBaseOutput
-    implements ActionListener, ChangeListener
-{
-  private static final String FilterName = "Splitted BAM output";
-  private static final String FilterDesc = "This filter allows you to split the BAM into multiple " +
-                                           "parts and output each one into a separate BAM file.\n" +
-                                           "Note: Output filters will always be processed last.";
+public class BamFilterOutputSplitted extends BamFilterBaseOutput implements ActionListener, ChangeListener {
+  private static final String FILTER_NAME = "Splitted BAM output";
+  private static final String FILTER_DESC = "This filter allows you to split the BAM into multiple "
+                                            + "parts and output each one into a separate BAM file.\n"
+                                            + "Note: Output filters will always be processed last.";
 
-  private static final int MaxSplits = 7;   // max. supported number of splits
+  private static final int MAX_SPLITS = 7; // max. supported number of splits
 
-  private JSpinner spinnerSplitX, spinnerSplitY, spinnerSuffixStart, spinnerSuffixStep;
+  private JSpinner spinnerSplitX;
+  private JSpinner spinnerSplitY;
+  private JSpinner spinnerSuffixStart;
+  private JSpinner spinnerSuffixStep;
   private JCheckBox cbSplitAuto;
   private JComboBox<String> cbSuffixDigits;
 
-  public static String getFilterName() { return FilterName; }
-  public static String getFilterDesc() { return FilterDesc; }
+  public static String getFilterName() {
+    return FILTER_NAME;
+  }
 
-  public BamFilterOutputSplitted(ConvertToBam parent)
-  {
-    super(parent, FilterName, FilterDesc);
+  public static String getFilterDesc() {
+    return FILTER_DESC;
+  }
+
+  public BamFilterOutputSplitted(ConvertToBam parent) {
+    super(parent, FILTER_NAME, FILTER_DESC);
   }
 
   @Override
-  public boolean process(PseudoBamDecoder decoder) throws Exception
-  {
+  public boolean process(PseudoBamDecoder decoder) throws Exception {
     return applyEffect(decoder);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry)
-  {
+  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
     // does not modify the source image
     return entry;
   }
 
   @Override
-  public String getConfiguration()
-  {
+  public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
     sb.append(spinnerSplitX.getValue()).append(';');
     sb.append(spinnerSplitY.getValue()).append(';');
@@ -88,8 +90,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
   }
 
   @Override
-  public boolean setConfiguration(String config)
-  {
+  public boolean setConfiguration(String config) {
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
@@ -102,16 +103,16 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
         Integer step = Integer.MIN_VALUE;
 
         if (params.length > 0) {
-          int min = ((Number)((SpinnerNumberModel)spinnerSplitX.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerSplitX.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerSplitX.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerSplitX.getModel()).getMaximum()).intValue();
           splitX = decodeNumber(params[0], min, max, Integer.MIN_VALUE);
           if (splitX == Integer.MIN_VALUE) {
             return false;
           }
         }
         if (params.length > 1) {
-          int min = ((Number)((SpinnerNumberModel)spinnerSplitY.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerSplitY.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerSplitY.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerSplitY.getModel()).getMaximum()).intValue();
           splitY = decodeNumber(params[1], min, max, Integer.MIN_VALUE);
           if (splitY == Integer.MIN_VALUE) {
             return false;
@@ -133,16 +134,16 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
           }
         }
         if (params.length > 4) {
-          int min = ((Number)((SpinnerNumberModel)spinnerSuffixStart.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerSuffixStart.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerSuffixStart.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerSuffixStart.getModel()).getMaximum()).intValue();
           start = decodeNumber(params[4], min, max, Integer.MIN_VALUE);
           if (start == Integer.MIN_VALUE) {
             return false;
           }
         }
         if (params.length > 5) {
-          int min = ((Number)((SpinnerNumberModel)spinnerSuffixStep.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerSuffixStep.getModel()).getMaximum()).intValue();
+          int min = ((Number) ((SpinnerNumberModel) spinnerSuffixStep.getModel()).getMinimum()).intValue();
+          int max = ((Number) ((SpinnerNumberModel) spinnerSuffixStep.getModel()).getMaximum()).intValue();
           step = decodeNumber(params[5], min, max, Integer.MIN_VALUE);
           if (step == Integer.MIN_VALUE) {
             return false;
@@ -172,8 +173,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
   }
 
   @Override
-  protected JPanel loadControls()
-  {
+  protected JPanel loadControls() {
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Split");
@@ -184,85 +184,85 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     JLabel l6 = new JLabel("Start at:");
     JLabel l7 = new JLabel("Step by:");
     spinnerSplitX = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
-    ((SpinnerNumberModel)spinnerSplitX.getModel()).setMaximum(Integer.valueOf(MaxSplits));
+    ((SpinnerNumberModel) spinnerSplitX.getModel()).setMaximum(Integer.valueOf(MAX_SPLITS));
     spinnerSplitX.addChangeListener(this);
     spinnerSplitY = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
-    ((SpinnerNumberModel)spinnerSplitY.getModel()).setMaximum(Integer.valueOf(MaxSplits));
+    ((SpinnerNumberModel) spinnerSplitY.getModel()).setMaximum(Integer.valueOf(MAX_SPLITS));
     spinnerSplitY.addChangeListener(this);
     cbSplitAuto = new JCheckBox("Split automatically", true);
     cbSplitAuto.addActionListener(this);
 
     String[] items = new String[7];
     for (int i = 0; i < items.length; i++) {
-      items[i] = String.format("%d", i+1);
+      items[i] = String.format("%d", i + 1);
     }
     cbSuffixDigits = new JComboBox<>(items);
     cbSuffixDigits.setSelectedIndex(1);
     cbSuffixDigits.addActionListener(this);
     spinnerSuffixStart = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
-    ((SpinnerNumberModel)spinnerSuffixStart.getModel()).setMaximum(Integer.valueOf(100000));
+    ((SpinnerNumberModel) spinnerSuffixStart.getModel()).setMaximum(Integer.valueOf(100000));
     spinnerSuffixStart.addChangeListener(this);
     spinnerSuffixStep = new JSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
-    ((SpinnerNumberModel)spinnerSuffixStep.getModel()).setMaximum(Integer.valueOf(10000));
+    ((SpinnerNumberModel) spinnerSuffixStep.getModel()).setMaximum(Integer.valueOf(10000));
     spinnerSuffixStep.addChangeListener(this);
 
     JPanel p1 = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p1.add(l1, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     p1.add(spinnerSplitX, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     p1.add(l2, c);
-    ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 4, 0, 0), 0, 0);
     p1.add(spinnerSplitY, c);
-    ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
     p1.add(l3, c);
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p1.add(new JPanel(), c);
-    ViewerUtil.setGBC(c, 1, 1, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 1, 1, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p1.add(cbSplitAuto, c);
 
     JPanel p2 = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 6, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 6, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     p2.add(l4, c);
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
     p2.add(l5, c);
-    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 8, 0);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 8, 0);
     p2.add(cbSuffixDigits, c);
-    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 12, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 12, 0, 0), 0, 0);
     p2.add(l6, c);
-    ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 3, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p2.add(spinnerSuffixStart, c);
-    ViewerUtil.setGBC(c, 4, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(4, 12, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 4, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 12, 0, 0), 0, 0);
     p2.add(l7, c);
-    ViewerUtil.setGBC(c, 5, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 5, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 4, 0, 0), 0, 0);
     p2.add(spinnerSuffixStep, c);
 
     JPanel pMain = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     pMain.add(p1, c);
-    ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
     pMain.add(p2, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
     panel.add(pMain, c);
 
     updateAutoSplit();
@@ -270,11 +270,10 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     return panel;
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == cbSplitAuto) {
       updateAutoSplit();
       fireChangeListener();
@@ -283,39 +282,39 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     }
   }
 
-//--------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-//--------------------- Begin Interface ChangeListener ---------------------
+  // --------------------- Begin Interface ChangeListener ---------------------
 
   @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (event.getSource() == spinnerSplitX || event.getSource() == spinnerSplitY ||
-        event.getSource() == spinnerSuffixStart || event.getSource() == spinnerSuffixStep) {
+  public void stateChanged(ChangeEvent event) {
+    if (event.getSource() == spinnerSplitX || event.getSource() == spinnerSplitY
+        || event.getSource() == spinnerSuffixStart || event.getSource() == spinnerSuffixStep) {
       fireChangeListener();
     }
   }
 
-//--------------------- End Interface ChangeListener ---------------------
+  // --------------------- End Interface ChangeListener ---------------------
 
-
-  private void updateAutoSplit()
-  {
+  private void updateAutoSplit() {
     boolean b = cbSplitAuto.isSelected();
     spinnerSplitX.setEnabled(!b);
     spinnerSplitY.setEnabled(!b);
   }
 
-  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception
-  {
+  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception {
     if (getConverter() != null && decoder != null) {
       // finding largest dimension
       Dimension maxDim = new Dimension(0, 0);
       for (int i = 0; i < decoder.frameCount(); i++) {
         int w = decoder.getFrameInfo(i).getWidth();
         int h = decoder.getFrameInfo(i).getHeight();
-        if (w > maxDim.width) maxDim.width = w;
-        if (h > maxDim.height) maxDim.height = h;
+        if (w > maxDim.width) {
+          maxDim.width = w;
+        }
+        if (h > maxDim.height) {
+          maxDim.height = h;
+        }
       }
 
       // getting number of segments per dimension
@@ -323,37 +322,37 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       if (cbSplitAuto.isSelected()) {
         segmentsX = (maxDim.width < 256) ? 1 : 0;
         segmentsY = (maxDim.height < 256) ? 1 : 0;
-        for (int i = 2; i <= MaxSplits; i++) {
-          if (segmentsX == 0 && maxDim.width <= 255*i) {
+        for (int i = 2; i <= MAX_SPLITS; i++) {
+          if (segmentsX == 0 && maxDim.width <= 255 * i) {
             segmentsX = i;
           }
-          if (segmentsY == 0 && maxDim.height <= 255*i) {
+          if (segmentsY == 0 && maxDim.height <= 255 * i) {
             segmentsY = i;
           }
-          if(segmentsX > 0 && segmentsY > 0) {
+          if (segmentsX > 0 && segmentsY > 0) {
             break;
           }
         }
       } else {
-        segmentsX = ((Integer)spinnerSplitX.getValue()).intValue() + 1;
-        segmentsY = ((Integer)spinnerSplitY.getValue()).intValue() + 1;
+        segmentsX = ((Integer) spinnerSplitX.getValue()).intValue() + 1;
+        segmentsY = ((Integer) spinnerSplitY.getValue()).intValue() + 1;
       }
 
       // calculating individual splits for each frame
       List<List<Rectangle>> listSegments = new ArrayList<>(decoder.frameCount());
-      int segmentCount = segmentsX*segmentsY;
+      int segmentCount = segmentsX * segmentsY;
       for (int frameIdx = 0; frameIdx < decoder.frameCount(); frameIdx++) {
         listSegments.add(new ArrayList<Rectangle>(segmentCount));
-        final double fract = 0.499999;    // fractions of .5 or less will be rounded down!
+        final double fract = 0.499999; // fractions of .5 or less will be rounded down!
         int curHeight = decoder.getFrameInfo(frameIdx).getHeight(), y = 0;
         for (int curSegY = segmentsY; curSegY > 0; curSegY--) {
-          double dh = (double)curHeight / (double)curSegY;
-          int h = (int)(dh + fract);
+          double dh = (double) curHeight / (double) curSegY;
+          int h = (int) (dh + fract);
           curHeight -= h;
           int curWidth = decoder.getFrameInfo(frameIdx).getWidth(), x = 0;
           for (int curSegX = segmentsX; curSegX > 0; curSegX--) {
-            double dw = (double)curWidth / (double)curSegX;
-            int w = (int)(dw + fract);
+            double dw = (double) curWidth / (double) curSegX;
+            int w = (int) (dw + fract);
             curWidth -= w;
             // store current segment as Rectangle structure into list
             listSegments.get(frameIdx).add(new Rectangle(x, y, w, h));
@@ -366,22 +365,22 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       // creating a format string for BAM output filenames
       String bamFileName = getConverter().getBamOutput().toString();
       String ext = "BAM";
-      int suffixStart = ((Integer)spinnerSuffixStart.getValue()).intValue();
-      int suffixStep = ((Integer)spinnerSuffixStep.getValue()).intValue();
+      int suffixStart = ((Integer) spinnerSuffixStart.getValue());
+      int suffixStep = ((Integer) spinnerSuffixStep.getValue());
       int idx = bamFileName.lastIndexOf('.');
       if (idx >= 0) {
-        ext = bamFileName.substring(idx+1);
+        ext = bamFileName.substring(idx + 1);
         bamFileName = bamFileName.substring(0, idx);
       }
-      String fmtBamFileName = String.format("%1$s%%1$0%2$dd.%3$s", bamFileName,
-                                            cbSuffixDigits.getSelectedIndex() + 1, ext);
+      String fmtBamFileName = String.format("%1$s%%1$0%2$dd.%3$s", bamFileName, cbSuffixDigits.getSelectedIndex() + 1,
+          ext);
 
       // creating BamDecoder instances for each individual segment
       PseudoBamDecoder segmentDecoder = new PseudoBamDecoder();
       // adding global custom options
       String[] options = decoder.getOptionNames();
-      for (int i = 0; i < options.length; i++) {
-        segmentDecoder.setOption(options[i], decoder.getOption(options[i]));
+      for (String option : options) {
+        segmentDecoder.setOption(option, decoder.getOption(option));
       }
       // for each segment...
       for (int segIdx = 0; segIdx < segmentCount; segIdx++) {
@@ -411,10 +410,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     return false;
   }
 
-
   // Creates a new FrameEntry based on the specified original entry and the segment rectangle
-  private PseudoBamFrameEntry createFrameSegment(PseudoBamFrameEntry entry, Rectangle rect)
-  {
+  private PseudoBamFrameEntry createFrameSegment(PseudoBamFrameEntry entry, Rectangle rect) {
     PseudoBamFrameEntry retVal = null;
     if (entry != null && rect != null) {
       // preparations
@@ -427,24 +424,23 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
         dstDim.width = dstDim.height = 1;
       }
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        srcB = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        IndexColorModel cm1 = (IndexColorModel)srcImage.getColorModel();
+        srcB = ((DataBufferByte) srcImage.getRaster().getDataBuffer()).getData();
+        IndexColorModel cm1 = (IndexColorModel) srcImage.getColorModel();
         int[] colors = new int[1 << cm1.getPixelSize()];
         cm1.getRGBs(colors);
-        IndexColorModel cm2 = new IndexColorModel(cm1.getPixelSize(), colors.length, colors, 0,
-                                                  cm1.hasAlpha(), cm1.getTransparentPixel(),
-                                                  DataBuffer.TYPE_BYTE);
+        IndexColorModel cm2 = new IndexColorModel(cm1.getPixelSize(), colors.length, colors, 0, cm1.hasAlpha(),
+            cm1.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(dstDim.width, dstDim.height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
-        dstB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        dstB = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
       } else {
-        srcI = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        srcI = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
         dstImage = new BufferedImage(dstDim.width, dstDim.height, srcImage.getType());
-        dstI = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
+        dstI = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
       }
 
       // copying segment
       if (rect.width > 0 && rect.height > 0) {
-        int srcOfs = rect.y*srcImage.getWidth() + rect.x;
+        int srcOfs = rect.y * srcImage.getWidth() + rect.x;
         int dstOfs = 0;
         for (int y = 0; y < rect.height; y++, srcOfs += srcImage.getWidth(), dstOfs += dstImage.getWidth()) {
           if (srcB != null) {
@@ -464,20 +460,17 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
     return retVal;
   }
 
-
   // Exports the BAM specified by "decoder" into the filename "outFileName" using global settings
-  private boolean convertBam(Path outFileName, PseudoBamDecoder decoder) throws Exception
-  {
+  private boolean convertBam(Path outFileName, PseudoBamDecoder decoder) throws Exception {
     if (getConverter() != null && outFileName != null && decoder != null) {
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-                          Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
-        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED,
-                          Boolean.valueOf(getConverter().isBamV1Compressed()));
+            Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
+        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(getConverter().isBamV1Compressed()));
         try {
           return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
-                                     getConverter().getProgressMonitorStage());
+              getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();
           throw e;
@@ -488,7 +481,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
         int pvrzIndex = getConverter().getPvrzIndex();
         try {
           return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
-                                     getConverter().getProgressMonitorStage());
+              getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();
           throw e;

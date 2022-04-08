@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -32,10 +32,9 @@ import org.infinity.gui.ChildFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 
-public final class SearchMaster extends JPanel implements Runnable, ActionListener
-{
-  private final JButton bnext = new JButton("Find Next", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
-  private final JButton bclear = new JButton("New Search", Icons.getIcon(Icons.ICON_NEW_16));
+public final class SearchMaster extends JPanel implements Runnable, ActionListener {
+  private final JButton bnext = new JButton("Find Next", Icons.ICON_FIND_AGAIN_16.getIcon());
+  private final JButton bclear = new JButton("New Search", Icons.ICON_NEW_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
@@ -45,14 +44,14 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
   private final JTextField tfinput = new JTextField(15);
   private final SearchClient slave;
   private final WindowBlocker blocker;
+
   private Thread thread;
   private int index;
 
-  public static void createAsFrame(SearchClient slave, String title, Component parent)
-  {
+  public static void createAsFrame(SearchClient slave, String title, Component parent) {
     ChildFrame frame = new ChildFrame("Find: " + title, true);
-    frame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
-    JPanel pane = (JPanel)frame.getContentPane();
+    frame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
+    JPanel pane = (JPanel) frame.getContentPane();
     pane.setLayout(new BorderLayout());
     pane.add(new SearchMaster(slave, frame), BorderLayout.CENTER);
     frame.pack();
@@ -60,20 +59,17 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     frame.setVisible(true);
   }
 
-  public static JPanel createAsPanel(SearchClient slave, JFrame container)
-  {
+  public static JPanel createAsPanel(SearchClient slave, JFrame container) {
     return new SearchMaster(slave, container);
   }
 
-  private static void syncNotify(Object o)
-  {
+  private static void syncNotify(Object o) {
     synchronized (o) {
       o.notifyAll();
     }
   }
 
-  private SearchMaster(SearchClient slave, JFrame container)
-  {
+  private SearchMaster(SearchClient slave, JFrame container) {
     this.slave = slave;
     this.container = container;
     blocker = new WindowBlocker(container);
@@ -96,8 +92,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     label.setLabelFor(tfinput);
     label.setDisplayedMnemonic('f');
     tfinput.setMinimumSize(new Dimension(tfinput.getMinimumSize().width, bnext.getMinimumSize().height));
-    tfinput.setPreferredSize(
-            new Dimension(tfinput.getPreferredSize().width, bnext.getPreferredSize().height));
+    tfinput.setPreferredSize(new Dimension(tfinput.getPreferredSize().width, bnext.getPreferredSize().height));
     JPanel dirpanel = new JPanel();
     dirpanel.add(new JPanel());
     dirpanel.add(rbup);
@@ -152,34 +147,30 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     add(bpanel);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
-  public void actionPerformed(ActionEvent event)
-  {
+  public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bnext || event.getSource() == tfinput) {
       if (thread == null || !thread.isAlive()) {
         thread = new Thread(this);
         thread.start();
-      }
-      else
+      } else {
         syncNotify(slave);
-    }
-    else if (event.getSource() == bclear) {
+      }
+    } else if (event.getSource() == bclear) {
       rbdown.setSelected(true);
       tfinput.setText("");
       syncNotify(slave);
     }
   }
 
-// --------------------- End Interface ActionListener ---------------------
+  // --------------------- End Interface ActionListener ---------------------
 
-
-// --------------------- Begin Interface Runnable ---------------------
+  // --------------------- Begin Interface Runnable ---------------------
 
   @Override
-  public void run()
-  {
+  public void run() {
     index = 0;
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
@@ -208,8 +199,9 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     tfinput.setEnabled(false);
     while (true) {
       String s = slave.getText(index);
-      if (s == null)
+      if (s == null) {
         break;
+      }
       if (regPattern.matcher(s).matches()) {
         slave.hitFound(index);
         blocker.setBlocked(false);
@@ -228,21 +220,21 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
           break;
         }
       }
-      if (rbdown.isSelected())
+      if (rbdown.isSelected()) {
         index++;
-      else
+      } else {
         index--;
+      }
     }
     blocker.setBlocked(false);
     bnext.setEnabled(true);
     cbwhole.setEnabled(true);
     cbcase.setEnabled(true);
     tfinput.setEnabled(true);
-    if (term != null)
-      JOptionPane.showMessageDialog(this, "No more matches found", "Search complete",
-                                    JOptionPane.INFORMATION_MESSAGE);
+    if (term != null) {
+      JOptionPane.showMessageDialog(this, "No more matches found", "Search complete", JOptionPane.INFORMATION_MESSAGE);
+    }
   }
 
-// --------------------- End Interface Runnable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 }
-

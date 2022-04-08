@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -19,42 +19,36 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
-public final class NewChrSettings extends NewAbstractSettings
-{
+public final class NewChrSettings extends NewAbstractSettings {
   private JTextField tfName;
   private ChrConfig config;
 
-  public NewChrSettings(Window parent)
-  {
+  public NewChrSettings(Window parent) {
     super(parent, "CHR settings");
     config = new ChrConfig();
     initDialog(parent);
   }
 
-  public NewChrSettings(Window parent, String name)
-  {
+  public NewChrSettings(Window parent, String name) {
     super(parent, "CHR settings");
     config = new ChrConfig(name);
     initDialog(parent);
   }
 
   @Override
-  public ChrConfig getConfig()
-  {
+  public ChrConfig getConfig() {
     return config;
   }
 
   @Override
-  protected void accept()
-  {
+  protected void accept() {
     config.setName(tfName.getText());
     super.accept();
   }
 
-  private void initDialog(Window parent)
-  {
+  private void initDialog(Window parent) {
     tfName = new JTextField();
-    tfName.setColumns(32);    // visible space for 32 characters
+    tfName.setColumns(32); // visible space for 32 characters
     tfName.setDocument(new FixedDocument(tfName, 32));
 
     JLabel label = new JLabel("Enter character name (max. 32 chars):");
@@ -104,55 +98,49 @@ public final class NewChrSettings extends NewAbstractSettings
     setVisible(true);
   }
 
-//-------------------------- INNER CLASSES --------------------------
+  // -------------------------- INNER CLASSES --------------------------
 
-  public class ChrConfig
-  {
-    private String name;    // field at offset 0x08
+  public class ChrConfig {
+    private String name; // field at offset 0x08
 
-    public ChrConfig()
-    {
+    public ChrConfig() {
       setName("");
     }
 
-    public ChrConfig(String newName)
-    {
+    public ChrConfig(String newName) {
       setName(newName);
     }
 
-    public String getName()
-    {
+    public String getName() {
       return name;
     }
 
-    private void setName(String newName)
-    {
-      if (newName != null)
+    private void setName(String newName) {
+      if (newName != null) {
         name = (newName.length() <= 32) ? newName : newName.substring(0, 32);
-      else
+      } else {
         name = "";
+      }
     }
   }
 
   // Ensures a size limit on byte level
-  private class FixedDocument extends PlainDocument
-  {
+  private class FixedDocument extends PlainDocument {
     private int maxLength;
     private JTextField textField;
 
-    FixedDocument(JTextField text, int length)
-    {
+    FixedDocument(JTextField text, int length) {
       super();
       textField = text;
       maxLength = length >= 0 ? length : 0;
     }
 
     @Override
-    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException
-    {
-      if (str == null || textField == null ||
-          textField.getText().getBytes().length + str.getBytes().length > maxLength)
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+      if (str == null || textField == null
+          || textField.getText().getBytes().length + str.getBytes().length > maxLength) {
         return;
+      }
       super.insertString(offs, str, a);
     }
   }

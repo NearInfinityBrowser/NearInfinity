@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.hexview;
@@ -28,8 +28,7 @@ import tv.porst.jhexview.JHexView;
 /**
  * A generic hex viewer for all kinds of resources.
  */
-public class GenericHexViewer extends JPanel implements IHexViewListener, Closeable, IDataChangedListener
-{
+public class GenericHexViewer extends JPanel implements IHexViewListener, Closeable, IDataChangedListener {
   private static final String FMT_OFFSET = "%1$Xh (%1$d)";
 
   private final JHexView hexView;
@@ -39,18 +38,15 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   private FindDataDialog findData;
   private boolean isModified;
 
-  public GenericHexViewer()
-  {
+  public GenericHexViewer() {
     this(new byte[0]);
   }
 
-  public GenericHexViewer(ResourceEntry entry) throws Exception
-  {
+  public GenericHexViewer(ResourceEntry entry) throws Exception {
     this(entry.getResourceBuffer().array());
   }
 
-  public GenericHexViewer(byte[] data)
-  {
+  public GenericHexViewer(byte[] data) {
     super();
 
     if (data == null) {
@@ -65,40 +61,36 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     initGui();
   }
 
-//--------------------- Begin Interface IHexViewListener ---------------------
+  // --------------------- Begin Interface IHexViewListener ---------------------
 
   @Override
-  public void stateChanged(HexViewEvent event)
-  {
-    if (event.getSource() instanceof JHexView &&
-        event.getCause() == HexViewEvent.Cause.SelectionChanged) {
-      JHexView hv = (JHexView)event.getSource();
-      int offset = (int)hv.getCurrentOffset();
+  public void stateChanged(HexViewEvent event) {
+    if (event.getSource() instanceof JHexView && event.getCause() == HexViewEvent.Cause.SelectionChanged) {
+      JHexView hv = (JHexView) event.getSource();
+      int offset = (int) hv.getCurrentOffset();
 
       // updating statusbar
       updateStatusBar(offset);
     }
   }
 
-//--------------------- End Interface IHexViewListener ---------------------
+  // --------------------- End Interface IHexViewListener ---------------------
 
-//--------------------- Begin Interface IDataChangedListener ---------------------
+  // --------------------- Begin Interface IDataChangedListener ---------------------
 
   @Override
-  public void dataChanged(DataChangedEvent event)
-  {
+  public void dataChanged(DataChangedEvent event) {
     if (event.getSource() == dataProvider) {
       setModified(true);
     }
   }
 
-//--------------------- End Interface IDataChangedListener ---------------------
+  // --------------------- End Interface IDataChangedListener ---------------------
 
-//--------------------- Begin Interface Closeable ---------------------
+  // --------------------- Begin Interface Closeable ---------------------
 
   @Override
-  public void close() throws Exception
-  {
+  public void close() throws Exception {
     hexView.setVisible(false);
     hexView.dispose();
 
@@ -108,17 +100,15 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     }
   }
 
-//--------------------- End Interface Closeable ---------------------
+  // --------------------- End Interface Closeable ---------------------
 
   @Override
-  public boolean requestFocusInWindow()
-  {
+  public boolean requestFocusInWindow() {
     return hexView.requestFocusInWindow();
   }
 
   /** Returns data as byte array. */
-  public byte[] getData()
-  {
+  public byte[] getData() {
     int len = Math.max(0, dataProvider.getDataLength());
     byte[] retVal;
     if (len > 0) {
@@ -130,11 +120,9 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   }
 
   /**
-   * Returns data as String with the specified character encoding.
-   * Specify {@code null} to use a default ANSI charset.
+   * Returns data as String with the specified character encoding. Specify {@code null} to use a default ANSI charset.
    */
-  public String getText(Charset cs)
-  {
+  public String getText(Charset cs) {
     if (cs == null) {
       cs = Misc.CHARSET_DEFAULT;
     }
@@ -143,8 +131,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   }
 
   /** Sets new data. Attempts to retain the current cursor position. */
-  public void setData(byte[] data)
-  {
+  public void setData(byte[] data) {
     long ofs = hexView.getCurrentOffset();
 
     if (data != null) {
@@ -161,11 +148,11 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
 
   /**
    * Sets new data by converting the string into byte data using the specified charset.
+   *
    * @param text Text to set.
-   * @param cs Character encoding of the text. Specify {@code null} to use a default ANSI charset.
+   * @param cs   Character encoding of the text. Specify {@code null} to use a default ANSI charset.
    */
-  public void setText(String text, Charset cs)
-  {
+  public void setText(String text, Charset cs) {
     long ofs = hexView.getCurrentOffset();
 
     if (cs == null) {
@@ -186,65 +173,55 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   }
 
   /** Returns the offset at the current caret position. */
-  public long getCurrentOffset()
-  {
+  public long getCurrentOffset() {
     return hexView.getCurrentOffset();
   }
 
   /** Sets the caret to a new offset. */
-  public void setCurrentOffset(long offset)
-  {
+  public void setCurrentOffset(long offset) {
     hexView.setCurrentOffset(offset);
   }
 
   /** Returns whether data has been modified. */
-  public boolean isModified()
-  {
+  public boolean isModified() {
     return isModified;
   }
 
-  public void clearModified()
-  {
+  public void clearModified() {
     setModified(false);
     hexView.clearModified();
   }
 
   /** Updates the offset information in NI's statusbar. */
-  public void updateStatusBar()
-  {
-    updateStatusBar((int)hexView.getCurrentOffset());
+  public void updateStatusBar() {
+    updateStatusBar((int) hexView.getCurrentOffset());
   }
 
-  public void addDataChangedListener(IDataChangedListener l)
-  {
-    if (l != null ) {
+  public void addDataChangedListener(IDataChangedListener l) {
+    if (l != null) {
       dataProvider.addListener(l);
     }
   }
 
-  public void removeDataChangedListener(IDataChangedListener l)
-  {
+  public void removeDataChangedListener(IDataChangedListener l) {
     if (l != null) {
       dataProvider.removeListener(l);
     }
   }
 
-  public void addHexViewListener(IHexViewListener l)
-  {
+  public void addHexViewListener(IHexViewListener l) {
     if (l != null) {
       hexView.addHexListener(l);
     }
   }
 
-  public void removeHexViewListener(IHexViewListener l)
-  {
+  public void removeHexViewListener(IHexViewListener l) {
     if (l != null) {
       hexView.removeHexListener(l);
     }
   }
 
-  private void initGui()
-  {
+  private void initGui() {
     setLayout(new BorderLayout());
 
     // configuring hexview
@@ -253,21 +230,19 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setMenuCreator(menuCreator);
     hexView.addHexListener(this);
     hexView.setData(dataProvider);
-    hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
-        JHexView.DefinitionStatus.DEFINED : JHexView.DefinitionStatus.UNDEFINED);
+    hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ? JHexView.DefinitionStatus.DEFINED
+        : JHexView.DefinitionStatus.UNDEFINED);
     add(hexView, BorderLayout.CENTER);
   }
 
-  private void setModified(boolean b)
-  {
+  private void setModified(boolean b) {
     isModified = b;
     if (!isModified) {
       hexView.clearModified();
     }
   }
 
-  private void updateStatusBar(int offset)
-  {
+  private void updateStatusBar(int offset) {
     StatusBar sb = NearInfinity.getInstance().getStatusBar();
     if (offset >= 0) {
       sb.setCursorText(String.format(FMT_OFFSET, offset));
@@ -275,16 +250,15 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
       sb.setCursorText("");
     }
   }
+
   /**
-   * The auxiliary method for setup common parameters of the HEX editor: colors,
-   * font and byte grid.
+   * The auxiliary method for setup common parameters of the HEX editor: colors, font and byte grid.
    *
-   * @param hexView Editor for setup
-   * @param isEditable if {@code true}, then editor use one colors for text,
-   *        otherwise other. This colors shows editable status of the editor
+   * @param hexView    Editor for setup
+   * @param isEditable if {@code true}, then editor use one colors for text, otherwise other. This colors shows editable
+   *                   status of the editor
    */
-  public static void configureHexView(JHexView hexView, boolean isEditable)
-  {
+  public static void configureHexView(JHexView hexView, boolean isEditable) {
     final Color textColor = isEditable ? Color.BLACK : Color.GRAY;
     hexView.setEnabled(false);
     hexView.setDefinitionStatus(JHexView.DefinitionStatus.UNDEFINED);

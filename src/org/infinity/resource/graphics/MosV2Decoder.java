@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -18,27 +18,28 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
 
-public class MosV2Decoder extends MosDecoder
-{
+public class MosV2Decoder extends MosDecoder {
+  private static final int HEADER_SIZE = 16;  // size of the MOS header
+  private static final int BLOCK_SIZE = 28;   // size of a single data block
+
   private final TreeSet<Integer> pvrIndices = new TreeSet<>();
-  private static final int HeaderSize = 16;   // size of the MOS header
-  private static final int BlockSize = 28;    // size of a single data block
 
   private ByteBuffer mosBuffer;
-  private int width, height, blockCount, ofsData;
+  private int width;
+  private int height;
+  private int blockCount;
+  private int ofsData;
 
-  public MosV2Decoder(ResourceEntry mosEntry)
-  {
+  public MosV2Decoder(ResourceEntry mosEntry) {
     super(mosEntry);
     init();
   }
 
   /**
-   * Forces the internal cache to be filled with all PVRZ resources required by this MOS resource.
-   * This will ensure that tiles are decoded at constant speed.
+   * Forces the internal cache to be filled with all PVRZ resources required by this MOS resource. This will ensure that
+   * tiles are decoded at constant speed.
    */
-  public void preloadPvrz()
-  {
+  public void preloadPvrz() {
     for (int i = 0; i < getBlockCount(); i++) {
       int ofs = getBlockOffset(i);
       if (ofs > 0) {
@@ -51,8 +52,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public void close()
-  {
+  public void close() {
     PvrDecoder.flushCache();
     pvrIndices.clear();
     mosBuffer = null;
@@ -61,32 +61,27 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public void reload()
-  {
+  public void reload() {
     init();
   }
 
   @Override
-  public ByteBuffer getResourceBuffer()
-  {
+  public ByteBuffer getResourceBuffer() {
     return mosBuffer;
   }
 
   @Override
-  public int getWidth()
-  {
+  public int getWidth() {
     return width;
   }
 
   @Override
-  public int getHeight()
-  {
+  public int getHeight() {
     return height;
   }
 
   @Override
-  public Image getImage()
-  {
+  public Image getImage() {
     if (isInitialized()) {
       BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       if (getImage(image)) {
@@ -99,8 +94,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public boolean getImage(Image canvas)
-  {
+  public boolean getImage(Image canvas) {
     if (isInitialized() && canvas != null) {
       boolean bRet = false;
       for (int i = 0; i < getBlockCount(); i++) {
@@ -117,10 +111,9 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public int[] getImageData()
-  {
+  public int[] getImageData() {
     if (isInitialized()) {
-      int[] buffer = new int[getWidth()*getHeight()];
+      int[] buffer = new int[getWidth() * getHeight()];
       if (getImageData(buffer)) {
         return buffer;
       } else {
@@ -131,8 +124,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public boolean getImageData(int[] buffer)
-  {
+  public boolean getImageData(int[] buffer) {
     if (isInitialized() && buffer != null) {
       boolean bRet = false;
       for (int i = 0; i < getBlockCount(); i++) {
@@ -149,14 +141,12 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public int getBlockCount()
-  {
+  public int getBlockCount() {
     return blockCount;
   }
 
   @Override
-  public int getBlockWidth(int blockIdx)
-  {
+  public int getBlockWidth(int blockIdx) {
     int ofs = getBlockOffset(blockIdx);
     if (ofs > 0) {
       return mosBuffer.getInt(ofs + 0x0c);
@@ -165,8 +155,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public int getBlockHeight(int blockIdx)
-  {
+  public int getBlockHeight(int blockIdx) {
     int ofs = getBlockOffset(blockIdx);
     if (ofs > 0) {
       return mosBuffer.getInt(ofs + 0x10);
@@ -175,8 +164,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public Image getBlock(int blockIdx)
-  {
+  public Image getBlock(int blockIdx) {
     if (isValidBlock(blockIdx)) {
       Image image = ColorConvert.createCompatibleImage(getBlockWidth(blockIdx), getBlockHeight(blockIdx), true);
       if (renderBlock(blockIdx, image, 0, 0)) {
@@ -189,8 +177,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public boolean getBlock(int blockIdx, Image canvas)
-  {
+  public boolean getBlock(int blockIdx, Image canvas) {
     if (isValidBlock(blockIdx) && canvas != null) {
       return renderBlock(blockIdx, canvas, 0, 0);
     }
@@ -198,12 +185,11 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public int[] getBlockData(int blockIdx)
-  {
+  public int[] getBlockData(int blockIdx) {
     if (isValidBlock(blockIdx)) {
       int w = getBlockWidth(blockIdx);
       int h = getBlockHeight(blockIdx);
-      int[] buffer = new int[w*h];
+      int[] buffer = new int[w * h];
       if (renderBlock(blockIdx, buffer, w, h, 0, 0)) {
         return buffer;
       } else {
@@ -214,12 +200,11 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public boolean getBlockData(int blockIdx, int[] buffer)
-  {
+  public boolean getBlockData(int blockIdx, int[] buffer) {
     if (isValidBlock(blockIdx) && buffer != null) {
       int w = getBlockWidth(blockIdx);
       int h = getBlockHeight(blockIdx);
-      if (buffer.length >= w*h) {
+      if (buffer.length >= w * h) {
         return renderBlock(blockIdx, buffer, w, h, 0, 0);
       }
     }
@@ -227,14 +212,11 @@ public class MosV2Decoder extends MosDecoder
   }
 
   /** Returns the set of referenced PVRZ pages by this MOS. */
-  public Set<Integer> getReferencedPVRZPages()
-  {
+  public Set<Integer> getReferencedPVRZPages() {
     return Collections.unmodifiableSet(pvrIndices);
   }
 
-
-  private void init()
-  {
+  private void init() {
     close();
 
     if (getResourceEntry() != null) {
@@ -262,7 +244,7 @@ public class MosV2Decoder extends MosDecoder
           throw new Exception("Invalid number of data blocks: " + blockCount);
         }
         ofsData = mosBuffer.getInt(0x14);
-        if (width < HeaderSize) {
+        if (width < HEADER_SIZE) {
           throw new Exception("Invalid data offset: " + ofsData);
         }
         // collecting referened pvrz pages
@@ -270,7 +252,7 @@ public class MosV2Decoder extends MosDecoder
           int ofs = ofsData + (idx * 28);
           int page = mosBuffer.getInt(ofs);
           if (page >= 0) {
-            pvrIndices.add(Integer.valueOf(page));
+            pvrIndices.add(page);
           }
         }
       } catch (Exception e) {
@@ -281,8 +263,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   // Returns and caches the PVRZ resource of the specified page
-  private PvrDecoder getPVR(int page)
-  {
+  private PvrDecoder getPVR(int page) {
     try {
       String name = String.format("MOS%04d.PVRZ", page);
       ResourceEntry entry = ResourceFactory.getResourceEntry(name);
@@ -296,29 +277,25 @@ public class MosV2Decoder extends MosDecoder
   }
 
   // Returns if a valid MOS has been initialized
-  private boolean isInitialized()
-  {
+  private boolean isInitialized() {
     return (mosBuffer != null && blockCount > 0 && width > 0 && height > 0);
   }
 
   // Returns whether the specified block index is valid
-  private boolean isValidBlock(int blockIdx)
-  {
+  private boolean isValidBlock(int blockIdx) {
     return (blockIdx >= 0 && blockIdx < blockCount);
   }
 
   // Returns the start offset of the specified data block
-  private int getBlockOffset(int blockIdx)
-  {
+  private int getBlockOffset(int blockIdx) {
     if (blockIdx >= 0 && blockIdx < blockCount) {
-      return ofsData + blockIdx*BlockSize;
+      return ofsData + blockIdx * BLOCK_SIZE;
     }
     return -1;
   }
 
   // Renders the specified block onto the canvas at position (left, top)
-  private boolean renderBlock(int blockIdx, Image canvas, int left, int top)
-  {
+  private boolean renderBlock(int blockIdx, Image canvas, int left, int top) {
     int ofsBlock = getBlockOffset(blockIdx);
     if (ofsBlock > 0 && canvas != null && left >= 0 && top >= 0) {
       int page = mosBuffer.getInt(ofsBlock);
@@ -333,7 +310,7 @@ public class MosV2Decoder extends MosDecoder
           int h = (top + blockHeight < canvas.getHeight(null)) ? canvas.getHeight(null) - top : blockHeight;
           if (w > 0 && h > 0) {
             BufferedImage imgBlock = decoder.decode(srcX, srcY, blockWidth, blockHeight);
-            Graphics2D g = (Graphics2D)canvas.getGraphics();
+            Graphics2D g = (Graphics2D) canvas.getGraphics();
             try {
               g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
               g.drawImage(imgBlock, left, top, left + w, top + h, 0, 0, w, h, null);
@@ -353,8 +330,7 @@ public class MosV2Decoder extends MosDecoder
   }
 
   // Writes the specified block into the buffer of specified dimensions at position (left, top)
-  private boolean renderBlock(int blockIdx, int[] buffer, int width, int height, int left, int top)
-  {
+  private boolean renderBlock(int blockIdx, int[] buffer, int width, int height, int left, int top) {
     int ofsBlock = getBlockOffset(blockIdx);
     if (ofsBlock > 0 && buffer != null && width > 0 && height > 0 && left >= 0 && top >= 0) {
       int page = mosBuffer.getInt(ofsBlock);
@@ -369,9 +345,9 @@ public class MosV2Decoder extends MosDecoder
           int h = (top + blockHeight < height) ? height - top : blockHeight;
           if (w > 0 && h > 0) {
             BufferedImage imgBlock = decoder.decode(srcX, srcY, blockWidth, blockHeight);
-            int[] srcData = ((DataBufferInt)imgBlock.getRaster().getDataBuffer()).getData();
+            int[] srcData = ((DataBufferInt) imgBlock.getRaster().getDataBuffer()).getData();
             int srcOfs = 0;
-            int dstOfs = top*width + left;
+            int dstOfs = top * width + left;
             for (int y = 0; y < h; y++) {
               System.arraycopy(srcData, srcOfs, buffer, dstOfs, w);
               srcOfs += blockWidth;

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -17,8 +17,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.util.io.StreamUtils;
 
-public final class SpawnPoint extends AbstractStruct implements AddRemovable
-{
+public final class SpawnPoint extends AbstractStruct implements AddRemovable {
   // ARE/Spawn Point-specific field labels
   public static final String ARE_SPAWN                      = "Spawn point";
   public static final String ARE_SPAWN_NAME                 = "Name";
@@ -41,43 +40,38 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
   public static final String ARE_SPAWN_COUNTDOWN            = "Countdown";
   public static final String ARE_SPAWN_WEIGHT_FMT           = "Spawn weight %d";
 
-  public static final String[] s_method = {"No flags set", "Spawn until paused",
-                                           "Disable after spawn", "Spawn paused"};
+  public static final String[] METHOD_ARRAY = { "No flags set", "Spawn until paused", "Disable after spawn",
+      "Spawn paused" };
 
-  SpawnPoint() throws Exception
-  {
+  SpawnPoint() throws Exception {
     super(null, ARE_SPAWN, StreamUtils.getByteBuffer(200), 0);
   }
 
-  SpawnPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  SpawnPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, ARE_SPAWN + " " + number, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 32, ARE_SPAWN_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_SPAWN_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_SPAWN_LOCATION_Y));
     for (int i = 0; i < 10; i++) {
-      addField(new SpawnResourceRef(buffer, offset + 36 + (i * 8),
-                                    String.format(ARE_SPAWN_CREATURE_FMT, i+1)));
+      addField(new SpawnResourceRef(buffer, offset + 36 + (i * 8), String.format(ARE_SPAWN_CREATURE_FMT, i + 1)));
     }
     addField(new DecNumber(buffer, offset + 116, 2, ARE_SPAWN_NUM_CREATURES));
     addField(new DecNumber(buffer, offset + 118, 2, ARE_SPAWN_ENCOUNTER_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 120, 2, ARE_SPAWN_RATE));
-    addField(new Flag(buffer, offset + 122, 2, ARE_SPAWN_METHOD, s_method));
+    addField(new Flag(buffer, offset + 122, 2, ARE_SPAWN_METHOD, METHOD_ARRAY));
     addField(new DecNumber(buffer, offset + 124, 4, ARE_SPAWN_DURATION));
     addField(new DecNumber(buffer, offset + 128, 2, ARE_SPAWN_WANDER_DISTANCE));
     addField(new DecNumber(buffer, offset + 130, 2, ARE_SPAWN_FOLLOW_DISTANCE));
@@ -90,8 +84,7 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
       addField(new DecNumber(buffer, offset + 144, 4, ARE_SPAWN_FREQUENCY));
       addField(new DecNumber(buffer, offset + 148, 4, ARE_SPAWN_COUNTDOWN));
       for (int i = 0; i < 10; i++) {
-        addField(new DecNumber(buffer, offset + 152 + i, 1,
-                               String.format(ARE_SPAWN_WEIGHT_FMT, i+1)));
+        addField(new DecNumber(buffer, offset + 152 + i, 1, String.format(ARE_SPAWN_WEIGHT_FMT, i + 1)));
       }
       addField(new Unknown(buffer, offset + 162, 38));
     } else {
@@ -100,4 +93,3 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     return offset + 200;
   }
 }
-

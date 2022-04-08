@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -15,8 +15,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
 /** These are textual notes which are entered automatically (PST). */
-public final class AutomapNotePST extends AbstractStruct implements AddRemovable
-{
+public final class AutomapNotePST extends AbstractStruct implements AddRemovable {
   // ARE/Automap Notes-specific field labels
   public static final String ARE_AUTOMAP            = "Automap note";
   public static final String ARE_AUTOMAP_LOCATION_X = "Coordinate: X";
@@ -24,29 +23,25 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
   public static final String ARE_AUTOMAP_TEXT       = "Text";
   public static final String ARE_AUTOMAP_READ_ONLY  = "Is read only?";
 
-  AutomapNotePST() throws Exception
-  {
+  AutomapNotePST() throws Exception {
     super(null, ARE_AUTOMAP, StreamUtils.getByteBuffer(532), 0);
   }
 
-  AutomapNotePST(AbstractStruct area, ByteBuffer buffer, int offset, int number) throws Exception
-  {
+  AutomapNotePST(AbstractStruct area, ByteBuffer buffer, int offset, int number) throws Exception {
     super(area, ARE_AUTOMAP + " " + number, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
+  // --------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
-//--------------------- End Interface AddRemovable ---------------------
+  // --------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new DecNumber(buffer, offset, 4, ARE_AUTOMAP_LOCATION_X));
     addField(new DecNumber(buffer, offset + 4, 4, ARE_AUTOMAP_LOCATION_Y));
     addField(new TextString(buffer, offset + 8, 500, ARE_AUTOMAP_TEXT));
@@ -55,4 +50,3 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
     return offset + 532;
   }
 }
-

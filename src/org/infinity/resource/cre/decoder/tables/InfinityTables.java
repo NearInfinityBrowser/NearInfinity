@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2021 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.tables;
@@ -25,25 +25,25 @@ import org.infinity.util.Misc;
 /**
  * A static class dedicated to processing Infinity Animation slots.
  */
-public class InfinityTables
-{
-  private static final String[] TABLE_INFINITY_ANIMATIONS = { "", // not installed
-                                                              "infinityanimations-v5.ids",  // IA v5 or earlier
-                                                              "infinityanimations-v6.ids",  // IA v6 or later
-                                                            };
+public class InfinityTables {
+  private static final String[] TABLE_INFINITY_ANIMATIONS = {
+      "", // not installed
+      "infinityanimations-v5.ids", // IA v5 or earlier
+      "infinityanimations-v6.ids", // IA v6 or later
+  };
 
   /**
    * Creates a creature animation INI definition from the Infinity Animations table.
+   *
    * @param animationId the creature animation id
-   * @return a list of {@link IniMap} instances containing animation information.
-   *         Returns an empty {@code IniMap} list if no information could be determined.
+   * @return a list of {@link IniMap} instances containing animation information. Returns an empty {@code IniMap} list
+   *         if no information could be determined.
    */
-  public static List<IniMap> createIniMaps(int animationId)
-  {
+  public static List<IniMap> createIniMaps(int animationId) {
     List<IniMap> retVal = new ArrayList<>();
 
     // determine correct IA version
-    int ver = Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS).intValue();
+    int ver = Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS);
     if (ver < 1 || ver >= TABLE_INFINITY_ANIMATIONS.length) {
       return retVal;
     }
@@ -60,8 +60,7 @@ public class InfinityTables
   }
 
   /** Processes table data. */
-  private static List<IniMap> processTable(IdsMap idsMap, int animationId)
-  {
+  private static List<IniMap> processTable(IdsMap idsMap, int animationId) {
     List<IniMap> retVal = new ArrayList<>();
     if (idsMap == null) {
       return retVal;
@@ -87,7 +86,7 @@ public class InfinityTables
         Method method = cls.getMethod("processTableData", String[].class);
         Object o = method.invoke(null, new Object[] { data });
         if (o instanceof IniMap) {
-          retVal.add((IniMap)o);
+          retVal.add((IniMap) o);
         }
       }
     } catch (InvocationTargetException ite) {
@@ -100,13 +99,10 @@ public class InfinityTables
       return retVal;
     }
 
-
-
     return retVal;
   }
 
-  private static String[] parseTableEntry(int animationId, String entry) throws Exception
-  {
+  private static String[] parseTableEntry(int animationId, String entry) throws Exception {
     final String[] retVal = new String[SpriteTables.NUM_COLUMNS];
 
     String[] items = Objects.requireNonNull(entry).split("\\s+");
@@ -128,22 +124,24 @@ public class InfinityTables
       ellipse = 72;
     }
 
-//    char type = SpriteTables.valueToString(items, 4, " ").charAt(0);
+    // char type = SpriteTables.valueToString(items, 4, " ").charAt(0);
 
-    final HashMap<String, AnimationInfo.Type> animationTypes = new HashMap<String, AnimationInfo.Type>() {{
-      put("BGI MONSTER LONG 4 PART", AnimationInfo.Type.MONSTER_QUADRANT);
-      put("DRAGONS", AnimationInfo.Type.MONSTER_MULTI);
-      put("BGII SPLIT 4 PART", AnimationInfo.Type.MONSTER_MULTI_NEW);
-      put("BGI SIMPLE CASTER", AnimationInfo.Type.MONSTER_LAYERED_SPELL);
-      put("BROKEN ANKHEG", AnimationInfo.Type.MONSTER_ANKHEG);
-      put("CHARACTER BGII", AnimationInfo.Type.CHARACTER);
-      put("CHARACTER BGI", AnimationInfo.Type.CHARACTER_OLD);
-      put("BGII UNSPLIT EXT.", AnimationInfo.Type.MONSTER);
-      put("BGII SPLIT", AnimationInfo.Type.MONSTER);
-      put("BGI SIMPLE MONSTER", AnimationInfo.Type.MONSTER_OLD);
-      put("BGI MONSTER LONG", AnimationInfo.Type.MONSTER_LARGE_16);
-      put("IWD", AnimationInfo.Type.MONSTER_ICEWIND);
-    }};
+    final HashMap<String, AnimationInfo.Type> animationTypes = new HashMap<String, AnimationInfo.Type>() {
+      {
+        put("BGI MONSTER LONG 4 PART", AnimationInfo.Type.MONSTER_QUADRANT);
+        put("DRAGONS", AnimationInfo.Type.MONSTER_MULTI);
+        put("BGII SPLIT 4 PART", AnimationInfo.Type.MONSTER_MULTI_NEW);
+        put("BGI SIMPLE CASTER", AnimationInfo.Type.MONSTER_LAYERED_SPELL);
+        put("BROKEN ANKHEG", AnimationInfo.Type.MONSTER_ANKHEG);
+        put("CHARACTER BGII", AnimationInfo.Type.CHARACTER);
+        put("CHARACTER BGI", AnimationInfo.Type.CHARACTER_OLD);
+        put("BGII UNSPLIT EXT.", AnimationInfo.Type.MONSTER);
+        put("BGII SPLIT", AnimationInfo.Type.MONSTER);
+        put("BGI SIMPLE MONSTER", AnimationInfo.Type.MONSTER_OLD);
+        put("BGI MONSTER LONG", AnimationInfo.Type.MONSTER_LARGE_16);
+        put("IWD", AnimationInfo.Type.MONSTER_ICEWIND);
+      }
+    };
 
     String typeString = null;
     AnimationInfo.Type animType = null;
@@ -174,8 +172,7 @@ public class InfinityTables
       case MONSTER_MULTI_NEW:
         split = 1;
         break;
-      case MONSTER_LAYERED_SPELL:
-      {
+      case MONSTER_LAYERED_SPELL: {
         String s = SpriteTables.valueToString(items, 8, "");
         if ("(BOW)".equalsIgnoreCase(s)) {
           heightShield = "BW";
@@ -185,8 +182,7 @@ public class InfinityTables
         break;
       }
       case CHARACTER:
-      case CHARACTER_OLD:
-      {
+      case CHARACTER_OLD: {
         split = 0;
         String s = SpriteTables.valueToString(items, 7, "");
         if (s.length() == 3) {
@@ -198,8 +194,7 @@ public class InfinityTables
         }
         break;
       }
-      case MONSTER:
-      {
+      case MONSTER: {
         switch (typeString) {
           case "BGII UNSPLIT EXT.":
             split = 0;
@@ -233,8 +228,7 @@ public class InfinityTables
   }
 
   /** Concatenates the specified strings to a single string, separated by a single space. */
-  private static String concatItems(String[] data, int idx, int len)
-  {
+  private static String concatItems(String[] data, int idx, int len) {
     StringBuilder sb = new StringBuilder();
     if (data == null || idx < 0 || idx >= data.length || len <= 0) {
       return sb.toString();
@@ -253,5 +247,6 @@ public class InfinityTables
     return sb.toString();
   }
 
-  private InfinityTables() { }
+  private InfinityTables() {
+  }
 }

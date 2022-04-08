@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 //
 // ----------------------------------------------------------------------------
@@ -47,10 +47,8 @@ import java.util.Arrays;
 /**
  * Utility class for zipfile name and comment decoding and encoding.
  */
-public class ZipCoder
-{
-  String toString(byte[] ba, int length)
-  {
+public class ZipCoder {
+  String toString(byte[] ba, int length) {
     CharsetDecoder cd = decoder().reset();
     int len = (int) (length * cd.maxCharsPerByte());
     char[] ca = new char[len];
@@ -70,13 +68,11 @@ public class ZipCoder
     return new String(ca, 0, cb.position());
   }
 
-  String toString(byte[] ba)
-  {
+  String toString(byte[] ba) {
     return toString(ba, ba.length);
   }
 
-  byte[] getBytes(String s)
-  {
+  byte[] getBytes(String s) {
     CharsetEncoder ce = encoder().reset();
     char[] ca = s.toCharArray();
     int len = (int) (ca.length * ce.maxBytesPerChar());
@@ -102,8 +98,7 @@ public class ZipCoder
   }
 
   // assume invoked only if "this" is not utf8
-  byte[] getBytesUTF8(String s)
-  {
+  byte[] getBytesUTF8(String s) {
     if (isutf8) {
       return getBytes(s);
     }
@@ -113,17 +108,17 @@ public class ZipCoder
     return utf8.getBytes(s);
   }
 
-  String toStringUTF8(byte[] ba, int len)
-  {
-    if (isutf8)
+  String toStringUTF8(byte[] ba, int len) {
+    if (isutf8) {
       return toString(ba, len);
-    if (utf8 == null)
+    }
+    if (utf8 == null) {
       utf8 = new ZipCoder(Charset.forName("UTF-8"));
+    }
     return utf8.toString(ba, len);
   }
 
-  boolean isUTF8()
-  {
+  boolean isUTF8() {
     return isutf8;
   }
 
@@ -131,19 +126,16 @@ public class ZipCoder
   private boolean isutf8;
   private ZipCoder utf8;
 
-  private ZipCoder(Charset cs)
-  {
+  private ZipCoder(Charset cs) {
     this.cs = cs;
     this.isutf8 = cs.name().equals("UTF-8");
   }
 
-  static ZipCoder get(Charset charset)
-  {
+  static ZipCoder get(Charset charset) {
     return new ZipCoder(charset);
   }
 
-  static ZipCoder get(String csn)
-  {
+  static ZipCoder get(String csn) {
     try {
       return new ZipCoder(Charset.forName(csn));
     } catch (Throwable t) {
@@ -155,23 +147,19 @@ public class ZipCoder
   private final ThreadLocal<CharsetDecoder> decTL = new ThreadLocal<>();
   private final ThreadLocal<CharsetEncoder> encTL = new ThreadLocal<>();
 
-  private CharsetDecoder decoder()
-  {
+  private CharsetDecoder decoder() {
     CharsetDecoder dec = decTL.get();
     if (dec == null) {
-      dec = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-          .onUnmappableCharacter(CodingErrorAction.REPORT);
+      dec = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
       decTL.set(dec);
     }
     return dec;
   }
 
-  private CharsetEncoder encoder()
-  {
+  private CharsetEncoder encoder() {
     CharsetEncoder enc = encTL.get();
     if (enc == null) {
-      enc = cs.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
-          .onUnmappableCharacter(CodingErrorAction.REPORT);
+      enc = cs.newEncoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
       encTL.set(enc);
     }
     return enc;

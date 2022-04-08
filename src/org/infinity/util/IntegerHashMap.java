@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -9,31 +9,25 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-public final class IntegerHashMap<V> extends HashMap<Integer, V>
-{
-  public IntegerHashMap()
-  {
+public final class IntegerHashMap<V> extends HashMap<Integer, V> {
+  public IntegerHashMap() {
     super();
   }
 
-  public IntegerHashMap(int initialCapacity)
-  {
+  public IntegerHashMap(int initialCapacity) {
     super(initialCapacity);
   }
 
-  public IntegerHashMap(int initialCapacity, float loadFactor)
-  {
+  public IntegerHashMap(int initialCapacity, float loadFactor) {
     super(initialCapacity, loadFactor);
   }
 
-  public IntegerHashMap(Map<Integer, ? extends V> m)
-  {
+  public IntegerHashMap(Map<Integer, ? extends V> m) {
     super(m);
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final StringBuilder buf = new StringBuilder();
     buf.append('{');
     Set<Map.Entry<Integer, V>> set = entrySet();
@@ -45,13 +39,15 @@ public final class IntegerHashMap<V> extends HashMap<Integer, V>
       V value = e.getValue();
       buf.append(key);
       buf.append('=');
-      if (value == this)
+      if (value == this) {
         buf.append("(this Map)");
-      else
+      } else {
         buf.append(value);
+      }
       hasNext = i.hasNext();
-      if (hasNext)
+      if (hasNext) {
         buf.append(", ");
+      }
     }
     buf.append('}');
     return buf.toString();

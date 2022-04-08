@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -16,10 +16,8 @@ import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractStruct;
 
-public final class Viewer extends JPanel
-{
-  private static JPanel makeFieldPanel(StoResource sto)
-  {
+public final class Viewer extends JPanel {
+  private static JPanel makeFieldPanel(StoResource sto) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldPanel = new JPanel(gbl);
@@ -37,22 +35,17 @@ public final class Viewer extends JPanel
     return fieldPanel;
   }
 
-  Viewer(StoResource sto)
-  {
+  Viewer(StoResource sto) {
     JPanel salePanel;
-    if (sto.getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V1.1"))
-      salePanel =
-      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale11.class, ItemSale11.STO_SALE_ITEM);
-    else
-      salePanel =
-      ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, ItemSale.STO_SALE_ITEM);
-    JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class,
-                                                Cure.STO_CURE_SPELL);
-    JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class,
-                                                 Drink.STO_DRINK_NAME);
-    JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class,
-                                               null);
-    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag)sto.getAttribute(StoResource.STO_FLAGS), 1);
+    if (sto.getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V1.1")) {
+      salePanel = ViewerUtil.makeListPanel("Items for sale", sto, ItemSale11.class, ItemSale11.STO_SALE_ITEM);
+    } else {
+      salePanel = ViewerUtil.makeListPanel("Items for sale", sto, ItemSale.class, ItemSale.STO_SALE_ITEM);
+    }
+    JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class, Cure.STO_CURE_SPELL);
+    JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class, Drink.STO_DRINK_NAME);
+    JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class, null);
+    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag) sto.getAttribute(StoResource.STO_FLAGS), 1);
     JPanel fieldPanel = makeFieldPanel(sto);
 
     setLayout(new GridLayout(2, 3, 6, 6));
@@ -65,4 +58,3 @@ public final class Viewer extends JPanel
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
   }
 }
-

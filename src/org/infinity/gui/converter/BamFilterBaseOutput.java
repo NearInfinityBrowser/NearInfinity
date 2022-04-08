@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -13,26 +13,21 @@ import org.infinity.resource.graphics.PseudoBamDecoder;
 /**
  * The base class for filters that output the current state of the BAM structure to disk.
  */
-public abstract class BamFilterBaseOutput extends BamFilterBase
-{
-  protected BamFilterBaseOutput(ConvertToBam parent, String name, String desc)
-  {
+public abstract class BamFilterBaseOutput extends BamFilterBase {
+  protected BamFilterBaseOutput(ConvertToBam parent, String name, String desc) {
     super(parent, name, desc, Type.OUTPUT);
   }
 
   /**
-   * Outputs the specified BamDecoder to disk, considers the configuration stored in the
-   * parent ConvertToBam instance.
+   * Outputs the specified BamDecoder to disk, considers the configuration stored in the parent ConvertToBam instance.
+   *
    * @param decoder The BamDecoder to convert.
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public abstract boolean process(PseudoBamDecoder decoder) throws Exception;
 
-
-
   /** Returns a palette of 256 colors if all frames are using the same palette, or null otherwise. */
-  public static int[] retrievePalette(PseudoBamDecoder decoder)
-  {
+  public static int[] retrievePalette(PseudoBamDecoder decoder) {
     int[] retVal = null;
     if (decoder != null) {
       int[] tmpPalette = new int[256];
@@ -42,12 +37,12 @@ public abstract class BamFilterBaseOutput extends BamFilterBase
           break;
         } else if (retVal == null) {
           // creating reference palette
-          IndexColorModel cm = (IndexColorModel)decoder.getFrameInfo(i).getFrame().getColorModel();
+          IndexColorModel cm = (IndexColorModel) decoder.getFrameInfo(i).getFrame().getColorModel();
           retVal = new int[256];
           cm.getRGBs(retVal);
         } else {
           // comparing current frame's palette with reference palette
-          IndexColorModel cm = (IndexColorModel)decoder.getFrameInfo(i).getFrame().getColorModel();
+          IndexColorModel cm = (IndexColorModel) decoder.getFrameInfo(i).getFrame().getColorModel();
           cm.getRGBs(tmpPalette);
           if (!Arrays.equals(retVal, tmpPalette)) {
             retVal = null;

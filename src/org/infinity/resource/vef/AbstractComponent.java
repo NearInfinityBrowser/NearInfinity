@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -16,36 +16,32 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
-public class AbstractComponent extends AbstractStruct implements AddRemovable
-{
+public class AbstractComponent extends AbstractStruct implements AddRemovable {
   // VEF/Component-specific field labels
   public static final String VEF_COMP_TICKS_START = "Ticks until start";
   public static final String VEF_COMP_TICKS_LOOP  = "Ticks until loop";
   public static final String VEF_COMP_CONTINUOUS  = "Continuous cycles?";
 
-  protected AbstractComponent(String label) throws Exception
-  {
+  protected AbstractComponent(String label) throws Exception {
     super(null, label, StreamUtils.getByteBuffer(224), 0);
   }
 
-  protected AbstractComponent(AbstractStruct superStruct, ByteBuffer buffer, int offset, String label) throws Exception
-  {
+  protected AbstractComponent(AbstractStruct superStruct, ByteBuffer buffer, int offset, String label)
+      throws Exception {
     super(superStruct, label, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
 
   @Override
-  public boolean canRemove()
-  {
+  public boolean canRemove() {
     return true;
   }
 
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new DecNumber(buffer, offset, 4, VEF_COMP_TICKS_START));
     addField(new Unknown(buffer, offset + 4, 4));
     addField(new DecNumber(buffer, offset + 8, 4, VEF_COMP_TICKS_LOOP));

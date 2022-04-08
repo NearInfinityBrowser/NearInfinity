@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -18,53 +18,46 @@ import org.infinity.resource.text.PlainTextResource;
  * Provides methods for converting Lua table structures into LuaEntry objects. Note: Not all available Lua features are
  * supported. Expects valid Lua code (limited code validation).
  */
-public class LuaParser
-{
+public class LuaParser {
   private enum Token {
-    None, Key, Index, Value, ValueString, ValueNumber, ValueHexNumber, ValueBoolean, Comment,
+    NONE, KEY, INDEX, VALUE, VALUE_STRING, VALUE_NUMBER, VALUE_HEX_NUMBER, VALUE_BOOLEAN, COMMENT,
   }
 
   /**
    * Attempts to retrieve a Lua table structure from the specified Lua resource.
    *
-   * @param entry
-   *          Lua resource entry.
-   * @param name
-   *          Name of the Lua table structure to retrieve.
-   * @param exactMatch
-   *          Whether the specified name is matched case-by-case ({@code true}) or as a regular expression
-   *          ({@code false}).
+   * @param entry      Lua resource entry.
+   * @param name       Name of the Lua table structure to retrieve.
+   * @param exactMatch Whether the specified name is matched case-by-case ({@code true}) or as a regular expression
+   *                   ({@code false}).
    * @return All LuaEntry structures matching the specified structure name, listed inside a root LuaEntry container
    *         labeled as key="0".
    * @throws Exception
    */
-  public static LuaEntry Parse(ResourceEntry entry, String name, boolean exactMatch) throws Exception
-  {
+  public static LuaEntry Parse(ResourceEntry entry, String name, boolean exactMatch) throws Exception {
     return Parse(Arrays.asList(entry), name, exactMatch);
   }
 
   /**
    * Attempts to retrieve a Lua table structure from the specified Lua resource.
    *
-   * @param entries
-   *          Array of Lua resource entries.
-   * @param name
-   *          Name of the Lua table structure to retrieve.
-   * @param exactMatch
-   *          Whether the specified name is matched case-by-case ({@code true}) or as a regular expression
-   *          ({@code false}).
+   * @param entries    Array of Lua resource entries.
+   * @param name       Name of the Lua table structure to retrieve.
+   * @param exactMatch Whether the specified name is matched case-by-case ({@code true}) or as a regular expression
+   *                   ({@code false}).
    * @return All LuaEntry structures matching the specified structure name, listed inside a root LuaEntry container
    *         labeled as key="0".
    * @throws Exception
    */
-  public static LuaEntry Parse(List<ResourceEntry> entries, String name, boolean exactMatch) throws Exception
-  {
-    if (entries == null || entries.size() == 0)
+  public static LuaEntry Parse(List<ResourceEntry> entries, String name, boolean exactMatch) throws Exception {
+    if (entries == null || entries.size() == 0) {
       return null;
+    }
 
     StringBuilder sb = new StringBuilder();
-    for (ResourceEntry entry : entries)
+    for (ResourceEntry entry : entries) {
       sb.append((new PlainTextResource(entry)).getText());
+    }
 
     return Parse(sb.toString(), name, exactMatch);
   }
@@ -72,23 +65,21 @@ public class LuaParser
   /**
    * Attempts to retrieve a Lua table structure from the specified Lua string.
    *
-   * @param data
-   *          Lua code as string.
-   * @param name
-   *          Name of the Lua table structure to retrieve.
-   * @param exactMatch
-   *          Whether the specified name is matched literally (true) or as a regular expression (false).
+   * @param data       Lua code as string.
+   * @param name       Name of the Lua table structure to retrieve.
+   * @param exactMatch Whether the specified name is matched literally (true) or as a regular expression (false).
    * @return All LuaEntry structures matching the specified structure name, listed inside a root LuaEntry container
    *         labeled as key="0".
    * @throws Exception
    */
-  public static LuaEntry Parse(String data, String name, boolean exactMatch) throws Exception
-  {
-    if (data == null || name == null || name.isEmpty())
+  public static LuaEntry Parse(String data, String name, boolean exactMatch) throws Exception {
+    if (data == null || name == null || name.isEmpty()) {
       return null;
+    }
 
-    if (exactMatch)
+    if (exactMatch) {
       name = Pattern.quote(name);
+    }
 
     LuaEntry root = new LuaEntry(0);
     root.children = new ArrayList<>();
@@ -101,8 +92,9 @@ public class LuaParser
 
     while (m.find()) {
       LuaEntry retVal = ParseElement((CharBuffer) CharBuffer.wrap(data).position(m.start(1)), root);
-      if (retVal != null)
+      if (retVal != null) {
         root.children.add(retVal);
+      }
     }
 
     // search for table additions
@@ -117,8 +109,9 @@ public class LuaParser
       if (child != null) {
         LuaEntry retVal = ParseElement((CharBuffer) CharBuffer.wrap(data).position(m.start(1)), child);
         if (retVal != null) {
-          if (child.children == null)
+          if (child.children == null) {
             child.children = new ArrayList<>();
+          }
           retVal.key = Integer.toString(child.children.size());
           child.children.add(retVal);
         }
@@ -129,118 +122,126 @@ public class LuaParser
   }
 
   // Recursive token-based parser
-  private static LuaEntry ParseElement(CharBuffer buffer, LuaEntry parent) throws Exception
-  {
+  private static LuaEntry ParseElement(CharBuffer buffer, LuaEntry parent) throws Exception {
     LuaEntry retVal = null;
-    Token prevToken = Token.None;
-    Token curToken = Token.None;
+    Token prevToken = Token.NONE;
+    Token curToken = Token.NONE;
     char delimiter = (char) 0;
     StringBuilder key = new StringBuilder();
     StringBuilder value = new StringBuilder();
     while (buffer.position() < buffer.limit()) {
       char ch = buffer.get();
       switch (curToken) {
-        case None:
+        case NONE:
           if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_') {
             prevToken = curToken;
-            curToken = Token.Key;
+            curToken = Token.KEY;
             key.append(ch);
           } else if (ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           } else if (ch == ',' || ch == '{') {
-            if (retVal == null)
+            if (retVal == null) {
               retVal = (key.length() > 0) ? new LuaEntry(key.toString()) : new LuaEntry(parent);
-            if (retVal.children == null)
+            }
+            if (retVal.children == null) {
               retVal.children = new ArrayList<>();
+            }
             LuaEntry el = ParseElement(buffer, retVal);
-            if (el != null)
+            if (el != null) {
               retVal.children.add(el);
+            }
           } else if (ch == '}') {
-            if (retVal == null)
+            if (retVal == null) {
               buffer.position(buffer.position() - 1);
+            }
             return retVal;
           } else if (ch > ' ') {
             prevToken = curToken;
-            curToken = Token.Value;
+            curToken = Token.VALUE;
             buffer.position(buffer.position() - 1);
             retVal = new LuaEntry(parent);
           }
           break;
-        case Key:
+        case KEY:
           if (ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch == '_') {
             key.append(ch);
           } else if (ch == '[') {
             prevToken = curToken;
-            curToken = Token.Index;
+            curToken = Token.INDEX;
           } else if (ch == '=') {
             prevToken = curToken;
-            curToken = Token.Value;
+            curToken = Token.VALUE;
             retVal = new LuaEntry(key.toString());
           } else if (ch == ',' || ch == '}') {
             // special case: true/false cannot be correctly determined before fully parsed
             if (key.toString().equals("true") || key.toString().equals("false")) {
               value.append(key.toString());
               key.setLength(0);
-              curToken = Token.ValueBoolean;
+              curToken = Token.VALUE_BOOLEAN;
               buffer.position(buffer.position() - 1);
-              if (retVal == null)
+              if (retVal == null) {
                 retVal = new LuaEntry(parent);
+              }
             }
           } else if (ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           }
           break;
-        case Index: // simplified index parsing (content is ignored)
-          if (ch == ']')
+        case INDEX: // simplified index parsing (content is ignored)
+          if (ch == ']') {
             curToken = prevToken; // restore previous state
+          }
           break;
-        case Value:
+        case VALUE:
           if (ch == '\'' || ch == '"' || ch == '[') {
             // special case: double square brackets [[...]] as string delimiter
-            if (ch == '[' && peekBuffer(buffer) == '[')
+            if (ch == '[' && peekBuffer(buffer) == '[') {
               ch = ']';
+            }
             delimiter = ch;
-            curToken = Token.ValueString;
+            curToken = Token.VALUE_STRING;
           } else if (ch >= '0' && ch <= '9') {
             if (ch == 0 && peekBuffer(buffer) == 'x') {
-              curToken = Token.ValueHexNumber;
+              curToken = Token.VALUE_HEX_NUMBER;
               buffer.get(); // skipping next character
             } else {
-              curToken = Token.ValueNumber;
+              curToken = Token.VALUE_NUMBER;
               value.append(ch);
             }
           } else if (ch == 't' && buffer.position() + 3 <= buffer.limit() && peekBuffer(buffer, 3).equals("rue")) {
-            curToken = Token.ValueBoolean;
+            curToken = Token.VALUE_BOOLEAN;
             value.append("true");
             buffer.position(buffer.position() + 3);
           } else if (ch == 'f' && buffer.position() + 4 <= buffer.limit() && peekBuffer(buffer, 4).equals("alse")) {
-            curToken = Token.ValueBoolean;
+            curToken = Token.VALUE_BOOLEAN;
             value.append("false");
             buffer.position(buffer.position() + 4);
           } else if (ch == '{') {
-            if (retVal.children == null)
+            if (retVal.children == null) {
               retVal.children = new ArrayList<>();
+            }
             LuaEntry el = ParseElement(buffer, retVal);
-            if (el != null)
+            if (el != null) {
               retVal.children.add(el);
+            }
             prevToken = curToken;
-            curToken = Token.None;
+            curToken = Token.NONE;
           } else if (ch == '-') {
             char ch2 = peekBuffer(buffer);
             if (ch2 == '-') {
               buffer.get();
               prevToken = curToken;
-              curToken = Token.Comment;
+              curToken = Token.COMMENT;
             } else if (ch2 >= '0' && ch2 <= '9') {
               value.append(ch);
             }
           }
           break;
-        case ValueBoolean:
+        case VALUE_BOOLEAN:
           if (ch == ',' || ch == '}') {
             retVal.value = Boolean.parseBoolean(value.toString());
             buffer.position(buffer.position() - 1);
@@ -248,10 +249,10 @@ public class LuaParser
           } else if (ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           }
           break;
-        case ValueNumber:
+        case VALUE_NUMBER:
           if (ch >= '0' && ch <= '9') {
             value.append(ch);
           } else if (ch == ',' || ch == '}') {
@@ -261,10 +262,10 @@ public class LuaParser
           } else if (ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           }
           break;
-        case ValueHexNumber:
+        case VALUE_HEX_NUMBER:
           if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
             value.append(ch);
           } else if (ch == ',' || ch == '}') {
@@ -274,14 +275,15 @@ public class LuaParser
           } else if (ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           }
           break;
-        case ValueString:
+        case VALUE_STRING:
           if (ch == delimiter && (delimiter != ']' || peekBuffer(buffer) == ']')) {
             // special case: double square brackets [[...]] as string delimiter
-            if (ch == ']')
+            if (ch == ']') {
               ch = buffer.get();
+            }
             retVal.value = value.toString();
             delimiter = (char) 0;
           } else if (delimiter == 0 && (ch == ',' || ch == '}')) {
@@ -290,7 +292,7 @@ public class LuaParser
           } else if (delimiter == 0 && ch == '-' && peekBuffer(buffer) == '-') {
             buffer.get();
             prevToken = curToken;
-            curToken = Token.Comment;
+            curToken = Token.COMMENT;
           } else {
             if (ch == '\\' && buffer.position() < buffer.limit()) {
               // escape sequence?
@@ -346,9 +348,10 @@ public class LuaParser
             value.append(ch);
           }
           break;
-        case Comment:
-          if (ch == '\n')
+        case COMMENT:
+          if (ch == '\n') {
             curToken = prevToken; // restore previous state
+          }
           break;
         default:
           throw new Exception(String.format("Invalid character '%c' at position %d", ch, buffer.position() - 1));
@@ -359,14 +362,13 @@ public class LuaParser
   }
 
   // Preview next 'count' characters as string (truncated if necessary), empty string if not available.
-  private static String peekBuffer(CharBuffer buf, int count)
-  {
-    if (buf == null)
+  private static String peekBuffer(CharBuffer buf, int count) {
+    if ((buf == null) || (count <= 0)) {
       return "";
-    if (count <= 0)
-      return "";
-    if (buf.position() + count > buf.limit())
+    }
+    if (buf.position() + count > buf.limit()) {
       count = buf.limit() - buf.position();
+    }
     try {
       return buf.subSequence(0, count).toString();
     } catch (Exception e) {
@@ -375,14 +377,13 @@ public class LuaParser
   }
 
   // Preview next character, null character if not available.
-  private static char peekBuffer(CharBuffer buf)
-  {
-    if (buf != null && buf.position() < buf.limit())
+  private static char peekBuffer(CharBuffer buf) {
+    if (buf != null && buf.position() < buf.limit()) {
       return buf.get(buf.position());
+    }
     return '\0';
   }
 
-  private LuaParser()
-  {
+  private LuaParser() {
   }
 }

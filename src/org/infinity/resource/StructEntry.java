@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -9,8 +9,7 @@ import java.util.List;
 
 import org.infinity.datatype.Readable;
 
-public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable, Readable
-{
+public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable, Readable {
   StructEntry clone() throws CloneNotSupportedException;
 
   void copyNameAndOffset(StructEntry fromEntry);

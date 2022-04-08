@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text.modes;
@@ -14,21 +14,20 @@ import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.infinity.resource.Profile;
 
 /**
- * A token maker that turns text into a linked list of {@link Token}s
- * for syntax highlighting Infinity Engine text strings.
+ * A token maker that turns text into a linked list of {@link Token}s for syntax highlighting Infinity Engine text
+ * strings.
  */
-public class TLKTokenMaker extends AbstractTokenMaker
-{
+public class TLKTokenMaker extends AbstractTokenMaker {
   /** Style for highlighting TLK text. */
   public static final String SYNTAX_STYLE_TLK = "text/TLK";
 
   // available token types
-  public static final int TOKEN_TEXT          = Token.IDENTIFIER;           // for regular text
-  public static final int TOKEN_TAG           = Token.MARKUP_TAG_NAME;      // for <xyz> tokens
-  public static final int TOKEN_COLORED       = Token.MARKUP_TAG_ATTRIBUTE; // for colored text (EE-specific)
+  public static final int TOKEN_TEXT    = Token.IDENTIFIER; // for regular text
+  public static final int TOKEN_TAG     = Token.MARKUP_TAG_NAME; // for <xyz> tokens
+  public static final int TOKEN_COLORED = Token.MARKUP_TAG_ATTRIBUTE; // for colored text (EE-specific)
 
-  private static final Pattern RegToken       = Pattern.compile("<[^<>]+>");
-  private static final String CharSeparator   = " \t-‒–—―";
+  private static final Pattern REG_TOKEN = Pattern.compile("<[^<>]+>");
+  private static final String CHAR_SEPARATOR = " \t-‒–—―";
 
   private final boolean isEE;
 
@@ -36,15 +35,13 @@ public class TLKTokenMaker extends AbstractTokenMaker
   private int currentTokenType;
   private int parentTokenType;
 
-  public TLKTokenMaker()
-  {
+  public TLKTokenMaker() {
     super();
     isEE = Profile.isEnhancedEdition();
   }
 
   @Override
-  public Token getTokenList(Segment text, int initialTokenType, int startOffset)
-  {
+  public Token getTokenList(Segment text, int initialTokenType, int startOffset) {
     resetTokenList();
 
     char[] array = text.array;
@@ -61,83 +58,76 @@ public class TLKTokenMaker extends AbstractTokenMaker
       char c = array[i];
 
       switch (currentTokenType) {
-        case Token.NULL:
-        {
-          currentTokenStart = i;    // starting new token here
+        case Token.NULL: {
+          currentTokenStart = i; // starting new token here
 
-          if (c == '<' &&
-              RegToken.matcher(new String(array, i, end-i)).lookingAt()) {
+          if (c == '<' && REG_TOKEN.matcher(new String(array, i, end - i)).lookingAt()) {
             currentTokenType = TOKEN_TAG;
-          } else if (isEE && c == '^' && i+1 < end && array[i+1] != '^') {
+          } else if (isEE && c == '^' && i + 1 < end && array[i + 1] != '^') {
             currentTokenType = TOKEN_COLORED;
             parentTokenType = currentTokenType;
           } else {
             currentTokenType = TOKEN_TEXT;
             parentTokenType = currentTokenType;
-            if (CharSeparator.indexOf(c) >= 0) {
+            if (CHAR_SEPARATOR.indexOf(c) >= 0) {
               // ensure correct text wrapping at word boundaries
-              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
               currentTokenStart = i + 1;
             }
           }
           break;
         }
 
-        case TOKEN_TEXT:
-        {
-          if (c == '<' &&
-              RegToken.matcher(new String(array, i, end-i)).lookingAt()) {
-            addToken(array, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+        case TOKEN_TEXT: {
+          if (c == '<' && REG_TOKEN.matcher(new String(array, i, end - i)).lookingAt()) {
+            addToken(array, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             parentTokenType = currentTokenType;
             currentTokenStart = i;
             currentTokenType = TOKEN_TAG;
           } else if (isEE && c == '^') {
-            addToken(array, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            addToken(array, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COLORED;
           } else {
-            if (CharSeparator.indexOf(c) >= 0) {
+            if (CHAR_SEPARATOR.indexOf(c) >= 0) {
               // ensure correct text wrapping at word boundaries
-              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
               currentTokenStart = i + 1;
             }
           }
           break;
         }
 
-        case TOKEN_TAG:
-        {
+        case TOKEN_TAG: {
           if (c == '>') {
-            addToken(array, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+            addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i + 1;
             currentTokenType = parentTokenType;
           }
           break;
         }
 
-        case TOKEN_COLORED:
-        {
-          if (c == '<' &&
-              RegToken.matcher(new String(array, i, end-i)).lookingAt()) {
-            addToken(array, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+        case TOKEN_COLORED: {
+          if (c == '<' && REG_TOKEN.matcher(new String(array, i, end - i)).lookingAt()) {
+            addToken(array, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             parentTokenType = currentTokenType;
             currentTokenStart = i;
             currentTokenType = TOKEN_TAG;
-          } else if (c == '^' && i+1 < end && array[i+1] == '-') {
+          } else if (c == '^' && i + 1 < end && array[i + 1] == '-') {
             i++;
-            addToken(array, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+            addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenType = Token.NULL;
           } else {
-            if (CharSeparator.indexOf(c) >= 0) {
+            if (CHAR_SEPARATOR.indexOf(c) >= 0) {
               // ensure correct text wrapping at word boundaries
-              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+              addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
               currentTokenStart = i + 1;
             }
           }
           break;
         }
 
-        default:  // should not happen
+        default: // should not happen
           try {
             throw new Exception("Invalid token " + currentTokenType + " found at position " + (newStartOfs + i));
           } catch (Exception e) {
@@ -167,8 +157,7 @@ public class TLKTokenMaker extends AbstractTokenMaker
   }
 
   @Override
-  public TokenMap getWordsToHighlight()
-  {
+  public TokenMap getWordsToHighlight() {
     // no keywords to check
     return new TokenMap();
   }

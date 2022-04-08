@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -20,8 +20,7 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 
-final public class AreaEntry extends AbstractStruct implements HasViewerTabs
-{
+final public class AreaEntry extends AbstractStruct implements HasViewerTabs {
   // WMP/AreaEntry-specific field labels
   public static final String WMP_AREA                   = "Area";
   public static final String WMP_AREA_CURRENT           = "Current area";
@@ -43,49 +42,43 @@ final public class AreaEntry extends AbstractStruct implements HasViewerTabs
   public static final String WMP_AREA_NUM_LINKS_SOUTH   = "# links (south)";
   public static final String WMP_AREA_NUM_LINKS_EAST    = "# links (east)";
 
-  private static final String[] s_flag = {"No flags set", "Visible", "Reveal from linked area",
-                                          "Can be visited", "Has been visited"};
+  private static final String[] FLAGS_ARRAY = { "No flags set", "Visible", "Reveal from linked area", "Can be visited",
+      "Has been visited" };
 
-  AreaEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
-  {
+  AreaEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, WMP_AREA + " " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasViewerTabs ---------------------
+  // --------------------- Begin Interface HasViewerTabs ---------------------
 
   @Override
-  public int getViewerTabCount()
-  {
+  public int getViewerTabCount() {
     return 1;
   }
 
   @Override
-  public String getViewerTabName(int index)
-  {
+  public String getViewerTabName(int index) {
     return StructViewer.TAB_VIEW;
   }
 
   @Override
-  public JComponent getViewerTab(int index)
-  {
+  public JComponent getViewerTab(int index) {
     return new ViewerArea(this);
   }
 
   @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
+  public boolean viewerTabAddedBefore(int index) {
     return true;
   }
 
-// --------------------- End Interface HasViewerTabs ---------------------
+  // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(ByteBuffer buffer, int offset) throws Exception
-  {
+  public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new ResourceRef(buffer, offset, WMP_AREA_CURRENT, "ARE"));
     addField(new ResourceRef(buffer, offset + 8, WMP_AREA_ORIGINAL, "ARE"));
     addField(new TextString(buffer, offset + 16, 32, WMP_AREA_SCRIPT_NAME));
-    addField(new Flag(buffer, offset + 48, 4, WMP_AREA_FLAGS, s_flag));
+    addField(new Flag(buffer, offset + 48, 4, WMP_AREA_FLAGS, FLAGS_ARRAY));
     addField(new DecNumber(buffer, offset + 52, 4, WMP_AREA_ICON_INDEX));
     addField(new DecNumber(buffer, offset + 56, 4, WMP_AREA_COORDINATE_X));
     addField(new DecNumber(buffer, offset + 60, 4, WMP_AREA_COORDINATE_Y));
@@ -104,35 +97,33 @@ final public class AreaEntry extends AbstractStruct implements HasViewerTabs
     return offset + 240;
   }
 
-  void readLinks(ByteBuffer buffer, DecNumber linkOffset) throws Exception
-  {
-    IsNumeric northStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_NORTH);
-    IsNumeric northCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_NORTH);
+  void readLinks(ByteBuffer buffer, DecNumber linkOffset) throws Exception {
+    IsNumeric northStart = (IsNumeric) getAttribute(WMP_AREA_FIRST_LINK_NORTH);
+    IsNumeric northCount = (IsNumeric) getAttribute(WMP_AREA_NUM_LINKS_NORTH);
     int offset = linkOffset.getValue() + northStart.getValue() * 216;
     for (int i = 0; i < northCount.getValue(); i++) {
       addField(new AreaLinkNorth(this, buffer, offset + i * 216, i));
     }
 
-    IsNumeric westStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_WEST);
-    IsNumeric westCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_WEST);
+    IsNumeric westStart = (IsNumeric) getAttribute(WMP_AREA_FIRST_LINK_WEST);
+    IsNumeric westCount = (IsNumeric) getAttribute(WMP_AREA_NUM_LINKS_WEST);
     offset = linkOffset.getValue() + westStart.getValue() * 216;
     for (int i = 0; i < westCount.getValue(); i++) {
       addField(new AreaLinkWest(this, buffer, offset + i * 216, i));
     }
 
-    IsNumeric southStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_SOUTH);
-    IsNumeric southCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_SOUTH);
+    IsNumeric southStart = (IsNumeric) getAttribute(WMP_AREA_FIRST_LINK_SOUTH);
+    IsNumeric southCount = (IsNumeric) getAttribute(WMP_AREA_NUM_LINKS_SOUTH);
     offset = linkOffset.getValue() + southStart.getValue() * 216;
     for (int i = 0; i < southCount.getValue(); i++) {
       addField(new AreaLinkSouth(this, buffer, offset + i * 216, i));
     }
 
-    IsNumeric eastStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_EAST);
-    IsNumeric eastCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_EAST);
+    IsNumeric eastStart = (IsNumeric) getAttribute(WMP_AREA_FIRST_LINK_EAST);
+    IsNumeric eastCount = (IsNumeric) getAttribute(WMP_AREA_NUM_LINKS_EAST);
     offset = linkOffset.getValue() + eastStart.getValue() * 216;
     for (int i = 0; i < eastCount.getValue(); i++) {
       addField(new AreaLinkEast(this, buffer, offset + i * 216, i));
     }
   }
 }
-

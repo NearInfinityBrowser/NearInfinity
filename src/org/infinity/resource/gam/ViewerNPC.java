@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2022 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -21,15 +21,13 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Viewer;
 
-final class ViewerNPC extends JPanel
-{
-  ViewerNPC(PartyNPC npc)
-  {
+final class ViewerNPC extends JPanel {
+  ViewerNPC(PartyNPC npc) {
     JTabbedPane tabs = new JTabbedPane();
     JScrollPane scroll = new JScrollPane(makeStatsPanel(npc));
     scroll.setBorder(BorderFactory.createEmptyBorder());
     tabs.addTab("Game stats", scroll);
-    CreResource cre = (CreResource)npc.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
+    CreResource cre = (CreResource) npc.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
     if (cre != null) {
       tabs.add("CRE", new Viewer(cre));
     }
@@ -37,8 +35,7 @@ final class ViewerNPC extends JPanel
     add(tabs, BorderLayout.CENTER);
   }
 
-  private JPanel makeStatsPanel(PartyNPC npc)
-  {
+  private JPanel makeStatsPanel(PartyNPC npc) {
     JPanel panel = new JPanel();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -74,18 +71,17 @@ final class ViewerNPC extends JPanel
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_NUM_KILLS_CHAPTER), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_NUM_KILLS_GAME), gbl, gbc, true);
     for (int i = 1; i < 4; i++) {
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_QUICK_SPELL_FMT, i)),
-                                   gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_QUICK_SPELL_FMT, i)), gbl,
+          gbc, true);
     }
     for (int i = 1; i < 5; i++) {
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_SPELL_FMT, i)),
-                                   gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_SPELL_FMT, i)), gbl,
+          gbc, true);
     }
     for (int i = 1; i < 5; i++) {
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_WEAPON_FMT, i)),
-                                   gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(String.format(PartyNPC.GAM_NPC_STAT_FAV_WEAPON_FMT, i)), gbl,
+          gbc, true);
     }
     return panel;
   }
 }
-
