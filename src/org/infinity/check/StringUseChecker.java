@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -52,6 +53,8 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.LuaEntry;
+import org.infinity.util.LuaParser;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
@@ -100,9 +103,13 @@ public final class StringUseChecker extends AbstractSearcher
       }
 
       strUsed = new boolean[StringTable.getNumEntries()];
-      if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+
+      if (Profile.getGame() == Profile.Game.PST) {
         Bestiary.markUsedStrings(strUsed);
+      } else if (Profile.getGame() == Profile.Game.PSTEE) {
+        checkBestiaryLua();
       }
+
       if (runSearch("Searching", files)) {
         return;
       }
@@ -294,6 +301,37 @@ public final class StringUseChecker extends AbstractSearcher
           strUsed[index] = true;
         }
       }
+    }
+  }
+
+  /** Checks the bestiary table in bgee.lua for unused strings. */
+  private void checkBestiaryLua() {
+    try {
+      LuaEntry bestiary = LuaParser.Parse(ResourceFactory.getResourceEntry("bgee.lua"), "bestiary", true);
+      if (!bestiary.children.isEmpty()) {
+        bestiary = bestiary.children.get(0);
+      }
+      for (final LuaEntry entry : bestiary.children) {
+        for (final LuaEntry subEntry : entry.children) {
+          if ("name".equals(subEntry.key)) {
+            if (subEntry.value instanceof Integer) {
+              final int index = StringTable.getTranslatedIndex((Integer) subEntry.value);
+              if (index >= 0 && index < strUsed.length && !strUsed[index]) {
+                strUsed[index] = true;
+              }
+            }
+          } else if (Pattern.matches("desc[0-9]", subEntry.key)) {
+            if (subEntry.value instanceof Integer) {
+              final int index = StringTable.getTranslatedIndex((Integer) subEntry.value);
+              if (index >= 0 && index < strUsed.length && !strUsed[index]) {
+                strUsed[index] = true;
+              }
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
