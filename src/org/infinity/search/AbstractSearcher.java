@@ -80,7 +80,13 @@ public abstract class AbstractSearcher {
       progressIndex = 0;
       progress = new ProgressMonitor(NearInfinity.getInstance(), operation + "..." + Misc.MSG_EXPAND_LARGE,
           String.format(operationFormat, "WWWW", max, max), 0, max);
-      progress.setMillisToDecideToPopup(100);
+      if (entries.size() > 1) {
+        progress.setMillisToDecideToPopup(100);
+      } else {
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(progressIndex);
+      }
       lastExt = entries.get(0).getExtension();
       updateProgressNote();
 

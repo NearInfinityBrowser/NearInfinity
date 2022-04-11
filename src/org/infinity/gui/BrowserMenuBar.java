@@ -69,6 +69,7 @@ import org.infinity.check.IDSRefChecker;
 import org.infinity.check.ResRefChecker;
 import org.infinity.check.ResourceUseChecker;
 import org.infinity.check.ScriptChecker;
+import org.infinity.check.StringDuplicatesChecker;
 import org.infinity.check.StringUseChecker;
 import org.infinity.check.StringValidationChecker;
 import org.infinity.check.StrrefIndexChecker;
@@ -1419,6 +1420,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem toolCheckStructs;
 
     private final JMenuItem toolCheckStringUse;
+    private final JMenuItem toolCheckStringDuplicates;
     private final JMenuItem toolCheckStringValid;
     private final JMenuItem toolCheckStringIndex;
     private final JMenuItem toolCheckFileUse;
@@ -1507,6 +1509,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       toolCheckStringUse = makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringDuplicates = makeMenuItem("For Duplicate Strings", KeyEvent.VK_D, Icons.ICON_FIND_16.getIcon(), -1, this);
+      checkMenu.add(toolCheckStringDuplicates);
 
       toolCheckStringValid = makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.ICON_FIND_16.getIcon(), -1,
           this);
@@ -1675,6 +1680,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         new StructChecker();
       } else if (event.getSource() == toolCheckStringUse) {
         new StringUseChecker(NearInfinity.getInstance());
+      } else if (event.getSource() == toolCheckStringDuplicates) {
+        new StringDuplicatesChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringValid) {
         new StringValidationChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringIndex) {
