@@ -15,6 +15,7 @@ import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.ResourceRef;
@@ -136,21 +137,31 @@ public final class Viewer extends JPanel {
   }
 
   Viewer(SplResource spl) {
+    // row 0, column 0
     JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) spl.getAttribute(SplResource.SPL_ICON), 0, 0);
-    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
-    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class, AbstractAbility.ABILITY_TYPE);
-    JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute(SplResource.SPL_DESCRIPTION));
     JPanel fieldPanel = makeFieldPanel(spl);
-
     JPanel infoPanel = new JPanel(new BorderLayout());
     infoPanel.add(iconPanel, BorderLayout.NORTH);
     infoPanel.add(fieldPanel, BorderLayout.CENTER);
+    JScrollPane scrollPane = new JScrollPane(infoPanel);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setPreferredSize(scrollPane.getMinimumSize());
 
-    setLayout(new GridLayout(2, 2, 6, 6));
-    add(infoPanel);
+    // row 0, column 1
+    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
+
+    // row 1, column 0
+    JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute(SplResource.SPL_DESCRIPTION));
+
+    // row 1, column 1
+    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class, AbstractAbility.ABILITY_TYPE);
+
+    setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    setLayout(new GridLayout(2, 2, 4, 4));
+    add(scrollPane);
     add(globaleffectsPanel);
     add(descPanel);
     add(abilitiesPanel);
-    setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
   }
 }
