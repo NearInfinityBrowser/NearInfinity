@@ -113,12 +113,14 @@ public class StringDuplicatesChecker extends AbstractSearcher
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No duplicate strings found.", "Info",
             JOptionPane.INFORMATION_MESSAGE);
       } else {
-        table = new SortableTable(new String[] { "#", "StringRef", "String", "Sound", "Flags" },
+        table = new SortableTable(new String[] { "Group", "StringRef", "String", "Sound", "Flags" },
             new Class<?>[] { Integer.class, Integer.class, String.class, String.class, Integer.class },
             new Integer[] { 25, 25, 600, 50, 25 });
-        List<Integer> list = stringSet.toList();
-        for (final Integer strref : list) {
-          table.addTableItem(new DuplicateStringTableItem(strref));
+        List<List<Integer>> list = stringSet.toList();
+        for (int i = 0, size = list.size(); i < size; i++) {
+          for (final Integer strref : list.get(i)) {
+            table.addTableItem(new DuplicateStringTableItem(strref, i + 1));
+          }
         }
         getResultFrame().setVisible(true);
       }
@@ -249,20 +251,14 @@ public class StringDuplicatesChecker extends AbstractSearcher
       return strings.size();
     }
 
-    /** Converts current set of stringrefs to a flat list and returns it. */
-    public List<Integer> toList() {
-      final List<Integer> retVal = new ArrayList<>();
+    /** Converts current set of stringrefs to a grouped list and returns it. */
+    public List<List<Integer>> toList() {
+      final List<List<Integer>> retVal = new ArrayList<>();
 
-      // make sure resulting list is sorted by first strref instance per group
-      final List<List<Integer>> sortedList = new ArrayList<>();
       for (final Map.Entry<String, List<Integer>> entry : strings.entrySet()) {
-        sortedList.add(entry.getValue());
+        retVal.add(entry.getValue());
       }
-      sortedList.sort((a, b) -> a.get(0) - b.get(0));
-
-      for (final List<Integer> list : sortedList) {
-        retVal.addAll(list);
-      }
+      retVal.sort((a, b) -> a.get(0) - b.get(0));
 
       return retVal;
     }
@@ -291,17 +287,15 @@ public class StringDuplicatesChecker extends AbstractSearcher
   }
 
   private static final class DuplicateStringTableItem implements TableItem {
-    /** Provides the next available serial number. */
-    private static int currentIndex = 0;
-
-    private final Integer index;  // serial number
+    // group index: indicates a group of duplicates of the same string
+    private final Integer index;
     private final Integer strref;
     private final String string;
     private final String sound;
     private final Integer flags;
 
-    public DuplicateStringTableItem(int strref) {
-      this.index = currentIndex++;
+    public DuplicateStringTableItem(int strref, int groupIndex) {
+      this.index = groupIndex;
       this.strref = strref;
       this.string = StringTable.getStringRef(strref, StringTable.Format.NONE);
       this.sound = StringTable.getSoundResource(strref);
@@ -326,8 +320,8 @@ public class StringDuplicatesChecker extends AbstractSearcher
 
     @Override
     public String toString() {
-      return String.format("StringRef: %d, Sound: %s, Flags: %d, Text: %s",
-          strref, sound, flags, string.replace("\r\n", Misc.LINE_SEPARATOR));
+      return String.format("Group: %d, StringRef: %d, Sound: %s, Flags: %d, Text: %s",
+          index, strref, sound, flags, string.replace("\r\n", Misc.LINE_SEPARATOR));
     }
   }
 }
