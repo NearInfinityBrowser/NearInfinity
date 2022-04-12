@@ -14,7 +14,9 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
@@ -26,7 +28,7 @@ final class Viewer extends JPanel implements ActionListener {
 
   private final AreResource are;
 
-  private JPanel makeFieldPanel() {
+  private JComponent makeFieldPanel() {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel fieldBasePanel = new JPanel(new BorderLayout());
@@ -51,33 +53,37 @@ final class Viewer extends JPanel implements ActionListener {
     bView.setEnabled(AreaViewer.isValid(are));
     fieldBasePanel.add(bView, BorderLayout.SOUTH);
 
-    return fieldBasePanel;
+    JScrollPane scrollPane = new JScrollPane(fieldBasePanel);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setPreferredSize(scrollPane.getMinimumSize());
+    return scrollPane;
   }
 
   Viewer(AreResource are) {
     this.are = are;
 
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_LOCATION), 1);
-    JPanel fieldPanel = makeFieldPanel();
+    // row 0, column 0
+    JComponent fieldPanel = makeFieldPanel();
+    // row 0, column 1
     JPanel actorPanel = ViewerUtil.makeListPanel("Actors", are, Actor.class, Actor.ARE_ACTOR_NAME);
+    // row 0, column 2
     JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are, Container.class, Container.ARE_CONTAINER_NAME);
+    // row 1, column 0
+    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_LOCATION), 1);
+    // row 1, column 1
     JPanel doorPanel = ViewerUtil.makeListPanel("Doors", are, Door.class, Door.ARE_DOOR_NAME);
+    // row 1, column 2
     JPanel itePanel = ViewerUtil.makeListPanel("Points of interest", are, ITEPoint.class, ITEPoint.ARE_TRIGGER_NAME);
 
-    JPanel pLeft = new JPanel(new GridLayout(2, 1, 4, 4));
-    pLeft.add(fieldPanel);
-    pLeft.add(boxPanel);
-
-    JPanel pRight = new JPanel(new GridLayout(2, 2, 4, 4));
-    pRight.add(actorPanel);
-    pRight.add(containerPanel);
-    pRight.add(doorPanel);
-    pRight.add(itePanel);
-
-    setLayout(new BorderLayout(4, 0));
-    add(pLeft, BorderLayout.WEST);
-    add(pRight, BorderLayout.CENTER);
     setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+    setLayout(new GridLayout(2, 3, 4, 4));
+    add(fieldPanel);
+    add(actorPanel);
+    add(containerPanel);
+    add(boxPanel);
+    add(doorPanel);
+    add(itePanel);
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
