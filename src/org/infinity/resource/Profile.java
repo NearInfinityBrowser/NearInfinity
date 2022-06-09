@@ -498,8 +498,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
     final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save", "Scripts", "ScrnShot",
         "Sounds", "Temp", "TempSave" };
-    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave", "Music",
-        "Portraits", "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "ImportSave", "ImportBPSave", "Movies",
+        "MPBPSave", "MPSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
