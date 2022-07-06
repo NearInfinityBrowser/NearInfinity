@@ -51,6 +51,9 @@ public class PseudoBamDecoder extends BamDecoder {
   /** A value specifying a compressed pixel value. (BAM v1 specific) [Integer] */
   public static final String OPTION_INT_RLEINDEX = "RLEIndex";
 
+  /** A value specifying if the transparent green color has been forced into the colormap (BAM v1 specific) [Boolean] */
+  public static final String OPTION_BOOL_TRANSPARENTGREENFORCED = "TransparentGreenForced";
+
   /** A value specifying the start index of data blocks (BAM v2 specific) [Integer] */
   public static final String OPTION_INT_BLOCKINDEX = "BlockIndex";
 
@@ -1032,7 +1035,7 @@ public class PseudoBamDecoder extends BamDecoder {
       if (colorMap == null) {
         newMap = new HashMap<>();
         for (PseudoBamFrameEntry listFrame : listFrames) {
-          registerColors(newMap, listFrame.frame);
+          registerColors(newMap, listFrame.frame, (boolean)listFrame.getOption(OPTION_BOOL_TRANSPARENTGREENFORCED));
         }
       } else {
         newMap = new HashMap<>(colorMap.size());
@@ -1084,7 +1087,7 @@ public class PseudoBamDecoder extends BamDecoder {
   }
 
   /** Maps all color values of the specified image. */
-  public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image) {
+  public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image, boolean forceTransparentGreen) {
     final int Green = 0xff00ff00;
 
     if (image != null) {
@@ -1131,11 +1134,15 @@ public class PseudoBamDecoder extends BamDecoder {
           colorMap.put(key, count);
         }
       }
+      if (forceTransparentGreen && !colorMap.containsKey(Green)) {
+        colorMap.put(Green, 1);
+      }
     }
   }
 
   /** Unmaps all color values of the specified image. */
-  public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image) {
+  public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image,
+    boolean forcedTransparentGreen) {
     final int Green = 0xff00ff00;
 
     if (image != null) {
@@ -1187,6 +1194,9 @@ public class PseudoBamDecoder extends BamDecoder {
             }
           }
         }
+      }
+      if (forcedTransparentGreen && colorMap.get(Green) == 1) {
+        colorMap.remove(Green);
       }
     }
   }
