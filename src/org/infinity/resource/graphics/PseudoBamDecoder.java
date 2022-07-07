@@ -58,6 +58,9 @@ public class PseudoBamDecoder extends BamDecoder {
    * Index 0 of a BAMV1 colormap is special: If the transparent green color (0,255,0) is NOT present in the colormap,
    * index 0 is treated as transparent. For non-transparent, non-paletted source images we need to ensure (0,255,0) is
    * present in the final colormap, as to prevent a normal color in index 0 from incorrectly rendering as transparent.
+   *
+   * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm#bamv1_Header">
+   * BAM V1 Header</a> - Offset 0x000b
    */
   public static final String OPTION_BOOL_TRANSPARENTGREENFORCED = "TransparentGreenForced";
 
