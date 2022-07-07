@@ -1134,8 +1134,8 @@ public class PseudoBamDecoder extends BamDecoder {
           colorMap.put(key, count);
         }
       }
-      if (forceTransparentGreen && !colorMap.containsKey(Green)) {
-        colorMap.put(Green, 1);
+      if (forceTransparentGreen) {
+        colorMap.put(Green, colorMap.getOrDefault(Green, 0) + 1);
       }
     }
   }
@@ -1195,8 +1195,16 @@ public class PseudoBamDecoder extends BamDecoder {
           }
         }
       }
-      if (forcedTransparentGreen && colorMap.get(Green) == 1) {
-        colorMap.remove(Green);
+      if (forcedTransparentGreen) {
+        Integer count = colorMap.get(Green);
+        if (count != null) {
+          --count;
+          if (count == 0) {
+            colorMap.remove(Green);
+          } else {
+            colorMap.put(Green, count);
+          }
+        }
       }
     }
   }
