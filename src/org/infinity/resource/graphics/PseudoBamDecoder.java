@@ -51,7 +51,14 @@ public class PseudoBamDecoder extends BamDecoder {
   /** A value specifying a compressed pixel value. (BAM v1 specific) [Integer] */
   public static final String OPTION_INT_RLEINDEX = "RLEIndex";
 
-  /** A value specifying if the transparent green color has been forced into the colormap (BAM v1 specific) [Boolean] */
+  /**
+   * A value specifying if the transparent green color (0,255,0) has been forced into the colormap
+   * (BAM v1 specific) [Boolean]
+   * <br><br>
+   * Index 0 of a BAMV1 colormap is special: If the transparent green color (0,255,0) is NOT present in the colormap,
+   * index 0 is treated as transparent. For non-transparent, non-paletted source images we need to ensure (0,255,0) is
+   * present in the final colormap, as to prevent a normal color in index 0 from incorrectly rendering as transparent.
+   */
   public static final String OPTION_BOOL_TRANSPARENTGREENFORCED = "TransparentGreenForced";
 
   /** A value specifying the start index of data blocks (BAM v2 specific) [Integer] */
@@ -1134,6 +1141,7 @@ public class PseudoBamDecoder extends BamDecoder {
           colorMap.put(key, count);
         }
       }
+      // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
       if (forceTransparentGreen) {
         colorMap.put(Green, colorMap.getOrDefault(Green, 0) + 1);
       }
@@ -1195,6 +1203,7 @@ public class PseudoBamDecoder extends BamDecoder {
           }
         }
       }
+      // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
       if (forcedTransparentGreen) {
         Integer count = colorMap.get(Green);
         if (count != null) {

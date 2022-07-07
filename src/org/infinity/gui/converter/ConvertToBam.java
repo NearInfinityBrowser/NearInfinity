@@ -2674,8 +2674,9 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             image = dstImage;
           }
 
-          modelFrames.insert(listIndex + curFrameIdx, image, new Point(),
-            image.getType() != BufferedImage.TYPE_BYTE_INDEXED);
+          // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+          final boolean forceTransparentGreen = image.getType() != BufferedImage.TYPE_BYTE_INDEXED;
+          modelFrames.insert(listIndex + curFrameIdx, image, new Point(), forceTransparentGreen);
           // setting required extra options
           PseudoBamFrameEntry fe2 = modelFrames.getDecoder().getFrameInfo(listIndex + curFrameIdx);
           if (entry instanceof FileResourceEntry) {
