@@ -65,6 +65,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.StructureFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.gam.GamResource;
+import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
@@ -739,6 +740,19 @@ public final class CreResource extends AbstractStruct
   /** Returns whether the creature resource includes a CHR (character) header. */
   public boolean isCharacter() {
     return isChr;
+  }
+
+  /** Returns the {@link StructEntry} object of the effective creature name. */
+  public StructEntry getEffectiveNameEntry() {
+    StructEntry nameEntry = getAttribute(CreResource.CRE_NAME);
+    if (nameEntry instanceof IsNumeric && ((IsNumeric)nameEntry).getValue() < 0) {
+      if (isCharacter()) {
+        nameEntry = getAttribute(CreResource.CHR_NAME);
+      } else if (getParent() instanceof PartyNPC) {
+        nameEntry = getParent().getAttribute(PartyNPC.GAM_NPC_NAME);
+      }
+    }
+    return nameEntry;
   }
 
   @Override
