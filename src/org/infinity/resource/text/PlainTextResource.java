@@ -203,7 +203,7 @@ public class PlainTextResource
         trimSpaces();
       } else if (bpmFormat.getSelectedItem() == miFormatAlignCompact) {
         alignTableColumns(2, true, 4);
-      } else if (bpmFormat.getSelectedIcon() == miFormatAlignUniform) {
+      } else if (bpmFormat.getSelectedItem() == miFormatAlignUniform) {
         alignTableColumns(1, false, 1);
       } else if (bpmFormat.getSelectedItem() == miFormatSort) {
         sortTable(true);
