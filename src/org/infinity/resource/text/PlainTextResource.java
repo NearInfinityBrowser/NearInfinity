@@ -67,7 +67,8 @@ public class PlainTextResource
   private JMenuItem iFindAll;
   private JMenuItem iFindThis;
   private JMenuItem miFormatTrim;
-  private JMenuItem miFormatAlign;
+  private JMenuItem miFormatAlignCompact;
+  private JMenuItem miFormatAlignUniform;
   private JMenuItem miFormatSort;
   private JPanel panel;
 
@@ -200,8 +201,10 @@ public class PlainTextResource
     } else if (event.getSource() == bpmFormat) {
       if (bpmFormat.getSelectedItem() == miFormatTrim) {
         trimSpaces();
-      } else if (bpmFormat.getSelectedItem() == miFormatAlign) {
+      } else if (bpmFormat.getSelectedItem() == miFormatAlignCompact) {
         alignTableColumns(2, true, 4);
+      } else if (bpmFormat.getSelectedIcon() == miFormatAlignUniform) {
+        alignTableColumns(1, false, 1);
       } else if (bpmFormat.getSelectedItem() == miFormatSort) {
         sortTable(true);
       }
@@ -284,9 +287,13 @@ public class PlainTextResource
     bpmFind.addItemListener(this);
     if ("2DA".equals(ext)) {
       miFormatTrim = new JMenuItem("Trim spaces");
-      miFormatAlign = new JMenuItem("Align table");
-      miFormatAlign.setToolTipText("Align table columns to improve readability.");
-      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[] { miFormatTrim, miFormatAlign });
+      miFormatAlignCompact = new JMenuItem("Align table (compact)");
+      miFormatAlignCompact.setToolTipText("Align table columns to improve readability. Column width is calculated individually.");
+      miFormatAlignUniform = new JMenuItem("Align table (uniform)");
+      miFormatAlignUniform.setToolTipText(
+          "Align table columns to improve readability. Column width is calculated evenly, similar to WeiDU's PRETTY_PRINT_2DA.");
+      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...",
+          new JMenuItem[] { miFormatTrim, miFormatAlignCompact, miFormatAlignUniform });
       bpmFormat.addItemListener(this);
       buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
     } else if ("IDS".equals(ext)) {
