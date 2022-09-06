@@ -300,7 +300,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.getResourceName().replace(".BAM", "")));
+      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.getResourceName().replaceAll("(?i)\\.BAM$", "")));
 
       // Output graphics format depends on BAM type
       while (fc.getChoosableFileFilters().length > 0) {

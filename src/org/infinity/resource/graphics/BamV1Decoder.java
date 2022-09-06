@@ -686,31 +686,34 @@ public class BamV1Decoder extends BamDecoder {
       }
     }
 
+    // FIXME: Current implementation of equals/hashCode should not produce palette errors when tint effects are involved
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = super.hashCode();
-      result = prime * result + Arrays.hashCode(currentPalette);
-      result = prime * result + Arrays.hashCode(externalPalette);
-      result = prime * result + Objects.hash(currentCycle, currentFrame, transparencyEnabled);
-      return result;
+      return super.hashCode();
+//      final int prime = 31;
+//      int result = super.hashCode();
+//      result = prime * result + Arrays.hashCode(currentPalette);
+//      result = prime * result + Arrays.hashCode(externalPalette);
+//      result = prime * result + Objects.hash(currentCycle, currentFrame, transparencyEnabled);
+//      return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (!super.equals(obj)) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
-      BamV1Control other = (BamV1Control) obj;
-      return currentCycle == other.currentCycle && currentFrame == other.currentFrame
-          && Arrays.equals(currentPalette, other.currentPalette)
-          && Arrays.equals(externalPalette, other.externalPalette) && transparencyEnabled == other.transparencyEnabled;
+      return super.equals(obj);
+//      if (this == obj) {
+//        return true;
+//      }
+//      if (!super.equals(obj)) {
+//        return false;
+//      }
+//      if (getClass() != obj.getClass()) {
+//        return false;
+//      }
+//      BamV1Control other = (BamV1Control) obj;
+//      return currentCycle == other.currentCycle && currentFrame == other.currentFrame
+//          && Arrays.equals(currentPalette, other.currentPalette)
+//          && Arrays.equals(externalPalette, other.externalPalette) && transparencyEnabled == other.transparencyEnabled;
     }
 
     private void init() {

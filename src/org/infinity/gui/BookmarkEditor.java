@@ -18,6 +18,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -62,16 +63,20 @@ public class BookmarkEditor extends JDialog
     implements ActionListener, FocusListener, ListSelectionListener, ItemListener {
   private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<>();
   private final JList<Bookmark> listEntries = new JList<>(modelEntries);
+  private final JLabel lHomePath = new JLabel("Home folder:");
   private final JButton bUp = new JButton("Up");
   private final JButton bDown = new JButton("Down");
   private final JButton bRemove = new JButton("Remove");
   private final JButton bClear = new JButton("Clear");
   private final JButton bOK = new JButton("OK");
   private final JButton bCancel = new JButton("Cancel");
+  private final JButton bHomePathSelect = new JButton("Select...");
+  private final JButton bHomePathClear = new JButton("Clear");
   private final JButton bBinPathAdd = new JButton("+");
   private final JButton bBinPathRemove = new JButton("-");
   private final JTextField tfName = new JTextField();
   private final JTextField tfPath = createReadOnlyField(null, true);
+  private final JTextField tfHomePath = createReadOnlyField(null, true);
   private final DefaultComboBoxModel<Platform.OS> cbPlatformModel = new DefaultComboBoxModel<>(
       BrowserMenuBar.Bookmark.getSupportedOS());
   private final JComboBox<Platform.OS> cbPlatform = new JComboBox<>(cbPlatformModel);
@@ -114,7 +119,7 @@ public class BookmarkEditor extends JDialog
     // creating bookmark details panel
     JPanel pDetails = new JPanel(new GridBagLayout());
     JLabel lName = new JLabel("Name:");
-    JLabel lPath = new JLabel("Path:");
+    JLabel lPath = new JLabel("Game path:");
     JLabel lBinPath = new JLabel("Game executable:");
     tfName.addFocusListener(this);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
@@ -130,8 +135,31 @@ public class BookmarkEditor extends JDialog
         new Insets(8, 8, 0, 0), 0, 0);
     pDetails.add(tfPath, gbc);
 
+    // adding custom home path support
+    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
+    pDetails.add(lHomePath, gbc);
+
+    JPanel pHomePath = new JPanel(new GridBagLayout());
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    pHomePath.add(tfHomePath, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
+    pHomePath.add(bHomePathSelect, gbc);
+    bHomePathSelect.addActionListener(this);
+    gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
+    pHomePath.add(bHomePathClear, gbc);
+    bHomePathClear.setToolTipText("Clear custom home folder and use game-specific defaults.");
+    bHomePathClear.addActionListener(this);
+
+    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 8, 0, 0), 0, 0);
+    pDetails.add(pHomePath, gbc);
+
     // adding binary path support
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+    gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
         new Insets(8, 0, 0, 0), 0, 0);
     pDetails.add(lBinPath, gbc);
 
@@ -157,7 +185,7 @@ public class BookmarkEditor extends JDialog
         GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
     pGames.add(bBinPathRemove, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+    gbc = ViewerUtil.setGBC(gbc, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(8, 8, 0, 0), 0, 0);
     pDetails.add(pGames, gbc);
 
@@ -347,9 +375,21 @@ public class BookmarkEditor extends JDialog
       tfName.setText(bookmark.getName());
       tfName.setSelectionStart(0);
       tfName.setSelectionEnd(0);
+
       tfPath.setText(bookmark.getPath());
       tfPath.setSelectionStart(0);
       tfPath.setSelectionEnd(0);
+
+      final boolean isEE = Profile.isEnhancedEdition(bookmark.getGame());
+      final String homePath = bookmark.getHomePath();
+      if (isEE && homePath != null) {
+        tfHomePath.setText(homePath);
+        tfHomePath.setSelectionStart(0);
+        tfHomePath.setSelectionEnd(0);
+      } else {
+        tfHomePath.setText("");
+      }
+      setHomePathEnabled(isEE);
 
       for (int idx = 0; idx < cbPlatformModel.getSize(); idx++) {
         Platform.OS os = cbPlatformModel.getElementAt(idx);
@@ -368,8 +408,63 @@ public class BookmarkEditor extends JDialog
     } else {
       tfName.setText("");
       tfPath.setText("");
+      tfHomePath.setText("");
       getBinPathModel().clear();
     }
+  }
+
+  /** Returns whether the home path section of the bookmark editor is enabled. */
+  @SuppressWarnings("unused")
+  private boolean isHomePathEnabled() {
+    return tfHomePath.isEnabled();
+  }
+
+  /** Enables or disables the home path section of the bookmark editor. */
+  private void setHomePathEnabled(boolean enable) {
+    lHomePath.setEnabled(enable);
+    tfHomePath.setEnabled(enable);
+    bHomePathSelect.setEnabled(enable);
+    bHomePathClear.setEnabled(enable && !tfHomePath.getText().isEmpty());
+  }
+
+  /** Removes the current home folder path definition. */
+  private void clearHomePath() {
+    tfHomePath.setText("");
+    updateHomePath();
+  }
+
+  /** Assigns a custom home folder path from an interactive folder selection dialog. */
+  private void selectHomePathInteractive() {
+    // determining initial path for selection dialog
+    Path path = null;
+    if (!tfHomePath.getText().isEmpty()) {
+      path = FileManager.resolve(tfHomePath.getText());
+    }
+    if (path == null || !Files.isDirectory(path)) {
+      path = FileManager.resolve(tfPath.getText()).getParent();
+    }
+
+    JFileChooser fc = new JFileChooser();
+    fc.setDialogTitle("Select home folder");
+    fc.setApproveButtonText("Select");
+    fc.setApproveButtonMnemonic('s');
+    fc.setCurrentDirectory(path.toFile());
+    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    int retVal = fc.showOpenDialog(this);
+    if (retVal == JFileChooser.APPROVE_OPTION) {
+      path = fc.getSelectedFile().toPath();
+      tfHomePath.setText(path.toString());
+      tfHomePath.setSelectionStart(0);
+      tfHomePath.setSelectionEnd(0);
+      updateHomePath();
+    }
+  }
+
+  /** Updates the home path of the selected bookmark. */
+  private void updateHomePath() {
+    BrowserMenuBar.Bookmark bookmark = listEntries.getSelectedValue();
+    bookmark.setHomePath(tfHomePath.getText());
+    bHomePathClear.setEnabled(!tfHomePath.getText().isEmpty());
   }
 
   // Updates all binary path lists for the selected bookmark
@@ -508,6 +603,10 @@ public class BookmarkEditor extends JDialog
           updateEntry(-1);
         }
       }
+    } else if (event.getSource() == bHomePathClear) {
+      clearHomePath();
+    } else if (event.getSource() == bHomePathSelect) {
+      selectHomePathInteractive();
     } else if (event.getSource() == bBinPathAdd) {
       addBinPathInteractive();
     } else if (event.getSource() == bBinPathRemove) {

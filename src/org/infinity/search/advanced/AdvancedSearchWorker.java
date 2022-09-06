@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.JProgressBar;
 
-import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
@@ -371,7 +370,7 @@ public class AdvancedSearchWorker implements Runnable {
 
   // Match value as bitfield
   private boolean isMatchBitfield(StructEntry se, int value, SearchOptions.BitFieldMode mode) {
-    if (se instanceof Flag) {
+    if (se instanceof IsNumeric) {
       int bits = ((IsNumeric) se).getValue();
       switch (mode) {
         case EXACT:

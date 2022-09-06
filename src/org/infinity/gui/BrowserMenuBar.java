@@ -69,6 +69,7 @@ import org.infinity.check.IDSRefChecker;
 import org.infinity.check.ResRefChecker;
 import org.infinity.check.ResourceUseChecker;
 import org.infinity.check.ScriptChecker;
+import org.infinity.check.StringDuplicatesChecker;
 import org.infinity.check.StringUseChecker;
 import org.infinity.check.StringValidationChecker;
 import org.infinity.check.StrrefIndexChecker;
@@ -112,7 +113,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher {
-  public static final String VERSION = "v2.2-20220408-1";
+  public static final String VERSION = "v2.3-20220906";
 
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -735,11 +736,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       for (int i = 0; i < gameCount; i++) {
         Profile.Game game = Profile
             .gameFromString(getPrefsProfiles().get(Bookmark.getGameKey(i), Profile.Game.Unknown.toString()));
-        String gamePath = getPrefsProfiles().get(Bookmark.getPathKey(i), null);
-        String gameName = getPrefsProfiles().get(Bookmark.getNameKey(i), null);
+        final String gamePath = getPrefsProfiles().get(Bookmark.getPathKey(i), null);
+        final String homePath = getPrefsProfiles().get(Bookmark.getHomePathKey(i), null);
+        final String gameName = getPrefsProfiles().get(Bookmark.getNameKey(i), null);
         EnumMap<Platform.OS, List<String>> binPaths = null;
         for (final Platform.OS os : Bookmark.getSupportedOS()) {
-          String path = getPrefsProfiles().get(Bookmark.getBinaryPathKey(os, i), null);
+          final String path = getPrefsProfiles().get(Bookmark.getBinaryPathKey(os, i), null);
           if (path != null) {
             if (binPaths == null) {
               binPaths = new EnumMap<>(Platform.OS.class);
@@ -749,7 +751,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           }
         }
         try {
-          Bookmark b = new Bookmark(gameName, game, gamePath, binPaths, this);
+          final Bookmark b = new Bookmark(gameName, game, gamePath, homePath, binPaths, this);
           addBookmarkedGame(bookmarkList.size(), b);
         } catch (NullPointerException e) {
           // skipping entry
@@ -776,9 +778,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       recentList.clear();
       for (int i = 0; i < RecentGame.getEntryCount(); i++) {
-        Profile.Game game = Profile
+        final Profile.Game game = Profile
             .gameFromString(getPrefsProfiles().get(RecentGame.getGameKey(i), Profile.Game.Unknown.toString()));
-        String gamePath = getPrefsProfiles().get(RecentGame.getPathKey(i), null);
+        final String gamePath = getPrefsProfiles().get(RecentGame.getPathKey(i), null);
         try {
           RecentGame rg = new RecentGame(game, gamePath, recentList.size(), this);
           addLastGame(recentList.size(), rg);
@@ -968,6 +970,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         for (int i = bookmarkList.size(); i < oldSize; i++) {
           getPrefsProfiles().remove(Bookmark.getNameKey(i));
           getPrefsProfiles().remove(Bookmark.getPathKey(i));
+          getPrefsProfiles().remove(Bookmark.getHomePathKey(i));
           getPrefsProfiles().remove(Bookmark.getGameKey(i));
           for (final Platform.OS os : Bookmark.getSupportedOS()) {
             getPrefsProfiles().remove(Bookmark.getBinaryPathKey(os, i));
@@ -977,12 +980,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // 2. storing bookmarks in preferences
       getPrefsProfiles().putInt(Bookmark.getEntryCountKey(), bookmarkList.size());
       for (int i = 0; i < bookmarkList.size(); i++) {
-        Bookmark bookmark = bookmarkList.get(i);
+        final Bookmark bookmark = bookmarkList.get(i);
         getPrefsProfiles().put(Bookmark.getNameKey(i), bookmark.getName());
         getPrefsProfiles().put(Bookmark.getPathKey(i), bookmark.getPath());
+        final String homePath = (bookmark.getHomePath() != null) ? bookmark.getHomePath() : "";
+        getPrefsProfiles().put(Bookmark.getHomePathKey(i), homePath);
         getPrefsProfiles().put(Bookmark.getGameKey(i), bookmark.getGame().toString());
         for (final Platform.OS os : Bookmark.getSupportedOS()) {
-          String value = Bookmark.packBinPaths(os, bookmark.getBinaryPaths(os));
+          final String value = Bookmark.packBinPaths(os, bookmark.getBinaryPaths(os));
           if (value.isEmpty()) {
             getPrefsProfiles().remove(Bookmark.getBinaryPathKey(os, i));
           } else {
@@ -994,7 +999,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // storing recently used games
       for (int i = 0; i < RecentGame.getEntryCount(); i++) {
         if (i < recentList.size()) {
-          RecentGame rg = recentList.get(i);
+          final RecentGame rg = recentList.get(i);
           getPrefsProfiles().put(RecentGame.getGameKey(i), rg.getGame().toString());
           getPrefsProfiles().put(RecentGame.getPathKey(i), rg.getPath());
         } else {
@@ -1419,6 +1424,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem toolCheckStructs;
 
     private final JMenuItem toolCheckStringUse;
+    private final JMenuItem toolCheckStringDuplicates;
     private final JMenuItem toolCheckStringValid;
     private final JMenuItem toolCheckStringIndex;
     private final JMenuItem toolCheckFileUse;
@@ -1507,6 +1513,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       toolCheckStringUse = makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringDuplicates = makeMenuItem("For Duplicate Strings", KeyEvent.VK_D, Icons.ICON_FIND_16.getIcon(), -1, this);
+      checkMenu.add(toolCheckStringDuplicates);
 
       toolCheckStringValid = makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.ICON_FIND_16.getIcon(), -1,
           this);
@@ -1675,6 +1684,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         new StructChecker();
       } else if (event.getSource() == toolCheckStringUse) {
         new StringUseChecker(NearInfinity.getInstance());
+      } else if (event.getSource() == toolCheckStringDuplicates) {
+        new StringDuplicatesChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringValid) {
         new StringValidationChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringIndex) {
@@ -3450,11 +3461,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   /** Manages bookmarked game entries. */
   public static final class Bookmark implements Cloneable {
     /** "Bookmarks" preferences entries (numbers are 1-based). */
-    private static final String BOOKMARK_NUM_ENTRIES  = "BookmarkEntries";
-    private static final String FMT_BOOKMARK_NAME     = "BookmarkName%d";
-    private static final String FMT_BOOKMARK_ID       = "BookmarkID%d";
-    private static final String FMT_BOOKMARK_PATH     = "BookmarkPath%d";
-    private static final String FMT_BOOKMARK_BIN_PATH = "BookmarkPath%s%d"; // %s: Platform.OS, %d: bookmark index
+    private static final String BOOKMARK_NUM_ENTRIES    = "BookmarkEntries";
+    private static final String FMT_BOOKMARK_NAME       = "BookmarkName%d";
+    private static final String FMT_BOOKMARK_ID         = "BookmarkID%d";
+    private static final String FMT_BOOKMARK_PATH       = "BookmarkPath%d";
+    private static final String FMT_BOOKMARK_HOME_PATH  = "BookmarkHomePath%d";
+    private static final String FMT_BOOKMARK_BIN_PATH   = "BookmarkPath%s%d"; // %s: Platform.OS, %d: bookmark index
 
     private static final String MENUITEM_COMMAND = "OpenBookmark";
 
@@ -3465,15 +3477,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final EnumMap<Platform.OS, List<String>> binPaths = new EnumMap<>(Platform.OS.class);
 
     private String name;
+    private String homePath;
     private ActionListener listener;
     private JMenuItem item;
 
     public Bookmark(String name, Profile.Game game, String path, ActionListener listener) {
-      this(name, game, path, null, listener);
+      this(name, game, path, null, null, listener);
     }
 
-    public Bookmark(String name, Profile.Game game, String path, EnumMap<Platform.OS, List<String>> binPaths,
-        ActionListener listener) {
+    public Bookmark(String name, Profile.Game game, String path, String homePath, EnumMap<Platform.OS,
+        List<String>> binPaths, ActionListener listener) {
       if (game == null || path == null) {
         throw new NullPointerException();
       }
@@ -3483,6 +3496,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       this.name = name;
       this.game = game;
       this.path = path;
+      this.homePath = (homePath == null || homePath.isEmpty()) ? null : homePath;
       this.listener = listener;
       if (binPaths != null) {
         this.binPaths.putAll(binPaths);
@@ -3497,7 +3511,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-      return new Bookmark(name, game, path, binPaths, listener);
+      return new Bookmark(name, game, path, homePath, binPaths, listener);
     }
 
     /** Returns user-defined game name. */
@@ -3523,6 +3537,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     /** Returns game path (i.e. full path to the chitin.key). */
     public String getPath() {
       return path;
+    }
+
+    /** Returns the custom home path. Otherwise, returns {@code null} if the default home path is used. */
+    public String getHomePath() {
+      return homePath;
+    }
+
+    /** Assigns a custom home path to the bookmark. Specify {@code null} to use the game defaults instead. */
+    public void setHomePath(String hp) {
+      homePath = (hp == null || hp.isEmpty()) ? null : hp;
     }
 
     /** Returns a list of available paths to executables for the current platform. */
@@ -3624,6 +3648,15 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public static String getPathKey(int idx) {
       if (idx >= 0) {
         return String.format(FMT_BOOKMARK_PATH, idx + 1);
+      } else {
+        return null;
+      }
+    }
+
+    /** Returns the Preferences key for a specific BookmarkHomePath. */
+    public static String getHomePathKey(int idx) {
+      if (idx >= 0) {
+        return String.format(FMT_BOOKMARK_HOME_PATH, idx + 1);
       } else {
         return null;
       }

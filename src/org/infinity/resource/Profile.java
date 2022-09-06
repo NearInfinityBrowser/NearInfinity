@@ -45,6 +45,7 @@ import javax.swing.event.ListDataListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.Bookmark;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -498,8 +499,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
     final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save", "Scripts", "ScrnShot",
         "Sounds", "Temp", "TempSave" };
-    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave", "Music",
-        "Portraits", "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "ImportSave", "ImportBPSave", "Movies",
+        "MPBPSave", "MPSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
@@ -836,11 +837,31 @@ public final class Profile implements FileWatcher.FileWatchListener {
   /**
    * Returns whether the current game is an Enhanced Edition game.
    *
-   * @return {@code true} if the current game is an Enhanced Edition Game, {@code false} otherwise.
+   * @return {@code true} if the current game is an Enhanced Edition game, {@code false} otherwise.
    */
   public static boolean isEnhancedEdition() {
     Object ret = getProperty(Key.IS_ENHANCED_EDITION);
     return (ret instanceof Boolean) ? (Boolean) ret : false;
+  }
+
+  /**
+   * Returns whether the specified {@link Game} is an Enhanced Edition game.
+   *
+   * @param game The game to check.
+   * @return {@code true} if the game is an Enhanced Edition game, {@code false} otherwise.
+   */
+  public static boolean isEnhancedEdition(Game game) {
+    switch (game) {
+      case BG1EE:
+      case BG1SoD:
+      case BG2EE:
+      case EET:
+      case IWDEE:
+      case PSTEE:
+        return true;
+      default:
+    }
+    return false;
   }
 
   /**
@@ -2019,7 +2040,17 @@ public final class Profile implements FileWatcher.FileWatchListener {
   private void initRootDirs() {
     // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
-    Path homeRoot = ResourceFactory.getHomeRoot(false);
+    Path homeRoot = null;
+    Bookmark bookmark = BrowserMenuBar.getInstance().getBookmarkOf(getChitinKey());
+    if (bookmark != null && bookmark.getHomePath() != null) {
+      final Path path = FileManager.resolve(bookmark.getHomePath());
+      if (path != null && Files.isDirectory(path)) {
+        homeRoot = path;
+      }
+    }
+    if (homeRoot == null) {
+      homeRoot = ResourceFactory.getHomeRoot(false);
+    }
     String language = ResourceFactory
         .fetchGameLanguage(FileManager.query(homeRoot, getProperty(Key.GET_GAME_INI_NAME)));
     String languageDef = ResourceFactory.fetchGameLanguage(null);

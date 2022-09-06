@@ -767,6 +767,11 @@ public class MediaPanel extends JPanel {
       // TODO: The export operation is executed nearly instantaneously.
       // However, for cleaner code it should be performed in a separate background task.
       File saveFile = fileChooser.getSelectedFile();
+      if (saveFile.exists() &&
+          JOptionPane.showConfirmDialog(browser, "File already exists: " + saveFile.getName() +"\nOverwrite?", "Question",
+              JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+        return;
+      }
 
       try (APNGSeqWriter writer = new APNGSeqWriter(saveFile, 0)) {
         final RenderPanel renderer = browser.getRenderPanel();
