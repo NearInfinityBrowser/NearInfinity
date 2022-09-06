@@ -51,6 +51,19 @@ public class PseudoBamDecoder extends BamDecoder {
   /** A value specifying a compressed pixel value. (BAM v1 specific) [Integer] */
   public static final String OPTION_INT_RLEINDEX = "RLEIndex";
 
+  /**
+   * A value specifying if the transparent green color (0,255,0) has been forced into the colormap
+   * (BAM v1 specific) [Boolean]
+   * <br><br>
+   * Index 0 of a BAMV1 colormap is special: If the transparent green color (0,255,0) is NOT present in the colormap,
+   * index 0 is treated as transparent. For non-transparent, non-paletted source images we need to ensure (0,255,0) is
+   * present in the final colormap, as to prevent a normal color in index 0 from incorrectly rendering as transparent.
+   *
+   * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm#bamv1_Header">
+   * BAM V1 Header</a> - Offset 0x000b
+   */
+  public static final String OPTION_BOOL_TRANSPARENTGREENFORCED = "TransparentGreenForced";
+
   /** A value specifying the start index of data blocks (BAM v2 specific) [Integer] */
   public static final String OPTION_INT_BLOCKINDEX = "BlockIndex";
 
@@ -1032,7 +1045,7 @@ public class PseudoBamDecoder extends BamDecoder {
       if (colorMap == null) {
         newMap = new HashMap<>();
         for (PseudoBamFrameEntry listFrame : listFrames) {
-          registerColors(newMap, listFrame.frame);
+          registerColors(newMap, listFrame.frame, (boolean)listFrame.getOption(OPTION_BOOL_TRANSPARENTGREENFORCED));
         }
       } else {
         newMap = new HashMap<>(colorMap.size());
@@ -1084,7 +1097,7 @@ public class PseudoBamDecoder extends BamDecoder {
   }
 
   /** Maps all color values of the specified image. */
-  public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image) {
+  public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image, boolean forceTransparentGreen) {
     final int Green = 0xff00ff00;
 
     if (image != null) {
@@ -1131,11 +1144,16 @@ public class PseudoBamDecoder extends BamDecoder {
           colorMap.put(key, count);
         }
       }
+      // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+      if (forceTransparentGreen) {
+        colorMap.put(Green, colorMap.getOrDefault(Green, 0) + 1);
+      }
     }
   }
 
   /** Unmaps all color values of the specified image. */
-  public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image) {
+  public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image,
+    boolean forcedTransparentGreen) {
     final int Green = 0xff00ff00;
 
     if (image != null) {
@@ -1185,6 +1203,18 @@ public class PseudoBamDecoder extends BamDecoder {
             } else {
               colorMap.put(key, count);
             }
+          }
+        }
+      }
+      // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+      if (forcedTransparentGreen) {
+        Integer count = colorMap.get(Green);
+        if (count != null) {
+          --count;
+          if (count == 0) {
+            colorMap.remove(Green);
+          } else {
+            colorMap.put(Green, count);
           }
         }
       }

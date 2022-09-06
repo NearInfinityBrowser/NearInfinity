@@ -437,12 +437,8 @@ public class ViewerMap extends JPanel {
   private Point getAreaEntryPosition(AreaEntry areaEntry, boolean scaled) {
     Point p = new Point();
     if (areaEntry != null) {
-      p.x = ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      p.y = ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
-      if (scaled) {
-        p.x = (int) (p.x * mapScaleX);
-        p.y = (int) (p.y * mapScaleY);
-      }
+      p.x = (int) (((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue() * getScaleFactorX());
+      p.y = (int) (((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue() * getScaleFactorY());
     }
     return p;
   }
@@ -513,9 +509,9 @@ public class ViewerMap extends JPanel {
     if (entry != null) {
       storeDot(entry);
       int x = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      x = (int) (x * mapScaleX);
+      x = (int) (x * getScaleFactorX());
       int y = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
-      y = (int) (y * mapScaleY);
+      y = (int) (y * getScaleFactorY());
       int width = iconDot.getWidth();
       int height = iconDot.getHeight();
       int xofs = width / 2;
@@ -535,9 +531,9 @@ public class ViewerMap extends JPanel {
   private void storeDot(AreaEntry entry) {
     if (entry != null) {
       int x = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      x = (int) (x * mapScaleX);
+      x = (int) (x * getScaleFactorX());
       int y = ((IsNumeric) entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
-      y = (int) (y * mapScaleY);
+      y = (int) (y * getScaleFactorY());
       int width = dotBackup.getWidth();
       int height = dotBackup.getHeight();
       int xofs = width / 2;
@@ -593,6 +589,16 @@ public class ViewerMap extends JPanel {
   /** Returns whether to apply map scaling factor. */
   private boolean isScaling() {
     return miScaling.isSelected();
+  }
+
+  /** Returns the current map scaling factor for X axis. */
+  private float getScaleFactorX() {
+    return isScaling() ? mapScaleX : 1.0f;
+  }
+
+  /** Returns the current map scaling factor for Y axis. */
+  private float getScaleFactorY() {
+    return isScaling() ? mapScaleY : 1.0f;
   }
 
   /** Shows specified coordinates as text info. Hides display for negative coordinates. */

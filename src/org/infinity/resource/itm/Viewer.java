@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
@@ -34,13 +35,31 @@ import org.infinity.util.Table2daCache;
 
 final class Viewer extends JPanel {
   Viewer(ItmResource itm) {
-    JComponent iconPanel1 = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
-    JComponent iconPanel2 = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
-    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", itm, Effect.class, EffectType.EFFECT_TYPE);
-    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", itm, Ability.class, AbstractAbility.ABILITY_TYPE);
-    JPanel fieldPanel = makeFieldPanel(itm);
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_FLAGS), 1);
+    // row 0, column 0
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
+    JComponent groundIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
+    JPanel iconsPanel = new JPanel(new GridLayout(2, 1, 0, 6));
+    iconsPanel.add(iconPanel);
+    iconsPanel.add(groundIconPanel);
 
+    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_FLAGS), 1);
+
+    JPanel propertiesPanel = makeFieldPanel(itm);
+
+    JPanel iconsFlagsPanel = new JPanel(new BorderLayout(3, 0));
+    iconsFlagsPanel.add(iconsPanel, BorderLayout.CENTER);
+    iconsFlagsPanel.add(flagsPanel, BorderLayout.WEST);
+
+    JPanel leftPanel = new JPanel(new BorderLayout());
+    leftPanel.add(propertiesPanel, BorderLayout.NORTH);
+    leftPanel.add(iconsFlagsPanel, BorderLayout.CENTER);
+
+    JScrollPane scrollPane = new JScrollPane(leftPanel);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setPreferredSize(scrollPane.getMinimumSize());
+
+    // row 0, column 1
     StructEntry descGeneral = itm.getAttribute(ItmResource.ITM_DESCRIPTION_GENERAL);
     StructEntry descIdentified = itm.getAttribute(ItmResource.ITM_DESCRIPTION_IDENTIFIED);
     JTabbedPane tabbedDescPanel = new JTabbedPane(SwingConstants.TOP);
@@ -52,30 +71,21 @@ final class Viewer extends JPanel {
       tabbedDescPanel.setSelectedIndex(1);
     }
 
-    JPanel iconPanel = new JPanel(new GridLayout(2, 1, 0, 6));
-    iconPanel.add(iconPanel1);
-    iconPanel.add(iconPanel2);
+    JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", itm, Ability.class, AbstractAbility.ABILITY_TYPE);
+    JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", itm, Effect.class, EffectType.EFFECT_TYPE);
 
-    JPanel panel1 = new JPanel(new BorderLayout(3, 0));
-    panel1.add(iconPanel, BorderLayout.CENTER);
-    panel1.add(boxPanel, BorderLayout.WEST);
+    JPanel abilitiesEffectsPanel = new JPanel(new GridLayout(1, 2, 6, 3));
+    abilitiesEffectsPanel.add(abilitiesPanel);
+    abilitiesEffectsPanel.add(globaleffectsPanel);
 
-    JPanel panel2 = new JPanel(new GridLayout(1, 2, 6, 3));
-    panel2.add(abilitiesPanel);
-    panel2.add(globaleffectsPanel);
+    JPanel rightPanel = new JPanel(new GridLayout(2, 1, 6, 6));
+    rightPanel.add(tabbedDescPanel);
+    rightPanel.add(abilitiesEffectsPanel);
 
-    JPanel panel3 = new JPanel(new GridLayout(2, 1, 6, 6));
-    panel3.add(tabbedDescPanel);
-    panel3.add(panel2);
-
-    JPanel panel4 = new JPanel(new BorderLayout());
-    panel4.add(fieldPanel, BorderLayout.NORTH);
-    panel4.add(panel1, BorderLayout.CENTER);
-
-    setLayout(new GridLayout(1, 2, 3, 3));
-    add(panel4);
-    add(panel3);
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    setLayout(new GridLayout(1, 2, 4, 4));
+    add(scrollPane);
+    add(rightPanel);
   }
 
   private JPanel makeFieldPanel(ItmResource itm) {

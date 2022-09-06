@@ -120,58 +120,55 @@ public class BcsAction extends BcsStructureBase {
       if (functions.length == 1) {
         retVal = functions[0];
       } else {
-        // weighting parameter types (strings are most important)
-        int weightI = 1;
-        int weightO = 2;
-        int weightP = 4;
-        int weightS = 8;
-        int bestScore = Integer.MAX_VALUE; // lower is better
+        int bestScore = Integer.MAX_VALUE; // stores score of best match; lower is better
+        int bestParamCount = Integer.MAX_VALUE; // stores parameter count of best match; lower is better
         Signatures.Function fallback = null;
         for (Signatures.Function f : functions) {
           int sidx = 0; // tracks usage of strings
           int pi = 0, ps = 0, po = 0, pp = 0;
+          int piCount = 0, psCount = 0, poCount = 0, ppCount = 0;
           for (int i = 0, cnt = f.getNumParameters(); i < cnt; i++) {
             Signatures.Function.Parameter param = f.getParameter(i);
             switch (param.getType()) {
               case Signatures.Function.Parameter.TYPE_INTEGER:
-                pi++;
+                piCount++;
                 break;
               case Signatures.Function.Parameter.TYPE_STRING:
-                ps++;
+                psCount++;
                 sidx += param.isCombinedString() ? 1 : 2;
                 break;
               case Signatures.Function.Parameter.TYPE_OBJECT:
-                po++;
+                poCount++;
                 break;
               case Signatures.Function.Parameter.TYPE_POINT:
-                pp++;
+                ppCount++;
                 break;
             }
           }
 
           // prefer function signature with string arguments for fallback solution
-          if (fallback == null && ps > 0) {
+          if (fallback == null && psCount > 0) {
             fallback = f;
           }
 
           // evaluating remaining arguments
           for (int i = 2; i >= 0; i--) {
             if (getNumericParam(i) != 0) {
-              pi -= i + 1;
+              pi = piCount - i - 1;
               break;
             }
           }
 
           if ((sidx < 2 && !a8.isEmpty()) || (sidx < 4 && !a9.isEmpty())) {
             // don't choose if string arguments are left
-            ps = -1;
+            psCount--;
+            ps = psCount - 1;
           } else {
-            boolean hit = false;
             for (int i = 3; i >= 0; i--) {
               try {
-                if (hit || !getStringParam(f, i).isEmpty()) {
-                  ps--;
-                  hit = true;
+                if (!getStringParam(f, i).isEmpty()) {
+                  ps = psCount - i - 1;
+                  break;
                 }
               } catch (IllegalArgumentException e) {
                 break;
@@ -181,18 +178,22 @@ public class BcsAction extends BcsStructureBase {
 
           for (int i = 2; i >= 1; i--) {
             if (!getObjectParam(i).isEmpty()) {
-              po -= i;
+              po = poCount - i;
+              break;
             }
           }
 
           if (a5.x != 0 || a5.y != 0) {
-            pp--;
+            pp = ppCount - 1;
           }
 
           // finding match
-          int score = Math.abs(pi * weightI) + Math.abs(ps * weightS) + Math.abs(po * weightO) + Math.abs(pp * weightP);
-          if (score < bestScore) {
+          boolean isMatch = pi >= 0 && ps >= 0 && po >= 0 && pp >= 0;
+          int paramCount = piCount + psCount + poCount + ppCount;
+          int score = pi + ps + po + pp;
+          if (isMatch && score <= bestScore && paramCount < bestParamCount) {
             bestScore = score;
+            bestParamCount = paramCount;
             retVal = f;
           }
         }

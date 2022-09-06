@@ -2674,7 +2674,9 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             image = dstImage;
           }
 
-          modelFrames.insert(listIndex + curFrameIdx, image, new Point());
+          // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+          final boolean forceTransparentGreen = image.getType() != BufferedImage.TYPE_BYTE_INDEXED;
+          modelFrames.insert(listIndex + curFrameIdx, image, new Point(), forceTransparentGreen);
           // setting required extra options
           PseudoBamFrameEntry fe2 = modelFrames.getDecoder().getFrameInfo(listIndex + curFrameIdx);
           if (entry instanceof FileResourceEntry) {
@@ -4486,11 +4488,16 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
     /** Inserts the image into the global frames list. */
     public void insert(int pos, BufferedImage image, Point center) {
-      insert(pos, new BufferedImage[] { image }, new Point[] { center });
+      insert(pos, image, center, false);
+    }
+
+    /** Inserts the image into the global frames list. */
+    public void insert(int pos, BufferedImage image, Point center, boolean forceTransparentGreen) {
+      insert(pos, new BufferedImage[] { image }, new Point[] { center }, forceTransparentGreen);
     }
 
     /** Inserts the array of images into the global frames list. */
-    public void insert(int pos, BufferedImage[] images, Point[] centers) {
+    public void insert(int pos, BufferedImage[] images, Point[] centers, boolean forceTransparentGreen) {
       if (images != null && pos >= 0 && pos <= getDecoder().frameCount()) {
         int count = 0;
         PseudoBamControl control = getDecoder().createControl();
@@ -4499,10 +4506,13 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           if (images[i] != null) {
             // adding frame to global list
             Point center = (centers.length > i && centers[i] != null) ? centers[i] : null;
-            getDecoder().frameInsert(pos + i, images[i], center);
+            final int frameIdx = pos + i;
+            getDecoder().frameInsert(frameIdx, images[i], center);
+            getDecoder().getFrameInfo(frameIdx).setOption(PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED,
+              forceTransparentGreen);
             // registering colors values in global HashMap
             BufferedImage image = ColorConvert.toBufferedImage(images[i], true, false);
-            PseudoBamDecoder.registerColors(getConverter().paletteDialog.getColorMap(), image);
+            PseudoBamDecoder.registerColors(getConverter().paletteDialog.getColorMap(), image, forceTransparentGreen);
             getConverter().paletteDialog.setPaletteModified();
             count++;
           }
@@ -4538,8 +4548,10 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
         // unregistering color values in global color map
         for (int i = 0; i < count; i++) {
-          BufferedImage image = ColorConvert.toBufferedImage(getDecoder().frameGet(control, pos + i), true, false);
-          PseudoBamDecoder.unregisterColors(getConverter().paletteDialog.getColorMap(), image);
+          final int frameIdx = pos + i;
+          BufferedImage image = ColorConvert.toBufferedImage(getDecoder().frameGet(control, frameIdx), true, false);
+          PseudoBamDecoder.unregisterColors(getConverter().paletteDialog.getColorMap(), image, (boolean)getDecoder()
+            .getFrameInfo(frameIdx).getOption(PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED));
           getConverter().paletteDialog.setPaletteModified();
         }
         getDecoder().frameRemove(pos, count);

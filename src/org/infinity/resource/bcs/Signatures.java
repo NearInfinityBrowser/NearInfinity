@@ -674,7 +674,7 @@ public class Signatures {
           param = param.substring(0, pos);
         }
 
-        final Pattern patParam = Pattern.compile("([AIO0PST]):([0-9a-zA-Z_# ]+)\\*?([0-9a-zA-Z_#]*)");
+        final Pattern patParam = Pattern.compile("([AIO0PST]):([^*,)]+)\\*?([^ \t,)]*)");
         final Pattern patParamSep = Pattern.compile(" *, *");
         pos = 0;
 

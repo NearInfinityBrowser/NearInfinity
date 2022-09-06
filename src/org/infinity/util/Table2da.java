@@ -201,7 +201,7 @@ public class Table2da {
     List<Entry> retVal = new ArrayList<>();
 
     if (line != null) {
-      String[] tokens = line.split("\\s+");
+      String[] tokens = line.trim().split("\\s+");
       int fromIndex = 0;
       for (final String token : tokens) {
         fromIndex = line.indexOf(token, fromIndex);
