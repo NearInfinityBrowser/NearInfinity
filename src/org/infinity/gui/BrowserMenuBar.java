@@ -113,7 +113,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher {
-  public static final String VERSION = "v2.2-20220408-1";
+  public static final String VERSION = "v2.3-20220906";
 
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
