@@ -6,7 +6,9 @@ package org.infinity.resource.key;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +59,17 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
     this.index = -1; // not yet associated with KEY file
   }
 
-  public BIFFEntry(Path keyFile, int index, ByteBuffer buffer, int offset) {
-    updateBIFF(keyFile, index, buffer, offset);
+  /**
+   * Constructs a new BIFF entry from CHITIN.KEY information.
+   *
+   * @param keyFile Path to the KEY file.
+   * @param index   The BIFF entry index.
+   * @param buffer  {@link Buffer} with KEY file data.
+   * @param offset  Byte offset of the BIFF entry.
+   * @param isDemo  Indicates whether the KEY file uses the old BG1 demo format variant.
+   */
+  public BIFFEntry(Path keyFile, int index, ByteBuffer buffer, int offset, boolean isDemo) {
+    updateBIFF(keyFile, index, buffer, offset, isDemo);
   }
 
   // --------------------- Begin Interface Comparable ---------------------
@@ -170,17 +181,25 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
    * @param index   BIFF entry index in KEY file.
    * @param buffer  Buffered KEY file.
    * @param offset  Start offset of BIFF entry data in KEY file.
+   * @param isDemo  Indicates whether the KEY file uses the old BG1 demo format variant.
    */
-  public void updateBIFF(Path keyFile, int index, ByteBuffer buffer, int offset) {
+  public void updateBIFF(Path keyFile, int index, ByteBuffer buffer, int offset, boolean isDemo) {
     if (keyFile == null || buffer == null) {
       throw new NullPointerException();
     }
     this.keyFile = keyFile.toAbsolutePath();
     this.index = index;
-    this.fileSize = buffer.getInt(offset);
-    this.stringOffset = buffer.getInt(offset + 4);
-    short stringLength = buffer.getShort(offset + 8);
-    this.location = buffer.getShort(offset + 10) & 0xffff;
+    int curOfs = 0;
+    if (!isDemo) {
+      this.fileSize = buffer.getInt(offset + curOfs);
+      curOfs += 4;
+    }
+    this.stringOffset = buffer.getInt(offset + curOfs);
+    curOfs += 4;
+    short stringLength = buffer.getShort(offset + curOfs);
+    curOfs += 2;
+    this.location = buffer.getShort(offset + curOfs) & 0xffff;
+    curOfs += 2;
     this.fileName = StreamUtils.readString(buffer, this.stringOffset, stringLength - 1);
     if (this.fileName.charAt(0) == '\\') {
       this.fileName = this.fileName.substring(1);
@@ -194,6 +213,15 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
     }
     this.fileName = this.fileName.replace(this.separatorChar, '/');
     this.biffFile = findBiffFile(this.keyFile.getParent(), this.location, this.fileName);
+
+    if (isDemo) {
+      try {
+        this.fileSize = (int) Files.size(this.biffFile);
+      } catch (IOException e) {
+        System.err.println(String.format("Could not determine file size: %s", this.biffFile));
+        e.printStackTrace();
+      }
+    }
   }
 
   public int updateOffset(int newOffset) {

@@ -1879,7 +1879,12 @@ public final class Profile implements FileWatcher.FileWatchListener {
         // present list of available game types to choose from
         Game oldGame = getProperty(Key.GET_GAME_TYPE_PREVIOUS);
         if (oldGame == null) {
-          oldGame = Profile.Game.Unknown;
+          if (FileEx.create(FileManager.query(gameRoots, "baldur.exe")).isFile()) {
+            // Could be BG1 Demo
+            oldGame = Profile.Game.BG1;
+          } else {
+            oldGame = Profile.Game.Unknown;
+          }
         }
         game = Profile.showGameSelectionDialog("Unknown game", "Please select a game:", oldGame);
         if (game != null) {
