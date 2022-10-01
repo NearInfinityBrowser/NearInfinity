@@ -70,6 +70,7 @@ import org.infinity.check.ResRefChecker;
 import org.infinity.check.ResourceUseChecker;
 import org.infinity.check.ScriptChecker;
 import org.infinity.check.StringDuplicatesChecker;
+import org.infinity.check.StringSoundsChecker;
 import org.infinity.check.StringUseChecker;
 import org.infinity.check.StringValidationChecker;
 import org.infinity.check.StrrefIndexChecker;
@@ -1425,6 +1426,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private final JMenuItem toolCheckStringUse;
     private final JMenuItem toolCheckStringDuplicates;
+    private final JMenuItem toolCheckStringSounds;
     private final JMenuItem toolCheckStringValid;
     private final JMenuItem toolCheckStringIndex;
     private final JMenuItem toolCheckFileUse;
@@ -1513,6 +1515,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       toolCheckStringUse = makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringSounds = makeMenuItem("For Illegal SoundRefs in Strings", KeyEvent.VK_O,
+          Icons.ICON_FIND_16.getIcon(), -1, this);
+      checkMenu.add(toolCheckStringSounds);
 
       toolCheckStringDuplicates = makeMenuItem("For Duplicate Strings", KeyEvent.VK_D, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringDuplicates);
@@ -1684,6 +1690,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         new StructChecker();
       } else if (event.getSource() == toolCheckStringUse) {
         new StringUseChecker(NearInfinity.getInstance());
+      } else if (event.getSource() == toolCheckStringSounds) {
+        new StringSoundsChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringDuplicates) {
         new StringDuplicatesChecker(NearInfinity.getInstance());
       } else if (event.getSource() == toolCheckStringValid) {
