@@ -130,8 +130,6 @@ import org.infinity.util.tuples.Couple;
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   private static final int[] JAVA_VERSION = { 1, 8 }; // the minimum java version supported
 
-  private static final InfinityTextArea CONSOLE_TEXT = new InfinityTextArea(true);
-
   private static final String KEYFILENAME             = "chitin.key";
   private static final String WINDOW_SIZEX            = "WindowSizeX";
   private static final String WINDOW_SIZEY            = "WindowSizeY";
@@ -145,17 +143,31 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String TABLE_WIDTH_SIZE        = "TableColWidthSize";
   private static final String TABLE_PANEL_HEIGHT      = "TablePanelHeight";
   private static final String OPTION_GLOBAL_FONT_SIZE = "GlobalFontSize";
+  private static final String APP_UI_SCALE_ENABLED    = "AppUiScaleEnabled";
+  private static final String APP_UI_SCALE_FACTOR     = "AppUiScaleFactor";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
-  private static NearInfinity browser;
-
   static {
+    // Setting Swing UI scale factor (only available for Java 9 or higher)
+    if (Platform.JAVA_VERSION > 8) {
+      final int uiScale = getUiScalingOption();
+      if (uiScale > 0) {
+        // Must be set BEFORE any Swing Library calls to be effective
+        System.setProperty("sun.java2d.uiScale.enabled", "true");
+        System.setProperty("sun.java2d.uiScale", Double.toString(uiScale / 100.0));
+      }
+    }
+
     if (Platform.IS_MACOS) {
       // Enforce proper macOS menu bar integration
       System.setProperty("apple.laf.useScreenMenuBar", "true");
     }
   }
+
+  private static final InfinityTextArea CONSOLE_TEXT = new InfinityTextArea(true);
+
+  private static NearInfinity browser;
 
   private final JPanel containerpanel;
   private final JSplitPane spSplitter;
@@ -172,7 +184,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private JPopupMenu launchMenu;
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
-  private int progressIndex, globalFontSize;
+  private int progressIndex, globalFontSize, uiScalingFactor;
+  private boolean uiScalingEnabled;
 
   private static Path findKeyfile() {
     JFileChooser chooser;
@@ -315,6 +328,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     // Migrate preferences from "infinity" to "org.infinity" if needed
     Preferences prefs = Preferences.userNodeForPackage(getClass());
     migratePreferences("infinity", prefs, true);
+
+    // updating UI scale override
+    uiScalingEnabled = prefs.getBoolean(APP_UI_SCALE_ENABLED, false);
+    uiScalingFactor = prefs.getInt(APP_UI_SCALE_FACTOR, 100);
 
     // updating relative default font size globally
     globalFontSize = Math.max(50, Math.min(400, prefs.getInt(OPTION_GLOBAL_FONT_SIZE, 100)));
@@ -904,6 +921,20 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   /**
+   * Returns whether global UI Scaling is overridden by the application.
+   */
+  public boolean isUiScalingEnabled() {
+    return uiScalingEnabled;
+  }
+
+  /**
+   * Returns the currently selected UI Scaling factor, in percent.
+   */
+  public int getUiScalingFactor() {
+    return uiScalingFactor;
+  }
+
+  /**
    * Returns the currently selected global font size relative to UI defaults.
    */
   public int getGlobalFontSize() {
@@ -976,6 +1007,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         btnLaunchGame.setToolTipText("Launch game (launch directly with " + ctrlName + "+Click)");
       }
     });
+  }
+
+  /**
+   * Returns the UI scaling factor (in percent) if overridden by the app. Returns 0 if system-wide UI scale factor
+   * is used.
+   */
+  private static int getUiScalingOption() {
+    int retVal = 0;
+    final Preferences prefs = Preferences.userNodeForPackage(NearInfinity.class);
+    if (prefs.getBoolean(APP_UI_SCALE_ENABLED, false)) {
+      retVal = Math.max(50, Math.min(400, prefs.getInt(APP_UI_SCALE_FACTOR, 100)));
+    }
+    return retVal;
   }
 
   private static boolean reloadFactory(boolean refreshOnly) {
@@ -1068,6 +1112,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
     prefs.putInt(TABLE_WIDTH_SIZE, getTableColumnWidth(3));
     prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
+    prefs.putBoolean(APP_UI_SCALE_ENABLED, BrowserMenuBar.getInstance().isUiScalingEnabled());
+    prefs.putInt(APP_UI_SCALE_FACTOR, BrowserMenuBar.getInstance().getUiScalingFactor());
     prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getGlobalFontSize());
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();

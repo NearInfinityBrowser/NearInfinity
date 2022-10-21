@@ -512,6 +512,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getLookAndFeel();
   }
 
+  /** Returns whether UI scaling override is enabled. */
+  public boolean isUiScalingEnabled() {
+    return optionsMenu.isUiScalingEnabled();
+  }
+
+  /** Returns the UI scaling factor override in percent. */
+  public int getUiScalingFactor() {
+    return optionsMenu.getUiScalingFactor();
+  }
+
   /** Returns the global font size override in percent. */
   public int getGlobalFontSize() {
     return optionsMenu.getGlobalFontSize();
@@ -1723,7 +1733,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   ///////////////////////////////
 
   private static final class OptionsMenu extends JMenu implements ActionListener, ItemListener {
+    // List of predefined font sizes (-1 indicates a custom value)
     private static final int[] FONT_SIZES = { 50, 75, 100, 125, 150, 175, 200, 250, 300, 400, -1 };
+
+    // List of predefined ui scaling factors (-1 indicates a custom value)
+    private static final int[] UI_SCALING = { 100, 125, 133, 150, 175, 200, 250, 300, 400, -1 };
 
     private static final Font[] FONTS = {
         new Font(Font.MONOSPACED, Font.PLAIN, 12),
@@ -1856,6 +1870,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JRadioButtonMenuItem[] selectTlkColorScheme = new JRadioButtonMenuItem[COLOR_SCHEME.length];
     private final JRadioButtonMenuItem[] selectWeiDUColorScheme = new JRadioButtonMenuItem[COLOR_SCHEME.length];
     private final DataRadioButtonMenuItem[] globalFontSize = new DataRadioButtonMenuItem[FONT_SIZES.length];
+    private final DataRadioButtonMenuItem[] globalUiScaling = new DataRadioButtonMenuItem[UI_SCALING.length];
 
     private JCheckBoxMenuItem optionTextHightlightCurrent;
     private JCheckBoxMenuItem optionTextLineNumbers;
@@ -1895,6 +1910,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionTreeSearchNames;
     private JCheckBoxMenuItem optionHighlightOverridden;
     private JCheckBoxMenuItem optionLaunchGameAllowed;
+    private JCheckBoxMenuItem optionUiScalingEnabled;
 //    private JCheckBoxMenuItem optionMonitorFileChanges;
 
     private final JMenu mCharsetMenu;
@@ -2242,6 +2258,46 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         bg.add(menu);
         vieworeditmenu.add(menu);
         viewOrEditShown[i] = menu;
+      }
+
+      // Options->Override UI Scaling
+      JMenu uiScalingMenu = new JMenu("Override UI Scaling");
+      add(uiScalingMenu);
+      // adding "Enabled" checkbox
+      optionUiScalingEnabled = new JCheckBoxMenuItem("Enabled", NearInfinity.getInstance().isUiScalingEnabled());
+      optionUiScalingEnabled.setToolTipText("Enabling this option overrides the global scaling factor for UI elements.");
+      optionUiScalingEnabled.addActionListener(this);
+      uiScalingMenu.add(optionUiScalingEnabled);
+      uiScalingMenu.addSeparator();
+      // adding scaling factors
+      bg = new ButtonGroup();
+      uiScalingMenu.addItemListener(this);
+      int selectedScale = NearInfinity.getInstance().getUiScalingFactor();
+      selectedScale = Math.min(Math.max(selectedScale, 50), 400);
+      boolean isCustomScale = true;
+      for (int i = 0; i < UI_SCALING.length; i++) {
+        int scale = UI_SCALING[i];
+        if (scale > 0) {
+          String msg = UI_SCALING[i] + " %" + (scale == 100 ? " (Default)" : "");
+          globalUiScaling[i] = new DataRadioButtonMenuItem(msg, UI_SCALING[i] == selectedScale,
+              Integer.valueOf(UI_SCALING[i]));
+          if (UI_SCALING[i] == selectedScale) {
+            isCustomScale = false;
+          }
+        } else {
+          String msg = isCustomScale ? "Custom (" + selectedScale + " %)..." : "Custom...";
+          globalUiScaling[i] = new DataRadioButtonMenuItem(msg, isCustomScale, isCustomScale ? selectedScale : scale);
+        }
+        globalUiScaling[i].setEnabled(NearInfinity.getInstance().isUiScalingEnabled());
+        globalUiScaling[i].setActionCommand("ChangeUiScaling");
+        globalUiScaling[i].addActionListener(this);
+        uiScalingMenu.add(globalUiScaling[i]);
+        bg.add(globalUiScaling[i]);
+      }
+      // Option is only available on Java Runtime 9 or higher
+      if (Platform.JAVA_VERSION <= 8) {
+        uiScalingMenu.setEnabled(false);
+        uiScalingMenu.setToolTipText("Only available on Java 9 or higher.");
       }
 
       // Options->Global Font Size
@@ -2840,6 +2896,95 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       selectFont[index].setFont(FONTS[index].deriveFont(Misc.getScaledValue(12.0f)));
     }
 
+    /** Enables the UI scaling factor provided by the specified menu item. */
+    private void applyUiScaling(DataRadioButtonMenuItem dmi) {
+      int percent = ((Integer) dmi.getData());
+      if (dmi == globalUiScaling[globalUiScaling.length - 1]) {
+        if (percent < 0) {
+          percent = NearInfinity.getInstance().getUiScalingFactor();
+        }
+        String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
+            "Enter UI scaling factor in percent (50 - 400):", Integer.valueOf(percent));
+        if (ret == null) {
+          dmi.setData(Integer.valueOf(percent));
+          dmi.setText("Custom (" + percent + " %)...");
+          return;
+        }
+
+        int value = NearInfinity.getInstance().getUiScalingFactor();
+        try {
+          int radix = 10;
+          if (ret.toLowerCase().startsWith("0x")) {
+            ret = ret.substring(2);
+            radix = 16;
+          }
+          value = Integer.parseInt(ret, radix);
+          if (value < 50 || value > 400) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                "Number out of range. Using current value " + percent + ".");
+            value = NearInfinity.getInstance().getUiScalingFactor();
+          }
+
+        } catch (NumberFormatException nfe) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+              "Invalid number entered. Using current value " + percent + ".");
+        }
+        dmi.setData(Integer.valueOf(value));
+        dmi.setText("Custom (" + value + " %)...");
+        if (value == NearInfinity.getInstance().getUiScalingFactor()) {
+          return;
+        }
+      }
+      if (percent != NearInfinity.getInstance().getUiScalingFactor()) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            "You have to restart Near Infinity\n" + "for the UI scale factor change to take effect.");
+      }
+    }
+
+    /** Enables the global font size provided by the specified menu item. */
+    private void applyGlobalFontSize(DataRadioButtonMenuItem dmi) {
+      int percent = ((Integer) dmi.getData());
+      if (dmi == globalFontSize[globalFontSize.length - 1]) {
+        if (percent < 0) {
+          percent = NearInfinity.getInstance().getGlobalFontSize();
+        }
+        String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter font size in percent (50 - 400):",
+            Integer.valueOf(percent));
+        if (ret == null) {
+          dmi.setData(Integer.valueOf(percent));
+          dmi.setText("Custom (" + percent + " %)...");
+          return;
+        }
+
+        int value = NearInfinity.getInstance().getGlobalFontSize();
+        try {
+          int radix = 10;
+          if (ret.toLowerCase().startsWith("0x")) {
+            ret = ret.substring(2);
+            radix = 16;
+          }
+          value = Integer.parseInt(ret, radix);
+          if (value < 50 || value > 400) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                "Number out of range. Using current value " + percent + ".");
+            value = NearInfinity.getInstance().getGlobalFontSize();
+          }
+        } catch (NumberFormatException nfe) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+              "Invalid number entered. Using current value " + percent + ".");
+        }
+        dmi.setData(Integer.valueOf(value));
+        dmi.setText("Custom (" + value + " %)...");
+        if (value == NearInfinity.getInstance().getGlobalFontSize()) {
+          return;
+        }
+      }
+      if (percent != NearInfinity.getInstance().getGlobalFontSize()) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            "You have to restart Near Infinity\n" + "for the font size change to take effect.");
+      }
+    }
+
     /** Returns defValue if masked bit is clear or value if masked bit is already set. */
     private boolean fixOption(int mask, boolean defValue, boolean value) {
       boolean retVal = value;
@@ -2941,6 +3086,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       return DEFAULT_LOOKFEEL;
     }
 
+    public boolean isUiScalingEnabled() {
+      return optionUiScalingEnabled.isSelected();
+    }
+
+    public int getUiScalingFactor() {
+      return ((Integer) globalUiScaling[getSelectedButtonIndex(globalUiScaling, 0)].getData());
+    }
+
     public int getGlobalFontSize() {
       return ((Integer) globalFontSize[getSelectedButtonIndex(globalFontSize, 2)].getData());
     }
@@ -2969,6 +3122,13 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         NearInfinity.getInstance().updateLauncher();
       } else if (event.getSource() == optionShowSize) {
         optionSizeInHex.setEnabled(optionShowSize.isSelected());
+      } else if (event.getSource() == optionUiScalingEnabled) {
+        final boolean isEnabled = optionUiScalingEnabled.isSelected();
+        for (int i = 0; i < globalUiScaling.length; i++) {
+          globalUiScaling[i].setEnabled(isEnabled);
+        }
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            "You have to restart Near Infinity\n" + "for the UI scale override setting to take effect.");
       } else if (event.getActionCommand().equals("TextFont")) {
         int index = FONTS.length - 1;
         FontChooser fc = new FontChooser();
@@ -2978,48 +3138,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         if (fc.showDialog(NearInfinity.getInstance()) == FontChooser.OK_OPTION) {
           applyCustomFont(fc.getSelectedFont());
         }
+      } else if (event.getActionCommand().equals("ChangeUiScaling")) {
+        applyUiScaling((DataRadioButtonMenuItem) event.getSource());
       } else if (event.getActionCommand().equals("ChangeFontSize")) {
-        DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem) event.getSource();
-        int percent = ((Integer) dmi.getData());
-        if (dmi == globalFontSize[globalFontSize.length - 1]) {
-          if (percent < 0) {
-            percent = NearInfinity.getInstance().getGlobalFontSize();
-          }
-          String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter font size in percent (50 - 400):",
-              Integer.valueOf(percent));
-          if (ret == null) {
-            dmi.setData(Integer.valueOf(percent));
-            dmi.setText("Custom (" + percent + " %)...");
-            return;
-          }
-
-          int value = NearInfinity.getInstance().getGlobalFontSize();
-          try {
-            int radix = 10;
-            if (ret.toLowerCase().startsWith("0x")) {
-              ret = ret.substring(2);
-              radix = 16;
-            }
-            value = Integer.parseInt(ret, radix);
-            if (value < 50 || value > 400) {
-              JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                  "Number out of range. Using current value " + percent + ".");
-              value = NearInfinity.getInstance().getGlobalFontSize();
-            }
-          } catch (NumberFormatException nfe) {
-            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                "Invalid number entered. Using current value " + percent + ".");
-          }
-          dmi.setData(Integer.valueOf(value));
-          dmi.setText("Custom (" + value + " %)...");
-          if (value == NearInfinity.getInstance().getGlobalFontSize()) {
-            return;
-          }
-        }
-        if (percent != NearInfinity.getInstance().getGlobalFontSize()) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-              "You have to restart Near Infinity\n" + "for the font size change to take effect.");
-        }
+        applyGlobalFontSize((DataRadioButtonMenuItem) event.getSource());
       } else if (event.getActionCommand().equals("Charset")) {
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem) event.getSource();
         String csName = (String) dmi.getData();

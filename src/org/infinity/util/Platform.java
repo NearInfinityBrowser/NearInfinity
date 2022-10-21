@@ -27,6 +27,9 @@ public class Platform {
   /** Returns the system-dependent name-separator character as string for the current platform. */
   public final static String SEPARATOR = System.getProperty("file.separator");
 
+  /** Returns the major version number of the active Java Runtime. */
+  public final static int JAVA_VERSION = getJavaVersion();
+
   /**
    * Determines the current operating system.
    */
@@ -43,6 +46,25 @@ public class Platform {
     } else {
       return OS.UNKNOWN;
     }
+  }
+
+  /**
+   * Returns the Java Runtime major version.
+   */
+  public static int getJavaVersion() {
+    int retVal = 8;
+
+    String[] versionString = System.getProperty("java.specification.version").split("\\.");
+    try {
+      int major = Integer.parseInt(versionString[0]);
+      if (major <= 1 && versionString.length > 1) {
+        major = Integer.parseInt(versionString[1]);
+      }
+      retVal = major;
+    } catch (NumberFormatException e) {
+    }
+
+    return retVal;
   }
 
   private Platform() {
