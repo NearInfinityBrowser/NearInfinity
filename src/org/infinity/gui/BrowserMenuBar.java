@@ -1586,7 +1586,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       addSeparator();
 
-      toolMassExport = makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.ICON_EXPORT_16.getIcon(), -1, this);
+      toolMassExport = makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.ICON_EXPORT_16.getIcon(), KeyEvent.VK_M, this);
       add(toolMassExport);
 
       addSeparator();

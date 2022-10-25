@@ -15,13 +15,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.BufferedWriter;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,8 +50,11 @@ import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.TextResource;
+import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.graphics.BamDecoder;
@@ -67,6 +68,7 @@ import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
+import org.infinity.resource.text.PlainTextResource;
 import org.infinity.resource.video.MveResource;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -90,7 +92,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbDecompress = new JCheckBox("Decompress BAM/MOS", false);
   private final JCheckBox cbConvertToPNG = new JCheckBox("Export MOS/PVRZ/TIS as PNG", false);
   private final JCheckBox cbConvertTisVersion = new JCheckBox("Convert TIS to ", false);
+  private final JCheckBox cbTrimText = new JCheckBox("Trim spaces in text files", false);
+  private final JCheckBox cbFormatAlign = new JCheckBox("Align 2DA table data:", false);
   private final JComboBox<String> cbConvertTisList = new JComboBox<>(new String[] { "Palette-based", "PVRZ-based" });
+  private final JComboBox<String> cbFormatAlignList = new JComboBox<>(new String[] { "Compact", "Uniform" });
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
@@ -146,42 +151,71 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     pTisConvert.add(cbConvertTisVersion);
     pTisConvert.add(cbConvertTisList);
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    JPanel pTextAlign = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    pTextAlign.add(cbFormatAlign);
+    pTextAlign.add(cbFormatAlignList);
+    cbFormatAlign.setToolTipText("<html>Align table columns to improve readability:<ul>"
+        + "<li>Compact: Column width is calculated individually.</li>"
+        + "<li>Uniform: Column width is calculated evenly, comparable to WeiDU's PRETTY_PRINT_2DA.</li>"
+        + "</ul></html>");
+
+    int row = 0;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     bottomRightPanel.add(new JLabel("Options:"), gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbIncludeExtraDirs, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertWAV, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertCRE, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecompile, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecrypt, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbTrimText, gbc);
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(pTextAlign, gbc);
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbDecompress, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 7, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbConvertToPNG, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 8, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(pTisConvert, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 9, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(pBamFrames, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 10, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbExportMVEasAVI, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 0, 11, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    row++;
+    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbOverwrite, gbc);
+    row++;
 
     JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     bottomPanel.add(bExport);
@@ -363,36 +397,30 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
-  private void exportText(ResourceEntry entry, Path output) throws Exception {
+  private void exportText(ResourceEntry entry, Class<? extends Resource> resourceType, Path output) throws Exception {
+    // preparing source data
     ByteBuffer bb = entry.getResourceBuffer();
-    if (bb.limit() > 0) {
-      if (bb.limit() > 1 && bb.getShort(0) == -1) {
-        bb = StaticSimpleXorDecryptor.decrypt(bb, 2);
-      }
-      // Keep trying. File may be in use by another thread.
-      try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
-        StreamUtils.writeBytes(os, bb);
-      }
-    }
-  }
 
-  private void exportDecompiledScript(ResourceEntry entry, Path output) throws Exception {
-    output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "BAF"));
-    if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
-      return;
+    if (cbDecrypt.isSelected()) {
+      bb = decryptText(entry, bb);
     }
-    ByteBuffer bb = entry.getResourceBuffer();
-    if (bb.limit() > 0) {
-      if (bb.limit() > 1 && bb.getShort(0) == -1) {
-        bb = StaticSimpleXorDecryptor.decrypt(bb, 2);
+
+    if (resourceType.isAssignableFrom(BcsResource.class) && cbDecompile.isSelected()) {
+      bb = decompileScript(entry, bb);
+      output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "BAF"));
+    } else {
+      if (cbTrimText.isSelected()) {
+        bb = trimText(entry, bb);
       }
-      Decompiler decompiler = new Decompiler(StreamUtils.readString(bb, bb.limit()), false);
-      decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
-      String script = decompiler.getSource();
-      // Keep trying. File may be in use by another thread.
-      try (BufferedWriter bw = new BufferedWriter(tryOpenOutputWriter(output, 10, 100))) {
-        bw.write(script.replaceAll("\r?\n", Misc.LINE_SEPARATOR));
+      if (cbFormatAlign.isSelected() && entry.getExtension().equalsIgnoreCase("2DA")) {
+        bb = alignTable(entry, bb);
       }
+    }
+
+    // saving data
+    // Keep trying. File may be in use by another thread.
+    try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
+      StreamUtils.writeBytes(os, bb);
     }
   }
 
@@ -593,17 +621,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
         return;
       }
-      if ((entry.getExtension().equalsIgnoreCase("IDS") || entry.getExtension().equalsIgnoreCase("2DA")
-          || entry.getExtension().equalsIgnoreCase("BIO") || entry.getExtension().equalsIgnoreCase("RES")
-          || entry.getExtension().equalsIgnoreCase("INI") || entry.getExtension().equalsIgnoreCase("TXT")
-          || (Profile.isEnhancedEdition() && (entry.getExtension().equalsIgnoreCase("GLSL")
-              || entry.getExtension().equalsIgnoreCase("GUI") || entry.getExtension().equalsIgnoreCase("SQL")))
-          || (entry.getExtension().equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2))
-          && cbDecrypt.isSelected()) {
-        exportText(entry, output);
-      } else if ((entry.getExtension().equalsIgnoreCase("BCS") || entry.getExtension().equalsIgnoreCase("BS"))
-          && cbDecompile.isSelected()) {
-        exportDecompiledScript(entry, output);
+
+      Class<? extends Resource> resourceType = ResourceFactory.getResourceType(entry);
+      boolean isTextResource = TextResource.class.isAssignableFrom(resourceType);
+
+      if (isTextResource) {
+        exportText(entry, resourceType, output);
       } else if (entry.getExtension().equalsIgnoreCase("MOS") && cbConvertToPNG.isSelected()) {
         mosToPng(entry, output);
       } else if (entry.getExtension().equalsIgnoreCase("PVRZ") && cbConvertToPNG.isSelected()) {
@@ -634,6 +657,91 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
+  /**
+   * Decompiles BCS data from {@code inBuffer}.
+   *
+   * @param entry The original {@link ResourceEntry} instance.
+   * @param inBuffer Buffer containing the current state of the resource data.
+   * @return {@link ByteBuffer} instance with decompiled script content.
+   */
+  private ByteBuffer decompileScript(ResourceEntry entry, ByteBuffer inBuffer) throws Exception {
+    if (inBuffer != null) {
+      final Decompiler decompiler = new Decompiler(StreamUtils.readString(inBuffer, inBuffer.limit()), false);
+      decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
+      String script = decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR);
+      return ByteBuffer.wrap(script.getBytes(Misc.CHARSET_DEFAULT));
+    }
+    return inBuffer;
+  }
+
+  /**
+   * Decrypts data from {@code inBuffer}.
+   *
+   * @param entry The original {@link ResourceEntry} instance.
+   * @param inBuffer Buffer containing the current state of the resource data.
+   * @return {@link ByteBuffer} instance with decrypted text content.
+   */
+  private ByteBuffer decryptText(ResourceEntry entry, ByteBuffer inBuffer) {
+    if (inBuffer != null && inBuffer.limit() > 1 && inBuffer.getShort(0) == -1) {
+      return StaticSimpleXorDecryptor.decrypt(inBuffer, 2);
+    }
+    return inBuffer;
+  }
+
+  /**
+   * Removes trailing whitespace from all lines of text in {@code inBuffer}.
+   *
+   * @param entry The original {@link ResourceEntry} instance.
+   * @param inBuffer Buffer containing the current state of the resource data.
+   * @return {@link ByteBuffer} instance with trimmed text content.
+   */
+  private ByteBuffer trimText(ResourceEntry entry, ByteBuffer inBuffer) {
+    if (inBuffer != null) {
+      String text = Misc.CHARSET_DEFAULT.decode(inBuffer).toString();
+      text = PlainTextResource.trimSpaces(text, true, false);
+      return ByteBuffer.wrap(text.getBytes(Misc.CHARSET_DEFAULT));
+    }
+    return inBuffer;
+  }
+
+  /**
+   * Aligns table data for improved readability.
+   *
+   * @param entry The original {@link ResourceEntry} instance.
+   * @param inBuffer Buffer containing the current state of the resource data.
+   * @return {@link ByteBuffer} instance with aligned text content.
+   */
+  private ByteBuffer alignTable(ResourceEntry entry, ByteBuffer inBuffer) {
+    if (inBuffer != null) {
+      String text = Misc.CHARSET_DEFAULT.decode(inBuffer).toString();
+      if (cbFormatAlignList.getSelectedIndex() == 1) {
+        // Uniform alignment
+        text = PlainTextResource.alignTableColumns(text, 1, false, 1);
+      } else {
+        // Compact alignment
+        text = PlainTextResource.alignTableColumns(text, 2, true, 4);
+      }
+      return ByteBuffer.wrap(text.getBytes(Misc.CHARSET_DEFAULT));
+    }
+    return inBuffer;
+  }
+
+//  /**
+//   * Sorts IDS entries by key values.
+//   *
+//   * @param entry The original {@link ResourceEntry} instance.
+//   * @param inBuffer Buffer containing the current state of the resource data.
+//   * @return {@link ByteBuffer} instance with sorted text content.
+//   */
+//  private ByteBuffer sortTableText(ResourceEntry entry, ByteBuffer inBuffer) {
+//    if (entry != null && inBuffer != null && entry.getExtension().equalsIgnoreCase("IDS")) {
+//      String text = Misc.CHARSET_DEFAULT.decode(inBuffer).toString();
+//      text = PlainTextResource.sortTable(text, true, entry.getResourceRef().equalsIgnoreCase("TRIGGER"));
+//      return ByteBuffer.wrap(text.getBytes(Misc.CHARSET_DEFAULT));
+//    }
+//    return inBuffer;
+//  }
+
   // Attempts to open "output" as stream to the specified file "numAttempts' time with "delayAttempts" ms delay
   // inbetween.
   private OutputStream tryOpenOutputStream(Path output, int numAttempts, int delayAttempts) throws Exception {
@@ -660,31 +768,31 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     return null;
   }
 
-  // Attempts to open "output" as writer to the specified file "numAttempts' time with "delayAttempts" ms delay
-  // inbetween.
-  private Writer tryOpenOutputWriter(Path output, int numAttempts, int delayAttempts) throws Exception {
-    if (output != null) {
-      numAttempts = Math.max(1, numAttempts);
-      delayAttempts = Math.max(0, delayAttempts);
-      Writer w = null;
-      while (w == null) {
-        try {
-          w = Files.newBufferedWriter(output);
-        } catch (FileNotFoundException fnfe) {
-          w = null;
-          if (--numAttempts == 0) {
-            throw fnfe;
-          }
-          try {
-            Thread.sleep(delayAttempts);
-          } catch (InterruptedException ie) {
-          }
-        }
-      }
-      return w;
-    }
-    return null;
-  }
+//  // Attempts to open "output" as writer to the specified file "numAttempts' time with "delayAttempts" ms delay
+//  // inbetween.
+//  private Writer tryOpenOutputWriter(Path output, int numAttempts, int delayAttempts) throws Exception {
+//    if (output != null) {
+//      numAttempts = Math.max(1, numAttempts);
+//      delayAttempts = Math.max(0, delayAttempts);
+//      Writer w = null;
+//      while (w == null) {
+//        try {
+//          w = Files.newBufferedWriter(output);
+//        } catch (FileNotFoundException fnfe) {
+//          w = null;
+//          if (--numAttempts == 0) {
+//            throw fnfe;
+//          }
+//          try {
+//            Thread.sleep(delayAttempts);
+//          } catch (InterruptedException ie) {
+//          }
+//        }
+//      }
+//      return w;
+//    }
+//    return null;
+//  }
 
   // -------------------------- INNER CLASSES --------------------------
 
