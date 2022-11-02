@@ -22,6 +22,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOError;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -41,7 +42,9 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -856,6 +859,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       for (int i = 0, size = bookmarkList.size(); i < size; i++) {
         gameBookmarks.insert(bookmarkList.get(i).getMenuItem(), i);
       }
+      updateBookmarkShortcuts();
       gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
       gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
 
@@ -873,6 +877,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         Bookmark b = bookmarkList.remove(idx);
         if (b != null) {
           b.setActionListener(null);
+          updateBookmarkShortcuts();
         }
         if (gameBookmarks.getPopupMenu().getComponent(idx) == b.getMenuItem()) {
           gameBookmarks.getPopupMenu().remove(idx);
@@ -905,6 +910,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       if (bookmark != null && idx <= separatorIdx) {
         bookmarkList.add(idx, bookmark);
+        updateBookmarkShortcuts();
         gameBookmarks.insert(bookmark.getMenuItem(), idx);
         gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
         gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
@@ -938,6 +944,26 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       } else {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No name specified.", "Error",
             JOptionPane.ERROR_MESSAGE);
+      }
+    }
+
+    /** Updates shortcuts for bookmark menu items */
+    private void updateBookmarkShortcuts() {
+      for (int i = 0, count = bookmarkList.size(); i < count; i++) {
+        final Bookmark bookmark = bookmarkList.get(i);
+        if (i < 10) {
+          // Ctrl+Alt+[digit]
+          int key = (i < 9) ? KeyEvent.VK_1 + i : KeyEvent.VK_0;
+          bookmark.updateAccelerator(KeyStroke.getKeyStroke(key, CTRL_MASK | InputEvent.ALT_DOWN_MASK));
+        } else if (i < 20) {
+          // Ctrl+Alt+Shift+[digit]
+          int key = (i < 19) ? KeyEvent.VK_1 + (i % 10) : KeyEvent.VK_0;
+          bookmark.updateAccelerator(
+              KeyStroke.getKeyStroke(key, CTRL_MASK | InputEvent.ALT_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+        } else {
+          // No shortcut
+          bookmark.updateAccelerator(null);
+        }
       }
     }
 
@@ -1047,13 +1073,27 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           }
         }
         if (selected != -1) {
-          Path keyFile = FileManager.resolve(bookmarkList.get(selected).getPath());
+          final Bookmark bookmark = bookmarkList.get(selected);
+          Path keyFile = FileManager.resolve(bookmark.getPath());
           if (!FileEx.create(keyFile).isFile()) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                bookmarkList.get(selected).getPath() + " could not be found", "Open game failed",
+                bookmark.getPath() + " could not be found", "Open game failed",
                 JOptionPane.ERROR_MESSAGE);
           } else {
-            NearInfinity.getInstance().openGame(keyFile);
+            boolean isEqual = false;
+            try {
+              isEqual = keyFile.equals(Profile.getChitinKey().toAbsolutePath());
+            } catch (IOError e) {
+              e.printStackTrace();
+            }
+            if (!isEqual) {
+              String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
+              int confirm = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), message, "Open game",
+                  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+              if (confirm == JOptionPane.YES_OPTION) {
+                NearInfinity.getInstance().openGame(keyFile);
+              }
+            }
           }
         }
       } else if (event.getActionCommand().equals(RecentGame.getCommand())) {
@@ -3753,6 +3793,38 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         item.setText(getName());
       }
       item.setEnabled(isEnabled());
+    }
+
+    /**
+     * Assigns the specified {@link KeyStroke} to the menu item that is associated with this bookmark.
+     * Previous accelerators are removed.
+     *
+     * @param accelerator The new {@code KeyStroke}. Specify {@code null} to remove any existing keystroke.
+     */
+    public void updateAccelerator(KeyStroke accelerator) {
+      removeAccelerator();
+      if (accelerator != null) {
+        item.setAccelerator(accelerator);
+      }
+    }
+
+    /** Removes the current accelerator keystroke from the menu item that is associated with the bookmark. */
+    public void removeAccelerator() {
+      removeAcceleratorFromMap(item.getInputMap(JComponent.WHEN_FOCUSED), item.getAccelerator());
+      removeAcceleratorFromMap(item.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), item.getAccelerator());
+      removeAcceleratorFromMap(item.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW), item.getAccelerator());
+      item.setAccelerator(null);
+    }
+
+    /** Helper method: Removes an accelerator from the given input map. */
+    private void removeAcceleratorFromMap(InputMap map, KeyStroke accelerator) {
+      if (map != null && accelerator != null) {
+        map.remove(accelerator);
+        final InputMap parentMap = map.getParent();
+        if (parentMap != null) {
+          parentMap.remove(accelerator);
+        }
+      }
     }
 
     /** Returns the command string used for all menu items. */
