@@ -2450,8 +2450,9 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
     // Has EEex been installed?
     if (engine == Engine.EE) {
-      Path eeexDb = FileManager.query(getGameRoot(), "EEex.db");
-      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, FileEx.create(eeexDb).isFile());
+      Path eeexDb = FileManager.query(getGameRoot(), "EEex.db");  // older EEex versions
+      Path eeexDb2 = FileManager.query(getGameRoot(), "InfinityLoader.db");
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, FileEx.create(eeexDb).isFile() || FileEx.create(eeexDb2).isFile());
     } else {
       addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Boolean.FALSE);
     }
