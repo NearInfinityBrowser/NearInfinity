@@ -94,7 +94,6 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.EffectFactory;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -104,6 +103,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.effects.BaseOpcode;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
@@ -385,6 +385,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
         CreMapCache.reset();
+        BaseOpcode.initOpcodes();
 //        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
 //          FileWatcher.getInstance().start();
 //        }
@@ -744,7 +745,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Path oldKeyFile = Profile.getChitinKey();
       ChildFrame.closeWindows();
       clearCache(false);
-      EffectFactory.reset();
+      BaseOpcode.reset();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
 
       // making sure vital game resources are accessible
@@ -1027,7 +1028,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     clearCache(refreshOnly);
     Path keyFile = refreshOnly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
-      EffectFactory.reset();
       retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       if (retVal) {
         CreMapCache.reset();
@@ -1050,6 +1050,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     IniMapCache.clearCache();
     Table2daCache.clearCache();
     CreMapCache.clearCache();
+    BaseOpcode.reset();
 //    SearchFrame.clearCache();
     StringTable.resetAll();
     ProRef.clearCache();
