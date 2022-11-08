@@ -292,6 +292,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.optionShowSystemInfo.isSelected();
   }
 
+  /** Returns whether to show a dialog prompt whenever a bookmarked game is opened. */
+  public boolean showOpenBookmarksPrompt() {
+    return optionsMenu.optionOpenBookmarksPrompt.isSelected();
+  }
+
   /** Returns whether scripts are automatically scanned for compile errors. */
   public boolean autocheckBCS() {
     return optionsMenu.optionAutocheckBCS.isSelected();
@@ -1087,9 +1092,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
               e.printStackTrace();
             }
             if (!isEqual) {
-              String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
-              int confirm = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), message, "Open game",
-                  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+              int confirm;
+              if (BrowserMenuBar.getInstance().showOpenBookmarksPrompt()) {
+                String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
+                confirm = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), message, "Open game",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+              } else {
+                confirm = JOptionPane.YES_OPTION;
+              }
               if (confirm == JOptionPane.YES_OPTION) {
                 NearInfinity.getInstance().openGame(keyFile);
               }
@@ -1850,6 +1860,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_SHOWCOLOREDSTRUCTURES    = "ShowColoredStructures";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWSYSINFO              = "ShowSysInfo";
+    private static final String OPTION_OPENBOOKMARKSPROMPT      = "OpenBookmarksPrompt";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
     private static final String OPTION_HIGHLIGHT_OVERRIDDEN     = "HighlightOverridden";
@@ -1945,6 +1956,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionShowColoredStructures;
     private JCheckBoxMenuItem optionShowHexColored;
     private JCheckBoxMenuItem optionShowSystemInfo;
+    private JCheckBoxMenuItem optionOpenBookmarksPrompt;
     private JCheckBoxMenuItem optionShowUnknownResources;
     private JCheckBoxMenuItem optionKeepViewOnCopy;
     private JCheckBoxMenuItem optionTreeSearchNames;
@@ -2058,8 +2070,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowHexColored = new JCheckBoxMenuItem("Show colored blocks in Raw tabs",
           getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
-      optionShowSystemInfo = new JCheckBoxMenuItem("Display system information at startup", getPrefs().getBoolean(OPTION_SHOWSYSINFO, true));
+      optionShowSystemInfo = new JCheckBoxMenuItem("Display system information at startup",
+          getPrefs().getBoolean(OPTION_SHOWSYSINFO, true));
       add(optionShowSystemInfo);
+      optionOpenBookmarksPrompt = new JCheckBoxMenuItem("Confirm opening bookmarked games",
+          getPrefs().getBoolean(OPTION_OPENBOOKMARKSPROMPT, true));
+      add(optionOpenBookmarksPrompt);
 
       addSeparator();
 
@@ -2714,6 +2730,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWCOLOREDSTRUCTURES, optionShowColoredStructures.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSYSINFO, optionShowSystemInfo.isSelected());
+      getPrefs().putBoolean(OPTION_OPENBOOKMARKSPROMPT, optionOpenBookmarksPrompt.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
