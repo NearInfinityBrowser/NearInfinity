@@ -75,13 +75,13 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractAbility;
-import org.infinity.resource.EffectFactory;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.effects.BaseOpcode;
 import org.infinity.resource.itm.Ability;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -1612,7 +1612,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       pTiming = new TimingModePanel();
       bpwTiming = new ButtonPopupWindow(SET_OPTIONS_TEXT, pTiming);
 
-      String[] saveType = EffectFactory.getSaveType();
+      String[] saveType = BaseOpcode.getSaveType();
       pSaveType = new FlagsPanel(4, saveType);
       bpwSaveType = new ButtonPopupWindow(SET_OPTIONS_TEXT, pSaveType);
 
@@ -4074,7 +4074,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         cbTiming[i].addActionListener(this);
       }
 
-      cbMode = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(EffectFactory.DURATIONS_V2_MAP)), 130);
+      cbMode = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(BaseOpcode.DURATIONS_V2_MAP)), 130);
       sDuration[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
       sDuration[1] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 3600, 1);
 

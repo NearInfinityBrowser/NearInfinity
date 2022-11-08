@@ -128,8 +128,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
   public static final String[] FLAGS_ARRAY = { "Indoors", "Outdoors", "Day/Night", "Weather", "City", "Forest",
       "Dungeon", "Extended night", "Can rest indoors" };
 
-  public static final String[] FLAGS_TORMENT_ARRAY = { "Indoors", "Hive", "Hive Night", "Clerk's ward", "Lower ward",
-      "Ravel's maze", "Baator", "Rubikon", "Negative material plane", "Curst", "Carceri", "Allow day/night" };
+  public static final String[] FLAGS_TORMENT_ARRAY = { "Indoors", "Hive", null, "Clerk's ward", "Lower ward",
+      "Ravel's maze", "Baator", "Rubikon", "Fortress of Regrets", "Curst", "Carceri", "Allow day/night" };
 
   public static final String[] ATYPE_ARRAY = { "Normal", "Save not allowed", "Tutorial area", "Dead magic zone",
       "Dream area" };

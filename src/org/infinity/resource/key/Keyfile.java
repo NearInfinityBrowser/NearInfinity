@@ -544,9 +544,14 @@ public class Keyfile {
           biffList.clear();
         }
 
+        // checking for BG1 Demo variant of KEY file format
+        final boolean isDemo = (buffer.getInt(ofsBif) - ofsBif) == (numBif * 0x8)
+            && (buffer.getInt(ofsBif + 4) - ofsBif) != (numBif * 0xc);
+        final int biffEntrySize = isDemo ? 0x8 : 0xc;
+
         // processing BIFF entries
-        for (int i = 0, ofs = ofsBif; i < numBif; i++, ofs += 12) {
-          biffList.add(new BIFFEntry(file, i, buffer, ofs));
+        for (int i = 0, ofs = ofsBif; i < numBif; i++, ofs += biffEntrySize) {
+          biffList.add(new BIFFEntry(file, i, buffer, ofs, isDemo));
         }
         biffEntries.put(file, biffList);
 

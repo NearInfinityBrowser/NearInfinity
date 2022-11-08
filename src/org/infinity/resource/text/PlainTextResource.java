@@ -107,6 +107,221 @@ public class PlainTextResource
     return retVal;
   }
 
+  /**
+   * Removes whitespace at the beginning and/or end of lines.
+   *
+   * @param text The text to trim.
+   * @param trailing Whether to trim trailing whitespace.
+   * @param leading Whether to trim leading whitespace.
+   * @return The trimmed string. Returns {@code null} if {@code text} argument is {@code null}.
+   */
+  public static String trimSpaces(String text, boolean trailing, boolean leading) {
+    String retVal = null;
+    if (text != null) {
+      final String newline = text.contains("\r\n") ? "\r\n" : "\n";
+      final String[] lines = text.split("\r?\n");
+      final StringBuilder newText = new StringBuilder();
+      for (String line : lines) {
+        if (trailing && leading) {
+          newText.append(line.trim()).append(newline);
+        } else if (trailing) {
+          newText.append(Misc.trimEnd(line)).append(newline);
+        } else if (leading) {
+          newText.append(Misc.trimStart(line)).append(newline);
+        } else {
+          newText.append(line).append(newline);
+        }
+      }
+      retVal = newText.toString();
+    }
+    return retVal;
+  }
+
+  /**
+   * Aligns table columns to improve readability.
+   *
+   * @param text The text content with table columns.
+   * @param spaces         Min. number of spaces between columns.
+   * @param alignPerColumn specify {@code true} to calculate max width on a per column basis, or {@code false} to
+   *                       calculate for the whole table.
+   * @param multipleOf     ensures that column position is always a multiple of the specified value. (e.g. specify 2 to
+   *                       have every column start at an even horizontal position.)
+   * @return The aligned text. Returns {@code null} if {@code text} argument is {@code null}.
+   */
+  public static String alignTableColumns(String text, int spaces, boolean alignPerColumn, int multipleOf) {
+    String retVal = null;
+    if (text != null) {
+      spaces = Math.max(1, spaces);
+      multipleOf = Math.max(1, multipleOf);
+
+      // splitting text into lines
+      final String newline = text.contains("\r\n") ? "\r\n" : "\n";
+      final String[] lines = text.split("\r?\n");
+
+      // splitting lines into tokens
+      int maxCols = 0;
+      int maxTokenLength = 0;
+      final List<List<String>> matrix = new ArrayList<>(lines.length);
+      for (int i = 0; i < lines.length; i++) {
+        final String[] tokens = lines[i].split("\\s+");
+        if (tokens.length > 0) {
+          matrix.add(new ArrayList<>(tokens.length));
+          if (matrix.size() == 3) {
+            matrix.get(matrix.size() - 1).add("");
+          }
+          for (String token : tokens) {
+            if (!token.isEmpty()) {
+              matrix.get(i).add(token);
+            }
+          }
+          if (matrix.size() > 2) {
+            maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
+            for (String token : tokens) {
+              maxTokenLength = Math.max(maxTokenLength, token.length());
+            }
+          }
+        }
+      }
+
+      // calculating column sizes
+      final int[] columns = new int[maxCols];
+      for (int col = 0; col < maxCols; col++) {
+        int maxLen = 0;
+        if (alignPerColumn) {
+          for (int row = 2; row < matrix.size(); row++) {
+            if (col < matrix.get(row).size()) {
+              maxLen = Math.max(maxLen, matrix.get(row).get(col).length());
+            }
+          }
+        } else {
+          maxLen = maxTokenLength;
+        }
+        int len = maxLen + spaces;
+        if (len % multipleOf != 0) {
+          len += multipleOf - (len % multipleOf);
+        }
+        columns[col] = len;
+      }
+
+      // normalizing data
+      final StringBuilder newText = new StringBuilder();
+      int blankLen = maxTokenLength + spaces;
+      if (blankLen % multipleOf != 0) {
+        blankLen += multipleOf - (blankLen % multipleOf);
+      }
+      String blank = new String(new char[blankLen]).replace('\0', ' ');
+      for (int row = 0, rows = matrix.size(); row < rows; row++) {
+        StringBuilder sb = new StringBuilder();
+        for (int col = 0, cols = matrix.get(row).size(); col < cols; col++) {
+          String token = matrix.get(row).get(col);
+          sb.append(token);
+          if (col < cols - 1) {
+            if (row < 2) {
+              sb.append(' ');
+            } else {
+              int end = columns[col] - token.length();
+              sb.append((end < blank.length()) ? blank.substring(0, end) : blank);
+            }
+          }
+        }
+        newText.append(sb.toString()).append(newline);
+      }
+      retVal = newText.toString();
+    }
+    return retVal;
+  }
+
+  /**
+   * Sorts IDS entries by key values. Special entry at line 1 is excluded.
+   *
+   * @param text The text content to perform sorting on.
+   * @param ascending {@code true} to sort in ascending order, {@code false} to sort in descending order.
+   * @param isTrigger {@code true} to ignore bit 14 (0x4000) when comparing is performed.
+   * @return Text with sorted IDS entries. Returns {@code null} if {@code text} argument is {@code null}.
+   */
+  public static String sortTable(String text, boolean ascending, boolean isTrigger) {
+    String retVal = null;
+    if (text != null) {
+      final String newline = text.contains("\r\n") ? "\r\n" : "\n";
+      final String[] lines = text.split("\r?\n");
+
+      // dividing lines into fixed entries and (sortable) ids entries
+      final List<String> header = new ArrayList<>(); // contains fixed lines to be placed at the top
+      final List<String> entries = new ArrayList<>(); // contains ids entries
+      for (String line : lines) {
+        final String[] items = line.trim().split("\\s+", 2);
+        if (items.length < 2 || items[0].equalsIgnoreCase("IDS")) {
+          header.add(line);
+        } else {
+          entries.add(line);
+        }
+      }
+      if (entries.isEmpty()) {
+        return text;
+      }
+
+      // sorting ids entries
+      final Pattern patKey = Pattern.compile("\\s*(\\S+).*");
+      entries.sort((c1, c2) -> {
+        int radix;
+        long v1 = Long.MAX_VALUE, v2 = Long.MAX_VALUE;
+        Matcher m;
+
+        m = patKey.matcher(c1);
+        if (m.find()) {
+          String s = m.groupCount() > 0 ? m.group(1) : "";
+          radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
+          if (radix == 16) {
+            s = s.substring(2);
+          }
+          try {
+            v1 = Long.parseLong(s, radix);
+          } catch (NumberFormatException ex) {
+          }
+        }
+
+        m = patKey.matcher(c2);
+        if (m.find()) {
+          String s = m.groupCount() > 0 ? m.group(1) : "";
+          radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
+          if (radix == 16) {
+            s = s.substring(2);
+          }
+          try {
+            v2 = Long.parseLong(s, radix);
+          } catch (NumberFormatException ex) {
+          }
+        }
+
+        if (isTrigger) {
+          v1 &= ~0x4000;
+          v2 &= ~0x4000;
+        }
+
+        int result = (v1 < v2) ? -1 : ((v1 > v2) ? 1 : 0);
+        if (!ascending) {
+          result = -result;
+        }
+        return result;
+      });
+
+      // building output string
+      final StringBuilder sb = new StringBuilder();
+      for (String s : header) {
+        sb.append(s).append(newline);
+      }
+      for (String s : entries) {
+        sb.append(s).append(newline);
+      }
+      if (text.charAt(text.length() - 1) != '\n') {
+        sb.delete(sb.length() - newline.length(), sb.length());
+      }
+
+      retVal = sb.toString();
+    }
+    return retVal;
+  }
+
   public PlainTextResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
@@ -135,7 +350,7 @@ public class PlainTextResource
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      trimSpaces();
+      setText(trimSpaces(editor.getText(), true, false));
     }
   }
 
@@ -200,13 +415,13 @@ public class PlainTextResource
       }
     } else if (event.getSource() == bpmFormat) {
       if (bpmFormat.getSelectedItem() == miFormatTrim) {
-        trimSpaces();
+        setText(trimSpaces(editor.getText(), true, false));
       } else if (bpmFormat.getSelectedItem() == miFormatAlignCompact) {
-        alignTableColumns(2, true, 4);
+        setText(alignTableColumns(editor.getText(), 2, true, 4));
       } else if (bpmFormat.getSelectedItem() == miFormatAlignUniform) {
-        alignTableColumns(1, false, 1);
+        setText(alignTableColumns(editor.getText(), 1, false, 1));
       } else if (bpmFormat.getSelectedItem() == miFormatSort) {
-        sortTable(true);
+        setText(sortTable(editor.getText(), true, entry.getResourceRef().equalsIgnoreCase("TRIGGER")));
       }
     }
   }
@@ -291,7 +506,7 @@ public class PlainTextResource
       miFormatAlignCompact.setToolTipText("Align table columns to improve readability. Column width is calculated individually.");
       miFormatAlignUniform = new JMenuItem("Align table (uniform)");
       miFormatAlignUniform.setToolTipText(
-          "Align table columns to improve readability. Column width is calculated evenly, similar to WeiDU's PRETTY_PRINT_2DA.");
+          "Align table columns to improve readability. Column width is calculated evenly, comparable to WeiDU's PRETTY_PRINT_2DA.");
       ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...",
           new JMenuItem[] { miFormatTrim, miFormatAlignCompact, miFormatAlignUniform });
       bpmFormat.addItemListener(this);
@@ -299,7 +514,7 @@ public class PlainTextResource
     } else if ("IDS".equals(ext)) {
       miFormatTrim = new JMenuItem("Trim spaces");
       miFormatSort = new JMenuItem("Sort entries");
-      miFormatSort.setToolTipText("Sort entries in ascending order.");
+      miFormatSort.setToolTipText("Sort entries in ascending order. Note: Bit 14 (0x4000) is ignored for TRIGGER.IDS.");
       ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[] { miFormatTrim, miFormatSort });
       bpmFormat.addItemListener(this);
       buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
@@ -366,196 +581,17 @@ public class PlainTextResource
   }
 
   /**
-   * Removes trailing whitespace from every line of the text. Ensures that text ends with a newline.
-   */
-  public void trimSpaces() {
-    String input = editor.getText();
-    String[] lines = input.split("\n");
-    StringBuilder newText = new StringBuilder();
-    for (String line : lines) {
-      newText.append(Misc.trimEnd(line)).append('\n');
-    }
-    String output = newText.toString();
-
-    if (input.compareTo(output) != 0) {
-      editor.setText(output);
-      editor.setCaretPosition(0);
-    }
-  }
-
-  /**
-   * Aligns table columns to improve readability.
+   * Sets the text in the editor and places the caret before the first character. Does nothing if input text is equal
+   * to the current text content.
    *
-   * @param spaces         Min. number of spaces between columns.
-   * @param alignPerColumn specify {@code true} to calculate max width on a per column basis, or {@code false} to
-   *                       calculate for the whole table.
-   * @param multipleOf     ensures that column position is always a multiple of the specified value. (e.g. specify 2 to
-   *                       have every column start at an even horizontal position.)
+   * @param text The text to set.
    */
-  public void alignTableColumns(int spaces, boolean alignPerColumn, int multipleOf) {
-    spaces = Math.max(1, spaces);
-    multipleOf = Math.max(1, multipleOf);
-
-    // splitting text into lines
-    String input = editor.getText();
-    String[] lines = input.split("\n");
-
-    // splitting lines into tokens
-    int maxCols = 0;
-    int maxTokenLength = 0;
-    List<List<String>> matrix = new ArrayList<>(lines.length);
-    for (int i = 0; i < lines.length; i++) {
-      String[] tokens = lines[i].split("\\s+");
-      if (tokens.length > 0) {
-        matrix.add(new ArrayList<>(tokens.length));
-        if (matrix.size() == 3) {
-          matrix.get(matrix.size() - 1).add("");
-        }
-        for (String token : tokens) {
-          if (!token.isEmpty()) {
-            matrix.get(i).add(token);
-          }
-        }
-        if (matrix.size() > 2) {
-          maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
-          for (String token : tokens) {
-            maxTokenLength = Math.max(maxTokenLength, token.length());
-          }
-        }
+  public void setText(String text) {
+    if (text != null) {
+      if (text.compareTo(editor.getText()) != 0) {
+        editor.setText(text);
+        editor.setCaretPosition(0);
       }
-    }
-
-    // calculating column sizes
-    int[] columns = new int[maxCols];
-    for (int col = 0; col < maxCols; col++) {
-      int maxLen = 0;
-      if (alignPerColumn) {
-        for (int row = 2; row < matrix.size(); row++) {
-          if (col < matrix.get(row).size()) {
-            maxLen = Math.max(maxLen, matrix.get(row).get(col).length());
-          }
-        }
-      } else {
-        maxLen = maxTokenLength;
-      }
-      int len = maxLen + spaces;
-      if (len % multipleOf != 0) {
-        len += multipleOf - (len % multipleOf);
-      }
-      columns[col] = len;
-    }
-
-    // normalizing data
-    StringBuilder newText = new StringBuilder();
-    int blankLen = maxTokenLength + spaces;
-    if (blankLen % multipleOf != 0) {
-      blankLen += multipleOf - (blankLen % multipleOf);
-    }
-    String blank = new String(new char[blankLen]).replace('\0', ' ');
-    for (int row = 0, rows = matrix.size(); row < rows; row++) {
-      StringBuilder sb = new StringBuilder();
-      for (int col = 0, cols = matrix.get(row).size(); col < cols; col++) {
-        String token = matrix.get(row).get(col);
-        sb.append(token);
-        if (col < cols - 1) {
-          if (row < 2) {
-            sb.append(' ');
-          } else {
-            int end = columns[col] - token.length();
-            sb.append((end < blank.length()) ? blank.substring(0, end) : blank);
-          }
-        }
-      }
-      newText.append(sb.toString()).append('\n');
-    }
-    String output = newText.toString();
-
-    if (input.compareTo(output) != 0) {
-      editor.setText(newText.toString());
-      editor.setCaretPosition(0);
-    }
-  }
-
-  /**
-   * Sorts IDS entries by key values. Special entry at line 1 is excluded.
-   *
-   * @param ascending {@code true} to sort in ascending order, {@code false} to sort in descending order.
-   */
-  public void sortTable(boolean ascending) {
-    String input = editor.getText();
-    String[] lines = input.split("\n");
-
-    // dividing lines into fixed entries and (sortable) ids entries
-    List<String> header = new ArrayList<>(); // contains fixed lines to be placed at the top
-    List<String> entries = new ArrayList<>(); // contains ids entries
-    for (String line : lines) {
-      String[] items = line.trim().split("\\s+", 2);
-      if (items.length < 2 || items[0].equalsIgnoreCase("IDS")) {
-        header.add(line);
-      } else {
-        entries.add(line);
-      }
-    }
-    if (entries.isEmpty()) {
-      return;
-    }
-
-    // sorting ids entries
-    final Pattern patKey = Pattern.compile("\\s*(\\S+).*");
-    entries.sort((c1, c2) -> {
-      int radix;
-      long v1 = Long.MAX_VALUE, v2 = Long.MAX_VALUE;
-      Matcher m;
-
-      m = patKey.matcher(c1);
-      if (m.find()) {
-        String s = m.groupCount() > 0 ? m.group(1) : "";
-        radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
-        if (radix == 16) {
-          s = s.substring(2);
-        }
-        try {
-          v1 = Long.parseLong(s, radix);
-        } catch (NumberFormatException ex) {
-        }
-      }
-
-      m = patKey.matcher(c2);
-      if (m.find()) {
-        String s = m.groupCount() > 0 ? m.group(1) : "";
-        radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
-        if (radix == 16) {
-          s = s.substring(2);
-        }
-        try {
-          v2 = Long.parseLong(s, radix);
-        } catch (NumberFormatException ex) {
-        }
-      }
-
-      int retVal = (v1 < v2) ? -1 : ((v1 > v2) ? 1 : 0);
-      if (!ascending) {
-        retVal = -retVal;
-      }
-      return retVal;
-    });
-
-    // building output string
-    StringBuilder sb = new StringBuilder();
-    for (String s : header) {
-      sb.append(s).append('\n');
-    }
-    for (String s : entries) {
-      sb.append(s).append('\n');
-    }
-    if (input.charAt(input.length() - 1) != '\n') {
-      sb.deleteCharAt(sb.length() - 1);
-    }
-
-    String output = sb.toString();
-    if (!input.equals(output)) {
-      editor.setText(output);
-      editor.setCaretPosition(0);
     }
   }
 
