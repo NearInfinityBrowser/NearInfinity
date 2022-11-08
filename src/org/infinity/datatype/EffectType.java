@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.EffectFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.effects.BaseOpcode;
 
 public final class EffectType extends Bitmap implements UpdateListener {
   // EffectType-specific field labels
@@ -25,7 +25,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
   private int attrLength;
 
   public EffectType(ByteBuffer buffer, int offset, int length) {
-    super(buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
+    super(buffer, offset, length, EFFECT_TYPE, BaseOpcode.getEffectNames());
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -54,7 +54,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
   @Override
   public boolean valueUpdated(UpdateEvent event) {
     try {
-      return EffectFactory.updateOpcode(event.getStructure());
+      return BaseOpcode.updateOpcode(event.getStructure());
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -78,7 +78,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
       off += 8;
     }
     try {
-      off = EffectFactory.getFactory().makeEffectStruct(this, buffer, off, list, getValue(), isV1);
+      off = BaseOpcode.makeEffectStruct(getValue(), this, buffer, off, list, isV1);
     } catch (Exception e) {
       e.printStackTrace();
     }

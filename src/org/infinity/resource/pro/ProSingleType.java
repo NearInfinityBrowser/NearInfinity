@@ -50,6 +50,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable 
   public static final String[] TRAIL_ARRAY = { "No flags set", "Draw at target", "Draw at source" };
 
   static {
+    FACE_TARGET_MAP.put(0L, "Do not mirror");
     FACE_TARGET_MAP.put(1L, "Do not face target");
     FACE_TARGET_MAP.put(5L, "Mirrored east (reduced)");
     FACE_TARGET_MAP.put(9L, "Mirrored east (full)");
