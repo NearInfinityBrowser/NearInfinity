@@ -297,6 +297,15 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.optionOpenBookmarksPrompt.isSelected();
   }
 
+  /**
+   * Controls whether to show a dialog prompt whenever a bookmarked game is opened.
+   *
+   * @param show {@code true} to show a dialog prompt, {@code false} to open bookmarked games without confirmation.
+   */
+  public void setShowOpenBookmarksPrompt(boolean show) {
+    optionsMenu.optionOpenBookmarksPrompt.setSelected(show);
+  }
+
   /** Returns whether scripts are automatically scanned for compile errors. */
   public boolean autocheckBCS() {
     return optionsMenu.optionAutocheckBCS.isSelected();
@@ -1092,13 +1101,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
               e.printStackTrace();
             }
             if (!isEqual) {
-              int confirm;
+              int confirm = JOptionPane.YES_OPTION;
               if (BrowserMenuBar.getInstance().showOpenBookmarksPrompt()) {
                 String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
-                confirm = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), message, "Open game",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-              } else {
-                confirm = JOptionPane.YES_OPTION;
+                Couple<Integer, Boolean> result = StandardDialogs.showConfirmDialogExtra(
+                    NearInfinity.getInstance(), message, "Open game", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE, StandardDialogs.Extra.withDefaults());
+                if (result.getValue1()) {
+                  BrowserMenuBar.getInstance().setShowOpenBookmarksPrompt(false);
+                }
+                confirm = result.getValue0();
               }
               if (confirm == JOptionPane.YES_OPTION) {
                 NearInfinity.getInstance().openGame(keyFile);
