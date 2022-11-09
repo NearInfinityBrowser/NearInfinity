@@ -27,6 +27,7 @@ public class StandardDialogs extends JOptionPane {
    * @param parentComponent determines the {@code Frame} in which the dialog is displayed; if {@code null}, or if the
    *                        {@code parentComponent} has no {@code Frame}, a default {@code Frame} is used.
    * @param extra           An optional {@link Extra} object containing definitions for the extra checkbox.
+   * @return A boolean that indicates the selection state of the checkbox.
    */
   public static boolean showMessageDialogExtra(Component parentComponent,
       Object message, Extra extra) throws HeadlessException {
@@ -46,6 +47,7 @@ public class StandardDialogs extends JOptionPane {
    * @param messageType     the type of message to be displayed: {@code ERROR_MESSAGE}, {@code INFORMATION_MESSAGE},
    *                        {@code WARNING_MESSAGE}, {@code QUESTION_MESSAGE}, or {@code PLAIN_MESSAGE}.
    * @param extra           An optional {@link Extra} object containing definitions for the extra checkbox.
+   * @return A boolean that indicates the selection state of the checkbox.
    */
   public static boolean showMessageDialogExtra(Component parentComponent,
       Object message, String title, int messageType, Extra extra)
@@ -68,6 +70,7 @@ public class StandardDialogs extends JOptionPane {
    * @param icon            an icon to display in the dialog that helps the user identify the kind of message that is
    *                        being displayed.
    * @param extra           An optional {@link Extra} object containing definitions for the extra checkbox.
+   * @return A boolean that indicates the selection state of the checkbox.
    */
   public static boolean showMessageDialogExtra(Component parentComponent,
       Object message, String title, int messageType, Icon icon, Extra extra)
@@ -210,6 +213,7 @@ public class StandardDialogs extends JOptionPane {
     return getDialogResult(result, cbOption);
   }
 
+  /** Returns the appropriate message object for the dialog methods, depending on the given parameters. */
   private static Object createMessageObject(Object message, Object newItem) {
     if (newItem == null) {
       return message;
@@ -226,6 +230,7 @@ public class StandardDialogs extends JOptionPane {
     }
   }
 
+  /** Ensures a valid result object for confirmation dialogs. */
   private static Couple<Integer, Boolean> getDialogResult(int result, JCheckBox cbOption) {
     return Couple.with(result, cbOption != null ? cbOption.isSelected() : false);
   }
@@ -234,7 +239,7 @@ public class StandardDialogs extends JOptionPane {
 
   /**
    * This class handles configuration and creation of the extra checkbox that can be added to the standard dialogs by
-   * the {@code StandardDialogs.show*Extra()} methods.
+   * the {@code StandardDialogs.show*DialogExtra()} methods.
    */
   public static class Extra {
     /** A standard message for use in {@link StandardDialogs#showMessageDialogExtra}. */
@@ -274,7 +279,7 @@ public class StandardDialogs extends JOptionPane {
      * added with extra padding on the top border. It is initially unselected.
      *
      * @param text the text of the checkbox.
-     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*Extra()} methods.
+     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*DialogExtra()} methods.
      */
     public static Extra with(String text) {
       return new Extra(text, null, false, true, true);
@@ -286,7 +291,7 @@ public class StandardDialogs extends JOptionPane {
      *
      * @param text    the text of the checkbox.
      * @param tooltip the tooltip for the checkbox.
-     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*Extra()} methods.
+     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*DialogExtra()} methods.
      */
     public static Extra with(String text, String tooltip) {
       return new Extra(text, tooltip, false, true, true);
@@ -299,7 +304,7 @@ public class StandardDialogs extends JOptionPane {
      * @param text     the text of the checkbox.
      * @param tooltip  the tooltip for the checkbox.
      * @param selected whether the checkbox is initially selected.
-     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*Extra()} methods.
+     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*DialogExtra()} methods.
      */
     public static Extra with(String text, String tooltip, boolean selected) {
       return new Extra(text, tooltip, selected, true, true);
@@ -313,7 +318,7 @@ public class StandardDialogs extends JOptionPane {
      * @param tooltip  the tooltip for the checkbox.
      * @param selected whether the checkbox is initially selected.
      * @param small    whether the checkbox text is produced in a slightly smaller font size.
-     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*Extra()} methods.
+     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*DialogExtra()} methods.
      */
     public static Extra with(String text, String tooltip, boolean selected, boolean small) {
       return new Extra(text, tooltip, selected, small, true);
@@ -327,7 +332,7 @@ public class StandardDialogs extends JOptionPane {
      * @param selected whether the checkbox is initially selected.
      * @param small    whether the checkbox text is produced in a slightly smaller font size.
      * @param padded   whether the checkbox adds extra padding to the top border.
-     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*Extra()} methods.
+     * @return {@link StandardDialogs.Extra} object for use with the {@code StandardDialogs.show*DialogExtra()} methods.
      */
     public static Extra with(String text, String tooltip, boolean selected, boolean small, boolean padded) {
       return new Extra(text, tooltip, selected, small, padded);
@@ -404,13 +409,22 @@ public class StandardDialogs extends JOptionPane {
       return createCheckBox(MESSAGE_DO_NOT_SHOW_PROMPT);
     }
 
-    /** Returns a checkbox intended for a dialog dialog. */
+    /** Returns a checkbox intended for an option dialog. */
     private JCheckBox createOptionCheckBox() {
       return createCheckBox(MESSAGE_DO_NOT_SHOW_DIALOG);
     }
 
-    /** Do not use directly without a valid text override string. */
+    /**
+     * Creates a {@link JCheckBox} object, based on the current settings.
+     *
+     * @param textOverride Checkbox text to use if {@code text} property is {@code null}.
+     * @return A {@code JCheckBox} object.
+     */
     private JCheckBox createCheckBox(String textOverride) {
+      if (textOverride == null) {
+        textOverride = MESSAGE_DO_NOT_SHOW_DIALOG;
+      }
+
       final JCheckBox cbOption = new JCheckBox(text != null ? text : textOverride, selected);
 
       if (tooltip != null) {

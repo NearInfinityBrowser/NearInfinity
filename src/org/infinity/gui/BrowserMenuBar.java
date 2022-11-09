@@ -1104,9 +1104,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
               int confirm = JOptionPane.YES_OPTION;
               if (BrowserMenuBar.getInstance().showOpenBookmarksPrompt()) {
                 String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
-                Couple<Integer, Boolean> result = StandardDialogs.showConfirmDialogExtra(
-                    NearInfinity.getInstance(), message, "Open game", JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE, StandardDialogs.Extra.withDefaults());
+                Couple<Integer, Boolean> result = StandardDialogs.showConfirmDialogExtra(NearInfinity.getInstance(),
+                    message, "Open game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    StandardDialogs.Extra.with(StandardDialogs.Extra.MESSAGE_DO_NOT_SHOW_PROMPT,
+                        "Confirmation prompt can be enabled or disabled in the options menu."));
                 if (result.getValue1()) {
                   BrowserMenuBar.getInstance().setShowOpenBookmarksPrompt(false);
                 }
