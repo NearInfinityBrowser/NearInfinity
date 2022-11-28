@@ -14,7 +14,7 @@ import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class AudioPlayer {
-  private static final byte BUFFER[] = new byte[8196];
+  private final byte[] buffer = new byte[8196];
 
   private AudioFormat audioFormat;
   private SourceDataLine dataLine;
@@ -47,11 +47,11 @@ public class AudioPlayer {
       dataLine.start();
 
       while (isPlaying()) {
-        int numBytesRead = ais.read(BUFFER, 0, BUFFER.length);
+        int numBytesRead = ais.read(buffer, 0, buffer.length);
         if (numBytesRead < 0) {
           break;
         }
-        dataLine.write(BUFFER, 0, numBytesRead);
+        dataLine.write(buffer, 0, numBytesRead);
       }
     } catch (Exception e) {
       setStopped(true);
