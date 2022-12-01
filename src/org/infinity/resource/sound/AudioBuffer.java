@@ -5,6 +5,7 @@
 package org.infinity.resource.sound;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
@@ -45,6 +46,55 @@ public abstract class AudioBuffer {
    */
   public byte[] getAudioData() {
     return data;
+  }
+
+  /**
+   * Returns the total duration of the audio data in milliseconds.
+   *
+   * @return Duration in milliseconds.
+   */
+  public long getDuration() {
+    if (data != null && data.length >= 44) {
+      final ByteBuffer bb = ByteBuffer.wrap(data, 0, 44).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+      int byteRate = bb.getInt(28);
+      int totalSize = bb.getInt(40);
+      return totalSize * 1000L / byteRate;
+    }
+    return 0L;
+  }
+
+  /**
+   * Returns the sample rate of the current audio clip.
+   *
+   * @return Sample rate in Hz.
+   */
+  public int getSampleRate() {
+    if (data != null && data.length >= 44) {
+      final ByteBuffer bb = ByteBuffer.wrap(data, 0, 44).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+      return bb.getInt(24);
+    }
+    return 0;
+  }
+
+  /**
+   * Returns the number of channels used by the current audio clip.
+   *
+   * @return Number of channels.
+   */
+  public int getChannels() {
+    if (data != null && data.length >= 44) {
+      final ByteBuffer bb = ByteBuffer.wrap(data, 0, 44).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+      return bb.getShort(22);
+    }
+    return 0;
+  }
+
+  public int getBitsPerSample() {
+    if (data != null && data.length >= 44) {
+      final ByteBuffer bb = ByteBuffer.wrap(data, 0, 44).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+      return bb.getShort(34);
+    }
+    return 0;
   }
 
   /**

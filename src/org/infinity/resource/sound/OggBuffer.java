@@ -23,6 +23,8 @@ import com.jcraft.jorbis.Info;
  */
 
 public class OggBuffer extends AudioBuffer {
+  private Info oggInfo;
+
   public OggBuffer(ResourceEntry entry) throws Exception {
     super(entry);
   }
@@ -37,6 +39,10 @@ public class OggBuffer extends AudioBuffer {
 
   public OggBuffer(byte[] buffer, int offset, AudioOverride override) throws Exception {
     super(buffer, offset, override);
+  }
+
+  public Info getInfo() {
+    return oggInfo;
   }
 
   // --------------------- Begin Class AudioBuffer ---------------------
@@ -79,7 +85,7 @@ public class OggBuffer extends AudioBuffer {
     Page og = new Page(); // one Ogg bitstream page. Vorbis packets are inside
     Packet op = new Packet(); // one raw packet of data for decode
 
-    Info vi = new Info(); // struct that stores all the static vorbis bitstream settings
+    oggInfo = new Info(); // struct that stores all the static vorbis bitstream settings
     Comment vc = new Comment(); // struct that stores all the bitstream user comments
     DspState vd = new DspState(); // central working state for the packet->PCM decoder
     Block vb = new Block(vd); // local working space for packet->PCM decode
@@ -131,7 +137,7 @@ public class OggBuffer extends AudioBuffer {
       // header is an easy way to identify a Vorbis bitstream and it's
       // useful to see that functionality seperated out.
 
-      vi.init();
+      oggInfo.init();
       vc.init();
       if (os.pagein(og) < 0) {
         // error; stream version mismatch perhaps
@@ -143,7 +149,7 @@ public class OggBuffer extends AudioBuffer {
         throw new Exception("Error reading initial header packet.");
       }
 
-      if (vi.synthesis_headerin(vc, op) < 0) {
+      if (oggInfo.synthesis_headerin(vc, op) < 0) {
         // error case; not a vorbis header
         throw new Exception("This Ogg bitstream does not contain Vorbis audio data.");
       }
@@ -184,7 +190,7 @@ public class OggBuffer extends AudioBuffer {
                 // We can't tolerate that in a header. Die.
                 throw new Exception("Corrupt secondary header.");
               }
-              vi.synthesis_headerin(vc, op);
+              oggInfo.synthesis_headerin(vc, op);
               i++;
             }
           }
@@ -217,15 +223,15 @@ public class OggBuffer extends AudioBuffer {
       // System.err.println("Encoded by: "+new String(vc.vendor, 0, vc.vendor.length-1)+"\n");
       // }
 
-      convSize = 4096 / vi.channels;
+      convSize = 4096 / oggInfo.channels;
 
       // OK, got and parsed all three headers. Initialize the Vorbis packet->PCM decoder.
-      vd.synthesis_init(vi); // central decode state
+      vd.synthesis_init(oggInfo); // central decode state
       vb.init(vd); // local state for most of the decode, so multiple block decodes can proceed
       // in parallel. We could init multiple vorbis_block structures for vd here
 
       float[][][] _pcm = new float[1][][];
-      int[] _index = new int[vi.channels];
+      int[] _index = new int[oggInfo.channels];
 
       // The rest is just a straight decode loop until end of stream
       while (eos == 0) {
@@ -267,7 +273,7 @@ public class OggBuffer extends AudioBuffer {
                   int bout = (samples < convSize) ? samples : convSize;
 
                   // convert floats to 16 bit signed ints (host order) and interleave
-                  for (i = 0; i < vi.channels; i++) {
+                  for (i = 0; i < oggInfo.channels; i++) {
                     int ptr = i * 2;
                     // int ptr = i;
                     int mono = _index[i];
@@ -287,11 +293,11 @@ public class OggBuffer extends AudioBuffer {
                       }
                       convBuffer[ptr] = (byte) (val);
                       convBuffer[ptr + 1] = (byte) (val >>> 8);
-                      ptr += 2 * vi.channels;
+                      ptr += 2 * oggInfo.channels;
                     }
                   }
 
-                  bos.write(convBuffer, 0, 2 * vi.channels * bout);
+                  bos.write(convBuffer, 0, 2 * oggInfo.channels * bout);
 
                   // tell libvorbis how
                   // many samples we
@@ -312,7 +318,7 @@ public class OggBuffer extends AudioBuffer {
           try {
             bytes = bis.read(buffer, index, 4096);
           } catch (Exception e) {
-            throw new Exception(e.getMessage());
+            throw e;
           }
           oy.wrote(bytes);
           if (bytes == 0) {
@@ -328,15 +334,15 @@ public class OggBuffer extends AudioBuffer {
       // They're never freed or manipulated directly
       vb.clear();
       vd.clear();
-      vi.clear(); // must be called last
+      oggInfo.clear(); // must be called last
     }
 
     // OK, clean up the framer
     oy.clear();
 
     // create final output buffer
-    int samplesPerChannel = bos.size() / (vi.channels * 2);
-    byte[] header = createWAVHeader(samplesPerChannel, vi.channels, vi.rate, 16);
+    int samplesPerChannel = bos.size() / (oggInfo.channels * 2);
+    byte[] header = createWAVHeader(samplesPerChannel, oggInfo.channels, oggInfo.rate, 16);
     byte[] output = new byte[header.length + bos.size()];
     System.arraycopy(header, 0, output, 0, header.length);
     System.arraycopy(bos.toByteArray(), 0, output, header.length, bos.size());

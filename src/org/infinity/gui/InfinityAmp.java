@@ -272,7 +272,7 @@ public final class InfinityAmp extends ChildFrame
       int nextnr = 0;
       while (keepPlaying) {
         AudioBuffer audio = entryList.get(nextnr).getAudioBuffer();
-        player.play(audio);
+        player.playContinuous(audio);
         if (entryList.get(nextnr).getNextNr() <= nextnr || entryList.get(nextnr).getNextNr() >= entryList.size()) {
           break;
         }

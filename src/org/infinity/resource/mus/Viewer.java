@@ -11,11 +11,13 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -32,6 +34,14 @@ import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
 public class Viewer extends JPanel implements Runnable, ActionListener {
+  /** Provides quick access to the "play" and "pause" image icon. */
+  private static final HashMap<Boolean, Icon> PLAY_ICONS = new HashMap<>();
+
+  static {
+    PLAY_ICONS.put(true, Icons.ICON_PLAY_16.getIcon());
+    PLAY_ICONS.put(false, Icons.ICON_PAUSE_16.getIcon());
+  }
+
   private final SimpleListModel<Entry> listModel = new SimpleListModel<>();
   private final JList<Entry> list = new JList<>(listModel);
   private final AudioPlayer player = new AudioPlayer();
@@ -55,10 +65,16 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
   @Override
   public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bPlay) {
-      new Thread(this).start();
+      if (player == null || !player.isRunning()) {
+        new Thread(this).start();
+      } else if (player.isRunning()) {
+        setPlayButtonState(player.isPaused());
+        player.setPaused(!player.isPaused());
+      }
     } else if (event.getSource() == bStop) {
       bStop.setEnabled(false);
       bEnd.setEnabled(false);
+      setPlayButtonState(false);
       play = false;
       player.stopPlay();
     } else if (event.getSource() == bEnd) {
@@ -73,7 +89,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
 
   @Override
   public void run() {
-    bPlay.setEnabled(false);
+    setPlayButtonState(true);
     bStop.setEnabled(true);
     bEnd.setEnabled(true);
     list.setEnabled(false);
@@ -89,7 +105,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
           list.setSelectedIndex(nextnr);
           list.ensureIndexIsVisible(nextnr);
           list.repaint();
-          player.play(entryList.get(nextnr).getAudioBuffer());
+          player.playContinuous(entryList.get(nextnr).getAudioBuffer());
         } else if (entryList.get(nextnr).getEndBuffer() != null) {
           player.play(entryList.get(nextnr).getEndBuffer());
           play = false;
@@ -105,7 +121,8 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       JOptionPane.showMessageDialog(this, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
     }
-    bPlay.setEnabled(true);
+    player.stopPlay();
+    setPlayButtonState(false);
     bStop.setEnabled(false);
     bEnd.setEnabled(false);
     list.setEnabled(true);
@@ -180,7 +197,8 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
   }
 
   private void initGUI() {
-    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
+    bPlay = new JButton();
+    setPlayButtonState(false);
     bPlay.addActionListener(this);
     bEnd = new JButton("Finish", Icons.ICON_END_16.getIcon());
     bEnd.setEnabled(false);
@@ -233,5 +251,11 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
 
   private synchronized boolean isClosed() {
     return closed;
+  }
+
+  // Sets icon and text for the Play button according to the specified parameter.
+  private void setPlayButtonState(boolean paused) {
+    bPlay.setIcon(PLAY_ICONS.get(!paused));
+    bPlay.setText(paused ? "Pause" : "Play");
   }
 }
