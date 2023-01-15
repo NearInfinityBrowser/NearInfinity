@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
+import org.infinity.resource.key.BIFFEntry;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 
@@ -26,7 +27,10 @@ public final class AreResourceRef extends ResourceRef {
         .getResourceEntry(((ResourceRef) are.getAttribute(AreResource.ARE_WED_RESOURCE)).getResourceName());
     String wedBIFF = "_dummy";
     if (res instanceof BIFFResourceEntry) {
-      wedBIFF = ((BIFFResourceEntry) res).getBIFFEntry().getFileName();
+      BIFFEntry biffEntry = ((BIFFResourceEntry) res).getBIFFEntry();
+      if (biffEntry != null) {
+        wedBIFF = biffEntry.getFileName();
+      }
     }
     if (Profile.getEngine() == Profile.Engine.BG1) {
       legalBIFs = new String[] { wedBIFF, "data/sfxsound.bif", "data/cresound.bif" };
