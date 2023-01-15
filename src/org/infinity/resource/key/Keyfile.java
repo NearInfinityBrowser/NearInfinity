@@ -385,7 +385,7 @@ public class Keyfile {
 
   public BIFFEntry getBIFFEntry(Path keyFile, int index) {
     List<BIFFEntry> biffs = getBIFFList(keyFile, false);
-    if (biffs != null) {
+    if (biffs != null && biffs.size() > 0) {
       return biffs.get(index);
     }
     return null;
