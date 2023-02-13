@@ -93,21 +93,21 @@ public class Etc2Decoder implements Decodable {
 
   // 3-Bit offset mappings for "distance" in "T" mode.
   private static final int[] BITS_T_D = { 32, 34, 35 };
-  // 4-Bit offset mappings for red value in "T" mode.
+  // 4-Bit offset mappings for red color in "T" mode.
   private static final int[] BITS_T_R = { 56, 57, 59, 60 };
 
   // 2-Bit offset mappings for "distance" in "H" mode.
   private static final int[] BITS_H_D = { 32, 34 };
-  // 4-Bit offset mappings for red value in "T" mode.
+  // 4-Bit offset mappings for red color in "H" mode.
   private static final int[] BITS_H_B = { 47, 48, 49, 51 };
-  // 4-Bit offset mappings for green value in "T" mode.
+  // 4-Bit offset mappings for green color in "H" mode.
   private static final int[] BITS_H_G = { 52, 56, 57, 58 };
 
-  // 6-Bit offset mappings for Red(horizontal) in "planar" mode.
+  // 6-Bit offset mappings for horizontal red color in "planar" mode.
   private static final int[] BITS_PLANAR_RH = { 32, 34, 35, 36, 37, 38 };
-  // 6-Bit offset mappings for Blue in "planar" mode.
+  // 6-Bit offset mappings for blue color in "planar" mode.
   private static final int[] BITS_PLANAR_B  = { 39, 40, 41, 43, 44, 48 };
-  // 7-Bit offset mappings for Green in "planar" mode.
+  // 7-Bit offset mappings for green color in "planar" mode.
   private static final int[] BITS_PLANAR_G  = { 49, 50, 51, 52, 53, 54, 56 };
 
 
@@ -284,7 +284,7 @@ public class Etc2Decoder implements Decodable {
    * the specified 4x4 matrix of RGBA pixels.
    *
    * @param code 64-bit code word with color information.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    * @param hasTransparency Indicates whether the code word provides 1 bit "punch-through" alpha.
    */
   private void decodeColorBlock(long code, int[] outPixels, boolean hasTransparency) {
@@ -333,7 +333,7 @@ public class Etc2Decoder implements Decodable {
    * @param code 64-bit code word with color information.
    * @param baseColor1 Base color for first sub-block, as BGR array.
    * @param baseColor2 Base color for second sub-block, as BGR array.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    * @param hasTransparency Indicates whether the code word provides 1 bit "punch-through" alpha.
    */
   private void decodeColorSubBlocks(long code, int[] baseColor1, int[] baseColor2, int[] outPixels, boolean hasTransparency) {
@@ -376,7 +376,7 @@ public class Etc2Decoder implements Decodable {
    * Decodes the input 64-bit word in "T" mode.
    *
    * @param code 64-bit code word with color information.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    * @param hasTransparency Indicates whether the code word provides 1 bit "punch-through" alpha.
    */
   private void decodeColorModeT(long code, int[] outPixels, boolean hasTransparency) {
@@ -434,7 +434,7 @@ public class Etc2Decoder implements Decodable {
    * Decodes the input 64-bit word in "H" mode.
    *
    * @param code 64-bit code word with color information.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    * @param hasTransparency Indicates whether the code word provides 1 bit "punch-through" alpha.
    */
   private void decodeColorModeH(long code, int[] outPixels, boolean hasTransparency) {
@@ -505,7 +505,7 @@ public class Etc2Decoder implements Decodable {
    * Decodes the input 64-bit word in "planar" mode. This mode does not support 1 bit "punch-through" alpha.
    *
    * @param code 64-bit code word with color information.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    */
   private void decodeColorPlanar(long code, int[] outPixels) {
     final int[] color = {
@@ -547,7 +547,7 @@ public class Etc2Decoder implements Decodable {
    * Decodes the input 64-bit word into alpha values and writes them into the specified 4x4 matrix of RGBA pixels.
    *
    * @param code 64-bit code word with alpha information.
-   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as seprate values.
+   * @param outPixels A 4x4 BGRA pixel array for decoded pixel data. Color and alpha channels are stored as separate values.
    */
   private void decodeAlphaBlock(long code, int[] outPixels) {
     final int tableIdx = getBits(code, 48, 4, false);
@@ -689,9 +689,12 @@ public class Etc2Decoder implements Decodable {
   }
 
   /**
-   * Converts the given color triplet into a combined integer of the RGB bytes, with R at the most significant position.
+   * Converts the given color array into a combined integer of BGR(A) bytes, in the order from highest to lowest byte:
+   * (alpha), red, green, blue.
    *
-   * @param color The color triplet as array in sequence { B, G, R }.
+   * @param color The color triplet as array in sequence { B, G, R, A }.
+   * @param offset Start offset in the {@code color} array.
+   * @param count Number of values to combine.
    * @return The combined color as {@code int}.
    */
   private static int colorToInt(int[] color, int offset, int count) {
@@ -704,11 +707,11 @@ public class Etc2Decoder implements Decodable {
   }
 
   /**
-   * Computes the interpolated color, based on the specified coordinates and input colors, and stores the result
-   * in the outColor array.
+   * Computes the interpolated color in a 4x4 matrix, based on the specified coordinates and input colors,
+   * and stores the result in the {@code outColor} array.
    *
-   * @param x Column of the pixel.
-   * @param y Row of the pixel.
+   * @param x Column of the pixel, in range [0..3].
+   * @param y Row of the pixel, in range [0..3].
    * @param c Color value as array of three ints (blue, green, red).
    * @param ch Horizontal color modifier as array of three ints (blue, green, red).
    * @param cv Vertical color modifier as array of three ints (blue, green, red).
