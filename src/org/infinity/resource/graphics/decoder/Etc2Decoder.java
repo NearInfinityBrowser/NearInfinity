@@ -84,7 +84,7 @@ public class Etc2Decoder implements Decodable {
   // (offset, length)-pairs for 3-bit pixel lookup indices, as used for alpha computation.
   // The outer array refers to ofs/len pairs for pixels Pa .. Pp
   // (as described in the "Khronos Data Format Specification").
-  private static final int[][] BITS_ALPHA_RANGE = {
+  private static final int[][] BITS_ALPHA_RANGES = {
       {45, 3}, {42, 3}, {39, 3}, {36, 3},
       {33, 3}, {30, 3}, {27, 3}, {24, 3},
       {21, 3}, {18, 3}, {15, 3}, {12, 3},
@@ -357,8 +357,8 @@ public class Etc2Decoder implements Decodable {
         outPixels[pofs + 3] = 0;
       } else {  // opaque color
         // using transposed coordinates to compensate for pixel order
-        final int py = i & 3;     // pixel x coordinate
-        final int px = i >> 2;   // pixel y coordinate
+        final int py = i & 3;
+        final int px = i >> 2;
         // flipped:     4x2 sub-blocks, on top of each other
         // not flipped: 2x4 sub-blocks, side-by-side
         final int blockIdx = flipped ? (py >> 1) : (px >> 1);
@@ -555,7 +555,7 @@ public class Etc2Decoder implements Decodable {
     final int base = getBits(code, 56, 8, false);
 
     for (int i = 0; i < 16; i++) {
-      final int pixelIdx = getBits(code, BITS_ALPHA_RANGE[i][0], BITS_ALPHA_RANGE[i][1], false);
+      final int pixelIdx = getBits(code, BITS_ALPHA_RANGES[i][0], BITS_ALPHA_RANGES[i][1], false);
       final int modifier = MODIFIERS_ALPHA[tableIdx][pixelIdx];
       final int alpha = clamp255(base + modifier * multiplier);
       outPixels[(i << 2) + 3] = alpha;
@@ -648,7 +648,7 @@ public class Etc2Decoder implements Decodable {
    */
   private static void extend4To8Bits(int[] values, int offset, int count) {
     for (int i = offset, len = offset + Math.min(values.length - offset, count); i < len; i++) {
-      values[i] = ((values[i] << 4) | (values[i] & 0x0f)) & 0xff;
+      values[i] |= values[i] << 4;
     }
   }
 
