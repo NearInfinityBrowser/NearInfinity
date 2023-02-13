@@ -58,7 +58,11 @@ public class PvrInfo {
       PixelFormat.PVRTC_2BPP_RGB,
       PixelFormat.PVRTC_2BPP_RGBA,
       PixelFormat.PVRTC_4BPP_RGB,
-      PixelFormat.PVRTC_4BPP_RGBA
+      PixelFormat.PVRTC_4BPP_RGBA,
+      PixelFormat.ETC1,
+      PixelFormat.ETC2_RGB,
+      PixelFormat.ETC2_RGB_A1,
+      PixelFormat.ETC2_RGBA
   );
 
   private final Decodable decoder;
@@ -503,6 +507,11 @@ public class PvrInfo {
       case DXT3:
       case DXT5:
         return new DxtDecoder(this);
+      case ETC1:
+      case ETC2_RGB:
+      case ETC2_RGB_A1:
+      case ETC2_RGBA:
+        return new Etc2Decoder(this);
       default:
         return new DummyDecoder(this);
     }
