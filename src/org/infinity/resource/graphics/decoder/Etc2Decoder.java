@@ -629,8 +629,8 @@ public class Etc2Decoder implements Decodable {
       retVal |= (value >>> offsets[i]) & 1;
     }
 
-    int maskMsk = 1 << (offsets.length - 1);
-    if (signed && (retVal & maskMsk) != 0) {
+    int maskMsb = 1 << (offsets.length - 1);
+    if (signed && (retVal & maskMsb) != 0) {
       int mask = (1 << offsets.length) - 1;
       retVal |= ~mask;
     }
