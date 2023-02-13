@@ -207,12 +207,12 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     try {
       decoder = PvrDecoder.loadPvr(entry);
       String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
-      int width = decoder.getWidth();
-      int height = decoder.getHeight();
+      int width = decoder.getInfo().getWidth();
+      int height = decoder.getInfo().getHeight();
       String br = "<br />";
 
       String type;
-      type = decoder.getPixelFormat().toString();
+      type = decoder.getInfo().getPixelFormat().toString();
       StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
       sb.append("Type:&nbsp;&nbsp;&nbsp;").append(type).append(br);
       sb.append("Width:&nbsp;&nbsp;").append(width).append(br);
@@ -232,7 +232,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     if (entry != null) {
       try {
         decoder = PvrDecoder.loadPvr(entry);
-        image = new BufferedImage(decoder.getWidth(), decoder.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        image = new BufferedImage(decoder.getInfo().getWidth(), decoder.getInfo().getHeight(), BufferedImage.TYPE_INT_ARGB);
         if (!decoder.decode(image)) {
           image = null;
         }
