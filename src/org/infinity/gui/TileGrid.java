@@ -615,6 +615,29 @@ public class TileGrid extends JComponent {
     }
   }
 
+  /**
+   * Calculates the tile index from the specified pixel position.
+   *
+   * @param location Pixel position within the tile grid.
+   * @return Index of the tile at the specified location. Returns -1 if no tile could be determined.
+   */
+  public int getTileIndexAt(Point location) {
+    int retVal = -1;
+
+    int width = getTileWidth() * getTileColumns();
+    int height = getTileHeight() * getTileRows();
+    if (location.x >= 0 && location.x < width && location.y >= 0 && location.y < height) {
+      int x = location.x / getTileWidth();
+      int y = location.y / getTileHeight();
+      int idx = y * getTileColumns() + x;
+      if (idx >= 0 && idx < getTileCount()) {
+        retVal = idx;
+      }
+    }
+
+    return retVal;
+  }
+
   // -------------------------- PRIVATE METHODS --------------------------
 
   private void init(int rows, int cols, int tw, int th) {
