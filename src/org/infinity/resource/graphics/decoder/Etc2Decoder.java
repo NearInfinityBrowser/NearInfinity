@@ -289,41 +289,40 @@ public class Etc2Decoder implements Decodable {
    */
   private void decodeColorBlock(long code, int[] outPixels, boolean hasTransparency) {
     final boolean diff = isBitSet(code, 33);
-    final int rd = getBits(code, 56, 3, true), r = getBits(code, 59, 5, false);
-    final int gd = getBits(code, 48, 3, true), g = getBits(code, 51, 5, false);
-    final int bd = getBits(code, 40, 3, true), b = getBits(code, 43, 5, false);
 
     if (!hasTransparency && !diff) {
       // Individual mode
-      final int[] baseColor1 = {
-          getBits(code, 44, 4, false),  // b
-          getBits(code, 52, 4, false),  // g
-          getBits(code, 60, 4, false),  // r
-      };
+      final int r1 = getBits(code, 60, 4, false), r2 = getBits(code, 56, 4, false);
+      final int g1 = getBits(code, 52, 4, false), g2 = getBits(code, 48, 4, false);
+      final int b1 = getBits(code, 44, 4, false), b2 = getBits(code, 40, 4, false);
+
+      final int[] baseColor1 = { b1, g1, r1 };
       extend4To8Bits(baseColor1, 0, 3);
-      final int[] baseColor2 = {
-          getBits(code, 40, 4, false),  // b
-          getBits(code, 48, 4, false),  // g
-          getBits(code, 56, 4, false),  // r
-      };
+      final int[] baseColor2 = { b2, g2, r2 };
       extend4To8Bits(baseColor2, 0, 3);
       decodeColorSubBlocks(code, baseColor1, baseColor2, outPixels, false);
-    } else if (((r + rd) & ~31) != 0) { // outside [0..31]?
-      // Mode T
-      decodeColorModeT(code, outPixels, hasTransparency);
-    } else if (((g + gd) & ~31) != 0) { // outside [0..31]?
-      // Mode H
-      decodeColorModeH(code, outPixels, hasTransparency);
-    } else if (((b + bd) & ~31) != 0) { // outside [0..31]?
-      // Planar mode
-      decodeColorPlanar(code, outPixels);
     } else {
-      // Differential mode
-      final int[] baseColor1 = { b, g, r };
-      extend5To8Bits(baseColor1, 0, 3);
-      final int[] baseColor2 = { b + bd, g + gd, r + rd };
-      extend5To8Bits(baseColor2, 0, 3);
-      decodeColorSubBlocks(code, baseColor1, baseColor2, outPixels, hasTransparency);
+      final int rd = getBits(code, 56, 3, true), r = getBits(code, 59, 5, false);
+      final int gd = getBits(code, 48, 3, true), g = getBits(code, 51, 5, false);
+      final int bd = getBits(code, 40, 3, true), b = getBits(code, 43, 5, false);
+
+      if (((r + rd) & ~31) != 0) { // outside [0..31]?
+        // Mode T
+        decodeColorModeT(code, outPixels, hasTransparency);
+      } else if (((g + gd) & ~31) != 0) { // outside [0..31]?
+        // Mode H
+        decodeColorModeH(code, outPixels, hasTransparency);
+      } else if (((b + bd) & ~31) != 0) { // outside [0..31]?
+        // Planar mode
+        decodeColorPlanar(code, outPixels);
+      } else {
+        // Differential mode
+        final int[] baseColor1 = { b, g, r };
+        extend5To8Bits(baseColor1, 0, 3);
+        final int[] baseColor2 = { b + bd, g + gd, r + rd };
+        extend5To8Bits(baseColor2, 0, 3);
+        decodeColorSubBlocks(code, baseColor1, baseColor2, outPixels, hasTransparency);
+      }
     }
   }
 
@@ -719,7 +718,7 @@ public class Etc2Decoder implements Decodable {
    */
   private static void interpolate(int x, int y, int[] c, int[] ch, int[] cv, int[] oc) {
     for (int i = 0; i < 3; i++) {
-      oc[i] = clamp255((x * (ch[i] - c[i]) + y * (cv[i] - c[i]) + 4 * c[i] + 2) >> 2);
+      oc[i] = clamp255((x * (ch[i] - c[i]) + y * (cv[i] - c[i]) + (c[i] << 2) + 2) >> 2);
     }
   }
 
