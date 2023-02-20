@@ -323,7 +323,8 @@ public class StructHexViewer extends JPanel
         if (splitv != null) {
           final int loc = splitv.getDividerLocation();
           splitv.setDividerLocation(loc - 1);
-          splitv.setDividerLocation(loc + 1);
+          // "invokeLater()" needed for the UI to register the change
+          SwingUtilities.invokeLater(() -> splitv.setDividerLocation(loc));
         }
       } else if (tabSelected) {
         // actions when leaving Raw tab
