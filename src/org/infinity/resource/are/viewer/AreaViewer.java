@@ -347,9 +347,12 @@ public class AreaViewer extends ChildFrame {
     cbDrawGrid.addActionListener(getListeners());
 
     cbDrawOverlays = new JCheckBox(LABEL_DRAW_OVERLAYS);
+    cbDrawOverlays.setToolTipText("<html>Shows overlay tilesets.<br>"
+        + "(Note: This checkbox is also available for primary tilesets with animated tiles.)</html>");
     cbDrawOverlays.addActionListener(getListeners());
 
     cbAnimateOverlays = new JCheckBox(LABEL_ANIMATE_OVERLAYS);
+    cbAnimateOverlays.setToolTipText("Plays back overlays and primary tiles with multiple frames.");
     cbAnimateOverlays.addActionListener(getListeners());
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
