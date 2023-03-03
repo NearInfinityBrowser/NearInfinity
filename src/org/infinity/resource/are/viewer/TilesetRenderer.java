@@ -228,8 +228,9 @@ public class TilesetRenderer extends RenderCanvas {
    * Returns whether the current map contains overlays
    */
   public boolean hasOverlays() {
-    if (isInitialized()) {
-      return !listTilesets.get(0).listOverlayTiles.isEmpty();
+    if (isInitialized() && !listTilesets.isEmpty()) {
+      final Tileset ts = listTilesets.get(0);
+      return ts.hasOverlays() || ts.hasAnimatedTiles();
     }
     return false;
   }
@@ -397,10 +398,7 @@ public class TilesetRenderer extends RenderCanvas {
    * Advances the frame index by one for animated overlays.
    */
   public void advanceTileFrame() {
-    for (int i = 1, size = listTilesets.size(); i < size; i++) {
-      listTilesets.get(i).advanceTileFrame();
-      hasChangedOverlays = true;
-    }
+    listTilesets.forEach(ts -> { ts.advanceTileFrame(); hasChangedOverlays = true; });
     if (hasChangedOverlays) {
       updateDisplay();
     }
@@ -412,10 +410,7 @@ public class TilesetRenderer extends RenderCanvas {
    * @param index The frame index to set.
    */
   public void setTileFrame(int index) {
-    for (int i = 1, size = listTilesets.size(); i < size; i++) {
-      listTilesets.get(i).setTileFrame(index);
-      hasChangedOverlays = true;
-    }
+    listTilesets.forEach(ts -> { ts.setTileFrame(index); hasChangedOverlays = true; });
     if (hasChangedOverlays) {
       updateDisplay();
     }
@@ -759,25 +754,29 @@ public class TilesetRenderer extends RenderCanvas {
 
   // draws all tiles of the map
   private void drawAllTiles() {
-    Tileset ts = listTilesets.get(0);
-    for (Tile tile : ts.listTiles) {
-      drawTile(tile, isDoorTile(tile));
-    }
+    final Tileset ts = listTilesets.get(0);
+    ts.listTiles.forEach(tile -> drawTile(tile, isDoorTile(tile)));
   }
 
-  // draws overlayed tiles only
+  // draws overlayed and animated tiles only
   private void drawOverlayTiles() {
-    Tileset ts = listTilesets.get(0);
-    for (Tile tile : ts.listOverlayTiles) {
-      drawTile(tile, isDoorTile(tile));
+    final Tileset ts = listTilesets.get(0);
+
+    if (ts.hasAnimatedTiles) {
+      ts.listTiles.stream().filter(tile -> tile.tileCount > 1).forEach(tile -> drawTile(tile, isDoorTile(tile)));
+    }
+
+    if (ts.hasOverlays) {
+      ts.listOverlayTiles.forEach(tile -> drawTile(tile, isDoorTile(tile)));
     }
   }
 
   // draws door tiles only
   private void drawDoorTiles() {
+    final List<Tile> tileList = listTilesets.get(0).listTiles;
     for (DoorInfo di : listDoorTileIndices) {
       for (int j = 0, iCount = di.getIndicesCount(); j < iCount; j++) {
-        Tile tile = listTilesets.get(0).listTiles.get(di.getIndex(j));
+        final Tile tile = tileList.get(di.getIndex(j));
         drawTile(tile, isDoorTile(tile));
       }
     }
@@ -1077,20 +1076,31 @@ public class TilesetRenderer extends RenderCanvas {
     public int tilesY; // stores number of tiles per row/column
     public boolean isTisPalette; // whether tileset is palette-based
 
+    private boolean hasOverlays;
+    private boolean hasAnimatedTiles;
+
     public Tileset(WedResource wed, Overlay ovl) {
       init(wed, ovl);
     }
 
     public void advanceTileFrame() {
-      for (Tile listTile : listTiles) {
-        listTile.advancePrimaryIndex();
+      if (hasAnimatedTiles) {
+        listTiles.forEach(tile -> tile.advancePrimaryIndex());
       }
     }
 
     public void setTileFrame(int index) {
-      for (Tile listTile : listTiles) {
-        listTile.setCurrentPrimaryIndex(index);
+      if (hasAnimatedTiles) {
+        listTiles.forEach(tile -> tile.setCurrentPrimaryIndex(index));
       }
+    }
+
+    public boolean hasOverlays() {
+      return hasOverlays;
+    }
+
+    public boolean hasAnimatedTiles() {
+      return hasAnimatedTiles;
     }
 
     private void init(WedResource wed, Overlay ovl) {
@@ -1176,8 +1186,11 @@ public class TilesetRenderer extends RenderCanvas {
           }
         }
 
+        hasOverlays = !listOverlayTiles.isEmpty();
+        hasAnimatedTiles = listTiles.stream().anyMatch(tile -> tile.tileCount > 1);
       } else {
         tilesX = tilesY = 0;
+        hasOverlays = hasAnimatedTiles = false;
       }
     }
 
@@ -1255,15 +1268,14 @@ public class TilesetRenderer extends RenderCanvas {
       }
     }
 
-    // // Returns the primary tile index of the specified frame (useful for animated tiles)
-    // public int getPrimaryIndex(int frame)
-    // {
-    // if (tileCount > 0) {
-    // return tileIdx[frame % tileCount];
-    // } else {
-    // return -1;
-    // }
-    // }
+//    // Returns the primary tile index of the specified frame (useful for animated tiles)
+//    public int getPrimaryIndex(int frame) {
+//      if (tileCount > 0) {
+//        return tileIdx[frame % tileCount];
+//      } else {
+//        return -1;
+//      }
+//    }
 
     // Sets a new selected primary tile index
     public void setCurrentPrimaryIndex(int frame) {
@@ -1277,11 +1289,10 @@ public class TilesetRenderer extends RenderCanvas {
       }
     }
 
-    // // Returns the primary tile count
-    // public int getPrimaryIndexCount()
-    // {
-    // return tileCount;
-    // }
+//    // Returns the primary tile count
+//    public int getPrimaryIndexCount() {
+//      return tileCount;
+//    }
 
     // Advances the primary tile index by 1 for animated tiles, wraps around automatically
     public void advancePrimaryIndex() {
@@ -1335,22 +1346,20 @@ public class TilesetRenderer extends RenderCanvas {
     private int[] indices; // list of tilemap indices used for the door
 
     public DoorInfo(String name, boolean isClosed, int[] indices) {
-      // this.name = (name != null) ? name : "";
-      // this.isClosed = isClosed;
+//      this.name = (name != null) ? name : "";
+//      this.isClosed = isClosed;
       this.indices = (indices != null) ? indices : new int[0];
     }
 
-    // // Returns the name of the door structure
-    // public String getName()
-    // {
-    // return name;
-    // }
+//    // Returns the name of the door structure
+//    public String getName() {
+//      return name;
+//    }
 
-    // // Returns whether the tile indices are used for the closed state of the door
-    // public boolean isClosed()
-    // {
-    // return isClosed;
-    // }
+//    // Returns whether the tile indices are used for the closed state of the door
+//    public boolean isClosed() {
+//      return isClosed;
+//    }
 
     // Returns number of tiles used in this door structure
     public int getIndicesCount() {

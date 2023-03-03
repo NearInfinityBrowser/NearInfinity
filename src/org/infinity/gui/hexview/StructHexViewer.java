@@ -112,6 +112,7 @@ public class StructHexViewer extends JPanel
 
   private FindDataDialog findData;
   private JScrollPane spInfo;
+  private JSplitPane splitv;
   private boolean tabSelected;
   private int cachedSize;
 
@@ -317,6 +318,14 @@ public class StructHexViewer extends JPanel
         tabSelected = true;
         getHexView().requestFocusInWindow();
         updateStatusBar((int) getHexView().getCurrentOffset());
+
+        // FIXME: Workaround to enforce correct JHexView scrollbar calculation
+        if (splitv != null) {
+          final int loc = splitv.getDividerLocation();
+          splitv.setDividerLocation(loc - 1);
+          // "invokeLater()" needed for the UI to register the change
+          SwingUtilities.invokeLater(() -> splitv.setDividerLocation(loc));
+        }
       } else if (tabSelected) {
         // actions when leaving Raw tab
         tabSelected = false;
@@ -407,7 +416,7 @@ public class StructHexViewer extends JPanel
       spInfo = new JScrollPane(pInfo);
       spInfo.getVerticalScrollBar().setUnitIncrement(16);
 
-      JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, hexView, spInfo);
+      splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, hexView, spInfo);
       splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 3);
       add(splitv, BorderLayout.CENTER);
 

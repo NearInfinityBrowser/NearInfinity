@@ -5,14 +5,20 @@
 package org.infinity.resource.to;
 
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.FileManager;
 
 /**
  * This resource serves a similar purpose (and has a similar structure to) {@link StringTable TLK} files. The files can
@@ -39,11 +45,52 @@ public final class TotResource extends AbstractStruct implements Resource {
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
     if (buffer != null && buffer.limit() > 0) {
-      // TODO: fetch number of valid string entries from associated TOH resource
-      for (int i = 0; offset + 524 <= buffer.limit(); i++) {
-        StringEntry entry = new StringEntry(this, buffer, offset, i);
-        offset = entry.getEndOffset();
-        addField(entry);
+      final TohResource toh = loadAssociatedToh(getResourceEntry());
+      if (toh != null) {
+        // fetching valid string entries from associated TOH resource
+        final List<StructEntry> tohEntries = new ArrayList<>(toh.getFields(StrRefEntry.class));
+        tohEntries.sort((a, b) -> {
+          StructEntry e1 = ((StrRefEntry) a).getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING);
+          StructEntry e2 = ((StrRefEntry) b).getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING);
+          return ((IsNumeric) e1).getValue() - ((IsNumeric) e2).getValue();
+        });
+
+        // handling unmapped region of data
+        if (tohEntries.size() > 0 && tohEntries.get(0).getOffset() > 0) {
+          final StrRefEntry entry = (StrRefEntry) tohEntries.get(0);
+          final int size = ((IsNumeric) entry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
+          if (size > 0) {
+            addField(new Unknown(buffer, offset, size));
+          }
+        }
+
+        // handling string entries defined in TOH resource
+        int idx = 0;
+        for (final StructEntry se : tohEntries) {
+          final StrRefEntry tohEntry = (StrRefEntry) se;
+          offset = ((IsNumeric) tohEntry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
+          // looping through entries to consider split text segments
+          StringEntry stringEntry = new StringEntry(this, buffer, offset, idx);
+          while (stringEntry != null) {
+            offset = stringEntry.getEndOffset();
+            addField(stringEntry);
+            idx++;
+            int ofsNextEntry = ((IsNumeric) stringEntry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY))
+                .getValue();
+            if (ofsNextEntry >= 0) {
+              stringEntry = new StringEntry(this, buffer, ofsNextEntry, idx);
+            } else {
+              stringEntry = null;
+            }
+          }
+        }
+      } else {
+        // guessing string entries (most likely using incorrect offsets)
+        for (int i = 0; offset + 524 <= buffer.limit(); i++) {
+          final StringEntry entry = new StringEntry(this, buffer, offset, i);
+          offset = entry.getEndOffset();
+          addField(entry);
+        }
       }
     } else {
       addField(new Unknown(buffer, offset, 0, TOT_EMPTY)); // Placeholder for empty structure
@@ -57,5 +104,34 @@ public final class TotResource extends AbstractStruct implements Resource {
     }
 
     return endoffset;
+  }
+
+  /**
+   * Attempts to find the associated TOH resource in the same directory as the current TOT resource and loads it if
+   * available.
+   *
+   * @param totResource The current TOT resource.
+   * @return {@code TohResource} instance if loaded successfully, {@code null} otherwise.
+   */
+  private TohResource loadAssociatedToh(ResourceEntry totResource) {
+    TohResource toh = null;
+
+    if (totResource != null) {
+      final Path totPath = totResource.getActualPath();
+      if (totPath != null) {
+        String fileName = totPath.getName(totPath.getNameCount() - 1).toString();
+        char ch = fileName.charAt(fileName.length() - 1); // last character of file extension (TOT)
+        ch -= 12; // TOT -> TOH (considers case)
+        fileName = fileName.substring(0, fileName.length() - 1) + String.valueOf(ch);
+        final Path tohPath = FileManager.queryExisting(totPath.getParent(), fileName);
+        try {
+          toh = new TohResource(new FileResourceEntry(tohPath));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    return toh;
   }
 }

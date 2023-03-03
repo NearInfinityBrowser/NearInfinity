@@ -117,7 +117,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher {
-  public static final String VERSION = "v2.3-20221108";
+  public static final String VERSION = "v2.3-20230303";
 
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -290,6 +290,20 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   /** Returns whether system information are shown when NI starts up. */
   public boolean showSysInfo() {
     return optionsMenu.optionShowSystemInfo.isSelected();
+  }
+
+  /** Returns whether to show a dialog prompt whenever a bookmarked game is opened. */
+  public boolean showOpenBookmarksPrompt() {
+    return optionsMenu.optionOpenBookmarksPrompt.isSelected();
+  }
+
+  /**
+   * Controls whether to show a dialog prompt whenever a bookmarked game is opened.
+   *
+   * @param show {@code true} to show a dialog prompt, {@code false} to open bookmarked games without confirmation.
+   */
+  public void setShowOpenBookmarksPrompt(boolean show) {
+    optionsMenu.optionOpenBookmarksPrompt.setSelected(show);
   }
 
   /** Returns whether scripts are automatically scanned for compile errors. */
@@ -1087,9 +1101,18 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
               e.printStackTrace();
             }
             if (!isEqual) {
-              String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
-              int confirm = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), message, "Open game",
-                  JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+              int confirm = JOptionPane.YES_OPTION;
+              if (BrowserMenuBar.getInstance().showOpenBookmarksPrompt()) {
+                String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
+                Couple<Integer, Boolean> result = StandardDialogs.showConfirmDialogExtra(NearInfinity.getInstance(),
+                    message, "Open game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    StandardDialogs.Extra.with(StandardDialogs.Extra.MESSAGE_DO_NOT_SHOW_PROMPT,
+                        "Confirmation prompt can be enabled or disabled in the options menu."));
+                if (result.getValue1()) {
+                  BrowserMenuBar.getInstance().setShowOpenBookmarksPrompt(false);
+                }
+                confirm = result.getValue0();
+              }
               if (confirm == JOptionPane.YES_OPTION) {
                 NearInfinity.getInstance().openGame(keyFile);
               }
@@ -1850,6 +1873,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_SHOWCOLOREDSTRUCTURES    = "ShowColoredStructures";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWSYSINFO              = "ShowSysInfo";
+    private static final String OPTION_OPENBOOKMARKSPROMPT      = "OpenBookmarksPrompt";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
     private static final String OPTION_HIGHLIGHT_OVERRIDDEN     = "HighlightOverridden";
@@ -1945,6 +1969,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionShowColoredStructures;
     private JCheckBoxMenuItem optionShowHexColored;
     private JCheckBoxMenuItem optionShowSystemInfo;
+    private JCheckBoxMenuItem optionOpenBookmarksPrompt;
     private JCheckBoxMenuItem optionShowUnknownResources;
     private JCheckBoxMenuItem optionKeepViewOnCopy;
     private JCheckBoxMenuItem optionTreeSearchNames;
@@ -2058,8 +2083,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowHexColored = new JCheckBoxMenuItem("Show colored blocks in Raw tabs",
           getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
-      optionShowSystemInfo = new JCheckBoxMenuItem("Display system information at startup", getPrefs().getBoolean(OPTION_SHOWSYSINFO, true));
+      optionShowSystemInfo = new JCheckBoxMenuItem("Display system information at startup",
+          getPrefs().getBoolean(OPTION_SHOWSYSINFO, true));
       add(optionShowSystemInfo);
+      optionOpenBookmarksPrompt = new JCheckBoxMenuItem("Confirm opening bookmarked games",
+          getPrefs().getBoolean(OPTION_OPENBOOKMARKSPROMPT, true));
+      add(optionOpenBookmarksPrompt);
 
       addSeparator();
 
@@ -2714,6 +2743,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWCOLOREDSTRUCTURES, optionShowColoredStructures.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSYSINFO, optionShowSystemInfo.isSelected());
+      getPrefs().putBoolean(OPTION_OPENBOOKMARKSPROMPT, optionOpenBookmarksPrompt.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
