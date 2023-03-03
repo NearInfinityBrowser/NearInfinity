@@ -309,14 +309,12 @@ public class RenderCanvas extends JComponent implements SwingConstants {
     composite = (c != null) ? c : AlphaComposite.SrcOver;
   }
 
-  protected void update() {
-    invalidate();
-    if (getParent() != null) {
-      getParent().repaint();
-    }
-  }
-
-  protected Rectangle getCanvasSize() {
+  /**
+   * Returns the actual placement of the image canvas within the {@code RenderCanvas} component.
+   *
+   * @return {@code Rectangle} of the canvas bounds relative to the {@code RenderCanvas} component.
+   */
+  public Rectangle getCanvasBounds() {
     Rectangle rect = new Rectangle();
     if (currentImage != null) {
       rect.width = currentImage.getWidth(null);
@@ -349,6 +347,13 @@ public class RenderCanvas extends JComponent implements SwingConstants {
     return rect;
   }
 
+  protected void update() {
+    invalidate();
+    if (getParent() != null) {
+      getParent().repaint();
+    }
+  }
+
   /**
    * Renders the image to the canvas.
    *
@@ -359,7 +364,7 @@ public class RenderCanvas extends JComponent implements SwingConstants {
       Graphics2D g2 = (Graphics2D) g;
       Composite oldComposite = g2.getComposite();
       g2.setComposite(getComposite());
-      Rectangle rect = getCanvasSize();
+      Rectangle rect = getCanvasBounds();
       if (isScaling) {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationType);
         g2.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, null);

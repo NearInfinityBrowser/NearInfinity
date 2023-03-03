@@ -11,6 +11,7 @@ import org.infinity.util.DynamicArray;
  * Decodes ACM encoded audio data into uncompressed PCM WAV audio data.
  */
 public class AcmBuffer extends AudioBuffer {
+  private AcmReader acm;
 
   public AcmBuffer(ResourceEntry entry) throws Exception {
     super(entry);
@@ -28,11 +29,26 @@ public class AcmBuffer extends AudioBuffer {
     super(buffer, offset, override);
   }
 
+  /** Returns the number of audio channels. */
+  public int getChannels() {
+    return (acm != null) ? acm.getChannels() : 0;
+  }
+
+  /** Returns the sample rate in Hz. */
+  public int getSampleRate() {
+    return (acm != null) ? acm.getSampleRate() : 0;
+  }
+
+  /** Returns the bits per sample. */
+  public int getBitsPerSample() {
+    return (acm != null) ? acm.getBitsPerSample() : 0;
+  }
+
   // --------------------- Begin Class AudioBuffer ---------------------
 
   @Override
   protected void convert(byte[] buffer, int offset, AudioOverride override) throws Exception {
-    AcmReader acm = new AcmReader(buffer, offset, override);
+    acm = new AcmReader(buffer, offset, override);
     int numSamples = acm.getSampleCount();
     int numChannels = acm.getChannels();
     int sampleRate = acm.getSampleRate();

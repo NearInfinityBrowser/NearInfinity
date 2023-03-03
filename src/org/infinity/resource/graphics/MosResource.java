@@ -8,9 +8,13 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -32,6 +36,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.RootPaneContainer;
@@ -42,8 +47,10 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
@@ -62,15 +69,22 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm">
  *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm</a>
  */
-public class MosResource implements Resource, Referenceable, ActionListener, PropertyChangeListener {
+public class MosResource implements Resource, Closeable, Referenceable, ActionListener, PropertyChangeListener {
   private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
+
+  private static final String FMT_PVRZ_SHOW = "Block %d: Show MOS block information...";
+  private static final String FMT_PVRZ_OPEN = "Block %d: Open referenced PVRZ resource...";
 
   private static boolean enableTransparency = true;
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final JPopupMenu menuPvrz = new JPopupMenu();
+  private final JMenuItem miPvrzShow = new JMenuItem();
+  private final JMenuItem miPvrzOpen = new JMenuItem();
 
   private MosDecoder.Type mosType;
+  private MosDecoder decoder;
   private JMenuItem miExport;
   private JMenuItem miExportMOSV1;
   private JMenuItem miExportMOSC;
@@ -82,6 +96,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   private SwingWorker<List<byte[]>, Void> workerConvert;
   private boolean exportCompressed;
   private WindowBlocker blocker;
+  private int lastBlockIndex = -1;
 
   public MosResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
@@ -167,6 +182,22 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         }
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    } else if (event.getSource() == miPvrzShow) {
+      if (lastBlockIndex >= 0) {
+        if (!showPvrzInfo(lastBlockIndex)) {
+          JOptionPane.showMessageDialog(panel,
+              String.format("Could not retrieve PVRZ information for MOS block %d.", lastBlockIndex), "Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    } else if (event.getSource() == miPvrzOpen) {
+      if (lastBlockIndex >= 0) {
+        if (!openPvrzResource(lastBlockIndex)) {
+          JOptionPane.showMessageDialog(panel,
+              String.format("Could not open PVRZ resource for MOS block %d.", lastBlockIndex), "Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
       }
     }
   }
@@ -308,6 +339,12 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
+    menuPvrz.add(miPvrzShow);
+    menuPvrz.add(miPvrzOpen);
+    miPvrzShow.addActionListener(this);
+    miPvrzOpen.addActionListener(this);
+    rcImage.addMouseListener(new PopupListener());
+
     cbTransparency = new JCheckBox("Enable transparency", enableTransparency);
     cbTransparency.setEnabled(mosType == MosDecoder.Type.MOSV1 || mosType == MosDecoder.Type.MOSC);
     cbTransparency.setToolTipText("Affects only legacy MOS resources (MOS v1)");
@@ -336,6 +373,21 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     }
     return null;
   }
+
+  // --------------------- Begin Interface Closeable ---------------------
+
+  @Override
+  public void close() throws Exception {
+    if (decoder != null) {
+      decoder.close();
+    }
+
+    if (rcImage != null) {
+      rcImage = null;
+    }
+  }
+
+  // --------------------- End Interface Closeable ---------------------
 
   // Shows message box about basic resource properties
   private void showProperties() {
@@ -395,33 +447,70 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     }
   }
 
-  private BufferedImage loadImage() {
-    BufferedImage image = null;
-    mosType = MosDecoder.getType(entry);
-    if (mosType != MosDecoder.Type.INVALID) {
-      MosDecoder decoder = null;
-      if (entry != null) {
-        try {
-          decoder = MosDecoder.loadMos(entry);
-          if (decoder instanceof MosV1Decoder) {
-            ((MosV1Decoder) decoder).setTransparencyEnabled(enableTransparency);
+  /** Opens a message dialog with PVRZ-related information about the MOS block at the specified index. */
+  private boolean showPvrzInfo(int blockIndex) {
+    MosV2Decoder d = (decoder instanceof MosV2Decoder) ? (MosV2Decoder) decoder : null;
+    if (d != null) {
+      final MosV2Decoder.MosBlock block = d.getBlockInfo(blockIndex);
+      if (block != null) {
+        final String info = String.format(
+            "PVRZ resource: %s<br>" +
+            "Block dimension: w=%d, h=%d<br>" +
+            "PVRZ coordinates: x=%d, y=%d<br>" +
+            "MOS coordinates: x=%d, y=%d",
+            MosV2Decoder.getPvrzFileName(block.getPage()), block.getWidth(), block.getHeight(),
+            block.getPvrzRect().x, block.getPvrzRect().y, block.getMosRect().x, block.getMosRect().y);
+        JOptionPane.showMessageDialog(panel,
+            String.format("<html><div style=\"font-family:monospace;padding-right:8px\">%s<br>&nbsp;</div></html>", info),
+            "MOS block information", JOptionPane.INFORMATION_MESSAGE);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Opens the PVRZ resource referenced by the MOS block at the specified index. */
+  private boolean openPvrzResource(int blockIndex) {
+    MosV2Decoder d = (decoder instanceof MosV2Decoder) ? (MosV2Decoder) decoder : null;
+    if (d != null) {
+      final MosV2Decoder.MosBlock block = d.getBlockInfo(blockIndex);
+      if (block != null && block.getPage() >= 0 && block.getPage() < 100000) {
+        final ResourceEntry resEntry = ResourceFactory.getResourceEntry(MosV2Decoder.getPvrzFileName(block.getPage()));
+        if (resEntry != null) {
+          final Resource res = ResourceFactory.getResource(resEntry);
+          if (res != null) {
+            new ViewFrame(panel, res);
+            return true;
           }
-          mosType = decoder.getType();
-          image = ColorConvert.toBufferedImage(decoder.getImage(), true);
-          decoder.close();
-          decoder = null;
-        } catch (Exception e) {
-          e.printStackTrace();
-          if (decoder != null) {
-            decoder.close();
-          }
-          image = null;
         }
       }
-    } else {
-      image = ColorConvert.createCompatibleImage(1, 1, true);
     }
-    return image;
+    return false;
+  }
+
+  private BufferedImage loadImage() {
+    if (decoder == null) {
+      mosType = MosDecoder.getType(entry);
+      if (mosType != MosDecoder.Type.INVALID) {
+        if (entry != null) {
+          try {
+            decoder = MosDecoder.loadMos(entry);
+            mosType = decoder.getType();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+
+    if (decoder != null) {
+      if (decoder instanceof MosV1Decoder) {
+        ((MosV1Decoder) decoder).setTransparencyEnabled(enableTransparency);
+      }
+      return ColorConvert.toBufferedImage(decoder.getImage(), true);
+    } else {
+      return ColorConvert.createCompatibleImage(1, 1, true);
+    }
   }
 
   // Creates a new MOS V1 or MOSC V1 resource from scratch. DO NOT call directly!
@@ -619,5 +708,39 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       }
     }
     return retVal;
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  private final class PopupListener extends MouseAdapter {
+    @Override
+    public void mousePressed(MouseEvent e) {
+      maybeShowPopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      maybeShowPopup(e);
+    }
+
+    private void maybeShowPopup(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        if (decoder instanceof MosV2Decoder) {
+          final MosV2Decoder d = (MosV2Decoder) decoder;
+
+          // Adjust location to canvas alignment within the RenderCanvas component
+          final Rectangle bounds = rcImage.getCanvasBounds();
+          final int x = e.getX() - bounds.x;
+          final int y = e.getY() - bounds.y;
+          lastBlockIndex = d.getBlockIndexAt(new Point(x, y));
+
+          if (lastBlockIndex >= 0) {
+            miPvrzShow.setText(String.format(FMT_PVRZ_SHOW, lastBlockIndex));
+            miPvrzOpen.setText(String.format(FMT_PVRZ_OPEN, lastBlockIndex));
+            menuPvrz.show(e.getComponent(), e.getX(), e.getY());
+          }
+        }
+      }
+    }
   }
 }

@@ -211,6 +211,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual {
           buffer.put((byte) 0);
         }
       }
+      buffer.position(0);
     }
     return buffer;
   }

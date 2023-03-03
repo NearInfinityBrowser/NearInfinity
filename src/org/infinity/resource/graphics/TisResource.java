@@ -22,6 +22,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
@@ -36,6 +38,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -50,6 +53,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -66,19 +70,23 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.TileGrid;
+import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.gui.converter.ConvertToTis.TileEntry;
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Door;
+import org.infinity.resource.wed.IndexNumber;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.resource.wed.WedResource;
@@ -131,11 +139,21 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
   private static final int DEFAULT_COLUMNS = 5;
 
+  private static final String FMT_TILEINFO_SHOW = "Tile %d: Show PVRZ information...";
+  private static final String FMT_TILEINFO_PVRZ = "Tile %d: Open PVRZ resource...";
+  private static final String FMT_TILEINFO_WED = "Tile %d: Open WED overlay tilemap... ";
+
   private static boolean showGrid = false;
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final JPopupMenu menuTileInfo = new JPopupMenu();
+  private final JMenuItem miTileInfoShow = new JMenuItem();
+  private final JMenuItem miTileInfoPvrz = new JMenuItem();
+  private final JMenuItem miTileInfoWed = new JMenuItem();
 
+  private WedResource wedResource;
+  private HashMap<Integer, Tilemap> wedTileMap;
   private TisDecoder decoder;
   private List<Image> tileImages; // stores one tile per image
   private TileGrid tileGrid;      // the main component for displaying the tileset
@@ -153,6 +171,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   private SwingWorker<Status, Void> workerExport;
   private WindowBlocker blocker;
   private int defaultWidth;
+  private int lastTileInfoIndex = -1;
 
   public TisResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
@@ -226,6 +245,25 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         };
         workerExport.addPropertyChangeListener(this);
         workerExport.execute();
+      }
+    } else if (event.getSource() == miTileInfoShow) {
+      if (!showPvrzInfo(lastTileInfoIndex)) {
+        JOptionPane.showMessageDialog(panel,
+            String.format("Could not retrieve PVRZ information for tile %d.", lastTileInfoIndex), "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
+    } else if (event.getSource() == miTileInfoPvrz) {
+      if (!openPvrzResource(lastTileInfoIndex)) {
+        JOptionPane.showMessageDialog(panel,
+            String.format("Could not open PVRZ resource for tile %d.", lastTileInfoIndex), "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
+    } else if (event.getSource() == miTileInfoWed) {
+      final Tilemap tm = wedTileMap.get(lastTileInfoIndex);
+      if (!openStructEntry(tm)) {
+        JOptionPane.showMessageDialog(panel,
+            String.format("Could not open overlay structure for tile %d.", lastTileInfoIndex), "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -465,6 +503,15 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     tileGrid.addImage(tileImages);
     tileGrid.setGridSize(calcGridSize(tileGrid.getImageCount(), getDefaultTilesPerRow()));
     tileGrid.setShowGrid(showGrid);
+
+    menuTileInfo.add(miTileInfoShow);
+    menuTileInfo.add(miTileInfoPvrz);
+    menuTileInfo.add(miTileInfoWed);
+    miTileInfoShow.addActionListener(this);
+    miTileInfoPvrz.addActionListener(this);
+    miTileInfoWed.addActionListener(this);
+    tileGrid.addMouseListener(new PopupListener());
+
     slCols.setValue(tileGrid.getTileColumns());
     tfCols.setText(Integer.toString(tileGrid.getTileColumns()));
     JScrollPane scroll = new JScrollPane(tileGrid);
@@ -592,8 +639,10 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
       decoder = TisDecoder.loadTis(entry);
       if (decoder != null) {
+        wedResource = loadWedForTis(entry);
+        initOverlayMap(wedResource);
         int tileCount = decoder.getTileCount();
-        defaultWidth = calcTileWidth(entry, tileCount);
+        defaultWidth = calcTileWidth(wedResource, tileCount);
         tileImages = new ArrayList<>(tileCount);
         for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
           BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
@@ -616,6 +665,99 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
           "Error while loading TIS resource: " + entry.getResourceName(), "Error", JOptionPane.ERROR_MESSAGE);
     }
+  }
+
+  // Initializes the WED overlay lookup table for tile information, if WED resource is available.
+  private void initOverlayMap(WedResource wed) {
+    if (wed != null) {
+      try {
+        final Overlay ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
+        int width = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+        int height = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+        wedTileMap = new HashMap<>(width * height * 4 / 3);
+
+        // mapping primary tiles
+        final List<StructEntry> tileMapList = ovl.getFields(Tilemap.class);
+        final List<StructEntry> tileIndexList = ovl.getFields(IndexNumber.class);
+        for (final StructEntry e : tileMapList) {
+          final Tilemap tm = (Tilemap) e;
+          final int idx = ((IsNumeric) tm.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
+          final int tileIdx = ((IsNumeric) tileIndexList.get(idx)).getValue();
+          wedTileMap.put(tileIdx, tm);
+        }
+
+        // mapping secondary tiles
+        wedTileMap.entrySet().stream().filter(e -> {
+          final int idx = ((IsNumeric) e.getValue().getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
+          return (idx >= 0 && !wedTileMap.containsKey(idx));
+        }).forEach((e) -> {
+          final Tilemap tm = e.getValue();
+          final int idx = ((IsNumeric) tm.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
+          wedTileMap.putIfAbsent(idx, tm);
+        });
+      } catch (Exception e) {
+      }
+    }
+  }
+
+  /** Opens the specified {@code StructEntry} in a new {@code ViewFrame} window. */
+  private boolean openStructEntry(StructEntry e) {
+    if (e != null) {
+      for (StructEntry se = e; se != null; se = se.getParent()) {
+        if (se instanceof Resource) {
+          final Resource viewable = (Resource) se;
+          new ViewFrame(panel, viewable);
+          ((AbstractStruct) viewable).getViewer().selectEntry(e.getOffset());
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** Opens the PVRZ resource containing the specified tile index. */
+  private boolean openPvrzResource(int tileIndex) {
+    if (decoder instanceof TisV2Decoder && tileIndex >= 0 && tileIndex < decoder.getTileCount()) {
+      final TisV2Decoder d = (TisV2Decoder) decoder;
+      final ResourceEntry resEntry = ResourceFactory.getResourceEntry(d.getPvrzFileName(tileIndex));
+      if (resEntry != null) {
+        final Resource res = ResourceFactory.getResource(resEntry);
+        if (res != null) {
+          new ViewFrame(panel, res);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** Opens a message dialog with PVRZ-related information about the specified tile. */
+  private boolean showPvrzInfo(int tileIndex) {
+    if (decoder instanceof TisV2Decoder && tileIndex >= 0 && tileIndex < decoder.getTileCount()) {
+      final TisV2Decoder d = (TisV2Decoder) decoder;
+      final ByteBuffer buf = d.getResourceBuffer();
+      final int tileOfs = buf.getInt(0x10) + tileIndex * 0x0c;
+      final int tilePage = buf.getInt(tileOfs);
+
+      final String info;
+      if (tilePage < 0) {
+        info = "Tile type: Solid black color<br>No PVRZ reference available.";
+      } else {
+        final String pvrzName = d.getPvrzFileName(tileIndex);
+        final int tileX = buf.getInt(tileOfs + 4);
+        final int tileY = buf.getInt(tileOfs + 8);
+        info = String.format(
+            "PVRZ resource: %s<br>" +
+            "PVRZ page: %d<br>" +
+            "PVRZ coordinates: x=%d, y=%d",
+            pvrzName, tilePage, tileX, tileY);
+      }
+      JOptionPane.showMessageDialog(panel,
+          String.format("<html><div style=\"font-family:monospace;padding-right:8px\">%s<br>&nbsp;</div></html>", info),
+          "PVRZ information: tile " + tileIndex, JOptionPane.INFORMATION_MESSAGE);
+      return true;
+    }
+    return false;
   }
 
   // Converts the current PVRZ-based tileset into the old tileset variant.
@@ -1027,6 +1169,31 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     return retVal;
   }
 
+  /**
+   * Attempts to retrieve the tileset width, in tiles, from the specified WED resource. Falls back to a value
+   * based on {@code defTileCount}, if WED information is not available.
+   *
+   * @param wed           WED resource for this TIS.
+   * @param defTileCount  A an optional tile count that will be used to "guess" the correct number of tiles per row
+   *                      if WED information is no available.
+   * @return Number of tiles per row for the current TIS resource.
+   */
+  private int calcTileWidth(WedResource wed, int defTileCount) {
+    int retVal = (defTileCount < 9) ? defTileCount : (int) (Math.sqrt(defTileCount) * 1.18);
+
+    if (wed != null) {
+      final Overlay ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
+      if (ovl != null) {
+        final int width = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+        if (width > 0) {
+          retVal = width;
+        }
+      }
+    }
+
+    return retVal;
+  }
+
   // Generates PVRZ files based on the current TIS resource and the specified parameters
   private Status writePvrzPages(Path tisFile, List<BinPack2D> pageList, List<ConvertToTis.TileEntry> entryList,
       ProgressMonitor progress) {
@@ -1200,6 +1367,39 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   /**
+   * Attempts to find and load the WED resource associated with the specified TIS resource.
+   *
+   * @param tisEntry  The TIS resource entry.
+   * @return          {@code WedResource} instance if successful, {@code null} otherwise.
+   */
+  public static WedResource loadWedForTis(ResourceEntry tisEntry) {
+    WedResource wed = null;
+
+    if (tisEntry != null) {
+      String tisBase = tisEntry.getResourceRef();
+      ResourceEntry wedEntry = null;
+      while (tisBase.length() >= 6) {
+        String wedName = tisBase + ".WED";
+        wedEntry = ResourceFactory.getResourceEntry(wedName);
+        if (wedEntry != null) {
+          break;
+        } else {
+          tisBase = tisBase.substring(0,  tisBase.length() - 1);
+        }
+      }
+
+      if (wedEntry != null) {
+        try {
+          wed = new WedResource(wedEntry);
+        } catch (Exception e) {
+        }
+      }
+    }
+
+    return wed;
+  }
+
+  /**
    * Attempts to calculate the TIS width from an associated WED file.
    *
    * @param entry     The TIS resource entry.
@@ -1278,6 +1478,40 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   }
 
   // -------------------------- INNER CLASSES --------------------------
+
+  private final class PopupListener extends MouseAdapter {
+    @Override
+    public void mousePressed(MouseEvent e) {
+      maybeShowPopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      maybeShowPopup(e);
+    }
+
+    private void maybeShowPopup(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        int index = tileGrid.getTileIndexAt(new Point(e.getX(), e.getY()));
+        if (index >= 0 && index < decoder.getTileCount()) {
+          lastTileInfoIndex = index;
+
+          miTileInfoShow.setText(String.format(FMT_TILEINFO_SHOW, lastTileInfoIndex));
+          miTileInfoShow.setVisible(decoder.getType() == TisDecoder.Type.PVRZ);
+
+          miTileInfoPvrz.setText(String.format(FMT_TILEINFO_PVRZ, lastTileInfoIndex));
+          miTileInfoPvrz.setVisible(decoder.getType() == TisDecoder.Type.PVRZ);
+
+          miTileInfoWed.setText(String.format(FMT_TILEINFO_WED, lastTileInfoIndex));
+          miTileInfoWed.setVisible(wedTileMap != null && wedTileMap.containsKey(lastTileInfoIndex));
+
+          if (miTileInfoShow.isVisible() || miTileInfoPvrz.isVisible() || miTileInfoWed.isVisible()) {
+            menuTileInfo.show(e.getComponent(), e.getX(), e.getY());
+          }
+        }
+      }
+    }
+  }
 
   // Tracks regions of tiles used for the tile -> pvrz packing algorithm
   private static class TileRect {

@@ -1122,6 +1122,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     // Ensure that BeforeSourceBam function is applied only once per source BAM
     HashSet<BamV1Control> bamControlSet = new HashSet<>();
 
+    // Ensures that global effects are only applied once per resource entry
+    final HashSet<ResourceEntry> entrySet = new HashSet<>();
+
     for (final DirDef dd : definition.getDirections()) {
       if (!directions.contains(dd.getDirection())) {
         continue;
@@ -1158,7 +1161,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
             if (sd.getCurrentFrame() >= 0) {
               if (beforeSrcBam != null && !bamControlSet.contains(srcCtrl)) {
                 bamControlSet.add(srcCtrl);
-                beforeSrcBam.accept(srcCtrl, sd);
+                if (!entrySet.contains(entry)) {
+                  // apply only once per resource
+                  beforeSrcBam.accept(srcCtrl, sd);
+                  entrySet.add(entry);
+                }
               }
               frameInfo.add(new FrameInfo(srcCtrl, sd, centerShift));
             }
