@@ -9,10 +9,12 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.DynamicArray;
 import org.infinity.util.io.StreamUtils;
 
 public class MosV1Decoder extends MosDecoder {
@@ -31,6 +33,46 @@ public class MosV1Decoder extends MosDecoder {
   private int[] workingPalette; // storage space for palettes
   private BufferedImage workingCanvas; // storage space big enough for a single block
   private int lastBlockIndex; // hold the index of the last data block drawn onto workingCanvas
+
+  /**
+   * Returns information about the specified MOS resource.
+   *
+   * @param mosEntry The MOS resource entry.
+   * @return A {@link MosInfo} structure with information about the specified MOS resource,
+   *         {@code null} if information is not available.
+   */
+  public static MosDecoder.MosInfo getInfo(ResourceEntry mosEntry) {
+    MosDecoder.MosInfo retVal = null;
+
+    try (InputStream is = mosEntry.getResourceDataAsStream()) {
+      String signature = StreamUtils.readString(is, 4);
+      String version = StreamUtils.readString(is, 4);
+
+      byte[] header = null;
+      boolean compressed = false;
+      if ("MOSC".equals(signature)) {
+        compressed = true;
+        header = Compressor.decompress(is, 0, 0x18);
+      } else if ("MOS ".equals(signature) && "V1  ".equals(version)) {
+        header = new byte[0x18];
+        DynamicArray.putString(header, 0, 8, "MOS V1  ");
+        is.read(header, 8, header.length - 8);
+      }
+
+      if (header != null) {
+        int width = DynamicArray.getShort(header, 0x08);
+        int height = DynamicArray.getShort(header, 0x0a);
+        int columns = DynamicArray.getShort(header, 0x0c);
+        int rows = DynamicArray.getShort(header, 0x0e);
+        int blockSize = DynamicArray.getInt(header, 0x10);
+        retVal = new MosDecoder.MosInfo(compressed, width, height, columns, rows, blockSize);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return retVal;
+  }
 
   public MosV1Decoder(ResourceEntry mosEntry) {
     super(mosEntry);

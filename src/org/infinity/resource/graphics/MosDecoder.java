@@ -60,6 +60,31 @@ public abstract class MosDecoder {
   }
 
   /**
+   * Returns information about the specified MOS resource.
+   *
+   * @param mosEntry The MOS resource entry.
+   * @return A {@link MosInfo} structure with information about the specified MOS resource,
+   *         {@code null} if information is not available.
+   */
+  public static MosInfo getInfo(ResourceEntry mosEntry) {
+    MosInfo retVal = null;
+
+    switch (getType(mosEntry)) {
+      case MOSC:
+      case MOSV1:
+        retVal = MosV1Decoder.getInfo(mosEntry);
+        break;
+      case MOSV2:
+        retVal = MosV2Decoder.getInfo(mosEntry);
+        break;
+      default:
+        break;
+    }
+
+    return retVal;
+  }
+
+  /**
    * Returns a new MosDecoder object based on the specified MOS resource entry.
    *
    * @param mosEntry The MOS resource entry.
@@ -149,5 +174,43 @@ public abstract class MosDecoder {
 
   protected void setType(Type type) {
     this.type = type;
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  /** A class for providing parsed MOS header information. */
+  public static class MosInfo {
+    /** Type of the MOS resource. */
+    public final Type type;
+    /** MOS width, in pixels. */
+    public final int width;
+    /** MOS height, in pixels. */
+    public final int height;
+    /** Number of MOS V1 data block columns. */
+    public final int columns;
+    /** Number of MOS V1 data block rows. */
+    public final int rows;
+    /** Dimension of a MOS V1 data block, in pixels. */
+    public final int blockSize;
+    /** Number of MOS V2 data blocks. */
+    public final int numBlocks;
+
+    public MosInfo(boolean compressed, int width, int height, int columns, int rows, int blockSize) {
+      this.type = compressed ? Type.MOSC : Type.MOSV1;
+      this.width = width;
+      this.height = height;
+      this.columns = columns;
+      this.rows = rows;
+      this.blockSize= blockSize;
+      this.numBlocks = 0;
+    }
+
+    public MosInfo(int width, int height, int numBlocks) {
+      this.type = Type.MOSV2;
+      this.width = width;
+      this.height = height;
+      this.numBlocks = numBlocks;
+      this.columns = this.rows = this.blockSize = 0;
+    }
   }
 }
