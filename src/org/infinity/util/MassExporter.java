@@ -5,6 +5,7 @@
 package org.infinity.util;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -24,9 +25,15 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -40,6 +47,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -74,16 +84,15 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
+public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
 
-  private static final String[] TYPES = { "2DA", "ARE", "BAM", "BCS", "BS", "BIO", "BMP", "CHU", "CHR", "CRE", "DLG",
-      "EFF", "FNT", "GAM", "GLSL", "GUI", "IDS", "INI", "ITM", "LUA", "MENU", "MOS", "MVE", "PLT", "PNG", "PRO", "PVRZ",
-      "RES", "SPL", "SQL", "SRC", "STO", "TIS", "TOH", "TOT", "TTF", "VEF", "VVC", "WAV", "WBM", "WED", "WFX", "WMP" };
+  private static final Set<String> TYPES_BLACKLIST = new HashSet<>(Arrays.asList(new String[] {"BIK", "LOG", "SAV"}));
 
   private final JButton bExport = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
   private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
+  private final JCheckBox cbPattern = new JCheckBox("Use regular expressions", false);
   private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
   private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);
@@ -101,14 +110,16 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JComboBox<String> cbExtractFramesBAMFormat = new JComboBox<>(new String[] { "PNG", "BMP" });
-  private final JList<String> listTypes = new JList<>(TYPES);
-  private final JTextField tfDirectory = new JTextField(20);
+  private final JList<String> listTypes = new JList<>(getAvailableResourceTypes());
+  private final JTextField tfDirectory = new JTextField(16);
+  private final JTextField tfPattern = new JTextField(16);
 
   private Path outputPath;
   private List<String> selectedTypes;
   private ProgressMonitor progress;
   private int progressIndex;
   private List<ResourceEntry> selectedFiles;
+  private Pattern pattern;
 
   public MassExporter() {
     super("Mass Exporter", true);
@@ -118,6 +129,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bDirectory.addActionListener(this);
     bExport.setEnabled(false);
     tfDirectory.setEditable(false);
+    tfPattern.getDocument().addDocumentListener(this);
+    updateTextFieldColor(tfPattern);
     listTypes.addListSelectionListener(this);
     fc.setDialogTitle("Mass export: Select directory");
     fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -139,6 +152,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     topRightPanel.add(new JLabel("Output directory:"), BorderLayout.NORTH);
     topRightPanel.add(tfDirectory, BorderLayout.CENTER);
     topRightPanel.add(bDirectory, BorderLayout.EAST);
+
+    JPanel patternPanel = new JPanel(new BorderLayout());
+    JLabel lPattern = new JLabel("Resource name filter:");
+    patternPanel.add(lPattern, BorderLayout.NORTH);
+    patternPanel.add(tfPattern, BorderLayout.CENTER);
+    patternPanel.add(cbPattern, BorderLayout.SOUTH);
 
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel bottomRightPanel = new JPanel(new GridBagLayout());
@@ -229,7 +248,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
     gbc.weightx = 0.0;
     gbc.weighty = 1.0;
-    gbc.gridheight = 2;
+    gbc.gridheight = 3;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets = new Insets(6, 6, 6, 6);
     gbl.setConstraints(leftPanel, gbc);
@@ -241,6 +260,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     gbc.weightx = 1.0;
     gbl.setConstraints(topRightPanel, gbc);
     pane.add(topRightPanel);
+
+    gbl.setConstraints(patternPanel, gbc);
+    pane.add(patternPanel);
 
     gbc.weighty = 1.0;
     gbl.setConstraints(bottomRightPanel, gbc);
@@ -262,9 +284,34 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   @Override
   public void actionPerformed(ActionEvent event) {
+    if (event.getSource() == tfPattern) {
+      if (tfPattern.getText().isEmpty()) {
+        final Color bg = UIManager.getColor("TextField.background");
+        tfPattern.setBackground(bg.darker());
+      } else {
+        tfPattern.setBackground(UIManager.getColor("TextField.background"));
+      }
+    } else
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValuesList();
       outputPath = FileManager.resolve(tfDirectory.getText());
+      try {
+        pattern = getPattern();
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Pattern syntax error", JOptionPane.ERROR_MESSAGE);
+        if (e instanceof PatternSyntaxException) {
+          final int index = ((PatternSyntaxException)e).getIndex();
+          if (index >= 0) {
+            tfPattern.setCaretPosition(index);
+          } else {
+            tfPattern.setCaretPosition(tfPattern.getText().length());
+          }
+        }
+        tfPattern.requestFocusInWindow();
+        return;
+      }
+
       try {
         Files.createDirectories(outputPath);
       } catch (IOException e) {
@@ -295,6 +342,25 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   // --------------------- End Interface ListSelectionListener ---------------------
 
+  // --------------------- Begin Interface DocumentListener ---------------------
+
+  @Override
+  public void insertUpdate(DocumentEvent e) {
+    updateTextFieldColor(tfPattern);
+  }
+
+  @Override
+  public void removeUpdate(DocumentEvent e) {
+    updateTextFieldColor(tfPattern);
+  }
+
+  @Override
+  public void changedUpdate(DocumentEvent e) {
+    updateTextFieldColor(tfPattern);
+  }
+
+  // --------------------- End Interface DocumentListener ---------------------
+
   // --------------------- Begin Interface Runnable ---------------------
 
   @Override
@@ -317,7 +383,22 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
       selectedFiles = new ArrayList<>(1000);
       for (final String newVar : selectedTypes) {
-        selectedFiles.addAll(ResourceFactory.getResources(newVar, extraDirs));
+        if (pattern != null) {
+          selectedFiles.addAll(
+              ResourceFactory.getResources(newVar, extraDirs)
+                .stream()
+                .filter(e -> pattern.matcher(e.getResourceRef()).find())
+                .collect(Collectors.toList())
+              );
+        } else {
+          selectedFiles.addAll(ResourceFactory.getResources(newVar, extraDirs));
+        }
+      }
+
+      if (selectedFiles.isEmpty()) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No files to export.", "Info",
+            JOptionPane.INFORMATION_MESSAGE);
+        return;
       }
 
       // executing multithreaded search
@@ -359,10 +440,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
 
       if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted", "Info",
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted.", "Info",
             JOptionPane.INFORMATION_MESSAGE);
       } else {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export completed", "Info",
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            String.format("Mass export completed.\n%d file(s) exported.", selectedFiles.size()), "Info",
             JOptionPane.INFORMATION_MESSAGE);
       }
     } finally {
@@ -377,8 +459,51 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   // --------------------- End Interface Runnable ---------------------
 
+  /**
+   * Returns an array with all resource types available for the current game.
+   */
+  private static String[] getAvailableResourceTypes() {
+    List<String> types = Arrays.asList(Profile.getAvailableResourceTypes())
+        .stream()
+        .filter(s -> !TYPES_BLACKLIST.contains(s))
+        .collect(Collectors.toList());
+    return types.toArray(new String[types.size()]);
+  }
+
   private int getResourceCount() {
     return (selectedFiles != null) ? selectedFiles.size() : 0;
+  }
+
+  /** Returns {@link Pattern} object from the current regular expression pattern. */
+  private Pattern getPattern() throws IllegalArgumentException {
+    if (!tfPattern.getText().isEmpty()) {
+      final String pattern = cbPattern.isSelected() ? tfPattern.getText() : Pattern.quote(tfPattern.getText());
+      return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    }
+    return null;
+  }
+
+  /**
+   * Updates the background color of the specified {@link JTextField} component based on whether it has content.
+   *
+   * @param tf {@link JTextField} component to update.
+   */
+  private void updateTextFieldColor(JTextField tf) {
+    if (tf != null) {
+      Color bg = UIManager.getColor("TextField.background");
+      if (tf.getText().isEmpty()) {
+        // shaded background if text field is empty
+        int lo = 240;
+        int hi = 256;
+        int bright = (bg.getRed() + bg.getGreen() + bg.getBlue()) / 3;
+        if (bright >= 64) {
+          bg = new Color(bg.getRed() * lo / hi, bg.getGreen() * lo / hi, bg.getBlue() * lo / hi);
+        } else {
+          bg = new Color(bg.getRed() * hi / lo, bg.getGreen() * hi / lo, bg.getBlue() * hi / lo);
+        }
+      }
+      tfPattern.setBackground(bg);
+    }
   }
 
   private synchronized void advanceProgress(boolean finished) {
