@@ -315,6 +315,8 @@ class BamPaletteDialog extends JDialog
    * Calculates a new palette based on the currently registered colors and stores it in the PaletteDialog instance.
    */
   public void updateGeneratedPalette() {
+    final int Green = 0xff00ff00;
+
     if (isPaletteModified() && !lockedPalette) {
       if (colorMap.size() <= 256) {
         // checking whether all frames share the same palette
@@ -360,6 +362,12 @@ class BamPaletteDialog extends JDialog
         }
       } else {
         // reducing color count to max. 256
+
+        // medianCut() should not consider the special transparent green color, workaround to keep it preserved
+        Integer savedGreen = colorMap.get(Green);
+        if (savedGreen != null) {
+          colorMap.remove(Green);
+        }
         int[] pixels = new int[colorMap.size()];
         Iterator<Integer> iter = colorMap.keySet().iterator();
         int idx = 0;
@@ -367,7 +375,12 @@ class BamPaletteDialog extends JDialog
           pixels[idx] = iter.next();
           idx++;
         }
-        ColorConvert.medianCut(pixels, 256, palettes[TYPE_GENERATED], false);
+        final int desiredColors = savedGreen != null ? 255 : 256;
+        ColorConvert.medianCut(pixels, desiredColors, palettes[TYPE_GENERATED], false);
+        if (savedGreen != null) {
+          colorMap.put(Green, savedGreen);
+          palettes[TYPE_GENERATED][255] = Green;
+        }
       }
 
       // moving special "green" to the first index
