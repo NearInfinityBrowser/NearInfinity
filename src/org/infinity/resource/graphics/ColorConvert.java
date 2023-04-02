@@ -342,7 +342,9 @@ public class ColorConvert {
    *                    calculation.
    * @return Palette index pointing to the nearest color value. Returns -1 if color entry could not be determined.
    */
-  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator) {
+  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator, boolean skipGreen) {
+    final int Green = 0x0000ff00;
+
     int retVal = -1;
     if (palette == null) {
       return retVal;
@@ -354,7 +356,13 @@ public class ColorConvert {
     alphaWeight = Math.max(0.0, Math.min(2.0, alphaWeight));
     double minDist = Double.MAX_VALUE;
     for (int i = 0; i < palette.length; i++) {
-      double dist = calculator.calculate(argb, palette[i], alphaWeight);
+      final int argb2 = palette[i];
+      // BAM V1: It is a bad idea to use the transparent green color as the "nearest" color,
+      //   the input most likely did not intend for adjacent colors to be transparent.
+      if (skipGreen && (argb2 & 0x00ffffff) == Green) {
+        continue;
+      }
+      double dist = calculator.calculate(argb, argb2, alphaWeight);
       if (dist < minDist) {
         minDist = dist;
         retVal = i;
@@ -362,6 +370,10 @@ public class ColorConvert {
     }
 
     return retVal;
+  }
+
+  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator) {
+    return getNearestColor(argb, palette, alphaWeight, calculator, false);
   }
 
   /**
