@@ -364,12 +364,9 @@ class BamPaletteDialog extends JDialog
         // reducing color count to max. 256
 
         // medianCut() should not consider the special transparent green color, workaround to keep it preserved
-        Integer savedGreen = colorMap.get(Green);
-        if (savedGreen != null) {
-          colorMap.remove(Green);
-        }
-        int[] pixels = new int[colorMap.size()];
-        Iterator<Integer> iter = colorMap.keySet().iterator();
+        final Integer savedGreen = colorMap.remove(Green);
+        final int[] pixels = new int[colorMap.size()];
+        final Iterator<Integer> iter = colorMap.keySet().iterator();
         int idx = 0;
         while (idx < pixels.length && iter.hasNext()) {
           pixels[idx] = iter.next();
