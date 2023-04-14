@@ -7,7 +7,6 @@ package org.infinity.resource.cre.decoder.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1044,7 +1043,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
       this.timing = buf.getByte(0xc);
       this.dispelResist = buf.getByte(0xd);
       this.duration = buf.getByte(0xe);
-      this.resource = DynamicArray.getString(effect, 0x14, 8, Charset.forName("windows-1252"));
+      this.resource = DynamicArray.getString(effect, 0x14, 8, Misc.CHARSET_DEFAULT);
       this.savingThrowFlags = buf.getInt(0x24);
       this.savingThrow = buf.getInt(0x28);
       this.special = buf.getInt(0x2c);

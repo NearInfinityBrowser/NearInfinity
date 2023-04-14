@@ -24,6 +24,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractJFlexCTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
+import org.infinity.util.Misc;
 
 
 /**
@@ -3872,8 +3873,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
    * @param   in  the java.io.Inputstream to read input from.
    */
   public GLSLTokenMaker(java.io.InputStream in) {
-    this(new java.io.InputStreamReader
-             (in, java.nio.charset.Charset.forName("UTF-8")));
+    this(new java.io.InputStreamReader(in, Misc.CHARSET_UTF8));
   }
 
   /**

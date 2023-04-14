@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 
 import org.infinity.NearInfinity;
+import org.infinity.resource.Profile;
 
 /**
  * A general-purpose class containing useful function not fitting elsewhere.
@@ -59,6 +60,41 @@ public class Misc {
         return toString().equalsIgnoreCase(obj.toString());
       }
     };
+  }
+
+  /**
+   * Returns a default charset depending on the current game type.
+   *
+   * @return {@link #CHARSET_UTF8} for Enhanced Edition games, {@link #CHARSET_DEFAULT} otherwise.
+   */
+  public static Charset getDefaultCharset() {
+    return Profile.isEnhancedEdition() ? CHARSET_UTF8 : CHARSET_DEFAULT;
+  }
+
+  /**
+   * A convenience method that attempts to return the charset specified by the given name or the next best match
+   * depending on the current game type.
+   *
+   * @param charsetName Name of the desired charset as {@code String}.
+   * @return The desired charset if successful, a game-specific default charset otherwise.
+   */
+  public static Charset getCharsetFrom(String charsetName) {
+    return getCharsetFrom(charsetName, getDefaultCharset());
+  }
+
+  /**
+   * A convenience method that attempts to return the charset specified by the given name.
+   *
+   * @param charsetName Name of the desired charset as {@code String}.
+   * @param defaultCharset Fallback solution if the desired charset doesn't exist.
+   * @return the desired charset if successful, {@code defaultCharset} otherwise.
+   */
+  public static Charset getCharsetFrom(String charsetName, Charset defaultCharset) {
+    try {
+      return Charset.forName(charsetName);
+    } catch (Exception e) {
+      return defaultCharset;
+    }
   }
 
   /**

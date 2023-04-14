@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -794,7 +795,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       final Decompiler decompiler = new Decompiler(StreamUtils.readString(inBuffer, inBuffer.limit()), false);
       decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
       String script = decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR);
-      return ByteBuffer.wrap(script.getBytes(Misc.CHARSET_DEFAULT));
+      final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
+      return ByteBuffer.wrap(script.getBytes(cs));
     }
     return inBuffer;
   }
