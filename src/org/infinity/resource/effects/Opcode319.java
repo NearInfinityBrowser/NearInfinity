@@ -51,6 +51,7 @@ public class Opcode319 extends BaseOpcode {
       list.set(1, power);
     }
 
+    String resType = null;
     byte power = buffer.get(offset - 1);
     if (isEEEx() && (power == 2 || power == 3)) {
       final SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
@@ -65,9 +66,12 @@ public class Opcode319 extends BaseOpcode {
       param2.addUpdateListener((UpdateListener)parent);
       list.add(param2.createIdsValueFromType(buffer));
       list.add(param2);
+      if (param2.getValue() == 11) {
+        resType = EFFECT_STRING;
+      }
     }
 
-    return null;
+    return resType;
   }
 
   @Override
