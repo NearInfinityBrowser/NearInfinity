@@ -6,7 +6,6 @@ package org.infinity.updater;
 
 import static org.infinity.util.Misc.toNumber;
 
-import java.awt.Desktop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,7 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -47,6 +45,7 @@ import java.util.zip.ZipInputStream;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
+import org.infinity.util.LauncherUtils;
 import org.infinity.util.io.FileEx;
 
 /**
@@ -462,14 +461,8 @@ public class Utils {
   public static boolean openWebPage(URL url)
       throws IOException, URISyntaxException, UnsupportedOperationException, IllegalArgumentException {
     if (url != null) {
-      URI uri = url.toURI();
-      if (uri != null) {
-        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-          desktop.browse(uri);
-          return true;
-        }
-      }
+      LauncherUtils.browse(url);
+      return true;
     }
     return false;
   }

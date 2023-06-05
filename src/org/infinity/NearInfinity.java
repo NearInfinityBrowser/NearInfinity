@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
@@ -118,6 +117,7 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
+import org.infinity.util.LauncherUtils;
 import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
@@ -1223,7 +1223,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       try {
         if (Platform.IS_MACOS && binPath.toString().toLowerCase(Locale.ENGLISH).endsWith(".app")) {
           // This method may be required for launching Mac App Bundles
-          Desktop.getDesktop().open(binPath.toFile());
+          LauncherUtils.open(binPath);
         } else {
           ProcessBuilder pb = new ProcessBuilder(binPath.toString());
           pb.directory(binPath.getParent().toFile());
