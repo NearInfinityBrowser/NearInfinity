@@ -2268,7 +2268,7 @@ public class AreaViewer extends ChildFrame {
         showMapCoordinates(event.getPoint());
       } else if (event.getSource() instanceof AbstractLayerItem) {
         AbstractLayerItem item = (AbstractLayerItem) event.getSource();
-        MouseEvent newEvent = new MouseEvent(rcCanvas, event.getID(), event.getWhen(), event.getModifiers(),
+        MouseEvent newEvent = new MouseEvent(rcCanvas, event.getID(), event.getWhen(), event.getModifiersEx(),
             event.getX() + item.getX(), event.getY() + item.getY(), event.getXOnScreen(), event.getYOnScreen(),
             event.getClickCount(), event.isPopupTrigger(), event.getButton());
         rcCanvas.dispatchEvent(newEvent);
