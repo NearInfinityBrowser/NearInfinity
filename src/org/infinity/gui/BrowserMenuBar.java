@@ -271,6 +271,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     add(helpMenu);
   }
 
+  /** Returns whether menu entries for updating Near Infinity are available. */
+  public boolean isUpdateMenuEnabled() {
+    return helpMenu.isUpdateMenuEnabled();
+  }
+
+  /** Specifies the enabled state of the Near Infinity update check and settings. */
+  public void setUpdateMenuEnabled(boolean enable) {
+    helpMenu.setUpdateMenuEnabled(enable);
+  }
+
   /**
    * Returns whether menu item "Tools > Print debug info" is shown.
    */
@@ -3432,6 +3442,15 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         }
         UpdateCheck.showDialog(NearInfinity.getInstance(), info);
       }
+    }
+
+    private boolean isUpdateMenuEnabled() {
+      return helpUpdateCheck.isEnabled();
+    }
+
+    private void setUpdateMenuEnabled(boolean enable) {
+      helpUpdateCheck.setEnabled(enable);
+      helpUpdateSettings.setEnabled(enable);
     }
 
     private void displayAbout() {
