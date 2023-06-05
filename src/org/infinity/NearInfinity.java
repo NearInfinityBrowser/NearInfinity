@@ -328,12 +328,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.setOut(new ConsoleStream(System.out, CONSOLE_TEXT));
     System.setErr(new ConsoleStream(System.err, CONSOLE_TEXT));
 
-//    new NearInfinity(gameOverride, forcedGame);
     final Options options = new Options(gameOverride, forcedGame, enableUpdate, showLaunchGame);
     new NearInfinity(options);
   }
 
-//  private NearInfinity(Path gameOverride, Profile.Game forcedGame) {
   private NearInfinity(Options options) {
     super("Near Infinity");
     browser = this;
