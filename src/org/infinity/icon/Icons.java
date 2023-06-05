@@ -21,6 +21,8 @@ public enum Icons {
   ICON_APP_32("App32.png"),
   ICON_APP_64("App64.png"),
   ICON_APP_128("App128.png"),
+  ICON_APP_256("App256.png"),
+  ICON_APP_512("App512.png"),
   ICON_APPLICATION_16("Application16.gif"),
   ICON_ARROW_DOWN_15("ArrowDown15.gif"),
   ICON_ARROW_UP_15("ArrowUp15.gif"),
@@ -130,8 +132,10 @@ public enum Icons {
     }
 
     try (InputStream is = cls.getResourceAsStream(fileName)) {
-      Image image = ImageIO.read(is);
-      retVal = new ImageIcon(image);
+      if (is != null) {
+        Image image = ImageIO.read(is);
+        retVal = new ImageIcon(image);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -159,7 +163,9 @@ public enum Icons {
     }
 
     try (InputStream is = cls.getResourceAsStream(fileName)) {
-      retVal = ImageIO.read(is);
+      if (is != null) {
+        retVal = ImageIO.read(is);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
