@@ -371,6 +371,24 @@ public class ItemInfo implements Comparable<ItemInfo> {
   }
 
   /**
+   * Removes the specified ITM {@code ResourceEntry} instances from the cache.
+   *
+   * @param entries Sequence of ITM {@codee ResourceEntry} instances to remove from the cache.
+   * @return Number of successfully removed entries.
+   */
+  public static int removeFromCache(ResourceEntry... entries) {
+    int retVal = 0;
+    for (final ResourceEntry entry: entries) {
+      synchronized (ITEM_CACHE) {
+        if (ITEM_CACHE.remove(entry) != null) {
+          retVal++;
+        }
+      }
+    }
+    return retVal;
+  }
+
+  /**
    * Returns an {@code ItemInfo} list filtered by the specified predicate.
    *
    * @param pred   the predicate used to decide whether an item is included in the returned list. Specify {@code null}

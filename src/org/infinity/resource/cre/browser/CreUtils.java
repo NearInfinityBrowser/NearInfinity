@@ -129,7 +129,7 @@ public class CreUtils {
           .getResourceEntry(((IsReference) item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
       if (itemEntry != null) {
         try {
-          retVal = ItemInfo.get(itemEntry);
+          retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
           e.printStackTrace();
@@ -169,7 +169,7 @@ public class CreUtils {
           .getResourceEntry(((IsReference) item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
       if (itemEntry != null) {
         try {
-          retVal = ItemInfo.get(itemEntry);
+          retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
           e.printStackTrace();
@@ -217,7 +217,7 @@ public class CreUtils {
           .getResourceEntry(((IsReference) item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
       if (itemEntry != null) {
         try {
-          retVal = ItemInfo.get(itemEntry);
+          retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
           e.printStackTrace();
@@ -263,7 +263,7 @@ public class CreUtils {
           .getResourceEntry(((IsReference) item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
       if (itemEntry != null) {
         try {
-          retVal = ItemInfo.get(itemEntry);
+          retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
           e.printStackTrace();
