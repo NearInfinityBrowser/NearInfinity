@@ -9,7 +9,6 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 
-import org.infinity.NearInfinity;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Resource;
@@ -56,11 +55,11 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer {
     super(getViewableTitle(viewable), true);
     setViewable(viewable);
     if (viewable instanceof AbstractStruct || viewable instanceof TextResource || viewable instanceof BamResource) {
-      setSize(NearInfinity.getInstance().getWidth() - 200, NearInfinity.getInstance().getHeight() - 45);
+      setSize(getLastFrameSize());
     } else {
       pack();
     }
-    Center.center(this, parent.getBounds());
+    setLocation(getLastFrameLocation(parent));
     setVisible(true);
   }
 

@@ -316,6 +316,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     optionsMenu.optionOpenBookmarksPrompt.setSelected(show);
   }
 
+  /** Returns whether the size and position of the last opened child frame should be reused for new child frames. */
+  public boolean rememberChildFrameRect() {
+    return optionsMenu.optionRememberChildFrameRect.isSelected();
+  }
+
   /** Returns whether scripts are automatically scanned for compile errors. */
   public boolean autocheckBCS() {
     return optionsMenu.optionAutocheckBCS.isSelected();
@@ -1884,6 +1889,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWSYSINFO              = "ShowSysInfo";
     private static final String OPTION_OPENBOOKMARKSPROMPT      = "OpenBookmarksPrompt";
+    private static final String OPTION_REMEMBER_CHILDFRAME_RECT = "RememberChildFrameRect";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
     private static final String OPTION_HIGHLIGHT_OVERRIDDEN     = "HighlightOverridden";
@@ -1980,6 +1986,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionShowHexColored;
     private JCheckBoxMenuItem optionShowSystemInfo;
     private JCheckBoxMenuItem optionOpenBookmarksPrompt;
+    private JCheckBoxMenuItem optionRememberChildFrameRect;
     private JCheckBoxMenuItem optionShowUnknownResources;
     private JCheckBoxMenuItem optionKeepViewOnCopy;
     private JCheckBoxMenuItem optionTreeSearchNames;
@@ -2099,6 +2106,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionOpenBookmarksPrompt = new JCheckBoxMenuItem("Confirm opening bookmarked games",
           getPrefs().getBoolean(OPTION_OPENBOOKMARKSPROMPT, true));
       add(optionOpenBookmarksPrompt);
+      optionRememberChildFrameRect = new JCheckBoxMenuItem("Remember last child frame size and position",
+          getPrefs().getBoolean(OPTION_REMEMBER_CHILDFRAME_RECT, false));
+      optionRememberChildFrameRect.setToolTipText(
+          "<html>With this option enabled, placement of the last opened child window will be reused for new child windows.<br/>"
+          + "This information will only be valid for the current Near Infinity session.</html>");
+      add(optionRememberChildFrameRect);
 
       addSeparator();
 
@@ -2754,6 +2767,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSYSINFO, optionShowSystemInfo.isSelected());
       getPrefs().putBoolean(OPTION_OPENBOOKMARKSPROMPT, optionOpenBookmarksPrompt.isSelected());
+      getPrefs().putBoolean(OPTION_REMEMBER_CHILDFRAME_RECT, optionRememberChildFrameRect.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
