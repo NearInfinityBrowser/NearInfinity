@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 - 2023 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -11,14 +11,20 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import org.infinity.NearInfinity;
@@ -29,11 +35,63 @@ import org.infinity.util.io.FileManager;
  * Provides functions for checking, downloading and updating new versions of Near Infinity.
  */
 public class Updater {
-  // Auto-check interval constants
-  static final int UPDATE_INTERVAL_SESSION    = 0;
-  static final int UPDATE_INTERVAL_DAILY      = 1;
-  static final int UPDATE_INTERVAL_PER_WEEK   = 2;  // default
-  static final int UPDATE_INTERVAL_PER_MONTH  = 3;
+  /** Defines available autocheck intervals. */
+  public enum Interval {
+    HOURLY(0, "Hourly", Duration.ofHours(1)),
+    DAILY(1, "Daily", Duration.ofDays(1)),
+    WEEKLY(2, "Weekly", Duration.ofDays(7)),
+    MONTHLY(3, "Monthly", Duration.ofDays(30));
+
+    private final int id;
+    private final String label;
+    private final Duration interval;
+
+    private Interval(int id, String label, Duration interval) {
+      this.id = id;
+      this.label = label;
+      this.interval = interval;
+    }
+
+    /** Returns the unique identifier of this interval. */
+    public int getId() {
+      return id;
+    }
+
+    /** Returns a descriptive name of this interval. */
+    public String getLabel() {
+      return label;
+    }
+
+    /** Returns the interval time as {@link Duration} value. */
+    public Duration getInterval() {
+      return interval;
+    }
+
+    @Override
+    public String toString() {
+      return getLabel();
+    }
+
+    /** Returns the default {@code Interval} ({@code WEEKLY}). */
+    public static Interval getDefault() {
+      return WEEKLY;
+    }
+
+    /**
+     * Returns the {@code Interval} value based on the given identifier.
+     *
+     * @param id Interval identifier.
+     * @return Matching {@code Interval} instance, {@link #getDefault()} otherwise.
+     */
+    public static Interval FromId(int id) {
+      for (final Interval i: Interval.values()) {
+        if (i.getId() == id) {
+          return i;
+        }
+      }
+      return getDefault();
+    }
+  }
 
   // Name of the update server definition file
   private static final String UPDATE_FILENAME   = "update.xml";
@@ -48,9 +106,6 @@ public class Updater {
 
   // The preferences key format string for server URLs
   private static final String PREFS_SERVER_FMT          = "UpdateServer%d";
-
-  // preferences key for determining whether to check for stable NI releases only
-  private static final String PREFS_STABLEONLY          = "UpdateStableReleasesOnly";
 
   // preferences key for determining whether automatic update checks are enabled
   private static final String PREFS_AUTOCHECK_UPDATES   = "UpdateAutoCheckEnabled";
@@ -70,30 +125,24 @@ public class Updater {
   // preferences key for proxy port (if any)
   private static final String PREFS_PROXYPORT           = "UpdateProxyPort";
 
-  // preferences key for storing the hash found on the update server
-  // (needed to trigger notifications only once for each new release)
-  private static final String PREFS_UPDATE_HASH       = "UpdateReleaseHash";
-
   // preferences key for storing the NI version found on the update server
   // (needed to trigger notifications only once for each new release)
-  private static final String PREFS_UPDATE_VERSION    = "UpdateReleaseVersion";
+  private static final String PREFS_UPDATE_VERSION      = "UpdateReleaseVersion";
 
   // preferences key for storing the timestamp of the file found on the update server
   // (needed to trigger notifications only once for each new release)
-  private static final String PREFS_UPDATE_TIMESTAMP  = "UpdateReleaseTimestamp";
+  private static final String PREFS_UPDATE_TIMESTAMP    = "UpdateReleaseTimestamp";
 
   private static Updater instance = null;
 
   private final List<String> serverList = new ArrayList<>();
 
   private Preferences prefs;
-  private String hash;
   private String version;
   private String timestamp;
-  private Calendar autoCheckDate;
+  private OffsetDateTime autoCheckDate;
   private Proxy proxy;
-  private int autoCheckInterval;
-  private boolean stableOnly;
+  private Interval autoCheckInterval;
   private boolean autoCheckEnabled;
   private boolean proxyEnabled;
 
@@ -117,64 +166,65 @@ public class Updater {
   /**
    * Returns whether the specified release can be considered a new release.
    *
-   * @param release  The release to check.
-   * @param onlyOnce If {@code true}, each new release will be checked only once.
+   * This method uses GitHub API information to determine whether a new release is available.
+   *
+   * @param release The GitHub release to check.
+   * @param onlyOnce If {@code true} then each new release will be checked only once.
    * @return {@code true} if the specified release is considered newer, {@code false} otherwise.
    */
   public static boolean isNewRelease(UpdateInfo.Release release, boolean onlyOnce) {
-    boolean isNewer = false;
-    if (release != null && release.isValid()) {
-      String curHash = null;
-      String curVersion = null;
-      Calendar curCal = null;
+    boolean retVal = false;
 
-      if (onlyOnce && !getInstance().getCurrentHash().isEmpty()
-          && !(getInstance().getCurrentTimeStamp().isEmpty() || getInstance().getCurrentVersion().isEmpty())) {
-        curHash = getInstance().getCurrentHash();
-        curVersion = getInstance().getCurrentVersion();
-        curCal = Utils.toCalendar(getInstance().getCurrentTimeStamp());
+    if (release != null) {
+      final String curVersionString;
+      if (onlyOnce && !getInstance().getCurrentVersion().isEmpty()) {
+        curVersionString = getInstance().getCurrentVersion();
       } else {
-        curHash = getJarFileHash();
-        curVersion = NearInfinity.getVersion();
-        curCal = getJarFileDate();
+        curVersionString = NearInfinity.getVersion();
       }
 
-      if (curHash != null && !curHash.isEmpty()) {
-        String newHash = release.getHash();
-        String newVersion = release.getVersion();
-        Calendar newCal = release.getTimeStamp();
-
-        isNewer = !curHash.equalsIgnoreCase(newHash);
-        if (curCal != null && newCal != null) {
-          isNewer &= (curCal.compareTo(newCal) < 0);
-        } else if (curVersion != null && newVersion != null) {
-          isNewer &= !curVersion.equalsIgnoreCase(newVersion);
-        }
-
-        getInstance().setCurrentHash(newHash);
-        getInstance().setCurrentVersion(newVersion);
-        getInstance().setCurrentTimeStamp(Utils.toTimeStamp(newCal));
+      // checking version info
+      int compare = 0;
+      try {
+        final long[] curVersion = getNormalizedVersion(curVersionString);
+        final long[] newVersion = getNormalizedVersion(release.tagName);
+        compare = compareNormalizedVersion(newVersion, curVersion);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
+      retVal = (compare > 0);
+
+      getInstance().setCurrentVersion(release.tagName);
     }
-    return isNewer;
+
+    return retVal;
   }
 
-  /** Returns the modification time of the current JAR's MANIFEST.MF. */
-  static Calendar getJarFileDate() {
+  /** Returns the modification time of the current JAR's MANIFEST.MF as {@link FileTime} instance. */
+  static FileTime getJarFileTimeValue() throws Exception {
     String jarPath = Utils.getJarFileName(NearInfinity.class);
     if (jarPath != null && !jarPath.isEmpty()) {
       try (JarFile jf = new JarFile(jarPath)) {
         ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
         if (manifest != null) {
-          Calendar cal = Calendar.getInstance();
-          if (manifest.getTime() >= 0L) {
-            cal.setTimeInMillis(manifest.getTime());
-            return cal;
-          }
+          return manifest.getLastModifiedTime();
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        throw e;
       }
+    }
+    return null;
+  }
+
+  /** Returns the modification time of the current JAR's MANIFEST.MF as {@link OffsetDateTime} instance. */
+  static OffsetDateTime getJarFileDateTime() {
+    try {
+    final FileTime ft = getJarFileTimeValue();
+    if (ft != null) {
+      return OffsetDateTime.ofInstant(ft.toInstant(), ZoneId.systemDefault());
+    }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }
@@ -210,6 +260,77 @@ public class Updater {
     } else {
       return (server1.startsWith(server2) || server2.startsWith(server1));
     }
+  }
+
+  /**
+   * Attempts to convert the specified string into a series of {@code long} values.<br/>
+   * <br/>
+   * Examples:<br/>
+   * <code>"v2.3-20230408"</code> is converted into <code>new long[]{2, 3, 20230408}</code><br/>
+   * <code>"v2.3-20230408-1"</code> is converted into <code>new long[]{2, 3, 20230408, 1}</code><br/>
+   *
+   * @param s The version string to parse.
+   * @return A integer array of dynamic size containing the parsed version information.
+   * @throws NullPointerException If the version string is {@code null}.
+   * @throws IllegalArgumentException If the version string does not contain valid integer values.
+   */
+  private static long[] getNormalizedVersion(String s) {
+    if (s == null) {
+      throw new NullPointerException("Version string cannot be null");
+    }
+
+    final Pattern regNumber = Pattern.compile("\\d+");
+    final Matcher matcher = regNumber.matcher(s);
+
+    ArrayList<Long> items = new ArrayList<>();
+    while (matcher.find()) {
+      items.add(Long.parseLong(matcher.group()));
+    }
+
+    if (items.isEmpty()) {
+      throw new IllegalArgumentException("Version string does not contain numeric elements");
+    }
+
+    long[] retVal = new long[items.size()];
+    for (int i = 0; i < retVal.length; i++) {
+      retVal[i] = items.get(i).longValue();
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Compares the numbers in both arrays and returns the result as:
+   * <ul>
+   * <li>a negative number if {@code arr1} is smaller than {@code arr2}</li>
+   * <li>zero if {@code arr1} and {@code arr2} are equal</li>
+   * <li>a positive number if {@code arr1} is greater than {@code arr2}</li>
+   * </ul>
+   * Non-existing array elements are treated as 0.
+   *
+   * @param arr1 The first numeric array.
+   * @param arr2 The second numeric array.
+   * @return The computed result as described above.
+   * @throws NullPointerException if any of the parameters is {@code null}.
+   */
+  private static int compareNormalizedVersion(long[] arr1, long[] arr2) {
+    if (arr1 == null) {
+      throw new NullPointerException("First parameter is null");
+    }
+    if (arr2 == null) {
+      throw new NullPointerException("Second parameter is null");
+    }
+
+    for (int i = 0, count = Math.max(arr1.length, arr2.length); i < count; i++) {
+      long v1 = i < arr1.length ? arr1[i] : 0;
+      long v2 = i < arr2.length ? arr2[i] : 0;
+      long result = v1 - v2;
+      if (result != 0) {
+        return (result < 0) ? -1 : 1;
+      }
+    }
+
+    return 0;
   }
 
   private Updater() {
@@ -262,16 +383,6 @@ public class Updater {
     }
   }
 
-  /** Returns whether to look for stable releases only. */
-  public boolean isStableOnly() {
-    return stableOnly;
-  }
-
-  /** Returns whether to consider only stable releases when checking for updates. */
-  public void setStableOnly(boolean set) {
-    stableOnly = set;
-  }
-
   /** Returns whether to automatically check for updates. */
   public boolean isAutoUpdateCheckEnabled() {
     return autoCheckEnabled;
@@ -282,34 +393,30 @@ public class Updater {
     autoCheckEnabled = set;
   }
 
-  /** Returns the current check interval value (as specified by the UPDATE_INTERVAL_xxx constants). */
-  public int getAutoUpdateCheckInterval() {
+  /** Returns the current check interval value. */
+  public Interval getAutoUpdateCheckInterval() {
     return autoCheckInterval;
   }
 
   /** Updates the check interval value (as specified by the UPDATE_INTERVAL_xxx constants). */
-  public void setAutoUpdateCheckInterval(int value) {
-    if (value < 0) {
-      value = 0;
+  public void setAutoUpdateCheckInterval(Interval interval) {
+    if (interval == null) {
+      interval = Interval.getDefault();
     }
-    if (value > UPDATE_INTERVAL_PER_MONTH) {
-      value = UPDATE_INTERVAL_PER_MONTH;
-    }
-    autoCheckInterval = value;
+    autoCheckInterval = interval;
   }
 
   /** Returns the last update check date. */
-  public Calendar getAutoUpdateCheckDate() {
+  public OffsetDateTime getAutoUpdateCheckDate() {
     return autoCheckDate;
   }
 
   /** Updates the last update check date. Specifying {@code null} will add the current date. */
-  public void setAutoUpdateCheckDate(Calendar cal) {
-    if (cal != null) {
-      autoCheckDate = cal;
-    } else {
-      autoCheckDate = Calendar.getInstance();
+  public void setAutoUpdateCheckDate(OffsetDateTime date) {
+    if (date == null) {
+      date = OffsetDateTime.now();
     }
+    autoCheckDate = date;
   }
 
   /** Returns true if the last auto update check is older than the currently defined update interval. */
@@ -317,29 +424,13 @@ public class Updater {
     return hasAutoUpdateCheckDateExpired(getAutoUpdateCheckInterval());
   }
 
-  /** Returns true if the last auto update check is older than specified by the UPDATE_INTERVAL_xxx constant. */
-  public boolean hasAutoUpdateCheckDateExpired(int value) {
-    switch (value) {
-      case UPDATE_INTERVAL_SESSION: {
-        return true;
-      }
-      case UPDATE_INTERVAL_DAILY: {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -1);
-        return (getAutoUpdateCheckDate().compareTo(cal) < 0);
-      }
-      case UPDATE_INTERVAL_PER_WEEK: {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.WEEK_OF_MONTH, -1);
-        return (getAutoUpdateCheckDate().compareTo(cal) < 0);
-      }
-      case UPDATE_INTERVAL_PER_MONTH: {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONDAY, -1);
-        return (getAutoUpdateCheckDate().compareTo(cal) < 0);
-      }
+  /** Returns true if the last auto update check is older than specified by the {@code Interval} value. */
+  public boolean hasAutoUpdateCheckDateExpired(Interval interval) {
+    if (interval == null) {
+      interval = Interval.getDefault();
     }
-    return false;
+    OffsetDateTime intervalExpiredAt = getAutoUpdateCheckDate().plus(interval.getInterval());
+    return intervalExpiredAt.compareTo(OffsetDateTime.now()) < 0;
   }
 
   /** Returns whether to use a proxy for accessing remote servers. */
@@ -388,34 +479,12 @@ public class Updater {
     }
   }
 
-  /** Updates hash and timestamp from given Release info object. */
-  public void updateReleaseInfo(UpdateInfo.Release release) {
-    if (release != null && release.isValid()) {
-      setCurrentHash(release.getHash());
-      setCurrentTimeStamp(release.getTimeStampString());
-    }
-  }
-
-  /** Returns the cached hash string from the latest update check. */
-  public String getCurrentHash() {
-    return hash;
-  }
-
-  /** Updates the cached hash string. */
-  public void setCurrentHash(String hash) {
-    if (hash != null) {
-      this.hash = hash;
-    } else {
-      this.hash = "";
-    }
-  }
-
   /** Returns the cached NI version. */
   public String getCurrentVersion() {
     return version;
   }
 
-  /** Updtes the cached NI version. */
+  /** Updates the cached NI version. */
   public void setCurrentVersion(String version) {
     if (version != null) {
       this.version = version;
@@ -442,19 +511,16 @@ public class Updater {
   public void loadUpdateSettings() {
     // resetting values
     serverList.clear();
-    stableOnly = false;
     autoCheckEnabled = false;
-    autoCheckInterval = UPDATE_INTERVAL_PER_WEEK;
-    autoCheckDate = Calendar.getInstance();
+    autoCheckInterval = Interval.getDefault();
+    autoCheckDate = OffsetDateTime.now();
     proxyEnabled = false;
     proxy = null;
-    hash = "";
     version = "";
     timestamp = "";
 
     if (prefs != null) {
       // loading server list (skipping identical server entries)
-      stableOnly = prefs.getBoolean(PREFS_STABLEONLY, false);
       for (int i = 0; i < getMaxServerCount(); i++) {
         String server = prefs.get(String.format(PREFS_SERVER_FMT, i), "");
         if (!server.isEmpty()) {
@@ -474,10 +540,13 @@ public class Updater {
 
       // loading auto update settings
       autoCheckEnabled = prefs.getBoolean(PREFS_AUTOCHECK_UPDATES, false);
-      autoCheckInterval = prefs.getInt(PREFS_AUTOCHECK_INTERAVAL, UPDATE_INTERVAL_PER_WEEK);
-      Calendar cal = Utils.toCalendar(prefs.get(PREFS_AUTOCHECK_TIMESTAMP, null));
-      if (cal != null) {
-        autoCheckDate = cal;
+      autoCheckInterval = Interval.FromId(prefs.getInt(PREFS_AUTOCHECK_INTERAVAL, Interval.getDefault().getId()));
+      final String dateTime = prefs.get(PREFS_AUTOCHECK_TIMESTAMP, null);
+      try {
+        autoCheckDate = Utils.getDateTimeFromString(dateTime);
+      } catch (DateTimeParseException e) {
+        System.out.println("DateTimeParseException: " + e.getMessage());
+        autoCheckDate = OffsetDateTime.now();
       }
 
       // loading proxy settings
@@ -497,7 +566,6 @@ public class Updater {
       }
 
       // loading autocheck-related information
-      hash = prefs.get(PREFS_UPDATE_HASH, "");
       version = prefs.get(PREFS_UPDATE_VERSION, "");
       timestamp = prefs.get(PREFS_UPDATE_TIMESTAMP, "");
     }
@@ -512,7 +580,6 @@ public class Updater {
   public boolean saveUpdateSettings() {
     if (prefs != null) {
       // saving server list
-      prefs.putBoolean(PREFS_STABLEONLY, stableOnly);
       for (int i = 0, size = getMaxServerCount(); i < size; i++) {
         String server = null;
         if (i < serverList.size()) {
@@ -527,8 +594,8 @@ public class Updater {
 
       // saving auto update settings
       prefs.putBoolean(PREFS_AUTOCHECK_UPDATES, autoCheckEnabled);
-      prefs.putInt(PREFS_AUTOCHECK_INTERAVAL, autoCheckInterval);
-      prefs.put(PREFS_AUTOCHECK_TIMESTAMP, Utils.toTimeStamp(autoCheckDate));
+      prefs.putInt(PREFS_AUTOCHECK_INTERAVAL, autoCheckInterval.getId());
+      prefs.put(PREFS_AUTOCHECK_TIMESTAMP, Utils.getStringFromDateTime(autoCheckDate));
 
       // saving proxy settings
       if (proxy != null && proxy.type() == Proxy.Type.HTTP && proxy.address() instanceof InetSocketAddress) {
@@ -543,7 +610,6 @@ public class Updater {
       }
 
       // saving autocheck-related information
-      prefs.put(PREFS_UPDATE_HASH, hash);
       prefs.put(PREFS_UPDATE_VERSION, version);
       prefs.put(PREFS_UPDATE_TIMESTAMP, timestamp);
 
@@ -590,8 +656,9 @@ public class Updater {
    * Attempts to download update information and return them as UpdateInfo object.
    *
    * @return The UpdateInfo object containing update information, or {@code null} if not available.
+   * @throws Exception
    */
-  public UpdateInfo loadUpdateInfo() {
+  public UpdateInfo loadUpdateInfo() throws Exception {
     for (Iterator<String> iter = getServerList().iterator(); iter.hasNext();) {
       try {
         URL url = new URL(iter.next());
@@ -609,7 +676,7 @@ public class Updater {
 
           return info;
         }
-      } catch (Exception e) {
+      } catch (IOException e) {
         // skip update server on error and try next
       }
     }

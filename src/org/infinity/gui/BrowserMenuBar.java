@@ -3359,6 +3359,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem helpMonteMediaLicense;
     private final JMenuItem helpJFontChooserLicense;
     private final JMenuItem helpApngWriterLicense;
+    private final JMenuItem helpCommonMarkLicense;
     private final JMenuItem helpOracleLicense;
     private final JMenuItem helpUpdateSettings;
     private final JMenuItem helpUpdateCheck;
@@ -3380,6 +3381,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       JMenu miscLicenses = new JMenu("Third-party licenses");
       miscLicenses.setMnemonic(KeyEvent.VK_T);
       add(miscLicenses);
+
+      helpCommonMarkLicense = makeMenuItem("CommonMark-Java License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
+      miscLicenses.add(helpCommonMarkLicense);
 
       helpApngWriterLicense = makeMenuItem("APNG Writer License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpApngWriterLicense);
@@ -3433,6 +3437,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         displayLicense("org/infinity/JFontChooser.License.txt", "MIT License");
       } else if (event.getSource() == helpApngWriterLicense) {
         displayLicense("org/infinity/apng-writer.License.txt", "BSD License");
+      } else if (event.getSource() == helpCommonMarkLicense) {
+        displayLicense("org/infinity/commonmark.License.txt", "BSD License");
       } else if (event.getSource() == helpOracleLicense) {
         displayLicense("org/infinity/Oracle.License.txt", "BSD License");
       } else if (event.getSource() == helpUpdateSettings) {
@@ -3451,6 +3457,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           if (!Updater.isNewRelease(info.getRelease(), false)) {
             info = null;
           }
+        } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Check for updates: " + e.getMessage(), "Error",
+              JOptionPane.ERROR_MESSAGE);
+          return;
         } finally {
           WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
         }
@@ -3507,6 +3518,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           add("Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.");
           add("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.");
           add("JHexView by Sebastian Porst - GNU General Public License.");
+          add("CommonMark-Java (\u00A9) Atlassian Pty. Ltd. - BSD License.");
           add("APNG Writer by Weoulren - BSD License.");
         }
       };

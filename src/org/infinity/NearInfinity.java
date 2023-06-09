@@ -565,11 +565,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Updater.getInstance().setAutoUpdateCheckDate(null);
       // running check in background with as little as possible interference with user interactions
       new Thread(() -> {
-        UpdateInfo info = Updater.getInstance().loadUpdateInfo();
-        if (info != null) {
-          if (Updater.isNewRelease(info.getRelease(), true)) {
-            UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+        try {
+          UpdateInfo info = Updater.getInstance().loadUpdateInfo();
+          if (info != null) {
+            if (Updater.isNewRelease(info.getRelease(), true)) {
+              UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+            }
           }
+        } catch (Exception e) {
+          System.out.println("Failed to check for updates: " + e.getMessage());
         }
       }).start();
     }

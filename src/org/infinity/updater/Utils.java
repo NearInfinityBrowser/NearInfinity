@@ -4,8 +4,6 @@
 
 package org.infinity.updater;
 
-import static org.infinity.util.Misc.toNumber;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,14 +27,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.Calendar;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -52,6 +51,25 @@ import org.infinity.util.io.FileEx;
  * Generic collection of updater-related methods.
  */
 public class Utils {
+  /**
+   * ISO date-time formatter that formats or parses a date-time with anoffset, such as '2011-12-03T10:15:30+01:00'.
+   * <p>
+   * This returns an immutable formatter capable of formatting and parsing the ISO-8601 extended offset date-time format.
+   * The format consists of:
+   * <ul>
+   * <li>The {@link #ISO_LOCAL_DATE_TIME}
+   * <li>The {@link ZoneOffset#getId() offset ID}. If the offset has seconds then they will be handled even though
+   * this is not part of the ISO-8601 standard. Parsing is case insensitive.
+   * </ul>
+   * </p>
+   */
+  public static final DateTimeFormatter ISO_DATE_TIME =
+      new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .parseLenient()
+      .append(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+      .toFormatter();
+
   // System-specific temp folder
   private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
@@ -61,6 +79,51 @@ public class Utils {
 
   // The algorithm used for calculating hash strings
   private static final String HASH_TYPE = "md5";
+
+
+  /**
+   * Attempts to parse the given string into a {@link OffsetDateTime} object.
+   * <p>
+   * The parser tries to apply different date/time format definitions.
+   * Throws a {@link DateTimeParseException} if the operation is unsuccessful.
+   * </p>
+   *
+   * @param s String containing date/time information.
+   */
+  public static OffsetDateTime getDateTimeFromString(String s) throws DateTimeParseException {
+    DateTimeParseException exception = null;
+    final DateTimeFormatter[] formatters = {
+        ISO_DATE_TIME,
+        DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+        DateTimeFormatter.ISO_ZONED_DATE_TIME,
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+        DateTimeFormatter.ISO_DATE_TIME,
+        DateTimeFormatter.RFC_1123_DATE_TIME
+    };
+
+    for (final DateTimeFormatter formatter: formatters) {
+      try {
+        return OffsetDateTime.parse(s, formatter);
+      } catch (DateTimeParseException e) {
+        if (exception == null) {
+          exception = e;
+        }
+      }
+    }
+
+    throw exception;
+  }
+
+  /**
+   * Returns a string representation of the given {@link OffsetDateTime} instance.
+   * Returns the current date and time if {@code null} was specified.
+   */
+  public static String getStringFromDateTime(OffsetDateTime ldt) {
+    if (ldt == null) {
+      ldt = OffsetDateTime.now();
+    }
+    return ldt.format(ISO_DATE_TIME);
+  }
 
   /** Returns the full path to the system temp folder. */
   public static String getTempFolder() {
@@ -91,139 +154,6 @@ public class Utils {
       }
     }
     return "";
-  }
-
-  /**
-   * Converts a Calendar object into a timestamp string in ISO 8601 format.
-   */
-  public static String toTimeStamp(Calendar cal) {
-    if (cal == null) {
-      cal = Calendar.getInstance();
-    }
-
-    StringBuilder sb = new StringBuilder();
-    sb.append(String.format("%04d", cal.get(Calendar.YEAR)));
-    sb.append('-').append(String.format("%02d", cal.get(Calendar.MONTH) + 1));
-    sb.append('-').append(String.format("%02d", cal.get(Calendar.DAY_OF_MONTH)));
-    sb.append('T').append(String.format("%02d", cal.get(Calendar.HOUR_OF_DAY)));
-    sb.append(':').append(String.format("%02d", cal.get(Calendar.MINUTE)));
-    sb.append(':').append(String.format("%02d", cal.get(Calendar.SECOND)));
-    int ofs = cal.get(Calendar.ZONE_OFFSET);
-    if (ofs != 0) {
-      char sign = (ofs < 0) ? '-' : '+';
-      ofs = Math.abs(ofs);
-      int ofsHour = ofs / 3600000;
-      int ofsMin = (ofs / 60000) % 60;
-      sb.append(sign).append(String.format("%02d", ofsHour));
-      sb.append(':').append(String.format("%02d", ofsMin));
-    }
-
-    return sb.toString();
-  }
-
-  /**
-   * Converts a timestamp string in ISO 8601 format into a Calendar object.
-   */
-  public static Calendar toCalendar(String timeStamp) {
-    Calendar retVal = null;
-    if (timeStamp != null && !timeStamp.isEmpty()) {
-      final String regDate = "(\\d{4})-?([0-1][0-9])-?([0-3][0-9])";
-      final String regTime = "T([0-2][0-9]):?([0-5][0-9])?:?([0-5][0-9])?";
-      final String regZone = "(([-+])([0-2][0-9]):?([0-5][0-9])|(Z))";
-      int year = 0, month = -1, day = 0, hour = 0, minute = 0, second = 0, ofsHour = 0, ofsMinute = 0;
-      char sign = 0;
-      Matcher m;
-      try {
-        String s = timeStamp;
-        // processing date
-        m = Pattern.compile(regDate).matcher(s);
-        if (m.find()) {
-          year = toNumber(m.group(1), 0);
-          month = toNumber(m.group(2), 0) - 1;
-          day = toNumber(m.group(3), 0);
-
-          // processing time
-          s = s.substring(m.end());
-          m = Pattern.compile(regTime).matcher(s);
-          if (m.find()) {
-            hour = toNumber(m.group(1), 0);
-            if (m.groupCount() >= 2) {
-              minute = toNumber(m.group(2), 0);
-              if (m.groupCount() >= 3) {
-                second = toNumber(m.group(3), 0);
-              }
-            }
-
-            // processing timezone offset
-            s = s.substring(m.end());
-            m = Pattern.compile(regZone).matcher(s);
-            if (m.find()) {
-              if (m.group(5) != null) {
-                sign = '+';
-              } else {
-                sign = m.group(2).charAt(0);
-                ofsHour = toNumber(m.group(3), 0);
-                if (m.groupCount() >= 3) {
-                  ofsMinute = toNumber(m.group(4), 0);
-                }
-              }
-            }
-          }
-        }
-      } catch (PatternSyntaxException e) {
-        e.printStackTrace();
-      }
-
-      if (year > 0 && month >= 0 && day > 0) {
-        retVal = Calendar.getInstance();
-        retVal.set(year, month, day, hour, minute, second);
-
-        // applying timezone offset (in ms)
-        if (sign != 0) {
-          int amount = (ofsHour * 60 + ofsMinute) * 60 * 1000;
-          switch (sign) {
-            case '+':
-              retVal.set(Calendar.ZONE_OFFSET, amount);
-              break;
-            case '-':
-              retVal.set(Calendar.ZONE_OFFSET, -amount);
-              break;
-          }
-        }
-      }
-    }
-    return retVal;
-  }
-
-  /**
-   * Returns an number based on the specified timestamp.
-   *
-   * @param timestamp The timestamp in ISO 8601 format. Either in UTC or using time offset.<br>
-   *                  Syntax: YYYY-MM-DD[Thh:mm[:ss][(±hh[:mm])|Z]]<br>
-   *                  (Example: 2007-11-26T14:53+06:00)
-   * @return A comparable numeric value of the timestamp (higher = newer). Returns 0 on error.
-   */
-  public static long toTimeValue(String timestamp) {
-    Calendar cal = toCalendar(timestamp);
-    if (cal != null) {
-      return cal.getTimeInMillis();
-    } else {
-      return 0L;
-    }
-  }
-
-  /**
-   * Returns a number based on the date and time of the specified Calendar object.
-   *
-   * @param cal The calendar object or {@code null} to get a number based on the current time.
-   * @return A comparable numeric value derived from the calendar object (higher = newer).
-   */
-  public static long getTimeValue(Calendar cal) {
-    if (cal == null) {
-      cal = Calendar.getInstance();
-    }
-
-    return cal.getTimeInMillis();
   }
 
   /**
@@ -482,15 +412,36 @@ public class Utils {
    */
   public static String downloadText(URL url, Proxy proxy, String charset)
       throws IOException, FileNotFoundException, ProtocolException, UnknownServiceException, ZipException {
+    if (charset == null || charset.isEmpty() || !Charset.isSupported(charset)) {
+      charset = Charset.defaultCharset().name();
+    }
+    return downloadText(url, proxy, Charset.forName(charset));
+  }
+
+  /**
+   * A convenience method for downloading textual data from a URL.
+   *
+   * @param url     The URL to download data from.
+   * @param proxy   An optional proxy definition. Can be {@code null}.
+   * @param charset The {@link Charset} instance defining the character set of the text content.
+   * @return The text content on success or {@code null} on error.
+   * @throws IOException
+   * @throws FileNotFoundException
+   * @throws ProtocolException
+   * @throws UnknownServiceException
+   * @throws ZipException
+   */
+  public static String downloadText(URL url, Proxy proxy, Charset charset)
+      throws IOException, FileNotFoundException, ProtocolException, UnknownServiceException, ZipException {
     String retVal = null;
     if (url != null) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       if (Utils.downloadFromUrl(url, proxy, baos, UpdateInfo.FileType.ORIGINAL, null)) {
-        if (charset == null || charset.isEmpty() || !Charset.isSupported(charset)) {
-          charset = Charset.defaultCharset().name();
+        if (charset == null) {
+          charset = Charset.defaultCharset();
         }
         try {
-          retVal = baos.toString(charset);
+          retVal = baos.toString(charset.name());
         } catch (UnsupportedEncodingException e) {
         }
       }

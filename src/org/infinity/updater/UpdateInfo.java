@@ -10,13 +10,15 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -24,6 +26,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
@@ -37,16 +41,6 @@ import org.xml.sax.SAXParseException;
  * Provides access to update information stored in "update.xml".
  */
 public class UpdateInfo {
-  /** Available release types. */
-  public enum ReleaseType {
-    /** Information about the latest Near Infinity release (stable or unstable). */
-    LATEST,
-    /** Information about the latest stable Near Infinity release. */
-    STABLE,
-    /** Information about the updater helper tool. */
-    UPDATER
-  }
-
   /** File type of data to be downloaded. */
   public enum FileType {
     /** Indicates an unknown or unsupported file type. */
@@ -66,20 +60,14 @@ public class UpdateInfo {
   private static final String NODE_SERVER     = "server";
   private static final String NODE_INFO       = "info";
   private static final String NODE_LINK       = "link";
-  private static final String NODE_FILE       = "file";
+  private static final String NODE_GITHUB     = "github";
   private static final String NODE_NAME       = "name";
   private static final String NODE_URL        = "url";
-  private static final String NODE_VERSION    = "version";
-  private static final String NODE_TIMESTAMP  = "timestamp";
-  private static final String NODE_HASH       = "hash";
-  private static final String NODE_CHANGELOG  = "changelog";
-  private static final String NODE_ENTRY      = "entry";
   private static final String ATTR_VERSION    = "version";
   private static final String ATTR_TYPE       = "type";
 
-  private final EnumMap<ReleaseType, Release> releases = new EnumMap<>(ReleaseType.class);
-
   private General general;
+  private Release release;
   private int version;
 
   /**
@@ -91,7 +79,7 @@ public class UpdateInfo {
    */
   public static boolean isValidXml(String s, String systemId) {
     try {
-      return isValidXml(new ByteArrayInputStream(s.getBytes("UTF-8")), systemId);
+      return isValidXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8.name())), systemId);
     } catch (UnsupportedEncodingException e) {
     }
     return false;
@@ -169,20 +157,11 @@ public class UpdateInfo {
   }
 
   /**
-   * Provides access to the the Release section specified by the user in the Server Settings or returns {@code null} if
+   * Provides access to the the GitHub section specified by the user in the Server Settings or returns {@code null} if
    * not available.
    */
   public Release getRelease() {
-    return releases.get(Updater.getInstance().isStableOnly() ? ReleaseType.STABLE : ReleaseType.LATEST);
-  }
-
-  /**
-   * Provides access to the specified Release section or returns {@code null} if not available.
-   *
-   * @param type The release type to access.
-   */
-  public Release getRelease(ReleaseType type) {
-    return releases.get(type);
+    return release;
   }
 
   // Returns whether all mandatory fields have been initialized correctly.
@@ -191,13 +170,9 @@ public class UpdateInfo {
     if (getGeneral() != null) {
       retVal &= getGeneral().isValid();
     }
+
     if (getRelease() == null) {
       retVal = false;
-    }
-    if (retVal) {
-      for (Iterator<Release> iter = releases.values().iterator(); iter.hasNext();) {
-        retVal &= iter.next().isValid();
-      }
     }
 
     return retVal;
@@ -233,11 +208,9 @@ public class UpdateInfo {
         throw new Exception("Update.xml: Unsupported root node name: " + elemRoot.getNodeName());
       }
       version = Misc.toNumber(elemRoot.getAttribute(ATTR_VERSION), 0);
-      if (getUpdateInfoVersion() < 1) {
-        throw new Exception("Update.xml: Unsupported or missing specification version");
+      if (version < 2) {
+        throw new Exception("Update.xml: Unsupported or missing specification version: " + version);
       }
-
-      // TODO: parse elements based on update version
 
       // initializing general section
       NodeList generalList = elemRoot.getElementsByTagName(NODE_GENERAL);
@@ -245,7 +218,7 @@ public class UpdateInfo {
         Node n = generalList.item(idx);
         if (n.getNodeType() == Node.ELEMENT_NODE) {
           // General section is optional
-          parseGeneral((Element) n);
+          general = parseGeneral((Element) n);
           break;
         }
       }
@@ -255,13 +228,15 @@ public class UpdateInfo {
       for (int idx = 0, size = releaseList.getLength(); idx < size; idx++) {
         Node n = releaseList.item(idx);
         if (n.getNodeType() == Node.ELEMENT_NODE) {
-          parseRelease((Element) n);
+          final Element elemRelease = (Element) n;
+          release = parseGitHub(elemRelease);
         }
       }
     }
   }
 
-  private void parseGeneral(Element elemGeneral) throws Exception {
+  /** Parses the child elements of the specified "general" node and return it as {@code General} instance. */
+  private General parseGeneral(Element elemGeneral) throws Exception {
     if (elemGeneral == null || !elemGeneral.getNodeName().equals(NODE_GENERAL)) {
       throw new Exception("Update.xml: Node \"" + NODE_GENERAL + "\" expected");
     }
@@ -317,52 +292,34 @@ public class UpdateInfo {
       }
     }
 
-    general = new General(serverList, infoList);
+    return new General(serverList, infoList);
   }
 
-  private void parseRelease(Element elemRelease) throws Exception {
+  /** Parses the child elements of the specified "github" node and return it as {@code GitHubRelease} instance. */
+  private Release parseGitHub(Element elemRelease) throws Exception {
     if (elemRelease == null || !elemRelease.getNodeName().equals(NODE_RELEASE)) {
       throw new Exception("Update.xml: Node \"" + NODE_RELEASE + "\" expected");
     }
 
-    ReleaseType type = null;
-    String fileName = null;
-    String link = null;
-    String linkType = null;
-    String version = null;
-    String timeStamp = null;
-    String hash = null;
-    String linkManual = null;
-    List<String> changelog = null;
-
-    try {
-      type = Enum.valueOf(ReleaseType.class, elemRelease.getAttribute(ATTR_TYPE).toUpperCase());
-    } catch (IllegalArgumentException e) {
-      // skipping unsupported entries
-    }
-    if (type == null) {
-      type = ReleaseType.LATEST;
-    }
+    final List<String> jsonLinks = new ArrayList<>();
 
     // preprocessing available child elements in "release" section
     NodeList children = elemRelease.getChildNodes();
-    Element elemFile = null, elemChangelog = null;
+    Element elemGitHub = null;
     for (int i = 0, size = children.getLength(); i < size; i++) {
       Node node = children.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
-        if (node.getNodeName().equals(NODE_FILE)) {
-          elemFile = (Element) node;
-        } else if (node.getNodeName().equals(NODE_CHANGELOG)) {
-          elemChangelog = (Element) node;
+        if (node.getNodeName().equals(NODE_GITHUB)) {
+          elemGitHub = (Element) node;
         }
       }
     }
 
-    // processing required element "file"
-    if (elemFile == null || !elemFile.getNodeName().equals(NODE_FILE)) {
-      throw new Exception("Update.xml: Missing \"" + NODE_FILE + "\" node");
+    // processing required element "github"
+    if (elemGitHub == null || !elemGitHub.getNodeName().equals(NODE_GITHUB)) {
+      throw new Exception("Update.xml: Missing \"" + NODE_GITHUB + "\" node");
     }
-    children = elemFile.getChildNodes();
+    children = elemGitHub.getChildNodes();
     for (int idx = 0, size = children.getLength(); idx < size; idx++) {
       Element elem = null;
       if (children.item(idx).getNodeType() == Node.ELEMENT_NODE) {
@@ -370,40 +327,18 @@ public class UpdateInfo {
       } else {
         continue;
       }
-      if (elem.getNodeName().equals(NODE_NAME)) {
-        fileName = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_URL)) {
-        linkType = elem.getAttribute(ATTR_TYPE);
-        link = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_VERSION)) {
-        version = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_TIMESTAMP)) {
-        timeStamp = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_HASH)) {
-        hash = elem.getTextContent().trim();
-      } else if (elem.getNodeName().equals(NODE_LINK)) {
-        linkManual = elem.getTextContent().trim();
-      }
-    }
-
-    // processing optional element "changelog"
-    if (elemChangelog != null) {
-      changelog = new ArrayList<>();
-      children = elemChangelog.getElementsByTagName(NODE_ENTRY);
-      for (int idx = 0, size = children.getLength(); idx < size; idx++) {
-        Element elem = (Element) children.item(idx);
-        String s = elem.getTextContent().trim();
-        if (!s.isEmpty()) {
-          changelog.add(s);
+      if (elem.getNodeName().equals(NODE_URL)) {
+        final String jsonType = elem.getAttribute(ATTR_TYPE).trim();
+        if (jsonType.equalsIgnoreCase("json")) {
+          final String s = elem.getTextContent().trim();
+          if (!s.isEmpty()) {
+            jsonLinks.add(elem.getTextContent().trim());
+          }
         }
       }
-      if (changelog.isEmpty()) {
-        changelog = null;
-      }
     }
 
-    Release release = new Release(type, fileName, link, linkType, version, hash, timeStamp, linkManual, changelog);
-    releases.put(type, release);
+    return new Release(jsonLinks);
   }
 
   // -------------------------- INNER CLASSES --------------------------
@@ -478,128 +413,574 @@ public class UpdateInfo {
     }
   }
 
-  // Manages "Release" information
+  /**
+   * Provides "Release" information parsed from a GitHub API JSON file.
+   */
   public static class Release {
-    private final List<String> changelog = new ArrayList<>();
-    private final ReleaseType type;
+    /** List of assets attached to this release. */
+    public final List<Asset> assets = new ArrayList<>();
 
-    private String fileName;
-    private String link;
-    private String linkManual;
-    private String version;
-    private String hash;
-    private FileType linkType;
-    private Calendar timeStamp;
+    public String nodeId;
+    /** Internal identifier of the release. */
+    public int id;
+    /** URL for this release information (JSON) */
+    public URL url;
+    /**
+     * URL to assets information of this release (JSON).
+     * Provides the same information as the {@code assets} attribute.
+     */
+    public URL assetsUrl;
+    /** Parameterized URL for uploading assets to the release. */
+    public ParamURL uploadUrl;
+    /** URL to html version of the release (HTML) */
+    public URL htmlUrl;
+    /** Information about the release author. */
+    public User author;
+    /** Name of the release tag. */
+    public String tagName;
+    /** Specifies the commitish value that determines where the Git tag is created from. */
+    public String target;
+    /** Title of the release. */
+    public String name;
+    /** {@code true} to create a draft (unpublished) release, {@code false} to create a published one. */
+    public boolean draft;
+    /** Whether to identify the release as a prerelease or a full release. */
+    public boolean prerelease;
+    /** Timestamp when the release was created. */
+    public OffsetDateTime createdAt;
+    /** Timestamp when the release was published. */
+    public OffsetDateTime publishedAt;
+    /** URL to the automatically generated source tarball of the release. */
+    public URL tarballUrl;
+    /** URL to the automatically generated source zipball of the release. */
+    public URL zipballUrl;
+    /** Description text of the release, in Markdown format. */
+    public String body;
+    /** Information about social reaction for this release. */
+    public Reactions reactions;
 
-    private Release(ReleaseType type, String fileName, String link, String linkType, String version, String hash,
-        String timeStamp, String linkManual, List<String> changelog) throws Exception {
-      // checking mandatory fields
-      if (fileName == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_NAME, NODE_RELEASE));
+    public Release(List<String> jsonLinks) throws Exception {
+      if (jsonLinks == null || jsonLinks.isEmpty()) {
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_GITHUB, NODE_RELEASE));
       }
-      if (link == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_LINK, NODE_RELEASE));
-      }
-      if (version == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_VERSION, NODE_RELEASE));
-      }
-      if (timeStamp == null) {
-        throw new Exception(
-            String.format("Update.xml: Missing \"%s\" node in %s section", NODE_TIMESTAMP, NODE_RELEASE));
-      }
-      if (hash == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section", NODE_HASH, NODE_RELEASE));
-      }
 
-      this.type = type;
-      this.fileName = fileName;
-      this.link = link;
-      this.linkType = validateLinkType(linkType);
-      this.version = version;
-      this.hash = hash;
-      this.timeStamp = Utils.toCalendar(timeStamp);
-      this.linkManual = linkManual;
-      if (changelog != null) {
-        this.changelog.addAll(changelog);
+      for (final String link: jsonLinks) {
+        final URL url = new URL(link);
+        String json = Utils.downloadText(url, Updater.getInstance().getProxy(), StandardCharsets.UTF_8);
+        parseJson(json);
+        break;
       }
     }
 
-    /** Returns the type of this file entry. */
-    public ReleaseType getReleaseType() {
-      return type;
-    }
-
-    /** Returns the actual filename without path. */
-    public String getFileName() {
-      return fileName;
-    }
-
-    /** Returns the link to the file. Use {@link #getLinkType()} to determine archive format. */
-    public String getLink() {
-      return link;
-    }
-
-    /** Returns the archive format of the file to download. */
-    public FileType getLinkType() {
-      return linkType;
-    }
-
-    /** Returns the file version. */
-    public String getVersion() {
-      return version;
-    }
-
-    /** Returns the md5 hash string for the file to download. */
-    public String getHash() {
-      return hash;
-    }
-
-    /** Returns the date and time of the file. */
-    public Calendar getTimeStamp() {
-      return timeStamp;
-    }
-
-    /** Returns a String version of the timestamp in ISO 8601 format. */
-    public String getTimeStampString() {
-      return Utils.toTimeStamp(timeStamp);
-    }
-
-    /** Returns a link to the file for manual download or {@code null} if not available. */
-    public String getDownloadLink() {
-      return linkManual;
-    }
-
-    /** Returns whether a ChangeLog is available. */
-    public boolean hasChangeLog() {
-      return !changelog.isEmpty();
-    }
-
-    /** Returns a read-only list of changelog entries. */
-    public List<String> getChangelog() {
-      return Collections.unmodifiableList(changelog);
-    }
-
-    /** Checks whether data has been initialized correctly. */
-    public boolean isValid() {
-      if ((getReleaseType() == null) || !Utils.isUrlValid(getLink())
-          || (getDownloadLink() != null && !Utils.isUrlValid(getDownloadLink()))) {
-        return false;
+    /**
+     * Returns the default asset which points to the zipped {@code NearInfinity.jar} file.
+     *
+     * @return {@link Asset} instance of the zipped NearInfinity.jar file,
+     *         or {@code null} if asset doesn't exist.
+     */
+    public Asset getDefaultAsset() {
+      final String[] patterns = {
+          // Matches:
+          // NearInfinity-v2.3-20230618-1.zip
+          // NearInfinity-v2.3.2023.6.18.zip
+          // NearInfinity-20230618.zip
+          // NearInfinity.zip
+          "NearInfinity(-v?\\d+(\\.\\d+)*)?(-\\d+(-.+)?)?\\.zip",
+          "NearInfinity\\.jar",
+      };
+      for (final Asset asset: assets) {
+        for (final String pattern: patterns) {
+          Matcher m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(asset.name);
+          if (m.matches()) {
+            return asset;
+          }
+        }
       }
-      return true;
+
+      return null;
     }
 
-    // Returns only supported archive formats for the linked file
-    private static FileType validateLinkType(String linkType) throws Exception {
-      if ("jar".equalsIgnoreCase(linkType)) {
-        return FileType.ORIGINAL;
-      } else if ("zip".equalsIgnoreCase(linkType)) {
-        return FileType.ZIP;
-      } else if ("gzip".equalsIgnoreCase(linkType)) {
-        return FileType.GZIP;
+    /** Parses the specified JSON string and initializes this class instance. */
+    private void parseJson(String jsonString) throws Exception {
+      // https://stleary.github.io/JSON-java/index.html
+      JSONObject root = new JSONObject(jsonString);
+      for (Iterator<String> iter = root.keys(); iter.hasNext(); ) {
+        final String key = iter.next();
+        switch (key) {
+          case "url":
+            url = new URL(root.getString(key));
+            break;
+          case "assets_url":
+            assetsUrl = new URL(root.getString(key));
+            break;
+          case "upload_url":
+            uploadUrl = new ParamURL(root.getString(key));
+            break;
+          case "html_url":
+            htmlUrl = new URL(root.getString(key));
+            break;
+          case "id":
+            id = root.getInt(key);
+            break;
+          case "author":
+            author = new User(root.getJSONObject(key));
+            break;
+          case "node_id":
+            nodeId = root.getString(key);
+            break;
+          case "tag_name":
+            tagName = root.getString(key);
+            break;
+          case "target_commitish":
+            target = root.getString(key);
+            break;
+          case "name":
+            name = root.getString(key);
+            break;
+          case "draft":
+            draft = root.getBoolean(key);
+            break;
+          case "prerelease":
+            prerelease = root.getBoolean(key);
+            break;
+          case "created_at":
+            createdAt = Utils.getDateTimeFromString(root.getString(key));
+            break;
+          case "published_at":
+            publishedAt = Utils.getDateTimeFromString(root.getString(key));
+            break;
+          case "assets": {
+            final JSONArray array = root.getJSONArray(key);
+            for (int i = 0, len = array.length(); i < len; i++) {
+              final Asset asset = new Asset(array.getJSONObject(i));
+              assets.add(asset);
+            }
+            break;
+          }
+          case "tarball_url":
+            tarballUrl = new URL(root.getString(key));
+            break;
+          case "zipball_url":
+            zipballUrl = new URL(root.getString(key));
+            break;
+          case "body":
+            body = root.optString(key);
+            break;
+          case "reactions":
+            reactions = new Reactions(root.getJSONObject(key));
+            break;
+          default:
+            System.out.printf("Release parser: Skipping unknown key \"%s\"\n", key);
+        }
       }
-      throw new Exception("Invalid link type: " + linkType);
+
+      // validation
+      final List<String> errors = new ArrayList<>();
+      if (assetsUrl == null) {
+        errors.add("Assets URL cannot be null");
+      }
+      if (uploadUrl == null) {
+        errors.add("Upload URL cannot be null");
+      }
+      if (tarballUrl == null) {
+        errors.add("Tar ball URL cannot be null");
+      }
+      if (zipballUrl == null) {
+        errors.add("Zip ball URL cannot be null");
+      }
+      if (createdAt == null) {
+        errors.add("Creation time cannot be null");
+      }
+      if (publishedAt == null) {
+        errors.add("Publication time cannot be null");
+      }
+      if (nodeId == null) {
+        errors.add("Node ID cannot be null");
+      }
+      if (author == null) {
+        errors.add("Author cannot be null");
+      }
+      if (htmlUrl == null) {
+        errors.add("HTML URL cannot be null");
+      }
+      if (name == null) {
+        errors.add("Release name cannot be null");
+      }
+      if (tagName == null) {
+        errors.add("Tag name cannot be null");
+      }
+      if (target == null) {
+        errors.add("Target cannot be null");
+      }
+      if (url == null) {
+        errors.add("Self URL cannot be null");
+      }
+
+      if (!errors.isEmpty()) {
+        if (errors.size() == 1) {
+          throw new NullPointerException(errors.get(0));
+        } else {
+          throw new NullPointerException("Update information are currently not available.");
+        }
+      }
     }
   }
+
+  /** Provides GitHub user information. */
+  public static class User {
+    public String nodeId;
+    /** Internal identifier of the user. */
+    public int id;
+    /** Login name of the user. */
+    public String login;
+    /** URL to the user's avatar graphics. */
+    public URL avatarUrl;
+    public String gravatarId;
+    /** URL to user information (JSON) */
+    public URL url;
+    /** URL to user front page (HTML). */
+    public URL htmlUrl;
+    /** URL to follower of user (JSON) */
+    public URL followersUrl;
+    /** Parameterized URL to the user following this user (JSON) */
+    public ParamURL followingUrl;
+    /** Parameterized URL to user's gists information (JSON) */
+    public ParamURL gistsUrl;
+    /** Parameterized URL to user's starred information (JSON) */
+    public ParamURL starredUrl;
+    /** URL to user's subscriptions (watching) information (JSON) */
+    public URL subscriptionsUrl;
+    /** URL to user's organizations information (JSON) */
+    public URL organizationsUrl;
+    /**  URL to user's own repositories information (JSON) */
+    public URL reposUrl;
+    /** Parameterized URL to user's events information (JSON) */
+    public URL eventsUrl;
+    /** URL to user's received events information (JSON) */
+    public URL receivedEventsUrl;
+    /** The user type. */
+    public String type;
+    public boolean siteAdmin;
+
+    private User(JSONObject jsonUser) throws Exception {
+      JSONObject root = Objects.requireNonNull(jsonUser, "JSON user object cannot be null");
+      for (Iterator<String> iter = root.keys(); iter.hasNext(); ) {
+        final String key = iter.next();
+        switch (key) {
+          case "login":
+            login = root.getString(key);
+            break;
+          case "id":
+            id = root.getInt(key);
+            break;
+          case "node_id":
+            nodeId = root.getString(key);
+            break;
+          case "avatar_url":
+            avatarUrl = new URL(root.getString(key));
+            break;
+          case "gravatar_id":
+            gravatarId = root.getString(key);
+            break;
+          case "url":
+            url = new URL(root.getString(key));
+            break;
+          case "html_url":
+            htmlUrl = new URL(root.getString(key));
+            break;
+          case "followers_url":
+            followersUrl = new URL(root.getString(key));
+            break;
+          case "following_url":
+            followingUrl = new ParamURL(root.getString(key));
+            break;
+          case "gists_url":
+            gistsUrl = new ParamURL(root.getString(key));
+            break;
+          case "starred_url":
+            starredUrl = new ParamURL(root.getString(key));
+            break;
+          case "subscriptions_url":
+            subscriptionsUrl = new URL(root.getString(key));
+            break;
+          case "organizations_url":
+            organizationsUrl = new URL(root.getString(key));
+            break;
+          case "repos_url":
+            reposUrl = new URL(root.getString(key));
+            break;
+          case "events_url":
+            eventsUrl = new URL(root.getString(key));
+            break;
+          case "received_events_url":
+            receivedEventsUrl = new URL(root.getString(key));
+            break;
+          case "type":
+            type = root.getString(key);
+            break;
+          case "site_admin":
+            siteAdmin = root.getBoolean(key);
+            break;
+          default:
+            System.out.printf("User parser: Skipping unknown key \"%s\"\n", key);
+        }
+      }
+
+      // validation
+      final List<String> errors = new ArrayList<>();
+      if (avatarUrl == null) {
+        errors.add("Avatar URL cannot be null");
+      }
+      if (eventsUrl == null) {
+        errors.add("Events URL cannot be null");
+      }
+      if (followersUrl == null) {
+        errors.add("Followers URL cannot be null");
+      }
+      if (followingUrl == null) {
+        errors.add("Following URL cannot be null");
+      }
+      if (gistsUrl == null) {
+        errors.add("Gists URL cannot be null");
+      }
+      if (gravatarId == null) {
+        errors.add("Gravatar ID cannot be null");
+      }
+      if (htmlUrl == null) {
+        errors.add("HTML URL cannot be null");
+      }
+      if (nodeId == null) {
+        errors.add("Node ID cannot be null");
+      }
+      if (login == null) {
+        errors.add("Login name cannot be null");
+      }
+      if (organizationsUrl == null) {
+        errors.add("Organizations URL cannot be null");
+      }
+      if (receivedEventsUrl == null) {
+        errors.add("Received events URL cannot be null");
+      }
+      if (reposUrl == null) {
+        errors.add("Repositories URL cannot be null");
+      }
+      if (starredUrl == null) {
+        errors.add("Starred URL cannot be null");
+      }
+      if (subscriptionsUrl == null) {
+        errors.add("Subscriptions URL cannot be null");
+      }
+      if (type == null) {
+        errors.add("User type cannot be null");
+      }
+      if (url == null) {
+        errors.add("Self URL cannot be null");
+      }
+
+      if (!errors.isEmpty()) {
+        if (errors.size() == 1) {
+          throw new NullPointerException(errors.get(0));
+        } else {
+          throw new NullPointerException("Update information are currently not available.");
+        }
+      }
+    }
+  }
+
+  public static class Asset {
+    /** Available states of the release asset. */
+    public enum State {
+      UPLOADED,
+      OPEN,
+    }
+
+    public String nodeId;
+    /** Internal identifier of the asset. */
+    public int id;
+    /** URL for this asset information (JSON) */
+    public URL url;
+    /** Filename of the asset. */
+    public String name;
+    /** An optional label for this asset. */
+    public String label;
+    /** User information about the uploader of this asset. */
+    public User uploader;
+    /** Content type of the asset. */
+    public String contentType;
+    /** State of the release asset. */
+    public State state;
+    /** File size of the asset, in bytes. */
+    public long size;
+    /** Total number of downloads initiated for this asset at the time of request. */
+    public int downloadCount;
+    /** Timestamp when the asset was created. */
+    public OffsetDateTime createdAt;
+    /** Timestamp when the asset was last updated. */
+    public OffsetDateTime updatedAt;
+    /** URL for the direct asset download. */
+    public URL browserDownloadUrl;
+
+    private Asset(JSONObject jsonAsset) throws Exception {
+      JSONObject root = Objects.requireNonNull(jsonAsset, "JSON asset object cannot be null");
+      for (Iterator<String> iter = root.keys(); iter.hasNext(); ) {
+        final String key = iter.next();
+        switch (key) {
+          case "url":
+            url = new URL(root.getString(key));
+            break;
+          case "id":
+            id = root.getInt(key);
+            break;
+          case "node_id":
+            nodeId = root.getString(key);
+            break;
+          case "name":
+            name = root.getString(key);
+            break;
+          case "label":
+            label = root.optString(key, "");
+            break;
+          case "uploader":
+            uploader = new User(root.getJSONObject(key));
+            break;
+          case "content_type":
+            contentType = root.getString(key);
+            break;
+          case "state": {
+              switch (root.getString(key).toLowerCase()) {
+                case "uploaded": state = State.UPLOADED; break;
+                case "open": state = State.OPEN; break;
+                default: throw new Exception(String.format("Asset parser: Unknown state value \"%s\"", key));
+              }
+              break;
+          }
+          case "size":
+            size = root.getLong(key);
+            break;
+          case "download_count":
+            downloadCount = root.getInt(key);
+            break;
+          case "created_at":
+            createdAt = Utils.getDateTimeFromString(root.getString(key));
+            break;
+          case "updated_at":
+            updatedAt = Utils.getDateTimeFromString(root.getString(key));
+            break;
+          case "browser_download_url":
+            browserDownloadUrl = new URL(root.getString(key));
+            break;
+          default:
+            System.out.printf("Asset parser: Skipping unknown key \"%s\"\n", key);
+        }
+      }
+
+      // validation
+      final List<String> errors = new ArrayList<>();
+      if (name == null) {
+        errors.add("Asset name cannot be null");
+      }
+      if (contentType == null) {
+        errors.add("Content type cannot be null");
+      }
+      if (state == null) {
+        errors.add("Asset state cannot be null");
+      }
+      if (url == null) {
+        errors.add("Self URL cannot be null");
+      }
+      if (nodeId == null) {
+        errors.add("Node ID cannot be null");
+      }
+      if (uploader == null) {
+        errors.add("Uploader info cannot be null");
+      }
+      if (browserDownloadUrl == null) {
+        errors.add("Browser download URL cannot be null");
+      }
+      if (createdAt == null) {
+        errors.add("Creation time cannot be null");
+      }
+      if (updatedAt == null) {
+        errors.add("Update time cannot be null");
+      }
+
+      if (!errors.isEmpty()) {
+        if (errors.size() == 1) {
+          throw new NullPointerException(errors.get(0));
+        } else {
+          throw new NullPointerException("Update information are currently not available.");
+        }
+      }
+    }
+  }
+
+  public static class Reactions {
+    /** URL for detailed user information who performed the reactions (JSON) */
+    public URL url;
+    /** Total number of available reactions. */
+    public int totalCount;
+    /** Number of the {@code +1} reaction. */
+    public int plusOne;
+    /** Number of the {@code -1} reaction. */
+    public int minusOne;
+    /** Number of the {@code laugh} reaction. */
+    public int laugh;
+    /** Number of the {@code hooray} reaction. */
+    public int hooray;
+    /** Number of the {@code confused} reaction. */
+    public int confused;
+    /** Number of the {@code heart} reaction. */
+    public int heart;
+    /** Number of the {@code rocket} reaction. */
+    public int rocket;
+    /** Number of the {@code eyes} reaction. */
+    public int eyes;
+
+    private Reactions(JSONObject jsonReactions) throws Exception {
+      JSONObject root = Objects.requireNonNull(jsonReactions, "JSON asset object cannot be null");
+      for (Iterator<String> iter = root.keys(); iter.hasNext(); ) {
+        final String key = iter.next();
+        switch (key) {
+          case "url":
+            url = new URL(root.getString(key));
+            break;
+          case "total_count":
+            totalCount = root.getInt(key);
+            break;
+          case "+1":
+            plusOne = root.getInt(key);
+            break;
+          case "-1":
+            minusOne = root.getInt(key);
+            break;
+          case "laugh":
+            laugh = root.getInt(key);
+            break;
+          case "hooray":
+            hooray = root.getInt(key);
+            break;
+          case "confused":
+            confused = root.getInt(key);
+            break;
+          case "heart":
+            heart = root.getInt(key);
+            break;
+          case "rocket":
+            rocket = root.getInt(key);
+            break;
+          case "eyes":
+            eyes = root.getInt(key);
+            break;
+          default:
+            System.out.printf("Reactions parser: Skipping unknown key \"%s\"\n", key);
+        }
+      }
+
+      // validation
+      Objects.requireNonNull(url, "Self URL cannot be null");
+    }
+  }
+
 
   private static class XmlErrorHandler implements ErrorHandler {
     public XmlErrorHandler() {
