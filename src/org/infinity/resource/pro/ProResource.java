@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.pro;
@@ -52,7 +52,7 @@ import org.infinity.search.SearchOptions;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm">
  *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
  */
-public final class ProResource extends AbstractStruct implements Resource, HasViewerTabs, UpdateListener {
+public final class ProResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs, UpdateListener {
   // PRO-specific field labels
   public static final String PRO_TYPE                 = "Projectile type";
   public static final String PRO_SPEED                = "Speed";
@@ -193,6 +193,16 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
       }
     }
     return false;
+  }
+
+  @Override
+  public AddRemovable[] getPrototypes() throws Exception {
+    return new AddRemovable[] {};
+  }
+
+  @Override
+  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
+    return entry;
   }
 
   @Override

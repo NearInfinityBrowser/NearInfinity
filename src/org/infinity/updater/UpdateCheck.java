@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -34,10 +34,14 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.text.html.HTMLDocument;
 
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.infinity.NearInfinity;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.updater.UpdateInfo.Release;
 
 /**
  * Shows information about available updates and providing options how to deal with them.
@@ -128,13 +132,13 @@ public class UpdateCheck extends JDialog {
     lNewVersion.setFont(lNewVersion.getFont().deriveFont(Font.BOLD));
     tfNewVersion.setEditable(false);
     tfNewVersion.setFont(lNewVersion.getFont());
-    tfNewVersion.setText(getUpdateInfo().getRelease().getVersion());
+    tfNewVersion.setText(getUpdateInfo().getRelease().tagName);
 
     JLabel lNewDate = new JLabel("Release date:");
     lNewDate.setFont(lNewDate.getFont().deriveFont(Font.BOLD));
     tfNewDate.setEditable(false);
     tfNewDate.setFont(lNewDate.getFont());
-    tfNewDate.setText(getUpdateInfo().getRelease().getTimeStamp().getTime().toString());
+    tfNewDate.setText(Utils.getStringFromDateTime(getUpdateInfo().getRelease().publishedAt));
 
     JLabel lNewSize = new JLabel("Download size:");
     lNewSize.setFont(lNewSize.getFont().deriveFont(Font.BOLD));
@@ -144,8 +148,7 @@ public class UpdateCheck extends JDialog {
     try {
       WindowBlocker.blockWindow(NearInfinity.getInstance(), true);
       try {
-        fileSize = Utils.getFileSizeUrl(new URL(getUpdateInfo().getRelease().getLink()),
-            Updater.getInstance().getProxy());
+        fileSize = (int) getUpdateInfo().getRelease().getDefaultAsset().size;
       } catch (Exception e) {
       }
     } finally {
@@ -158,7 +161,7 @@ public class UpdateCheck extends JDialog {
     }
 
     bDownload.addActionListener(getListeners());
-    bDownload.setEnabled(getUpdateInfo().getRelease().getDownloadLink() != null);
+    bDownload.setEnabled(getUpdateInfo().getRelease().htmlUrl != null);
 
     bCancel.addActionListener(getListeners());
 
@@ -216,30 +219,14 @@ public class UpdateCheck extends JDialog {
 
     // creating changelog section
     JPanel pChangelog = null;
-    if (getUpdateInfo().getRelease().hasChangeLog()) {
+    if (hasChangelog()) {
       pChangelog = new JPanel(new GridBagLayout());
-
       JTextPane viewer = new JTextPane(new HTMLDocument());
       viewer.setEditable(false);
       viewer.setBackground(getBackground());
       viewer.setContentType("text/html");
-      StringBuilder sb = new StringBuilder();
-      sb.append("<html><head>");
-      sb.append("<style type=\"text/css\">\n");
-      sb.append(
-          "h1 { margin: 5px 5px 0px 5px; padding: 0px; font-family: Verdana,Arial,sans-serif; font-size: medium; }");
-      sb.append("ul { margin: 5px 25px; font-family: Verdana,Arial,sans-serif; font-size: small; }");
-      sb.append("li { padding-top: 5px; }");
-      sb.append("</style></head>");
-      sb.append("<body>");
-      sb.append("<h1>").append("Near Infinity ").append(getUpdateInfo().getRelease().getVersion()).append(":</h1>");
-      sb.append("<ul>");
-      for (Iterator<String> iter = getUpdateInfo().getRelease().getChangelog().iterator(); iter.hasNext();) {
-        sb.append("<li>").append(iter.next()).append("</li>");
-      }
-      sb.append("</ul>");
-      sb.append("</body></html>");
-      viewer.setText(sb.toString());
+      String content = getChangelog();
+      viewer.setText(content);
       viewer.setCaretPosition(0);
 
       // prevent viewer to screw up dialog dimensions
@@ -298,6 +285,11 @@ public class UpdateCheck extends JDialog {
 
     pack();
     setMinimumSize(getPreferredSize());
+
+    if (getSize().width < 640) {
+      setSize(640, getSize().height);
+    }
+
     setLocationRelativeTo(getOwner());
   }
 
@@ -305,9 +297,9 @@ public class UpdateCheck extends JDialog {
   private void download() {
     boolean bRet = false;
     try {
-      String link = getUpdateInfo().getRelease().getDownloadLink();
+      String link = getUpdateInfo().getRelease().getDefaultAsset().browserDownloadUrl.toExternalForm();
       if (!Utils.isUrlValid(link)) {
-        link = getUpdateInfo().getRelease().getLink();
+        link = getUpdateInfo().getRelease().htmlUrl.toExternalForm();
         if (!Utils.isUrlValid(link)) {
           String msg = "Download link is not available.\n"
               + "Please visit the official website to download the latest version of Near Infinity.";
@@ -331,6 +323,80 @@ public class UpdateCheck extends JDialog {
   private void cancel() {
     retVal = UpdateAction.CANCEL;
     setVisible(false);
+  }
+
+  /** Determines whether a changelog is available from the current release information. */
+  private boolean hasChangelog() {
+    boolean retVal = false;
+    final Release release = getUpdateInfo().getRelease();
+    final String[] lines = release.body.split("\r?\n");
+
+    for (int i = 0; i < lines.length; i++) {
+      final String line = lines[i].toLowerCase();
+      if (line.contains("changelog:") || line.contains("changes:")) {
+        retVal = true;
+        break;
+      }
+    }
+
+    return retVal;
+  }
+
+  /** Produces a html-formatted changelog string. */
+  private String getChangelog() {
+    final Release release = getUpdateInfo().getRelease();
+    final StringBuilder sb = new StringBuilder();
+
+    sb.append("<html><head>");
+    sb.append("<style type=\"text/css\">\n");
+    sb.append("h1 { margin: 5px 5px 0px 5px; padding: 0px; font-family: Verdana,Arial,sans-serif; font-size: 1.25em; }");
+    sb.append("ul { margin: 5px 25px; font-family: Verdana,Arial,sans-serif; font-size: 1em; }");
+    sb.append("p { margin: 10px 5px 0px 5px; font-family: Verdana,Arial,sans-serif; font-size: 1.1em; }");
+    sb.append("li { padding-top: 5px; }");
+    sb.append("</style></head>");
+    sb.append("<body>");
+    sb.append("<h1>").append("Near Infinity ").append(release.tagName).append(":</h1>");
+    sb.append("<p><strong>Changelog:</strong></p>");
+
+    // only changelog list entries are relevant for us
+    final String[] lines = release.body.split("\r?\n");
+    int indexStart = 0;
+    int indexEnd = 0;
+    for (; indexStart < lines.length; indexStart++) {
+      final String line = lines[indexStart].toLowerCase();
+      if (line.contains("changelog:") || line.contains("changes:")) {
+        indexStart++;
+        break;
+      }
+    }
+
+    if (indexStart < lines.length) {
+      indexEnd = indexStart;
+      Pattern p = Pattern.compile("^\\s*[-+*]");
+      for (; indexEnd < lines.length; indexEnd++) {
+        if (!p.matcher(lines[indexEnd]).find()) {
+          break;
+        }
+      }
+
+      if (indexEnd > indexStart) {
+        // collecting list entries
+        StringBuilder sbList = new StringBuilder();
+        for (int i = indexStart; i < indexEnd; i++) {
+          sbList.append(lines[i]).append('\n');
+        }
+
+        // converting to html code
+        Parser parser = Parser.builder().build();
+        Node node = parser.parse(sbList.toString());
+        HtmlRenderer renderer = HtmlRenderer.builder().sanitizeUrls(true).build();
+        renderer.render(node, sb);
+      }
+    }
+
+    sb.append("</body></html>");
+
+    return sb.toString();
   }
 
   // -------------------------- INNER CLASSES --------------------------

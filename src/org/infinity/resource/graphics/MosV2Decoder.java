@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -11,6 +11,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.DynamicArray;
 import org.infinity.util.io.StreamUtils;
 
 public class MosV2Decoder extends MosDecoder {
@@ -31,6 +33,37 @@ public class MosV2Decoder extends MosDecoder {
   private int height;
   private int blockCount;
   private int ofsData;
+
+  /**
+   * Returns information about the specified MOS resource.
+   *
+   * @param mosEntry The MOS resource entry.
+   * @return A {@link MosInfo} structure with information about the specified MOS resource,
+   *         {@code null} if information is not available.
+   */
+  public static MosDecoder.MosInfo getInfo(ResourceEntry mosEntry) {
+    MosDecoder.MosInfo retVal = null;
+
+    try (InputStream is = mosEntry.getResourceDataAsStream()) {
+      String signature = StreamUtils.readString(is, 4);
+      String version = StreamUtils.readString(is, 4);
+
+      if ("MOS ".equals(signature) && "V2  ".equals(version)) {
+        final byte[] header = new byte[0x18];
+        DynamicArray.putString(header, 0, 8, "MOS V2  ");
+        is.read(header, 8, header.length - 8);
+
+        int width = DynamicArray.getInt(header, 0x08);
+        int height = DynamicArray.getInt(header, 0x0c);
+        int numBlocks = DynamicArray.getInt(header, 0x10);
+        retVal = new MosDecoder.MosInfo(width, height, numBlocks);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return retVal;
+  }
 
   public MosV2Decoder(ResourceEntry mosEntry) {
     super(mosEntry);

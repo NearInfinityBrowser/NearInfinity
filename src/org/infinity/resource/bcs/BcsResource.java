@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -328,7 +327,7 @@ public final class BcsResource
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit(),
-        Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()));
+        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -476,7 +475,7 @@ public final class BcsResource
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
           try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
-              Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()))) {
+              Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()))) {
             bw.write(sourceText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
             JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() + '\"',
                 "Export complete", JOptionPane.INFORMATION_MESSAGE);

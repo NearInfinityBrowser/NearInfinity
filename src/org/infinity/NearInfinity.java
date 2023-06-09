@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity;
@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
@@ -118,6 +117,7 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
+import org.infinity.util.LauncherUtils;
 import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
@@ -231,13 +231,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     System.out.format("Usage: java -jar %s [options] [game_path]", jarFile).println();
     System.out.println("\nOptions:");
-    System.out.println("  -v, -version    Display version information.");
-    System.out.println("  -h, -help       Display this help.");
-    System.out.println("  -t type         Force the current or specified game to be of");
-    System.out.println("                  specific type. (Use with care!)");
-    System.out.println("                  Supported game types:");
+    System.out.println("  -v, -version      Display version information.");
+    System.out.println("  -h, -help         Display this help.");
+    System.out.println("  -no-update        Disables the update check option in the menu bar.");
+    System.out.println("  -no-launch-game   Hides the \"Launch game\" button.");
+    System.out.println("  -t type           Force the current or specified game to be of");
+    System.out.println("                    specific type. (Use with care!)");
+    System.out.println("                    Supported game types:");
     for (final Profile.Game game : Profile.Game.values()) {
-      System.out.println("                    " + game.toString());
+      System.out.println("                      " + game.toString());
     }
     System.out.println("\nExamples:");
     System.out.format("Specify game path: java -jar %s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
@@ -257,38 +259,54 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public static void main(String args[]) {
     Profile.Game forcedGame = null;
     Path gameOverride = null;
+    boolean enableUpdate = true;
+    boolean showLaunchGame = true;
 
     for (int idx = 0; idx < args.length; idx++) {
-      if (args[idx].equalsIgnoreCase("-v") || args[idx].equalsIgnoreCase("-version")) {
-        System.out.println("Near Infinity " + getVersion());
-        System.exit(0);
-      } else if (args[idx].equalsIgnoreCase("-h") || args[idx].equalsIgnoreCase("-help")) {
-        String jarFile = Utils.getJarFileName(NearInfinity.class);
-        if (!jarFile.isEmpty()) {
-          jarFile = FileManager.resolve(jarFile).getFileName().toString();
-        }
-        printHelp(jarFile);
-        System.exit(0);
-      } else if (args[idx].equalsIgnoreCase("-t") && idx + 1 < args.length) {
-        idx++;
-        String type = args[idx];
-        Profile.Game[] games = Profile.Game.values();
-        for (final Profile.Game game : games) {
-          if (game.toString().equalsIgnoreCase(type)) {
-            forcedGame = game;
-            break;
+      switch (args[idx].toLowerCase(Locale.ENGLISH)) {
+        case "-v":
+        case "-version":
+          System.out.println("Near Infinity " + getVersion());
+          System.exit(0);
+        case "-h":
+        case "-help":
+          String jarFile = Utils.getJarFileName(NearInfinity.class);
+          if (!jarFile.isEmpty()) {
+            jarFile = FileManager.resolve(jarFile).getFileName().toString();
           }
-        }
-      } else {
-        // Override game folder via application parameter
-        Path f = FileManager.resolve(args[idx]);
-        if (FileEx.create(f).isFile()) {
-          f = f.getParent();
-        }
-        if (FileEx.create(f).isDirectory()) {
-          gameOverride = f;
+          printHelp(jarFile);
+          System.exit(0);
+        case "-no-update":
+          enableUpdate = false;
           break;
-        }
+        case "-no-launch-game":
+          showLaunchGame = false;
+          break;
+        case "-t":
+          if (idx + 1 < args.length) {
+            idx++;
+            String type = args[idx];
+            Profile.Game[] games = Profile.Game.values();
+            for (final Profile.Game game : games) {
+              if (game.toString().equalsIgnoreCase(type)) {
+                forcedGame = game;
+                break;
+              }
+            }
+            break;
+          } else {
+            System.err.println("Missing argument for option '-t'.");
+            System.exit(1);
+          }
+        default:
+          // Override game folder via application parameter
+          Path f = FileManager.resolve(args[idx]);
+          if (FileEx.create(f).isFile()) {
+            f = f.getParent();
+          }
+          if (FileEx.create(f).isDirectory()) {
+            gameOverride = f;
+          }
       }
     }
 
@@ -310,10 +328,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.setOut(new ConsoleStream(System.out, CONSOLE_TEXT));
     System.setErr(new ConsoleStream(System.err, CONSOLE_TEXT));
 
-    new NearInfinity(gameOverride, forcedGame);
+    final Options options = new Options(gameOverride, forcedGame, enableUpdate, showLaunchGame);
+    new NearInfinity(options);
   }
 
-  private NearInfinity(Path gameOverride, Profile.Game forcedGame) {
+  private NearInfinity(Options options) {
     super("Near Infinity");
     browser = this;
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -338,13 +357,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     resizeUIFont(globalFontSize);
 
     final BrowserMenuBar menu = new BrowserMenuBar();
+    menu.setUpdateMenuEnabled(options.isUpdateEnabled());
     // Registers menu as key event dispatcher to intercept Ctrl+Shift+D from any window
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(menu);
     setJMenuBar(menu);
 
     final String lastDir;
-    if (gameOverride != null && FileEx.create(gameOverride).isDirectory()) {
-      lastDir = gameOverride.toString();
+    if (options.isGameOverride() && FileEx.create(options.getGameOverride()).isDirectory()) {
+      lastDir = options.getGameOverride().toString();
     } else {
       lastDir = prefs.get(LAST_GAMEDIR, null);
     }
@@ -366,7 +386,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
-        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), forcedGame);
+        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), options.getForcedGame());
 
         // making sure vital game resources are accessible
         Path tlkFile = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
@@ -494,6 +514,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       btnLaunchGame.setMargin(new Insets(0, 0, 0, 0));
       btnLaunchGame.setToolTipText("Launch game");
       btnLaunchGame.addActionListener(this);
+      btnLaunchGame.setVisible(options.isLaunchGameVisible());
       toolBar.add(btnLaunchGame);
       launchMenu = new JPopupMenu();
 
@@ -537,16 +558,22 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     new DropTarget(getRootPane(), new FileDropTargetListener());
 
     // Checking for updates
-    if (Updater.getInstance().isAutoUpdateCheckEnabled() && Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
+    if (options.isUpdateEnabled() &&
+        Updater.getInstance().isAutoUpdateCheckEnabled() &&
+        Updater.getInstance().hasAutoUpdateCheckDateExpired()) {
       // storing last check date for future reference
       Updater.getInstance().setAutoUpdateCheckDate(null);
       // running check in background with as little as possible interference with user interactions
       new Thread(() -> {
-        UpdateInfo info = Updater.getInstance().loadUpdateInfo();
-        if (info != null) {
-          if (Updater.isNewRelease(info.getRelease(), true)) {
-            UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+        try {
+          UpdateInfo info = Updater.getInstance().loadUpdateInfo();
+          if (info != null) {
+            if (Updater.isNewRelease(info.getRelease(), true)) {
+              UpdateCheck.showDialog(NearInfinity.getInstance(), info);
+            }
           }
+        } catch (Exception e) {
+          System.out.println("Failed to check for updates: " + e.getMessage());
         }
       }).start();
     }
@@ -1122,8 +1149,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private void setAppIcon() {
     List<Image> list = new ArrayList<>();
-    for (int i = 4; i < 8; i++) {
-      list.add(Icons.getImage(null, String.format("App%d.png", 1 << i)));
+    for (int i = 4; true; i++) {
+      final Image icon = Icons.getImage(null, String.format("App%d.png", 1 << i));
+      if (icon != null) {
+        list.add(icon);
+      } else {
+        break;
+      }
     }
     setIconImages(list);
   }
@@ -1218,7 +1250,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       try {
         if (Platform.IS_MACOS && binPath.toString().toLowerCase(Locale.ENGLISH).endsWith(".app")) {
           // This method may be required for launching Mac App Bundles
-          Desktop.getDesktop().open(binPath.toFile());
+          LauncherUtils.open(binPath);
         } else {
           ProcessBuilder pb = new ProcessBuilder(binPath.toString());
           pb.directory(binPath.getParent().toFile());
@@ -1328,6 +1360,45 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   // -------------------------- INNER CLASSES --------------------------
+
+  private static final class Options {
+    private final Path gameOverride;
+    private final Profile.Game forcedGame;
+    private final boolean enableUpdate;
+    private final boolean showLaunchGame;
+
+    public Options(Path gameOverride, Profile.Game forcedGame, boolean enableUpdate, boolean showLaunchGame) {
+      this.gameOverride = gameOverride;
+      this.forcedGame = forcedGame;
+      this.enableUpdate = enableUpdate;
+      this.showLaunchGame = showLaunchGame;
+    }
+
+    public boolean isGameOverride() {
+      return gameOverride != null;
+    }
+
+    public Path getGameOverride() {
+      return gameOverride;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isForcedGame() {
+      return forcedGame != null;
+    }
+
+    public Profile.Game getForcedGame() {
+      return forcedGame;
+    }
+
+    public boolean isUpdateEnabled() {
+      return enableUpdate;
+    }
+
+    public boolean isLaunchGameVisible() {
+      return showLaunchGame;
+    }
+  }
 
   private static final class ConsoleStream extends PrintStream {
     private final JTextArea text;

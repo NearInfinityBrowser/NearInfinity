@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -55,6 +54,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
 
@@ -92,7 +92,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit(),
-        Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()));
+        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -478,7 +478,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
     if (returnval == JFileChooser.APPROVE_OPTION) {
       try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
-          Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()))) {
+          Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()))) {
         bw.write(codeText.getText());
         JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() + '\"',
             "Save completed", JOptionPane.INFORMATION_MESSAGE);
