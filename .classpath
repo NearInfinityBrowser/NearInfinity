@@ -6,6 +6,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/jhexview/jhexview.jar" sourcepath="lib/jhexview/jhexview-current.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/montemedia/montemedia.jar" sourcepath="lib/montemedia/MonteMedia-0.7.7.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/apng-writer/apng-writer-core.jar" sourcepath="lib/apng-writer/apng-writer-core-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/json/json-20230227.jar" sourcepath="lib/json/JSON-java-20230227.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/commonmark/commonmark-0.21.0.jar" sourcepath="lib/commonmark/commonmark-java-commonmark-parent-0.21.0.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

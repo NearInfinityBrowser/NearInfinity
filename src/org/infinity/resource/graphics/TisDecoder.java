@@ -1,13 +1,15 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
 
 import java.awt.Image;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Common base class for handling TIS resources.
@@ -55,6 +57,36 @@ public abstract class TisDecoder {
         e.printStackTrace();
       }
     }
+    return retVal;
+  }
+
+  /**
+   * Returns information about the specified TIS resource.
+   *
+   * @param tisEntry The TIS resource entry.
+   * @return A {@link TisInfo} structure with information about the specified TIS resource,
+   *         {@code null} if information is not available.
+   */
+  public static TisInfo getInfo(ResourceEntry tisEntry) {
+    TisInfo retVal = null;
+
+    if (tisEntry != null) {
+      try (InputStream is = tisEntry.getResourceDataAsStream()) {
+        String signature = StreamUtils.readString(is, 4);
+        String version = StreamUtils.readString(is, 4);
+
+        if ("TIS ".equals(signature) && "V1  ".equals(version)) {
+          int numTiles = StreamUtils.readInt(is);
+          int tileSize = StreamUtils.readInt(is);
+          is.skip(4); // tile data offset
+          int tileDim = StreamUtils.readInt(is);
+          retVal = new TisInfo(numTiles, tileSize, tileDim);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
     return retVal;
   }
 
@@ -129,5 +161,28 @@ public abstract class TisDecoder {
   // Set the current TIS type
   protected void setType(Type type) {
     this.type = type;
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  /** A class for providing parsed TIS header information. */
+  public static class TisInfo {
+    /** Type of the TIS resource. */
+    public final Type type;
+    /** Number of tiles stored in the TIS file. */
+    public final int numTiles;
+    /** Dimension of a TIS tile, in pixels (always 64). */
+    public final int tileDimension;
+
+    public TisInfo(int numTiles, int tileSize, int tileDim) {
+      this.type = tileSize == 0x0c ? Type.PVRZ : Type.PALETTE;
+      this.numTiles = numTiles;
+      this.tileDimension = tileDim;
+    }
+
+    /** Returns the tile size, in bytes, for the current TIS file. */
+    public int getTileSize() {
+      return type == Type.PVRZ ? 0x0c : 0x1400;
+    }
   }
 }

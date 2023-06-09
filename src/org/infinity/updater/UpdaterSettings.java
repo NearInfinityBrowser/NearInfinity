@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.updater;
@@ -46,11 +46,10 @@ import org.infinity.util.Misc;
  * Provides a dialog for configuring update-relevant data.
  */
 public class UpdaterSettings extends JDialog {
-  private final JComboBox<String> cbUpdateInterval = new JComboBox<>(
-      new String[] { "Once per session", "Daily", "Once per week", "Once per month" });
+  private final JComboBox<Updater.Interval> cbUpdateInterval = new JComboBox<>(new Updater.Interval[] {
+      Updater.Interval.HOURLY, Updater.Interval.DAILY, Updater.Interval.WEEKLY, Updater.Interval.MONTHLY });
   private final JTextField tfProxyAddress = new JTextField(12);
   private final JTextField tfProxyPort = new JTextField(6);
-  private final JCheckBox cbStableOnly = new JCheckBox("Consider stable releases only");
   private final JCheckBox cbAutoUpdate = new JCheckBox("Automatically check for updates");
   private final JCheckBox cbProxyEnabled = new JCheckBox("Enable Proxy");
   private final JButton bOK = new JButton("OK");
@@ -104,8 +103,6 @@ public class UpdaterSettings extends JDialog {
     JLabel lProxyAddress = new JLabel("Address:");
     JLabel lProxyPort = new JLabel("Port:");
     cbAutoUpdate.addActionListener(getListeners());
-    cbStableOnly.setToolTipText(
-        "Stable versions are released much less often and don't include " + "the latest features and bugfixes.");
     cbProxyEnabled.addActionListener(getListeners());
     bOK.setPreferredSize(bCancel.getPreferredSize());
     bOK.addActionListener(getListeners());
@@ -127,9 +124,6 @@ public class UpdaterSettings extends JDialog {
           new Insets(8, 8, 0, 8), 0, 0);
       pServer.add(server.getCheckButton(i), gbc);
     }
-    gbc = ViewerUtil.setGBC(gbc, 0, Updater.getMaxServerCount(), 3, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(8, 4, 4, 8), 0, 0);
-    pServer.add(cbStableOnly, gbc);
 
     // configuring proxy server panel
     JPanel pProxy = new JPanel(new GridBagLayout());
@@ -212,11 +206,10 @@ public class UpdaterSettings extends JDialog {
       server.getTextField(i).setCaretPosition(0);
       server.setServerValidated(i, true);
     }
-    cbStableOnly.setSelected(Updater.getInstance().isStableOnly());
 
     // getting auto update settings
     cbAutoUpdate.setSelected(Updater.getInstance().isAutoUpdateCheckEnabled());
-    cbUpdateInterval.setSelectedIndex(Updater.getInstance().getAutoUpdateCheckInterval());
+    cbUpdateInterval.setSelectedItem(Updater.getInstance().getAutoUpdateCheckInterval());
     cbUpdateInterval.setEnabled(cbAutoUpdate.isSelected());
 
     // getting proxy settings
@@ -256,16 +249,10 @@ public class UpdaterSettings extends JDialog {
         }
       }
     }
-    if (cbStableOnly.isSelected() != Updater.getInstance().isStableOnly()) {
-      // reset cached release info if release type changed
-      Updater.getInstance().setStableOnly(cbStableOnly.isSelected());
-      Updater.getInstance().setCurrentHash(null);
-      Updater.getInstance().setCurrentTimeStamp(null);
-    }
 
     // saving auto update settings
     Updater.getInstance().setAutoUpdateCheckEnabled(cbAutoUpdate.isSelected());
-    Updater.getInstance().setAutoUpdateCheckInterval(cbUpdateInterval.getSelectedIndex());
+    Updater.getInstance().setAutoUpdateCheckInterval((Updater.Interval) cbUpdateInterval.getSelectedItem());
 
     // saving proxy settings
     String addr = tfProxyAddress.getText();

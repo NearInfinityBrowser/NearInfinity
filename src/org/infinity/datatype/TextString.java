@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -35,7 +35,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   public TextString(ByteBuffer buffer, int offset, int length, String name) {
     super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(length);
-    this.charset = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
+    this.charset = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
     read(buffer, offset);
   }
 

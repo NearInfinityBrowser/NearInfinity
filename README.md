@@ -8,6 +8,11 @@ A file browser and editor for the Infinity Engine. You can find out more in
 the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki), or download it directly from the
 [Releases section](https://github.com/Argent77/NearInfinity/releases).
 
+**Discuss Near Infinity on:**
+- [GitHub Discussions](https://github.com/NearInfinityBrowser/NearInfinity/discussions)
+- [Beamdog Forums](https://forums.beamdog.com/discussion/30593/new-versions-of-nearinfinity-available/)
+- [Spellhold Studios Forums](http://www.shsforums.net/topic/45358-nearinfinity/)
+
 ## How to build Near Infinity
 
 **Required tools:**

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -720,6 +720,50 @@ public final class CreResource extends AbstractStruct
       }
     }
     return retVal.trim();
+  }
+
+  /**
+   * Returns the script name from the given CRE resource buffer.
+   * @param buffer A {@code ByteBuffer} containing CRE or CHR resource data.
+   * @return Script name of the creature, empty string otherwise.
+   * @throws IOException If the buffer does not contain valid resource data.
+   */
+  public static String getScriptName(ByteBuffer buffer) throws IOException {
+    String retVal = "";
+    String sig = StreamUtils.readString(buffer, 0, 4);
+    String ver = StreamUtils.readString(buffer, 4, 4);
+    int startOfs = 0;
+    if (sig.equals("CHR ")) {
+      switch (ver) {
+        case "V2.2":
+          startOfs = 0x224;
+          break;
+        default:
+          startOfs = 0x64;
+      }
+      ver = StreamUtils.readString(buffer, startOfs + 4, 4);
+    } else if (!sig.equals("CRE ")) {
+      throw new IOException("Unsupported resource signature: " + sig);
+    }
+
+    switch (ver) {
+      case "V1.1":
+      case "V1.2":
+        retVal = StreamUtils.readString(buffer, startOfs + 0x324);
+        break;
+      case "V2.2":
+        retVal = StreamUtils.readString(buffer, startOfs + 0x394);
+        break;
+      case "V9.0":
+      case "V9.1":
+        retVal = StreamUtils.readString(buffer, startOfs + 0x2e8);
+        break;
+      default:
+        retVal = StreamUtils.readString(buffer, startOfs + 0x280);
+    }
+
+    retVal = retVal.trim();
+    return retVal;
   }
 
   public CreResource(String name) throws Exception {

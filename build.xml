@@ -10,6 +10,8 @@
   <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
   <property name="montemedia.file" value="${lib.path.rel}/montemedia/montemedia.jar"/>
   <property name="apng_writer.file" value="${lib.path.rel}/apng-writer/apng-writer-core.jar"/>
+  <property name="json.file" value="${lib.path.rel}/json/json-20230227.jar"/>
+  <property name="commonmark.file" value="${lib.path.rel}/commonmark/commonmark-0.21.0.jar"/>
   <property name="javacc.home" value="lib/javacc"/>
   <property name="parser.path" value="org/infinity/resource/bcs/parser"/>
   <property name="src.parser.path" value="${src.path}/org/infinity/resource/bcs/parser"/>
@@ -27,7 +29,7 @@
            deprecation="false"
            debug="false"
            debuglevel="lines,vars,source"
-           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}:${apng_writer.file}">
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}:${apng_writer.file}:${json.file}:${commonmark.file}">
       <!-- Various debugging options: -->
       <!-- <compilerarg value="-Xlint:cast"/> -->
       <!-- <compilerarg value="-Xlint:deprecation"/> -->
@@ -51,6 +53,8 @@
       <zipgroupfileset dir="." includes="${jhexview.file}"/>
       <zipgroupfileset dir="." includes="${montemedia.file}"/>
       <zipgroupfileset dir="." includes="${apng_writer.file}"/>
+      <zipgroupfileset dir="." includes="${json.file}"/>
+      <zipgroupfileset dir="." includes="${commonmark.file}"/>
       <manifest>
         <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>

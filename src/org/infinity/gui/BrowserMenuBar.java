@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -117,7 +117,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher {
-  public static final String VERSION = "v2.3-20230303";
+  public static final String VERSION = "v2.3-20230609";
 
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -271,6 +271,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     add(helpMenu);
   }
 
+  /** Returns whether menu entries for updating Near Infinity are available. */
+  public boolean isUpdateMenuEnabled() {
+    return helpMenu.isUpdateMenuEnabled();
+  }
+
+  /** Specifies the enabled state of the Near Infinity update check and settings. */
+  public void setUpdateMenuEnabled(boolean enable) {
+    helpMenu.setUpdateMenuEnabled(enable);
+  }
+
   /**
    * Returns whether menu item "Tools > Print debug info" is shown.
    */
@@ -304,6 +314,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
    */
   public void setShowOpenBookmarksPrompt(boolean show) {
     optionsMenu.optionOpenBookmarksPrompt.setSelected(show);
+  }
+
+  /** Returns whether the size and position of the last opened child frame should be reused for new child frames. */
+  public boolean rememberChildFrameRect() {
+    return optionsMenu.optionRememberChildFrameRect.isSelected();
   }
 
   /** Returns whether scripts are automatically scanned for compile errors. */
@@ -1874,6 +1889,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_SHOWSYSINFO              = "ShowSysInfo";
     private static final String OPTION_OPENBOOKMARKSPROMPT      = "OpenBookmarksPrompt";
+    private static final String OPTION_REMEMBER_CHILDFRAME_RECT = "RememberChildFrameRect";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
     private static final String OPTION_HIGHLIGHT_OVERRIDDEN     = "HighlightOverridden";
@@ -1970,6 +1986,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private JCheckBoxMenuItem optionShowHexColored;
     private JCheckBoxMenuItem optionShowSystemInfo;
     private JCheckBoxMenuItem optionOpenBookmarksPrompt;
+    private JCheckBoxMenuItem optionRememberChildFrameRect;
     private JCheckBoxMenuItem optionShowUnknownResources;
     private JCheckBoxMenuItem optionKeepViewOnCopy;
     private JCheckBoxMenuItem optionTreeSearchNames;
@@ -2089,6 +2106,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionOpenBookmarksPrompt = new JCheckBoxMenuItem("Confirm opening bookmarked games",
           getPrefs().getBoolean(OPTION_OPENBOOKMARKSPROMPT, true));
       add(optionOpenBookmarksPrompt);
+      optionRememberChildFrameRect = new JCheckBoxMenuItem("Remember last child frame size and position",
+          getPrefs().getBoolean(OPTION_REMEMBER_CHILDFRAME_RECT, false));
+      optionRememberChildFrameRect.setToolTipText(
+          "<html>With this option enabled, placement of the last opened child window will be reused for new child windows.<br/>"
+          + "This information will only be valid for the current Near Infinity session.</html>");
+      add(optionRememberChildFrameRect);
 
       addSeparator();
 
@@ -2411,7 +2434,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           try {
             // L&F description is only available from class instance
             Class<?> cls = Class.forName(element.getClassName());
-            Object o = cls.newInstance();
+            Object o = cls.getDeclaredConstructor().newInstance();
             if (o instanceof LookAndFeel) {
               dbmi.setToolTipText(((LookAndFeel) o).getDescription());
             }
@@ -2744,6 +2767,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSYSINFO, optionShowSystemInfo.isSelected());
       getPrefs().putBoolean(OPTION_OPENBOOKMARKSPROMPT, optionOpenBookmarksPrompt.isSelected());
+      getPrefs().putBoolean(OPTION_REMEMBER_CHILDFRAME_RECT, optionRememberChildFrameRect.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
@@ -3335,6 +3359,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem helpMonteMediaLicense;
     private final JMenuItem helpJFontChooserLicense;
     private final JMenuItem helpApngWriterLicense;
+    private final JMenuItem helpCommonMarkLicense;
     private final JMenuItem helpOracleLicense;
     private final JMenuItem helpUpdateSettings;
     private final JMenuItem helpUpdateCheck;
@@ -3356,6 +3381,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       JMenu miscLicenses = new JMenu("Third-party licenses");
       miscLicenses.setMnemonic(KeyEvent.VK_T);
       add(miscLicenses);
+
+      helpCommonMarkLicense = makeMenuItem("CommonMark-Java License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
+      miscLicenses.add(helpCommonMarkLicense);
 
       helpApngWriterLicense = makeMenuItem("APNG Writer License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpApngWriterLicense);
@@ -3409,6 +3437,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         displayLicense("org/infinity/JFontChooser.License.txt", "MIT License");
       } else if (event.getSource() == helpApngWriterLicense) {
         displayLicense("org/infinity/apng-writer.License.txt", "BSD License");
+      } else if (event.getSource() == helpCommonMarkLicense) {
+        displayLicense("org/infinity/commonmark.License.txt", "BSD License");
       } else if (event.getSource() == helpOracleLicense) {
         displayLicense("org/infinity/Oracle.License.txt", "BSD License");
       } else if (event.getSource() == helpUpdateSettings) {
@@ -3427,11 +3457,25 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           if (!Updater.isNewRelease(info.getRelease(), false)) {
             info = null;
           }
+        } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Check for updates: " + e.getMessage(), "Error",
+              JOptionPane.ERROR_MESSAGE);
+          return;
         } finally {
           WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
         }
         UpdateCheck.showDialog(NearInfinity.getInstance(), info);
       }
+    }
+
+    private boolean isUpdateMenuEnabled() {
+      return helpUpdateCheck.isEnabled();
+    }
+
+    private void setUpdateMenuEnabled(boolean enable) {
+      helpUpdateCheck.setEnabled(enable);
+      helpUpdateSettings.setEnabled(enable);
     }
 
     private void displayAbout() {
@@ -3474,6 +3518,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           add("Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.");
           add("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.");
           add("JHexView by Sebastian Porst - GNU General Public License.");
+          add("CommonMark-Java (\u00A9) Atlassian Pty. Ltd. - BSD License.");
           add("APNG Writer by Weoulren - BSD License.");
         }
       };

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text;
@@ -328,12 +328,7 @@ public class PlainTextResource
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    final Charset cs;
-    if (BrowserMenuBar.getInstance() != null) {
-      cs = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
-    } else {
-      cs = Misc.CHARSET_DEFAULT;
-    }
+    final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
   }
 

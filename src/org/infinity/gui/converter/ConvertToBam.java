@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.converter;
@@ -4153,7 +4153,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
                 dstBuf[ofs] = colIdx;// (byte)ci;
               } else {
                 double weight = getUseAlpha() ? 1.0 : 0.0;
-                byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
+                byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null, true);
                 dstBuf[ofs] = color;// (byte)ci;
                 colorCache.put(c, color);
               }
@@ -4246,7 +4246,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               dstBuf[ofs] = colIdx;
             } else {
               double weight = getUseAlpha() ? 1.0 : 0.0;
-              byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
+              byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null, true);
               dstBuf[ofs] = color;// (byte)ci;
               colorCache.put(c, color);
             }

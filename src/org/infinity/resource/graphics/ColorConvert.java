@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -340,9 +340,13 @@ public class ColorConvert {
    * @param calculator  the function for distance calculation. Choose one of the predefined functions or specify a
    *                    custom instance. Specify {@code null} to use the fastest (but slightly inaccurate) distance
    *                    calculation.
+   * @param skipGreen   indicates whether the special color "Green" should be ignored by the color calculation.
    * @return Palette index pointing to the nearest color value. Returns -1 if color entry could not be determined.
    */
-  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator) {
+  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator,
+      boolean skipGreen) {
+    final int Green = 0x0000ff00;
+
     int retVal = -1;
     if (palette == null) {
       return retVal;
@@ -354,7 +358,13 @@ public class ColorConvert {
     alphaWeight = Math.max(0.0, Math.min(2.0, alphaWeight));
     double minDist = Double.MAX_VALUE;
     for (int i = 0; i < palette.length; i++) {
-      double dist = calculator.calculate(argb, palette[i], alphaWeight);
+      final int argb2 = palette[i];
+      // BAM V1: It is a bad idea to use the transparent green color as the "nearest" color,
+      //   the input most likely did not intend for adjacent colors to be transparent.
+      if (skipGreen && (argb2 & 0x00ffffff) == Green) {
+        continue;
+      }
+      double dist = calculator.calculate(argb, argb2, alphaWeight);
       if (dist < minDist) {
         minDist = dist;
         retVal = i;
@@ -362,6 +372,24 @@ public class ColorConvert {
     }
 
     return retVal;
+  }
+
+  /**
+   * Calculates the nearest color available in the given palette using the specified color distance function.
+   *
+   * @param argb        the reference ARGB color.
+   * @param palette     palette with ARGB colors to search.
+   * @param alphaWeight Weight factor of the alpha component. Supported range: [0.0, 2.0]. A value < 1.0 makes alpha
+   *                    less important for the distance calculation. A value > 1.0 makes alpha more important for the
+   *                    distance calculation. Specify 1.0 to use the unmodified alpha compomponent for the calculation.
+   *                    Specify 0.0 to ignore the alpha part in the calculation.
+   * @param calculator  the function for distance calculation. Choose one of the predefined functions or specify a
+   *                    custom instance. Specify {@code null} to use the fastest (but slightly inaccurate) distance
+   *                    calculation.
+   * @return Palette index pointing to the nearest color value. Returns -1 if color entry could not be determined.
+   */
+  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator) {
+    return getNearestColor(argb, palette, alphaWeight, calculator, false);
   }
 
   /**

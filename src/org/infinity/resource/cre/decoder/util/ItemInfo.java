@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -7,7 +7,6 @@ package org.infinity.resource.cre.decoder.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -369,6 +368,24 @@ public class ItemInfo implements Comparable<ItemInfo> {
     synchronized (ITEM_CACHE) {
       ITEM_CACHE.clear();
     }
+  }
+
+  /**
+   * Removes the specified ITM {@code ResourceEntry} instances from the cache.
+   *
+   * @param entries Sequence of ITM {@codee ResourceEntry} instances to remove from the cache.
+   * @return Number of successfully removed entries.
+   */
+  public static int removeFromCache(ResourceEntry... entries) {
+    int retVal = 0;
+    for (final ResourceEntry entry: entries) {
+      synchronized (ITEM_CACHE) {
+        if (ITEM_CACHE.remove(entry) != null) {
+          retVal++;
+        }
+      }
+    }
+    return retVal;
   }
 
   /**
@@ -1044,7 +1061,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
       this.timing = buf.getByte(0xc);
       this.dispelResist = buf.getByte(0xd);
       this.duration = buf.getByte(0xe);
-      this.resource = DynamicArray.getString(effect, 0x14, 8, Charset.forName("windows-1252"));
+      this.resource = DynamicArray.getString(effect, 0x14, 8, Misc.CHARSET_DEFAULT);
       this.savingThrowFlags = buf.getInt(0x24);
       this.savingThrow = buf.getInt(0x28);
       this.special = buf.getInt(0x2c);

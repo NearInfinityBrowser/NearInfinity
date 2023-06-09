@@ -1,12 +1,11 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -36,6 +35,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.LauncherUtils;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -69,7 +69,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
         }
         if (videoFile != null) {
           try {
-            Desktop.getDesktop().open(videoFile.toFile());
+            LauncherUtils.open(videoFile);
           } catch (Exception e) {
             bPlayExternal.setEnabled(false);
             WindowBlocker.blockWindow(false);

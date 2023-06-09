@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre.decoder.util;
@@ -889,7 +889,7 @@ public class CreatureInfo {
 
     if (itmEntry != null) {
       try {
-        ItemInfo itemInfo = ItemInfo.get(itmEntry);
+        ItemInfo itemInfo = ItemInfo.getValidated(itmEntry);
         itemInfo.overrideDroppableFlag(isUndroppable);
         equipment.put(slot, itemInfo);
       } catch (Exception e) {
@@ -969,7 +969,7 @@ public class CreatureInfo {
         + ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
     try {
       String itmResref = ((IsTextual) cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
-      info = ItemInfo.get(ResourceFactory.getResourceEntry(itmResref + ".ITM"));
+      info = ItemInfo.getValidated(ResourceFactory.getResourceEntry(itmResref + ".ITM"));
     } catch (Exception e) {
       return retVal;
     }

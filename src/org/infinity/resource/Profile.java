@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2022 Jon Olav Hauglid
+// Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -1087,6 +1087,9 @@ public final class Profile implements FileWatcher.FileWatchListener {
     }
     if (ignoreGame || (Boolean) getProperty(Key.IS_SUPPORTED_LUA)) {
       list.add("LUA");
+    }
+    if (ignoreGame || (Boolean) getProperty(Key.IS_SUPPORTED_MAZE)) {
+      list.add("MAZE");
     }
     if (ignoreGame || (Boolean) getProperty(Key.IS_SUPPORTED_MENU)) {
       list.add("MENU");
