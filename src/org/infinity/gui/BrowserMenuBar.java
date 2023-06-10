@@ -117,7 +117,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher {
-  public static final String VERSION = "v2.3-20230609";
+  public static final String VERSION = "v2.3-20230610";
 
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -279,6 +279,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   /** Specifies the enabled state of the Near Infinity update check and settings. */
   public void setUpdateMenuEnabled(boolean enable) {
     helpMenu.setUpdateMenuEnabled(enable);
+  }
+
+  /** Specifies the enabled state of the "Allow launching games" entry in the Options menu. */
+  public void setLaunchGameMenuEnabled(boolean enable) {
+    optionsMenu.optionLaunchGameAllowed.setEnabled(enable);
   }
 
   /**
