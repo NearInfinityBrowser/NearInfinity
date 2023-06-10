@@ -358,6 +358,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     final BrowserMenuBar menu = new BrowserMenuBar();
     menu.setUpdateMenuEnabled(options.isUpdateEnabled());
+    menu.setLaunchGameMenuEnabled(options.isLaunchGameVisible());
     // Registers menu as key event dispatcher to intercept Ctrl+Shift+D from any window
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(menu);
     setJMenuBar(menu);

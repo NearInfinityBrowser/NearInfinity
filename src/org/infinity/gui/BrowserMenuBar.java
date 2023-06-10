@@ -281,6 +281,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     helpMenu.setUpdateMenuEnabled(enable);
   }
 
+  /** Specifies the enabled state of the "Allow launching games" entry in the Options menu. */
+  public void setLaunchGameMenuEnabled(boolean enable) {
+    optionsMenu.optionLaunchGameAllowed.setEnabled(enable);
+  }
+
   /**
    * Returns whether menu item "Tools > Print debug info" is shown.
    */
