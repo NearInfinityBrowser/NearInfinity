@@ -6,6 +6,7 @@ package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
@@ -54,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
@@ -3478,9 +3480,29 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       return helpUpdateCheck.isEnabled();
     }
 
+    /**
+     * Disables and hides, or enables and shows all Update-related menu entries from the Help menu,
+     * depending on the specified parameter.
+     */
     private void setUpdateMenuEnabled(boolean enable) {
-      helpUpdateCheck.setEnabled(enable);
-      helpUpdateSettings.setEnabled(enable);
+      boolean checkSeparator = false;
+      // We have to iterate through the whole menu, since JSeparator instances cannot be accessed directly
+      for (int i = getMenuComponentCount() - 1; i >= 0; i--) {
+        final Component c = getMenuComponent(i);
+        if (c instanceof JMenuItem) {
+          if (c == helpUpdateCheck) {
+            c.setEnabled(enable);
+            c.setVisible(enable);
+          } else if (c == helpUpdateSettings) {
+            c.setEnabled(enable);
+            c.setVisible(enable);
+            checkSeparator = true;
+          }
+        } else if (checkSeparator && c instanceof JSeparator) {
+          c.setVisible(enable);
+          break;
+        }
+      }
     }
 
     private void displayAbout() {
