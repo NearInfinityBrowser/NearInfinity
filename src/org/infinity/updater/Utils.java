@@ -89,8 +89,14 @@ public class Utils {
    * </p>
    *
    * @param s String containing date/time information.
+   * @return {@code OffsetDateTime} object of the given date string. Returns the current date if {@code null} is
+   * specified.
    */
   public static OffsetDateTime getDateTimeFromString(String s) throws DateTimeParseException {
+    if (s == null || s.isEmpty()) {
+      return OffsetDateTime.now();
+    }
+
     DateTimeParseException exception = null;
     final DateTimeFormatter[] formatters = {
         ISO_DATE_TIME,
