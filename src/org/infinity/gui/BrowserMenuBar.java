@@ -3367,6 +3367,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem helpJFontChooserLicense;
     private final JMenuItem helpApngWriterLicense;
     private final JMenuItem helpCommonMarkLicense;
+    private final JMenuItem helpFlatLafLicense;
     private final JMenuItem helpOracleLicense;
     private final JMenuItem helpUpdateSettings;
     private final JMenuItem helpUpdateCheck;
@@ -3388,6 +3389,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       JMenu miscLicenses = new JMenu("Third-party licenses");
       miscLicenses.setMnemonic(KeyEvent.VK_T);
       add(miscLicenses);
+
+      helpFlatLafLicense = makeMenuItem("FlatLaf License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
+      miscLicenses.add(helpFlatLafLicense);
 
       helpCommonMarkLicense = makeMenuItem("CommonMark-Java License", KeyEvent.VK_A, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpCommonMarkLicense);
@@ -3442,6 +3446,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         displayLicense("org/infinity/MonteMedia.License.txt", "Creative Commons / LGPL License");
       } else if (event.getSource() == helpJFontChooserLicense) {
         displayLicense("org/infinity/JFontChooser.License.txt", "MIT License");
+      } else if (event.getSource() == helpFlatLafLicense) {
+        displayLicense("org/infinity/FlatLaf.License.txt", "Apache License");
       } else if (event.getSource() == helpApngWriterLicense) {
         displayLicense("org/infinity/apng-writer.License.txt", "BSD License");
       } else if (event.getSource() == helpCommonMarkLicense) {
@@ -3546,6 +3552,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           add("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.");
           add("JHexView by Sebastian Porst - GNU General Public License.");
           add("CommonMark-Java (\u00A9) Atlassian Pty. Ltd. - BSD License.");
+          add("FlatLaf (\u00A9) FormDev Software GmbH - Apache License.");
           add("APNG Writer by Weoulren - BSD License.");
         }
       };

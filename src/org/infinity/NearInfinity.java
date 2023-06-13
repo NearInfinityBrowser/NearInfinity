@@ -60,6 +60,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.LookAndFeel;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -148,7 +149,49 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
+  private static final List<Class<? extends LookAndFeel>> CUSTOM_LOOK_AND_FEELS = new ArrayList<>();
+
   static {
+    // Initializing custom Look&Feel themes
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.FlatLightLaf.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.FlatIntelliJLaf.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.themes.FlatMacLightLaf.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatArcIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme.class);
+    // TODO: Dark themes are intentionally left out for now, since they doesn't work well together with hardcoded colors and icons
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.FlatDarkLaf.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.FlatDarculaLaf.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.themes.FlatMacDarkLaf.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatCobalt2IJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGradiantoNatureGreenIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatMonokaiProIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatNordIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme.class);
+//    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatXcodeDarkIJTheme.class);
+
     // Setting Swing UI scale factor (only available for Java 9 or higher)
     if (Platform.JAVA_VERSION > 8) {
       final int uiScale = getUiScalingOption();
@@ -307,6 +350,16 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           if (FileEx.create(f).isDirectory()) {
             gameOverride = f;
           }
+      }
+    }
+
+    // Installing custom Look&Feel themes
+    for (final Class<? extends LookAndFeel> lf: CUSTOM_LOOK_AND_FEELS) {
+      try {
+        final LookAndFeel o = lf.getDeclaredConstructor().newInstance();
+        UIManager.installLookAndFeel(o.getName(), o.getClass().getCanonicalName());
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
 
