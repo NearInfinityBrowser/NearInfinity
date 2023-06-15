@@ -27,13 +27,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -192,10 +192,10 @@ public final class DialogChecker extends AbstractSearcher
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
         errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
         errorTable.getSelectionModel().addListSelectionListener(this);
-        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
         warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
         MouseListener listener = new MouseAdapter() {

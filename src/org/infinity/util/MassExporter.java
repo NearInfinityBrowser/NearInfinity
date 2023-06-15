@@ -55,10 +55,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -793,9 +793,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private ByteBuffer decompileScript(ResourceEntry entry, ByteBuffer inBuffer) throws Exception {
     if (inBuffer != null) {
       final Decompiler decompiler = new Decompiler(StreamUtils.readString(inBuffer, inBuffer.limit()), false);
-      decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
+      decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
       String script = decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR);
-      final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
+      final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
       return ByteBuffer.wrap(script.getBytes(cs));
     }
     return inBuffer;

@@ -30,13 +30,13 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-import org.infinity.gui.BrowserMenuBar;
-import org.infinity.gui.BrowserMenuBar.ViewMode;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.ViewMode;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.ResourceFactory;
@@ -298,7 +298,7 @@ public final class MusResource
       panel.add(tabbedPane, BorderLayout.CENTER);
       if (lastIndex != -1) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == ViewMode.Edit) {
+      } else if (BrowserMenuBar.getInstance().getOptionsMenu().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(1);
       }
       WindowBlocker.blockWindow(false);

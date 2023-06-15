@@ -31,12 +31,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
@@ -170,7 +170,7 @@ public final class StringRef extends Datatype
 
       sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
-      if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
+      if (BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
         taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       }

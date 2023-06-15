@@ -50,7 +50,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar.Bookmark;
+import org.infinity.gui.menu.Bookmark;
 import org.infinity.resource.Profile;
 import org.infinity.util.Platform;
 import org.infinity.util.SimpleListModel;
@@ -78,28 +78,28 @@ public class BookmarkEditor extends JDialog
   private final JTextField tfPath = createReadOnlyField(null, true);
   private final JTextField tfHomePath = createReadOnlyField(null, true);
   private final DefaultComboBoxModel<Platform.OS> cbPlatformModel = new DefaultComboBoxModel<>(
-      BrowserMenuBar.Bookmark.getSupportedOS());
+      Bookmark.getSupportedOS());
   private final JComboBox<Platform.OS> cbPlatform = new JComboBox<>(cbPlatformModel);
   private final EnumMap<Platform.OS, DefaultListModel<Path>> listBinPathModels = new EnumMap<>(Platform.OS.class);
   private final JList<Path> listBinPaths = new JList<>();
-  private final List<BrowserMenuBar.Bookmark> listBookmarks = new ArrayList<>();
+  private final List<Bookmark> listBookmarks = new ArrayList<>();
 
   private boolean accepted;
 
-  public static List<BrowserMenuBar.Bookmark> editBookmarks(List<BrowserMenuBar.Bookmark> bookmarks) {
+  public static List<Bookmark> editBookmarks(List<Bookmark> bookmarks) {
     BookmarkEditor dlg = new BookmarkEditor(NearInfinity.getInstance(), bookmarks);
-    List<BrowserMenuBar.Bookmark> retVal = dlg.getBookmarkList();
+    List<Bookmark> retVal = dlg.getBookmarkList();
     dlg.dispose();
     dlg = null;
     return retVal;
   }
 
-  private BookmarkEditor(Window owner, List<BrowserMenuBar.Bookmark> bookmarks) {
+  private BookmarkEditor(Window owner, List<Bookmark> bookmarks) {
     super(owner, "Bookmark Editor", Dialog.ModalityType.APPLICATION_MODAL);
     init(bookmarks);
   }
 
-  private void init(List<BrowserMenuBar.Bookmark> bookmarks) {
+  private void init(List<Bookmark> bookmarks) {
     setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 
     getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
@@ -275,13 +275,13 @@ public class BookmarkEditor extends JDialog
     setVisible(true);
   }
 
-  private void initData(List<BrowserMenuBar.Bookmark> bookmarks) {
+  private void initData(List<Bookmark> bookmarks) {
     // making deep copy of provided list
     if (bookmarks != null) {
       this.listBookmarks.clear();
-      for (Iterator<BrowserMenuBar.Bookmark> iter = bookmarks.iterator(); iter.hasNext();) {
+      for (Iterator<Bookmark> iter = bookmarks.iterator(); iter.hasNext();) {
         try {
-          this.listBookmarks.add((BrowserMenuBar.Bookmark) iter.next().clone());
+          this.listBookmarks.add((Bookmark) iter.next().clone());
         } catch (CloneNotSupportedException e) {
           // unused
         }
@@ -298,7 +298,7 @@ public class BookmarkEditor extends JDialog
     cbPlatform.addItemListener(this);
 
     if (listBookmarks != null) {
-      for (Iterator<BrowserMenuBar.Bookmark> iter = listBookmarks.iterator(); iter.hasNext();) {
+      for (Iterator<Bookmark> iter = listBookmarks.iterator(); iter.hasNext();) {
         modelEntries.addElement(iter.next());
       }
       if (!modelEntries.isEmpty()) {
@@ -312,7 +312,7 @@ public class BookmarkEditor extends JDialog
   }
 
   // Returns the (updated) bookmark list
-  private List<BrowserMenuBar.Bookmark> getBookmarkList() {
+  private List<Bookmark> getBookmarkList() {
     return accepted() ? listBookmarks : null;
   }
 
@@ -371,7 +371,7 @@ public class BookmarkEditor extends JDialog
     bClear.setEnabled(!modelEntries.isEmpty());
 
     if (index >= 0) {
-      BrowserMenuBar.Bookmark bookmark = modelEntries.get(index);
+      Bookmark bookmark = modelEntries.get(index);
       tfName.setText(bookmark.getName());
       tfName.setSelectionStart(0);
       tfName.setSelectionEnd(0);
@@ -462,14 +462,14 @@ public class BookmarkEditor extends JDialog
 
   /** Updates the home path of the selected bookmark. */
   private void updateHomePath() {
-    BrowserMenuBar.Bookmark bookmark = listEntries.getSelectedValue();
+    Bookmark bookmark = listEntries.getSelectedValue();
     bookmark.setHomePath(tfHomePath.getText());
     bHomePathClear.setEnabled(!tfHomePath.getText().isEmpty());
   }
 
   // Updates all binary path lists for the selected bookmark
   private void updateBinPaths() {
-    BrowserMenuBar.Bookmark bookmark = listEntries.getSelectedValue();
+    Bookmark bookmark = listEntries.getSelectedValue();
     for (int i = 0; i < cbPlatformModel.getSize(); i++) {
       Platform.OS os = cbPlatformModel.getElementAt(i);
       DefaultListModel<Path> model = getBinPathModel(os);
@@ -627,7 +627,7 @@ public class BookmarkEditor extends JDialog
     if (event.getSource() == tfName) {
       int idx = listEntries.getSelectedIndex();
       if (idx >= 0) {
-        BrowserMenuBar.Bookmark bookmark = modelEntries.get(idx);
+        Bookmark bookmark = modelEntries.get(idx);
         if (!tfName.getText().trim().isEmpty()) {
           // update name in selected entry
           bookmark.setName(tfName.getText().trim());

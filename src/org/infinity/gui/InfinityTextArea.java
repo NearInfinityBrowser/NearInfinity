@@ -34,6 +34,7 @@ import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.GutterIconInfo;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
@@ -257,12 +258,12 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
   public static void applySettings(RSyntaxTextArea edit, boolean resetUndo) {
     if (edit != null) {
       edit.setCurrentLineHighlightColor(DEFAULT_LINE_HIGHLIGHT_COLOR);
-      if (BrowserMenuBar.getInstance() != null) {
-        edit.setTabsEmulated(BrowserMenuBar.getInstance().isTextTabEmulated());
-        edit.setTabSize(BrowserMenuBar.getInstance().getTextTabSize());
-        edit.setWhitespaceVisible(BrowserMenuBar.getInstance().getTextWhitespaceVisible());
-        edit.setEOLMarkersVisible(BrowserMenuBar.getInstance().getTextEOLVisible());
-        edit.setHighlightCurrentLine(BrowserMenuBar.getInstance().getTextHighlightCurrentLine());
+      if (BrowserMenuBar.isInstantiated()) {
+        edit.setTabsEmulated(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().isTextTabEmulated());
+        edit.setTabSize(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextTabSize());
+        edit.setWhitespaceVisible(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextWhitespaceVisible());
+        edit.setEOLMarkersVisible(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextEOLVisible());
+        edit.setHighlightCurrentLine(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextHighlightCurrentLine());
       } else {
         // default settings
         edit.setTabsEmulated(false);
@@ -330,33 +331,33 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         schemePath = SCHEME_NONE;
         switch (language) {
           case BCS:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getBcsColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsColorScheme();
             }
             break;
           case TLK:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getTlkColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTlkColorScheme();
             }
             break;
           case GLSL:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getGlslColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslColorScheme();
             }
             break;
           case LUA:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getLuaColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getLuaColorScheme();
             }
             break;
           case SQL:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getSqlColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlColorScheme();
             }
             break;
           case WEIDU:
-            if (BrowserMenuBar.getInstance() != null) {
-              schemePath = BrowserMenuBar.getInstance().getWeiDUColorScheme();
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getWeiDUColorScheme();
             }
             break;
           default:
@@ -377,15 +378,15 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
       // apply code folding
       switch (language) {
         case BCS:
-          if (BrowserMenuBar.getInstance() != null) {
-            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getBcsCodeFoldingEnabled());
+          if (BrowserMenuBar.isInstantiated()) {
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsCodeFoldingEnabled());
           } else {
             edit.setCodeFoldingEnabled(false);
           }
           break;
         case GLSL:
-          if (BrowserMenuBar.getInstance() != null) {
-            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getGlslCodeFoldingEnabled());
+          if (BrowserMenuBar.isInstantiated()) {
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslCodeFoldingEnabled());
           } else {
             edit.setCodeFoldingEnabled(false);
           }
@@ -597,7 +598,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
   // Returns scaled global font
   private Font getGlobalFont() {
-    Font f = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getScriptFont() : getFont();
+    Font f = BrowserMenuBar.isInstantiated() ? BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont() : getFont();
     if (f != null) {
       f = Misc.getScaledFont(f);
     }
@@ -606,7 +607,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
   // -------------------------- INNER CLASSES --------------------------
 
-  static class GutterIcon {
+  public static class GutterIcon {
     int line;
     Icon icon;
     String message;

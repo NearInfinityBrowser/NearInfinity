@@ -33,11 +33,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Referenceable;
@@ -328,7 +328,7 @@ public class PlainTextResource
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
+    final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
   }
 
@@ -478,7 +478,7 @@ public class PlainTextResource
     InfinityScrollPane pane = new InfinityScrollPane(editor, true);
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
-    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
@@ -594,29 +594,29 @@ public class PlainTextResource
     InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
       if ("SQL".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("LUA".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getLuaSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getLuaSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.LUA;
         }
       } else if (Profile.isEnhancedEdition() && "BALDUR.INI".equalsIgnoreCase(entry.getResourceName())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("GLSL".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getGlslSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.GLSL;
         }
       } else if ("BCS".equalsIgnoreCase(entry.getExtension()) || "BS".equalsIgnoreCase(entry.getExtension())
           || "BAF".equalsIgnoreCase(entry.getExtension())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.BCS;
         }
       } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName())
           || "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
-        if (BrowserMenuBar.getInstance() == null || BrowserMenuBar.getInstance().getWeiDUSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getWeiDUSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.WEIDU;
         }
       }

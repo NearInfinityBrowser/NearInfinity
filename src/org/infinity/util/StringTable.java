@@ -21,8 +21,8 @@ import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StringEditor;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -105,7 +105,7 @@ public class StringTable {
   public static Charset getCharset() {
     if (charset == null) {
       try {
-        setCharset(BrowserMenuBar.getInstance().getSelectedCharset());
+        setCharset(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
       } catch (Throwable t) {
         // returns a temporary value if BrowserMenuBar has not yet been initialized
         return Profile.isEnhancedEdition() ? Misc.CHARSET_UTF8 : Misc.CHARSET_DEFAULT;

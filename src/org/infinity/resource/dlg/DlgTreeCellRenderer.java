@@ -11,8 +11,8 @@ import java.util.HashMap;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.BrowserMenuBar;
 
 /**
  * <p>
@@ -51,10 +51,10 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
     final ItemBase item = (ItemBase) value;
 
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
-    setIcon(options.showDlgTreeIcons() ? item.getIcon() : null);
-    setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(item.getDialog()) : null);
+    setIcon(options.getOptionsMenu().showDlgTreeIcons() ? item.getIcon() : null);
+    setBackgroundNonSelectionColor(options.getOptionsMenu().colorizeOtherDialogs() ? getColor(item.getDialog()) : null);
 
-    if (options.useDifferentColorForResponses() && item instanceof TransitionItem) {
+    if (options.getOptionsMenu().useDifferentColorForResponses() && item instanceof TransitionItem) {
       setForeground(Color.BLUE);
     }
 
@@ -63,7 +63,7 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
     } else if (item instanceof StateItem) {
       final StateItem state = (StateItem) item;
       final State s = state.getEntry();
-      if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
+      if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.getOptionsMenu().alwaysShowState0()) {
         setForeground(Color.GRAY);
       }
     }

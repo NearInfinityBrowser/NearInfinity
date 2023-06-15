@@ -42,7 +42,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener {
   private final JRadioButton rbcreate = new JRadioButton("Create new");
   private final JTextField tfbifname = new JTextField(10);
 
-  ChooseBIFFrame(BIFFEditor editor) {
+  public ChooseBIFFrame(BIFFEditor editor) {
     super("Edit BIFF: Select file", true);
     setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
     this.editor = editor;

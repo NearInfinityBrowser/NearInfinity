@@ -18,7 +18,7 @@ import javax.swing.tree.TreeNode;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
@@ -53,7 +53,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
     final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
     flags = entry instanceof Flag ? ((Flag) entry).toString() : null;
 
-    final boolean alwaysShow = BrowserMenuBar.getInstance().alwaysShowState0();
+    final boolean alwaysShow = BrowserMenuBar.getInstance().getOptionsMenu().alwaysShowState0();
     // finding and storing initial states
     int count = 0;
     for (final StructEntry e : dlg.getFields()) {
@@ -183,7 +183,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
     private final boolean sortByWeight;
 
     public StateComparator() {
-      sortByWeight = BrowserMenuBar.getInstance().sortStatesByWeight();
+      sortByWeight = BrowserMenuBar.getInstance().getOptionsMenu().sortStatesByWeight();
     }
 
     @Override

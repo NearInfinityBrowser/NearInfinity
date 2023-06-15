@@ -76,7 +76,6 @@ import org.infinity.datatype.ProRef;
 import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.SpellProtType;
 import org.infinity.datatype.Summon2daBitmap;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.DataMenuItem;
@@ -91,6 +90,8 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.Bookmark;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
@@ -129,7 +130,12 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
-  private static final int[] JAVA_VERSION = { 1, 8 }; // the minimum java version supported
+  // the current Near Infinity version
+  private static final String VERSION = "v2.3-20230610";
+
+  // the minimum java version supported
+  private static final int[] JAVA_VERSION = { 1, 8 };
+
 
   private static final String KEYFILENAME             = "chitin.key";
   private static final String WINDOW_SIZEX            = "WindowSizeX";
@@ -263,9 +269,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return browser;
   }
 
-  /** Returns the NearInfinity version. */
+  /** Returns the current NearInfinity version. */
   public static String getVersion() {
-    return BrowserMenuBar.VERSION;
+    return VERSION;
   }
 
   public static void printHelp(String jarFile) {
@@ -410,8 +416,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     resizeUIFont(globalFontSize);
 
     final BrowserMenuBar menu = new BrowserMenuBar();
-    menu.setUpdateMenuEnabled(options.isUpdateEnabled());
-    menu.setLaunchGameMenuEnabled(options.isLaunchGameVisible());
+    menu.getHelpMenu().setUpdateMenuEnabled(options.isUpdateEnabled());
+    menu.getOptionsMenu().setLaunchGameMenuEnabled(options.isLaunchGameVisible());
     // Registers menu as key event dispatcher to intercept Ctrl+Shift+D from any window
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(menu);
     setJMenuBar(menu);
@@ -440,7 +446,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
-        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), options.getForcedGame());
+        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(keyFile), options.getForcedGame());
 
         // making sure vital game resources are accessible
         Path tlkFile = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
@@ -484,7 +490,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
       });
       try {
-        LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptionsMenu().getLookAndFeel();
         UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
       } catch (Exception e) {
@@ -689,7 +695,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ChildFrame.updateWindowGUIs();
     } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
-        LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptionsMenu().getLookAndFeel();
         UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
         ChildFrame.updateWindowGUIs();
@@ -827,7 +833,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ChildFrame.closeWindows();
       clearCache(false);
       BaseOpcode.reset();
-      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(keyFile));
 
       // making sure vital game resources are accessible
       Path tlkPath = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
@@ -1036,7 +1042,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       launchMenu.removeAll();
 
       // setting up new configuration
-      BrowserMenuBar.Bookmark bookmark = BrowserMenuBar.getInstance().getBookmarkOf(Profile.getChitinKey());
+      Bookmark bookmark = BrowserMenuBar.getInstance().getGameMenu().getBookmarkOf(Profile.getChitinKey());
       List<Path> binPaths = null;
       if (bookmark != null) {
         List<String> list = bookmark.getBinaryPaths(Platform.getPlatform());
@@ -1074,7 +1080,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           launchMenu.add(dmi);
         }
       }
-      boolean isEnabled = (binPaths != null) && BrowserMenuBar.getInstance().getLauncherEnabled();
+      boolean isEnabled = (binPaths != null) && BrowserMenuBar.getInstance().getOptionsMenu().getLauncherEnabled();
       btnLaunchGame.setEnabled(isEnabled);
       if (binPaths == null) {
         btnLaunchGame.setIcon(Icons.ICON_LAUNCH_24.getIcon());
@@ -1109,7 +1115,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     clearCache(refreshOnly);
     Path keyFile = refreshOnly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
-      retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(keyFile));
       if (retVal) {
         CreMapCache.reset();
       }
@@ -1194,9 +1200,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
     prefs.putInt(TABLE_WIDTH_SIZE, getTableColumnWidth(3));
     prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
-    prefs.putBoolean(APP_UI_SCALE_ENABLED, BrowserMenuBar.getInstance().isUiScalingEnabled());
-    prefs.putInt(APP_UI_SCALE_FACTOR, BrowserMenuBar.getInstance().getUiScalingFactor());
-    prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getGlobalFontSize());
+    prefs.putBoolean(APP_UI_SCALE_ENABLED, BrowserMenuBar.getInstance().getOptionsMenu().isUiScalingEnabled());
+    prefs.putInt(APP_UI_SCALE_FACTOR, BrowserMenuBar.getInstance().getOptionsMenu().getUiScalingFactor());
+    prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getOptionsMenu().getGlobalFontSize());
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();
   }
@@ -1336,12 +1342,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
    * Shows Java Runtime information when there are no components attached to the main view.
    */
   private JPanel createJavaInfoPanel() {
-    if (!BrowserMenuBar.getInstance().showSysInfo()) {
+    if (!BrowserMenuBar.getInstance().getOptionsMenu().showSysInfo()) {
       return new JPanel();
     }
 
     final List<Couple<String, String>> entries = new ArrayList<>();
-    entries.add(new Couple<String, String>("Near Infinity", BrowserMenuBar.VERSION));
+    entries.add(new Couple<String, String>("Near Infinity", getVersion()));
     entries.add(new Couple<String, String>("Java Runtime", System.getProperty("java.runtime.name")));
 
     String s1 = System.getProperty("java.version", "n/a");

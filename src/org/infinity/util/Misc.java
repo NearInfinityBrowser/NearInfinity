@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.prefs.Preferences;
 
 import javax.swing.JComponent;
 
@@ -60,6 +61,28 @@ public class Misc {
         return toString().equalsIgnoreCase(obj.toString());
       }
     };
+  }
+
+  /**
+   * Returns the absolute path name of the node corresponding to the package of the specified class name.
+   *
+   * @param className Fully qualified class or package name in a format as provided by {@link Class#getName()}.
+   * @return A node name string that can be used as path name for a {@link Preferences} instance.
+   *
+   * @throws IllegalArgumentException if the specified argument is not a valid class or package name.
+   *
+   * @implNote This is a variation of the private method {@code nodeName(Class<?> c)} in the {@link Preferences} class.
+   * It should be checked and updated if needed when this project upgrades the minimum JDK requirements.
+   */
+  public static String prefsNodeName(String className) {
+    if (className.indexOf('/') >= 0) {
+      throw new IllegalArgumentException("Invalid class name specified.");
+    }
+    int pkgEndIndex = className.lastIndexOf('.');
+    if (pkgEndIndex < 0)
+      return "/<unnamed>";
+    String packageName = className.substring(0, pkgEndIndex);
+    return "/" + packageName.replace('.', '/');
   }
 
   /**

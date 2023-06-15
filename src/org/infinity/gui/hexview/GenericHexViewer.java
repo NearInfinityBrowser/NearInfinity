@@ -12,8 +12,8 @@ import java.nio.charset.Charset;
 import javax.swing.JPanel;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StatusBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
@@ -282,7 +282,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setFontColorAsciiView(textColor);
     hexView.setFontColorModified(Color.RED);
     hexView.setSelectionColor(new Color(0xc0c0c0));
-    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
+    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getHexColorMapEnabled());
     hexView.setEnabled(true);
   }
 }

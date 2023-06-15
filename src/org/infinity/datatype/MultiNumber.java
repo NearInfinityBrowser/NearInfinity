@@ -27,9 +27,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
 
@@ -103,7 +103,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
   public JComponent edit(ActionListener container) {
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
     tValues.getTableHeader().setFont(tValues.getTableHeader().getFont().deriveFont(Font.BOLD));
     tValues.setRowHeight(tValues.getFontMetrics(tValues.getFont()).getHeight() + 1);
     tValues.setBorder(BorderFactory.createLineBorder(Color.GRAY));

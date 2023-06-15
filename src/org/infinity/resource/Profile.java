@@ -44,9 +44,9 @@ import javax.swing.UIManager;
 import javax.swing.event.ListDataListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
-import org.infinity.gui.BrowserMenuBar.Bookmark;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.Bookmark;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
@@ -1891,7 +1891,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
         }
         game = Profile.showGameSelectionDialog("Unknown game", "Please select a game:", oldGame);
         if (game != null) {
-          openGame(getChitinKey(), BrowserMenuBar.getInstance().getBookmarkName(getChitinKey()), game);
+          openGame(getChitinKey(), BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(getChitinKey()), game);
           return;
         }
       }
@@ -2049,7 +2049,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
     // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
     Path homeRoot = null;
-    Bookmark bookmark = BrowserMenuBar.getInstance().getBookmarkOf(getChitinKey());
+    Bookmark bookmark = BrowserMenuBar.getInstance().getGameMenu().getBookmarkOf(getChitinKey());
     if (bookmark != null && bookmark.getHomePath() != null) {
       final Path path = FileManager.resolve(bookmark.getHomePath());
       if (path != null && Files.isDirectory(path)) {

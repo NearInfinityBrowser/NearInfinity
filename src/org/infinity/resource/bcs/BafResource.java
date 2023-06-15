@@ -37,7 +37,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.DataMenuItem;
@@ -45,6 +44,7 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
@@ -92,7 +92,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit(),
-        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()));
+        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -255,7 +255,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText = new ScriptTextArea();
     sourceText.setText(text);
     sourceText.setCaretPosition(0);
-    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
+    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
@@ -391,7 +391,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpmWarnings.setEnabled(true);
     }
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
     try {
       decompiler.decompile();
       Set<ResourceEntry> uses = decompiler.getResourcesUsed();
@@ -417,7 +417,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     JButton bCompile = (JButton) bpSource.getControlByType(CTRL_COMPILE);
     ButtonPopupMenu bpmUses = (ButtonPopupMenu) buttonPanel.getControlByType(CTRL_USES);
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
@@ -478,7 +478,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
     if (returnval == JFileChooser.APPROVE_OPTION) {
       try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
-          Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset()))) {
+          Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()))) {
         bw.write(codeText.getText());
         JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() + '\"',
             "Save completed", JOptionPane.INFORMATION_MESSAGE);

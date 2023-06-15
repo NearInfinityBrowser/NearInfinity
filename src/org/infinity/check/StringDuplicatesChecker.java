@@ -29,7 +29,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -37,6 +36,7 @@ import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
@@ -181,7 +181,7 @@ public class StringDuplicatesChecker extends AbstractSearcher
       pane.add(scrollTable, BorderLayout.CENTER);
       pane.add(buttonPanel, BorderLayout.PAGE_END);
 
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
 

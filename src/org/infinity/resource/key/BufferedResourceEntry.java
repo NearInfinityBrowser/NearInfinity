@@ -11,8 +11,8 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Objects;
 
-import org.infinity.gui.BrowserMenuBar;
-import org.infinity.gui.BrowserMenuBar.OverrideMode;
+import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.ByteBufferInputStream;
@@ -94,8 +94,8 @@ public class BufferedResourceEntry extends ResourceEntry {
 
   @Override
   public String getTreeFolderName() {
-    if (BrowserMenuBar.getInstance() != null) {
-      final OverrideMode mode = BrowserMenuBar.getInstance().getOverrideMode();
+    if (BrowserMenuBar.isInstantiated()) {
+      final OverrideMode mode = BrowserMenuBar.getInstance().getOptionsMenu().getOverrideMode();
       final Keyfile keyfile = ResourceFactory.getKeyfile();
 
       if (keyfile.getExtensionType(getExtension()) != -1) {

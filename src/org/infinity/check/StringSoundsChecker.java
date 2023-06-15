@@ -31,7 +31,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -39,6 +38,7 @@ import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -228,7 +228,7 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
       tabbedPane.addTab("Male (" + table.getRowCount() + ")", scrollTable);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
 
@@ -237,7 +237,7 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
         scrollTable = new JScrollPane(tableFemale);
         scrollTable.getViewport().setBackground(tableFemale.getBackground());
         tabbedPane.addTab("Female (" + tableFemale.getRowCount() + ")", scrollTable);
-        tableFemale.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        tableFemale.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
         tableFemale.setRowHeight(tableFemale.getFontMetrics(tableFemale.getFont()).getHeight() + 1);
         tableFemale.getSelectionModel().addListSelectionListener(this);
       } else {

@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
@@ -35,7 +35,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   public TextString(ByteBuffer buffer, int offset, int length, String name) {
     super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(length);
-    this.charset = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getSelectedCharset());
+    this.charset = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
     read(buffer, offset);
   }
 

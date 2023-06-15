@@ -48,6 +48,7 @@ import javax.swing.event.TableModelListener;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -93,7 +94,7 @@ public final class ViewerUtil {
       String s;
       String help = null;
       if (entry instanceof StringRef) {
-        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+        StringTable.Format fmt = BrowserMenuBar.getInstance().getOptionsMenu().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
             : StringTable.Format.NONE;
         s = ((StringRef) entry).toString(fmt);
       } else {
@@ -304,14 +305,14 @@ public final class ViewerUtil {
   public static JPanel makeTextAreaPanel(StructEntry entry, boolean showTitle) {
     String text;
     if (entry instanceof StringRef) {
-      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+      StringTable.Format fmt = BrowserMenuBar.getInstance().getOptionsMenu().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
           : StringTable.Format.NONE;
       text = ((StringRef) entry).toString(fmt);
     } else {
       text = entry.toString();
     }
     InfinityTextArea ta = new InfinityTextArea(text, true);
-    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
     ta.setCaretPosition(0);
     ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
