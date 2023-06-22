@@ -249,7 +249,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
   @Override
   public String getTreeFolderName() {
     if (BrowserMenuBar.isInstantiated() &&
-        (BrowserMenuBar.getInstance().getOptionsMenu().getOverrideMode() == OverrideMode.InOverride) && hasOverride()) {
+        (BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) && hasOverride()) {
       return Profile.getOverrideFolderName();
     }
     return getExtension();
@@ -267,7 +267,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
   @Override
   public boolean hasOverride() {
     // TODO: update dynamically via WatchService class?
-    if (!BrowserMenuBar.getInstance().getOptionsMenu().cacheOverride()) {
+    if (!BrowserMenuBar.getInstance().getOptions().cacheOverride()) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
       synchronized (this) {

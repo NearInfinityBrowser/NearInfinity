@@ -217,7 +217,7 @@ public final class DlgResource extends AbstractStruct
       final Path path = ResourceFactory.getExportFileDialog(getViewer().getTopLevelAncestor(), fileName, false);
       if (path != null) {
         File file = path.toFile();
-        try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset())) {
+        try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getOptions().getSelectedCharset())) {
           if (!exportDlgAsText(writer)) {
             throw new Exception();
           }

@@ -327,7 +327,7 @@ public final class BcsResource
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit(),
-        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()));
+        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset()));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -475,7 +475,7 @@ public final class BcsResource
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
           try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
-              Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()))) {
+              Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset()))) {
             bw.write(sourceText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
             JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() + '\"',
                 "Export complete", JOptionPane.INFORMATION_MESSAGE);
@@ -520,7 +520,7 @@ public final class BcsResource
       return sourceText.getText();
     }
     Decompiler decompiler = new Decompiler(text, false);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
     try {
       return decompiler.getSource();
     } catch (Exception e) {
@@ -565,7 +565,7 @@ public final class BcsResource
   @Override
   public JComponent makeViewer(ViewableContainer container) {
     sourceText = new ScriptTextArea();
-    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsAutoIndentEnabled());
+    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
@@ -640,7 +640,7 @@ public final class BcsResource
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
     decompile();
-    if (BrowserMenuBar.getInstance().getOptionsMenu().autocheckBCS()) {
+    if (BrowserMenuBar.getInstance().getOptions().autocheckBCS()) {
       compile();
       codeChanged = false;
     } else {
@@ -728,7 +728,7 @@ public final class BcsResource
     ButtonPopupMenu bpmUses = (ButtonPopupMenu) buttonPanel.getControlByType(CTRL_USES);
 
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {

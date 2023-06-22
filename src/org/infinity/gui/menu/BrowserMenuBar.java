@@ -18,6 +18,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import org.infinity.AppOption;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
@@ -44,7 +45,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private final EditMenu editMenu;
   private final SearchMenu searchMenu;
   private final ToolsMenu toolsMenu;
-  private final OptionsMenu optionsMenu;
   private final HelpMenu helpMenu;
 
   private final Preferences prefsGui;
@@ -107,22 +107,20 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
     menuBar = this;
 
-    // For backwards compatibility: Use former BrowserMenuBar package path as Preferences node
-    prefsGui = Preferences.userRoot().node(Misc.prefsNodeName("org.infinity.gui.BrowserMenuBar"));
+//    prefsGui = Misc.getPrefs(AppOption.Constants.PREFS_OPTIONS);
+    prefsGui = Misc.getPrefs(AppOption.PREFS_OPTIONS);
     prefsProfiles = prefsGui.node(PREFS_PROFILES_NODE);
     gameMenu = new GameMenu(this);
     fileMenu = new FileMenu(this);
     editMenu = new EditMenu(this);
     searchMenu = new SearchMenu(this);
     toolsMenu = new ToolsMenu(this);
-    optionsMenu = new OptionsMenu(this);
     helpMenu = new HelpMenu(this);
     add(gameMenu);
     add(fileMenu);
     add(editMenu);
     add(searchMenu);
     add(toolsMenu);
-    add(optionsMenu);
     add(helpMenu);
   }
 
@@ -134,6 +132,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   /** Returns the Preferences instance for profile-specific settings. */
   public Preferences getPrefsProfiles() {
     return prefsProfiles;
+  }
+
+  /** Provides access to the "Options" menu item. */
+  public OptionsMenuItem getOptions() {
+    return gameMenu.getOptionsMenuItem();
   }
 
   /** Provides access to the "Game" menu. */
@@ -161,11 +164,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return toolsMenu;
   }
 
-  /** Provides access to the "Options" menu. */
-  public OptionsMenu getOptionsMenu() {
-    return optionsMenu;
-  }
-
   /** Provides access to the "Help" menu. */
   public HelpMenu getHelpMenu() {
     return helpMenu;
@@ -175,12 +173,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
     searchMenu.gameLoaded();
-    optionsMenu.gameLoaded();
   }
 
   public void storePreferences() {
     toolsMenu.storePreferences();
-    optionsMenu.storePreferences();
     gameMenu.storePreferences();
   }
 

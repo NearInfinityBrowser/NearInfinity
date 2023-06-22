@@ -92,7 +92,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit(),
-        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()));
+        Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset()));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -255,7 +255,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText = new ScriptTextArea();
     sourceText.setText(text);
     sourceText.setCaretPosition(0);
-    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsAutoIndentEnabled());
+    sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
@@ -391,7 +391,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpmWarnings.setEnabled(true);
     }
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
     try {
       decompiler.decompile();
       Set<ResourceEntry> uses = decompiler.getResourcesUsed();
@@ -417,7 +417,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     JButton bCompile = (JButton) bpSource.getControlByType(CTRL_COMPILE);
     ButtonPopupMenu bpmUses = (ButtonPopupMenu) buttonPanel.getControlByType(CTRL_USES);
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
@@ -478,7 +478,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
     if (returnval == JFileChooser.APPROVE_OPTION) {
       try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
-          Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset()))) {
+          Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset()))) {
         bw.write(codeText.getText());
         JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() + '\"',
             "Save completed", JOptionPane.INFORMATION_MESSAGE);

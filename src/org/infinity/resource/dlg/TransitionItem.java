@@ -143,6 +143,6 @@ class TransitionItem extends StateOwnerItem {
   }
 
   private boolean isMain() {
-    return getMain() == null || !BrowserMenuBar.getInstance().getOptionsMenu().breakCyclesInDialogs();
+    return getMain() == null || !BrowserMenuBar.getInstance().getOptions().breakCyclesInDialogs();
   }
 }

@@ -53,7 +53,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
     final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
     flags = entry instanceof Flag ? ((Flag) entry).toString() : null;
 
-    final boolean alwaysShow = BrowserMenuBar.getInstance().getOptionsMenu().alwaysShowState0();
+    final boolean alwaysShow = BrowserMenuBar.getInstance().getOptions().alwaysShowState0();
     // finding and storing initial states
     int count = 0;
     for (final StructEntry e : dlg.getFields()) {
@@ -183,7 +183,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
     private final boolean sortByWeight;
 
     public StateComparator() {
-      sortByWeight = BrowserMenuBar.getInstance().getOptionsMenu().sortStatesByWeight();
+      sortByWeight = BrowserMenuBar.getInstance().getOptions().sortStatesByWeight();
     }
 
     @Override

@@ -406,7 +406,7 @@ public class ResourceRef extends Datatype
 
     @Override
     public String toString() {
-      return entry == null ? name : BrowserMenuBar.getInstance().getOptionsMenu().getResRefMode().format(entry);
+      return entry == null ? name : BrowserMenuBar.getInstance().getOptions().getResRefMode().format(entry);
     }
   }
 

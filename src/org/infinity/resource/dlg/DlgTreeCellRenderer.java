@@ -51,10 +51,11 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
     final ItemBase item = (ItemBase) value;
 
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
-    setIcon(options.getOptionsMenu().showDlgTreeIcons() ? item.getIcon() : null);
-    setBackgroundNonSelectionColor(options.getOptionsMenu().colorizeOtherDialogs() ? getColor(item.getDialog()) : null);
+    setIcon(options.getOptions().showDlgTreeIcons() ? item.getIcon() : null);
+    setBackgroundNonSelectionColor(
+        options.getOptions().colorizeOtherDialogs() ? getColor(item.getDialog()) : null);
 
-    if (options.getOptionsMenu().useDifferentColorForResponses() && item instanceof TransitionItem) {
+    if (options.getOptions().useDifferentColorForResponses() && item instanceof TransitionItem) {
       setForeground(Color.BLUE);
     }
 
@@ -63,7 +64,7 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
     } else if (item instanceof StateItem) {
       final StateItem state = (StateItem) item;
       final State s = state.getEntry();
-      if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.getOptionsMenu().alwaysShowState0()) {
+      if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.getOptions().alwaysShowState0()) {
         setForeground(Color.GRAY);
       }
     }

@@ -4,6 +4,7 @@
 
 package org.infinity.gui.menu;
 
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -57,6 +58,8 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
   private final JMenuItem gameBookmarkEdit;
   private final JMenuItem gameRecentClear;
 
+  private final OptionsMenuItem optionsMenuItem;
+
   public GameMenu(BrowserMenuBar parent) {
     super("Game");
     setMnemonic(KeyEvent.VK_G);
@@ -77,6 +80,10 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
 
     gameProperties = BrowserMenuBar.makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.ICON_EDIT_16.getIcon(), -1, this);
     add(gameProperties);
+
+    optionsMenuItem = new OptionsMenuItem();
+    optionsMenuItem.addActionListener(this);
+    add(optionsMenuItem);
 
     addSeparator();
 
@@ -160,6 +167,8 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
   }
 
   public void gameLoaded(Profile.Game oldGame, String oldFile) {
+    optionsMenuItem.gameLoaded();
+
     // updating "Recently opened games" list
     for (int i = 0; i < recentList.size(); i++) {
       if (ResourceFactory.getKeyfile().toString().equalsIgnoreCase(recentList.get(i).getPath())) {
@@ -230,6 +239,11 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
     }
   }
 
+  /** Provides access to the "Options" menu item. */
+  public OptionsMenuItem getOptionsMenuItem() {
+    return optionsMenuItem;
+  }
+
   /**
    * Attempts to find and return a matching bookmark object.
    *
@@ -259,6 +273,17 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
     return (bookmark != null) ? bookmark.getName() : null;
   }
 
+  /**
+   * Shows the Preferences dialog for the user to make changes.
+   *
+   * @param owner  the {@code Window} from which the dialog is displayed or {@code null} if this dialog has no owner.
+   * @return {@code true} if the user accepted any changes made in the dialog. {@code false} if the user discarded
+   * the changes, either by clicking the "Cancel" button or closing the dialog.
+   */
+  public boolean showPreferencesDialog(Window owner) {
+    return optionsMenuItem.showPreferencesDialog(owner);
+  }
+
   @Override
   public BrowserMenuBar getMenuBar() {
     return menuBar;
@@ -266,7 +291,9 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == gameOpenFile) {
+    if (event.getSource() == optionsMenuItem) {
+      showPreferencesDialog(NearInfinity.getInstance());
+    } else if (event.getSource() == gameOpenFile) {
       ChildFrame.show(OpenFileFrame.class, OpenFileFrame::new);
     } else if (event.getActionCommand().equals(Bookmark.getCommand())) {
       // Bookmark item selected
@@ -293,14 +320,14 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
           }
           if (!isEqual) {
             int confirm = JOptionPane.YES_OPTION;
-            if (getMenuBar().getOptionsMenu().showOpenBookmarksPrompt()) {
+            if (getMenuBar().getOptions().showOpenBookmarksPrompt()) {
               String message = String.format("Open bookmarked game \"%s\"?", bookmark.getName());
               Couple<Integer, Boolean> result = StandardDialogs.showConfirmDialogExtra(NearInfinity.getInstance(),
                   message, "Open game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                   StandardDialogs.Extra.with(StandardDialogs.Extra.MESSAGE_DO_NOT_SHOW_PROMPT,
                       "Confirmation prompt can be enabled or disabled in the options menu."));
               if (result.getValue1()) {
-                getMenuBar().getOptionsMenu().setShowOpenBookmarksPrompt(false);
+                getMenuBar().getOptions().setShowOpenBookmarksPrompt(false);
               }
               confirm = result.getValue0();
             }

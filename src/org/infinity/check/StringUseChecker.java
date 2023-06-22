@@ -154,7 +154,7 @@ public final class StringUseChecker extends AbstractSearcher
         bottomPanel.add(scrollText, BorderLayout.CENTER);
         bottomPanel.add(searchPanel, BorderLayout.EAST);
         pane.add(bottomPanel, BorderLayout.SOUTH);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
         table.getSelectionModel().addListSelectionListener(this);

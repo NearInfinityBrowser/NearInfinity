@@ -214,7 +214,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
 
     list.setEnabled(false);
     list.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlShadow")));
-    list.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    list.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     playList = new JLabel("Playlist:");
 
     JScrollPane scroll = new JScrollPane(list);

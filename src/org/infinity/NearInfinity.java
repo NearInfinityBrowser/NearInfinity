@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -68,6 +69,7 @@ import javax.swing.SwingWorker;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FontUIResource;
@@ -133,25 +135,25 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   // the current Near Infinity version
   private static final String VERSION = "v2.3-20230610";
 
-  // the minimum java version supported
-  private static final int[] JAVA_VERSION = { 1, 8 };
+  // the minimum supported Java version
+  private static final int JAVA_VERSION_MIN = 8;
 
 
-  private static final String KEYFILENAME             = "chitin.key";
-  private static final String WINDOW_SIZEX            = "WindowSizeX";
-  private static final String WINDOW_SIZEY            = "WindowSizeY";
-  private static final String WINDOW_POSX             = "WindowPosX";
-  private static final String WINDOW_POSY             = "WindowPosY";
-  private static final String WINDOW_STATE            = "WindowState";
-  private static final String WINDOW_SPLITTER         = "WindowSplitter";
-  private static final String LAST_GAMEDIR            = "LastGameDir";
-  private static final String TABLE_WIDTH_ATTR        = "TableColWidthAttr";
-  private static final String TABLE_WIDTH_OFS         = "TableColWidthOfs";
-  private static final String TABLE_WIDTH_SIZE        = "TableColWidthSize";
-  private static final String TABLE_PANEL_HEIGHT      = "TablePanelHeight";
-  private static final String OPTION_GLOBAL_FONT_SIZE = "GlobalFontSize";
-  private static final String APP_UI_SCALE_ENABLED    = "AppUiScaleEnabled";
-  private static final String APP_UI_SCALE_FACTOR     = "AppUiScaleFactor";
+  public static final String KEYFILENAME              = "chitin.key";
+  public static final String WINDOW_SIZEX             = "WindowSizeX";
+  public static final String WINDOW_SIZEY             = "WindowSizeY";
+  public static final String WINDOW_POSX              = "WindowPosX";
+  public static final String WINDOW_POSY              = "WindowPosY";
+  public static final String WINDOW_STATE             = "WindowState";
+  public static final String WINDOW_SPLITTER          = "WindowSplitter";
+  public static final String LAST_GAMEDIR             = "LastGameDir";
+  public static final String TABLE_WIDTH_ATTR         = "TableColWidthAttr";
+  public static final String TABLE_WIDTH_OFS          = "TableColWidthOfs";
+  public static final String TABLE_WIDTH_SIZE         = "TableColWidthSize";
+  public static final String TABLE_PANEL_HEIGHT       = "TablePanelHeight";
+  public static final String OPTION_GLOBAL_FONT_SIZE  = "GlobalFontSize";
+  public static final String APP_UI_SCALE_ENABLED     = "AppUiScaleEnabled";
+  public static final String APP_UI_SCALE_FACTOR      = "AppUiScaleFactor";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
@@ -233,8 +235,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private JPopupMenu launchMenu;
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
-  private int progressIndex, globalFontSize, uiScalingFactor;
-  private boolean uiScalingEnabled;
+  private int progressIndex;
 
   private static Path findKeyfile() {
     JFileChooser chooser;
@@ -369,21 +370,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     }
 
-    String[] javaVersion = System.getProperty("java.specification.version").split("\\.");
-    try {
-      for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {
-        if (Integer.parseInt(javaVersion[i]) < JAVA_VERSION[i]) {
-          JOptionPane.showMessageDialog(null,
-                                        String.format("Version %d.%d or newer of Java is required!",
-                                                      JAVA_VERSION[0], JAVA_VERSION[1]),
-                                        "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-          System.exit(10);
-        }
-      }
-    } catch (Exception e) { // Try starting anyway if the test goes sour
-      e.printStackTrace();
+    // Checking Java version
+    if (Platform.JAVA_VERSION < JAVA_VERSION_MIN) {
+      JOptionPane.showMessageDialog(null, String.format("Java %d or later is required to run Near Infinity!", JAVA_VERSION_MIN),
+          "Error", JOptionPane.ERROR_MESSAGE);
+      System.exit(10);
     }
+
     System.setOut(new ConsoleStream(System.out, CONSOLE_TEXT));
     System.setErr(new ConsoleStream(System.err, CONSOLE_TEXT));
 
@@ -404,20 +397,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     Runtime.getRuntime().addShutdownHook(FileDeletionHook.getInstance());
 
     // Migrate preferences from "infinity" to "org.infinity" if needed
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
-    migratePreferences("infinity", prefs, true);
-
-    // updating UI scale override
-    uiScalingEnabled = prefs.getBoolean(APP_UI_SCALE_ENABLED, false);
-    uiScalingFactor = prefs.getInt(APP_UI_SCALE_FACTOR, 100);
+    migratePreferences("infinity", Preferences.userNodeForPackage(getClass()), true);
 
     // updating relative default font size globally
-    globalFontSize = Math.max(50, Math.min(400, prefs.getInt(OPTION_GLOBAL_FONT_SIZE, 100)));
-    resizeUIFont(globalFontSize);
+    resizeUIFont(AppOption.GLOBAL_FONT_SIZE.getIntValue());
 
     final BrowserMenuBar menu = new BrowserMenuBar();
     menu.getHelpMenu().setUpdateMenuEnabled(options.isUpdateEnabled());
-    menu.getOptionsMenu().setLaunchGameMenuEnabled(options.isLaunchGameVisible());
+    menu.getOptions().setLaunchGameMenuEnabled(options.isLaunchGameVisible());
     // Registers menu as key event dispatcher to intercept Ctrl+Shift+D from any window
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(menu);
     setJMenuBar(menu);
@@ -426,7 +413,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (options.isGameOverride() && FileEx.create(options.getGameOverride()).isDirectory()) {
       lastDir = options.getGameOverride().toString();
     } else {
-      lastDir = prefs.get(LAST_GAMEDIR, null);
+      lastDir = AppOption.LAST_GAME_DIR.getStringValue();
     }
 
     final Path keyFile;
@@ -490,7 +477,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
       });
       try {
-        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptionsMenu().getLookAndFeel();
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptions().getLookAndFeel();
         UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
       } catch (Exception e) {
@@ -586,7 +573,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
       spSplitter.setBorder(BorderFactory.createEmptyBorder());
-      spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
+      spSplitter.setDividerLocation(AppOption.APP_WINDOW_SPLITTER.getIntValue());
       Container pane = getContentPane();
       pane.setLayout(new BorderLayout());
       pane.add(spSplitter, BorderLayout.CENTER);
@@ -596,23 +583,21 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     updateLauncher();
-    setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
-    int centerX = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
-    int centerY = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() - getSize().height >> 1;
-    setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
+    setSize(AppOption.APP_WINDOW_SIZE_X.getIntValue(), AppOption.APP_WINDOW_SIZE_Y.getIntValue());
+    setLocation(AppOption.APP_WINDOW_POS_X.getIntValue(), AppOption.APP_WINDOW_POS_Y.getIntValue());
     setVisible(true);
-    setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
+    setExtendedState(AppOption.APP_WINDOW_STATE.getIntValue());
 
     // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
     if (Platform.IS_MACOS) {
       enableOSXQuitStrategy();
     }
 
-    tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
+    tableColumnWidth[0] = Math.max(15, AppOption.TABLE_COLUMN_ATTRIBUTE_WIDTH.getIntValue());
     tableColumnWidth[1] = 0;
-    tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
-    tableColumnWidth[3] = Math.max(15, prefs.getInt(TABLE_WIDTH_SIZE, 75));
-    tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
+    tableColumnWidth[2] = Math.max(15, AppOption.TABLE_COLUMN_OFFSET_WIDTH.getIntValue());
+    tableColumnWidth[3] = Math.max(15, AppOption.TABLE_COLUMN_SIZE_WIDTH.getIntValue());
+    tablePanelHeight = Math.max(50, AppOption.TABLE_PANEL_HEIGHT.getIntValue());
 
     // enabling file drag and drop for whole window
     new DropTarget(getRootPane(), new FileDropTargetListener());
@@ -639,6 +624,22 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     SwingUtilities.invokeLater(() -> tree.requestFocusInWindow());
+
+    // Present first-time configuration options
+    SwingUtilities.invokeLater(() -> {
+      if (!preferencesExist()) {
+        int result = JOptionPane.showConfirmDialog(this,
+            "It looks like you are running Near Infinity for the first time.\n\n"
+            + "Do you want to inspect and set up the application preferences?", "Introduction",
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+          BrowserMenuBar.getInstance().getGameMenu().showPreferencesDialog(this);
+        } else {
+          JOptionPane.showMessageDialog(this, "Preferences can be found in the Game menu.", "Information",
+              JOptionPane.INFORMATION_MESSAGE);
+        }
+      }
+    });
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -695,13 +696,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ChildFrame.updateWindowGUIs();
     } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
-        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptionsMenu().getLookAndFeel();
-        UIManager.setLookAndFeel(info.getClassName());
-        SwingUtilities.updateComponentTreeUI(this);
-        ChildFrame.updateWindowGUIs();
-        tree.reloadRenderer();
-        tree.repaint();
-        JOptionPane.showMessageDialog(this, "It might be necessary to restart Near Infinity\n" + "to completely change look and feel.");
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptions().getLookAndFeel();
+        updateLookAndFeel(info, true);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -1008,27 +1004,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
-  /**
-   * Returns whether global UI Scaling is overridden by the application.
-   */
-  public boolean isUiScalingEnabled() {
-    return uiScalingEnabled;
-  }
-
-  /**
-   * Returns the currently selected UI Scaling factor, in percent.
-   */
-  public int getUiScalingFactor() {
-    return uiScalingFactor;
-  }
-
-  /**
-   * Returns the currently selected global font size relative to UI defaults.
-   */
-  public int getGlobalFontSize() {
-    return globalFontSize;
-  }
-
   /** Updates the launcher button configuration. */
   public void updateLauncher() {
     SwingUtilities.invokeLater(() -> {
@@ -1080,7 +1055,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           launchMenu.add(dmi);
         }
       }
-      boolean isEnabled = (binPaths != null) && BrowserMenuBar.getInstance().getOptionsMenu().getLauncherEnabled();
+      boolean isEnabled = (binPaths != null) && BrowserMenuBar.getInstance().getOptions().getLauncherEnabled();
       btnLaunchGame.setEnabled(isEnabled);
       if (binPaths == null) {
         btnLaunchGame.setIcon(Icons.ICON_LAUNCH_24.getIcon());
@@ -1098,8 +1073,44 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   /**
+   * Updates the current Look&Feel with the specified theme.
+   * {@code prompt} indicates whether to show an information dialog when the L&F change is complete.
+   */
+  public void updateLookAndFeel(LookAndFeelInfo info, boolean prompt)
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    UIManager.setLookAndFeel(info.getClassName());
+    SwingUtilities.updateComponentTreeUI(this);
+    ChildFrame.updateWindowGUIs();
+    tree.reloadRenderer();
+    tree.repaint();
+    if (prompt) {
+      JOptionPane.showMessageDialog(this,
+          "It might be necessary to restart Near Infinity\n" + "to completely change look and feel.");
+    }
+  }
+
+  /** Returns whether settings exist in the persistent {@code Preferences} node. */
+  public boolean preferencesExist() {
+    final Preferences prefs = Preferences.userNodeForPackage(NearInfinity.class);
+    if (prefs != null) {
+      try {
+        return Arrays.stream(prefs.keys()).anyMatch(k -> k.equals(LAST_GAMEDIR));
+      } catch (BackingStoreException e) {
+      }
+    }
+    return false;
+  }
+
+  /** Returns whether the option "Override UI Scaling" is available for the current NI session. */
+  public static boolean isUiScalingSupported() {
+    return Platform.JAVA_VERSION >= 9;
+  }
+
+  /**
    * Returns the UI scaling factor (in percent) if overridden by the app. Returns 0 if system-wide UI scale factor
    * is used.
+   *
+   * @implNote This method must not, directly or indirectly, cause any Java Swing library to be loaded.
    */
   private static int getUiScalingOption() {
     int retVal = 0;
@@ -1183,28 +1194,31 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   private void storePreferences() {
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
     // preserve non-maximized size and position of the window if possible
     if ((getExtendedState() & Frame.MAXIMIZED_HORIZ) == 0) {
-      prefs.putInt(WINDOW_SIZEX, (int) getSize().getWidth());
-      prefs.putInt(WINDOW_POSX, (int) getLocation().getX());
+      AppOption.APP_WINDOW_SIZE_X.setValue((int) getSize().getWidth());
+      AppOption.APP_WINDOW_POS_X.setValue((int) getLocation().getX());
     }
     if ((getExtendedState() & Frame.MAXIMIZED_VERT) == 0) {
-      prefs.putInt(WINDOW_SIZEY, (int) getSize().getHeight());
-      prefs.putInt(WINDOW_POSY, (int) getLocation().getY());
+      AppOption.APP_WINDOW_SIZE_Y.setValue((int) getSize().getHeight());
+      AppOption.APP_WINDOW_POS_Y.setValue((int) getLocation().getY());
     }
-    prefs.putInt(WINDOW_STATE, getExtendedState());
-    prefs.putInt(WINDOW_SPLITTER, spSplitter.getDividerLocation());
-    prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
-    prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
-    prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
-    prefs.putInt(TABLE_WIDTH_SIZE, getTableColumnWidth(3));
-    prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
-    prefs.putBoolean(APP_UI_SCALE_ENABLED, BrowserMenuBar.getInstance().getOptionsMenu().isUiScalingEnabled());
-    prefs.putInt(APP_UI_SCALE_FACTOR, BrowserMenuBar.getInstance().getOptionsMenu().getUiScalingFactor());
-    prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getOptionsMenu().getGlobalFontSize());
+    AppOption.APP_WINDOW_STATE.setValue(getExtendedState());
+    AppOption.APP_WINDOW_SPLITTER.setValue(spSplitter.getDividerLocation());
+    AppOption.LAST_GAME_DIR.setValue(Profile.getGameRoot().toString());
+    AppOption.TABLE_COLUMN_ATTRIBUTE_WIDTH.setValue(getTableColumnWidth(0));
+    AppOption.TABLE_COLUMN_OFFSET_WIDTH.setValue(getTableColumnWidth(2));
+    AppOption.TABLE_COLUMN_SIZE_WIDTH.setValue(getTableColumnWidth(3));
+    AppOption.TABLE_PANEL_HEIGHT.setValue(getTablePanelHeight());
+    AppOption.UI_SCALE_ENABLED.setValue(BrowserMenuBar.getInstance().getOptions().isUiScalingEnabled());
+    AppOption.UI_SCALE_FACTOR.setValue(BrowserMenuBar.getInstance().getOptions().getUiScalingFactor());
+    AppOption.GLOBAL_FONT_SIZE.setValue(BrowserMenuBar.getInstance().getOptions().getGlobalFontSize());
+
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();
+
+    // store everything in the preferences
+    AppOption.storePreferences();
   }
 
   private void setAppIcon() {
@@ -1222,6 +1236,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   // Migrate preferences from sourceNode to the currently used prefs node if needed.
   // Returns true if content of sourceNode has been cloned into the current node.
+  @Deprecated
   private boolean migratePreferences(String sourceNode, Preferences curPrefs, boolean showError) {
     boolean retVal = false;
     if (sourceNode != null && !sourceNode.isEmpty() && curPrefs != null) {
@@ -1259,6 +1274,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   // Duplicates content from prefsOld to prefsNew recursively
+  @Deprecated
   private void clonePrefsNode(Preferences prefsOld, Preferences prefsNew) throws Exception {
     if (prefsOld != null && prefsNew != null && !prefsOld.equals(prefsNew)) {
       // cloning keys
@@ -1342,7 +1358,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
    * Shows Java Runtime information when there are no components attached to the main view.
    */
   private JPanel createJavaInfoPanel() {
-    if (!BrowserMenuBar.getInstance().getOptionsMenu().showSysInfo()) {
+    if (!BrowserMenuBar.getInstance().getOptions().showSysInfo()) {
       return new JPanel();
     }
 

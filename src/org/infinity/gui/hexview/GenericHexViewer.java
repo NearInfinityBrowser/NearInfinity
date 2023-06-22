@@ -282,7 +282,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setFontColorAsciiView(textColor);
     hexView.setFontColorModified(Color.RED);
     hexView.setSelectionColor(new Color(0xc0c0c0));
-    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getHexColorMapEnabled());
+    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getOptions().getHexColorMapEnabled());
     hexView.setEnabled(true);
   }
 }

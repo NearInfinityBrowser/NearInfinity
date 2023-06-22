@@ -80,7 +80,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.getColumnModel().setColumnSelectionAllowed(false);
     TableCellRenderer renderer = (table, o, b, b1, i, i1) -> new JLabel((ImageIcon) o);
     table.getColumnModel().getColumn(0).setCellRenderer(renderer);

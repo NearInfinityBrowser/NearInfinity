@@ -80,13 +80,13 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     super(true);
 
     Language lang;
-    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsSyntaxHighlightingEnabled()) {
+    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled()) {
       lang = Language.BCS;
     } else {
       lang = Language.NONE;
     }
     applyExtendedSettings(lang, null);
-    setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
 
     triggers = Signatures.getTriggers();
     actions = Signatures.getActions();

@@ -181,7 +181,7 @@ public class StringDuplicatesChecker extends AbstractSearcher
       pane.add(scrollTable, BorderLayout.CENTER);
       pane.add(buttonPanel, BorderLayout.PAGE_END);
 
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
 

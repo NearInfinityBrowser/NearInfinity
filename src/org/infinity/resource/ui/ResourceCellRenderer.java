@@ -25,7 +25,7 @@ public class ResourceCellRenderer extends DefaultListCellRenderer {
 
     final ResourceEntry entry = (ResourceEntry) value;
     if (entry != null) {
-      setText(BrowserMenuBar.getInstance().getOptionsMenu().getResRefMode().format(entry));
+      setText(BrowserMenuBar.getInstance().getOptions().getResRefMode().format(entry));
     } else {
       setText("<none>");
     }

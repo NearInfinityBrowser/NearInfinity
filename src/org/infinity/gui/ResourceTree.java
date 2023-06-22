@@ -715,7 +715,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         final ResourceEntry e = (ResourceEntry) o;
 
         final BrowserMenuBar options = BrowserMenuBar.getInstance();
-        if (options.getOptionsMenu().showTreeSearchNames()) {
+        if (options.getOptions().showTreeSearchNames()) {
           final String name = e.getResourceName();
           final String title = e.getSearchString();
           // TODO: refactor code and remove "No such index" comparison
@@ -726,8 +726,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
         setIcon(e.getIcon());
         // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
-        final boolean inOverrideMode = options.getOptionsMenu().getOverrideMode() == OverrideMode.InOverride;
-        if (e.hasOverride() && !inOverrideMode && options.getOptionsMenu().highlightOverridden()) {
+        final boolean inOverrideMode = options.getOptions().getOverrideMode() == OverrideMode.InOverride;
+        if (e.hasOverride() && !inOverrideMode && options.getOptions().highlightOverridden()) {
           font = font.deriveFont(Font.BOLD);
         }
       }

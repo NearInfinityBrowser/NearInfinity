@@ -254,7 +254,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener {
     if (index >= 0) {
       final Quest quest = ((QuestsModel) quests.getModel()).quests.get(index);
 
-      final StringTable.Format fmt = BrowserMenuBar.getInstance().getOptionsMenu().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+      final StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
           : StringTable.Format.NONE;
       title.setText(quest.toString(fmt));
 

@@ -170,7 +170,7 @@ public final class StringRef extends Datatype
 
       sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
-      if (BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTlkSyntaxHighlightingEnabled()) {
+      if (BrowserMenuBar.getInstance().getOptions().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
         taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       }

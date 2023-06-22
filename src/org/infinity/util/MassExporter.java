@@ -793,9 +793,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private ByteBuffer decompileScript(ResourceEntry entry, ByteBuffer inBuffer) throws Exception {
     if (inBuffer != null) {
       final Decompiler decompiler = new Decompiler(StreamUtils.readString(inBuffer, inBuffer.limit()), false);
-      decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptionsMenu().autogenBCSComments());
+      decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
       String script = decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR);
-      final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
+      final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset());
       return ByteBuffer.wrap(script.getBytes(cs));
     }
     return inBuffer;

@@ -68,7 +68,7 @@ public class Compiler {
 
   public Compiler(String source, ScriptType type) {
     this.scriptType = type;
-    setVerbose(BrowserMenuBar.getInstance().getOptionsMenu().showMoreCompileWarnings());
+    setVerbose(BrowserMenuBar.getInstance().getOptions().showMoreCompileWarnings());
     setSource(source);
   }
 

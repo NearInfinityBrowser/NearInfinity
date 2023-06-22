@@ -259,11 +259,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     if (edit != null) {
       edit.setCurrentLineHighlightColor(DEFAULT_LINE_HIGHLIGHT_COLOR);
       if (BrowserMenuBar.isInstantiated()) {
-        edit.setTabsEmulated(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().isTextTabEmulated());
-        edit.setTabSize(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextTabSize());
-        edit.setWhitespaceVisible(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextWhitespaceVisible());
-        edit.setEOLMarkersVisible(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextEOLVisible());
-        edit.setHighlightCurrentLine(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextHighlightCurrentLine());
+        edit.setTabsEmulated(BrowserMenuBar.getInstance().getOptions().isTextTabEmulated());
+        edit.setTabSize(BrowserMenuBar.getInstance().getOptions().getTextTabSize());
+        edit.setWhitespaceVisible(BrowserMenuBar.getInstance().getOptions().getTextWhitespaceVisible());
+        edit.setEOLMarkersVisible(BrowserMenuBar.getInstance().getOptions().getTextEOLVisible());
+        edit.setHighlightCurrentLine(BrowserMenuBar.getInstance().getOptions().getTextHighlightCurrentLine());
       } else {
         // default settings
         edit.setTabsEmulated(false);
@@ -332,32 +332,32 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         switch (language) {
           case BCS:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getBcsColorScheme();
             }
             break;
           case TLK:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTlkColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getTlkColorScheme();
             }
             break;
           case GLSL:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getGlslColorScheme();
             }
             break;
           case LUA:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getLuaColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getLuaColorScheme();
             }
             break;
           case SQL:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getSqlColorScheme();
             }
             break;
           case WEIDU:
             if (BrowserMenuBar.isInstantiated()) {
-              schemePath = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getWeiDUColorScheme();
+              schemePath = BrowserMenuBar.getInstance().getOptions().getWeiDUColorScheme();
             }
             break;
           default:
@@ -379,14 +379,14 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
       switch (language) {
         case BCS:
           if (BrowserMenuBar.isInstantiated()) {
-            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsCodeFoldingEnabled());
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptions().getBcsCodeFoldingEnabled());
           } else {
             edit.setCodeFoldingEnabled(false);
           }
           break;
         case GLSL:
           if (BrowserMenuBar.isInstantiated()) {
-            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslCodeFoldingEnabled());
+            edit.setCodeFoldingEnabled(BrowserMenuBar.getInstance().getOptions().getGlslCodeFoldingEnabled());
           } else {
             edit.setCodeFoldingEnabled(false);
           }
@@ -598,7 +598,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
   // Returns scaled global font
   private Font getGlobalFont() {
-    Font f = BrowserMenuBar.isInstantiated() ? BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont() : getFont();
+    Font f = BrowserMenuBar.isInstantiated() ? BrowserMenuBar.getInstance().getOptions().getScriptFont() : getFont();
     if (f != null) {
       f = Misc.getScaledFont(f);
     }

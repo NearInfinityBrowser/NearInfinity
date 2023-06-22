@@ -29,7 +29,7 @@ public interface InlineEditable extends StructEntry {
   /** The default component used for the inline editor. */
   static final JTextField DEFAULT_EDITOR = new JTextField() {
     {
-      setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+      setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       setBorder(new LineBorder(GRID_BORDER, 1));
       setBackground(GRID_BACKGROUND);
     }

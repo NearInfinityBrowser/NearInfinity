@@ -213,7 +213,7 @@ public abstract class AbstractCode extends Datatype
 
   @Override
   public void select() {
-    if (BrowserMenuBar.getInstance().getOptionsMenu().autocheckBCS()) {
+    if (BrowserMenuBar.getInstance().getOptions().autocheckBCS()) {
       ((JButton) buttonPanel.getControlByType(CTRL_CHECK)).doClick();
     }
   }

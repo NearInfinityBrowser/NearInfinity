@@ -10,13 +10,13 @@ import org.infinity.resource.key.ResourceEntry;
 
 /** Determines how show resource reference value and title. */
 public enum ResRefMode {
-  OnlyRef(KeyEvent.VK_1, "Filename") {
+  OnlyRef(KeyEvent.VK_1, "Resource Name") {
     @Override
     public String format(ResourceEntry entry) {
       return entry.getResourceName();
     }
   },
-  RefName(KeyEvent.VK_2, "Filename (Name)") {
+  RefName(KeyEvent.VK_2, "Resource Name (Search Name)") {
     @Override
     public String format(ResourceEntry entry) {
       final String search = entry.getSearchString();
@@ -24,7 +24,7 @@ public enum ResRefMode {
       return search == null ? resname : resname + " (" + search + ')';
     }
   },
-  NameRef(KeyEvent.VK_3, "Name (Filename)") {
+  NameRef(KeyEvent.VK_3, "Search Name (Resource Name)") {
     @Override
     public String format(ResourceEntry entry) {
       final String search = entry.getSearchString();
@@ -49,6 +49,11 @@ public enum ResRefMode {
   /** Title of the menu item in Options menu. */
   public String getTitle() {
     return title;
+  }
+
+  @Override
+  public String toString() {
+    return getTitle();
   }
 
   public abstract String format(ResourceEntry entry);

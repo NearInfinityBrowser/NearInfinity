@@ -338,7 +338,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
 
     filterList = new JList<>(new SimpleListModel<>());
     filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    filterList.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    filterList.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     filterList.setPrototypeCellValue(new SearchOptions());
     filterList.addListSelectionListener(listeners);
     filterList.getModel().addListDataListener(listeners);
@@ -394,7 +394,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
 
     listResults = new SortableTable(new String[] { "File", "Name", "Attribute" },
         new Class<?>[] { ResourceEntry.class, String.class, String.class }, new Integer[] { 100, 150, 300 });
-    listResults.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    listResults.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     listResults.setRowHeight(listResults.getFontMetrics(listResults.getFont()).getHeight() + 1);
     listResults.setPreferredScrollableViewportSize(new Dimension(100, listResults.getRowHeight() * 10));
     listResults.getSelectionModel().addListSelectionListener(listeners);

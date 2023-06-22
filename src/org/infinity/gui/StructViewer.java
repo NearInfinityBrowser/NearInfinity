@@ -226,7 +226,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.addMouseListener(new MouseAdapter() {
       @Override
@@ -249,7 +249,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           int row, int column) {
         final StructEntry field = (StructEntry) table.getModel().getValueAt(row, 1);
         Class<? extends StructEntry> cls = null;
-        if (BrowserMenuBar.getInstance().getOptionsMenu().getColoredOffsetsEnabled()) {
+        if (BrowserMenuBar.getInstance().getOptions().getColoredOffsetsEnabled()) {
           if (field instanceof SectionOffset) {
             cls = ((SectionOffset) field).getSection();
           } else if (field instanceof SectionCount) {
@@ -322,7 +322,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
     tatext.setMargin(new Insets(3, 3, 3, 3));
-    tatext.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    tatext.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
     table.setModel(struct);
@@ -459,7 +459,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         }
       } else if (lastIndexStruct == struct.getClass()) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getOptionsMenu().getDefaultStructView() == ViewMode.Edit) {
+      } else if (BrowserMenuBar.getInstance().getOptions().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(getEditTabIndex());
       }
       if (isEditTabSelected()) {

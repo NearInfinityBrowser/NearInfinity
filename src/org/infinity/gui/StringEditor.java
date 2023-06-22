@@ -180,7 +180,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
   private void initUI() {
     setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
 
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
@@ -191,7 +191,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
     spTable.setBorder(BorderFactory.createEmptyBorder());
 
     tfStrref.addActionListener(listeners);
-    if (BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTlkSyntaxHighlightingEnabled()) {
+    if (BrowserMenuBar.getInstance().getOptions().getTlkSyntaxHighlightingEnabled()) {
       taText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
       taText.setFont(Misc.getScaledFont(taText.getFont()));
     }

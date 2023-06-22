@@ -177,10 +177,10 @@ public final class ScriptChecker extends AbstractSearcher
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
         errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
         errorTable.getSelectionModel().addListSelectionListener(this);
-        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
         warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
         MouseListener listener = new MouseAdapter() {

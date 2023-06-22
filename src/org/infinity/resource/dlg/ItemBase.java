@@ -27,8 +27,8 @@ abstract class ItemBase implements TreeNode {
   private final boolean showTechInfo;
 
   public ItemBase() {
-    this.showStrrefs = BrowserMenuBar.getInstance().getOptionsMenu().showStrrefs();
-    this.showTechInfo = BrowserMenuBar.getInstance().getOptionsMenu().showDlgTechInfo();
+    this.showStrrefs = BrowserMenuBar.getInstance().getOptions().showStrrefs();
+    this.showTechInfo = BrowserMenuBar.getInstance().getOptions().showDlgTechInfo();
   }
 
   /** Returns the dialog resource name. */

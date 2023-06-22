@@ -265,7 +265,7 @@ public class StructHexViewer extends JPanel
         String options[] = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
-          if (BrowserMenuBar.getInstance().getOptionsMenu().backupOnSave()) {
+          if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
             try {
               Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
               if (FileEx.create(bakPath).isFile()) {
@@ -645,7 +645,7 @@ public class StructHexViewer extends JPanel
       // creating table
       JTable table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -655,7 +655,7 @@ public class StructHexViewer extends JPanel
       table.setEnabled(false);
 
       final String maxString = String.format("%080d", 0);
-      Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont());
+      Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont());
       FontMetrics fm = table.getFontMetrics(f);
       Rectangle2D rect = f.getStringBounds(maxString, fm.getFontRenderContext());
       Dimension d = table.getPreferredSize();

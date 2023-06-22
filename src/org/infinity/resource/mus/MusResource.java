@@ -298,7 +298,7 @@ public final class MusResource
       panel.add(tabbedPane, BorderLayout.CENTER);
       if (lastIndex != -1) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getOptionsMenu().getDefaultStructView() == ViewMode.Edit) {
+      } else if (BrowserMenuBar.getInstance().getOptions().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(1);
       }
       WindowBlocker.blockWindow(false);

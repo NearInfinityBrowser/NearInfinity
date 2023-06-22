@@ -105,7 +105,7 @@ public final class FileResourceEntry extends ResourceEntry {
   @Override
   public String getTreeFolderName() {
     if (BrowserMenuBar.isInstantiated()) {
-      final OverrideMode mode = BrowserMenuBar.getInstance().getOptionsMenu().getOverrideMode();
+      final OverrideMode mode = BrowserMenuBar.getInstance().getOptions().getOverrideMode();
       final Keyfile keyfile = ResourceFactory.getKeyfile();
 
       if (keyfile.getExtensionType(getExtension()) != -1) {

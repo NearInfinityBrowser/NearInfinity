@@ -58,8 +58,8 @@ public final class Decompiler {
 
   public Decompiler(String code, ScriptType type, boolean generateErrors) {
     if (BrowserMenuBar.isInstantiated()) {
-      if (BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsAutoIndentEnabled()) {
-        indent = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsIndent();
+      if (BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getOptions().getBcsIndent();
       } else {
         indent = "";
       }
@@ -155,8 +155,8 @@ public final class Decompiler {
   /** Applies the indentation string defined in the currently selected item in the Options menu. */
   public void setIndent() {
     if (BrowserMenuBar.isInstantiated()) {
-      if (BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsAutoIndentEnabled()) {
-        indent = BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsIndent();
+      if (BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getOptions().getBcsIndent();
       } else {
         indent = "";
       }

@@ -296,7 +296,7 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
 
     private static final int DEFAULT_IMAGE_WIDTH = 128; // total width of color range
     // take global font scaling into account
-    private static final int DEFAULT_IMAGE_HEIGHT = 20 * BrowserMenuBar.getInstance().getOptionsMenu().getGlobalFontSize() / 100;
+    private static final int DEFAULT_IMAGE_HEIGHT = 20 * BrowserMenuBar.getInstance().getOptions().getGlobalFontSize() / 100;
 
     private static final Color COLOR_INVALID = new Color(0xe0e0e0);
     private static final Color COLOR_RANDOM = Color.LIGHT_GRAY;

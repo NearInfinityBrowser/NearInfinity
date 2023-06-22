@@ -114,7 +114,7 @@ class StateItem extends TransitionOwnerItem {
 
   @Override
   public boolean getAllowsChildren() {
-    return getMain() == null || !BrowserMenuBar.getInstance().getOptionsMenu().breakCyclesInDialogs();
+    return getMain() == null || !BrowserMenuBar.getInstance().getOptions().breakCyclesInDialogs();
   }
 
   @Override

@@ -103,7 +103,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
   public JComponent edit(ActionListener container) {
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     tValues.getTableHeader().setFont(tValues.getTableHeader().getFont().deriveFont(Font.BOLD));
     tValues.setRowHeight(tValues.getFontMetrics(tValues.getFont()).getHeight() + 1);
     tValues.setBorder(BorderFactory.createLineBorder(Color.GRAY));

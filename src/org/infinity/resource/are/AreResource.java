@@ -166,7 +166,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
    */
   public static String getSearchString(ResourceEntry entry) {
     String retVal = null;
-    if (entry != null && BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptionsMenu().showTreeSearchNames()) {
+    if (entry != null && BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().showTreeSearchNames()) {
       retVal = getMapName(entry.getResourceName());
     }
     return retVal;

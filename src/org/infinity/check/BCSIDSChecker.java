@@ -141,7 +141,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
         table.addMouseListener(new MouseAdapter() {

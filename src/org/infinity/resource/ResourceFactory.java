@@ -255,7 +255,7 @@ public final class ResourceFactory implements FileWatchListener {
         }
       }
     } catch (Exception e) {
-      if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().getOptionsMenu().ignoreReadErrors()) {
+      if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + entry + '\n' + e.getMessage(),
             "Error", JOptionPane.ERROR_MESSAGE);
       } else {
@@ -853,7 +853,7 @@ public final class ResourceFactory implements FileWatchListener {
     final String langDefault = "en_US"; // using default language, if no language entry found
 
     if (Profile.isEnhancedEdition() && iniFile != null && FileEx.create(iniFile).isFile()) {
-      String lang = BrowserMenuBar.getInstance().getOptionsMenu().getSelectedGameLanguage();
+      String lang = BrowserMenuBar.getInstance().getOptions().getSelectedGameLanguage();
 
       if (lang == null || lang.isEmpty()) {
         return autodetectGameLanguage(iniFile);
@@ -1013,7 +1013,7 @@ public final class ResourceFactory implements FileWatchListener {
   }
 
   private void unregisterResourceInternal(Path resource) {
-    if ((!BrowserMenuBar.getInstance().getOptionsMenu().showUnknownResourceTypes()
+    if ((!BrowserMenuBar.getInstance().getOptions().showUnknownResourceTypes()
         && !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) || (resource == null)) {
       return;
     }
@@ -1108,7 +1108,7 @@ public final class ResourceFactory implements FileWatchListener {
 
   private void registerResourceInternal(Path resource, boolean autoselect) {
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
-    if ((!options.getOptionsMenu().showUnknownResourceTypes()
+    if ((!options.getOptions().showUnknownResourceTypes()
         && !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) || resource == null
         || !FileEx.create(resource).isFile()) {
       return;
@@ -1119,7 +1119,7 @@ public final class ResourceFactory implements FileWatchListener {
     if (entry != null) {
       boolean match = false;
       if (entry instanceof BIFFResourceEntry) {
-        final boolean overrideInOverride = (options.getOptionsMenu().getOverrideMode() == OverrideMode.InOverride);
+        final boolean overrideInOverride = (options.getOptions().getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride && entry.getTreeFolderName().equalsIgnoreCase(Profile.getOverrideFolderName())) {
           match = true;
         }
@@ -1184,7 +1184,7 @@ public final class ResourceFactory implements FileWatchListener {
       entry = getResourceEntry(resource.getFileName().toString());
       String folderName = null;
       if (entry instanceof BIFFResourceEntry) {
-        final boolean overrideInOverride = (options.getOptionsMenu().getOverrideMode() == OverrideMode.InOverride);
+        final boolean overrideInOverride = (options.getOptions().getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride) {
           treeModel.removeResourceEntry(entry, entry.getExtension());
         }
@@ -1222,7 +1222,7 @@ public final class ResourceFactory implements FileWatchListener {
   }
 
   private void setPendingSelection(Path path) {
-    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptionsMenu().getMonitorFileChanges()) {
+    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getMonitorFileChanges()) {
       pendingSelection = path;
     }
   }
@@ -1245,7 +1245,7 @@ public final class ResourceFactory implements FileWatchListener {
 
     NearInfinity.advanceProgress("Loading override resources...");
     final boolean overrideInOverride = (BrowserMenuBar.isInstantiated()
-        && BrowserMenuBar.getInstance().getOptionsMenu().getOverrideMode() == OverrideMode.InOverride);
+        && BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride);
     String overrideFolder = Profile.getOverrideFolderName();
     List<Path> overridePaths = Profile.getOverrideFolders(false);
     for (final Path overridePath : overridePaths) {
@@ -1356,7 +1356,7 @@ public final class ResourceFactory implements FileWatchListener {
     }
 
     // include override folders
-    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptionsMenu().ignoreOverrides()) {
+    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {
       ResourceTreeFolder overrideNode = treeModel.getFolder(Profile.getOverrideFolderName());
       if (overrideNode != null) {
         list.addAll(overrideNode.getResourceEntries(type));
@@ -1386,7 +1386,7 @@ public final class ResourceFactory implements FileWatchListener {
     });
 
     // include override folders
-    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptionsMenu().ignoreOverrides()) {
+    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {
       fillResources(retList, Profile.getOverrideFolderName(), pattern);
     }
 
@@ -1480,7 +1480,7 @@ public final class ResourceFactory implements FileWatchListener {
       ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
       treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
       treeModel.sort();
-      if (BrowserMenuBar.getInstance().getOptionsMenu().getKeepViewOnCopy()) {
+      if (BrowserMenuBar.getInstance().getOptions().getKeepViewOnCopy()) {
         NearInfinity.getInstance().showResourceEntry(entry);
       } else {
         NearInfinity.getInstance().showResourceEntry(newEntry);
@@ -1538,7 +1538,7 @@ public final class ResourceFactory implements FileWatchListener {
       String options[] = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
-        if (BrowserMenuBar.getInstance().getOptionsMenu().backupOnSave()) {
+        if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
           try {
             Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
             if (FileEx.create(bakPath).isFile()) {

@@ -325,10 +325,10 @@ public abstract class AbstractStruct extends AbstractTableModel
   @Override
   public int getColumnCount() {
     int retVal = 2;
-    if (BrowserMenuBar.getInstance().getOptionsMenu().showTableOffsets()) {
+    if (BrowserMenuBar.getInstance().getOptions().showTableOffsets()) {
       retVal++;
     }
-    if (BrowserMenuBar.getInstance().getOptionsMenu().showTableSize()) {
+    if (BrowserMenuBar.getInstance().getOptions().showTableSize()) {
       retVal++;
     }
     return retVal;
@@ -343,9 +343,9 @@ public abstract class AbstractStruct extends AbstractTableModel
         return COLUMN_VALUE;
       case 2:
       case 3:
-        if (columnIndex == 2 && BrowserMenuBar.getInstance().getOptionsMenu().showTableOffsets()) {
+        if (columnIndex == 2 && BrowserMenuBar.getInstance().getOptions().showTableOffsets()) {
           return COLUMN_OFFSET;
-        } else if (BrowserMenuBar.getInstance().getOptionsMenu().showTableSize()) {
+        } else if (BrowserMenuBar.getInstance().getOptions().showTableSize()) {
           return COLUMN_SIZE;
         }
         break;
@@ -375,14 +375,14 @@ public abstract class AbstractStruct extends AbstractTableModel
           return data;
         case COLUMN_OFFSET: {
           String s = Integer.toHexString(data.getOffset()) + " h";
-          if (BrowserMenuBar.getInstance().getOptionsMenu().showTableOffsetsRelative() && data.getParent() != null
+          if (BrowserMenuBar.getInstance().getOptions().showTableOffsetsRelative() && data.getParent() != null
               && data.getParent().getParent() != null) {
             s += " (" + Integer.toHexString(data.getOffset() - data.getParent().getOffset()) + " h)";
           }
           return s;
         }
         case COLUMN_SIZE:
-          if (BrowserMenuBar.getInstance().getOptionsMenu().showTableSizeInHex()) {
+          if (BrowserMenuBar.getInstance().getOptions().showTableSizeInHex()) {
             return Integer.toHexString(data.getSize()) + " h";
           } else {
             return Integer.toString(data.getSize());

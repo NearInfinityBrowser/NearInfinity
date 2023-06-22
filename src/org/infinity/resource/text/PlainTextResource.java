@@ -328,7 +328,7 @@ public class PlainTextResource
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptionsMenu().getSelectedCharset());
+    final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset());
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
   }
 
@@ -478,7 +478,7 @@ public class PlainTextResource
     InfinityScrollPane pane = new InfinityScrollPane(editor, true);
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
-    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
@@ -594,29 +594,29 @@ public class PlainTextResource
     InfinityTextArea.Language language = InfinityTextArea.Language.NONE;
     if (entry != null) {
       if ("SQL".equalsIgnoreCase(entry.getExtension())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("LUA".equalsIgnoreCase(entry.getExtension())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getLuaSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getLuaSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.LUA;
         }
       } else if (Profile.isEnhancedEdition() && "BALDUR.INI".equalsIgnoreCase(entry.getResourceName())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getSqlSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
       } else if ("GLSL".equalsIgnoreCase(entry.getExtension())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getGlslSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.GLSL;
         }
       } else if ("BCS".equalsIgnoreCase(entry.getExtension()) || "BS".equalsIgnoreCase(entry.getExtension())
           || "BAF".equalsIgnoreCase(entry.getExtension())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.BCS;
         }
       } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName())
           || "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
-        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getWeiDUSyntaxHighlightingEnabled()) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getWeiDUSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.WEIDU;
         }
       }

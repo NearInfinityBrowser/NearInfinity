@@ -228,7 +228,7 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());
       tabbedPane.addTab("Male (" + table.getRowCount() + ")", scrollTable);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
 
@@ -237,7 +237,7 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
         scrollTable = new JScrollPane(tableFemale);
         scrollTable.getViewport().setBackground(tableFemale.getBackground());
         tabbedPane.addTab("Female (" + tableFemale.getRowCount() + ")", scrollTable);
-        tableFemale.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+        tableFemale.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
         tableFemale.setRowHeight(tableFemale.getFontMetrics(tableFemale.getFont()).getHeight() + 1);
         tableFemale.getSelectionModel().addListSelectionListener(this);
       } else {

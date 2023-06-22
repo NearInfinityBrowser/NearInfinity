@@ -15,6 +15,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import org.infinity.AppOption;
 import org.infinity.NearInfinity;
 import org.infinity.check.BCSIDSChecker;
 import org.infinity.check.CreInvChecker;
@@ -49,7 +50,7 @@ import org.infinity.util.MassExporter;
  * Handles Game menu items for the {@link BrowserMenuBar}.
  */
 public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
-  private static final String TOOLS_DEBUG_EXTRA_INFO = "DebugShowExtraInfo";
+  public static final String TOOLS_DEBUG_EXTRA_INFO = "DebugShowExtraInfo";
 
   private final BrowserMenuBar menuBar;
 
@@ -248,7 +249,8 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
     dumpDebugInfo
         .setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, BrowserMenuBar.getCtrlMask() | ActionEvent.ALT_MASK));
     dumpDebugInfo.addActionListener(this);
-    dumpDebugInfo.setEnabled(getMenuBar().getPrefs().getBoolean(TOOLS_DEBUG_EXTRA_INFO, false));
+    dumpDebugInfo.setEnabled(AppOption.DEBUG_SHOW_EXTRA_INFO.getBoolValue());
+
     dumpDebugInfo.setVisible(dumpDebugInfo.isEnabled());
     add(dumpDebugInfo);
   }
@@ -292,7 +294,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
   }
 
   public void storePreferences() {
-    getMenuBar().getPrefs().putBoolean(TOOLS_DEBUG_EXTRA_INFO, dumpDebugInfo.isEnabled());
+    AppOption.DEBUG_SHOW_EXTRA_INFO.setValue(dumpDebugInfo.isEnabled());
   }
 
   @Override

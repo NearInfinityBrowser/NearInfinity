@@ -89,7 +89,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().addListSelectionListener(this);
     final ChildFrame frame = this;

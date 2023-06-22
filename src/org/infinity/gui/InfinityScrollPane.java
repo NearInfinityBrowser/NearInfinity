@@ -95,7 +95,7 @@ public class InfinityScrollPane extends RTextScrollPane {
       pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
       pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       if (BrowserMenuBar.isInstantiated()) {
-        pane.setLineNumbersEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getTextLineNumbers());
+        pane.setLineNumbersEnabled(BrowserMenuBar.getInstance().getOptions().getTextLineNumbers());
       } else {
         pane.setLineNumbersEnabled(false);
       }
@@ -108,14 +108,14 @@ public class InfinityScrollPane extends RTextScrollPane {
       switch (language) {
         case BCS:
           if (BrowserMenuBar.isInstantiated()) {
-            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getBcsCodeFoldingEnabled());
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptions().getBcsCodeFoldingEnabled());
           } else {
             pane.setFoldIndicatorEnabled(false);
           }
           break;
         case GLSL:
           if (BrowserMenuBar.isInstantiated()) {
-            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptionsMenu().getTextEditorMenu().getGlslCodeFoldingEnabled());
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptions().getGlslCodeFoldingEnabled());
           } else {
             pane.setFoldIndicatorEnabled(false);
           }

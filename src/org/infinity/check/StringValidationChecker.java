@@ -154,7 +154,7 @@ public class StringValidationChecker extends AbstractSearcher
       pane.add(panel, BorderLayout.PAGE_END);
       bOpenLookup.setEnabled(false);
       bOpenStringTable.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptionsMenu().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
       final MouseListener listener = new MouseAdapter() {

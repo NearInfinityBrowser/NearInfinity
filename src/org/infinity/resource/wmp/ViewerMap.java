@@ -815,7 +815,7 @@ public class ViewerMap extends JPanel {
         IsReference areaRef = (IsReference) struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
         String text1 = null, text2 = null;
         if (areaName.getValue() >= 0) {
-          StringTable.Format fmt = BrowserMenuBar.getInstance().getOptionsMenu().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+          StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
               : StringTable.Format.NONE;
           text1 = areaName.toString(fmt);
         } else {
