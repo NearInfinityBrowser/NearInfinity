@@ -54,7 +54,7 @@ public class Bookmark implements Cloneable {
       throw new NullPointerException();
     }
     if (name == null || name.trim().isEmpty()) {
-      name = Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
+      name = game.getTitle();
     }
     this.name = name;
     this.game = game;

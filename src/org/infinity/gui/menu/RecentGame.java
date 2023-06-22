@@ -44,9 +44,9 @@ public class RecentGame implements Cloneable {
   @Override
   public String toString() {
     if (index >= 0) {
-      return String.format("%d  %s", index + 1, Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game));
+      return String.format("%d  %s", index + 1, game.getTitle());
     } else {
-      return Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
+      return game.getTitle();
     }
   }
 
