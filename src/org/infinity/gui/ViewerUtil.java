@@ -45,6 +45,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import org.infinity.NearInfinity;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
@@ -69,12 +70,31 @@ public final class ViewerUtil {
   /**
    * A collection of pastel shaded colors that can be used to colorize the background of list, table or tree items.
    */
-  public static final Color[] BACKGROUND_COLORS = {
+  private static final Color[] BACKGROUND_COLORS = {
       new Color(0xceccff), new Color(0xffcce6), new Color(0xccffe9), new Color(0xfaffcc),
       new Color(0xccddff), new Color(0xffccf9), new Color(0xccffd7), new Color(0xfff2cc),
       new Color(0xccf0ff), new Color(0xf4ccff), new Color(0xd5ffcc), new Color(0xffdfcc),
       new Color(0xccfffc), new Color(0xe1ccff), new Color(0xe8ffcc), new Color(0xffcccc),
   };
+
+  /**
+   * A collection of dark shaded colors that can be used to colorize the background of list, table or tree items
+   * in dark mode.
+   */
+  private static final Color[] BACKGROUND_COLORS_DARK = {
+      new Color(0x3a3b24), new Color(0x243b2f), new Color(0x3b242e), new Color(0x27243b),
+      new Color(0x3b3324), new Color(0x243b27), new Color(0x3b2436), new Color(0x242a3b),
+      new Color(0x3b2b24), new Color(0x293b24), new Color(0x37243b), new Color(0x24323b),
+      new Color(0x3b2426), new Color(0x313b24), new Color(0x2e243b), new Color(0x243b3b),
+  };
+
+  /** Returns a collection of background colors, based on the Look&Feel theme type (light/dark). */
+  public static Color[] getBackgroundColors() {
+    if (NearInfinity.getInstance().isDarkMode()) {
+      return BACKGROUND_COLORS_DARK;
+    }
+    return BACKGROUND_COLORS;
+  }
 
   public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl, GridBagConstraints gbc,
       boolean endline) {

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE RSyntaxTheme SYSTEM "theme.dtd">
+
+<!--
+  Plain color dark theme for general use.
+  See theme.dtd and org.fife.ui.rsyntaxtextarea.Theme for more information.
+-->
+<RSyntaxTheme version="1.0">
+
+   <!-- Omitting baseFont will use a system-appropriate monospaced. -->
+   <!--<baseFont family="..." size="13"/>-->
+   
+   <!--  General editor colors. -->
+   <background color="2f2f2f"/>
+   <caret color="dcdccc"/>
+   <selection bg="585858" fg="default"/>
+   <currentLineHighlight color="101820" fade="false"/>
+   <marginLine fg="b0b4b9"/>
+   <markAllHighlight color="6b8189"/> <!-- TODO: Fix me -->
+   <markOccurrencesHighlight color="5b7179" border="false"/>
+   <matchedBracket fg="6A8088" highlightBoth="true" animate="false"/>
+   <hyperlinks fg="a082bd"/>
+   <secondaryLanguages>
+      <language index="1" bg="333344"/>
+      <language index="2" bg="223322"/>
+      <language index="3" bg="332222"/>
+   </secondaryLanguages>
+   
+   <!-- Gutter styling. -->
+   <gutterBorder color="81969A"/>
+   <lineNumbers fg="81969a" currentFG="a9b7c6"/>
+   <foldIndicator fg="6A8088" armedFg="a9b7c6" iconBg="2f383c" iconArmedBg="3f484c"/>
+   <iconRowHeader activeLineRange="3399ff"/>
+   
+   <!-- Syntax tokens. -->
+   <tokenStyles>
+      <style token="IDENTIFIER" fg="dcdccc"/>
+      <style token="RESERVED_WORD" fg="dcdccc"/>
+      <style token="RESERVED_WORD_2" fg="dcdccc"/>
+      <style token="ANNOTATION" fg="dcdccc"/>
+      <style token="COMMENT_DOCUMENTATION" fg="dcdccc"/>
+      <style token="COMMENT_EOL" fg="dcdccc"/>
+      <style token="COMMENT_MULTILINE" fg="dcdccc"/>
+      <style token="COMMENT_KEYWORD" fg="dcdccc"/>
+      <style token="COMMENT_MARKUP" fg="dcdccc"/>
+      <style token="DATA_TYPE" fg="dcdccc"/>
+      <style token="FUNCTION" fg="dcdccc"/>
+      <style token="LITERAL_BOOLEAN" fg="dcdccc"/>
+      <style token="LITERAL_NUMBER_DECIMAL_INT" fg="dcdccc"/>
+      <style token="LITERAL_NUMBER_FLOAT" fg="dcdccc"/>
+      <style token="LITERAL_NUMBER_HEXADECIMAL" fg="dcdccc"/>
+      <style token="LITERAL_STRING_DOUBLE_QUOTE" fg="dcdccc"/>
+      <style token="LITERAL_CHAR" fg="dcdccc"/>
+      <style token="LITERAL_BACKQUOTE" fg="dcdccc"/>
+      <style token="MARKUP_TAG_DELIMITER" fg="dcdccc"/>
+      <style token="MARKUP_TAG_NAME" fg="dcdccc"/>
+      <style token="MARKUP_TAG_ATTRIBUTE" fg="dcdccc"/>
+      <style token="MARKUP_TAG_ATTRIBUTE_VALUE" fg="dcdccc"/>
+      <style token="MARKUP_COMMENT" fg="dcdccc"/>
+      <style token="MARKUP_DTD" fg="dcdccc"/>
+      <style token="MARKUP_PROCESSING_INSTRUCTION" fg="dcdccc"/>
+      <style token="MARKUP_CDATA" fg="dcdccc"/>
+      <style token="MARKUP_CDATA_DELIMITER" fg="dcdccc"/>
+      <style token="MARKUP_ENTITY_REFERENCE" fg="dcdccc"/>
+      <style token="OPERATOR" fg="dcdccc"/>
+      <style token="PREPROCESSOR" fg="dcdccc"/>
+      <style token="REGEX" fg="dcdccc"/>
+      <style token="SEPARATOR" fg="dcdccc"/>
+      <style token="VARIABLE" fg="dcdccc"/>
+      <style token="WHITESPACE" fg="dcdccc"/>
+      
+      <style token="ERROR_IDENTIFIER" fg="dcdccc"/>
+      <style token="ERROR_NUMBER_FORMAT" fg="dcdccc"/>
+      <style token="ERROR_STRING_DOUBLE" fg="dcdccc"/>
+      <style token="ERROR_CHAR" fg="dcdccc"/>
+   </tokenStyles>
+
+</RSyntaxTheme>

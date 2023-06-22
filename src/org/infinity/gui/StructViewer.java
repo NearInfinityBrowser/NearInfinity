@@ -50,6 +50,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -1381,10 +1382,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
    */
   private Color getClassColor(Class<? extends StructEntry> cls) {
     if (cls != null) {
-      return fieldColors.computeIfAbsent(cls,
-          c -> ViewerUtil.BACKGROUND_COLORS[fieldColors.size() % ViewerUtil.BACKGROUND_COLORS.length]);
+      final Color[] colors = ViewerUtil.getBackgroundColors();
+      return fieldColors.computeIfAbsent(cls, c -> colors[fieldColors.size() % colors.length]);
     }
-    return Color.WHITE;
+    return UIManager.getDefaults().getColor("TextField.background");
   }
 
   /**

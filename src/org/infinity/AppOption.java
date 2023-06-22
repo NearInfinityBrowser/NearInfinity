@@ -186,7 +186,7 @@ public class AppOption {
   // Category: BCS and BAF
   /** Menu Options > BCS and BAF: BcsColorScheme (Integer, Default: 6) */
   public static final AppOption BCS_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_BCS_COLORSCHEME,
-      "BCS Color Scheme", 6);
+      "BCS Color Scheme", OptionsMenuItem.getBcsColorSchemes().size() - 1);
   /** Menu Options > BCS and BAF: BcsSyntaxHighlighting (Boolean, Default: true) */
   public static final AppOption BCS_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_BCS_SYNTAXHIGHLIGHTING,
       "Enable BCS Syntax Highlighting", true);

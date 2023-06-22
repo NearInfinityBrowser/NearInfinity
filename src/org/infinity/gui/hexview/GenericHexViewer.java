@@ -10,6 +10,7 @@ import java.awt.Font;
 import java.nio.charset.Charset;
 
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.StatusBar;
@@ -259,7 +260,16 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
    *                   status of the editor
    */
   public static void configureHexView(JHexView hexView, boolean isEditable) {
-    final Color textColor = isEditable ? Color.BLACK : Color.GRAY;
+    boolean isDarkMode = NearInfinity.getInstance().isDarkMode();
+    final Color bgColor = UIManager.getDefaults().getColor("TextField.background");
+    final Color textColor = isEditable ? UIManager.getDefaults().getColor("TextField.foreground") : Color.GRAY;
+    final Color caretColor = UIManager.getDefaults().getColor("TextField.caretForeground");
+    final Color headerColor = isDarkMode ? new Color(0xc0c0ff) : new Color(0x0000c0);
+    final Color modifiedColor = NearInfinity.getInstance().isDarkMode() ? Color.MAGENTA : Color.RED;
+    final Color selectionColor = UIManager.getDefaults().getColor("TextField.selectionBackground");
+
+    hexView.setBackground(bgColor);
+    hexView.setBackgroundColorHeader(bgColor);
     hexView.setEnabled(false);
     hexView.setDefinitionStatus(JHexView.DefinitionStatus.UNDEFINED);
     hexView.setAddressMode(JHexView.AddressMode.BIT32);
@@ -269,10 +279,10 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setColumnSpacing(8);
     hexView.setMouseOverHighlighted(false);
     hexView.setShowModified(true);
-    hexView.setCaretColor(Color.BLACK);
+    hexView.setCaretColor(caretColor);
     hexView.setFontSize(Misc.getScaledValue(13));
     hexView.setHeaderFontStyle(Font.BOLD);
-    hexView.setFontColorHeader(new Color(0x0000c0));
+    hexView.setFontColorHeader(headerColor);
     hexView.setBackgroundColorOffsetView(hexView.getBackground());
     hexView.setFontColorOffsetView(hexView.getFontColorHeader());
     hexView.setBackgroundColorHexView(hexView.getBackground());
@@ -280,8 +290,8 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     hexView.setFontColorHexView2(textColor);
     hexView.setBackgroundColorAsciiView(hexView.getBackground());
     hexView.setFontColorAsciiView(textColor);
-    hexView.setFontColorModified(Color.RED);
-    hexView.setSelectionColor(new Color(0xc0c0c0));
+    hexView.setFontColorModified(modifiedColor);
+    hexView.setSelectionColor(selectionColor);
     hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getOptions().getHexColorMapEnabled());
     hexView.setEnabled(true);
   }

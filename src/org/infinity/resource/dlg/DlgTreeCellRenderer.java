@@ -11,6 +11,7 @@ import java.util.HashMap;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import org.infinity.NearInfinity;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 
@@ -28,6 +29,14 @@ import org.infinity.gui.menu.BrowserMenuBar;
  * @author Mingun
  */
 final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
+  // Color for response entry (if colored)
+  private static final Color COLOR_RESPONSE = Color.BLUE;
+  private static final Color COLOR_RESPONSE_DARK = Color.CYAN;
+
+  // Color for broken reference
+  private static final Color COLOR_BROKEN = Color.RED;
+  private static final Color COLOR_BROKEN_DARK = Color.MAGENTA;
+
   /** Background colors for text in dialogs to that can refer main dialog. */
   private final HashMap<DlgResource, Color> dialogColors = new HashMap<>();
 
@@ -48,6 +57,7 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
       return c;
     }
 
+    final boolean isDark = NearInfinity.getInstance().isDarkMode();
     final ItemBase item = (ItemBase) value;
 
     final BrowserMenuBar options = BrowserMenuBar.getInstance();
@@ -56,11 +66,11 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
         options.getOptions().colorizeOtherDialogs() ? getColor(item.getDialog()) : null);
 
     if (options.getOptions().useDifferentColorForResponses() && item instanceof TransitionItem) {
-      setForeground(Color.BLUE);
+      setForeground(isDark ? COLOR_RESPONSE_DARK : COLOR_RESPONSE);
     }
 
     if (item instanceof BrokenReference) {
-      setForeground(Color.RED);// Broken reference
+      setForeground(isDark ? COLOR_BROKEN_DARK : COLOR_BROKEN);// Broken reference
     } else if (item instanceof StateItem) {
       final StateItem state = (StateItem) item;
       final State s = state.getEntry();
@@ -78,7 +88,9 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
     if (dlg == dialog) {
       return null;
     }
+
+    final Color[] colors = ViewerUtil.getBackgroundColors();
     return dialogColors.computeIfAbsent(dialog,
-        d -> ViewerUtil.BACKGROUND_COLORS[dialogColors.size() % ViewerUtil.BACKGROUND_COLORS.length]);
+        d -> colors[dialogColors.size() % colors.length]);
   }
 }

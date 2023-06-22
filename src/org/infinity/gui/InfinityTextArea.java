@@ -34,6 +34,7 @@ import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.GutterIconInfo;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
@@ -72,6 +73,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     DEFAULT,
     /** Color scheme based on Notepad++'s Obsidian scheme. */
     DARK,
+    /** A dark green Color scheme. */
+    DRUID,
     /** Color scheme based on Eclipse's defaults. */
     ECLIPSE,
     /** Color scheme based on IntelliJ IDEA's defaults. */
@@ -88,21 +91,25 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
   public static final Color DEFAULT_LINE_HIGHLIGHT_COLOR = new Color(0xe8e8ff);
 
   /** Color scheme for unicolored text */
-  public static final String SCHEME_NONE    = "org/infinity/resource/text/modes/ThemeNone.xml";
+  public static final String SCHEME_NONE      = "org/infinity/resource/text/modes/ThemeNone.xml";
+  /** Dark color scheme for unicolored text */
+  public static final String SCHEME_NONE_DARK = "org/infinity/resource/text/modes/ThemeNoneDark.xml";
   /** Default color scheme */
-  public static final String SCHEME_DEFAULT = "org/infinity/resource/text/modes/ThemeDefault.xml";
+  public static final String SCHEME_DEFAULT   = "org/infinity/resource/text/modes/ThemeDefault.xml";
   /** Dark color scheme */
-  public static final String SCHEME_DARK    = "org/infinity/resource/text/modes/ThemeDark.xml";
+  public static final String SCHEME_DARK      = "org/infinity/resource/text/modes/ThemeDark.xml";
+  /** Druid color scheme */
+  public static final String SCHEME_DRUID     = "org/infinity/resource/text/modes/ThemeDruid.xml";
   /** Eclipse color scheme */
-  public static final String SCHEME_ECLIPSE = "org/infinity/resource/text/modes/ThemeEclipse.xml";
+  public static final String SCHEME_ECLIPSE   = "org/infinity/resource/text/modes/ThemeEclipse.xml";
   /** IntelliJ IDEA color scheme */
-  public static final String SCHEME_IDEA    = "org/infinity/resource/text/modes/ThemeIdea.xml";
+  public static final String SCHEME_IDEA      = "org/infinity/resource/text/modes/ThemeIdea.xml";
   /** "Monokai" color scheme */
-  public static final String SCHEME_MONOKAI = "org/infinity/resource/text/modes/ThemeMonokai.xml";
+  public static final String SCHEME_MONOKAI   = "org/infinity/resource/text/modes/ThemeMonokai.xml";
   /** Visual Studio color scheme */
-  public static final String SCHEME_VS      = "org/infinity/resource/text/modes/ThemeVs.xml";
+  public static final String SCHEME_VS        = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
-  public static final String SCHEME_BCS     = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
+  public static final String SCHEME_BCS       = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
   private static final EnumMap<Scheme, String> SCHEME_MAP = new EnumMap<>(Scheme.class);
 
@@ -122,9 +129,9 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         "org.infinity.resource.text.modes.GLSLTokenMaker");
 
     // initializing color schemes
-    SCHEME_MAP.put(Scheme.NONE, SCHEME_NONE);
     SCHEME_MAP.put(Scheme.DEFAULT, SCHEME_DEFAULT);
     SCHEME_MAP.put(Scheme.DARK, SCHEME_DARK);
+    SCHEME_MAP.put(Scheme.DRUID, SCHEME_DRUID);
     SCHEME_MAP.put(Scheme.ECLIPSE, SCHEME_ECLIPSE);
     SCHEME_MAP.put(Scheme.IDEA, SCHEME_IDEA);
     SCHEME_MAP.put(Scheme.MONOKAI, SCHEME_MONOKAI);
@@ -322,13 +329,10 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
       String schemePath;
       if (scheme != null) {
         // applying explicit color scheme
-        schemePath = SCHEME_MAP.get(scheme);
-        if (schemePath == null || schemePath.isEmpty()) {
-          schemePath = SCHEME_NONE;
-        }
+        schemePath = SCHEME_MAP.getOrDefault(scheme, getNoneScheme());
       } else {
         // applying implicit color scheme
-        schemePath = SCHEME_NONE;
+        schemePath = getNoneScheme();
         switch (language) {
           case BCS:
             if (BrowserMenuBar.isInstantiated()) {
@@ -364,15 +368,17 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         }
       }
 
-      try (InputStream is = ClassLoader.getSystemResourceAsStream(schemePath)) {
-        Theme theme = Theme.load(is);
-        if (theme != null) {
-          theme.apply(edit);
+      if (schemePath != null) {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream(schemePath)) {
+          Theme theme = Theme.load(is);
+          if (theme != null) {
+            theme.apply(edit);
+          }
+        } catch (NullPointerException e) {
+          // ignore
+        } catch (IOException e) {
+          e.printStackTrace();
         }
-      } catch (NullPointerException e) {
-        // ignore
-      } catch (IOException e) {
-        e.printStackTrace();
       }
 
       // apply code folding
@@ -395,6 +401,14 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
           edit.setCodeFoldingEnabled(false);
       }
     }
+  }
+
+  /** Returns the color scheme when syntax highlighting is disabled. */
+  private static String getNoneScheme() {
+    if (NearInfinity.getInstance() != null) {
+      return NearInfinity.getInstance().isDarkMode() ? SCHEME_NONE_DARK : SCHEME_NONE;
+    }
+    return SCHEME_NONE;
   }
 
   /**

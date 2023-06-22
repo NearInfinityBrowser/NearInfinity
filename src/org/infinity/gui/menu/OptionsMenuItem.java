@@ -79,6 +79,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   private static final List<ColorScheme> BCS_COLOR_SCHEME = Arrays.asList(
       new ColorScheme("Default", InfinityTextArea.SCHEME_DEFAULT),
       new ColorScheme("Dark", InfinityTextArea.SCHEME_DARK),
+      new ColorScheme("Druid", InfinityTextArea.SCHEME_DRUID),
       new ColorScheme("Eclipse", InfinityTextArea.SCHEME_ECLIPSE),
       new ColorScheme("IntelliJ IDEA", InfinityTextArea.SCHEME_IDEA),
       new ColorScheme("Monokai", InfinityTextArea.SCHEME_MONOKAI),
@@ -886,6 +887,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
             final LookAndFeelInfo info = new LookAndFeelInfo(lfName, className);
             NearInfinity.getInstance().updateLookAndFeel(info, false);
             messages.add("Look and Feel UI: " + info.getName());
+            refresh = true;
             restart = true;
           } catch (Exception e) {
             e.printStackTrace();
