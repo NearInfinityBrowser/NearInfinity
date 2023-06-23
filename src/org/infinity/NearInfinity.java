@@ -1106,7 +1106,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
    * @return {@code true} if a dark color scheme is detected, {@code false} otherwise.
    */
   public boolean isDarkMode() {
-    final Color bg = UIManager.getDefaults().getColor("TextField.background");
+    final Color bg = Misc.getDefaultColor("TextField.background", Color.WHITE);
     final double bgIntensity;
     if (bg != null) {
       bgIntensity = (double) bg.getRed() * 0.299 + (double) bg.getGreen() * 0.587 + (double) bg.getBlue() * 0.114;
@@ -1114,7 +1114,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       bgIntensity = 0.0;
     }
 
-    final Color fg = UIManager.getDefaults().getColor("TextField.foreground");
+    final Color fg = Misc.getDefaultColor("TextField.foreground", Color.BLACK);
     final double fgIntensity;
     if (fg != null) {
       fgIntensity = (double) fg.getRed() * 0.299 + (double) fg.getGreen() * 0.587 + (double) fg.getBlue() * 0.114;

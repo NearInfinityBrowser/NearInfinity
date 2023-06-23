@@ -10,7 +10,6 @@ import java.awt.Font;
 import java.nio.charset.Charset;
 
 import javax.swing.JPanel;
-import javax.swing.UIManager;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.StatusBar;
@@ -261,12 +260,12 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
    */
   public static void configureHexView(JHexView hexView, boolean isEditable) {
     boolean isDarkMode = NearInfinity.getInstance().isDarkMode();
-    final Color bgColor = UIManager.getDefaults().getColor("TextField.background");
-    final Color textColor = isEditable ? UIManager.getDefaults().getColor("TextField.foreground") : Color.GRAY;
-    final Color caretColor = UIManager.getDefaults().getColor("TextField.caretForeground");
+    final Color bgColor = Misc.getDefaultColor("TextField.background", Color.WHITE);
+    final Color textColor = isEditable ? Misc.getDefaultColor("TextField.foreground", Color.BLACK) : Color.GRAY;
+    final Color caretColor = Misc.getDefaultColor("TextField.caretForeground", textColor);
     final Color headerColor = isDarkMode ? new Color(0xc0c0ff) : new Color(0x0000c0);
     final Color modifiedColor = NearInfinity.getInstance().isDarkMode() ? Color.MAGENTA : Color.RED;
-    final Color selectionColor = UIManager.getDefaults().getColor("TextField.selectionBackground");
+    final Color selectionColor = Misc.getDefaultColor("TextField.selectionBackground", Color.GRAY);
 
     hexView.setBackground(bgColor);
     hexView.setBackgroundColorHeader(bgColor);

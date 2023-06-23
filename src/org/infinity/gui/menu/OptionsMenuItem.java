@@ -5,6 +5,7 @@
 package org.infinity.gui.menu;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -49,6 +50,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.CharsetDetector;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.tuples.Couple;
 
@@ -959,7 +961,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
         // list of modified options
         JTextArea textArea = new JTextArea(sb.toString());
 //        textArea.setBackground(panel.getBackground());
-        textArea.setBackground(UIManager.getDefaults().getColor("Label.background"));
+        textArea.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
         textArea.setFont(UIManager.getDefaults().getFont("Label.font"));
         textArea.setEditable(false);
         textArea.setFocusable(false);
@@ -986,7 +988,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
         SimpleAttributeSet align = new SimpleAttributeSet();
         StyleConstants.setAlignment(align, StyleConstants.ALIGN_LEFT);
         style.setParagraphAttributes(0, style.getLength(), align, false);
-        msgPane.setBackground(UIManager.getDefaults().getColor("Label.background"));
+        msgPane.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
         msgPane.setFont(UIManager.getDefaults().getFont("Label.font"));
         msgPane.setEditable(false);
         msgPane.setFocusable(false);

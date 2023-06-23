@@ -432,7 +432,9 @@ public class PreferencesDialog extends JDialog {
               OptionGroupBox.create(AppOption.LOOK_AND_FEEL_CLASS.getName(), AppOption.LOOK_AND_FEEL_CLASS.getLabel(),
                   "Choose a Look & Feel theme for the GUI."
                       + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
-                      + "It is available on all platforms.</p>",
+                      + "It is available on all platforms.</p>"
+                      + "<p><strong>Note:</strong> It is not recommended to use the \"Nimbus\" L&F theme. The theme "
+                      + "initializes an incomplete set of UI properties, which can result in display errors.</p>",
                   0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
               .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
               OptionGroupBox.create(AppOption.TEXT_FONT.getName(), AppOption.TEXT_FONT.getLabel(),

@@ -4,6 +4,7 @@
 
 package org.infinity.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
 import org.infinity.AppOption;
 import org.infinity.NearInfinity;
@@ -450,6 +452,18 @@ public class Misc {
   public static int getScaledValue(int value) {
     int scale = (NearInfinity.getInstance() != null) ? AppOption.GLOBAL_FONT_SIZE.getIntValue() : 100;
     return value * scale / 100;
+  }
+
+  /**
+   * Returns the L&F UI theme color of the specified {@code key} and falls back to {@code defColor} if the
+   * requested color doesn't exist.
+   */
+  public static Color getDefaultColor(String key, Color defColor) {
+    Color retVal = UIManager.getDefaults().getColor(key);
+    if (retVal == null) {
+      retVal = defColor;
+    }
+    return retVal;
   }
 
   /**

@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.swing.UIManager;
-
 import org.infinity.NearInfinity;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -23,6 +21,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.util.MapEntry;
+import org.infinity.util.Misc;
 
 import tv.porst.jhexview.IColormap;
 
@@ -357,7 +356,7 @@ public class BasicColorMap implements IColormap {
   // Returns the default background color
   private Color getBackgroundColor() {
     if (backgroundColor == null) {
-      backgroundColor = UIManager.getDefaults().getColor("TextField.background");
+      backgroundColor = Misc.getDefaultColor("TextField.background", Color.WHITE);
     }
     return backgroundColor;
   }
