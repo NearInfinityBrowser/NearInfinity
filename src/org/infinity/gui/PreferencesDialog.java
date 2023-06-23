@@ -1497,16 +1497,18 @@ public class PreferencesDialog extends JDialog {
 
   /** onAccept() function for {@link AppOption#GAME_LANGUAGES}. */
   private void gameLanguagesOnAccept(OptionGroupBox gb) {
-    try {
-      @SuppressWarnings("unchecked")
-      final DataItem<String> item = (DataItem<String>) gb.getItem(gb.getSelectedIndex());
-      final String langCode = item.getData();
+    if (Profile.isEnhancedEdition()) {
+      try {
+        @SuppressWarnings("unchecked")
+        final DataItem<String> item = (DataItem<String>) gb.getItem(gb.getSelectedIndex());
+        final String langCode = item.getData();
 
-      String languageDefinitions = gb.getOption().getStringValue();
-      languageDefinitions = OptionsMenuItem.updateGameLanguages(languageDefinitions, Profile.getGame(), langCode);
-      gb.getOption().setValue(languageDefinitions);
-    } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+        String languageDefinitions = gb.getOption().getStringValue();
+        languageDefinitions = OptionsMenuItem.updateGameLanguages(languageDefinitions, Profile.getGame(), langCode);
+        gb.getOption().setValue(languageDefinitions);
+      } catch (IndexOutOfBoundsException e) {
+        e.printStackTrace();
+      }
     }
   }
 
