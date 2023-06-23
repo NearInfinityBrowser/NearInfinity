@@ -863,6 +863,19 @@ public class PreferencesDialog extends JDialog {
         dim.height = Math.min(screenHeight / 2, dim.height);
       }
     }
+
+    // Further limit preferred height to "General" category panel height
+    final OptionBase optionBase = optionRoot.findOption(o -> o instanceof OptionGroup &&
+        ((OptionGroup) o).isDefault() && o.getParent().getId().equals(Category.GENERAL_OPTIONS));
+    if (optionBase instanceof OptionGroup) {
+      final Dimension panelDim = ((OptionGroup) optionBase).getUiPanel().getPreferredSize();
+      if (panelDim.height > 0) {
+        dim.height = Math.min(panelDim.height, dim.height);
+        // compensate horizontal scrollbar width
+        dim.height += UIManager.getInt("ScrollBar.width");
+      }
+    }
+
     settingsPanel.setPreferredSize(dim);
 
     // assembling the right panel (settings and description panels)

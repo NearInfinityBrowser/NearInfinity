@@ -5,6 +5,7 @@
 package org.infinity.gui.options;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /** Common base for options and option containers. */
 public abstract class OptionBase {
@@ -64,6 +65,25 @@ public abstract class OptionBase {
   }
 
   /**
+   * Searches for the first instance that passes the test of the specified matcher function and returns it.
+   *
+   * <p>
+   * The search starts at the current node and searches all child nodes. Call this method from {@link #getRoot()}
+   * to search all available nodes of this tree.
+   * </p>
+   *
+   * @param matcher Determines whether a match is found.
+   * @return A {@code OptionBase} instance that passes the test of the given matcher function,
+   * or {@code null} if no matching instance could be found.
+   */
+  public OptionBase findOption(Predicate<OptionBase> matcher) {
+    if (matcher == null) {
+      matcher = o -> true;
+    }
+    return findOptionRecursive(this, matcher);
+  }
+
+  /**
    * Searches for the first matching instance of the specified identifier and returns it.
    *
    * <p>
@@ -79,17 +99,18 @@ public abstract class OptionBase {
     if (id == null || id == DEFAULT_ID) {
       return null;
     }
-    return findOptionRecursive(this, id);
+    return findOptionRecursive(this, o -> o.id.equals(id));
   }
 
-  private OptionBase findOptionRecursive(OptionBase option, Object id) {
+  private OptionBase findOptionRecursive(OptionBase option, Predicate<OptionBase> pred) {
     if (option != null) {
-      if (option.id.equals(id)) {
+      if (pred.test(option)) {
         return option;
       }
+
       if (option instanceof OptionContainerBase) {
         for (final OptionBase child : ((OptionContainerBase) option).getChildren()) {
-          final OptionBase retVal = findOptionRecursive(child, id);
+          final OptionBase retVal = findOptionRecursive(child, pred);
           if (retVal != null) {
             return retVal;
           }
