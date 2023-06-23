@@ -9,14 +9,13 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
-import org.infinity.resource.Profile;
 
 /**
  * A token maker that turns text into a linked list of {@code Token}s for syntax highlighting Infinity Engine INI
  * resources.
  */
 public class INITokenMaker extends AbstractTokenMaker {
-  /** Style for highlighting TLK text. */
+  /** Style for highlighting INI text. */
   public static final String SYNTAX_STYLE_INI = "text/INI";
 
   // available token types
@@ -25,7 +24,6 @@ public class INITokenMaker extends AbstractTokenMaker {
   public static final int TOKEN_EQUALS        = Token.OPERATOR;
   public static final int TOKEN_VALUE         = Token.LITERAL_STRING_DOUBLE_QUOTE;
   public static final int TOKEN_COMMENT       = Token.COMMENT_EOL;
-  public static final int TOKEN_COMMENT_BLOCK = Token.COMMENT_MULTILINE;
   public static final int TOKEN_WHITESPACE    = Token.WHITESPACE;
 
   private static final String WHITESPACE = " \t";
@@ -77,9 +75,7 @@ public class INITokenMaker extends AbstractTokenMaker {
         case Token.NULL: {
           currentTokenStart = i; // starting new token here
 
-          if (isMultiComment(c, i, end, array)) {
-            currentTokenType = TOKEN_COMMENT_BLOCK;
-          } else if (isComment(c, i, end, array)) {
+          if (isComment(c, i, end, array)) {
             currentTokenType = TOKEN_COMMENT;
           } else if (c == '[') {
             currentTokenType = TOKEN_SECTION;
@@ -96,11 +92,6 @@ public class INITokenMaker extends AbstractTokenMaker {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COMMENT;
-          } else if (isMultiComment(c, i, end, array)) {
-            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_COMMENT_BLOCK;
-            curType = Type.Section;
           } else if (curType == Type.Equals) {
             // fixing current toke type
             currentTokenType = TOKEN_VALUE;
@@ -115,11 +106,6 @@ public class INITokenMaker extends AbstractTokenMaker {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COMMENT;
-          } else if (isMultiComment(c, i, end, array)) {
-            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_COMMENT_BLOCK;
-            curType = Type.Key;
           } else if (c == '=') {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
@@ -137,11 +123,6 @@ public class INITokenMaker extends AbstractTokenMaker {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COMMENT;
-          } else if (isMultiComment(c, i, end, array)) {
-            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_COMMENT_BLOCK;
-            curType = Type.Value;
           }
           break;
         }
@@ -150,11 +131,6 @@ public class INITokenMaker extends AbstractTokenMaker {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COMMENT;
-          } else if (isMultiComment(c, i, end, array)) {
-            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_COMMENT_BLOCK;
-            curType = Type.Equals;
           } else if (isWhiteSpace(c)) {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
@@ -172,48 +148,27 @@ public class INITokenMaker extends AbstractTokenMaker {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_COMMENT;
-          } else if (isMultiComment(c, i, end, array)) {
-            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenStart = i;
-            currentTokenType = TOKEN_COMMENT_BLOCK;
           } else if (curType == Type.Key && c == '=') {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_EQUALS;
-          } else if (curType == Type.Equals && isWhiteSpace(c)) {
+          } else if (curType == Type.Key && isIdentifier(c)) {
+            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
+            currentTokenStart = i;
+            currentTokenType = TOKEN_KEY;
+          } else if (curType == Type.Equals && !isWhiteSpace(c)) {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             currentTokenStart = i;
             currentTokenType = TOKEN_VALUE;
+          } else if (!isWhiteSpace(c)) {
+            addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
+            i--;
+            currentTokenType = Token.NULL;
           }
           break;
         }
         case TOKEN_COMMENT: {
           // still line comment
-          break;
-        }
-        case TOKEN_COMMENT_BLOCK: {
-          if (c == '/') {
-            if (curType == Type.Section) {
-              addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-              currentTokenStart = i;
-              currentTokenType = TOKEN_SECTION;
-            } else if (curType == Type.Key && i + 1 < end && isWhiteSpace(array[i + 1])) {
-              addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-              currentTokenStart = i;
-              currentTokenType = TOKEN_WHITESPACE;
-            } else if (curType == Type.Key && i + 1 < end && array[i + 1] == '=') {
-              addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-              currentTokenStart = i;
-              currentTokenType = TOKEN_EQUALS;
-            } else if (curType == Type.Equals || curType == Type.Value) {
-              addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
-              currentTokenStart = i;
-              currentTokenType = TOKEN_VALUE;
-            } else {
-              addToken(text, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
-              currentTokenType = Token.NULL;
-            }
-          }
           break;
         }
         default:  // should not happen
@@ -244,23 +199,9 @@ public class INITokenMaker extends AbstractTokenMaker {
     return new TokenMap();
   }
 
-  /** Special case for IWD2: Multiline comments are enclosed in slash characters */
-  private boolean isMultiComment(char c, int index, int lineEnd, char[] array) {
-    if ((Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) &&
-        c == '/' && (index + 1 >= lineEnd || array[index + 1] != '/')) {
-      return true;
-    }
-    return false;
-  }
-
   /** Returns {@code true} for all supported single line comment prefixes. */
   private boolean isComment(char c, int index, int lineEnd, char[] array) {
-    if (c == ';' || c == '#') {
-      return true;
-    } else if (Profile.isEnhancedEdition() && c == '/' && index + 1 < lineEnd && array[index + 1] == '/') {
-      return true;
-    }
-    return false;
+    return (c == ';' || c == '#' || (c == '/' && index + 1 < lineEnd && array[index + 1] == '/'));
   }
 
   /** Returns {@code true} if the specified character is a whitespace character. */
