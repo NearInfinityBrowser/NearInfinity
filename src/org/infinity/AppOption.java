@@ -209,6 +209,12 @@ public class AppOption {
   /** Menu Options > Misc. Types: GlslCodeFolding (Boolean, Default: false) */
   public static final AppOption GLSL_CODE_FOLDING = new AppOption(OptionsMenuItem.OPTION_GLSL_CODEFOLDING,
       "Enable GLSL Code Folding", false);
+  /** Menu Options > Misc. Types: IniColorScheme (Integer, Default: 0) */
+  public static final AppOption INI_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_INI_COLORSCHEME,
+      "INI Color Scheme", 0);
+  /** Menu Options > Misc. Types: IniSyntaxHighlighting (Boolean, Default: true) */
+  public static final AppOption INI_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_INI_SYNTAXHIGHLIGHTING,
+      "Enable INI Syntax Highlighting", true);
   /** Menu Options > Misc. Types: LuaColorScheme (Integer, Default: 0) */
   public static final AppOption LUA_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_LUA_COLORSCHEME,
       "LUA Color Scheme", 0);

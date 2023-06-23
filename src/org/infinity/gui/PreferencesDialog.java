@@ -277,6 +277,21 @@ public class PreferencesDialog extends JDialog {
                   OptionCheckBox.create(AppOption.GLSL_CODE_FOLDING.getName(), AppOption.GLSL_CODE_FOLDING.getLabel(),
                       "Enables code folding for GLSL resources.", AppOption.GLSL_CODE_FOLDING)
               ),
+              OptionGroup.create("INI",
+                  OptionGroupBox.create(AppOption.INI_COLOR_SCHEME.getName(), AppOption.INI_COLOR_SCHEME.getLabel(),
+                      "Select a color scheme for INI resources.<p>"
+                          + "<strong>Default:</strong> A general-purpose default color scheme.<br/>"
+                          + "<strong>Dark:</strong> A dark scheme based off of Notepad++'s Obsidian theme.<br/>"
+                          + "<strong>Druid:</strong> A dark green color scheme.<br/>"
+                          + "<strong>Eclipse:</strong> Mimics the default color scheme of the Eclipse IDE.<br/>"
+                          + "<strong>IntelliJ IDEA:</strong> Mimics the default color scheme of IntelliJ IDEA.<br/>"
+                          + "<strong>Monokai:</strong> A dark color scheme inspired by \"Monokai\".<br/>"
+                          + "<strong>Visual Studio:</strong> Mimics the default color scheme of Microsoft Visual Studio.</p>",
+                      0, OptionsMenuItem.getColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
+                      AppOption.INI_COLOR_SCHEME),
+                  OptionCheckBox.create(AppOption.INI_SYNTAX_HIGHLIGHTING.getName(), AppOption.INI_SYNTAX_HIGHLIGHTING.getLabel(),
+                      "Enables syntax highlighting for INI resources.", AppOption.INI_SYNTAX_HIGHLIGHTING)
+              ),
               OptionGroup.create("LUA",
                   OptionGroupBox.create(AppOption.LUA_COLOR_SCHEME.getName(), AppOption.LUA_COLOR_SCHEME.getLabel(),
                       "Select a color scheme for LUA resources.<p>"

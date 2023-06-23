@@ -77,14 +77,14 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
 
   /** Available color schemes for highlighted BCS format (title and scheme definition path). */
   private static final List<ColorScheme> BCS_COLOR_SCHEME = Arrays.asList(
-      new ColorScheme("Default", InfinityTextArea.SCHEME_DEFAULT),
-      new ColorScheme("Dark", InfinityTextArea.SCHEME_DARK),
-      new ColorScheme("Druid", InfinityTextArea.SCHEME_DRUID),
-      new ColorScheme("Eclipse", InfinityTextArea.SCHEME_ECLIPSE),
-      new ColorScheme("IntelliJ IDEA", InfinityTextArea.SCHEME_IDEA),
-      new ColorScheme("Monokai", InfinityTextArea.SCHEME_MONOKAI),
-      new ColorScheme("Visual Studio", InfinityTextArea.SCHEME_VS),
-      new ColorScheme("BCS Light", InfinityTextArea.SCHEME_BCS)
+      new ColorScheme(InfinityTextArea.Scheme.DEFAULT.getLabel(), InfinityTextArea.Scheme.DEFAULT.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.DARK.getLabel(), InfinityTextArea.Scheme.DARK.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.DRUID.getLabel(), InfinityTextArea.Scheme.DRUID.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.ECLIPSE.getLabel(), InfinityTextArea.Scheme.ECLIPSE.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.IDEA.getLabel(), InfinityTextArea.Scheme.IDEA.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.MONOKAI.getLabel(), InfinityTextArea.Scheme.MONOKAI.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.VS.getLabel(), InfinityTextArea.Scheme.VS.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme())
   );
 
   /** Available color schemes for remaining highlighted formats (scheme, title, description). */
@@ -150,6 +150,8 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_GLSL_SYNTAXHIGHLIGHTING   = "GlslSyntaxHighlighting";
   public static final String OPTION_GLSL_COLORSCHEME          = "GlslColorScheme";
   public static final String OPTION_GLSL_CODEFOLDING          = "GlslCodeFolding";
+  public static final String OPTION_INI_SYNTAXHIGHLIGHTING    = "IniSyntaxHighlighting";
+  public static final String OPTION_INI_COLORSCHEME           = "IniColorScheme";
   public static final String OPTION_LUA_SYNTAXHIGHLIGHTING    = "LuaSyntaxHighlighting";
   public static final String OPTION_LUA_COLORSCHEME           = "LuaColorScheme";
   public static final String OPTION_SQL_SYNTAXHIGHLIGHTING    = "SqlSyntaxHighlighting";
@@ -562,6 +564,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     return AppOption.GLSL_SYNTAX_HIGHLIGHTING.getBoolValue();
   }
 
+  /** Returns state of "Enable Syntax Highlighting for INI" */
+  public boolean getIniSyntaxHighlightingEnabled() {
+    return AppOption.INI_SYNTAX_HIGHLIGHTING.getBoolValue();
+  }
+
   /** Returns state of "Enable Syntax Highlighting for LUA" */
   public boolean getLuaSyntaxHighlightingEnabled() {
     return AppOption.LUA_SYNTAX_HIGHLIGHTING.getBoolValue();
@@ -599,6 +606,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
 
   public String getGlslColorScheme() {
     int idx = AppOption.GLSL_COLOR_SCHEME.getIntValue();
+    return COLOR_SCHEME.get(idx).getPath();
+  }
+
+  public String getIniColorScheme() {
+    int idx = AppOption.INI_COLOR_SCHEME.getIntValue();
     return COLOR_SCHEME.get(idx).getPath();
   }
 

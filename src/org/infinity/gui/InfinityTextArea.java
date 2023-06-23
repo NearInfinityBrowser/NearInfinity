@@ -10,12 +10,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 import javax.swing.Icon;
 import javax.swing.JViewport;
@@ -39,6 +39,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
+import org.infinity.resource.text.modes.INITokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 import org.infinity.util.Misc;
@@ -50,68 +51,101 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
   /** Available languages for syntax highlighting. */
   public enum Language {
     /** Disables syntax highlighting */
-    NONE,
+    NONE(SyntaxConstants.SYNTAX_STYLE_NONE),
     /** Select BCS highlighting. */
-    BCS,
+    BCS(BCSTokenMaker.SYNTAX_STYLE_BCS),
     /** Select TLK highlighting. */
-    TLK,
+    TLK(TLKTokenMaker.SYNTAX_STYLE_TLK),
     /** Select GLSL highlighting. */
-    GLSL,
+    GLSL(GLSLTokenMaker.SYNTAX_STYLE_GLSL),
+    /** Select INI highlighting. */
+    INI(INITokenMaker.SYNTAX_STYLE_INI),
     /** Select LUA highlighting. */
-    LUA,
+    LUA(SyntaxConstants.SYNTAX_STYLE_LUA),
     /** Select SQL highlighting. */
-    SQL,
+    SQL(SyntaxConstants.SYNTAX_STYLE_SQL),
     /** Select WeiDU.log highlighting. */
-    WEIDU,
+    WEIDU(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU),
+    ;
+
+    private final String style;
+
+    private Language(String style) {
+      this.style = style;
+    }
+
+    /** Returns the syntax highlighting style definition. */
+    public String getStyle() {
+      return style;
+    }
   }
 
   /** Available color schemes for use when enabling syntax highlighting. */
   public enum Scheme {
     /** Disables any color scheme. */
-    NONE,
+    NONE("None", () -> getNoneScheme()),
     /** The default color scheme. */
-    DEFAULT,
+    DEFAULT("Default", () -> SCHEME_DEFAULT),
     /** Color scheme based on Notepad++'s Obsidian scheme. */
-    DARK,
+    DARK("Dark", () -> SCHEME_DARK),
     /** A dark green Color scheme. */
-    DRUID,
+    DRUID("Druid", () -> SCHEME_DRUID),
     /** Color scheme based on Eclipse's defaults. */
-    ECLIPSE,
+    ECLIPSE("Eclipse", () -> SCHEME_ECLIPSE),
     /** Color scheme based on IntelliJ IDEA's defaults. */
-    IDEA,
+    IDEA("IntelliJ IDEA", () -> SCHEME_IDEA),
     /** A dark color scheme inspired by "Monokai". */
-    MONOKAI,
+    MONOKAI("Monokai", () -> SCHEME_MONOKAI),
     /** Color scheme based on Microsoft Visual Studio's defaults. */
-    VS,
+    VS("Visual Studio", () -> SCHEME_VS),
     /** Color scheme loosely based on the WeiDU Syntax Highlighter for Notepad++. */
-    BCS,
+    BCS("BCS Light", () -> SCHEME_BCS),
+    ;
+
+    private final String label;
+
+    // Stored as functional interface to react to dark/light UI theme changes
+    private final Supplier<String> scheme;
+
+    private Scheme(String label, Supplier<String> scheme) {
+      this.label = label;
+      this.scheme = scheme;
+    }
+
+    /** Returns a descriptive label for the color scheme. */
+    public String getLabel() {
+      return label;
+    }
+
+    /** Returns the path to the color scheme. */
+    public String getScheme() {
+      return scheme.get();
+    }
   }
 
   /** The default color of the currently highlighted text line. */
   public static final Color DEFAULT_LINE_HIGHLIGHT_COLOR = new Color(0xe8e8ff);
 
   /** Color scheme for unicolored text */
-  public static final String SCHEME_NONE      = "org/infinity/resource/text/modes/ThemeNone.xml";
+  private static final String SCHEME_NONE       = "org/infinity/resource/text/modes/ThemeNone.xml";
   /** Dark color scheme for unicolored text */
-  public static final String SCHEME_NONE_DARK = "org/infinity/resource/text/modes/ThemeNoneDark.xml";
+  private static final String SCHEME_NONE_DARK  = "org/infinity/resource/text/modes/ThemeNoneDark.xml";
   /** Default color scheme */
-  public static final String SCHEME_DEFAULT   = "org/infinity/resource/text/modes/ThemeDefault.xml";
+  private static final String SCHEME_DEFAULT    = "org/infinity/resource/text/modes/ThemeDefault.xml";
   /** Dark color scheme */
-  public static final String SCHEME_DARK      = "org/infinity/resource/text/modes/ThemeDark.xml";
+  private static final String SCHEME_DARK       = "org/infinity/resource/text/modes/ThemeDark.xml";
   /** Druid color scheme */
-  public static final String SCHEME_DRUID     = "org/infinity/resource/text/modes/ThemeDruid.xml";
+  private static final String SCHEME_DRUID      = "org/infinity/resource/text/modes/ThemeDruid.xml";
   /** Eclipse color scheme */
-  public static final String SCHEME_ECLIPSE   = "org/infinity/resource/text/modes/ThemeEclipse.xml";
+  private static final String SCHEME_ECLIPSE    = "org/infinity/resource/text/modes/ThemeEclipse.xml";
   /** IntelliJ IDEA color scheme */
-  public static final String SCHEME_IDEA      = "org/infinity/resource/text/modes/ThemeIdea.xml";
+  private static final String SCHEME_IDEA       = "org/infinity/resource/text/modes/ThemeIdea.xml";
   /** "Monokai" color scheme */
-  public static final String SCHEME_MONOKAI   = "org/infinity/resource/text/modes/ThemeMonokai.xml";
+  private static final String SCHEME_MONOKAI    = "org/infinity/resource/text/modes/ThemeMonokai.xml";
   /** Visual Studio color scheme */
-  public static final String SCHEME_VS        = "org/infinity/resource/text/modes/ThemeVs.xml";
+  private static final String SCHEME_VS         = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
-  public static final String SCHEME_BCS       = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
-
-  private static final EnumMap<Scheme, String> SCHEME_MAP = new EnumMap<>(Scheme.class);
+  private static final String SCHEME_BCS        = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
   static {
     // adding custom code folding definitions
@@ -120,23 +154,15 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
     // adding custom syntax highlighting definitions
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS,
-        "org.infinity.resource.text.modes.BCSTokenMaker");
+        BCSTokenMaker.class.getCanonicalName());
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(TLKTokenMaker.SYNTAX_STYLE_TLK,
-        "org.infinity.resource.text.modes.TLKTokenMaker");
-    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance())
-        .putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU, "org.infinity.resource.text.modes.WeiDULogTokenMaker");
+        TLKTokenMaker.class.getCanonicalName());
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU,
+        WeiDULogTokenMaker.class.getCanonicalName());
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL,
-        "org.infinity.resource.text.modes.GLSLTokenMaker");
-
-    // initializing color schemes
-    SCHEME_MAP.put(Scheme.DEFAULT, SCHEME_DEFAULT);
-    SCHEME_MAP.put(Scheme.DARK, SCHEME_DARK);
-    SCHEME_MAP.put(Scheme.DRUID, SCHEME_DRUID);
-    SCHEME_MAP.put(Scheme.ECLIPSE, SCHEME_ECLIPSE);
-    SCHEME_MAP.put(Scheme.IDEA, SCHEME_IDEA);
-    SCHEME_MAP.put(Scheme.MONOKAI, SCHEME_MONOKAI);
-    SCHEME_MAP.put(Scheme.VS, SCHEME_VS);
-    SCHEME_MAP.put(Scheme.BCS, SCHEME_BCS);
+        GLSLTokenMaker.class.getCanonicalName());
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(INITokenMaker.SYNTAX_STYLE_INI,
+        INITokenMaker.class.getCanonicalName());
   }
 
   private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
@@ -300,36 +326,13 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
       }
 
       // applying syntax highlighting
-      String style;
-      switch (language) {
-        case BCS:
-          style = BCSTokenMaker.SYNTAX_STYLE_BCS;
-          break;
-        case TLK:
-          style = TLKTokenMaker.SYNTAX_STYLE_TLK;
-          break;
-        case GLSL:
-          style = GLSLTokenMaker.SYNTAX_STYLE_GLSL;
-          break;
-        case LUA:
-          style = SyntaxConstants.SYNTAX_STYLE_LUA;
-          break;
-        case SQL:
-          style = SyntaxConstants.SYNTAX_STYLE_SQL;
-          break;
-        case WEIDU:
-          style = WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU;
-          break;
-        default:
-          style = SyntaxConstants.SYNTAX_STYLE_NONE;
-      }
-      edit.setSyntaxEditingStyle(style);
+      edit.setSyntaxEditingStyle(language.getStyle());
 
       // applying color scheme
       String schemePath;
       if (scheme != null) {
         // applying explicit color scheme
-        schemePath = SCHEME_MAP.getOrDefault(scheme, getNoneScheme());
+        schemePath = scheme.getScheme();
       } else {
         // applying implicit color scheme
         schemePath = getNoneScheme();
@@ -347,6 +350,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
           case GLSL:
             if (BrowserMenuBar.isInstantiated()) {
               schemePath = BrowserMenuBar.getInstance().getOptions().getGlslColorScheme();
+            }
+            break;
+          case INI:
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptions().getIniColorScheme();
             }
             break;
           case LUA:
