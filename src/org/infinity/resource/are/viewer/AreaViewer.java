@@ -69,6 +69,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -282,7 +283,6 @@ public class AreaViewer extends ChildFrame {
     advanceProgressMonitor("Initializing GUI...");
 
     GridBagConstraints c = new GridBagConstraints();
-    JPanel p;
 
     // initialize misc. features
     pmItems = new JPopupMenu("Select item:");
@@ -318,7 +318,6 @@ public class AreaViewer extends ChildFrame {
 
     // Creating right side bar
     JPanel pTree = new JPanel(new GridBagLayout());
-    pTree.setBorder(BorderFactory.createTitledBorder("Area Viewer Controls: "));
     DefaultMutableTreeNode t, t2, t3;
     DefaultMutableTreeNode top = new DefaultMutableTreeNode("");
 
@@ -455,6 +454,19 @@ public class AreaViewer extends ChildFrame {
         new Insets(0, 4, 4, 4), 0, 0);
     pTree.add(treeControls, c);
 
+    // Make controls pane scrollable
+    JScrollPane spTree = new JScrollPane(pTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    spTree.setBorder(BorderFactory.createTitledBorder("Area Viewer Controls: "));
+    spTree.getVerticalScrollBar().setUnitIncrement(16);
+    Dimension dim = spTree.getPreferredSize();
+    // prevent cutting off child elements by the scroll bar
+    dim.width += UIManager.getDefaults().getInt("ScrollBar.width");
+    spTree.setPreferredSize(dim);
+    dim = new Dimension(dim);
+    dim.height = spTree.getMinimumSize().height;
+    spTree.setMinimumSize(dim);
+
     // Creating Info Box area
     JLabel lPosXLabel = new JLabel(LABEL_INFO_X);
     JLabel lPosYLabel = new JLabel(LABEL_INFO_Y);
@@ -469,42 +481,33 @@ public class AreaViewer extends ChildFrame {
     taInfo.setWrapStyleWord(true);
     taInfo.setLineWrap(true);
 
-    p = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
-        new Insets(0, 0, 0, 0), 0, 0);
-    p.add(lPosXLabel, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(0, 8, 0, 0), 0, 0);
-    p.add(lPosX, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
-        new Insets(4, 0, 0, 0), 0, 0);
-    p.add(lPosYLabel, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(4, 8, 0, 0), 0, 0);
-    p.add(lPosY, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
-        new Insets(4, 0, 0, 0), 0, 0);
-    p.add(taInfo, c);
-
     JPanel pInfoBox = new JPanel(new GridBagLayout());
     pInfoBox.setBorder(BorderFactory.createTitledBorder("Information: "));
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
-        new Insets(0, 4, 0, 4), 0, 0);
-    pInfoBox.add(p, c);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
+    pInfoBox.add(lPosXLabel, c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
+    pInfoBox.add(lPosX, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
+    pInfoBox.add(lPosYLabel, c);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(4, 8, 0, 0), 0, 0);
+    pInfoBox.add(lPosY, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 0, 0, 0), 0, 0);
+    pInfoBox.add(taInfo, c);
+    pInfoBox.setMinimumSize(pInfoBox.getPreferredSize());
 
     // Assembling right side bar
     JPanel pSideBar = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(4, 4, 0, 4), 0, 0);
-    pSideBar.add(pTree, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(4, 4, 0, 4), 0, 0);
+    pSideBar.add(spTree, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 4, 4, 4), 0, 0);
     pSideBar.add(pInfoBox, c);
-    p = new JPanel();
-    p.setPreferredSize(new Dimension(pTree.getPreferredSize().width, p.getMinimumSize().height));
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
-        new Insets(4, 0, 0, 0), 0, 0);
-    pSideBar.add(p, c);
 
     // Creating toolbar
     Dimension dimSeparator = new Dimension(24, 40);
