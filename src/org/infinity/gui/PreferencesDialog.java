@@ -181,8 +181,10 @@ public class PreferencesDialog extends JDialog {
                       + AppOption.SHOW_OVERRIDES_IN.getLabel() + "</code>.)",
                   AppOption.HIGHLIGHT_OVERRIDDEN),
               OptionCheckBox.create(AppOption.CACHE_OVERRIDE.getName(), AppOption.CACHE_OVERRIDE.getLabel(),
-                  "Without this option enabled the command \"Refresh Tree\" (F5) is required to discover new resources "
-                      + "in the Override folder.",
+                  "With this option enabled Near Infinity checks whether resources have been overridden every time a "
+                  + "resource has been requested."
+                  + "<p>If this option is disabled then Near Infinity will only check for the existence of overridden "
+                  + "resources after opening a new game or using the command \"Refresh Tree\" (Shortcut: <code>F5</code>).</p>",
                   AppOption.CACHE_OVERRIDE),
               OptionCheckBox.create(AppOption.KEEP_VIEW_ON_COPY.getName(), AppOption.KEEP_VIEW_ON_COPY.getLabel(),
                   "With this option enabled the resource tree will keep the original resource selected after performing "
@@ -207,7 +209,8 @@ public class PreferencesDialog extends JDialog {
                   AppOption.SHOW_SYS_INFO),
               OptionCheckBox.create(AppOption.OPEN_BOOKMARKS_PROMPT.getName(), AppOption.OPEN_BOOKMARKS_PROMPT.getLabel(),
                   "With this option enabled a confirmation dialog is shown whenever you try to load a bookmarked game."
-                      + "<p><strong>Note:</strong> This option can also be changed in the confirmation message itself.</p>",
+                      + "<p><strong>Note:</strong> This option can also be changed in the confirmation dialog of the "
+                      + "bookmarked games themselves</p>",
                   AppOption.OPEN_BOOKMARKS_PROMPT),
               OptionCheckBox.create(AppOption.REMEMBER_CHILD_FRAME_RECT.getName(), AppOption.REMEMBER_CHILD_FRAME_RECT.getLabel(),
                   "With this option enabled Near Infinity remembers current size and position of child windows on the screen.<br/>"
@@ -234,7 +237,8 @@ public class PreferencesDialog extends JDialog {
           OptionCategory.create(Category.BCS_AND_BAF,
               OptionGroup.createDefault(
                   OptionGroupBox.create(AppOption.BCS_INDENT.getName(), AppOption.BCS_INDENT.getLabel(),
-                      "Choose what kind of indentation should be used to format BCS script sources.", 0,
+                      "Choose what kind of indentation should be used to format BCS script sources when option "
+                      + "\"Enable Automatic Indentation\" is enabled.", 0,
                       OptionsMenuItem.getIndentations().toArray(new OptionsMenuItem.IndentInfo[0]),
                       AppOption.BCS_INDENT),
                   OptionGroupBox.create(AppOption.BCS_COLOR_SCHEME.getName(), AppOption.BCS_COLOR_SCHEME.getLabel(),
@@ -255,7 +259,7 @@ public class PreferencesDialog extends JDialog {
                   OptionCheckBox.create(AppOption.BCS_CODE_FOLDING.getName(), AppOption.BCS_CODE_FOLDING.getLabel(),
                       "Enables code folding for BCS script sources.", AppOption.BCS_CODE_FOLDING),
                   OptionCheckBox.create(AppOption.BCS_AUTO_INDENT.getName(), AppOption.BCS_AUTO_INDENT.getLabel(),
-                      "With this option enabled lines will be automatically indented when inserting a line break.",
+                      "With this option enabled BCS script sources are automatically indented to improve readability.",
                       AppOption.BCS_AUTO_INDENT)
               )
           ),
@@ -355,11 +359,11 @@ public class PreferencesDialog extends JDialog {
           ),
           OptionGroup.createDefault(
               OptionCheckBox.create(AppOption.TEXT_SHOW_WHITE_SPACE.getName(), AppOption.TEXT_SHOW_WHITE_SPACE.getLabel(),
-                  "Enable this option to visualize spaces and tabs in text resources.", AppOption.TEXT_SHOW_WHITE_SPACE),
+                  "Enable this option to visualize spaces and tabs in the text editor.", AppOption.TEXT_SHOW_WHITE_SPACE),
               OptionCheckBox.create(AppOption.TEXT_SHOW_EOL.getName(), AppOption.TEXT_SHOW_EOL.getLabel(),
-                  "Enable this option to visualize line breaks in text resources.", AppOption.TEXT_SHOW_EOL),
+                  "Enable this option to visualize line breaks in the text editor.", AppOption.TEXT_SHOW_EOL),
               OptionCheckBox.create(AppOption.TEXT_SHOW_CURRENT_LINE.getName(), AppOption.TEXT_SHOW_CURRENT_LINE.getLabel(),
-                  "Enable this option to highlight the current line with a different background color.",
+                  "Enable this option to highlight the current line with a different background color in the text editor.",
                   AppOption.TEXT_SHOW_CURRENT_LINE),
               OptionCheckBox.create(AppOption.TEXT_SHOW_LINE_NUMBERS.getName(), AppOption.TEXT_SHOW_LINE_NUMBERS.getLabel(),
                   "Enable this option to show line numbers on the left side of the text editor.",
