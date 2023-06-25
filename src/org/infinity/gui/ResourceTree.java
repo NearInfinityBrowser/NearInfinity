@@ -43,7 +43,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar.OverrideMode;
+import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.OverrideMode;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Referenceable;
@@ -128,10 +129,10 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     if (node == null) {
       tree.clearSelection();
       shownResource = null;
-      BrowserMenuBar.getInstance().resourceEntrySelected(null);
+      BrowserMenuBar.getInstance().getFileMenu().resourceEntrySelected(null);
     } else if (node instanceof ResourceEntry) {
       ResourceEntry entry = (ResourceEntry) node;
-      BrowserMenuBar.getInstance().resourceEntrySelected((ResourceEntry) node);
+      BrowserMenuBar.getInstance().getFileMenu().resourceEntrySelected((ResourceEntry) node);
       if (entry != prevNextNode) { // Not result of pressing 'Back' or 'Forward'
         if (prevNextNode != null) {
           prevStack.push(prevNextNode);
@@ -148,7 +149,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
       }
     } else {
-      BrowserMenuBar.getInstance().resourceEntrySelected(null);
+      BrowserMenuBar.getInstance().getFileMenu().resourceEntrySelected(null);
     }
   }
 
@@ -238,7 +239,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   /** Attempts to rename the specified file resource entry. */
-  static void renameResource(FileResourceEntry entry) {
+  public static void renameResource(FileResourceEntry entry) {
     String filename = (String) JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
         "Rename " + entry.getResourceName(), JOptionPane.QUESTION_MESSAGE, null, null, entry.getResourceName());
     if (filename == null) {
@@ -265,7 +266,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   /** Attempts to delete the specified resource if it exists as a file in the game path. */
-  static void deleteResource(ResourceEntry entry) {
+  public static void deleteResource(ResourceEntry entry) {
     if (entry instanceof FileResourceEntry) {
       String options[] = { "Delete", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete " + entry + '?',
@@ -316,7 +317,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   /** Attempts to restore the specified resource entry if it's backed up by an associated "*.bak" file. */
-  static void restoreResource(ResourceEntry entry) {
+  public static void restoreResource(ResourceEntry entry) {
     if (entry != null) {
       final String[] options = { "Restore", "Cancel" };
       final String msgBackup = "Are you sure you want to restore " + entry + " with a previous version?";
@@ -383,7 +384,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
-  static void createZipFile(Path path) {
+  public static void createZipFile(Path path) {
     if (path != null && FileEx.create(path).isDirectory()) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Save as");
@@ -434,7 +435,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
    * Returns whether a backup exists in the same folder as the specified resource entry or a biffed file has been
    * overriden.
    */
-  static boolean isBackupAvailable(ResourceEntry entry) {
+  public static boolean isBackupAvailable(ResourceEntry entry) {
     if (entry != null) {
       return (getBackupFile(entry) != null || (entry instanceof BIFFResourceEntry && entry.hasOverride()));
     }
@@ -714,7 +715,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         final ResourceEntry e = (ResourceEntry) o;
 
         final BrowserMenuBar options = BrowserMenuBar.getInstance();
-        if (options.showTreeSearchNames()) {
+        if (options.getOptions().showTreeSearchNames()) {
           final String name = e.getResourceName();
           final String title = e.getSearchString();
           // TODO: refactor code and remove "No such index" comparison
@@ -725,8 +726,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
         setIcon(e.getIcon());
         // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
-        final boolean inOverrideMode = options.getOverrideMode() == OverrideMode.InOverride;
-        if (e.hasOverride() && !inOverrideMode && options.highlightOverridden()) {
+        final boolean inOverrideMode = options.getOptions().getOverrideMode() == OverrideMode.InOverride;
+        if (e.hasOverride() && !inOverrideMode && options.getOptions().highlightOverridden()) {
           font = font.deriveFont(Font.BOLD);
         }
       }

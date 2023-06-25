@@ -26,12 +26,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -89,7 +89,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().addListSelectionListener(this);
     final ChildFrame frame = this;

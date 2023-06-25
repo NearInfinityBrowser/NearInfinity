@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.TextResource;
@@ -245,7 +246,7 @@ public class ChildFrame extends JFrame {
    * @return Size of the last created child frame as {@link Dimension} object.
    */
   protected Dimension getLastFrameSize() {
-    final boolean useLast = BrowserMenuBar.getInstance().rememberChildFrameRect();
+    final boolean useLast = BrowserMenuBar.getInstance().getOptions().rememberChildFrameRect();
 
     Dimension retVal = null;
     ChildFrame frame = null;
@@ -275,7 +276,7 @@ public class ChildFrame extends JFrame {
    * @return Location of the last created child frame as {@link Point} object.
    */
   protected Point getLastFrameLocation(Component parent) {
-    final boolean useLast = BrowserMenuBar.getInstance().rememberChildFrameRect();
+    final boolean useLast = BrowserMenuBar.getInstance().getOptions().rememberChildFrameRect();
     Point retVal = null;
 
     ChildFrame frame = null;

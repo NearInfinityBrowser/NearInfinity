@@ -45,9 +45,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import org.infinity.NearInfinity;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -68,12 +70,31 @@ public final class ViewerUtil {
   /**
    * A collection of pastel shaded colors that can be used to colorize the background of list, table or tree items.
    */
-  public static final Color[] BACKGROUND_COLORS = {
+  private static final Color[] BACKGROUND_COLORS = {
       new Color(0xceccff), new Color(0xffcce6), new Color(0xccffe9), new Color(0xfaffcc),
       new Color(0xccddff), new Color(0xffccf9), new Color(0xccffd7), new Color(0xfff2cc),
       new Color(0xccf0ff), new Color(0xf4ccff), new Color(0xd5ffcc), new Color(0xffdfcc),
       new Color(0xccfffc), new Color(0xe1ccff), new Color(0xe8ffcc), new Color(0xffcccc),
   };
+
+  /**
+   * A collection of dark shaded colors that can be used to colorize the background of list, table or tree items
+   * in dark mode.
+   */
+  private static final Color[] BACKGROUND_COLORS_DARK = {
+      new Color(0x3a3b24), new Color(0x243b2f), new Color(0x3b242e), new Color(0x27243b),
+      new Color(0x3b3324), new Color(0x243b27), new Color(0x3b2436), new Color(0x242a3b),
+      new Color(0x3b2b24), new Color(0x293b24), new Color(0x37243b), new Color(0x24323b),
+      new Color(0x3b2426), new Color(0x313b24), new Color(0x2e243b), new Color(0x243b3b),
+  };
+
+  /** Returns a collection of background colors, based on the Look&Feel theme type (light/dark). */
+  public static Color[] getBackgroundColors() {
+    if (NearInfinity.getInstance().isDarkMode()) {
+      return BACKGROUND_COLORS_DARK;
+    }
+    return BACKGROUND_COLORS;
+  }
 
   public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl, GridBagConstraints gbc,
       boolean endline) {
@@ -93,7 +114,7 @@ public final class ViewerUtil {
       String s;
       String help = null;
       if (entry instanceof StringRef) {
-        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+        StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
             : StringTable.Format.NONE;
         s = ((StringRef) entry).toString(fmt);
       } else {
@@ -304,14 +325,14 @@ public final class ViewerUtil {
   public static JPanel makeTextAreaPanel(StructEntry entry, boolean showTitle) {
     String text;
     if (entry instanceof StringRef) {
-      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+      StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
           : StringTable.Format.NONE;
       text = ((StringRef) entry).toString(fmt);
     } else {
       text = entry.toString();
     }
     InfinityTextArea ta = new InfinityTextArea(text, true);
-    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     ta.setCaretPosition(0);
     ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
@@ -329,7 +350,39 @@ public final class ViewerUtil {
     return panel;
   }
 
-  /** Initializes a {@link GridBagConstraints} instance. */
+  /**
+   * Initializes a {@link GridBagConstraints} instance.
+   *
+   * @param gbc        Specifies a reusable {@link GridBagConstraints} instance. A new instance is created if the
+   *                   parameter is {@code null}.
+   * @param gridX      Specifies the cell containing the leading edge of the component's display area, where the first
+   *                   cell in a row has <code>gridx=0</code>. Specify either an absolute cell index or
+   *                   {@link GridBagConstraints#RELATIVE}.
+   * @param gridY      Specifies the cell at the top of the component's display area, where the topmost cell has
+   *                   <code>gridy=0</code>. Specify either an absolute cell index or
+   *                   {@link GridBagConstraints#RELATIVE}.
+   * @param gridWidth  Specifies the number of cells in a row for the component's display area. Use
+   *                   {@link GridBagConstraints#REMAINDER} to specify that the component's display area will be from
+   *                   <code>gridx</code> to the last cell in the row.
+   * @param gridHeight Specifies the number of cells in a column for the component's display area. Use
+   *                   {@link GridBagConstraints#REMAINDER} to specify that the component's display area will be from
+   *                   <code>gridy</code> to the last cell in the column.
+   * @param weightX    Specifies how to distribute extra horizontal space.
+   * @param weightY    Specifies how to distribute extra vertical space.
+   * @param anchor     This field is used when the component is smaller than its display area. It determines where,
+   *                   within the display area, to place the component.
+   * @param fill       This field is used when the component's display area is larger than the component's requested
+   *                   size. It determines whether to resize the component, and if so, how.
+   * @param insets     This field specifies the external padding of the component, the minimum amount of space between
+   *                   the component and the edges of its display area.
+   * @param iPadX      This field specifies the internal padding of the component, how much space to add to the minimum
+   *                   width of the component. The width of the component is at least its minimum width plus
+   *                   <code>ipadx</code> pixels.
+   * @param iPadY      This field specifies the internal padding, that is, how much space to add to the minimum height
+   *                   of the component. The height of the component is at least its minimum height plus
+   *                   <code>ipady</code> pixels.
+   * @return A fully initialized {@code GridBagConstraints} object with the specified arguments.
+   */
   public static GridBagConstraints setGBC(GridBagConstraints gbc, int gridX, int gridY, int gridWidth, int gridHeight,
       double weightX, double weightY, int anchor, int fill, Insets insets, int iPadX, int iPadY) {
     if (gbc == null) {

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -44,9 +45,9 @@ import javax.swing.UIManager;
 import javax.swing.event.ListDataListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
-import org.infinity.gui.BrowserMenuBar.Bookmark;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.Bookmark;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
@@ -87,41 +88,65 @@ public final class Profile implements FileWatcher.FileWatchListener {
   /** Supported Infinity Engine games. */
   public enum Game {
     /** Default for unrecognized or unsupported engine. */
-    Unknown,
+    Unknown(Engine.Unknown, "Unknown Game"),
     /** Baldur's Gate */
-    BG1,
+    BG1(Engine.BG1, "Baldur's Gate"),
     /** Baldur's Gate: Tales of the Sword Coast */
-    BG1TotSC,
+    BG1TotSC(Engine.BG1, "Baldur's Gate: Tales of the Sword Coast"),
     /** Baldur's Gate II: Shadows of Amn */
-    BG2SoA,
+    BG2SoA(Engine.BG2, "Baldur's Gate II: Shadows of Amn"),
     /** Baldur's Gate II: Throne of Bhaal */
-    BG2ToB,
+    BG2ToB(Engine.BG2, "Baldur's Gate II: Throne of Bhaal"),
     /** BGTutu and EasyTutu */
-    Tutu,
+    Tutu(Engine.BG2, "Baldur's Gate - Tutu"),
     /** Baldur's Gate Trilogy */
-    BGT,
+    BGT(Engine.BG2, "Baldur's Gate Trilogy"),
     /** Planescape: Torment */
-    PST,
+    PST(Engine.PST, "Planescape: Torment"),
     /** Icewind Dale */
-    IWD,
+    IWD(Engine.IWD, "Icewind Dale"),
     /** Icewind Dale: Heart of Winter */
-    IWDHoW,
+    IWDHoW(Engine.IWD, "Icewind Dale: Heart of Winter"),
     /** Icewind Dale: Trials of the Luremaster */
-    IWDHowTotLM,
+    IWDHowTotLM(Engine.IWD, "Icewind Dale: Trials of the Luremaster"),
     /** Icewind Dale II */
-    IWD2,
+    IWD2(Engine.IWD2, "Icewind Dale II"),
     /** Baldur's Gate: Enhanced Edition */
-    BG1EE,
+    BG1EE(Engine.EE, "Baldur's Gate: Enhanced Edition"),
     /** Baldur's Gate: Siege of Dragonspear */
-    BG1SoD,
+    BG1SoD(Engine.EE, "Baldur's Gate: Siege of Dragonspear"),
     /** Baldur's Gate II: Enhanced Edition */
-    BG2EE,
+    BG2EE(Engine.EE, "Baldur's Gate II: Enhanced Edition"),
     /** Icewind Dale: Enhanced Edition */
-    IWDEE,
+    IWDEE(Engine.EE, "Icewind Dale: Enhanced Edition"),
     /** Planescape Torment: Enhanced Edition */
-    PSTEE,
+    PSTEE(Engine.EE, "Planescape Torment: Enhanced Edition"),
     /** Enhanced Edition Trilogy */
-    EET,
+    EET(Engine.EE, "Baldur's Gate - Enhanced Edition Trilogy"),
+    ;
+
+    private final Engine engine;
+    private final String title;
+
+    private Game(Engine engine, String title) {
+      this.engine = Objects.requireNonNull(engine);
+      this.title = Objects.requireNonNull(title);
+    }
+
+    /** Returns the Infinity Engine type for the game. */
+    public Engine getEngine() {
+      return engine;
+    }
+
+    /** Returns whether the game is an Enhanced Edition game. */
+    public boolean isEnhancedEdition() {
+      return (engine == Engine.EE);
+    }
+
+    /** Returns the game title. */
+    public String getTitle() {
+      return title;
+    }
   }
 
   /** Supported Infinity Engine types by feature levels. */
@@ -161,8 +186,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     GET_GLOBAL_DIALOG_NAME_FEMALE,
 
     // Static properties which require an additional parameter.
-    /** Property: ({@code String}) Returns the game's title. Extra parameter: Desired {@link Game}. */
-    GET_GLOBAL_GAME_TITLE,
     /**
      * Property: ({@code List<String>}) Returns a list of extra folders for the specified game. Extra parameter: Desired
      * {@link Game}.
@@ -184,8 +207,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     GET_GAME_TYPE,
     /** Property: ({@link Game}) Game identifier of previously loaded game (if available). */
     GET_GAME_TYPE_PREVIOUS,
-    /** Property: ({@link Engine}) Engine identifier. */
-    GET_GAME_ENGINE,
     /** Property: ({@code String}) Name of the game's root folder. */
     GET_GAME_ROOT_FOLDER_NAME,
     /** Property: ({@code String}) Name of the game's home folder. (Enhanced Editions only) */
@@ -266,8 +287,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
      * generated on first call of {@code getEquippedAppearanceMap()}.
      */
     GET_GAME_EQUIPPED_APPEARANCES,
-    /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
-    IS_ENHANCED_EDITION,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
     /** Property: ({@code Boolean}) Has current game been enhanced by EEex? */
@@ -456,8 +475,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
   // Container for Property entries
   private static final EnumMap<Key, Profile.Property> PROPERTIES = new EnumMap<>(Key.class);
-  // Unique titles for all supported games
-  private static final EnumMap<Game, String> GAME_TITLE = new EnumMap<>(Game.class);
   // List of supported extra folders for all supported games
   private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<>(Game.class);
   // List of supported saved game folders for all supported games
@@ -475,26 +492,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
   private static Profile instance = null;
 
   static {
-    // initializing game titles
-    GAME_TITLE.put(Game.Unknown, "Unknown game");
-    GAME_TITLE.put(Game.BG1, "Baldur's Gate");
-    GAME_TITLE.put(Game.BG1TotSC, "Baldur's Gate: Tales of the Sword Coast");
-    GAME_TITLE.put(Game.BG2SoA, "Baldur's Gate II: Shadows of Amn");
-    GAME_TITLE.put(Game.BG2ToB, "Baldur's Gate II: Throne of Bhaal");
-    GAME_TITLE.put(Game.Tutu, "Baldur's Gate - Tutu");
-    GAME_TITLE.put(Game.BGT, "Baldur's Gate Trilogy");
-    GAME_TITLE.put(Game.PST, "Planescape: Torment");
-    GAME_TITLE.put(Game.IWD, "Icewind Dale");
-    GAME_TITLE.put(Game.IWDHoW, "Icewind Dale: Heart of Winter");
-    GAME_TITLE.put(Game.IWDHowTotLM, "Icewind Dale: Trials of the Luremaster");
-    GAME_TITLE.put(Game.IWD2, "Icewind Dale II");
-    GAME_TITLE.put(Game.BG1EE, "Baldur's Gate: Enhanced Edition");
-    GAME_TITLE.put(Game.BG1SoD, "Baldur's Gate: Siege of Dragonspear");
-    GAME_TITLE.put(Game.BG2EE, "Baldur's Gate II: Enhanced Edition");
-    GAME_TITLE.put(Game.IWDEE, "Icewind Dale: Enhanced Edition");
-    GAME_TITLE.put(Game.PSTEE, "Planescape Torment: Enhanced Edition");
-    GAME_TITLE.put(Game.EET, "Baldur's Gate - Enhanced Edition Trilogy");
-
     // initializing extra folders for each supported game
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
     final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save", "Scripts", "ScrnShot",
@@ -749,7 +746,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
         // handling properties which require an additional parameter
         EnumMap<?, T> map = null;
         switch (key) {
-          case GET_GLOBAL_GAME_TITLE:
           case GET_GLOBAL_EXTRA_FOLDER_NAMES:
           case GET_GLOBAL_SAVE_FOLDER_NAMES:
           case GET_GLOBAL_HOME_FOLDER_NAME:
@@ -830,8 +826,11 @@ public final class Profile implements FileWatcher.FileWatchListener {
    * @return The {@link Engine} type of the current game or {@code Engine.Unknown} otherwise.
    */
   public static Engine getEngine() {
-    Object ret = getProperty(Key.GET_GAME_ENGINE);
-    return (ret instanceof Engine) ? (Engine) ret : Engine.Unknown;
+    Engine engine = getGame().getEngine();
+    if (engine == null) {
+      engine = Engine.Unknown;
+    }
+    return engine;
   }
 
   /**
@@ -840,8 +839,10 @@ public final class Profile implements FileWatcher.FileWatchListener {
    * @return {@code true} if the current game is an Enhanced Edition game, {@code false} otherwise.
    */
   public static boolean isEnhancedEdition() {
-    Object ret = getProperty(Key.IS_ENHANCED_EDITION);
-    return (ret instanceof Boolean) ? (Boolean) ret : false;
+    if (getGame() != null) {
+      return getGame().isEnhancedEdition();
+    }
+    return false;
   }
 
   /**
@@ -851,15 +852,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
    * @return {@code true} if the game is an Enhanced Edition game, {@code false} otherwise.
    */
   public static boolean isEnhancedEdition(Game game) {
-    switch (game) {
-      case BG1EE:
-      case BG1SoD:
-      case BG2EE:
-      case EET:
-      case IWDEE:
-      case PSTEE:
-        return true;
-      default:
+    if (game != null) {
+      return game.isEnhancedEdition();
     }
     return false;
   }
@@ -1355,7 +1349,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       @Override
       public String getElementAt(int index) {
         try {
-          return getProperty(Key.GET_GLOBAL_GAME_TITLE, Game.values()[index]);
+          return Game.values()[index].getTitle();
         } catch (Exception e) {
           throw new ArrayIndexOutOfBoundsException(index);
         }
@@ -1433,7 +1427,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     Collections.addAll(gameList, Game.values());
 
     addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
-    addEntry(Key.GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
     addEntry(Key.GET_GLOBAL_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS);
     addEntry(Key.GET_GLOBAL_SAVE_FOLDER_NAMES, Type.LIST, GAME_SAVE_FOLDERS);
     addEntry(Key.GET_GLOBAL_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER);
@@ -1891,7 +1884,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
         }
         game = Profile.showGameSelectionDialog("Unknown game", "Please select a game:", oldGame);
         if (game != null) {
-          openGame(getChitinKey(), BrowserMenuBar.getInstance().getBookmarkName(getChitinKey()), game);
+          openGame(getChitinKey(), BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(getChitinKey()), game);
           return;
         }
       }
@@ -1908,12 +1901,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
     addEntry(Key.GET_GAME_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
     addEntry(Key.GET_GAME_SAVE_FOLDER_NAMES, Type.LIST, GAME_SAVE_FOLDERS.get(game));
-
-    // determining game engine
-    initGameEngine();
-
-    // initializing method isEnhancedEdition()
-    addEntry(Key.IS_ENHANCED_EDITION, Type.BOOLEAN, Boolean.valueOf(getEngine() == Engine.EE));
 
     if (isEnhancedEdition()) {
       Path langDir = FileManager.query(gameRoots, "lang");
@@ -1980,54 +1967,13 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
     // updating game type
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
-    addEntry(Key.GET_GAME_TITLE, Type.STRING, GAME_TITLE.get(game));
+    addEntry(Key.GET_GAME_TITLE, Type.STRING, game.getTitle());
 
     // initializing supported resource types
     initResourceTypes();
 
     // initializing engine-specific traits
     initFeatures();
-  }
-
-  // Initializes the engine type
-  private void initGameEngine() {
-    // determining game engine
-    Game game = getGame();
-    Engine engine;
-    switch (game) {
-      case BG1:
-      case BG1TotSC:
-        engine = Engine.BG1;
-        break;
-      case BG2SoA:
-      case BG2ToB:
-      case Tutu:
-      case BGT:
-        engine = Engine.BG2;
-        break;
-      case PST:
-        engine = Engine.PST;
-        break;
-      case IWD:
-      case IWDHoW:
-      case IWDHowTotLM:
-        engine = Engine.IWD;
-        break;
-      case IWD2:
-        engine = Engine.IWD2;
-        break;
-      case BG1EE:
-      case BG1SoD:
-      case BG2EE:
-      case IWDEE:
-      case PSTEE:
-      case EET:
-        engine = Engine.EE;
-        break;
-      default:
-        engine = Engine.Unknown;
-    }
-    addEntry(Key.GET_GAME_ENGINE, Type.OBJECT, engine);
   }
 
   // Initializes the first available of the specified ini files
@@ -2049,7 +1995,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
     // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
     Path homeRoot = null;
-    Bookmark bookmark = BrowserMenuBar.getInstance().getBookmarkOf(getChitinKey());
+    Bookmark bookmark = BrowserMenuBar.getInstance().getGameMenu().getBookmarkOf(getChitinKey());
     if (bookmark != null && bookmark.getHomePath() != null) {
       final Path path = FileManager.resolve(bookmark.getHomePath());
       if (path != null && Files.isDirectory(path)) {

@@ -10,6 +10,7 @@ import java.awt.Component;
 import javax.swing.ScrollPaneConstants;
 
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.infinity.gui.menu.BrowserMenuBar;
 
 /**
  * Extends {@link RTextScrollPane} by NearInfinity-specific features.
@@ -93,8 +94,8 @@ public class InfinityScrollPane extends RTextScrollPane {
     if (pane != null) {
       pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
       pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-      if (BrowserMenuBar.getInstance() != null) {
-        pane.setLineNumbersEnabled(BrowserMenuBar.getInstance().getTextLineNumbers());
+      if (BrowserMenuBar.isInstantiated()) {
+        pane.setLineNumbersEnabled(BrowserMenuBar.getInstance().getOptions().getTextLineNumbers());
       } else {
         pane.setLineNumbersEnabled(false);
       }
@@ -106,15 +107,15 @@ public class InfinityScrollPane extends RTextScrollPane {
     if (language != null) {
       switch (language) {
         case BCS:
-          if (BrowserMenuBar.getInstance() != null) {
-            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getBcsCodeFoldingEnabled());
+          if (BrowserMenuBar.isInstantiated()) {
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptions().getBcsCodeFoldingEnabled());
           } else {
             pane.setFoldIndicatorEnabled(false);
           }
           break;
         case GLSL:
-          if (BrowserMenuBar.getInstance() != null) {
-            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getGlslCodeFoldingEnabled());
+          if (BrowserMenuBar.isInstantiated()) {
+            pane.setFoldIndicatorEnabled(BrowserMenuBar.getInstance().getOptions().getGlslCodeFoldingEnabled());
           } else {
             pane.setFoldIndicatorEnabled(false);
           }

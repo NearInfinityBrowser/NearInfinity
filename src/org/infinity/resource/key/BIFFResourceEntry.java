@@ -15,7 +15,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Objects;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Writeable;
@@ -247,8 +248,8 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
 
   @Override
   public String getTreeFolderName() {
-    final BrowserMenuBar options = BrowserMenuBar.getInstance();
-    if ((options != null) && (options.getOverrideMode() == BrowserMenuBar.OverrideMode.InOverride) && hasOverride()) {
+    if (BrowserMenuBar.isInstantiated() &&
+        (BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) && hasOverride()) {
       return Profile.getOverrideFolderName();
     }
     return getExtension();
@@ -266,7 +267,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
   @Override
   public boolean hasOverride() {
     // TODO: update dynamically via WatchService class?
-    if (!BrowserMenuBar.getInstance().cacheOverride()) {
+    if (!BrowserMenuBar.getInstance().getOptions().cacheOverride()) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
       synchronized (this) {

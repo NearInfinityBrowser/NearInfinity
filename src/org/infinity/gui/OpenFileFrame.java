@@ -61,7 +61,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
   private final JTextField tfExternalName = new JTextField(20);
   private final TextListPanel<ResourceEntry> lpInternal;
 
-  OpenFileFrame() {
+  public OpenFileFrame() {
     super("Open File");
     setIconImage(Icons.ICON_OPEN_16.getIcon().getImage());
     rbExternal.addActionListener(this);

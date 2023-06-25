@@ -28,10 +28,10 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
@@ -406,7 +406,7 @@ public class ResourceRef extends Datatype
 
     @Override
     public String toString() {
-      return entry == null ? name : BrowserMenuBar.getInstance().getResRefMode().format(entry);
+      return entry == null ? name : BrowserMenuBar.getInstance().getOptions().getResRefMode().format(entry);
     }
   }
 

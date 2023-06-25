@@ -23,17 +23,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 
-final class DebugConsole extends ChildFrame implements ActionListener {
+public class DebugConsole extends ChildFrame implements ActionListener {
   private final JButton bClearConsole = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
   private final JButton bSaveConsole = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JCheckBox cbExtraInfo = new JCheckBox("Print internal debug info");
 
-  DebugConsole() {
+  public DebugConsole() {
     super("Debug Console");
     setIconImage(Icons.ICON_PROPERTIES_16.getIcon().getImage());
 
@@ -43,7 +44,7 @@ final class DebugConsole extends ChildFrame implements ActionListener {
     bSaveConsole.addActionListener(this);
     cbExtraInfo.setToolTipText(
         "Enable output of internal class information of current top-level window, resource and selected field in structure viewer.");
-    cbExtraInfo.setSelected(BrowserMenuBar.getInstance().getShowDebugExtraInfo());
+    cbExtraInfo.setSelected(BrowserMenuBar.getInstance().getToolsMenu().getShowDebugExtraInfo());
     cbExtraInfo.addActionListener(this);
 
     InfinityTextArea taconsole = NearInfinity.getConsoleText();
@@ -86,7 +87,7 @@ final class DebugConsole extends ChildFrame implements ActionListener {
         try (BufferedWriter bw = Files.newBufferedWriter(output)) {
           bw.write("Near Infinity Debug Log");
           bw.newLine();
-          bw.write(BrowserMenuBar.VERSION);
+          bw.write(NearInfinity.getVersion());
           bw.newLine();
           bw.write((String) Profile.getProperty(Profile.Key.GET_GAME_TITLE));
           bw.newLine();
@@ -107,7 +108,7 @@ final class DebugConsole extends ChildFrame implements ActionListener {
         }
       }
     } else if (event.getSource() == cbExtraInfo) {
-      BrowserMenuBar.getInstance().setShowDebugExtraInfo(cbExtraInfo.isSelected());
+      BrowserMenuBar.getInstance().getToolsMenu().setShowDebugExtraInfo(cbExtraInfo.isSelected());
     }
   }
 

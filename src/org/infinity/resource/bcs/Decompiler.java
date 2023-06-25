@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -57,9 +57,9 @@ public final class Decompiler {
   }
 
   public Decompiler(String code, ScriptType type, boolean generateErrors) {
-    if (BrowserMenuBar.getInstance() != null) {
-      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
-        indent = BrowserMenuBar.getInstance().getBcsIndent();
+    if (BrowserMenuBar.isInstantiated()) {
+      if (BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getOptions().getBcsIndent();
       } else {
         indent = "";
       }
@@ -154,9 +154,9 @@ public final class Decompiler {
 
   /** Applies the indentation string defined in the currently selected item in the Options menu. */
   public void setIndent() {
-    if (BrowserMenuBar.getInstance() != null) {
-      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
-        indent = BrowserMenuBar.getInstance().getBcsIndent();
+    if (BrowserMenuBar.isInstantiated()) {
+      if (BrowserMenuBar.getInstance().getOptions().getBcsAutoIndentEnabled()) {
+        indent = BrowserMenuBar.getInstance().getOptions().getBcsIndent();
       } else {
         indent = "";
       }

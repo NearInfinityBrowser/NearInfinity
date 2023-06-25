@@ -31,9 +31,9 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.text.QuestsResource.Check;
 import org.infinity.resource.text.QuestsResource.Quest;
 import org.infinity.resource.text.QuestsResource.State;
@@ -254,7 +254,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener {
     if (index >= 0) {
       final Quest quest = ((QuestsModel) quests.getModel()).quests.get(index);
 
-      final StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+      final StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
           : StringTable.Format.NONE;
       title.setText(quest.toString(fmt));
 

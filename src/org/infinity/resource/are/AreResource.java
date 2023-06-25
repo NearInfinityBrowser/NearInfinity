@@ -29,10 +29,10 @@ import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasChildStructs;
@@ -166,7 +166,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
    */
   public static String getSearchString(ResourceEntry entry) {
     String retVal = null;
-    if (entry != null && BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showTreeSearchNames()) {
+    if (entry != null && BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().showTreeSearchNames()) {
       retVal = getMapName(entry.getResourceName());
     }
     return retVal;

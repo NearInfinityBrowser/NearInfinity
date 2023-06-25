@@ -32,12 +32,12 @@ import org.infinity.datatype.Editable;
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.UpdateEvent;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.StructViewer;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
@@ -213,7 +213,7 @@ public abstract class AbstractCode extends Datatype
 
   @Override
   public void select() {
-    if (BrowserMenuBar.getInstance().autocheckBCS()) {
+    if (BrowserMenuBar.getInstance().getOptions().autocheckBCS()) {
       ((JButton) buttonPanel.getControlByType(CTRL_CHECK)).doClick();
     }
   }

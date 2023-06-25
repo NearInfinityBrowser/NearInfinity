@@ -39,7 +39,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -47,6 +46,7 @@ import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
@@ -154,7 +154,7 @@ public class StringValidationChecker extends AbstractSearcher
       pane.add(panel, BorderLayout.PAGE_END);
       bOpenLookup.setEnabled(false);
       bOpenStringTable.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
       final MouseListener listener = new MouseAdapter() {

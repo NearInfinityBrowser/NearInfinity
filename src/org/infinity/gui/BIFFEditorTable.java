@@ -33,6 +33,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
@@ -51,7 +52,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
   private boolean sortreverse;
   private int sortbycolumn = 2;
 
-  enum State {
+  public enum State {
     BIF(Icons.ICON_GREEN_CIRCLE_16), NEW(Icons.ICON_YELLOW_CIRCLE_16), UPD(Icons.ICON_BLUE_CIRCLE_16);
 
     private final ImageIcon icon;
@@ -61,7 +62,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
     }
   }
 
-  BIFFEditorTable() {
+  public BIFFEditorTable() {
     tablemodel = new BifEditorTableModel(this);
     bbif = new JToggleButton(BIF_ICON_20, true);
     bbif.setPreferredSize(new Dimension(BIF_ICON_20.getIconHeight() + 4, BIF_ICON_20.getIconWidth() + 4));
@@ -79,7 +80,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.getColumnModel().setColumnSelectionAllowed(false);
     TableCellRenderer renderer = (table, o, b, b1, i, i1) -> new JLabel((ImageIcon) o);
     table.getColumnModel().getColumn(0).setCellRenderer(renderer);
@@ -189,7 +190,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  static final class BifEditorTableLine {
+  public static final class BifEditorTableLine {
     private final State state;
     private final ResourceEntry entry;
 

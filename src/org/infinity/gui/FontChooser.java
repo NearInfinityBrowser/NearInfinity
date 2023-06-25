@@ -50,6 +50,8 @@ import javax.swing.text.Position;
 
 import org.infinity.util.Misc;
 
+//import org.infinity.util.Misc;
+
 /**
  * The {@code FontChooser} class is a swing component for font selection. This class has {@code FileChooser} like APIs.
  * The following code pops up a font chooser dialog.
@@ -89,10 +91,10 @@ public class FontChooser extends JComponent {
   public static final int ERROR_OPTION = -1;
 
   private static final Font DEFAULT_SELECTED_FONT = new Font("Serif", Font.PLAIN, 12);
-  private static final Font DEFAULT_FONT = new Font("Dialog", Font.PLAIN, 10);
+  private static final Font DEFAULT_FONT = new Font("Dialog", Font.PLAIN, 12);
   private static final int[] FONT_STYLE_CODES = { Font.PLAIN, Font.BOLD, Font.ITALIC, Font.BOLD | Font.ITALIC };
   private static final String[] DEFAULT_FONT_SIZE_STRINGS = {
-      "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72"
+      "8", "9", "10", "11", "12", "13", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72"
   };
 
   // instance variables
@@ -156,7 +158,6 @@ public class FontChooser extends JComponent {
       fontFamilyTextField.getDocument()
           .addDocumentListener(new ListSearchTextFieldDocumentHandler(getFontFamilyList()));
       fontFamilyTextField.setFont(Misc.getScaledFont(DEFAULT_FONT));
-
     }
     return fontFamilyTextField;
   }
@@ -190,6 +191,7 @@ public class FontChooser extends JComponent {
       fontNameList.addListSelectionListener(new ListSelectionHandler(getFontFamilyTextField()));
       fontNameList.setSelectedIndex(0);
       fontNameList.setFont(Misc.getScaledFont(DEFAULT_FONT));
+      fontNameList.setPrototypeCellValue(DEFAULT_FONT.getFontName());
       fontNameList.setFocusable(false);
     }
     return fontNameList;
@@ -202,6 +204,7 @@ public class FontChooser extends JComponent {
       fontStyleList.addListSelectionListener(new ListSelectionHandler(getFontStyleTextField()));
       fontStyleList.setSelectedIndex(0);
       fontStyleList.setFont(Misc.getScaledFont(DEFAULT_FONT));
+      fontStyleList.setPrototypeCellValue(fontStyleList.getModel().getElementAt(0).toString());
       fontStyleList.setFocusable(false);
     }
     return fontStyleList;
@@ -570,12 +573,10 @@ public class FontChooser extends JComponent {
     Action cancelAction = new DialogCancelAction(dialog);
 
     JButton okButton = new JButton(okAction);
-    okButton.setFont(Misc.getScaledFont(DEFAULT_FONT));
     JButton cancelButton = new JButton(cancelAction);
-    cancelButton.setFont(Misc.getScaledFont(DEFAULT_FONT));
 
     JPanel buttonsPanel = new JPanel();
-    buttonsPanel.setLayout(new GridLayout(2, 1));
+    buttonsPanel.setLayout(new GridLayout(2, 1, 8, 8));
     buttonsPanel.add(okButton);
     buttonsPanel.add(cancelButton);
     buttonsPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 10, 10));
@@ -604,7 +605,7 @@ public class FontChooser extends JComponent {
 
   protected void updateSampleFont() {
     Font font = getSelectedFont();
-    getSampleTextField().setFont(font);
+    getSampleTextField().setFont(Misc.getScaledFont(font));
   }
 
   protected JPanel getFontFamilyPanel() {
@@ -612,9 +613,9 @@ public class FontChooser extends JComponent {
       fontNamePanel = new JPanel();
       fontNamePanel.setLayout(new BorderLayout());
       fontNamePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-      fontNamePanel.setPreferredSize(new Dimension(180, 130));
 
-      JScrollPane scrollPane = new JScrollPane(getFontFamilyList());
+      final JList<String> list = getFontFamilyList();
+      JScrollPane scrollPane = new JScrollPane(list);
       scrollPane.getVerticalScrollBar().setFocusable(false);
       scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -641,7 +642,6 @@ public class FontChooser extends JComponent {
       fontStylePanel = new JPanel();
       fontStylePanel.setLayout(new BorderLayout());
       fontStylePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-      fontStylePanel.setPreferredSize(new Dimension(140, 130));
 
       JScrollPane scrollPane = new JScrollPane(getFontStyleList());
       scrollPane.getVerticalScrollBar().setFocusable(false);
@@ -668,7 +668,6 @@ public class FontChooser extends JComponent {
     if (fontSizePanel == null) {
       fontSizePanel = new JPanel();
       fontSizePanel.setLayout(new BorderLayout());
-      fontSizePanel.setPreferredSize(new Dimension(70, 130));
       fontSizePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
       JScrollPane scrollPane = new JScrollPane(getFontSizeList());
@@ -711,9 +710,17 @@ public class FontChooser extends JComponent {
     if (sampleText == null) {
       Border lowered = BorderFactory.createLoweredBevelBorder();
 
-      sampleText = new JTextField(("AaBbYyZz"));
+      final String sampleString = "abcdefghijk ABCDEFGHIJK 0123456789";
+      sampleText = new JTextField(sampleString);
       sampleText.setBorder(lowered);
-      sampleText.setPreferredSize(new Dimension(300, 100));
+
+      // Calculating optimal text field size
+      JLabel tempLabel = new JLabel(sampleString);
+      tempLabel.setFont(Misc.getScaledFont(DEFAULT_FONT));
+      final Dimension dim = tempLabel.getPreferredSize();
+      dim.width += dim.width * 3 / 4;  // size of text in default font, plus 75 percent space
+      dim.height = sampleText.getPreferredSize().height;
+      sampleText.setPreferredSize(dim);
     }
     return sampleText;
   }
@@ -733,7 +740,7 @@ public class FontChooser extends JComponent {
       fontStyleNames[i++] = ("Plain");
       fontStyleNames[i++] = ("Bold");
       fontStyleNames[i++] = ("Italic");
-      fontStyleNames[i++] = ("BoldItalic");
+      fontStyleNames[i++] = ("Bold/Italic");
     }
     return fontStyleNames;
   }
