@@ -160,17 +160,6 @@ public class OptionGroupBox extends OptionElementBase {
     return this;
   }
 
-  @Override
-  protected OptionGroupBox setUiEnabled(boolean enable) {
-    if (label != null) {
-      label.setEnabled(enable);
-    }
-    if (comboBox != null) {
-      comboBox.setEnabled(enable);
-    }
-    return this;
-  }
-
   /**
    * Returns the function that will be executed right before the UI elements for the option are created.
    */
@@ -250,6 +239,7 @@ public class OptionGroupBox extends OptionElementBase {
     }
     label.setText(getLabel() + ":");
     label.setEnabled(isEnabled());
+    addUiComponent(label);
 
     if (comboBox == null) {
       comboBox = new JComboBox<>();
@@ -259,6 +249,7 @@ public class OptionGroupBox extends OptionElementBase {
     int newIndex = Math.max(-1, Math.min(items.size() - 1, index));
     comboBox.setSelectedIndex(newIndex);
     comboBox.setEnabled(isEnabled());
+    addUiComponent(comboBox);
 
     return this;
   }
@@ -270,7 +261,9 @@ public class OptionGroupBox extends OptionElementBase {
 
   /** Sets the {@code JLabel} component of the OptionGroupBox UI. */
   public OptionGroupBox setUiLabel(JLabel label) {
+    removeUiComponent(this.label);
     this.label = label;
+    addUiComponent(this.label);
     return this;
   }
 
@@ -281,7 +274,9 @@ public class OptionGroupBox extends OptionElementBase {
 
   /** Sets the {@code JComboBox} component of the OptionGroupBox UI. */
   public OptionGroupBox setUiComboBox(JComboBox<Object> comboBox) {
+    removeUiComponent(this.comboBox);
     this.comboBox = comboBox;
+    addUiComponent(this.comboBox);
     return this;
   }
 
