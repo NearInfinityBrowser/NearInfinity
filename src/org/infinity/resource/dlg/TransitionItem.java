@@ -16,7 +16,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog transition entry. */
@@ -143,6 +143,6 @@ class TransitionItem extends StateOwnerItem {
   }
 
   private boolean isMain() {
-    return getMain() == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
+    return getMain() == null || !BrowserMenuBar.getInstance().getOptions().breakCyclesInDialogs();
   }
 }

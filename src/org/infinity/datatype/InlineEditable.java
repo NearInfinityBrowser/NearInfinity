@@ -11,7 +11,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 
@@ -29,7 +29,7 @@ public interface InlineEditable extends StructEntry {
   /** The default component used for the inline editor. */
   static final JTextField DEFAULT_EDITOR = new JTextField() {
     {
-      setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       setBorder(new LineBorder(GRID_BORDER, 1));
       setBackground(GRID_BACKGROUND);
     }

@@ -34,6 +34,7 @@ import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
 import org.infinity.NearInfinity;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.ScriptInfo;
@@ -79,13 +80,13 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     super(true);
 
     Language lang;
-    if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
+    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled()) {
       lang = Language.BCS;
     } else {
       lang = Language.NONE;
     }
     applyExtendedSettings(lang, null);
-    setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
 
     triggers = Signatures.getTriggers();
     actions = Signatures.getActions();

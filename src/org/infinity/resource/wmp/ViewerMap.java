@@ -48,12 +48,12 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -815,7 +815,7 @@ public class ViewerMap extends JPanel {
         IsReference areaRef = (IsReference) struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
         String text1 = null, text2 = null;
         if (areaName.getValue() >= 0) {
-          StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+          StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
               : StringTable.Format.NONE;
           text1 = areaName.toString(fmt);
         } else {

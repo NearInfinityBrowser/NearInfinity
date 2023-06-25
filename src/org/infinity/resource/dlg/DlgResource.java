@@ -32,12 +32,12 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasChildStructs;
@@ -217,7 +217,7 @@ public final class DlgResource extends AbstractStruct
       final Path path = ResourceFactory.getExportFileDialog(getViewer().getTopLevelAncestor(), fileName, false);
       if (path != null) {
         File file = path.toFile();
-        try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getSelectedCharset())) {
+        try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getOptions().getSelectedCharset())) {
           if (!exportDlgAsText(writer)) {
             throw new Exception();
           }

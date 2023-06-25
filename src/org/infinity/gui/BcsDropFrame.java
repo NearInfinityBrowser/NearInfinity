@@ -50,6 +50,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -62,7 +63,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
-final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener {
+public class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener {
   private final JButton bOpen = new JButton("Open selected", Icons.ICON_OPEN_16.getIcon());
   private final JButton bSelectDir = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
@@ -82,7 +83,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
   private final WindowBlocker blocker;
 
-  BcsDropFrame() {
+  public BcsDropFrame() {
     super("Script Drop Zone");
     setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
@@ -295,7 +296,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       output = FileManager.resolve(tfOtherDir.getText(), filename);
     }
     Decompiler decompiler = new Decompiler(code.toString(), ScriptType.BCS, true);
-    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().getOptions().autogenBCSComments());
     try (BufferedWriter bw = Files.newBufferedWriter(output)) {
       bw.write(decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
       bw.newLine();

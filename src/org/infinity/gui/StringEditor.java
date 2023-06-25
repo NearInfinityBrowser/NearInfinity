@@ -50,6 +50,7 @@ import org.infinity.NearInfinity;
 import org.infinity.datatype.Editable;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
@@ -179,7 +180,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
   private void initUI() {
     setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
 
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
@@ -190,7 +191,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
     spTable.setBorder(BorderFactory.createEmptyBorder());
 
     tfStrref.addActionListener(listeners);
-    if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
+    if (BrowserMenuBar.getInstance().getOptions().getTlkSyntaxHighlightingEnabled()) {
       taText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
       taText.setFont(Misc.getScaledFont(taText.getFont()));
     }

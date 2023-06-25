@@ -4,6 +4,7 @@
 
 package org.infinity.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -14,9 +15,12 @@ import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.prefs.Preferences;
 
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
+import org.infinity.AppOption;
 import org.infinity.NearInfinity;
 import org.infinity.resource.Profile;
 
@@ -60,6 +64,48 @@ public class Misc {
         return toString().equalsIgnoreCase(obj.toString());
       }
     };
+  }
+
+  /**
+   * Returns the absolute path name of the node corresponding to the package of the specified class name.
+   *
+   * @param className Fully qualified class or package name in a format as provided by {@link Class#getName()}.
+   * @return A node name string that can be used as path name for a {@link Preferences} instance.
+   *
+   * @throws IllegalArgumentException if the specified argument is not a valid class or package name.
+   *
+   * @implNote This is a variation of the private method {@code nodeName(Class<?> c)} in the {@link Preferences} class.
+   * It should be checked and updated if needed when this project upgrades the minimum JDK requirements.
+   */
+  public static String prefsNodeName(String className) {
+    if (className.indexOf('/') >= 0) {
+      throw new IllegalArgumentException("Invalid class name specified.");
+    }
+    int pkgEndIndex = className.lastIndexOf('.');
+    if (pkgEndIndex < 0)
+      return "/<unnamed>";
+    String packageName = className.substring(0, pkgEndIndex);
+    return "/" + packageName.replace('.', '/');
+  }
+
+  /**
+   * Returns a user {@link Preferences} instance pointing to the node that corresponds to the given class.
+   *
+   * @param classType the class for whose package a user preference node is desired.
+   * @return {@code Preferences} instance.
+   */
+  public static Preferences getPrefs(Class<?> classType) {
+    return getPrefs(classType.getName());
+  }
+
+  /**
+   * Returns a user {@link Preferences} instance pointing to the node that corresponds to the given class path.
+   *
+   * @param className Class path as string.
+   * @return {@code Preferences} instance.
+   */
+  public static Preferences getPrefs(String className) {
+    return Preferences.userRoot().node(Misc.prefsNodeName(className));
   }
 
   /**
@@ -348,7 +394,7 @@ public class Misc {
    * @return The scaled font.
    */
   public static Font getScaledFont(Font font) {
-    int scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100;
+    int scale = (NearInfinity.getInstance() != null) ? AppOption.GLOBAL_FONT_SIZE.getIntValue() : 100;
     return getScaledFont(font, scale);
   }
 
@@ -378,7 +424,8 @@ public class Misc {
     if (dim != null) {
       int scale = 100;
       if (NearInfinity.getInstance() != null) {
-        scale = NearInfinity.getInstance().getGlobalFontSize();
+        scale = AppOption.GLOBAL_FONT_SIZE.getIntValue();
+
       }
       ret = (scale != 100) ? new Dimension(dim.width * scale / 100, dim.height * scale / 100) : dim;
     }
@@ -392,7 +439,7 @@ public class Misc {
    * @return The scaled value.
    */
   public static float getScaledValue(float value) {
-    float scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100.0f;
+    float scale = (NearInfinity.getInstance() != null) ? AppOption.GLOBAL_FONT_SIZE.getIntValue() : 100.0f;
     return value * scale / 100.0f;
   }
 
@@ -403,8 +450,20 @@ public class Misc {
    * @return The scaled value.
    */
   public static int getScaledValue(int value) {
-    int scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100;
+    int scale = (NearInfinity.getInstance() != null) ? AppOption.GLOBAL_FONT_SIZE.getIntValue() : 100;
     return value * scale / 100;
+  }
+
+  /**
+   * Returns the L&F UI theme color of the specified {@code key} and falls back to {@code defColor} if the
+   * requested color doesn't exist.
+   */
+  public static Color getDefaultColor(String key, Color defColor) {
+    Color retVal = UIManager.getDefaults().getColor(key);
+    if (retVal == null) {
+      retVal = defColor;
+    }
+    return retVal;
   }
 
   /**

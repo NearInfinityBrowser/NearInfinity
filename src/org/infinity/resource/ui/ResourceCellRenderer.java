@@ -9,7 +9,7 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
@@ -25,7 +25,7 @@ public class ResourceCellRenderer extends DefaultListCellRenderer {
 
     final ResourceEntry entry = (ResourceEntry) value;
     if (entry != null) {
-      setText(BrowserMenuBar.getInstance().getResRefMode().format(entry));
+      setText(BrowserMenuBar.getInstance().getOptions().getResRefMode().format(entry));
     } else {
       setText("<none>");
     }

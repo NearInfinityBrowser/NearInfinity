@@ -19,7 +19,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
@@ -145,7 +145,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   // --------------------- End Interface Comparable ---------------------
 
   public Path getActualPath() {
-    return getActualPath((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getActualPath((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
   }
 
   public ImageIcon getIcon() {
@@ -153,20 +153,20 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   }
 
   public long getResourceSize() {
-    return getResourceSize((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceSize((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
   }
 
   public ByteBuffer getResourceBuffer() throws Exception {
-    return getResourceBuffer((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceBuffer((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
   }
 
   public InputStream getResourceDataAsStream() throws Exception {
     return getResourceDataAsStream(
-        (NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
+        (NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
   }
 
   public int[] getResourceInfo() throws Exception {
-    return getResourceInfo((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceInfo((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
   }
 
   /**
@@ -200,7 +200,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
           searchString = PlainTextResource.getSearchString(this);
         }
       } catch (Exception e) {
-        if ((NearInfinity.getInstance() != null) && !BrowserMenuBar.getInstance().ignoreReadErrors()) {
+        if ((NearInfinity.getInstance() != null) && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(), "Error",
               JOptionPane.ERROR_MESSAGE);
         }
@@ -249,7 +249,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
     // 2. NOT Resource type part of skippedExtensions
     // 3. Filename length is valid
     int resLen = getResourceRef().length();
-    boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes())
+    boolean bRet = (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().showUnknownResourceTypes())
         || Profile.isResourceTypeSupported(getExtension())
             && !SKIPPED_EXTENSIONS.contains(getExtension().toUpperCase(Locale.ENGLISH)) && (resLen >= 0 && resLen <= 8);
     return bRet;

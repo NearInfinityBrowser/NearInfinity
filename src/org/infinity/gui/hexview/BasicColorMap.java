@@ -14,12 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.infinity.NearInfinity;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.util.MapEntry;
+import org.infinity.util.Misc;
 
 import tv.porst.jhexview.IColormap;
 
@@ -41,21 +43,49 @@ public class BasicColorMap implements IColormap {
   // that will be used alternately.
   private static final EnumMap<Coloring, Color[]> COLOR_MAP = new EnumMap<>(Coloring.class);
 
-  static {
+  // Contains color definitions for specific data types.
+  // Works only on top-level datatypes that are preferably described by a section offset and count.
+  private final EnumMap<Coloring, Structure> typeMap = new EnumMap<>(Coloring.class);
+  private final MapEntry<Long, Color> cachedColor = new MapEntry<>();
+  private final AbstractStruct struct;
+
+  private List<ColoredBlock> listBlocks;
+  private Color backgroundColor;
+
+  private static void reloadColorMap() {
     // Populating color map
-    COLOR_MAP.put(Coloring.BLUE,         new Color[]{new Color(0xd8d8ff), new Color(0xe8e8ff)});
-    COLOR_MAP.put(Coloring.GREEN,        new Color[]{new Color(0xb8ffb8), new Color(0xd8ffd8)});
-    COLOR_MAP.put(Coloring.RED,          new Color[]{new Color(0xffd0d0), new Color(0xffe8e8)});
-    COLOR_MAP.put(Coloring.CYAN,         new Color[]{new Color(0xb8ffff), new Color(0xe0ffff)});
-    COLOR_MAP.put(Coloring.MAGENTA,      new Color[]{new Color(0xffc8ff), new Color(0xffe0ff)});
-    COLOR_MAP.put(Coloring.YELLOW,       new Color[]{new Color(0xffffa0), new Color(0xffffe0)});
-    COLOR_MAP.put(Coloring.LIGHT_GRAY,   new Color[]{new Color(0xe0e0e0), new Color(0xf0f0f0)});
-    COLOR_MAP.put(Coloring.VIOLET,       new Color[]{new Color(0xdfbfff), new Color(0xf0e1ff)});
-    COLOR_MAP.put(Coloring.AQUAMARINE,   new Color[]{new Color(0x85ffc2), new Color(0xc2ffe1)});
-    COLOR_MAP.put(Coloring.PEACH,        new Color[]{new Color(0xffd3a6), new Color(0xffe8d1)});
-    COLOR_MAP.put(Coloring.SKY,          new Color[]{new Color(0x99ccff), new Color(0xbfe0ff)});
-    COLOR_MAP.put(Coloring.PINK,         new Color[]{new Color(0xffa3d1), new Color(0xffd1e8)});
-    COLOR_MAP.put(Coloring.LIME,         new Color[]{new Color(0xb9ff73), new Color(0xdcffb8)});
+    COLOR_MAP.clear();
+    if (NearInfinity.getInstance().isDarkMode()) {
+      // Dark mode
+      COLOR_MAP.put(Coloring.BLUE,         new Color[]{new Color(0x49495c), new Color(0x414154)});
+      COLOR_MAP.put(Coloring.GREEN,        new Color[]{new Color(0x3d5e3d), new Color(0x355635)});
+      COLOR_MAP.put(Coloring.RED,          new Color[]{new Color(0x5d4646), new Color(0x553e3e)});
+      COLOR_MAP.put(Coloring.CYAN,         new Color[]{new Color(0x3d5e5e), new Color(0x355656)});
+      COLOR_MAP.put(Coloring.MAGENTA,      new Color[]{new Color(0x5d445d), new Color(0x553c55)});
+      COLOR_MAP.put(Coloring.YELLOW,       new Color[]{new Color(0x5f5f32), new Color(0x57572a)});
+      COLOR_MAP.put(Coloring.LIGHT_GRAY,   new Color[]{new Color(0x4f4f4f), new Color(0x474747)});
+      COLOR_MAP.put(Coloring.VIOLET,       new Color[]{new Color(0x4f3f5e), new Color(0x473756)});
+      COLOR_MAP.put(Coloring.AQUAMARINE,   new Color[]{new Color(0x286144), new Color(0x20593c)});
+      COLOR_MAP.put(Coloring.PEACH,        new Color[]{new Color(0x5f4a36), new Color(0x57422e)});
+      COLOR_MAP.put(Coloring.SKY,          new Color[]{new Color(0x304860), new Color(0x284058)});
+      COLOR_MAP.put(Coloring.PINK,         new Color[]{new Color(0x5f354a), new Color(0x572d42)});
+      COLOR_MAP.put(Coloring.LIME,         new Color[]{new Color(0x416221), new Color(0x395a19)});
+    } else {
+      // Light mode
+      COLOR_MAP.put(Coloring.BLUE,         new Color[]{new Color(0xd8d8ff), new Color(0xe8e8ff)});
+      COLOR_MAP.put(Coloring.GREEN,        new Color[]{new Color(0xb8ffb8), new Color(0xd8ffd8)});
+      COLOR_MAP.put(Coloring.RED,          new Color[]{new Color(0xffd0d0), new Color(0xffe8e8)});
+      COLOR_MAP.put(Coloring.CYAN,         new Color[]{new Color(0xb8ffff), new Color(0xe0ffff)});
+      COLOR_MAP.put(Coloring.MAGENTA,      new Color[]{new Color(0xffc8ff), new Color(0xffe0ff)});
+      COLOR_MAP.put(Coloring.YELLOW,       new Color[]{new Color(0xffffa0), new Color(0xffffe0)});
+      COLOR_MAP.put(Coloring.LIGHT_GRAY,   new Color[]{new Color(0xe0e0e0), new Color(0xf0f0f0)});
+      COLOR_MAP.put(Coloring.VIOLET,       new Color[]{new Color(0xdfbfff), new Color(0xf0e1ff)});
+      COLOR_MAP.put(Coloring.AQUAMARINE,   new Color[]{new Color(0x85ffc2), new Color(0xc2ffe1)});
+      COLOR_MAP.put(Coloring.PEACH,        new Color[]{new Color(0xffd3a6), new Color(0xffe8d1)});
+      COLOR_MAP.put(Coloring.SKY,          new Color[]{new Color(0x99ccff), new Color(0xbfe0ff)});
+      COLOR_MAP.put(Coloring.PINK,         new Color[]{new Color(0xffa3d1), new Color(0xffd1e8)});
+      COLOR_MAP.put(Coloring.LIME,         new Color[]{new Color(0xb9ff73), new Color(0xdcffb8)});
+    }
     COLOR_MAP.put(Coloring.BLUE2,        COLOR_MAP.get(Coloring.BLUE));
     COLOR_MAP.put(Coloring.GREEN2,       COLOR_MAP.get(Coloring.GREEN));
     COLOR_MAP.put(Coloring.RED2,         COLOR_MAP.get(Coloring.RED));
@@ -84,14 +114,6 @@ public class BasicColorMap implements IColormap {
     COLOR_MAP.put(Coloring.LIME3,        COLOR_MAP.get(Coloring.LIME));
   }
 
-  // Contains color definitions for specific data types.
-  // Works only on top-level datatypes that are preferably described by a section offset and count.
-  private final EnumMap<Coloring, Structure> typeMap = new EnumMap<>(Coloring.class);
-  private final MapEntry<Long, Color> cachedColor = new MapEntry<>();
-  private final AbstractStruct struct;
-
-  private List<ColoredBlock> listBlocks;
-
   /**
    * Constructs a new color map and attempts to initialize structures automatically.
    *
@@ -112,6 +134,8 @@ public class BasicColorMap implements IColormap {
       throw new NullPointerException("struct is null");
     }
     this.struct = struct;
+
+    reloadColorMap();
 
     if (autoInit) {
       autoInitColoredEntries();
@@ -140,6 +164,7 @@ public class BasicColorMap implements IColormap {
 
   /** Cleans up resources. */
   public void close() {
+    backgroundColor = null;
     if (listBlocks != null) {
       listBlocks.clear();
       listBlocks = null;
@@ -149,6 +174,8 @@ public class BasicColorMap implements IColormap {
   /** Re-initializes data cache. */
   public void reset() {
     close();
+
+    reloadColorMap();
 
     if (listBlocks == null) {
       listBlocks = new ArrayList<>();
@@ -266,7 +293,8 @@ public class BasicColorMap implements IColormap {
       if (cb != null) {
         cachedColor.setValue(COLOR_MAP.get(cb.getColoring())[cb.getColorIndex()]);
       } else {
-        cachedColor.setValue(Color.WHITE);
+//        cachedColor.setValue(Color.WHITE);
+        cachedColor.setValue(getBackgroundColor());
       }
     }
     return cachedColor.getValue();
@@ -323,6 +351,14 @@ public class BasicColorMap implements IColormap {
       return listBlocks.get(index);
     }
     return null;
+  }
+
+  // Returns the default background color
+  private Color getBackgroundColor() {
+    if (backgroundColor == null) {
+      backgroundColor = Misc.getDefaultColor("TextField.background", Color.WHITE);
+    }
+    return backgroundColor;
   }
 
   // -------------------------- INNER CLASSES --------------------------

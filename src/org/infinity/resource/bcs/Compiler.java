@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.parser.BafNode;
 import org.infinity.resource.bcs.parser.BafNodeTransformer;
@@ -68,7 +68,7 @@ public class Compiler {
 
   public Compiler(String source, ScriptType type) {
     this.scriptType = type;
-    setVerbose(BrowserMenuBar.getInstance().showMoreCompileWarnings());
+    setVerbose(BrowserMenuBar.getInstance().getOptions().showMoreCompileWarnings());
     setSource(source);
   }
 

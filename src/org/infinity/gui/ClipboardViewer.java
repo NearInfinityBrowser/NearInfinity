@@ -19,11 +19,11 @@ import org.infinity.icon.Icons;
 import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
 
-final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener {
+public class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener {
   private final JButton bclearclipboard = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
   private final InfinityTextArea taClipBoard = new InfinityTextArea(false);
 
-  ClipboardViewer() {
+  public ClipboardViewer() {
     super("Clipboard");
     setIconImage(Icons.ICON_PASTE_16.getIcon().getImage());
     bclearclipboard.setMnemonic('c');

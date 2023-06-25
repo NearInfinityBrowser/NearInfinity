@@ -15,7 +15,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.util.StringTable;
 
 /** Common base class for node type specific classes. */
@@ -27,8 +27,8 @@ abstract class ItemBase implements TreeNode {
   private final boolean showTechInfo;
 
   public ItemBase() {
-    this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
-    this.showTechInfo = BrowserMenuBar.getInstance().showDlgTechInfo();
+    this.showStrrefs = BrowserMenuBar.getInstance().getOptions().showStrrefs();
+    this.showTechInfo = BrowserMenuBar.getInstance().getOptions().showDlgTechInfo();
   }
 
   /** Returns the dialog resource name. */
