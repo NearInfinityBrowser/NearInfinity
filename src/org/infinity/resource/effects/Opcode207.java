@@ -26,9 +26,10 @@ public class Opcode207 extends BaseOpcode {
   private static String getOpcodeName() {
     switch (Profile.getEngine()) {
       case BG1:
-      case IWD:
       case IWD2:
         return null;
+      case IWD:
+        return AbstractStruct.COMMON_UNUSED;
       case PST:
         return "Stop all actions";
       default:
@@ -57,7 +58,9 @@ public class Opcode207 extends BaseOpcode {
   @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+    list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+    return null;
   }
 
   @Override

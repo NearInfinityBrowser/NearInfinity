@@ -11,6 +11,7 @@ import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
@@ -23,7 +24,11 @@ public class Opcode020 extends BaseOpcode {
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
-    return "Invisibility";
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
+      return null;
+    } else {
+      return "Invisibility";
+    }
   }
 
   public Opcode020() {
@@ -50,5 +55,11 @@ public class Opcode020 extends BaseOpcode {
   protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     return makeEffectParamsBG1(parent, buffer, offset, list, isVersion1);
+  }
+
+  @Override
+  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
+      boolean isVersion1) {
+    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }
