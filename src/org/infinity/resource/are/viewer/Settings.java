@@ -19,6 +19,9 @@ import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 public class Settings {
   // Default layer order on map
   public static final ViewerConstants.LayerStackingType[] DEFAULT_LAYER_ORDER = {
+      ViewerConstants.LayerStackingType.CONTAINER_TARGET,
+      ViewerConstants.LayerStackingType.REGION_TARGET,
+      ViewerConstants.LayerStackingType.DOOR_TARGET,
       ViewerConstants.LayerStackingType.ACTOR,
       ViewerConstants.LayerStackingType.ENTRANCE,
       ViewerConstants.LayerStackingType.AMBIENT,
@@ -62,6 +65,12 @@ public class Settings {
   public static boolean DrawGrid = getDefaultDrawGrid();
   // Current visibility state of ambient range items
   public static boolean ShowAmbientRanges = getDefaultAmbientRanges();
+  // Current visibility state of container target locations
+  public static boolean ShowContainerTargets = getDefaultShowContainerTargets();
+  // Current visibility state of door target locations
+  public static boolean ShowDoorTargets = getDefaultShowDoorTargets();
+  // Current visibility state of region target locations
+  public static boolean ShowRegionTargets = getDefaultShowRegionTargets();
   // Defines whether to ignore time schedules on layer items
   public static boolean EnableSchedules = getDefaultEnableSchedules();
   // Defines whether to ignore the "Is shown" flag of background animations
@@ -104,6 +113,9 @@ public class Settings {
   public static boolean ShowLabelActorsAre = getDefaultLabelActorsAre();
   public static boolean ShowLabelActorsIni = getDefaultLabelActorsIni();
   // public static boolean ShowLabelRegions = getDefaultLabelRegions();
+  public static boolean ShowLabelContainerTargets = getDefaultLabelRegionTargets();
+  public static boolean ShowLabelDoorTargets = getDefaultLabelRegionTargets();
+  public static boolean ShowLabelRegionTargets = getDefaultLabelRegionTargets();
   public static boolean ShowLabelEntrances = getDefaultLabelEntrances();
   // public static boolean ShowLabelContainers = getDefaultLabelContainers();
   public static boolean ShowLabelSounds = getDefaultLabelSounds();
@@ -132,6 +144,9 @@ public class Settings {
   private static final String PREFS_LAYERFLAGS              = "LayerFlags";
   private static final String PREFS_SHOWREALACTORS          = "ShowRealActors";
   private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
+  private static final String PREFS_SHOWCONTAINERTARGETS    = "ShowContainerTargets";
+  private static final String PREFS_SHOWDOORTARGETS         = "ShowDoorTargets";
+  private static final String PREFS_SHOWREGIONTARGETS       = "ShowRegionTargets";
   private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
   private static final String PREFS_ZOOMFACTOR              = "ZoomFactor";
   private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%d";
@@ -143,13 +158,13 @@ public class Settings {
   private static final String PREFS_MINIMAP                 = "MiniMap";
   private static final String PREFS_LABEL_ACTOR_ARE         = "LabelActorAre";
   private static final String PREFS_LABEL_ACTOR_INI         = "LabelActorIni";
-//  private static final String PREFS_LABEL_REGIONS           = "LabelRegions";
-  private static final String PREFS_LABEL_ENTRANCES         = "LabelEntrances";
-//  private static final String PREFS_LABEL_CONTAINERS        = "LabelContainers";
-  private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
-//  private static final String PREFS_LABEL_DOORS             = "LabelDoors";
   private static final String PREFS_LABEL_ANIMATIONS        = "LabelAnimations";
+  private static final String PREFS_LABEL_CONTAINER_TARGETS = "LabelContainerTargets";
+  private static final String PREFS_LABEL_DOOR_TARGETS      = "LabelDoorTargets";
+  private static final String PREFS_LABEL_ENTRANCES         = "LabelEntrances";
   private static final String PREFS_LABEL_MAPNOTES          = "LabelMapNotes";
+  private static final String PREFS_LABEL_REGION_TARGETS    = "LabelRegionTargets";
+  private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
   private static final String PREFS_LABEL_SPAWNPOINTS       = "LabelSpawnPoints";
 
   private static boolean SettingsLoaded = false;
@@ -181,13 +196,13 @@ public class Settings {
       MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
       ShowLabelActorsAre = prefs.getBoolean(PREFS_LABEL_ACTOR_ARE, getDefaultLabelActorsAre());
       ShowLabelActorsIni = prefs.getBoolean(PREFS_LABEL_ACTOR_INI, getDefaultLabelActorsIni());
-      // ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
-      ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
-      // ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
-      ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
-      // ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
       ShowLabelAnimations = prefs.getBoolean(PREFS_LABEL_ANIMATIONS, getDefaultLabelAnimations());
+      ShowLabelContainerTargets = prefs.getBoolean(PREFS_LABEL_CONTAINER_TARGETS, getDefaultLabelContainerTargets());
+      ShowLabelDoorTargets = prefs.getBoolean(PREFS_LABEL_DOOR_TARGETS, getDefaultLabelDoorTargets());
+      ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
       ShowLabelMapNotes = prefs.getBoolean(PREFS_LABEL_MAPNOTES, getDefaultLabelMapNotes());
+      ShowLabelRegionTargets = prefs.getBoolean(PREFS_LABEL_REGION_TARGETS, getDefaultLabelRegionTargets());
+      ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
       ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
 
       // loading layer z-order
@@ -208,6 +223,9 @@ public class Settings {
         DrawOverlays = prefs.getBoolean(PREFS_DRAWOVERLAYS, getDefaultDrawOverlays());
         DrawGrid = prefs.getBoolean(PREFS_DRAWGRID, getDefaultDrawGrid());
         ShowAmbientRanges = prefs.getBoolean(PREFS_SHOWAMBIENT, getDefaultAmbientRanges());
+        ShowContainerTargets = prefs.getBoolean(PREFS_SHOWCONTAINERTARGETS, getDefaultShowContainerTargets());
+        ShowDoorTargets = prefs.getBoolean(PREFS_SHOWDOORTARGETS, getDefaultShowDoorTargets());
+        ShowRegionTargets = prefs.getBoolean(PREFS_SHOWREGIONTARGETS, getDefaultShowRegionTargets());
         SidebarControls = prefs.getInt(PREFS_SIDEBARCONTROLS, getDefaultSidebarControls());
         LayerFlags = prefs.getInt(PREFS_LAYERFLAGS, getDefaultLayerFlags());
         ShowActorSprites = prefs.getInt(PREFS_SHOWREALACTORS, getDefaultShowRealActors());
@@ -248,13 +266,13 @@ public class Settings {
     prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
     prefs.putBoolean(PREFS_LABEL_ACTOR_ARE, ShowLabelActorsAre);
     prefs.putBoolean(PREFS_LABEL_ACTOR_INI, ShowLabelActorsIni);
-    // prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
-    prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
-    // prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
-    prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
-    // prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
     prefs.putBoolean(PREFS_LABEL_ANIMATIONS, ShowLabelAnimations);
+    prefs.putBoolean(PREFS_LABEL_CONTAINER_TARGETS, ShowLabelContainerTargets);
+    prefs.putBoolean(PREFS_LABEL_DOOR_TARGETS, ShowLabelDoorTargets);
+    prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
     prefs.putBoolean(PREFS_LABEL_MAPNOTES, ShowLabelMapNotes);
+    prefs.putBoolean(PREFS_LABEL_REGION_TARGETS, ShowLabelRegionTargets);
+    prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
     prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
 
     // storing layer z-order
@@ -269,6 +287,9 @@ public class Settings {
       prefs.putBoolean(PREFS_DRAWOVERLAYS, DrawOverlays);
       prefs.putBoolean(PREFS_DRAWGRID, DrawGrid);
       prefs.putBoolean(PREFS_SHOWAMBIENT, ShowAmbientRanges);
+      prefs.putBoolean(PREFS_SHOWCONTAINERTARGETS, ShowContainerTargets);
+      prefs.putBoolean(PREFS_SHOWDOORTARGETS, ShowDoorTargets);
+      prefs.putBoolean(PREFS_SHOWREGIONTARGETS, ShowRegionTargets);
       prefs.putInt(PREFS_SIDEBARCONTROLS, SidebarControls);
       prefs.putInt(PREFS_LAYERFLAGS, LayerFlags);
       prefs.putInt(PREFS_SHOWREALACTORS, ShowActorSprites);
@@ -364,6 +385,18 @@ public class Settings {
   }
 
   public static boolean getDefaultAmbientRanges() {
+    return false;
+  }
+
+  public static boolean getDefaultShowContainerTargets() {
+    return false;
+  }
+
+  public static boolean getDefaultShowDoorTargets() {
+    return false;
+  }
+
+  public static boolean getDefaultShowRegionTargets() {
     return false;
   }
 
@@ -483,28 +516,25 @@ public class Settings {
     return true;
   }
 
-  // public static boolean getDefaultLabelRegions()
-  // {
-  // return false;
-  // }
+  public static boolean getDefaultLabelContainerTargets() {
+    return true;
+  }
+
+  public static boolean getDefaultLabelDoorTargets() {
+    return true;
+  }
+
+  public static boolean getDefaultLabelRegionTargets() {
+    return true;
+  }
 
   public static boolean getDefaultLabelEntrances() {
     return false;
   }
 
-  // public static boolean getDefaultLabelContainers()
-  // {
-  // return false;
-  // }
-
   public static boolean getDefaultLabelSounds() {
     return false;
   }
-
-  // public static boolean getDefaultLabelDoors()
-  // {
-  // return false;
-  // }
 
   public static boolean getDefaultLabelAnimations() {
     return false;
@@ -531,8 +561,10 @@ public class Settings {
       case AUTOMAP:
         return LayerType.AUTOMAP;
       case CONTAINER:
+      case CONTAINER_TARGET:
         return LayerType.CONTAINER;
       case DOOR:
+      case DOOR_TARGET:
         return LayerType.DOOR;
       case DOOR_POLY:
         return LayerType.DOOR_POLY;
@@ -541,6 +573,7 @@ public class Settings {
       case PRO_TRAP:
         return LayerType.PRO_TRAP;
       case REGION:
+      case REGION_TARGET:
         return LayerType.REGION;
       case SPAWN_POINT:
         return LayerType.SPAWN_POINT;
@@ -553,37 +586,37 @@ public class Settings {
     }
   }
 
-  // Converts values from LayerType to LayerStackingType (ignoring AmbientRange)
-  public static LayerStackingType layerToStacking(LayerType type) {
+  // Converts values from LayerType to LayerStackingType(s)
+  public static LayerStackingType[] layerToStacking(LayerType type) {
     switch (type) {
       case ACTOR:
-        return LayerStackingType.ACTOR;
+        return new LayerStackingType[] { LayerStackingType.ACTOR };
       case AMBIENT:
-        return LayerStackingType.AMBIENT;
+        return new LayerStackingType[] { LayerStackingType.AMBIENT, LayerStackingType.AMBIENT_RANGE };
       case ANIMATION:
-        return LayerStackingType.ANIMATION;
+        return new LayerStackingType[] { LayerStackingType.ANIMATION };
       case AUTOMAP:
-        return LayerStackingType.AUTOMAP;
+        return new LayerStackingType[] { LayerStackingType.AUTOMAP };
       case CONTAINER:
-        return LayerStackingType.CONTAINER;
+        return new LayerStackingType[] { LayerStackingType.CONTAINER, LayerStackingType.CONTAINER_TARGET };
       case DOOR:
-        return LayerStackingType.DOOR;
+        return new LayerStackingType[] { LayerStackingType.DOOR, LayerStackingType.DOOR_TARGET };
       case DOOR_POLY:
-        return LayerStackingType.DOOR_POLY;
+        return new LayerStackingType[] { LayerStackingType.DOOR_POLY };
       case ENTRANCE:
-        return LayerStackingType.ENTRANCE;
+        return new LayerStackingType[] { LayerStackingType.ENTRANCE };
       case PRO_TRAP:
-        return LayerStackingType.PRO_TRAP;
+        return new LayerStackingType[] { LayerStackingType.PRO_TRAP };
       case REGION:
-        return LayerStackingType.REGION;
+        return new LayerStackingType[] { LayerStackingType.REGION, LayerStackingType.REGION_TARGET };
       case SPAWN_POINT:
-        return LayerStackingType.SPAWN_POINT;
+        return new LayerStackingType[] { LayerStackingType.SPAWN_POINT };
       case TRANSITION:
-        return LayerStackingType.TRANSITION;
+        return new LayerStackingType[] { LayerStackingType.TRANSITION };
       case WALL_POLY:
-        return LayerStackingType.WALL_POLY;
+        return new LayerStackingType[] { LayerStackingType.WALL_POLY };
       default:
-        return null;
+        return new LayerStackingType[0];
     }
   }
 

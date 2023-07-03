@@ -18,7 +18,6 @@ import org.infinity.datatype.IsTextual;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
-import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -162,13 +161,14 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
             boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
             LayerObjectActor loa = list.get(i);
 
-            IconLayerItem iconItem = (IconLayerItem) loa.getLayerItem(ViewerConstants.ITEM_ICON);
-            if (iconItem != null) {
+            AbstractLayerItem[] iconItems = loa.getLayerItems(ViewerConstants.ITEM_ICON);
+            for (AbstractLayerItem iconItem : iconItems) {
               iconItem.setVisible(state && !realEnabled);
             }
 
-            AnimatedLayerItem animItem = (AnimatedLayerItem) loa.getLayerItem(ViewerConstants.ITEM_REAL);
-            if (animItem != null) {
+            AbstractLayerItem[] animItems = loa.getLayerItems(ViewerConstants.ITEM_REAL);
+            for (final AbstractLayerItem item: animItems) {
+              final AnimatedLayerItem animItem = (AnimatedLayerItem) item;
               if (animItem.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER && state
                   && realEnabled) {
                 // real actor animations loaded on demand
@@ -240,9 +240,9 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     if (interpolationType != this.interpolationType) {
       this.interpolationType = interpolationType;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-        if (item != null) {
-          item.setInterpolationType(interpolationType);
+        final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+        for (final AbstractLayerItem item : items) {
+          ((AnimatedLayerItem) item).setInterpolationType(interpolationType);
         }
       }
     }
@@ -264,9 +264,9 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     if (forced != forcedInterpolation) {
       forcedInterpolation = forced;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-        if (item != null) {
-          item.setForcedInterpolation(forced);
+        final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+        for (final AbstractLayerItem item : items) {
+          ((AnimatedLayerItem) item).setForcedInterpolation(forced);
         }
       }
     }
@@ -357,10 +357,13 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     if (enable != selectionCircleEnabled) {
       selectionCircleEnabled = enable;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-        if (item.getAnimation() instanceof ActorAnimationProvider) {
-          ActorAnimationProvider aap = (ActorAnimationProvider) item.getAnimation();
-          aap.setSelectionCircleEnabled(selectionCircleEnabled);
+        final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+        for (final AbstractLayerItem item : items) {
+          final AnimatedLayerItem animItem = (AnimatedLayerItem) item;
+          if (animItem.getAnimation() instanceof ActorAnimationProvider) {
+            ActorAnimationProvider aap = (ActorAnimationProvider) animItem.getAnimation();
+            aap.setSelectionCircleEnabled(selectionCircleEnabled);
+          }
         }
       }
     }
@@ -380,10 +383,13 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     if (enable != personalSpaceEnabled) {
       personalSpaceEnabled = enable;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-        if (item.getAnimation() instanceof ActorAnimationProvider) {
-          ActorAnimationProvider aap = (ActorAnimationProvider) item.getAnimation();
-          aap.setPersonalSpaceEnabled(personalSpaceEnabled);
+        final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+        for (final AbstractLayerItem item : items) {
+          final AnimatedLayerItem animItem = (AnimatedLayerItem) item;
+          if (animItem.getAnimation() instanceof ActorAnimationProvider) {
+            ActorAnimationProvider aap = (ActorAnimationProvider) animItem.getAnimation();
+            aap.setPersonalSpaceEnabled(personalSpaceEnabled);
+          }
         }
       }
     }
@@ -408,9 +414,9 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     if (frameRate != this.frameRate) {
       this.frameRate = frameRate;
       for (final LayerObjectActor layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-        if (item != null) {
-          item.setFrameRate(frameRate);
+        final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+        for (final AbstractLayerItem item : items) {
+          ((AnimatedLayerItem) item).setFrameRate(frameRate);
         }
       }
     }
@@ -418,20 +424,21 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
 
   private void updateFrameState() {
     for (final LayerObjectActor layer : getLayerObjects()) {
-      final AnimatedLayerItem item = (AnimatedLayerItem) layer.getLayerItem(ViewerConstants.ITEM_REAL);
-      if (item != null) {
+      final AbstractLayerItem[] items = layer.getLayerItems(ViewerConstants.ITEM_REAL);
+      for (final AbstractLayerItem item : items) {
+        final AnimatedLayerItem animItem = (AnimatedLayerItem) item;
         switch (frameState) {
           case ViewerConstants.FRAME_NEVER:
-            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
-            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, false);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, false);
             break;
           case ViewerConstants.FRAME_AUTO:
-            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
-            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
             break;
           case ViewerConstants.FRAME_ALWAYS:
-            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, true);
-            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, true);
+            animItem.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
             break;
         }
       }

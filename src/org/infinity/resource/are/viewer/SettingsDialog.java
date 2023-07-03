@@ -17,6 +17,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.EnumMap;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -57,24 +58,21 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
                                                  "Always use nearest neighbor filtering",
                                                  "Always use bilinear filtering" };
 
-  private static final String[] LayerDesc = { "Actors", "Regions", "Entrances", "Containers", "Ambient Sounds",
-                                              "Ambient Sound Ranges", "Doors", "Background Animations", "Automap Notes",
-                                              "Spawn Points", "Map Transitions", "Projectile Traps", "Door Polygons",
-                                              "Wall Polygons" };
+  private enum LabelIndex {
+    ActorsAre,
+    ActorsIni,
+    RegionTargets,
+    Entrances,
+    ContainerTargets,
+    Sounds,
+    DoorTargets,
+    Animations,
+    MapNotes,
+    SpawnPoints,
+  }
 
-  private static final int INDEX_LABEL_ACTORS_ARE   = 0;
-  private static final int INDEX_LABEL_ACTORS_INI   = 1;
-//  private static final int INDEX_LABEL_REGIONS      = 2;
-  private static final int INDEX_LABEL_ENTRANCES    = 2;
-//  private static final int INDEX_LABEL_CONTAINERS   = 4;
-  private static final int INDEX_LABEL_SOUNDS       = 3;
-//  private static final int INDEX_LABEL_DOORS        = 6;
-  private static final int INDEX_LABEL_ANIMATIONS   = 4;
-  private static final int INDEX_LABEL_MAPNOTES     = 5;
-  private static final int INDEX_LABEL_SPAWNPOINTS  = 6;
-  private static final int INDEX_LABEL_COUNT        = 7;
+  private final EnumMap<LabelIndex, JCheckBox> labelsMap = new EnumMap<>(LabelIndex.class);
 
-  private JCheckBox[] cbLabels;
   private SimpleListModel<LayerEntry> modelLayers;
   private JList<LayerEntry> listLayers;
   private JButton bUp;
@@ -149,16 +147,16 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
       Settings.LIST_LAYER_ORDER.set(i, lt.layer);
     }
 
-    Settings.ShowLabelActorsAre = cbLabels[INDEX_LABEL_ACTORS_ARE].isSelected();
-    Settings.ShowLabelActorsIni = cbLabels[INDEX_LABEL_ACTORS_INI].isSelected();
-    // Settings.ShowLabelRegions = cbLabels[INDEX_LABEL_REGIONS].isSelected();
-    Settings.ShowLabelEntrances = cbLabels[INDEX_LABEL_ENTRANCES].isSelected();
-    // Settings.ShowLabelContainers = cbLabels[INDEX_LABEL_CONTAINERS].isSelected();
-    Settings.ShowLabelSounds = cbLabels[INDEX_LABEL_SOUNDS].isSelected();
-    // Settings.ShowLabelDoors = cbLabels[INDEX_LABEL_DOORS].isSelected();
-    Settings.ShowLabelAnimations = cbLabels[INDEX_LABEL_ANIMATIONS].isSelected();
-    Settings.ShowLabelMapNotes = cbLabels[INDEX_LABEL_MAPNOTES].isSelected();
-    Settings.ShowLabelSpawnPoints = cbLabels[INDEX_LABEL_SPAWNPOINTS].isSelected();
+    Settings.ShowLabelActorsAre =  labelsMap.get(LabelIndex.ActorsAre).isSelected();
+    Settings.ShowLabelActorsIni = labelsMap.get(LabelIndex.ActorsIni).isSelected();
+    Settings.ShowLabelAnimations = labelsMap.get(LabelIndex.Animations).isSelected();
+    Settings.ShowLabelContainerTargets = labelsMap.get(LabelIndex.ContainerTargets).isSelected();
+    Settings.ShowLabelDoorTargets = labelsMap.get(LabelIndex.DoorTargets).isSelected();
+    Settings.ShowLabelEntrances = labelsMap.get(LabelIndex.Entrances).isSelected();
+    Settings.ShowLabelMapNotes = labelsMap.get(LabelIndex.MapNotes).isSelected();
+    Settings.ShowLabelRegionTargets = labelsMap.get(LabelIndex.RegionTargets).isSelected();
+    Settings.ShowLabelSounds = labelsMap.get(LabelIndex.Sounds).isSelected();
+    Settings.ShowLabelSpawnPoints = labelsMap.get(LabelIndex.SpawnPoints).isSelected();
 
     Settings.ShowActorFrame = cbActorFrames.getSelectedIndex();
     Settings.ShowActorSelectionCircle = cbShowActorSelectionCircle.isSelected();
@@ -191,7 +189,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     modelLayers.clear();
     List<ViewerConstants.LayerStackingType> list = Settings.getDefaultLayerOrder();
     for (LayerStackingType layer : list) {
-      String desc = LayerDesc[Settings.getLayerStackingTypeIndex(layer)];
+      String desc = layer.getLabel();
       modelLayers.addElement(new LayerEntry(layer, desc));
     }
     list.clear();
@@ -204,16 +202,16 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
   private void resetDialogSettings() {
     resetLayerOrder();
 
-    cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.getDefaultLabelActorsAre());
-    cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.getDefaultLabelActorsIni());
-    // cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.getDefaultLabelRegions());
-    cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.getDefaultLabelEntrances());
-    // cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.getDefaultLabelContainers());
-    cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.getDefaultLabelSounds());
-    // cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.getDefaultLabelDoors());
-    cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.getDefaultLabelAnimations());
-    cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.getDefaultLabelMapNotes());
-    cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.getDefaultLabelSpawnPoints());
+    labelsMap.get(LabelIndex.ActorsAre).setSelected(Settings.getDefaultLabelActorsAre());
+    labelsMap.get(LabelIndex.ActorsIni).setSelected(Settings.getDefaultLabelActorsIni());
+    labelsMap.get(LabelIndex.Animations).setSelected(Settings.getDefaultLabelAnimations());
+    labelsMap.get(LabelIndex.ContainerTargets).setSelected(Settings.getDefaultLabelContainerTargets());
+    labelsMap.get(LabelIndex.DoorTargets).setSelected(Settings.getDefaultLabelDoorTargets());
+    labelsMap.get(LabelIndex.Entrances).setSelected(Settings.getDefaultLabelEntrances());
+    labelsMap.get(LabelIndex.MapNotes).setSelected(Settings.getDefaultLabelMapNotes());
+    labelsMap.get(LabelIndex.RegionTargets).setSelected(Settings.getDefaultLabelRegionTargets());
+    labelsMap.get(LabelIndex.Sounds).setSelected(Settings.getDefaultLabelSounds());
+    labelsMap.get(LabelIndex.SpawnPoints).setSelected(Settings.getDefaultLabelSpawnPoints());
 
     cbActorFrames.setSelectedIndex(Settings.getDefaultShowActorFrame());
     cbShowActorSelectionCircle.setSelected(Settings.getDefaultActorSelectionCircle());
@@ -277,7 +275,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     listLayers.setBorder(BorderFactory.createLineBorder(getForeground()));
     // filling list with layer entries
     for (LayerStackingType layer : Settings.LIST_LAYER_ORDER) {
-      String desc = LayerDesc[Settings.getLayerStackingTypeIndex(layer)];
+      String desc = layer.getLabel();
       modelLayers.addElement(new LayerEntry(layer, desc));
     }
     Dimension d = listLayers.getPreferredSize();
@@ -341,41 +339,36 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     // Icon labels
     JPanel pShowLabels = new JPanel(new GridBagLayout());
     pShowLabels.setBorder(BorderFactory.createTitledBorder("Show icon labels for: "));
-    cbLabels = new JCheckBox[INDEX_LABEL_COUNT];
-    cbLabels[INDEX_LABEL_ACTORS_ARE] = new JCheckBox("Actors (ARE)");
-    cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.ShowLabelActorsAre);
-    cbLabels[INDEX_LABEL_ACTORS_INI] = new JCheckBox("Actors (INI)");
-    cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.ShowLabelActorsIni);
-    // cbLabels[INDEX_LABEL_REGIONS] = new JCheckBox("Regions");
-    // cbLabels[INDEX_LABEL_REGIONS].setEnabled(false);
-    // cbLabels[INDEX_LABEL_REGIONS].setToolTipText("Not yet supported");
-    // cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.ShowLabelRegions);
-    cbLabels[INDEX_LABEL_ENTRANCES] = new JCheckBox("Entrances");
-    cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.ShowLabelEntrances);
-    // cbLabels[INDEX_LABEL_CONTAINERS] = new JCheckBox("Containers");
-    // cbLabels[INDEX_LABEL_CONTAINERS].setEnabled(false);
-    // cbLabels[INDEX_LABEL_CONTAINERS].setToolTipText("Not yet supported");
-    // cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.ShowLabelContainers);
-    cbLabels[INDEX_LABEL_SOUNDS] = new JCheckBox("Ambient Sounds");
-    cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.ShowLabelSounds);
-    // cbLabels[INDEX_LABEL_DOORS] = new JCheckBox("Doors");
-    // cbLabels[INDEX_LABEL_DOORS].setEnabled(false);
-    // cbLabels[INDEX_LABEL_DOORS].setToolTipText("Not yet supported");
-    // cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.ShowLabelDoors);
-    cbLabels[INDEX_LABEL_ANIMATIONS] = new JCheckBox("Background Animations");
-    cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.ShowLabelAnimations);
-    cbLabels[INDEX_LABEL_MAPNOTES] = new JCheckBox("Automap Notes");
-    cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.ShowLabelMapNotes);
-    cbLabels[INDEX_LABEL_SPAWNPOINTS] = new JCheckBox("Spawn Points");
-    cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.ShowLabelSpawnPoints);
-    for (int idx = 0; idx < cbLabels.length; idx++) {
-      // spread entries over two columns
+    labelsMap.put(LabelIndex.ActorsAre, new JCheckBox("Actors (ARE)"));
+    labelsMap.get(LabelIndex.ActorsAre).setSelected(Settings.ShowLabelActorsAre);
+    labelsMap.put(LabelIndex.ActorsIni, new JCheckBox("Actors (INI)"));
+    labelsMap.get(LabelIndex.ActorsIni).setSelected(Settings.ShowLabelActorsIni);
+    labelsMap.put(LabelIndex.Animations, new JCheckBox("Background Animations"));
+    labelsMap.get(LabelIndex.Animations).setSelected(Settings.ShowLabelAnimations);
+    labelsMap.put(LabelIndex.ContainerTargets, new JCheckBox("Container targets"));
+    labelsMap.get(LabelIndex.ContainerTargets).setSelected(Settings.ShowLabelContainerTargets);
+    labelsMap.put(LabelIndex.DoorTargets, new JCheckBox("Door targets"));
+    labelsMap.get(LabelIndex.DoorTargets).setSelected(Settings.ShowLabelDoorTargets);
+    labelsMap.put(LabelIndex.Entrances, new JCheckBox("Entrances"));
+    labelsMap.get(LabelIndex.Entrances).setSelected(Settings.ShowLabelEntrances);
+    labelsMap.put(LabelIndex.MapNotes, new JCheckBox("Automap Notes"));
+    labelsMap.get(LabelIndex.MapNotes).setSelected(Settings.ShowLabelMapNotes);
+    labelsMap.put(LabelIndex.RegionTargets, new JCheckBox("Region targets"));
+    labelsMap.get(LabelIndex.RegionTargets).setSelected(Settings.ShowLabelRegionTargets);
+    labelsMap.put(LabelIndex.Sounds, new JCheckBox("Ambient Sounds"));
+    labelsMap.get(LabelIndex.Sounds).setSelected(Settings.ShowLabelSounds);
+    labelsMap.put(LabelIndex.SpawnPoints, new JCheckBox("Spawn Points"));
+    labelsMap.get(LabelIndex.SpawnPoints).setSelected(Settings.ShowLabelSpawnPoints);
+
+    // spread entries over two columns
+    for (int idx = 0, len = LabelIndex.values().length; idx < len; idx++) {
+      final LabelIndex li = LabelIndex.values()[idx];
       int x = idx & 1;
       int y = idx / 2;
-      int bottom = (idx == cbLabels.length - 1 || (idx == cbLabels.length - 2 && x == 0)) ? 4 : 0;
+      int bottom = (idx == len - 1 || (idx == len - 2 && x == 0)) ? 4 : 0;
       c = ViewerUtil.setGBC(c, x, y, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
           new Insets(0, 4, bottom, 4), 0, 0);
-      pShowLabels.add(cbLabels[idx], c);
+      pShowLabels.add(labelsMap.get(li), c);
     }
 
     // Actor animation options

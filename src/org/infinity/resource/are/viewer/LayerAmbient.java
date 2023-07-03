@@ -66,13 +66,13 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient, AreResource> {
     for (int i = 0, size = list.size(); i < size; i++) {
       LayerObjectAmbient obj = list.get(i);
       state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_ICON) && (!isScheduleEnabled() || isScheduled(i));
-      AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
-      if (item != null) {
+      AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.AMBIENT_ITEM_ICON);
+      for (final AbstractLayerItem item : items) {
         item.setVisible(state && iconEnabled);
       }
       state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_RANGE) && (!isScheduleEnabled() || isScheduled(i));
-      item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
-      if (item != null) {
+      items = obj.getLayerItems(ViewerConstants.AMBIENT_ITEM_RANGE);
+      for (final AbstractLayerItem item : items) {
         item.setVisible(state && rangeEnabled);
       }
     }

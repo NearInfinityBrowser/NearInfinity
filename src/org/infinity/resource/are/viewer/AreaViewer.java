@@ -164,6 +164,9 @@ public class AreaViewer extends ChildFrame {
   private JCheckBox cbEnableSchedules;
   private JComboBox<String> cbZoomLevel;
   private JCheckBox cbLayerAmbientRange;
+  private JCheckBox cbLayerRegionTarget;
+  private JCheckBox cbLayerContainerTarget;
+  private JCheckBox cbLayerDoorTarget;
   private JLabel lPosX;
   private JLabel lPosY;
   private JTextArea taInfo;
@@ -415,6 +418,24 @@ public class AreaViewer extends ChildFrame {
         cbLayerRealAnimation[1] = new JCheckBox("Animate actual animations");
         cbLayerRealAnimation[1].addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRealAnimation[1]);
+        t2.add(t3);
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.CONTAINER)) {
+        // Initializing container target locations checkbox
+        cbLayerContainerTarget = new JCheckBox("Show target locations");
+        cbLayerContainerTarget.addActionListener(getListeners());
+        t3 = new DefaultMutableTreeNode(cbLayerContainerTarget);
+        t2.add(t3);
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.DOOR)) {
+        // Initializing door target locations checkbox
+        cbLayerDoorTarget = new JCheckBox("Show target locations");
+        cbLayerDoorTarget.addActionListener(getListeners());
+        t3 = new DefaultMutableTreeNode(cbLayerDoorTarget);
+        t2.add(t3);
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.REGION)) {
+        // Initializing region target locations checkbox
+        cbLayerRegionTarget = new JCheckBox("Show target locations");
+        cbLayerRegionTarget.addActionListener(getListeners());
+        t3 = new DefaultMutableTreeNode(cbLayerRegionTarget);
         t2.add(t3);
       }
     }
@@ -769,7 +790,9 @@ public class AreaViewer extends ChildFrame {
       }
       cbLayers[i].setEnabled(count > 0);
       cbLayers[i].setSelected(isChecked);
-      updateLayerItems(Settings.layerToStacking(layer));
+      for (final LayerStackingType lst : Settings.layerToStacking(layer)) {
+        updateLayerItems(lst);
+      }
       showLayer(LayerManager.getLayerType(i), cbLayers[i].isSelected());
     }
 
@@ -791,6 +814,18 @@ public class AreaViewer extends ChildFrame {
     }
     cbLayerAmbientRange.setSelected(Settings.ShowAmbientRanges);
     updateAmbientRange();
+
+    // Setting up container target locations
+    cbLayerContainerTarget.setSelected(Settings.ShowContainerTargets);
+    updateContainerTargets();
+
+    // Setting up door target locations
+    cbLayerDoorTarget.setSelected(Settings.ShowDoorTargets);
+    updateDoorTargets();
+
+    // Setting up region target locations
+    cbLayerRegionTarget.setSelected(Settings.ShowRegionTargets);
+    updateRegionTargets();
 
     // initializing background animation display
     // Disabling animated frames for performance and safety reasons
@@ -1298,7 +1333,17 @@ public class AreaViewer extends ChildFrame {
                 && ((LayerObjectAmbient) obj).isLocal()) {
               // skipped: will be handled in AmbientRange layer
               break;
+            } else if (stacking == LayerStackingType.CONTAINER_TARGET) {
+              // skipped: will be handled in ContainerTarget layer
+              break;
+            } else if (stacking == LayerStackingType.DOOR_TARGET) {
+              // skipped: will be handled in DoorTarget layer
+              break;
+            } else if (stacking == LayerStackingType.REGION_TARGET) {
+              // skipped: will be handled in RegionTarget layer
+              break;
             }
+
             if (stacking == LayerStackingType.AMBIENT_RANGE) {
               if (((LayerObjectAmbient) obj).isLocal() && i == ViewerConstants.AMBIENT_ITEM_ICON) {
                 // considering ranged item only
@@ -1387,14 +1432,12 @@ public class AreaViewer extends ChildFrame {
     if (layerManager != null) {
       for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
         LayerType layer = LayerManager.getLayerType(i);
-        LayerStackingType layer2 = Settings.layerToStacking(layer);
-        if (layer != LayerType.DOOR_POLY && layer != LayerType.WALL_POLY) {
+        LayerStackingType[] layerStacking = Settings.layerToStacking(layer);
+        if (layer.isAre()) {
           layerManager.reload(layer);
-          updateLayerItems(layer2);
-          addLayerItems(layer2);
-          if (layer == LayerType.AMBIENT) {
-            updateLayerItems(LayerStackingType.AMBIENT_RANGE);
-            addLayerItems(LayerStackingType.AMBIENT_RANGE);
+          for (final LayerStackingType lst : layerStacking) {
+            updateLayerItems(lst);
+            addLayerItems(lst);
           }
           showLayer(layer, cbLayers[i].isSelected());
         }
@@ -1403,6 +1446,9 @@ public class AreaViewer extends ChildFrame {
     updateRealActors();
     updateRealActorsLighting(getVisualState());
     updateAmbientRange();
+    updateContainerTargets();
+    updateDoorTargets();
+    updateRegionTargets();
     updateRealAnimation();
     updateRealAnimationsLighting(getVisualState());
     if (order) {
@@ -1586,6 +1632,63 @@ public class AreaViewer extends ChildFrame {
     }
   }
 
+  /** Updates the visibility state of region target locations. */
+  private void updateRegionTargets() {
+    if (layerManager != null) {
+      LayerRegion layer = (LayerRegion) layerManager.getLayer(LayerType.REGION);
+      if (layer != null) {
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.REGION)];
+        cbLayerRegionTarget.setEnabled(cb.isSelected() && cb.isEnabled());
+        boolean state = cbLayerRegionTarget.isEnabled() && cbLayerRegionTarget.isSelected();
+        layer.setIconLayerEnabled(state);
+      } else {
+        cbLayerRegionTarget.setEnabled(false);
+      }
+      updateTreeNode(cbLayerRegionTarget);
+
+      // Storing settings
+      Settings.ShowRegionTargets = cbLayerRegionTarget.isSelected();
+    }
+  }
+
+  /** Updates the visibility state of container target locations. */
+  private void updateContainerTargets() {
+    if (layerManager != null) {
+      LayerContainer layer = (LayerContainer) layerManager.getLayer(LayerType.CONTAINER);
+      if (layer != null) {
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.CONTAINER)];
+        cbLayerContainerTarget.setEnabled(cb.isSelected() && cb.isEnabled());
+        boolean state = cbLayerContainerTarget.isEnabled() && cbLayerContainerTarget.isSelected();
+        layer.setIconLayerEnabled(state);
+      } else {
+        cbLayerContainerTarget.setEnabled(false);
+      }
+      updateTreeNode(cbLayerContainerTarget);
+
+      // Storing settings
+      Settings.ShowContainerTargets = cbLayerContainerTarget.isSelected();
+    }
+  }
+
+  /** Updates the visibility state of door target locations. */
+  private void updateDoorTargets() {
+    if (layerManager != null) {
+      LayerDoor layer = (LayerDoor) layerManager.getLayer(LayerType.DOOR);
+      if (layer != null) {
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.DOOR)];
+        cbLayerDoorTarget.setEnabled(cb.isSelected() && cb.isEnabled());
+        boolean state = cbLayerDoorTarget.isEnabled() && cbLayerDoorTarget.isSelected();
+        layer.setIconLayerEnabled(state);
+      } else {
+        cbLayerDoorTarget.setEnabled(false);
+      }
+      updateTreeNode(cbLayerDoorTarget);
+
+      // Storing settings
+      Settings.ShowDoorTargets = cbLayerDoorTarget.isSelected();
+    }
+  }
+
   /** Applies the specified lighting condition to real actor items. */
   private void updateRealActorsLighting(int visualState) {
     if (layerManager != null) {
@@ -1723,21 +1826,41 @@ public class AreaViewer extends ChildFrame {
 
   /** Adds items of a single layer object to the map canvas. */
   private void addLayerItem(LayerStackingType layer, LayerObject object) {
+    int type = -1;
     if (object != null) {
-      // Dealing with ambient icons and ambient ranges separately
-      if (layer == LayerStackingType.AMBIENT) {
-        AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
-        if (item != null) {
-          rcCanvas.add(item);
-        }
-      } else if (layer == LayerStackingType.AMBIENT_RANGE) {
-        AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
-        if (item != null) {
+      switch (layer) {
+        case AMBIENT:
+          type = ViewerConstants.AMBIENT_ITEM_ICON;
+          break;
+        case AMBIENT_RANGE:
+          type = ViewerConstants.AMBIENT_ITEM_RANGE;
+          break;
+        case CONTAINER:
+        case REGION:
+          type = ViewerConstants.LAYER_ITEM_POLY;
+          break;
+        case DOOR:
+          type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
+          break;
+        case CONTAINER_TARGET:
+        case DOOR_TARGET:
+        case REGION_TARGET:
+          type = ViewerConstants.LAYER_ITEM_ICON;
+          break;
+        default:
+      }
+
+      if (type >= 0) {
+        // dealing with components of composed layers individually
+        final AbstractLayerItem[] items = object.getLayerItems(type);
+        for (final AbstractLayerItem item : items) {
           rcCanvas.add(item);
         }
       } else {
         for (final AbstractLayerItem item : object.getLayerItems()) {
-          rcCanvas.add(item);
+          if (item != null) {
+            rcCanvas.add(item);
+          }
         }
       }
     }
@@ -1764,17 +1887,37 @@ public class AreaViewer extends ChildFrame {
 
   /** Removes items of a single layer object from the map canvas. */
   private void removeLayerItem(LayerStackingType layer, LayerObject object) {
-    if (object != null) {
-      if (layer == LayerStackingType.AMBIENT) {
-        AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
+    int type = -1;
+    switch (layer) {
+      case AMBIENT:
+        type = ViewerConstants.AMBIENT_ITEM_ICON;
+        break;
+      case AMBIENT_RANGE:
+        type = ViewerConstants.AMBIENT_ITEM_RANGE;
+        break;
+      case CONTAINER:
+      case REGION:
+        type = ViewerConstants.LAYER_ITEM_POLY;
+        break;
+      case DOOR:
+        type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
+        break;
+      case CONTAINER_TARGET:
+      case DOOR_TARGET:
+      case REGION_TARGET:
+        type = ViewerConstants.LAYER_ITEM_ICON;
+        break;
+      default:
+    }
+
+    if (type >= 0) {
+      final AbstractLayerItem[] items = object.getLayerItems(type);
+      for (final AbstractLayerItem item : items) {
         rcCanvas.remove(item);
-      } else if (layer == LayerStackingType.AMBIENT_RANGE) {
-        AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
+      }
+    } else {
+      for (final AbstractLayerItem item : object.getLayerItems()) {
         if (item != null) {
-          rcCanvas.remove(item);
-        }
-      } else {
-        for (final AbstractLayerItem item : object.getLayerItems()) {
           rcCanvas.remove(item);
         }
       }
@@ -1785,25 +1928,43 @@ public class AreaViewer extends ChildFrame {
   private void orderLayerItems() {
     if (layerManager != null) {
       int index = 0;
-      for (final LayerStackingType type : Settings.LIST_LAYER_ORDER) {
-        final List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(type));
+      for (final LayerStackingType layer : Settings.LIST_LAYER_ORDER) {
+        final List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
         if (list == null) {
           continue;
         }
 
         for (final LayerObject obj : list) {
-          if (type == LayerStackingType.AMBIENT_RANGE) {
-            // Special: process ambient ranges only
-            AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
-            if (item != null) {
+          int type = -1;
+          switch (layer) {
+            case AMBIENT:
+              type = ViewerConstants.AMBIENT_ITEM_ICON;
+              break;
+            case AMBIENT_RANGE:
+              type = ViewerConstants.AMBIENT_ITEM_RANGE;
+              break;
+            case CONTAINER:
+            case REGION:
+              type = ViewerConstants.LAYER_ITEM_POLY;
+              break;
+            case DOOR:
+              type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
+              break;
+            case CONTAINER_TARGET:
+            case DOOR_TARGET:
+            case REGION_TARGET:
+              type = ViewerConstants.LAYER_ITEM_ICON;
+              break;
+            default:
+          }
+
+          if (type >= 0) {
+            // process components of composed layers individually
+            final AbstractLayerItem[] items = obj.getLayerItems(type);
+            for (final AbstractLayerItem item : items) {
               rcCanvas.setComponentZOrder(item, index);
               index++;
             }
-          } else if (type == LayerStackingType.AMBIENT) {
-            // Special: process ambient icons only
-            AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
-            rcCanvas.setComponentZOrder(item, index);
-            index++;
           } else {
             for (final AbstractLayerItem item : obj.getLayerItems()) {
               if (item.getParent() != null) {
@@ -1934,6 +2095,7 @@ public class AreaViewer extends ChildFrame {
   private void applySettings() {
     // applying layer stacking order
     orderLayerItems();
+
     // applying interpolation settings to map
     switch (Settings.InterpolationMap) {
       case ViewerConstants.FILTERING_AUTO:
@@ -1948,6 +2110,7 @@ public class AreaViewer extends ChildFrame {
         rcCanvas.setForcedInterpolation(true);
         break;
     }
+
     // applying minimap alpha
     rcCanvas.setMiniMapTransparency((int) (Settings.MiniMapAlpha * 255.0));
 
@@ -1973,6 +2136,10 @@ public class AreaViewer extends ChildFrame {
       // applying animation active override settings
       ((LayerAnimation) layerManager.getLayer(LayerType.ANIMATION))
           .setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
+      ((LayerContainer) layerManager.getLayer(LayerType.CONTAINER)).setIconLayerEnabled(Settings.ShowContainerTargets);
+      ((LayerDoor) layerManager.getLayer(LayerType.DOOR)).setIconLayerEnabled(Settings.ShowDoorTargets);
+      ((LayerRegion) layerManager.getLayer(LayerType.REGION)).setIconLayerEnabled(Settings.ShowRegionTargets);
+
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {
         case ViewerConstants.FILTERING_AUTO:
@@ -1987,11 +2154,13 @@ public class AreaViewer extends ChildFrame {
           layerManager.setRealAnimationForcedInterpolation(true);
           break;
       }
+
       // applying frame rate to animated overlays
       int interval = (int) (1000.0 / Settings.FrameRateOverlays);
       if (interval != timerOverlays.getDelay()) {
         timerOverlays.setDelay(interval);
       }
+
       // applying frame rate to actor sprites and background animations
       layerManager.setRealAnimationFrameRate(Settings.FrameRateAnimations);
     }
@@ -2074,6 +2243,15 @@ public class AreaViewer extends ChildFrame {
           } else if (layer == LayerType.ANIMATION) {
             // Taking care of real animation display
             updateRealAnimation();
+          } else if (layer == LayerType.CONTAINER) {
+            // Taking care of container target locations
+            updateContainerTargets();
+          } else if (layer == LayerType.DOOR) {
+            // Taking care of door target locations
+            updateDoorTargets();
+          } else if (layer == LayerType.REGION) {
+            // Taking care of region target locations
+            updateRegionTargets();
           }
           updateScheduledItems();
         } else if (cb == cbLayerRealActor[0]) {
@@ -2098,6 +2276,12 @@ public class AreaViewer extends ChildFrame {
             cbLayerRealAnimation[0].setSelected(false);
           }
           updateRealAnimation();
+        } else if (cb == cbLayerContainerTarget) {
+          updateContainerTargets();
+        } else if (cb == cbLayerDoorTarget) {
+          updateDoorTargets();
+        } else if (cb == cbLayerRegionTarget) {
+          updateRegionTargets();
         } else if (cb == cbEnableSchedules) {
           WindowBlocker.blockWindow(AreaViewer.this, true);
           try {

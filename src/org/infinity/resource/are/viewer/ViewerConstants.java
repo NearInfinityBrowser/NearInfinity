@@ -14,14 +14,74 @@ public final class ViewerConstants {
    * Supported layer types.
    */
   public static enum LayerType {
-    ACTOR, REGION, ENTRANCE, CONTAINER, AMBIENT, DOOR, ANIMATION, AUTOMAP, SPAWN_POINT, TRANSITION, PRO_TRAP, DOOR_POLY,
-    WALL_POLY
+    ACTOR("Actors", true),
+    REGION("Regions", true),
+    ENTRANCE("Entrances", true),
+    CONTAINER("Containers", true),
+    AMBIENT("Ambient Sounds", true),
+    DOOR("Doors", true),
+    ANIMATION("Background Animations", true),
+    AUTOMAP("Automap Notes", true),
+    SPAWN_POINT("Spawn Points", true),
+    TRANSITION("Map Transitions", true),
+    PRO_TRAP("Projectile Traps", true),
+    DOOR_POLY("Door Polygons", false),
+    WALL_POLY("Wall Polygons", false),
+    ;
+
+    private final boolean isAre;
+    private final String label;
+    private LayerType(String label, boolean isAre) {
+      this.label = label;
+      this.isAre = isAre;
+    }
+
+    /** Returns a label associated with the layer type. */
+    public String getLabel() {
+      return label;
+    }
+
+    /** Returns whether the layer type is defined in ARE resources. */
+    public boolean isAre() {
+      return isAre;
+    }
+
+    /** Returns whether the layer type is defined in WED resources. */
+    public boolean isWed() {
+      return !isAre;
+    }
   }
 
   // Used for setting stacking order on map
   public static enum LayerStackingType {
-    ACTOR, REGION, ENTRANCE, CONTAINER, AMBIENT, AMBIENT_RANGE, DOOR, ANIMATION, AUTOMAP, SPAWN_POINT, TRANSITION,
-    PRO_TRAP, DOOR_POLY, WALL_POLY
+    ACTOR("Actors"),
+    REGION_TARGET("Region targets"),
+    CONTAINER_TARGET("Container targets"),
+    DOOR_TARGET("Door targets"),
+    REGION("Regions"),
+    ENTRANCE("Entrances"),
+    CONTAINER("Containers"),
+    AMBIENT("Ambient Sounds"),
+    AMBIENT_RANGE("Ambient Sound Ranges"),
+    DOOR("Doors"),
+    ANIMATION("Background Animations"),
+    AUTOMAP("Automap Notes"),
+    SPAWN_POINT("Spawn Points"),
+    TRANSITION("Map Transitions"),
+    PRO_TRAP("Projectile Traps"),
+    DOOR_POLY("Door Polygons"),
+    WALL_POLY("Wall Polygons"),
+    ;
+
+    private final String label;
+    private LayerStackingType(String label) {
+      this.label = label;
+    }
+
+    /** Returns a label associated with the layer stacking type. */
+    public String getLabel() {
+      return label;
+    }
   }
 
   // Flags that identify the different control sections in the sidebar
@@ -68,13 +128,20 @@ public final class ViewerConstants {
   public static final int ANIM_SHOW_STILL     = 1;
   public static final int ANIM_SHOW_ANIMATED  = 2;
 
-  // Door state indices (LayerObjectDoor)
-  public static final int DOOR_OPEN   = 0;
-  public static final int DOOR_CLOSED = 1;
+  // The layer item types used (LayerObjectContainer, LayerObjectDoor, LayerObjectRegion)
+  public static final int LAYER_ITEM_POLY = 1 << 0;
+  public static final int LAYER_ITEM_ICON = 1 << 1;
+  public static final int LAYER_ITEM_ANY  = LAYER_ITEM_POLY | LAYER_ITEM_ICON;
+
+  // Door state indices (LayerObjectDoor, LayerObjectDoorPoly)
+  public static final int DOOR_OPEN   = 1 << 4;
+  public static final int DOOR_CLOSED = 1 << 5;
+  public static final int DOOR_ANY    = DOOR_OPEN | DOOR_CLOSED;
 
   // The layer item types used (LayerObjectAmbient)
-  public static final int AMBIENT_ITEM_ICON   = 0;
-  public static final int AMBIENT_ITEM_RANGE  = 1;
+  public static final int AMBIENT_ITEM_ICON   = 1 << 0;
+  public static final int AMBIENT_ITEM_RANGE  = 1 << 1;
+  public static final int AMBIENT_ITEM_ANY    = AMBIENT_ITEM_ICON | AMBIENT_ITEM_RANGE;
 
   // The ambient sound type
   public static final int AMBIENT_TYPE_GLOBAL = 1 << 0;
@@ -139,12 +206,12 @@ public final class ViewerConstants {
       case 5:
       case 22:
       case 23:
-        return ViewerConstants.LIGHTING_NIGHT;
+        return LIGHTING_NIGHT;
       case 6:
       case 21:
-        return ViewerConstants.LIGHTING_TWILIGHT;
+        return LIGHTING_TWILIGHT;
       default:
-        return ViewerConstants.LIGHTING_DAY;
+        return LIGHTING_DAY;
     }
   }
 
@@ -156,12 +223,12 @@ public final class ViewerConstants {
    */
   public static int getHourOf(int dayTime) {
     switch (dayTime) {
-      case ViewerConstants.LIGHTING_TWILIGHT:
-        return ViewerConstants.TIME_TWILIGHT;
-      case ViewerConstants.LIGHTING_NIGHT:
-        return ViewerConstants.TIME_NIGHT;
+      case LIGHTING_TWILIGHT:
+        return TIME_TWILIGHT;
+      case LIGHTING_NIGHT:
+        return TIME_NIGHT;
       default:
-        return ViewerConstants.TIME_DAY;
+        return TIME_DAY;
     }
   }
 }
