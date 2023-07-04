@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import org.infinity.datatype.EffectType;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
@@ -140,13 +141,18 @@ public final class Viewer extends JPanel {
     // row 0, column 0
     JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) spl.getAttribute(SplResource.SPL_ICON), 0, 0);
     JPanel fieldPanel = makeFieldPanel(spl);
+    JPanel exclusionFlagsPanel = ViewerUtil.makeCheckPanel((Flag) spl.getAttribute(SplResource.SPL_EXCLUSION_FLAGS), 4);
+
     JPanel infoPanel = new JPanel(new BorderLayout());
     infoPanel.add(iconPanel, BorderLayout.NORTH);
     infoPanel.add(fieldPanel, BorderLayout.CENTER);
+    infoPanel.add(exclusionFlagsPanel, BorderLayout.SOUTH);
+
     JScrollPane scrollPane = new JScrollPane(infoPanel);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
     // row 0, column 1
     JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
