@@ -4,9 +4,13 @@
 
 # Near Infinity
 
-A file browser and editor for the Infinity Engine. You can find out more in
-the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki), or download it directly from the
-[Releases section](https://github.com/Argent77/NearInfinity/releases).
+A file browser and editor for the Infinity Engine.
+
+Find out more in the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki).
+
+Download Near Infinity directly from the [Releases section](https://github.com/Argent77/NearInfinity/releases)
+or use [Nightly Releases](https://github.com/Argent77/NearInfinity/releases/tag/nightly) for the latest features
+and bugfixes.
 
 **Discuss Near Infinity on:**
 - [GitHub Discussions](https://github.com/NearInfinityBrowser/NearInfinity/discussions)
