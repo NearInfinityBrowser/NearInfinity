@@ -13,8 +13,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.StructEntry;
 
 public final class Viewer extends JPanel {
   private static JPanel makeFieldPanel(StoResource sto) {
@@ -31,6 +33,10 @@ public final class Viewer extends JPanel {
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_COST_TO_IDENTIFY), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_STEALING_DIFFICULTY), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_DEPRECIATION_RATE), gbl, gbc, true);
+    final StructEntry capacityEntry = sto.getAttribute(StoResource.STO_STORAGE_CAPACITY);
+    if (capacityEntry != null && ((IsNumeric) sto.getAttribute(StoResource.STO_STORAGE_CAPACITY)).getValue() > 0) {
+      ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_STORAGE_CAPACITY), gbl, gbc, true);
+    }
 
     return fieldPanel;
   }
