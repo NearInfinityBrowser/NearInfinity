@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -60,6 +61,24 @@ final class Viewer extends JPanel implements ActionListener {
     return scrollPane;
   }
 
+  private JComponent makeFlagsPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+
+    JPanel areaTypePanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_AREA_TYPE), 1);
+    panel.add(areaTypePanel);
+
+    JPanel locationPanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_LOCATION), 1);
+    panel.add(locationPanel);
+
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setPreferredSize(scrollPane.getMinimumSize());
+
+    return scrollPane;
+  }
+
   Viewer(AreResource are) {
     this.are = are;
 
@@ -70,7 +89,7 @@ final class Viewer extends JPanel implements ActionListener {
     // row 0, column 2
     JPanel containerPanel = ViewerUtil.makeListPanel("Containers", are, Container.class, Container.ARE_CONTAINER_NAME);
     // row 1, column 0
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag) are.getAttribute(AreResource.ARE_LOCATION), 1);
+    JComponent boxPanel = makeFlagsPanel();
     // row 1, column 1
     JPanel doorPanel = ViewerUtil.makeListPanel("Doors", are, Door.class, Door.ARE_DOOR_NAME);
     // row 1, column 2
