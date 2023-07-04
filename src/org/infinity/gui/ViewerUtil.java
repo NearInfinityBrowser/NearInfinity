@@ -236,8 +236,8 @@ public final class ViewerUtil {
     return check;
   }
 
-  public static JPanel makeCheckPanel(Flag flag, int rows) {
-    JPanel panel = new JPanel(new GridLayout(0, rows, 8, 4));
+  public static JPanel makeCheckPanel(Flag flag, int cols) {
+    JPanel panel = new JPanel(new GridLayout(0, cols, 8, 4));
     for (int i = 0; i < flag.getSize() << 3; i++) {
       final String label = flag.getString(i);
       if (label != null && !label.isEmpty()) {
