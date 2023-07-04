@@ -240,7 +240,7 @@ public final class ViewerUtil {
     JPanel panel = new JPanel(new GridLayout(0, rows, 8, 4));
     for (int i = 0; i < flag.getSize() << 3; i++) {
       final String label = flag.getString(i);
-      if (label != null) {
+      if (label != null && !label.isEmpty()) {
         final JLabel check = new JLabel(label);
         final Icons icon = flag.isFlagSet(i) ? Icons.ICON_CHECK_16 : Icons.ICON_CHECK_NOT_16;
         check.setIcon(icon.getIcon());
