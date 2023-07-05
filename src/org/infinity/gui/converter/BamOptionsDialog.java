@@ -371,9 +371,9 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   @Override
   public void itemStateChanged(ItemEvent e) {
     if (e.getSource() == cbUseAlpha) {
-      boolean b = cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_ALWAYS
-          || (!Profile.isEnhancedEdition() && cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_AUTO);
-      sTransparency.setEnabled(b);
+      boolean bUseAlpha = cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_ALWAYS
+          || (Profile.isEnhancedEdition() && cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_AUTO);
+      sTransparency.setEnabled(!bUseAlpha);
     }
   }
 
