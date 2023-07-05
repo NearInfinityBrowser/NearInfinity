@@ -90,6 +90,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
   private static List<Path> recentSessions  = new ArrayList<>();
 
+  private final ConvertToBam converter;
+
   private JButton bOK;
   private JButton bCancel;
   private JButton bDefaults;
@@ -309,6 +311,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     if (parent == null) {
       throw new NullPointerException();
     }
+    this.converter = parent;
     init();
   }
 
@@ -575,5 +578,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     compressionType = cbCompressionType.getSelectedIndex();
     pvrzIndex = (Integer) sPvrzIndex.getValue();
     validateSettings();
+
+    // transparency options may have changed: force palette generation
+    converter.getPaletteDialog().setPaletteModified();
   }
 }

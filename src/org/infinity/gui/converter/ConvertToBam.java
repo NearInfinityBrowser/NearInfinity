@@ -4146,15 +4146,11 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             } else {
               Byte colIdx = colorCache.get(Integer.valueOf(c));
               if (colIdx != null) {
-                int ci = colIdx.intValue() & 0xff;
-                if (ci >= transIndex) {
-                  ci++;
-                }
-                dstBuf[ofs] = colIdx;// (byte)ci;
+                dstBuf[ofs] = colIdx;
               } else {
                 double weight = getUseAlpha() ? 1.0 : 0.0;
                 byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null, true);
-                dstBuf[ofs] = color;// (byte)ci;
+                dstBuf[ofs] = color;
                 colorCache.put(c, color);
               }
             }
