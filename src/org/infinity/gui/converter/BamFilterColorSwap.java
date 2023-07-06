@@ -34,13 +34,39 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
   private static final String FILTER_DESC = "This filter provides controls for swapping color "
       + "channels in any desired order.";
 
-  // Supported swap combinations
-  private static final String[] SWAP_TYPE_ITEMS = { "RBG", "GRB", "GBR", "BGR", "BRG" };
-  private static final int[][] SWAP_TYPE_SHIFT = {
-      { 0, -8, 8 }, { -8, 8, 0 }, { -16, 8, 8 }, { -16, 0, 16 }, { -8, -8, 16 },
-  };
+  /** Definition of supported swap combinations. */
+  private enum SwapType {
+    RBG("RBG", new int[] {  0, -8,  8}),
+    GRB("GRB", new int[] { -8,  8,  0}),
+    GBR("GBR", new int[] {-16,  8,  8}),
+    BGR("BGR", new int[] {-16,  0, 16}),
+    BRG("BRG", new int[] { -8, -8, 16}),
+    ;
 
-  private JComboBox<String> cbSwapType;
+    private final String label;
+    private final int[] shift;
+
+    private SwapType(String label, int[] shift) {
+      this.label = label;
+      this.shift = shift;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    /** Returns the number of bits to shift for each color channel to get the resulting order. */
+    public int[] getShift() {
+      return shift;
+    }
+
+    @Override
+    public String toString() {
+      return getLabel();
+    }
+  }
+
+  private JComboBox<SwapType> cbSwapType;
   private ButtonPopupWindow bpwExclude;
   private BamFilterBaseColor.ExcludeColorsPanel pExcludeColors;
 
@@ -142,7 +168,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
     pExclude.add(new JPanel(), c);
 
     JLabel l = new JLabel("RGB =>");
-    cbSwapType = new JComboBox<>(SWAP_TYPE_ITEMS);
+    cbSwapType = new JComboBox<>(SwapType.values());
     cbSwapType.addActionListener(this);
 
     JPanel p = new JPanel(new GridBagLayout());
@@ -219,8 +245,8 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
       }
 
       // shift contains shift values for r, g, b
-      int idx = cbSwapType.getSelectedIndex();
-      int[] shift = SWAP_TYPE_SHIFT[idx];
+      final SwapType type = (SwapType) cbSwapType.getSelectedItem();
+      final int[] shift = type.getShift();
 
       for (int i = 0; i < buffer.length; i++) {
         if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {

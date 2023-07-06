@@ -33,15 +33,32 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   private static final String FILTER_NAME = "Rotate BAM frames";
   private static final String FILTER_DESC = "This filter allows you to rotate each BAM frame by a specified amount.";
 
-  private static final int ANGLE_90 = 0;
-  private static final int ANGLE_180 = 1;
-  private static final int ANGLE_270 = 2;
-  private static final String[] ANGLE_ITEMS = { "90\u00B0", "180\u00B0", "270\u00B0" };
+  private enum Angle {
+    Angle90("90\u00B0"),
+    Angle180("180\u00B0"),
+    Angle270("270\u00B0"),
+    ;
+
+    private final String label;
+
+    private Angle(String label) {
+      this.label = label;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    @Override
+    public String toString() {
+      return getLabel();
+    }
+  }
 
   private JRadioButton rbCW;
   private JRadioButton rbCCW;
   private JCheckBox cbAdjustCenter;
-  private JComboBox<String> cbAngle;
+  private JComboBox<Angle> cbAngle;
 
   public static String getFilterName() {
     return FILTER_NAME;
@@ -136,7 +153,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
     rbCCW.addActionListener(this);
     bg.add(rbCW);
     bg.add(rbCCW);
-    cbAngle = new JComboBox<>(ANGLE_ITEMS);
+    cbAngle = new JComboBox<>(Angle.values());
     cbAngle.addActionListener(this);
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
     cbAdjustCenter.addActionListener(this);
@@ -190,9 +207,9 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
       int height = entry.getFrame().getHeight();
       BufferedImage dstImage = null;
       int newWidth, newHeight;
-      switch (cbAngle.getSelectedIndex()) {
-        case ANGLE_90:
-        case ANGLE_270:
+      switch ((Angle) cbAngle.getSelectedItem()) {
+        case Angle90:
+        case Angle270:
           newWidth = height;
           newHeight = width;
           break;
@@ -216,9 +233,9 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
       }
 
       // normalizing rotation for easier processing
-      int angle = cbAngle.getSelectedIndex();
+      Angle angle = (Angle) cbAngle.getSelectedItem();
       if (rbCCW.isSelected()) {
-        angle = ANGLE_270 - angle;
+        angle = Angle.values()[Angle.values().length - angle.ordinal() - 1];
       }
       // rotating each pixel
       int srcOfs = 0;
@@ -226,15 +243,15 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
         for (int x = 0; x < width; x++, srcOfs++) {
           int nx, ny;
           switch (angle) {
-            case ANGLE_90:
+            case Angle90:
               nx = newWidth - y - 1;
               ny = x;
               break;
-            case ANGLE_180:
+            case Angle180:
               nx = newWidth - x - 1;
               ny = newHeight - y - 1;
               break;
-            case ANGLE_270:
+            case Angle270:
               nx = y;
               ny = newHeight - x - 1;
               break;
@@ -257,15 +274,15 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
       if (cbAdjustCenter.isSelected()) {
         int cx = entry.getCenterX(), cy = entry.getCenterY();
         switch (angle) {
-          case ANGLE_90:
+          case Angle90:
             cx = newWidth - entry.getCenterY() - 1;
             cy = entry.getCenterX();
             break;
-          case ANGLE_180:
+          case Angle180:
             cx = newWidth - entry.getCenterX() - 1;
             cy = newHeight - entry.getCenterY() - 1;
             break;
-          case ANGLE_270:
+          case Angle270:
             cx = entry.getCenterY();
             cy = newHeight - entry.getCenterX() - 1;
             break;

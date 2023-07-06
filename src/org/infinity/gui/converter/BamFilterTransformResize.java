@@ -45,13 +45,30 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   private static final String FILTER_NAME = "Resize BAM frames";
   private static final String FILTER_DESC = "This filter allows you to adjust the size of each BAM frame.";
 
-  private static final int TYPE_NEAREST_NEIGHBOR = 0;
-  private static final int TYPE_BILINEAR = 1;
-  private static final int TYPE_BICUBIC = 2;
-  private static final int TYPE_SCALEX = 3;
-  private static final String[] SCALING_TYPE_ITEMS = { "Nearest neighbor", "Bilinear", "Bicubic", "Scale2x/3x/4x" };
+  private enum ScalingType {
+    Nearest("Nearest Neighbor"),
+    Bilinear("Bilinear"),
+    Bicubic("Bicubic"),
+    ScaleX("Scale2x/3x/4x"),
+    ;
 
-  private JComboBox<String> cbType;
+    private final String label;
+
+    private ScalingType(String label) {
+      this.label = label;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    @Override
+    public String toString() {
+      return getLabel();
+    }
+  }
+
+  private JComboBox<ScalingType> cbType;
   private JCheckBox cbAdjustCenter;
   private JRadioButton rbScaleBoth;
   private JRadioButton rbScaleIndividually;
@@ -190,11 +207,13 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   @Override
   protected JPanel loadControls() {
     /*
-     * Possible scaling algorithms: - nearest neighbor (BamV1, BamV2) -> use Java's internal filters - bilinear (BamV2)
-     * -> use Java's internal filters - bicubic (BamV2) -> use Java's internal filters - scale2x/scale3x (BamV1, BamV2)
-     * -> http://en.wikipedia.org/wiki/Image_scaling - [?] lanczos (BamV2) ->
-     * http://en.wikipedia.org/wiki/Lanczos_resampling - [?] xBR (BamV1, BamV2) ->
-     * http://board.byuu.org/viewtopic.php?f=10&t=2248
+     * Possible scaling algorithms:
+     * - nearest neighbor (BamV1, BamV2) -> use Java's internal filters
+     * - bilinear (BamV2) -> use Java's internal filters
+     * - bicubic (BamV2) -> use Java's internal filters
+     * - scale2x/scale3x (BamV1, BamV2) -> http://en.wikipedia.org/wiki/Image_scaling
+     * - [?] lanczos (BamV2) -> http://en.wikipedia.org/wiki/Lanczos_resampling
+     * - [?] xBR (BamV1, BamV2) -> http://board.byuu.org/viewtopic.php?f=10&t=2248
      */
     GridBagConstraints c = new GridBagConstraints();
 
@@ -204,7 +223,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     lFactorX.setEnabled(false);
     lFactorY = new JLabel("Factor Y:");
     lFactorY.setEnabled(false);
-    cbType = new JComboBox<>(SCALING_TYPE_ITEMS);
+    cbType = new JComboBox<>(ScalingType.values());
     cbType.addActionListener(this);
     rbScaleBoth = new JRadioButton("Scale uniformly");
     rbScaleIndividually = new JRadioButton("Scale individually");
@@ -330,7 +349,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     final String fmtSupport1 = "Supported target: %s";
     final String fmtSupport2 = "Supported targets: %s, %s";
 
-    int type = cbType.getSelectedIndex();
+    final ScalingType type = (ScalingType) cbType.getSelectedItem();
     double factor = getFactor(spinnerFactor);
     double factorX = getFactor(spinnerFactorX);
     double factorY = getFactor(spinnerFactorY);
@@ -338,7 +357,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     boolean uniformEnabled = rbScaleBoth.isSelected() && isTypeSupported(type);
     boolean individualEnabled = rbScaleIndividually.isSelected() && isTypeSupported(type);
     switch (type) {
-      case TYPE_NEAREST_NEIGHBOR:
+      case Nearest:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV1],
             ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
@@ -352,7 +371,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorX.setEnabled(individualEnabled);
         spinnerFactorY.setEnabled(individualEnabled);
         break;
-      case TYPE_BILINEAR:
+      case Bilinear:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
         setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
@@ -365,7 +384,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorX.setEnabled(individualEnabled);
         spinnerFactorY.setEnabled(individualEnabled);
         break;
-      case TYPE_BICUBIC:
+      case Bicubic:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
         setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
@@ -378,7 +397,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorX.setEnabled(individualEnabled);
         spinnerFactorY.setEnabled(individualEnabled);
         break;
-      case TYPE_SCALEX:
+      case ScaleX:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV1],
             ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, (int) factor, 2, 4, 1);
@@ -401,10 +420,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     }
   }
 
-  private boolean isTypeSupported(int type) {
+  private boolean isTypeSupported(ScalingType type) {
     switch (type) {
-      case TYPE_BILINEAR:
-      case TYPE_BICUBIC:
+      case Bilinear:
+      case Bicubic:
         return !getConverter().isBamV1Selected();
       default:
         return true;
@@ -470,18 +489,18 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       BufferedImage dstImage;
       double factorX = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorX);
       double factorY = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorY);
-      int type = cbType.getSelectedIndex();
+      final ScalingType type = (ScalingType) cbType.getSelectedItem();
       switch (type) {
-        case TYPE_NEAREST_NEIGHBOR:
+        case Nearest:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_NEAREST_NEIGHBOR, true);
           break;
-        case TYPE_BILINEAR:
+        case Bilinear:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BILINEAR, false);
           break;
-        case TYPE_BICUBIC:
+        case Bicubic:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BICUBIC, false);
           break;
-        case TYPE_SCALEX:
+        case ScaleX:
           dstImage = scaleScaleX(entry.getFrame(), (int) factorX);
           break;
         default:
