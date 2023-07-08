@@ -540,7 +540,7 @@ public final class BcsResource
         Matcher m = p.matcher(text);
         if (m.find()) {
           startOfs += m.start();
-          endOfs = startOfs + m.end() + 1;
+          endOfs = startOfs + m.end() - m.start() + 1;
         }
       }
       highlightText(startOfs, endOfs);

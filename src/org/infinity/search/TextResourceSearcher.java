@@ -129,9 +129,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
       term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
-      term = ".*\\b" + term + "\\b.*";
-    } else {
-      term = ".*" + term + ".*";
+      term = "\\b" + term + "\\b";
     }
 
     try {
@@ -174,7 +172,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
           int linenr = 0;
           while ((line = br.readLine()) != null) {
             linenr++;
-            if (regPattern.matcher(line).matches()) {
+            if (regPattern.matcher(line).find()) {
               addHit(entry, line, linenr);
             }
           }
