@@ -25,9 +25,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -694,11 +693,12 @@ public class PreferencesDialog extends JDialog {
 
   /** Used by {@link #setTreeExpandedState(boolean)} to expand nodes of the categories tree. */
   private void setTreeNodeExpandedState(DefaultMutableTreeNode node, boolean expanded) {
-    @SuppressWarnings("unchecked")
-    final ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
-
-    for (final DefaultMutableTreeNode curNode: list) {
-      setTreeNodeExpandedState(curNode, expanded);
+    final Enumeration<?> children = node.children();
+    while (children.hasMoreElements()) {
+      final Object e = children.nextElement();
+      if (e instanceof DefaultMutableTreeNode) {
+        setTreeNodeExpandedState((DefaultMutableTreeNode) e, expanded);
+      }
     }
 
     if (!expanded && node.isRoot()) {
