@@ -58,7 +58,7 @@ public class SegmentDef implements Cloneable {
     /** The same as {@link #CUT} but runs from end to start. */
     REVERSE_CUT;
 
-    private static final EnumMap<Behavior, Behavior> OPPOSITES_MAP = new EnumMap<Behavior, Behavior>(Behavior.class);
+    private static final EnumMap<Behavior, Behavior> OPPOSITES_MAP = new EnumMap<>(Behavior.class);
 
     static {
       OPPOSITES_MAP.put(REPEAT, REVERSE_REPEAT);

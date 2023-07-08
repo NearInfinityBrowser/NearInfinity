@@ -35,7 +35,7 @@ public class MonsterAnkhegDecoder extends SpriteDecoder {
   public static final DecoderAttribute KEY_EXTEND_DIRECTION = DecoderAttribute.with("extend_direction",
       DecoderAttribute.DataType.BOOLEAN);
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   static {
     // Note: int value indicates direction segment multiplier

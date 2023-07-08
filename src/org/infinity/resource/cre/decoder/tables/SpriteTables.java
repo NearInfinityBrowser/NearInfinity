@@ -60,7 +60,7 @@ public class SpriteTables {
   public static final int COLUMN_PST_ARMOR      = 7;    // int
   public static final int COLUMN_PST_BESTIARY   = 8;    // int
 
-  private static final EnumMap<Profile.Game, List<String>> TABLE_MAPS = new EnumMap<Profile.Game, List<String>>(Profile.Game.class);
+  private static final EnumMap<Profile.Game, List<String>> TABLE_MAPS = new EnumMap<>(Profile.Game.class);
 
   static {
     TABLE_MAPS.put(Profile.Game.BG1, Arrays.asList("avatars-bg1.2da"));

@@ -11,6 +11,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.infinity.resource.Profile;
 
 /**
@@ -22,9 +23,9 @@ public class TLKTokenMaker extends AbstractTokenMaker {
   public static final String SYNTAX_STYLE_TLK = "text/TLK";
 
   // available token types
-  public static final int TOKEN_TEXT    = Token.IDENTIFIER; // for regular text
-  public static final int TOKEN_TAG     = Token.MARKUP_TAG_NAME; // for <xyz> tokens
-  public static final int TOKEN_COLORED = Token.MARKUP_TAG_ATTRIBUTE; // for colored text (EE-specific)
+  public static final int TOKEN_TEXT    = TokenTypes.IDENTIFIER; // for regular text
+  public static final int TOKEN_TAG     = TokenTypes.MARKUP_TAG_NAME; // for <xyz> tokens
+  public static final int TOKEN_COLORED = TokenTypes.MARKUP_TAG_ATTRIBUTE; // for colored text (EE-specific)
 
   private static final Pattern REG_TOKEN = Pattern.compile("<[^<>]+>");
   private static final String CHAR_SEPARATOR = " \t-‒–—―";
@@ -58,7 +59,7 @@ public class TLKTokenMaker extends AbstractTokenMaker {
       char c = array[i];
 
       switch (currentTokenType) {
-        case Token.NULL: {
+        case TokenTypes.NULL: {
           currentTokenStart = i; // starting new token here
 
           if (c == '<' && REG_TOKEN.matcher(new String(array, i, end - i)).lookingAt()) {
@@ -116,7 +117,7 @@ public class TLKTokenMaker extends AbstractTokenMaker {
           } else if (c == '^' && i + 1 < end && array[i + 1] == '-') {
             i++;
             addToken(array, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenType = Token.NULL;
+            currentTokenType = TokenTypes.NULL;
           } else {
             if (CHAR_SEPARATOR.indexOf(c) >= 0) {
               // ensure correct text wrapping at word boundaries
@@ -138,7 +139,7 @@ public class TLKTokenMaker extends AbstractTokenMaker {
 
     // adding the current token to the list
     switch (currentTokenType) {
-      case Token.NULL:
+      case TokenTypes.NULL:
         addNullToken();
         break;
 

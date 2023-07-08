@@ -56,6 +56,7 @@ import javax.swing.LookAndFeel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -753,7 +754,7 @@ public class PreferencesDialog extends JDialog {
   }
 
   private void init() {
-    setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
     getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this);
     getRootPane().getActionMap().put(this, new AbstractAction() {
@@ -1315,7 +1316,7 @@ public class PreferencesDialog extends JDialog {
     try {
       @SuppressWarnings("unchecked")
       DataItem<Integer> item = (DataItem<Integer>) gb.getItem(gb.getSelectedIndex());
-      int size = (Integer) item.getData();
+      int size = item.getData();
       if (size < 0) {
         size = gb.getOption().getIntValue();
       }

@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
@@ -149,7 +150,7 @@ public final class Viewer extends JPanel {
     infoPanel.add(exclusionFlagsPanel, BorderLayout.SOUTH);
 
     JScrollPane scrollPane = new JScrollPane(infoPanel);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
     scrollPane.getVerticalScrollBar().setUnitIncrement(16);

@@ -45,6 +45,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -68,8 +69,8 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
   private final JButton bSelectDir = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-  private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
-  private final JLabel decompZone = new JLabel("Decompiler drop zone (BCS/BS)", JLabel.CENTER);
+  private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", SwingConstants.CENTER);
+  private final JLabel decompZone = new JLabel("Decompiler drop zone (BCS/BS)", SwingConstants.CENTER);
   private final JLabel statusMsg = new JLabel(" Drag and drop files or folders into the zones");
   private final JRadioButton rbSaveBS = new JRadioButton("BS", false);
   private final JRadioButton rbSaveBCS = new JRadioButton("BCS", true);

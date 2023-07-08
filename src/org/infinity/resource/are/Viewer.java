@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
@@ -55,7 +56,7 @@ final class Viewer extends JPanel implements ActionListener {
     fieldBasePanel.add(bView, BorderLayout.SOUTH);
 
     JScrollPane scrollPane = new JScrollPane(fieldBasePanel);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
     return scrollPane;
@@ -72,7 +73,7 @@ final class Viewer extends JPanel implements ActionListener {
     panel.add(locationPanel);
 
     JScrollPane scrollPane = new JScrollPane(panel);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
 

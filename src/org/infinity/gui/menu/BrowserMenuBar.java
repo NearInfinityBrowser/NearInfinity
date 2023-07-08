@@ -165,6 +165,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   }
 
   /** Provides access to the "Help" menu. */
+  @Override
   public HelpMenu getHelpMenu() {
     return helpMenu;
   }

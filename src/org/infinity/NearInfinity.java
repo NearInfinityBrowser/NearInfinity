@@ -1109,7 +1109,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     final Color bg = Misc.getDefaultColor("TextField.background", Color.WHITE);
     final double bgIntensity;
     if (bg != null) {
-      bgIntensity = (double) bg.getRed() * 0.299 + (double) bg.getGreen() * 0.587 + (double) bg.getBlue() * 0.114;
+      bgIntensity = bg.getRed() * 0.299 + bg.getGreen() * 0.587 + bg.getBlue() * 0.114;
     } else {
       bgIntensity = 0.0;
     }
@@ -1117,7 +1117,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     final Color fg = Misc.getDefaultColor("TextField.foreground", Color.BLACK);
     final double fgIntensity;
     if (fg != null) {
-      fgIntensity = (double) fg.getRed() * 0.299 + (double) fg.getGreen() * 0.587 + (double) fg.getBlue() * 0.114;
+      fgIntensity = fg.getRed() * 0.299 + fg.getGreen() * 0.587 + fg.getBlue() * 0.114;
     } else {
       fgIntensity = 255.0;
     }
@@ -1387,13 +1387,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     final List<Couple<String, String>> entries = new ArrayList<>();
-    entries.add(new Couple<String, String>("Near Infinity", getVersion()));
-    entries.add(new Couple<String, String>("Java Runtime", System.getProperty("java.runtime.name")));
+    entries.add(new Couple<>("Near Infinity", getVersion()));
+    entries.add(new Couple<>("Java Runtime", System.getProperty("java.runtime.name")));
 
     String s1 = System.getProperty("java.version", "n/a");
     String s2 = System.getProperty("java.version.date", "");
     String value = s2.isEmpty() ? s1 : String.format("%s (%s)", s1, s2);
-    entries.add(new Couple<String, String>("Java Version", value));
+    entries.add(new Couple<>("Java Version", value));
 
     value = System.getProperty("java.vm.name", "n/a") + " (" + System.getProperty("java.vm.version", "n/a");
     s1 = System.getProperty("java.vm.info", "");
@@ -1401,16 +1401,16 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       value += ", " + s1;
     }
     value += ")";
-    entries.add(new Couple<String, String>("Java VM", value));
+    entries.add(new Couple<>("Java VM", value));
 
-    entries.add(new Couple<String, String>("Java VM Architecture", System.getProperty("os.arch", "n/a")));
+    entries.add(new Couple<>("Java VM Architecture", System.getProperty("os.arch", "n/a")));
 
     long memoryMax = Runtime.getRuntime().maxMemory();
     if (memoryMax != Long.MAX_VALUE) {
       memoryMax /= 1024L * 1024L;
-      entries.add(new Couple<String, String>("Available Memory", String.format("%d MB", memoryMax)));
+      entries.add(new Couple<>("Available Memory", String.format("%d MB", memoryMax)));
     } else {
-      entries.add(new Couple<String, String>("Available Memory", "n/a"));
+      entries.add(new Couple<>("Available Memory", "n/a"));
     }
 
     JPanel infoPanel = new JPanel(new GridBagLayout());

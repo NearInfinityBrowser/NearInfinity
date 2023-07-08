@@ -31,7 +31,7 @@ import org.infinity.util.io.StreamUtils;
 
 public final class Decompiler {
   // List of IDS resources containing bitwise entries
-  private static final HashSet<String> BITWISE_IDS = new HashSet<String>(Stream.of(
+  private static final HashSet<String> BITWISE_IDS = new HashSet<>(Stream.of(
       "areatype", "areaflag", "bits", "classmsk", "crearefl", "damages", "doorflag", "dmgtype", "extstate", "invitem",
       "itemflag", "jourtype", "magespec", "splcast", "state", "wmpflag")
       .collect(Collectors.toSet()));

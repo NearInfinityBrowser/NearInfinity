@@ -757,31 +757,31 @@ public class AppOption {
     final Preferences prefs = getPrefs();
     if (Boolean.class.isAssignableFrom(valueType)) {
       if (prefs != null) {
-        initialValue = (Boolean) prefs.getBoolean(getName(), (Boolean) getDefault());
+        initialValue = prefs.getBoolean(getName(), (Boolean) getDefault());
       } else {
         initialValue = getDefault();
       }
     } else if (Integer.class.isAssignableFrom(valueType)) {
       if (prefs != null) {
-        initialValue = (Integer) prefs.getInt(getName(), (Integer) getDefault());
+        initialValue = prefs.getInt(getName(), (Integer) getDefault());
       } else {
         initialValue = getDefault();
       }
     } else if (Long.class.isAssignableFrom(valueType)) {
       if (prefs != null) {
-        initialValue = (Long) prefs.getLong(getName(), (Long) getDefault());
+        initialValue = prefs.getLong(getName(), (Long) getDefault());
       } else {
         initialValue = getDefault();
       }
     } else if (Float.class.isAssignableFrom(valueType)) {
       if (prefs != null) {
-        initialValue = (Float) prefs.getFloat(getName(), (Float) getDefault());
+        initialValue = prefs.getFloat(getName(), (Float) getDefault());
       } else {
         initialValue = getDefault();
       }
     } else if (Double.class.isAssignableFrom(valueType)) {
       if (prefs != null) {
-        initialValue = (Double) prefs.getDouble(getName(), (Double) getDefault());
+        initialValue = prefs.getDouble(getName(), (Double) getDefault());
       } else {
         initialValue = getDefault();
       }
@@ -863,7 +863,7 @@ public class AppOption {
   private Object validate(Object value) throws ClassCastException {
     value = validator.apply(value);
     if ((value == null && validateType(valueType) == valueType) ||
-        valueType.isAssignableFrom(validateType(value.getClass()))) {
+        (value != null && valueType.isAssignableFrom(validateType(value.getClass())))) {
       // pass
       return value;
     }

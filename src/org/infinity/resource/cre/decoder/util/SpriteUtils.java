@@ -83,7 +83,7 @@ public class SpriteUtils {
 
   /** Mappings between animation types and compatible sprite classes. */
   private static final EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>> TYPE_ASSOCIATION_MAP =
-      new EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>>(AnimationInfo.Type.class);
+      new EnumMap<>(AnimationInfo.Type.class);
 
   /** A stable pool of random numbers. */
   private static int[] randomPool;

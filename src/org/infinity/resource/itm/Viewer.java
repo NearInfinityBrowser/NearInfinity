@@ -19,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
 import org.infinity.datatype.EffectType;
@@ -112,7 +113,7 @@ final class Viewer extends JPanel {
     leftPanel.add(flagsUsabilityPanel, BorderLayout.CENTER);
 
     JScrollPane scrollPane = new JScrollPane(leftPanel);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
     scrollPane.getVerticalScrollBar().setUnitIncrement(16);

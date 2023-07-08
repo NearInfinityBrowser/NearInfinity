@@ -29,7 +29,7 @@ public class MonsterLargeDecoder extends SpriteDecoder {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_LARGE;
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   static {
     SUFFIX_MAP.put(Sequence.STAND, Couple.with("G1", 0));

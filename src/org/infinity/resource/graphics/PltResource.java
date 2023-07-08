@@ -217,7 +217,7 @@ public class PltResource
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
-    tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+    tabbedPane = new JTabbedPane(SwingConstants.TOP);
     tabbedPane.setBorder(BorderFactory.createEmptyBorder());
     tabbedPane.addTab("View", pView);
     tabbedPane.addTab("Raw", panelRaw);

@@ -33,7 +33,7 @@ public class AmbientStaticDecoder extends SpriteDecoder {
   public static final DecoderAttribute KEY_INVULNERABLE = DecoderAttribute.with("invulnerable",
       DecoderAttribute.DataType.BOOLEAN);
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   static {
     SUFFIX_MAP.put(Sequence.STANCE, Couple.with("G1", 0));

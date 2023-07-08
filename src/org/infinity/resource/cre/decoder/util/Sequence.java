@@ -122,7 +122,7 @@ public enum Sequence {
   PST_MISC19("Custom sequence 19"),
   PST_MISC20("Custom sequence 20");
 
-  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>();
+  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<>();
 
   static {
     DEFAULT_SEQUENCES.add(Sequence.STAND);

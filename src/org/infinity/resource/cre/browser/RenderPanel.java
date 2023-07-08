@@ -234,7 +234,7 @@ public class RenderPanel extends JPanel {
       frame = null;
     }
 
-    Couple<Image, Rectangle> retVal = new Couple<Image, Rectangle>(frame, frameBounds);
+    Couple<Image, Rectangle> retVal = new Couple<>(frame, frameBounds);
     return retVal;
   }
 
