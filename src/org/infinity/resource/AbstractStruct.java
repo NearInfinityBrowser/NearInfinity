@@ -877,7 +877,8 @@ public abstract class AbstractStruct extends AbstractTableModel
   }
 
   public void removeDatatype(AddRemovable removedEntry, boolean removeRecurse) {
-    if (removeRecurse && removedEntry instanceof HasChildStructs) { // Recusivly removeTableLine substructures first
+    if (removeRecurse && removedEntry instanceof HasChildStructs) {
+      // Recursively remove child structures first
       AbstractStruct removedStruct = (AbstractStruct) removedEntry;
       for (int i = 0; i < removedStruct.fields.size(); i++) {
         final StructEntry o = removedStruct.fields.get(i);
