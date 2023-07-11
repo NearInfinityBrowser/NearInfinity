@@ -38,8 +38,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.AbstractBitmap;
+import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
+import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.IconCache;
 import org.infinity.util.Misc;
@@ -333,8 +337,23 @@ public class TextListPanel<E> extends JPanel
         boolean cellHasFocus) {
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       if (value instanceof ResourceRef.ResourceRefEntry) {
+        // resolving Resource Reference
         final ResourceRef.ResourceRefEntry entry = (ResourceRef.ResourceRefEntry) value;
         setIcon(IconCache.get(entry.getEntry(), IconCache.getDefaultListIconSize()));
+      } else if (value instanceof AbstractBitmap.FormattedData<?>) {
+        // resolving Resource Bitmap
+        final AbstractBitmap.FormattedData<?> fmt = (AbstractBitmap.FormattedData<?>) value;
+        if (fmt.getParent() != null) {
+          final AbstractBitmap<?> bmp = fmt.getParent();
+          Object o = bmp.getDataOf(fmt.getValue());
+          if (o instanceof ResourceBitmap.RefEntry) {
+            final ResourceBitmap.RefEntry entry = (ResourceBitmap.RefEntry) o;
+            final ResourceEntry iconEntry = ResourceFactory.getResourceIcon(entry.getResourceEntry());
+            if (iconEntry != null) {
+              setIcon(IconCache.getIcon(entry.getResourceEntry(), IconCache.getDefaultListIconSize()));
+            }
+          }
+        }
       }
       return this;
     }

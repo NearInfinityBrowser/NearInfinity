@@ -5,11 +5,36 @@
 package org.infinity.gui;
 
 import java.awt.Component;
+import java.awt.FontMetrics;
 
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-public final class ToolTipTableCellRenderer extends DefaultTableCellRenderer {
+import org.infinity.datatype.ResourceRef;
+import org.infinity.resource.ResourceFactory;
+import org.infinity.util.IconCache;
+
+public class ToolTipTableCellRenderer extends DefaultTableCellRenderer {
+  private final boolean showIcons;
+  private final int iconSize;
+
+  public ToolTipTableCellRenderer() {
+    this(false);
+  }
+
+  public ToolTipTableCellRenderer(boolean showIcons) {
+    super();
+    this.showIcons = showIcons;
+
+    int fontHeight = 0;
+    if (this.showIcons) {
+      final FontMetrics fm = getFontMetrics(getFont());
+      fontHeight = fm.getHeight();
+    }
+    // scale icon size up to the next multiple of 4
+    this.iconSize = Math.max(IconCache.getDefaultTreeIconSize(), (fontHeight + 3) & ~3);
+  }
 
   // --------------------- Begin Interface TableCellRenderer ---------------------
 
@@ -38,6 +63,16 @@ public final class ToolTipTableCellRenderer extends DefaultTableCellRenderer {
     } else {
       setToolTipText(null);
     }
+
+    if (showIcons) {
+      Icon icon = null;
+      if (value instanceof ResourceRef) {
+        final ResourceRef ref = (ResourceRef) value;
+        icon = IconCache.get(ResourceFactory.getResourceEntry(ref.getResourceName()), iconSize);
+      }
+      setIcon(icon);
+    }
+
     return this;
   }
 

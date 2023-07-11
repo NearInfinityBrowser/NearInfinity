@@ -21,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -51,17 +53,21 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
+import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
+import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.IconCache;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
@@ -554,19 +560,37 @@ public final class ViewerUtil {
     String getListValue(Object value);
   }
 
-  private static final class StructListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
-    private final String attrName;
+  public static class StructListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
+    /** List of classes containing references to associated graphics resources. */
+    private static final List<Class<? extends AbstractStruct>> SUPPORTED_STRUCTURES = Arrays.asList(
+        org.infinity.resource.cre.KnownSpells.class,
+        org.infinity.resource.sto.Cure.class,
+        org.infinity.resource.sto.ItemSale.class,
+        org.infinity.resource.sto.ItemSale11.class
+    );
 
-    private StructListRenderer(String attrName) {
+    private final String attrName;
+    private final boolean showIcons;
+
+    public StructListRenderer(String attrName) {
       this.attrName = attrName;
+      this.showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons();
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
         boolean cellHasFocus) {
-      JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      label.setText(getListValue(value));
-      return label;
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      setText(getListValue(value));
+
+      if (showIcons && value instanceof AbstractStruct) {
+        final Icon icon = loadIcon((AbstractStruct) value);
+        if (icon != null) {
+          setIcon(icon);
+        }
+      }
+
+      return this;
     }
 
     @Override
@@ -586,6 +610,51 @@ public final class ViewerUtil {
         return value.toString();
       }
       return "";
+    }
+
+    /**
+     * Attempts to find and return a graphics associated with the specified {@link AbstractStruct} instance,
+     * as {@link Icon}.
+     */
+    private Icon loadIcon(AbstractStruct struct) {
+      Icon retVal = null;
+
+      if (struct != null) {
+        ResourceEntry entry = null;
+        StructEntry se = null;
+        int iconSize = IconCache.getDefaultListIconSize();
+        boolean searchExtraDirs = false;
+
+        if (struct instanceof AbstractAbility) {
+          // ITM/SPL ability icon
+          se = struct.getAttribute(AbstractAbility.ABILITY_ICON);
+        } else if (struct instanceof PartyNPC) {
+          // (Non-)player character portrait
+          StructEntry cre = struct.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
+          if (cre instanceof CreResource) {
+            se = ((CreResource) cre).getAttribute(CreResource.CRE_PORTRAIT_SMALL);
+            iconSize = IconCache.getDefaultListIconSize() * 2;  // increase to thumbnail size
+            searchExtraDirs = true; // bitmaps can be in "Portraits" folder
+          }
+        } else {
+          // Resource-specific icon
+          for (final Class<? extends AbstractStruct> as : SUPPORTED_STRUCTURES) {
+            if (as.isAssignableFrom(struct.getClass())) {
+              se = struct.getAttribute(attrName);
+              break;
+            }
+          }
+        }
+
+        if (se != null) {
+          if (se instanceof ResourceRef) {
+            entry = ResourceFactory.getResourceEntry(((ResourceRef) se).getResourceName(), searchExtraDirs);
+          }
+          retVal = IconCache.get(entry, iconSize);
+        }
+      }
+
+      return retVal;
     }
   }
 

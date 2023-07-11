@@ -36,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -711,8 +712,11 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
     private ResourceTreeRenderer() {
       super();
-      final JLabel l = new JLabel();
-      final FontMetrics fm = l.getFontMetrics(l.getFont());
+      Font f = UIManager.getDefaults().getFont("Label.font");
+      if (f == null) {
+        f = new JLabel().getFont();
+      }
+      final FontMetrics fm = getFontMetrics(f);
       int fontHeight = fm.getHeight();
       // scale icon size up to the next multiple of 4
       this.iconSize = Math.max(IconCache.getDefaultTreeIconSize(), (fontHeight + 3) & ~3);
