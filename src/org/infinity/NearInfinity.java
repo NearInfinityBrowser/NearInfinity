@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -119,6 +120,7 @@ import org.infinity.updater.Utils;
 import org.infinity.util.CharsetDetector;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.IconCache;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.LauncherUtils;
@@ -235,6 +237,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
   private int progressIndex;
+  private SwingWorker<Void, Void> iconCacheWorker;
 
   private static Path findKeyfile() {
     JFileChooser chooser;
@@ -428,7 +431,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       System.exit(10);
     }
 
-    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 6);
+    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 7);
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
@@ -455,6 +458,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 //        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
 //          FileWatcher.getInstance().start();
 //        }
+
+        advanceProgress("Caching resources...");
+        cacheResourceIcons(false);
 
         return null;
       }
@@ -827,7 +833,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Path oldKeyFile = Profile.getChitinKey();
       ChildFrame.closeWindows();
       clearCache(false);
-      BaseOpcode.reset();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getGameMenu().getBookmarkName(keyFile));
 
       // making sure vital game resources are accessible
@@ -916,6 +921,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         containerpanel.revalidate();
         containerpanel.repaint();
       }
+      cacheResourceIcons(true);
     } finally {
       blocker.setBlocked(false);
     }
@@ -1160,6 +1166,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   // Central method for clearing cached data
   private static void clearCache(boolean refreshOnly) {
+    NearInfinity.getInstance().cancelCacheResourceIcons();
     if (ResourceFactory.getKeyfile() != null) {
       ResourceFactory.getKeyfile().closeBIFFFiles();
     }
@@ -1168,6 +1175,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
     DlcManager.close();
     FileManager.reset();
+    IconCache.clearCache();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();
@@ -1457,6 +1465,87 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     return infoPanel;
+  }
+
+  /**
+   * Cancels an ongoing resource icon cache operation.
+   *
+   * The method returns only after the operation has been successfully cancelled.
+   */
+  private void cancelCacheResourceIcons() {
+    if (iconCacheWorker != null) {
+      iconCacheWorker.cancel(false);
+      for (int i = 0; i < 100 && iconCacheWorker.getProgress() < 100; i++) {
+        try {
+          Thread.sleep(10);
+        } catch (InterruptedException e) {
+        }
+      }
+      iconCacheWorker = null;
+    }
+  }
+
+  /**
+   * Preloads icons for all ITM and SPL resources into the cache.
+   *
+   * @param threaded Whether to perform the operation in a separate thread.
+   */
+  private void cacheResourceIcons(boolean threaded) {
+    // Operation for caching resource icons
+    final Supplier<Void> operation = () -> {
+      try {
+        IconCache.clearCache();
+        final List<Integer> sizeList = new ArrayList<>();
+        if (BrowserMenuBar.getInstance().getOptions().showResourceTreeIcons()) {
+          sizeList.add(IconCache.getDefaultTreeIconSize());
+        }
+        if (BrowserMenuBar.getInstance().getOptions().showResourceListIcons()) {
+          sizeList.add(IconCache.getDefaultListIconSize());
+        }
+        if (!sizeList.isEmpty()) {
+          final String[] types = { "ITM", "SPL" };
+          int[] sizes = sizeList.stream().mapToInt(Integer::intValue).toArray();
+          for (final String type : types) {
+            final List<ResourceEntry> resources = ResourceFactory.getResources(type);
+            if (resources != null) {
+              for (final ResourceEntry e : resources) {
+                for (final int size : sizes) {
+                  if (iconCacheWorker != null && iconCacheWorker.isCancelled()) {
+                    return null;
+                  }
+                  IconCache.get(e, size);
+                }
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return null;
+    };
+
+    // ensure that ongoing operations have ended before starting a new operation
+    cancelCacheResourceIcons();
+
+    if (threaded) {
+      iconCacheWorker = new SwingWorker<Void, Void>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+          setProgress(0);
+          try {
+            operation.get();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          setProgress(100);
+          return null;
+        }
+      };
+      iconCacheWorker.execute();
+    } else {
+      operation.get();
+    }
   }
 
   // -------------------------- INNER CLASSES --------------------------

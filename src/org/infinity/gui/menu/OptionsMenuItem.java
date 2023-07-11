@@ -123,6 +123,8 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_LAUNCHGAMEALLOWED         = "LaunchGameAllowed";
   public static final String OPTION_SHOWUNKNOWNRESOURCES      = "ShowUnknownResources";
   public static final String OPTION_SHOWTREESEARCHNAMES       = "ShowTreeSearchNames";
+  public static final String OPTION_SHOW_RESOURCE_LIST_ICONS  = "ShowResourceListIcons";
+  public static final String OPTION_SHOW_RESOURCE_TREE_ICONS  = "ShowResourceTreeIcons";
   public static final String OPTION_HIGHLIGHT_OVERRIDDEN      = "HighlightOverridden";
   public static final String OPTION_CACHEOVERRIDE             = "CacheOverride";
   public static final String OPTION_KEEPVIEWONCOPY            = "UpdateTreeOnCopy";
@@ -419,6 +421,16 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   /** Returns whether search names are displayed alongside resource names in the resource tree. */
   public boolean showTreeSearchNames() {
     return AppOption.SHOW_TREE_SEARCH_NAMES.getBoolValue();
+  }
+
+  /** Returns whether icons are shown alongside resource names for ITM and SPL resources in resource selection lists. */
+  public boolean showResourceListIcons() {
+    return AppOption.SHOW_RESOURCE_LIST_ICONS.getBoolValue();
+  }
+
+  /** Returns whether icons are shown alongside resource names for ITM and SPL resources in the resource tree. */
+  public boolean showResourceTreeIcons() {
+    return AppOption.SHOW_RESOURCE_TREE_ICONS.getBoolValue();
   }
 
   /** Returns whether overridden files are displayed in bold in the resource tree. */
@@ -860,7 +872,8 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     for (final AppOption option : options) {
       if (option.isModified()) {
         if (option.equals(AppOption.SHOW_UNKNOWN_RESOURCES) ||
-            option.equals(AppOption.SHOW_OVERRIDES_IN)) {
+            option.equals(AppOption.SHOW_OVERRIDES_IN) ||
+            option.equals(AppOption.SHOW_RESOURCE_TREE_ICONS)) {
           refresh = true;
           messages.add(String.format("%s: %s", option.getLabel(), option.getValue()));
         } else if (option.equals(AppOption.UI_SCALE_ENABLED) ||

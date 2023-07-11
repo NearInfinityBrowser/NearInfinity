@@ -7,6 +7,7 @@ package org.infinity.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -23,8 +24,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -55,6 +58,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.IconCache;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -703,7 +707,15 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   private static final class ResourceTreeRenderer extends DefaultTreeCellRenderer {
+    private final int iconSize;
+
     private ResourceTreeRenderer() {
+      super();
+      final JLabel l = new JLabel();
+      final FontMetrics fm = l.getFontMetrics(l.getFont());
+      int fontHeight = fm.getHeight();
+      // scale icon size up to the next multiple of 4
+      this.iconSize = Math.max(IconCache.getDefaultTreeIconSize(), (fontHeight + 3) & ~3);
     }
 
     @Override
@@ -713,6 +725,9 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       Font font = tree.getFont();
       if (leaf && o instanceof ResourceEntry) {
         final ResourceEntry e = (ResourceEntry) o;
+        boolean showIcon = BrowserMenuBar.getInstance().getOptions().showResourceTreeIcons() &&
+            (e.getExtension().equalsIgnoreCase("ITM") || e.getExtension().equalsIgnoreCase("SPL"));
+        final Icon icon = showIcon ? IconCache.get(e, iconSize) : e.getIcon();
 
         final BrowserMenuBar options = BrowserMenuBar.getInstance();
         if (options.getOptions().showTreeSearchNames()) {
@@ -724,7 +739,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           final boolean hasTitle = title != null && !title.isEmpty() && !"No such index".equals(title);
           setText(hasTitle ? name + " - " + title : name);
         }
-        setIcon(e.getIcon());
+        setIcon(icon);
         // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
         final boolean inOverrideMode = options.getOptions().getOverrideMode() == OverrideMode.InOverride;
         if (e.hasOverride() && !inOverrideMode && options.getOptions().highlightOverridden()) {

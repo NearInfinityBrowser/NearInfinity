@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -128,7 +129,9 @@ public class ResourceRef extends Datatype
     }
     addExtraEntries(values);
     Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
-    list = new TextListPanel<>(values, false);
+    boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
+        Arrays.stream(types).anyMatch(s -> s.equalsIgnoreCase("ITM") || s.equalsIgnoreCase("SPL"));
+    list = new TextListPanel<>(values, false, showIcons);
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event) {
@@ -385,7 +388,7 @@ public class ResourceRef extends Datatype
 
   // -------------------------- INNER CLASSES --------------------------
   /** Class that represents resource reference in the list of choice. */
-  static final class ResourceRefEntry {
+  public static final class ResourceRefEntry {
     final ResourceEntry entry;
 
     /**
@@ -402,6 +405,14 @@ public class ResourceRef extends Datatype
     ResourceRefEntry(String name) {
       this.entry = null;
       this.name = name;
+    }
+
+    public ResourceEntry getEntry() {
+      return entry;
+    }
+
+    public String getName() {
+      return name;
     }
 
     @Override

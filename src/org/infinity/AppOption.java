@@ -104,6 +104,12 @@ public class AppOption {
   /** Menu Options: ShowTreeSearchNames (Boolean, Default: true) */
   public static final AppOption SHOW_TREE_SEARCH_NAMES = new AppOption(OptionsMenuItem.OPTION_SHOWTREESEARCHNAMES,
       "Show Search Names in Resource Tree", true);
+  /** Menu Options: Show Icons in Resource List (Boolean, Default: false) */
+  public static final AppOption SHOW_RESOURCE_LIST_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_LIST_ICONS,
+      "Show Icons in Resource List", false);
+  /** Menu Options: Show Icons in Resource Tree (Boolean, Default: false) */
+  public static final AppOption SHOW_RESOURCE_TREE_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_TREE_ICONS,
+      "Show Icons in Resource Tree", false);
   /** Menu Options: HighlightOverridden (Boolean, Default: true) */
   public static final AppOption HIGHLIGHT_OVERRIDDEN = new AppOption(OptionsMenuItem.OPTION_HIGHLIGHT_OVERRIDDEN,
       "Show Overridden Files in Bold in Resource Tree", true);

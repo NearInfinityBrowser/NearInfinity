@@ -6,6 +6,7 @@ package org.infinity.gui;
 
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -36,29 +38,39 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
 import org.infinity.util.FilteredListModel;
+import org.infinity.util.IconCache;
 import org.infinity.util.Misc;
 
-public final class TextListPanel<E> extends JPanel
+public class TextListPanel<E> extends JPanel
     implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener {
   private static boolean filterEnabled = false;
 
   private final FilteredListModel<E> listmodel = new FilteredListModel<>(filterEnabled);
   private final JList<E> list = new JList<>();
+  private final JScrollPane scrollPane;
   private final JTextField tfield = new JTextField();
   private final JToggleButton tbFilter = new JToggleButton(Icons.ICON_FILTER_16.getIcon(), filterEnabled);
 
   private boolean sortValues = true;
 
   public TextListPanel(List<? extends E> values) {
-    this(values, true);
+    this(values, true, false);
   }
 
   public TextListPanel(List<? extends E> values, boolean sortValues) {
+    this(values, sortValues, false);
+  }
+
+  public TextListPanel(List<? extends E> values, boolean sortValues, boolean showIcons) {
     super(new BorderLayout());
     this.sortValues = sortValues;
     setValues(values);
+    if (showIcons) {
+      list.setCellRenderer(new IconCellRenderer());
+    }
     list.setModel(listmodel);
     list.setSelectedIndex(0);
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -66,6 +78,8 @@ public final class TextListPanel<E> extends JPanel
     list.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     listmodel.addFilterChangeListener(this);
     tfield.getDocument().addDocumentListener(this);
+
+    scrollPane = new JScrollPane(list);
 
     tbFilter.setToolTipText("Toggle filtering on or off");
     tbFilter.addActionListener(this);
@@ -82,7 +96,7 @@ public final class TextListPanel<E> extends JPanel
     pInput.add(tbFilter, BorderLayout.EAST);
 
     add(pInput, BorderLayout.NORTH);
-    add(new JScrollPane(list), BorderLayout.CENTER);
+    add(scrollPane, BorderLayout.CENTER);
     ensurePreferredComponentWidth(list, true);
     ensurePreferredComponentWidth(tfield, false);
   }
@@ -305,5 +319,24 @@ public final class TextListPanel<E> extends JPanel
     d.width = width;
     c.setPreferredSize(d);
     c.invalidate();
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  private static class IconCellRenderer extends DefaultListCellRenderer {
+    public IconCellRenderer() {
+      super();
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      if (value instanceof ResourceRef.ResourceRefEntry) {
+        final ResourceRef.ResourceRefEntry entry = (ResourceRef.ResourceRefEntry) value;
+        setIcon(IconCache.get(entry.getEntry(), IconCache.getDefaultListIconSize()));
+      }
+      return this;
+    }
   }
 }
