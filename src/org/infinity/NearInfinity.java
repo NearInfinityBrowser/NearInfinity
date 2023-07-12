@@ -45,7 +45,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -125,6 +124,7 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.LauncherUtils;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
@@ -1492,7 +1492,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
    */
   private void cacheResourceIcons(boolean threaded) {
     // Operation for caching resource icons
-    final Supplier<Void> operation = () -> {
+    final Operation operation = () -> {
       try {
         IconCache.clearCache();
         final List<Integer> sizeList = new ArrayList<>();
@@ -1511,7 +1511,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
               for (final ResourceEntry e : resources) {
                 for (final int size : sizes) {
                   if (iconCacheWorker != null && iconCacheWorker.isCancelled()) {
-                    return null;
+                    return;
                   }
                   IconCache.get(e, size);
                 }
@@ -1522,7 +1522,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } catch (Exception e) {
         e.printStackTrace();
       }
-      return null;
     };
 
     // ensure that ongoing operations have ended before starting a new operation
@@ -1534,7 +1533,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         protected Void doInBackground() throws Exception {
           setProgress(0);
           try {
-            operation.get();
+            operation.perform();
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -1544,7 +1543,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       };
       iconCacheWorker.execute();
     } else {
-      operation.get();
+      operation.perform();
     }
   }
 
