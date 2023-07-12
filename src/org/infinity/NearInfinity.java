@@ -431,7 +431,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       System.exit(10);
     }
 
-    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 7);
+    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 6);
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
@@ -459,9 +459,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 //          FileWatcher.getInstance().start();
 //        }
 
-        advanceProgress("Caching resources...");
-        cacheResourceIcons(false);
-
         return null;
       }
     };
@@ -481,6 +478,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           quit();
         }
       });
+
       try {
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptions().getLookAndFeel();
         UIManager.setLookAndFeel(info.getClassName());
@@ -488,6 +486,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } catch (Exception e) {
         e.printStackTrace();
       }
+
+      cacheResourceIcons(true);
 
       statusBar = new StatusBar();
       ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
