@@ -350,7 +350,7 @@ public class TextListPanel<E> extends JPanel
             final ResourceBitmap.RefEntry entry = (ResourceBitmap.RefEntry) o;
             final ResourceEntry iconEntry = ResourceFactory.getResourceIcon(entry.getResourceEntry());
             if (iconEntry != null) {
-              setIcon(IconCache.getIcon(entry.getResourceEntry(), IconCache.getDefaultListIconSize()));
+              setIcon(IconCache.getIcon(iconEntry, IconCache.getDefaultListIconSize()));
             }
           }
         }
