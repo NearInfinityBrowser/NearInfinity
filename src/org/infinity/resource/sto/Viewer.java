@@ -50,7 +50,7 @@ public final class Viewer extends JPanel {
     }
     JPanel curePanel = ViewerUtil.makeListPanel("Cures for sale", sto, Cure.class, Cure.STO_CURE_SPELL);
     JPanel drinkPanel = ViewerUtil.makeListPanel("Drinks for sale", sto, Drink.class, Drink.STO_DRINK_NAME);
-    JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class, null);
+    JPanel buyPanel = ViewerUtil.makeListPanel("Items purchased", sto, Purchases.class);
     JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag) sto.getAttribute(StoResource.STO_FLAGS), 1);
     JPanel fieldPanel = makeFieldPanel(sto);
 
