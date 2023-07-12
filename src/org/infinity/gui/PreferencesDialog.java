@@ -179,8 +179,8 @@ public class PreferencesDialog extends JDialog {
                       + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
                       AppOption.SHOW_RESOURCE_TREE_ICONS),
               OptionCheckBox.create(AppOption.SHOW_RESOURCE_LIST_ICONS.getName(), AppOption.SHOW_RESOURCE_LIST_ICONS.getLabel(),
-                  "With this option enabled Near Infinity shows icons alongside names in resource selection lists for "
-                      + "ITM and SPL resources."
+                  "With this option enabled Near Infinity shows icons alongside names in resource selection lists and "
+                  + "tables for ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
                       + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
                   AppOption.SHOW_RESOURCE_LIST_ICONS),
               OptionCheckBox.create(AppOption.HIGHLIGHT_OVERRIDDEN.getName(), AppOption.HIGHLIGHT_OVERRIDDEN.getLabel(),
