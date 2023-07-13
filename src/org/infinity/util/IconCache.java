@@ -170,10 +170,10 @@ public class IconCache {
     Image retVal = image;
 
     if (image != null) {
-      if (image.getHeight(null) != size) {
+      if (image.getWidth(null) != size || image.getHeight(null) != size) {
         final int dstWidth;
         final int dstHeight;
-        if (image.getHeight(null) > size) {
+        if (image.getWidth(null) > size || image.getHeight(null) > size) {
           // preserve image aspect ratio
           dstWidth = (image.getWidth(null) >= image.getHeight(null)) ? size : image.getWidth(null) * size / image.getHeight(null);
           dstHeight = (image.getHeight(null) >= image.getWidth(null)) ? size : image.getHeight(null) * size / image.getWidth(null);
