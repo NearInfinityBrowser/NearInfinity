@@ -1,12 +1,16 @@
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Argent77/NearInfinity?color=darkred&include_prereleases&label=latest%20release)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Argent77/NearInfinity?color=darkred&label=latest%20release)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
 [![GitHub release date (latest by date)](https://img.shields.io/github/release-date/Argent77/NearInfinity?color=gold)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
 [![Github downloads (total)](https://img.shields.io/github/downloads/Argent77/NearInfinity/total.svg?color=blueviolet)](https://GitHub.com/Argent77/NearInfinity/releases)
 
 # Near Infinity
 
-A file browser and editor for the Infinity Engine. You can find out more in
-the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki), or download it directly from the
-[Releases section](https://github.com/Argent77/NearInfinity/releases).
+A file browser and editor for the Infinity Engine.
+
+Find out more in the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wiki).
+
+Download Near Infinity directly from the [Releases section](https://github.com/Argent77/NearInfinity/releases)
+or use [Nightly Releases](https://github.com/Argent77/NearInfinity/releases/tag/nightly) for the latest features
+and bugfixes.
 
 **Discuss Near Infinity on:**
 - [GitHub Discussions](https://github.com/NearInfinityBrowser/NearInfinity/discussions)

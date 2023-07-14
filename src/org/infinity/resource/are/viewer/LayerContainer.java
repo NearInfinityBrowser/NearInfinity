@@ -13,7 +13,7 @@ import org.infinity.resource.are.Container;
 /**
  * Manages container layer objects.
  */
-public class LayerContainer extends BasicLayer<LayerObjectContainer, AreResource> {
+public class LayerContainer extends BasicTargetLayer<LayerObjectContainer, AreResource> {
   private static final String AVAILABLE_FMT = "Containers: %d";
 
   public LayerContainer(AreResource are, AreaViewer viewer) {
@@ -23,8 +23,7 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer, AreResource
 
   @Override
   protected void loadLayer() {
-    loadLayerItems(ARE_OFFSET_CONTAINERS, ARE_NUM_CONTAINERS, Container.class,
-        c -> new LayerObjectContainer(parent, c));
+    loadLayerItems(ARE_OFFSET_CONTAINERS, ARE_NUM_CONTAINERS, Container.class, c -> new LayerObjectContainer(parent, c));
   }
 
   @Override

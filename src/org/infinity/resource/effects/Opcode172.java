@@ -10,6 +10,7 @@ import java.util.List;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
@@ -20,7 +21,11 @@ public class Opcode172 extends BaseOpcode {
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
-    return "Remove spell";
+    if (Profile.getEngine() == Profile.Engine.IWD) {
+      return AbstractStruct.COMMON_UNUSED;
+    } else {
+      return "Remove spell";
+    }
   }
 
   public Opcode172() {
@@ -33,5 +38,13 @@ public class Opcode172 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return RES_TYPE;
+  }
+
+  @Override
+  protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
+      boolean isVersion1) {
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+    list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+    return null;
   }
 }

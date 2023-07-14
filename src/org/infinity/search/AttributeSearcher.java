@@ -199,8 +199,10 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
         return;
       }
     }
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    term = cbwhole.isSelected() ? (".*\\b" + term + "\\b.*") : (".*" + term + ".*");
+    term = Pattern.quote(term);
+    if (cbwhole.isSelected()) {
+      term = "\\b" + term + "\\b";
+    }
     if (cbcase.isSelected()) {
       regPattern = Pattern.compile(term, Pattern.DOTALL);
     } else {
@@ -241,7 +243,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
               || searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
             boolean hit = false;
             if (rbexact.isSelected()) {
-              hit = regPattern.matcher(searchEntry.toString()).matches();
+              hit = regPattern.matcher(searchEntry.toString()).find();
             } else if (rbless.isSelected()) {
               hit = searchNumber > ((IsNumeric) searchEntry).getValue();
             } else if (rbgreater.isSelected()) {

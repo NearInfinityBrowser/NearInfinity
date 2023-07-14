@@ -32,24 +32,6 @@ public final class LayerManager {
       LayerType.WALL_POLY
   };
 
-  private static final EnumMap<LayerType, String> LAYER_LABELS = new EnumMap<>(LayerType.class);
-
-  static {
-    LAYER_LABELS.put(LayerType.ACTOR, "Actors");
-    LAYER_LABELS.put(LayerType.REGION, "Regions");
-    LAYER_LABELS.put(LayerType.ENTRANCE, "Entrances");
-    LAYER_LABELS.put(LayerType.CONTAINER, "Containers");
-    LAYER_LABELS.put(LayerType.AMBIENT, "Ambient Sounds");
-    LAYER_LABELS.put(LayerType.DOOR, "Doors");
-    LAYER_LABELS.put(LayerType.ANIMATION, "Background Animations");
-    LAYER_LABELS.put(LayerType.AUTOMAP, "Automap Notes");
-    LAYER_LABELS.put(LayerType.SPAWN_POINT, "Spawn Points");
-    LAYER_LABELS.put(LayerType.TRANSITION, "Map Transitions");
-    LAYER_LABELS.put(LayerType.PRO_TRAP, "Projectile Traps");
-    LAYER_LABELS.put(LayerType.DOOR_POLY, "Door Polygons");
-    LAYER_LABELS.put(LayerType.WALL_POLY, "Wall Polygons");
-  }
-
   private final EnumMap<LayerType, BasicLayer<?, ?>> layers = new EnumMap<>(LayerType.class);
   private final AreaViewer viewer;
 
@@ -96,7 +78,7 @@ public final class LayerManager {
    * Returns the label associated with the specified layer.
    */
   public static String getLayerTypeLabel(LayerType layer) {
-    String s = LAYER_LABELS.get(layer);
+    String s = layer.getLabel();
     if (s != null) {
       return s;
     } else {

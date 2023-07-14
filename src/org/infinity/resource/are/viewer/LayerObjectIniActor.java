@@ -26,7 +26,7 @@ import org.infinity.util.IniMapSection;
  * Handles specific layer type: INI/Actor
  */
 public class LayerObjectIniActor extends LayerObjectActor {
-  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class);
+  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<>(Allegiance.class);
 
   private static final Point CENTER = new Point(12, 40);
 

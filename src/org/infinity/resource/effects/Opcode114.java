@@ -20,7 +20,7 @@ public class Opcode114 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
     if (Profile.getEngine() == Profile.Engine.IWD) {
-      return null;
+      return AbstractStruct.COMMON_UNUSED;
     } else {
       return "Dither";
     }
@@ -36,11 +36,5 @@ public class Opcode114 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

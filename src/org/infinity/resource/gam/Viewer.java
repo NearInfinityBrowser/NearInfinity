@@ -12,19 +12,47 @@ import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AbstractVariable;
-import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.cre.CreResource;
 
 final class Viewer extends JPanel {
+  /** A function that determines the name of (non-)player characters in GAM resources. */
+  private static final ViewerUtil.AttributeEntry NPC_ENTRY = (struct) -> {
+    if (struct instanceof PartyNPC) {
+      final PartyNPC npc = (PartyNPC) struct;
+
+      StructEntry se = npc.getAttribute(PartyNPC.GAM_NPC_NAME);
+      if (se != null && !se.toString().isEmpty()) {
+        // Display character name from PartyNPC structure
+        return se;
+      }
+
+      se = npc.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
+      if (se instanceof CreResource) {
+        se = ((CreResource) se).getAttribute(CreResource.CRE_NAME);
+        if (se != null) {
+          // Display character name from embedded CRE resource
+          return se;
+        }
+      } else if (se instanceof ResourceRef) {
+        // Display character info from CRE resref
+        return se;
+      }
+    }
+
+    // Fall-back option: Display original structure
+    return struct;
+  };
+
   private static JPanel makeMiscPanel(GamResource gam) {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -67,18 +95,8 @@ final class Viewer extends JPanel {
   }
 
   Viewer(GamResource gam) {
-    JPanel stats1Panel, stats2Panel;
-    if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.BG1) {
-      stats1Panel = ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, null);
-      stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, null);
-    } else if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
-      stats1Panel = ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, PartyNPC.GAM_NPC_NAME);
-      stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, PartyNPC.GAM_NPC_NAME);
-    } else {
-      stats1Panel = ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class,
-          PartyNPC.GAM_NPC_CHARACTER);
-      stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, PartyNPC.GAM_NPC_CHARACTER);
-    }
+    final JPanel stats1Panel = ViewerUtil.makeListPanel("Non-player characters", gam, NonPartyNPC.class, NPC_ENTRY);
+    final JPanel stats2Panel = ViewerUtil.makeListPanel("Player characters", gam, PartyNPC.class, NPC_ENTRY);
 
     JPanel var1Panel = ViewerUtil.makeListPanel("Variables", gam, Variable.class, AbstractVariable.VAR_NAME,
         new VariableListRenderer());
@@ -95,14 +113,15 @@ final class Viewer extends JPanel {
 
   private static final class VariableListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
     private VariableListRenderer() {
+      super();
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
         boolean cellHasFocus) {
-      JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      label.setText(getListValue(value));
-      return label;
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      setText(getListValue(value));
+      return this;
     }
 
     @Override

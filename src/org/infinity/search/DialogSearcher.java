@@ -136,9 +136,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
       term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
-      term = ".*\\b" + term + "\\b.*";
-    } else {
-      term = ".*" + term + ".*";
+      term = "\\b" + term + "\\b";
     }
 
     try {
@@ -208,7 +206,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
             }
           }
           final Matcher matcher = regPattern.matcher(s);
-          if (matcher.matches()) {
+          if (matcher.find()) {
             addResult(entry, e.getValue().getName(), searchEntry);
           }
         }

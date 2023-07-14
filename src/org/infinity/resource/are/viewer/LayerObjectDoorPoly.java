@@ -8,7 +8,9 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
@@ -92,18 +94,29 @@ public class LayerObjectDoorPoly extends LayerObject {
   }
 
   @Override
-  public AbstractLayerItem getLayerItem(int type) {
+  public AbstractLayerItem[] getLayerItems(int type) {
+    boolean isClosed = (type & ViewerConstants.DOOR_CLOSED) == ViewerConstants.DOOR_CLOSED;
+    boolean isOpen = (type & ViewerConstants.DOOR_OPEN) == ViewerConstants.DOOR_OPEN;
+
     if (Profile.getEngine() == Profile.Engine.PST) {
       // open/closed states are inverted for PST
-      type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN;
-    } else {
-      type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
+      boolean tmp = isClosed;
+      isClosed = isOpen;
+      isOpen = tmp;
     }
-    if (type == ViewerConstants.DOOR_OPEN) {
-      return (openCount > 0) ? items[0] : null;
-    } else {
-      return (items.length - openCount > 0) ? items[openCount] : null;
+
+    List<AbstractLayerItem> list = new ArrayList<>();
+    if (isOpen) {
+      if (openCount > 0 && items[0] != null) {
+        list.add(items[0]);
+      }
     }
+    if (isClosed) {
+      if (items.length - openCount > 0 && items[openCount] != null) {
+        list.add(items[openCount]);
+      }
+    }
+    return list.toArray(new AbstractLayerItem[0]);
   }
 
   @Override
@@ -129,11 +142,22 @@ public class LayerObjectDoorPoly extends LayerObject {
    * @param state The state of the layer items ({@code Open} or {@code Closed}).
    * @return An array of layer items.
    */
-  public AbstractLayerItem[] getLayerItems(int state) {
-    if (state == ViewerConstants.DOOR_OPEN) {
+  public AbstractLayerItem[] getLayerItemsByState(int state) {
+    boolean isClosed = (state == ViewerConstants.DOOR_CLOSED);
+    boolean isOpen = (state == ViewerConstants.DOOR_OPEN);
+
+    if (Profile.getEngine() == Profile.Engine.PST) {
+      // open/closed states are inverted for PST
+      boolean tmp = isClosed;
+      isClosed = isOpen;
+      isOpen = tmp;
+    }
+
+    if (isOpen) {
       return Arrays.copyOf(items, openCount);
     }
-    if (state == ViewerConstants.DOOR_CLOSED) {
+
+    if (isClosed) {
       return Arrays.copyOfRange(items, openCount, items.length);
     }
     return new AbstractLayerItem[0];

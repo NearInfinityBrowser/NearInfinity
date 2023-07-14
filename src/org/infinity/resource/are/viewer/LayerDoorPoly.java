@@ -40,14 +40,14 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly, WedResource> 
     setVisibilityState(visible);
     for (final LayerObjectDoorPoly obj : getLayerObjects()) {
       // processing open door items
-      AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN);
+      AbstractLayerItem[] items = obj.getLayerItemsByState(ViewerConstants.DOOR_OPEN);
       if (items != null) {
         for (final AbstractLayerItem item : items) {
           item.setVisible(isLayerVisible() && !doorClosed);
         }
       }
       // processing open door items
-      items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED);
+      items = obj.getLayerItemsByState(ViewerConstants.DOOR_CLOSED);
       if (items != null) {
         for (final AbstractLayerItem item : items) {
           item.setVisible(isLayerVisible() && doorClosed);

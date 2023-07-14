@@ -269,6 +269,54 @@ public final class ResourceFactory implements FileWatchListener {
   }
 
   /**
+   * Returns the BAM {@link ResourceEntry} of the icon associated with the specified resource.
+   * <p>
+   * <strong>Note:</strong> Only {@code ITM} and {@code SPL} resources will return icons if available.
+   * </p>
+   *
+   * @param entry The {@code ResourceEntry} of the resource.
+   * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
+   *         available.
+   */
+  public static ResourceEntry getResourceIcon(ResourceEntry entry) {
+    return getResourceIcon(entry, null);
+  }
+
+  /**
+   * Returns the BAM {@link ResourceEntry} of the icon associated with the specified resource.
+   * <p>
+   * <strong>Note:</strong> Only {@code ITM} and {@code SPL} resources will return icons if available.
+   * </p>
+   *
+   * @param entry           The {@code ResourceEntry} of the resource.
+   * @param forcedExtension Optional file extension string that is used to override the original file type.
+   * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
+   *         available.
+   */
+  public static ResourceEntry getResourceIcon(ResourceEntry entry, String forcedExtension) {
+    ResourceEntry retVal = null;
+
+    Class<? extends Resource> clsResource = getResourceType(entry, forcedExtension);
+    if (clsResource != null &&
+      (ItmResource.class.isAssignableFrom(clsResource) || SplResource.class.isAssignableFrom(clsResource))) {
+      try {
+        final ByteBuffer buf = entry.getResourceBuffer();
+        String iconResref = StreamUtils.readString(buf, 0x3a, 8);
+        if (!iconResref.isEmpty()) {
+          final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconResref + ".BAM");
+          if (iconEntry != null) {
+            retVal = iconEntry;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
    * Attempts to detect the resource type from the data itself and returns the respective resource class type, or
    * {@code null} on failure.
    *

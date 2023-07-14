@@ -49,9 +49,9 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
   public static final DecoderAttribute KEY_PALETTE_5 = DecoderAttribute.with("palette5",
       DecoderAttribute.DataType.STRING);
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<>();
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<>();
 
   static {
     // Note: Replace 'underscore' in suffix by one-based quadrant index

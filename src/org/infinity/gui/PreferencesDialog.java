@@ -25,9 +25,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +56,7 @@ import javax.swing.LookAndFeel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -173,6 +173,16 @@ public class PreferencesDialog extends JDialog {
                   "With this option enabled Near Infinity shows the search name of resources in the resource tree "
                       + "in parentheses if available, such as creature, item or spell names.",
                   AppOption.SHOW_TREE_SEARCH_NAMES),
+              OptionCheckBox.create(AppOption.SHOW_RESOURCE_TREE_ICONS.getName(), AppOption.SHOW_RESOURCE_TREE_ICONS.getLabel(),
+                  "With this option enabled Near Infinity shows icons alongside names in the resource tree for ITM and "
+                      + "SPL resources."
+                      + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
+                      AppOption.SHOW_RESOURCE_TREE_ICONS),
+              OptionCheckBox.create(AppOption.SHOW_RESOURCE_LIST_ICONS.getName(), AppOption.SHOW_RESOURCE_LIST_ICONS.getLabel(),
+                  "With this option enabled Near Infinity shows icons alongside names in resource selection lists and "
+                  + "tables for ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
+                      + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
+                  AppOption.SHOW_RESOURCE_LIST_ICONS),
               OptionCheckBox.create(AppOption.HIGHLIGHT_OVERRIDDEN.getName(), AppOption.HIGHLIGHT_OVERRIDDEN.getLabel(),
                   "If checked, files that are listed in the <em>chitin.key</em> and are also available in the "
                       + "Override folder, will be shown in <strong>bold</strong> in the resource tree."
@@ -255,7 +265,8 @@ public class PreferencesDialog extends JDialog {
                       0, OptionsMenuItem.getBcsColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
                       AppOption.BCS_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.BCS_SYNTAX_HIGHLIGHTING.getName(), AppOption.BCS_SYNTAX_HIGHLIGHTING.getLabel(),
-                      "Enables syntax highlighting for BCS script sources.", AppOption.BCS_SYNTAX_HIGHLIGHTING),
+                      "Enables syntax highlighting for BCS script sources.", AppOption.BCS_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::bcsSyntaxHighlightingOnCreated).setOnAction(this::bcsSyntaxHighlightingOnAction),
                   OptionCheckBox.create(AppOption.BCS_CODE_FOLDING.getName(), AppOption.BCS_CODE_FOLDING.getLabel(),
                       "Enables code folding for BCS script sources.", AppOption.BCS_CODE_FOLDING),
                   OptionCheckBox.create(AppOption.BCS_AUTO_INDENT.getName(), AppOption.BCS_AUTO_INDENT.getLabel(),
@@ -277,7 +288,8 @@ public class PreferencesDialog extends JDialog {
                       0, OptionsMenuItem.getColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
                       AppOption.GLSL_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.GLSL_SYNTAX_HIGHLIGHTING.getName(), AppOption.GLSL_SYNTAX_HIGHLIGHTING.getLabel(),
-                      "Enables syntax highlighting for GLSL resources.", AppOption.GLSL_SYNTAX_HIGHLIGHTING),
+                      "Enables syntax highlighting for GLSL resources.", AppOption.GLSL_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::glslSyntaxHighlightingOnCreated).setOnAction(this::glslSyntaxHighlightingOnAction),
                   OptionCheckBox.create(AppOption.GLSL_CODE_FOLDING.getName(), AppOption.GLSL_CODE_FOLDING.getLabel(),
                       "Enables code folding for GLSL resources.", AppOption.GLSL_CODE_FOLDING)
               ),
@@ -295,6 +307,7 @@ public class PreferencesDialog extends JDialog {
                       AppOption.INI_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.INI_SYNTAX_HIGHLIGHTING.getName(), AppOption.INI_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for INI resources.", AppOption.INI_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::iniSyntaxHighlightingOnCreated).setOnAction(this::iniSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("LUA",
                   OptionGroupBox.create(AppOption.LUA_COLOR_SCHEME.getName(), AppOption.LUA_COLOR_SCHEME.getLabel(),
@@ -310,6 +323,7 @@ public class PreferencesDialog extends JDialog {
                       AppOption.LUA_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.LUA_SYNTAX_HIGHLIGHTING.getName(), AppOption.LUA_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for LUA resources.", AppOption.LUA_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("SQL",
                   OptionGroupBox.create(AppOption.SQL_COLOR_SCHEME.getName(), AppOption.SQL_COLOR_SCHEME.getLabel(),
@@ -325,6 +339,7 @@ public class PreferencesDialog extends JDialog {
                       AppOption.SQL_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.SQL_SYNTAX_HIGHLIGHTING.getName(), AppOption.SQL_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for SQL resources.", AppOption.SQL_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::sqlSyntaxHighlightingOnCreated).setOnAction(this::sqlSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("Dialog.tlk",
                   OptionGroupBox.create(AppOption.TLK_COLOR_SCHEME.getName(), AppOption.TLK_COLOR_SCHEME.getLabel(),
@@ -340,6 +355,7 @@ public class PreferencesDialog extends JDialog {
                       AppOption.TLK_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.TLK_SYNTAX_HIGHLIGHTING.getName(), AppOption.TLK_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for Dialog.tlk strings.", AppOption.TLK_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::tlkSyntaxHighlightingOnCreated).setOnAction(this::tlkSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("WeiDU.log",
                   OptionGroupBox.create(AppOption.WEIDU_COLOR_SCHEME.getName(), AppOption.WEIDU_COLOR_SCHEME.getLabel(),
@@ -355,6 +371,7 @@ public class PreferencesDialog extends JDialog {
                       AppOption.WEIDU_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.WEIDU_SYNTAX_HIGHLIGHTING.getName(), AppOption.WEIDU_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for WeiDU.log content.", AppOption.WEIDU_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::weiduSyntaxHighlightingOnCreated).setOnAction(this::weiduSyntaxHighlightingOnAction)
               )
           ),
           OptionGroup.createDefault(
@@ -687,11 +704,12 @@ public class PreferencesDialog extends JDialog {
 
   /** Used by {@link #setTreeExpandedState(boolean)} to expand nodes of the categories tree. */
   private void setTreeNodeExpandedState(DefaultMutableTreeNode node, boolean expanded) {
-    @SuppressWarnings("unchecked")
-    final ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
-
-    for (final DefaultMutableTreeNode curNode: list) {
-      setTreeNodeExpandedState(curNode, expanded);
+    final Enumeration<?> children = node.children();
+    while (children.hasMoreElements()) {
+      final Object e = children.nextElement();
+      if (e instanceof DefaultMutableTreeNode) {
+        setTreeNodeExpandedState((DefaultMutableTreeNode) e, expanded);
+      }
     }
 
     if (!expanded && node.isRoot()) {
@@ -746,7 +764,7 @@ public class PreferencesDialog extends JDialog {
   }
 
   private void init() {
-    setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
     getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this);
     getRootPane().getActionMap().put(this, new AbstractAction() {
@@ -1158,6 +1176,91 @@ public class PreferencesDialog extends JDialog {
     cb.setEnabled(BrowserMenuBar.getInstance().getOptions().isLaunchGameMenuEnabled());
   }
 
+  /** onCreated() function for {@link AppOption#BCS_SYNTAX_HIGHLIGHTING}. */
+  private void bcsSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.BCS_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#BCS_SYNTAX_HIGHLIGHTING}. */
+  private boolean bcsSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.BCS_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#GLSL_SYNTAX_HIGHLIGHTING}. */
+  private void glslSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.GLSL_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#GLSL_SYNTAX_HIGHLIGHTING}. */
+  private boolean glslSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.GLSL_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#INI_SYNTAX_HIGHLIGHTING}. */
+  private void iniSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.INI_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#INI_SYNTAX_HIGHLIGHTING}. */
+  private boolean iniSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.INI_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#LUA_SYNTAX_HIGHLIGHTING}. */
+  private void luaSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#LUA_SYNTAX_HIGHLIGHTING}. */
+  private boolean luaSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#SQL_SYNTAX_HIGHLIGHTING}. */
+  private void sqlSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.SQL_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#SQL_SYNTAX_HIGHLIGHTING}. */
+  private boolean sqlSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.SQL_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#TLK_SYNTAX_HIGHLIGHTING}. */
+  private void tlkSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.TLK_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#TLK_SYNTAX_HIGHLIGHTING}. */
+  private boolean tlkSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.TLK_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#WEIDU_SYNTAX_HIGHLIGHTING}. */
+  private void weiduSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.WEIDU_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#WEIDU_SYNTAX_HIGHLIGHTING}. */
+  private boolean weiduSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.WEIDU_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** Helper method for setting the enabled state of a given option component. */
+  private void setOptionUiEnabled(String optionName, boolean enable) {
+    OptionBase option = optionRoot.findOption(optionName);
+    if (option instanceof OptionElementBase) {
+      ((OptionElementBase) option).setEnabled(enable);
+    }
+  }
+
   /** onInit() function for {@link AppOption#TEXT_TAB_SIZE}. */
   private void textTabSizeOnInit(OptionGroupBox gb) {
     final String[] items = { "Expand by 2 Spaces", "Expand by 4 Spaces", "Expand by 8 Spaces" };
@@ -1223,7 +1326,7 @@ public class PreferencesDialog extends JDialog {
     try {
       @SuppressWarnings("unchecked")
       DataItem<Integer> item = (DataItem<Integer>) gb.getItem(gb.getSelectedIndex());
-      int size = (Integer) item.getData();
+      int size = item.getData();
       if (size < 0) {
         size = gb.getOption().getIntValue();
       }

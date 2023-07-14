@@ -30,16 +30,19 @@ public class AcmBuffer extends AudioBuffer {
   }
 
   /** Returns the number of audio channels. */
+  @Override
   public int getChannels() {
     return (acm != null) ? acm.getChannels() : 0;
   }
 
   /** Returns the sample rate in Hz. */
+  @Override
   public int getSampleRate() {
     return (acm != null) ? acm.getSampleRate() : 0;
   }
 
   /** Returns the bits per sample. */
+  @Override
   public int getBitsPerSample() {
     return (acm != null) ? acm.getBitsPerSample() : 0;
   }

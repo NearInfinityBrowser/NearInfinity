@@ -39,7 +39,7 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder {
   public static final DecoderAttribute KEY_EXTEND_DIRECTION_TEST = DecoderAttribute.with("extend_direction_test",
       DecoderAttribute.DataType.INT);
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   static {
     SUFFIX_MAP.put(Sequence.WALK, Couple.with("G1", 0));

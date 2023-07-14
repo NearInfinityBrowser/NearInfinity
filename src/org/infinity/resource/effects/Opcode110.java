@@ -26,12 +26,20 @@ public class Opcode110 extends BaseOpcode {
       case PST:
         return "Retreat from";
       default:
-        return null;
+        return AbstractStruct.COMMON_UNUSED;
     }
   }
 
   public Opcode110() {
     super(110, getOpcodeName());
+  }
+
+  @Override
+  protected String makeEffectParamsGeneric(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
+      boolean isVersion1) {
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+    list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+    return null;
   }
 
   @Override

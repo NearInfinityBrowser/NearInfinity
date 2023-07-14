@@ -60,6 +60,11 @@ public class Misc {
       }
 
       @Override
+      public int hashCode() {
+        return toString().toLowerCase().hashCode();
+      }
+
+      @Override
       public boolean equals(Object obj) {
         return toString().equalsIgnoreCase(obj.toString());
       }

@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
@@ -205,14 +206,14 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
     FormattedData<T> selected = null;
     final List<FormattedData<T>> items = new ArrayList<>(itemMap.size());
     for (final Long key : itemMap.keySet()) {
-      FormattedData<T> item = new FormattedData<>(key, itemMap.get(key), formatter);
+      FormattedData<T> item = new FormattedData<>(this, key, itemMap.get(key), formatter);
       items.add(item);
       if (key.intValue() == value) {
         selected = item;
       }
     }
 
-    list = new TextListPanel<>(items, sortByName);
+    list = new TextListPanel<>(items, sortByName, BrowserMenuBar.getInstance().getOptions().showResourceListIcons());
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event) {
@@ -494,15 +495,21 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   /**
    * A helper class used to encapsulate the formatter function object.
    */
-  protected static class FormattedData<T> {
+  public static class FormattedData<T> {
+    private final AbstractBitmap<T> parent;
     private final Long value;
     private final T data;
     private final BiFunction<Long, T, String> formatter;
 
-    public FormattedData(long value, T data, BiFunction<Long, T, String> formatter) {
+    public FormattedData(AbstractBitmap<T> parent, long value, T data, BiFunction<Long, T, String> formatter) {
+      this.parent = parent;
       this.value = value;
       this.data = data;
       this.formatter = formatter;
+    }
+
+    public AbstractBitmap<T> getParent() {
+      return parent;
     }
 
     public Long getValue() {

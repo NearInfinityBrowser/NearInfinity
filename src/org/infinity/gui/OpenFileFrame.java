@@ -36,6 +36,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -55,7 +56,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
   private final JButton bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
   private final JButton bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbStayOpen = new JCheckBox("Keep this dialog open");
-  private final JLabel lExternalDrop = new JLabel("or drop file(s) here", JLabel.CENTER);
+  private final JLabel lExternalDrop = new JLabel("or drop file(s) here", SwingConstants.CENTER);
   private final JRadioButton rbExternal = new JRadioButton("Open external file");
   private final JRadioButton rbInternal = new JRadioButton("Open internal file");
   private final JTextField tfExternalName = new JTextField(20);

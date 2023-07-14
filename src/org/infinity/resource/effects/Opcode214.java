@@ -30,10 +30,11 @@ public class Opcode214 extends BaseOpcode {
   private static String getOpcodeName() {
     switch (Profile.getEngine()) {
       case BG1:
-      case IWD:
-      case IWD2:
       case PST:
         return null;
+      case IWD:
+      case IWD2:
+        return AbstractStruct.COMMON_UNUSED;
       default:
         return "Select spell";
     }
@@ -68,13 +69,15 @@ public class Opcode214 extends BaseOpcode {
   @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+    list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+    return null;
   }
 
   @Override
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
+    return makeEffectParamsIWD(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

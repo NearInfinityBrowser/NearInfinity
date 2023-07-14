@@ -250,12 +250,12 @@ public final class DxtEncoder {
           // allocate new points
           if (j == i) {
             // normalize coordinates to [0, 1]
-            final float x = (float) argb(pixels[i], 2) / 255.0f;
-            final float y = (float) argb(pixels[i], 1) / 255.0f;
-            final float z = (float) argb(pixels[i], 0) / 255.0f;
+            final float x = argb(pixels[i], 2) / 255.0f;
+            final float y = argb(pixels[i], 1) / 255.0f;
+            final float z = argb(pixels[i], 0) / 255.0f;
 
             // ensure there is always non-zero weight even for zero alpha
-            final float w = (float) (argb(pixels[i], 3) + 1) / 256.0f;
+            final float w = (argb(pixels[i], 3) + 1) / 256.0f;
 
             // add the points
             points[count] = new Vec3(x, y, z);
@@ -273,7 +273,7 @@ public final class DxtEncoder {
             // get the index of the match
             final int index = remap[j];
             // ensure there is always non-zero weight even for zero alpha
-            final float w = (float) (argb(pixels[i], 3) + 1) / 256.0f;
+            final float w = (argb(pixels[i], 3) + 1) / 256.0f;
             // map to this point and increase the weight
             weights[index] += w;
             remap[i] = index;
@@ -430,10 +430,10 @@ public final class DxtEncoder {
 
         // keep it if the error is lower
         if (error < this.error) {
-          start = new Vec3((float) sources[0].start / 31.0f, (float) sources[1].start / 63.0f,
-              (float) sources[2].start / 31.0f);
-          end = new Vec3((float) sources[0].end / 31.0f, (float) sources[1].end / 63.0f,
-              (float) sources[2].end / 31.0f);
+          start = new Vec3(sources[0].start / 31.0f, sources[1].start / 63.0f,
+              sources[2].start / 31.0f);
+          end = new Vec3(sources[0].end / 31.0f, sources[1].end / 63.0f,
+              sources[2].end / 31.0f);
           this.index = 2 * index;
           this.error = error;
         }
@@ -1036,8 +1036,8 @@ public final class DxtEncoder {
       // quantize and pack the alpha values pairwise
       for (int i = 0; i < 8; i++) {
         // quantize down to 4 bits
-        final float alpha1 = (float) ColorSet.argb(pixels[2 * i], 3) * (15.0f / 255.0f);
-        final float alpha2 = (float) ColorSet.argb(pixels[2 * i + 1], 3) * (15.0f / 255.0f);
+        final float alpha1 = ColorSet.argb(pixels[2 * i], 3) * (15.0f / 255.0f);
+        final float alpha2 = ColorSet.argb(pixels[2 * i + 1], 3) * (15.0f / 255.0f);
         final int quant1 = Misc.floatToInt(alpha1, 15);
         final int quant2 = Misc.floatToInt(alpha2, 15);
 

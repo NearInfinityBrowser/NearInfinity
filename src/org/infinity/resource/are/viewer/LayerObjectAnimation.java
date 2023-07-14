@@ -233,9 +233,12 @@ public class LayerObjectAnimation extends LayerObject {
    * @return The desired layer item, or {@code null} if not available.
    */
   @Override
-  public AbstractLayerItem getLayerItem(int type) {
+  public AbstractLayerItem[] getLayerItems(int type) {
     type = (type == ViewerConstants.ITEM_REAL) ? ViewerConstants.ITEM_REAL : ViewerConstants.ITEM_ICON;
-    return items[type];
+    if (items[type] != null) {
+      return new AbstractLayerItem[] { items[type] };
+    }
+    return new AbstractLayerItem[0];
   }
 
   @Override

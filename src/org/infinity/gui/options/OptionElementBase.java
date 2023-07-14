@@ -4,6 +4,7 @@
 
 package org.infinity.gui.options;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import org.infinity.AppOption;
  */
 public abstract class OptionElementBase extends OptionBase {
   private final List<AppOption> secondaryOptions = new ArrayList<>();
+  private final List<Component> uiComponents = new ArrayList<>();
   private final AppOption option;
 
   private String description;
@@ -71,7 +73,10 @@ public abstract class OptionElementBase extends OptionBase {
   /**
    * Sets the enabled state of the associated UI elements. The method is used internally by {@link #setEnabled(boolean)}.
    */
-  protected abstract OptionElementBase setUiEnabled(boolean enable);
+  protected OptionElementBase setUiEnabled(boolean enable) {
+    uiComponents.forEach(c -> c.setEnabled(enable));
+    return this;
+  }
 
   @Override
   public OptionGroup getParent() {
@@ -86,6 +91,43 @@ public abstract class OptionElementBase extends OptionBase {
     } else {
       throw new IllegalArgumentException("Argument of type OptionGroup expected");
     }
+  }
+
+  /** Returns a list of all UI {@link Component} instances associated with the Option. */
+  public List<Component> getUiComponents() {
+    return Collections.unmodifiableList(uiComponents);
+  }
+
+  /** Returns the number of available UI {@link Component} instances associated with the Option. */
+  public int getUiComponentCount() {
+    return uiComponents.size();
+  }
+
+  /** Returns the {@link Component} at the specified index. */
+  public Component getUiComponent(int index) throws IndexOutOfBoundsException {
+    return uiComponents.get(index);
+  }
+
+  /** Adds a new {@link Component} to the list of associated UI components. */
+  protected OptionElementBase addUiComponent(Component comp) throws NullPointerException {
+    if (comp != null) {
+      uiComponents.add(comp);
+    }
+    return this;
+  }
+
+  /** Removes the UI {@link Component} at the specified index from the list of UI components. */
+  protected OptionElementBase removeUiComponent(int index) throws IndexOutOfBoundsException {
+    uiComponents.remove(index);
+    return this;
+  }
+
+  /** Removes the specified UI {@link Component} from the list of UI components. */
+  protected OptionElementBase removeUiComponent(Component comp) {
+    if (comp != null) {
+      uiComponents.remove(comp);
+    }
+    return this;
   }
 
   /**
