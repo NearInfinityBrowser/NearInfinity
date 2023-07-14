@@ -3994,51 +3994,50 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
       // Processing each filter sequentially
       List<BamFilterBase> filters = createFilterList(false);
-      if (filters != null) {
-        for (int idx = 0; idx < filters.size(); idx++) {
-          if (filters.get(idx) instanceof BamFilterBaseColor) {
-            // processing color filter
-            try {
-              BamFilterBaseColor filter = (BamFilterBaseColor) filters.get(idx);
-              for (PseudoBamFrameEntry element : listFrameEntries.get(BAM_FINAL)) {
-                BufferedImage image = filter.process(element.getFrame());
-                if (image != null) {
-                  element.setFrame(image);
-                  image = null;
-                } else {
-                  throw new Exception();
-                }
+      for (final BamFilterBase filter : filters) {
+        if (filter instanceof BamFilterBaseColor) {
+          // processing color filter
+          try {
+            final BamFilterBaseColor colorFilter = (BamFilterBaseColor) filter;
+            for (PseudoBamFrameEntry element : listFrameEntries.get(BAM_FINAL)) {
+              BufferedImage image = colorFilter.process(element.getFrame());
+              if (image != null) {
+                element.setFrame(image);
+                image = null;
+              } else {
+                throw new Exception();
               }
-            } catch (Exception e) {
-              e.printStackTrace();
-              throw e;
             }
-          } else if (filters.get(idx) instanceof BamFilterBaseTransform) {
-            // processing transform filter
-            try {
-              BamFilterBaseTransform filter = (BamFilterBaseTransform) filters.get(idx);
-              for (int frameIdx = 0; frameIdx < listFrameEntries.get(BAM_FINAL).size(); frameIdx++) {
-                PseudoBamFrameEntry entry = filter.process(listFrameEntries.get(BAM_FINAL).get(frameIdx));
-                if (entry != null) {
-                  if (entry != listFrameEntries.get(BAM_FINAL).get(frameIdx)) {
-                    listFrameEntries.get(BAM_FINAL).set(frameIdx, entry);
-                  }
-                } else {
-                  throw new Exception();
+          } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+          }
+        } else if (filter instanceof BamFilterBaseTransform) {
+          // processing transform filter
+          try {
+            final BamFilterBaseTransform transformFilter = (BamFilterBaseTransform) filter;
+            for (int frameIdx = 0, frameSize = listFrameEntries.get(BAM_FINAL).size(); frameIdx < frameSize; frameIdx++) {
+              final PseudoBamFrameEntry srcEntry = listFrameEntries.get(BAM_FINAL).get(frameIdx);
+              final PseudoBamFrameEntry dstEntry = transformFilter.process(srcEntry);
+              if (dstEntry != null) {
+                if (dstEntry != srcEntry) {
+                  listFrameEntries.get(BAM_FINAL).set(frameIdx, dstEntry);
                 }
+              } else {
+                throw new Exception(String.format("%s: Result is null", transformFilter));
               }
-            } catch (Exception e) {
-              e.printStackTrace();
-              throw e;
             }
-          } else if (filters.get(idx) instanceof BamFilterBaseOutput) {
-            // skipping output filter
+          } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+          }
+        } else if (filter instanceof BamFilterBaseOutput) {
+          // skipping output filter
+        } else {
+          if (filter != null) {
+            System.err.println(String.format("Skipping unrecognized filter: %s", filter));
           } else {
-            if (filters.get(idx) != null) {
-              System.err.println(String.format("Unrecognized filter at index %d: %s", idx, filters.get(idx)));
-            } else {
-              System.err.println(String.format("null filter at index %d", idx));
-            }
+            System.err.println("Skipping null filter");
           }
         }
       }
@@ -4146,15 +4145,11 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             } else {
               Byte colIdx = colorCache.get(Integer.valueOf(c));
               if (colIdx != null) {
-                int ci = colIdx.intValue() & 0xff;
-                if (ci >= transIndex) {
-                  ci++;
-                }
-                dstBuf[ofs] = colIdx;// (byte)ci;
+                dstBuf[ofs] = colIdx;
               } else {
                 double weight = getUseAlpha() ? 1.0 : 0.0;
                 byte color = (byte) ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null, true);
-                dstBuf[ofs] = color;// (byte)ci;
+                dstBuf[ofs] = color;
                 colorCache.put(c, color);
               }
             }

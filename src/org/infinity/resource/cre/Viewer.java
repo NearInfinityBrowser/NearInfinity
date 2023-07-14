@@ -158,7 +158,7 @@ public final class Viewer extends JPanel {
   private JPanel makeItemSpellsPanelIWD2(CreResource cre) {
     JPanel panel = new JPanel(new GridLayout(1, 2, 6, 0));
     panel.add(new ViewerItems(cre));
-    panel.add(ViewerUtil.makeListPanel("Spells/abilities (# known)", cre, Iwd2Struct.class, null,
+    panel.add(ViewerUtil.makeListPanel("Spells/abilities (# known)", cre, Iwd2Struct.class, (String) null,
         new SpellListRendererIWD2()));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     return panel;

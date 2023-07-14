@@ -41,13 +41,13 @@ import org.infinity.util.tuples.Monuple;
  */
 public class SettingsPanel extends JPanel {
   // Available render canvas backgrounds
-  public static final List<Backgrounds.BackgroundInfo> BACKGROUND_LIST = new ArrayList<Backgrounds.BackgroundInfo>();
+  public static final List<Backgrounds.BackgroundInfo> BACKGROUND_LIST = new ArrayList<>();
 
   // Available items for zoom selection list
-  private static final Vector<ItemString<Integer>> ZOOM_LIST = new Vector<ItemString<Integer>>();
+  private static final Vector<ItemString<Integer>> ZOOM_LIST = new Vector<>();
 
   // Available items for frame rate selection list
-  private static final Vector<ItemString<Integer>> FRAME_RATE_LIST = new Vector<ItemString<Integer>>();
+  private static final Vector<ItemString<Integer>> FRAME_RATE_LIST = new Vector<>();
 
   private static int indexZoom;
   private static int indexFrameRate;

@@ -13,7 +13,7 @@ import org.infinity.resource.are.ITEPoint;
 /**
  * Manages region layer objects.
  */
-public class LayerRegion extends BasicLayer<LayerObjectRegion, AreResource> {
+public class LayerRegion extends BasicTargetLayer<LayerObjectRegion, AreResource> {
   private static final String AVAILABLE_FMT = "Regions: %d";
 
   public LayerRegion(AreResource are, AreaViewer viewer) {

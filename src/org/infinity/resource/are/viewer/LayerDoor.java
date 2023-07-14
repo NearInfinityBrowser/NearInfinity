@@ -7,13 +7,14 @@ package org.infinity.resource.are.viewer;
 import static org.infinity.resource.are.AreResource.ARE_NUM_DOORS;
 import static org.infinity.resource.are.AreResource.ARE_OFFSET_DOORS;
 
+import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
 
 /**
  * Manages door layer objects.
  */
-public class LayerDoor extends BasicLayer<LayerObjectDoor, AreResource> {
+public class LayerDoor extends BasicTargetLayer<LayerObjectDoor, AreResource> {
   private static final String AVAILABLE_FMT = "Doors: %d";
 
   private boolean doorClosed;
@@ -37,10 +38,23 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor, AreResource> {
   @Override
   public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
-    for (final LayerObjectDoor obj : getLayerObjects()) {
-      obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
-      obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
-    }
+
+    getLayerObjects().stream().forEach(obj -> {
+      AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN | ViewerConstants.LAYER_ITEM_POLY);
+      for (final AbstractLayerItem item : items) {
+        item.setVisible(isPolyLayerVisible() && isPolyLayerEnabled() && !doorClosed);
+      }
+
+      items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED | ViewerConstants.LAYER_ITEM_POLY);
+      for (final AbstractLayerItem item : items) {
+        item.setVisible(isPolyLayerVisible() && isPolyLayerEnabled() && doorClosed);
+      }
+
+      items = obj.getLayerItems(ViewerConstants.LAYER_ITEM_ICON);
+      for (final AbstractLayerItem item : items) {
+        item.setVisible(isIconsLayerVisible() && isIconsLayerEnabled());
+      }
+    });
   }
 
   /**

@@ -21,10 +21,11 @@ public class Opcode224 extends BaseOpcode {
   private static String getOpcodeName() {
     switch (Profile.getEngine()) {
       case BG1:
-      case IWD:
       case IWD2:
       case PST:
         return null;
+      case IWD:
+        return AbstractStruct.COMMON_UNUSED;
       default:
         return "Restoration";
     }
@@ -44,12 +45,6 @@ public class Opcode224 extends BaseOpcode {
 
   @Override
   protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }

@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -185,7 +186,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     // creating View tab
     JPanel panelView = new JPanel(new GridBagLayout());
     panelView.setBorder(BorderFactory.createLoweredBevelBorder());
-    JLabel label = new JLabel("Unsupported file format", JLabel.CENTER);
+    JLabel label = new JLabel("Unsupported file format", SwingConstants.CENTER);
     bShowEditor = new JButton("Edit as text");
     bShowEditor.addActionListener(this);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
@@ -209,7 +210,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     // creating Raw tab (stub)
     panelRaw = new JPanel(new BorderLayout());
     if (getEntrySize() >= MIN_SIZE_BLOCK_RAW) {
-      label = new JLabel("File is too big for the hex editor (" + getEntrySize() + " bytes).", JLabel.CENTER);
+      label = new JLabel("File is too big for the hex editor (" + getEntrySize() + " bytes).", SwingConstants.CENTER);
       panelRaw.add(label, BorderLayout.CENTER);
     }
 

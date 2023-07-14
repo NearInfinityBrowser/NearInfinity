@@ -128,13 +128,13 @@ public abstract class LayerObject {
   public abstract Viewable getViewable();
 
   /**
-   * Returns the specified layer item. {@code type} is layer type specific, usually defined as an identifier in
-   * {@code ViewerConstants}.
+   * Returns the layer items of the specified type. {@code type} is layer type specific, usually defined as an
+   * identifier in {@code ViewerConstants}.
    *
    * @param type A layer-specific type to identify the item to return.
-   * @return The desired layer item, or {@code null} if not available.
+   * @return The desired layer items as array. Returns an empty array items are not available.
    */
-  public abstract AbstractLayerItem getLayerItem(int type);
+  public abstract AbstractLayerItem[] getLayerItems(int type);
 
   /**
    * Returns all layer items associated with the layer object. This method is useful for layer objects consisting of
@@ -273,7 +273,7 @@ public abstract class LayerObject {
     return icons;
   }
 
-  protected static void addResResDesc(StringBuilder sb, AbstractStruct struct, String resRefAttr, String desc) {
+  protected static void addResRefDesc(StringBuilder sb, AbstractStruct struct, String resRefAttr, String desc) {
     final ResourceRef res = (ResourceRef) struct.getAttribute(resRefAttr, false);
     if (res != null && !res.isEmpty()) {
       if (sb.length() > 1) {
@@ -295,6 +295,6 @@ public abstract class LayerObject {
         sb.append("Trapped (").append(v).append(')');
       }
     }
-    addResResDesc(sb, struct, scriptAttr, "Script: ");
+    addResRefDesc(sb, struct, scriptAttr, "Script: ");
   }
 }

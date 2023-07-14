@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -72,7 +73,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
   private final ArrayDeque<UndoAction> undoStack = new ArrayDeque<>();
 
   private final Listeners listeners = new Listeners();
-  private final JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
+  private final JTabbedPane tabPane = new JTabbedPane(SwingConstants.TOP);
   private final ButtonPopupMenu bpmFind = new ButtonPopupMenu("Find...", ButtonPopupMenu.Align.TOP);
   private final ButtonPopupMenu bpmExport = new ButtonPopupMenu("Export...", ButtonPopupMenu.Align.TOP);
   private final ButtonPopupMenu bpmRevert = new ButtonPopupMenu("Revert...", ButtonPopupMenu.Align.TOP);

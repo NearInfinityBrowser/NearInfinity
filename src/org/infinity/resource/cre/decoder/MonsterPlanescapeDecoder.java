@@ -82,10 +82,10 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder {
   };
 
   // available animation slot names
-  private static final HashMap<Sequence, String> SLOT_MAP = new HashMap<Sequence, String>();
+  private static final HashMap<Sequence, String> SLOT_MAP = new HashMap<>();
 
   // action prefixes used to determine BAM resref for animation sequences
-  private static final HashMap<Sequence, String> ACTION_PREFIX_MAP = new HashMap<Sequence, String>();
+  private static final HashMap<Sequence, String> ACTION_PREFIX_MAP = new HashMap<>();
 
   static {
     SLOT_MAP.put(Sequence.PST_ATTACK1, "attack1");

@@ -28,7 +28,7 @@ import org.infinity.resource.key.ResourceEntry;
  * Handles specific layer type: global GAM/Actor
  */
 public class LayerObjectGlobalActor extends LayerObjectActor {
-  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class);
+  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<>(Allegiance.class);
 
   private static final Point CENTER = new Point(12, 40);
 

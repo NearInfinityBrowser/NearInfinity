@@ -174,12 +174,10 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     index = 0;
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
-      term = term.replaceAll("(\\W)", "\\\\$1");
+      term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
-      term = ".*\\b" + term + "\\b.*";
-    } else {
-      term = ".*" + term + ".*";
+      term = "\\b" + term + "\\b";
     }
     Pattern regPattern;
     try {
@@ -202,7 +200,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
       if (s == null) {
         break;
       }
-      if (regPattern.matcher(s).matches()) {
+      if (regPattern.matcher(s).find()) {
         slave.hitFound(index);
         blocker.setBlocked(false);
         container.requestFocus();

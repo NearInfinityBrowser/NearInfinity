@@ -9,6 +9,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 
 /**
  * A token maker that turns text into a linked list of {@code Token}s for syntax highlighting Infinity Engine INI
@@ -19,12 +20,12 @@ public class INITokenMaker extends AbstractTokenMaker {
   public static final String SYNTAX_STYLE_INI = "text/INI";
 
   // available token types
-  public static final int TOKEN_SECTION       = Token.PREPROCESSOR;
-  public static final int TOKEN_KEY           = Token.RESERVED_WORD;
-  public static final int TOKEN_EQUALS        = Token.OPERATOR;
-  public static final int TOKEN_VALUE         = Token.LITERAL_STRING_DOUBLE_QUOTE;
-  public static final int TOKEN_COMMENT       = Token.COMMENT_EOL;
-  public static final int TOKEN_WHITESPACE    = Token.WHITESPACE;
+  public static final int TOKEN_SECTION       = TokenTypes.PREPROCESSOR;
+  public static final int TOKEN_KEY           = TokenTypes.RESERVED_WORD;
+  public static final int TOKEN_EQUALS        = TokenTypes.OPERATOR;
+  public static final int TOKEN_VALUE         = TokenTypes.LITERAL_STRING_DOUBLE_QUOTE;
+  public static final int TOKEN_COMMENT       = TokenTypes.COMMENT_EOL;
+  public static final int TOKEN_WHITESPACE    = TokenTypes.WHITESPACE;
 
   private static final String WHITESPACE = " \t";
   private static final String NOT_IDENTIFIER = " \t\r\n#;/[]=";
@@ -72,7 +73,7 @@ public class INITokenMaker extends AbstractTokenMaker {
     for (int i = ofs; i < end; i++) {
       char c = array[i];
       switch (currentTokenType) {
-        case Token.NULL: {
+        case TokenTypes.NULL: {
           currentTokenStart = i; // starting new token here
 
           if (isComment(c, i, end, array)) {
@@ -97,7 +98,7 @@ public class INITokenMaker extends AbstractTokenMaker {
             currentTokenType = TOKEN_VALUE;
           } else if (c == ']') {
             addToken(text, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenType = Token.NULL;
+            currentTokenType = TokenTypes.NULL;
           }
           break;
         }
@@ -163,7 +164,7 @@ public class INITokenMaker extends AbstractTokenMaker {
           } else if (!isWhiteSpace(c)) {
             addToken(text, currentTokenStart, i - 1, currentTokenType, newStartOfs + currentTokenStart);
             i--;
-            currentTokenType = Token.NULL;
+            currentTokenType = TokenTypes.NULL;
           }
           break;
         }
@@ -182,7 +183,7 @@ public class INITokenMaker extends AbstractTokenMaker {
 
     // adding the current token to the list
     switch (currentTokenType) {
-      case Token.NULL:
+      case TokenTypes.NULL:
         addNullToken();
         break;
       default:

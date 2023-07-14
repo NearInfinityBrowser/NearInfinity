@@ -46,7 +46,7 @@ public class AmbientDecoder extends SpriteDecoder {
    */
   public static final int LISTTYPE_FLYING = 2;
 
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   static {
     SUFFIX_MAP.put(Sequence.WALK, Couple.with("G1", 0));

@@ -42,6 +42,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.viewer.AreaViewer;
+import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.resource.wmp.AreaEntry;
@@ -564,6 +565,23 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
+  }
+
+  @Override
+  public void removeDatatype(AddRemovable removedEntry, boolean removeRecurse) {
+    if (removedEntry instanceof Actor) {
+      final Actor actor = (Actor) removedEntry;
+      if (!((Flag) actor.getAttribute(Actor.ARE_ACTOR_FLAGS)).isFlagSet(0)) {
+        // remove embedded CRE resource manually
+        final int creOfs = ((IsNumeric) actor.getAttribute(Actor.ARE_ACTOR_OFFSET_CRE_STRUCTURE)).getValue();
+        final int creSize = ((IsNumeric) actor.getAttribute(Actor.ARE_ACTOR_SIZE_CRE_STRUCTURE)).getValue();
+        final StructEntry se = actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
+        if (se instanceof CreResource && creOfs > 0 && creSize > 0) {
+          actor.removeDatatype((CreResource) se, false);
+        }
+      }
+    }
+    super.removeDatatype(removedEntry, removeRecurse);
   }
 
   @Override

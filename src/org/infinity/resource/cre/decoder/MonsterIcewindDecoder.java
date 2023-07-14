@@ -33,9 +33,9 @@ public class MonsterIcewindDecoder extends SpriteDecoder {
   public static final DecoderAttribute KEY_WEAPON_LEFT_HAND = DecoderAttribute.with("weapon_left_hand",
       DecoderAttribute.DataType.BOOLEAN);
 
-  private static final HashMap<Sequence, String> SEQ_MAP = new HashMap<Sequence, String>();
+  private static final HashMap<Sequence, String> SEQ_MAP = new HashMap<>();
 
-  private static final HashMap<Sequence, String> REPLACEMENT_MAP = new HashMap<Sequence, String>();
+  private static final HashMap<Sequence, String> REPLACEMENT_MAP = new HashMap<>();
 
   static {
     SEQ_MAP.put(Sequence.ATTACK, "A1");

@@ -69,8 +69,11 @@ public class LayerObjectWallPoly extends LayerObject {
   }
 
   @Override
-  public AbstractLayerItem getLayerItem(int type) {
-    return (type == 0) ? item : null;
+  public AbstractLayerItem[] getLayerItems(int type) {
+    if (type == 0 && item != null) {
+      return new AbstractLayerItem[] { item };
+    }
+    return new AbstractLayerItem[0];
   }
 
   @Override

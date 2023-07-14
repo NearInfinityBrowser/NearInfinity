@@ -228,7 +228,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         Matcher m = p.matcher(text);
         if (m.find()) {
           startOfs += m.start();
-          endOfs = startOfs + m.end();
+          endOfs = startOfs + m.end() - m.start() + 1;
         }
       }
       highlightText(startOfs, endOfs);

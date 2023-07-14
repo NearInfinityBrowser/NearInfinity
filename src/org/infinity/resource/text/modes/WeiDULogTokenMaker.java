@@ -9,6 +9,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 
 /**
  * A token maker that turns text into a linked list of {@link Token}s for syntax highlighting WeiDU.log content.
@@ -18,10 +19,10 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker {
   public static final String SYNTAX_STYLE_WEIDU = "text/WeiDU";
 
   // available token types
-  public static final int TOKEN_STRING      = Token.LITERAL_STRING_DOUBLE_QUOTE;
-  public static final int TOKEN_NUMBER      = Token.LITERAL_NUMBER_DECIMAL_INT;
-  public static final int TOKEN_COMMENT     = Token.COMMENT_EOL;
-  public static final int TOKEN_WHITESPACE  = Token.WHITESPACE;
+  public static final int TOKEN_STRING      = TokenTypes.LITERAL_STRING_DOUBLE_QUOTE;
+  public static final int TOKEN_NUMBER      = TokenTypes.LITERAL_NUMBER_DECIMAL_INT;
+  public static final int TOKEN_COMMENT     = TokenTypes.COMMENT_EOL;
+  public static final int TOKEN_WHITESPACE  = TokenTypes.WHITESPACE;
 
   private static final String CHAR_DIGIT       = "-0123456789";
 
@@ -48,7 +49,7 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker {
     for (int i = ofs; i < end; i++) {
       char c = array[i];
       switch (currentTokenType) {
-        case Token.NULL: {
+        case TokenTypes.NULL: {
           currentTokenStart = i; // starting new token here
 
           if (c == '~') {
@@ -65,7 +66,7 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker {
         case TOKEN_STRING: {
           if (c == '~') {
             addToken(text, currentTokenStart, i, currentTokenType, newStartOfs + currentTokenStart);
-            currentTokenType = Token.NULL;
+            currentTokenType = TokenTypes.NULL;
           }
           break;
         }
@@ -114,7 +115,7 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker {
 
     // adding the current token to the list
     switch (currentTokenType) {
-      case Token.NULL:
+      case TokenTypes.NULL:
         addNullToken();
         break;
       default:

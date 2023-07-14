@@ -21,7 +21,7 @@ public class FrameInfo {
   public static final Stroke STROKE_BOUNDING_BOX = new BasicStroke(1.0f);
 
   /** Predefined colors for the bounding box around creature sprite elements. */
-  public static final EnumMap<SegmentDef.SpriteType, Color> SPRITE_COLOR = new EnumMap<SegmentDef.SpriteType, Color>(
+  public static final EnumMap<SegmentDef.SpriteType, Color> SPRITE_COLOR = new EnumMap<>(
       SegmentDef.SpriteType.class);
 
   static {

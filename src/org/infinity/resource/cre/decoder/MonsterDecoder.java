@@ -63,16 +63,16 @@ public class MonsterDecoder extends SpriteDecoder {
       DecoderAttribute.DataType.STRING);
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<>();
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (split version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<>();
 
   /** Replacement sequences if original sequence definition is missing (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_UNSPLIT = new HashMap<>();
 
   /** Replacement sequences if original sequence definition is missing (split version). - not needed - */
-  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> REPLACEMENT_MAP_SPLIT = new HashMap<>();
 
   static {
     SUFFIX_MAP_UNSPLIT.put(Sequence.WALK, Couple.with("G1", 0));

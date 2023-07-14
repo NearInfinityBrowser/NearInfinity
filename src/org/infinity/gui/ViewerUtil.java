@@ -21,13 +21,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -51,17 +54,21 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
+import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
+import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.IconCache;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
@@ -236,11 +243,11 @@ public final class ViewerUtil {
     return check;
   }
 
-  public static JPanel makeCheckPanel(Flag flag, int rows) {
-    JPanel panel = new JPanel(new GridLayout(0, rows, 8, 4));
+  public static JPanel makeCheckPanel(Flag flag, int cols) {
+    JPanel panel = new JPanel(new GridLayout(0, cols, 8, 4));
     for (int i = 0; i < flag.getSize() << 3; i++) {
       final String label = flag.getString(i);
-      if (label != null) {
+      if (label != null && !label.isEmpty()) {
         final JLabel check = new JLabel(label);
         final Icons icon = flag.isFlagSet(i) ? Icons.ICON_CHECK_16 : Icons.ICON_CHECK_NOT_16;
         check.setIcon(icon.getIcon());
@@ -286,23 +293,107 @@ public final class ViewerUtil {
    * @param title     Name of the panel
    * @param struct    Structure, which attributes must be shown in the returned editor
    * @param listClass List will contain all attributes of {@code struct} with this class
+   *
+   * @return Editor for show list of the specified attributes
+   */
+  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass) {
+    return new StructListPanel(title, struct, listClass, null, null, null);
+  }
+
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
    * @param attrName  Name of attribute in the {@code listClass}, used to show in the list
    *
-   * @return Editor for show list of the specified attrubutes
+   * @return Editor for show list of the specified attributes
    */
   public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName) {
-    return new StructListPanel(title, struct, listClass, attrName, null, null);
+    return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), null, null);
   }
 
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrName  Name of attribute in the {@code listClass}, used to show in the list
+   * @param renderer  A custom renderer for displaying list entries.
+   *
+   * @return Editor for show list of the specified attributes
+   */
   public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName, ListCellRenderer<Object> renderer) {
-    return new StructListPanel(title, struct, listClass, attrName, renderer, null);
+    return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), renderer, null);
   }
 
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrName  Name of attribute in the {@code listClass}, used to show in the list
+   * @param renderer  A custom renderer for displaying list entries.
+   * @param listener  A custom {@link ListSelectionListener} that reacts to list selection events.
+   *
+   * @return Editor for show list of the specified attributes
+   */
   public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
-    return new StructListPanel(title, struct, listClass, attrName, renderer, listener);
+    return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), renderer, listener);
+  }
+
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrEntry A function that retrieves and returns a {@code StructEntry} to be displayed in the list.
+   *
+   * @return Editor for show list of the specified attributes
+   */
+  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+      AttributeEntry attrEntry) {
+    return new StructListPanel(title, struct, listClass, attrEntry, null, null);
+  }
+
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrEntry A function that retrieves and returns a {@code StructEntry} to be displayed in the list.
+   * @param renderer  A custom renderer for displaying list entries.
+   *
+   * @return Editor for show list of the specified attributes
+   */
+  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+      AttributeEntry attrEntry, ListCellRenderer<Object> renderer) {
+    return new StructListPanel(title, struct, listClass, attrEntry, renderer, null);
+  }
+
+  /**
+   * Creates panel with the name, list control and button for edit selected list element.
+   *
+   * @param title     Name of the panel
+   * @param struct    Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrEntry A function that retrieves and returns a {@code StructEntry} to be displayed in the list.
+   * @param renderer  A custom renderer for displaying list entries.
+   * @param listener  A custom {@link ListSelectionListener} that reacts to list selection events.
+   *
+   * @return Editor for show list of the specified attributes
+   */
+  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+      AttributeEntry attrEntry, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
+    return new StructListPanel(title, struct, listClass, attrEntry, renderer, listener);
   }
 
   /**
@@ -422,10 +513,40 @@ public final class ViewerUtil {
     return l;
   }
 
+  /**
+   * Creates a functional object that derives a {@link StructEntry} instance with the specified {@code attrName}
+   * from a given {@link StructEntry} input object.
+   *
+   * @param attrName Name of the attribute to find and return.
+   * @return A {@link AttributeEntry} object if {@code attrName} parameter is not {@code null}, {@code null} otherwise.
+   */
+  private static AttributeEntry getAttributeEntry(String attrName) {
+    if (attrName != null) {
+      return (item) -> (item instanceof AbstractStruct) ? ((AbstractStruct) item).getAttribute(attrName) : item;
+    } else {
+      return null;
+    }
+  }
+
   private ViewerUtil() {
   }
 
   // -------------------------- INNER CLASSES --------------------------
+
+  /**
+   * A functional interface that is used to find a {@link StructEntry} attribute from a given resource or substructure
+   * for display in the list.
+   *
+   * <p>
+   * <strong>Types:</strong>
+   * <ul>
+   * <li><strong>Parameter:</strong> {@code StructEntry} that contains the attribute for display.</li>
+   * <li><strong>Return value:</strong> {@code StructEntry} that is used for display in the list.</li>
+   * </ul>
+   * </p>
+   */
+  public static interface AttributeEntry extends Function<StructEntry, StructEntry> {
+  }
 
   public static final class StructListPanel extends JPanel implements TableModelListener, ActionListener {
     private final AbstractStruct struct;
@@ -435,7 +556,7 @@ public final class ViewerUtil {
     private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
 
     private StructListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
-        String attrName, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
+        AttributeEntry attrEntry, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
       super(new BorderLayout(0, 3));
       this.struct = struct;
       this.listClass = listClass;
@@ -448,7 +569,7 @@ public final class ViewerUtil {
       if (renderer != null) {
         list.setCellRenderer(renderer);
       }
-      if (attrName == null) {
+      if (attrEntry == null) {
         for (final StructEntry o : struct.getFields()) {
           if (o.getClass() == listClass) {
             listModel.addElement(o);
@@ -456,7 +577,7 @@ public final class ViewerUtil {
         }
       } else {
         if (renderer == null) {
-          list.setCellRenderer(new StructListRenderer(attrName));
+          list.setCellRenderer(new StructListRenderer(attrEntry));
         }
         final List<AbstractStruct> templist = new ArrayList<>();
         for (final StructEntry o : struct.getFields()) {
@@ -464,7 +585,7 @@ public final class ViewerUtil {
             templist.add((AbstractStruct) o);
           }
         }
-        Collections.sort(templist, new StructListComparator(attrName));
+        Collections.sort(templist, new StructListComparator(attrEntry));
         for (AbstractStruct s : templist) {
           listModel.addElement(s);
         }
@@ -554,31 +675,48 @@ public final class ViewerUtil {
     String getListValue(Object value);
   }
 
-  private static final class StructListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
-    private final String attrName;
+  public static class StructListRenderer extends DefaultListCellRenderer implements ListValueRenderer {
+    /** List of classes containing references to associated graphics resources. */
+    private static final List<Class<? extends AbstractStruct>> SUPPORTED_STRUCTURES = Arrays.asList(
+        org.infinity.resource.cre.KnownSpells.class,
+        org.infinity.resource.sto.Cure.class,
+        org.infinity.resource.sto.ItemSale.class,
+        org.infinity.resource.sto.ItemSale11.class
+    );
 
-    private StructListRenderer(String attrName) {
-      this.attrName = attrName;
+    private final AttributeEntry attrEntry;
+    private final boolean showIcons;
+
+    public StructListRenderer(AttributeEntry attrEntry) {
+      this.attrEntry = attrEntry;
+      this.showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons();
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
         boolean cellHasFocus) {
-      JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      label.setText(getListValue(value));
-      return label;
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      setText(getListValue(value));
+
+      if (showIcons && value instanceof AbstractStruct) {
+        final Icon icon = loadIcon((AbstractStruct) value);
+        if (icon != null) {
+          setIcon(icon);
+        }
+      }
+
+      return this;
     }
 
     @Override
     public String getListValue(Object value) {
-      if (value instanceof AbstractStruct) {
-        AbstractStruct effect = (AbstractStruct) value;
-        StructEntry entry = effect.getAttribute(attrName);
+      if (value instanceof StructEntry) {
+        final StructEntry entry = attrEntry.apply((StructEntry) value);
         if (entry instanceof ResourceRef) {
           ResourceRef resRef = (ResourceRef) entry;
           return resRef.getSearchName() + " (" + resRef.getResourceName() + ')';
         } else if (entry == null || entry.toString().trim().isEmpty()) {
-          return effect.toString();
+          return value.toString();
         } else if (entry != null) {
           return entry.toString();
         }
@@ -587,18 +725,63 @@ public final class ViewerUtil {
       }
       return "";
     }
+
+    /**
+     * Attempts to find and return a graphics associated with the specified {@link AbstractStruct} instance,
+     * as {@link Icon}.
+     */
+    private Icon loadIcon(AbstractStruct struct) {
+      Icon retVal = null;
+
+      if (struct != null) {
+        ResourceEntry entry = null;
+        StructEntry se = null;
+        int iconSize = IconCache.getDefaultListIconSize();
+        boolean searchExtraDirs = false;
+
+        if (struct instanceof AbstractAbility) {
+          // ITM/SPL ability icon
+          se = struct.getAttribute(AbstractAbility.ABILITY_ICON);
+        } else if (struct instanceof PartyNPC) {
+          // (Non-)player character portrait
+          StructEntry cre = struct.getAttribute(PartyNPC.GAM_NPC_CRE_RESOURCE);
+          if (cre instanceof CreResource) {
+            se = ((CreResource) cre).getAttribute(CreResource.CRE_PORTRAIT_SMALL);
+            iconSize = IconCache.getDefaultListIconSize() * 2;  // increase to thumbnail size
+            searchExtraDirs = true; // bitmaps can be in "Portraits" folder
+          }
+        } else {
+          // Resource-specific icon
+          for (final Class<? extends AbstractStruct> as : SUPPORTED_STRUCTURES) {
+            if (as.isAssignableFrom(struct.getClass())) {
+              se = attrEntry.apply(struct);
+              break;
+            }
+          }
+        }
+
+        if (se != null) {
+          if (se instanceof ResourceRef) {
+            entry = ResourceFactory.getResourceEntry(((ResourceRef) se).getResourceName(), searchExtraDirs);
+          }
+          retVal = IconCache.get(entry, iconSize);
+        }
+      }
+
+      return retVal;
+    }
   }
 
   private static final class StructListComparator implements Comparator<AbstractStruct> {
-    private final String attrName;
+    private final AttributeEntry attrEntry;
 
-    private StructListComparator(String attrName) {
-      this.attrName = attrName;
+    private StructListComparator(AttributeEntry attrEntry) {
+      this.attrEntry = attrEntry;
     }
 
     @Override
     public int compare(AbstractStruct as1, AbstractStruct as2) {
-      return as1.getAttribute(attrName).toString().compareTo(as2.getAttribute(attrName).toString());
+      return attrEntry.apply(as1).toString().compareTo(attrEntry.apply(as2).toString());
     }
   }
 

@@ -398,7 +398,7 @@ public class SearchOptions implements Cloneable {
             break;
           default:
         }
-        sb.append(")=0x").append(Long.toHexString((long) getValueBitfield() & 0xffffffffL));
+        sb.append(")=0x").append(Long.toHexString(getValueBitfield() & 0xffffffffL));
         break;
       default:
     }

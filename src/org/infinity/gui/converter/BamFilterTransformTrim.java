@@ -15,6 +15,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.util.Arrays;
+import java.util.EnumMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -35,14 +36,30 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
   private static final String FILTER_DESC = "This filter attempts to remove unused space around each "
                                             + "BAM frame. Center positions will be adjusted accordingly.";
 
-  private static final int EDGE_TOP     = 0;
-  private static final int EDGE_BOTTOM  = 1;
-  private static final int EDGE_LEFT    = 2;
-  private static final int EDGE_RIGHT   = 3;
-  private static final String[] EDGE_LABELS = { "Top", "Bottom", "Left", "Right" };
+  private enum Edge {
+    Top("Top"),
+    Bottom("Bottom"),
+    Left("Left"),
+    Right("Right"),
+    ;
 
-  private JCheckBox[] cbEdges;
+    private final String label;
 
+    private Edge(String label) {
+      this.label = label;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    @Override
+    public String toString() {
+      return getLabel();
+    }
+  }
+
+  private EnumMap<Edge, JCheckBox> cbEdges;
   private JSpinner spinnerMargin;
   private JCheckBox cbAdjustCenter;
 
@@ -71,10 +88,10 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
   @Override
   public String getConfiguration() {
     StringBuilder sb = new StringBuilder();
-    sb.append(cbEdges[EDGE_TOP].isSelected()).append(';');
-    sb.append(cbEdges[EDGE_LEFT].isSelected()).append(';');
-    sb.append(cbEdges[EDGE_BOTTOM].isSelected()).append(';');
-    sb.append(cbEdges[EDGE_RIGHT].isSelected()).append(';');
+    sb.append(cbEdges.get(Edge.Top).isSelected()).append(';');
+    sb.append(cbEdges.get(Edge.Left).isSelected()).append(';');
+    sb.append(cbEdges.get(Edge.Bottom).isSelected()).append(';');
+    sb.append(cbEdges.get(Edge.Right).isSelected()).append(';');
     sb.append(((SpinnerNumberModel) spinnerMargin.getModel()).getNumber().intValue()).append(';');
     sb.append(cbAdjustCenter.isSelected());
     return sb.toString();
@@ -144,10 +161,10 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
           }
         }
 
-        cbEdges[EDGE_TOP].setSelected(t);
-        cbEdges[EDGE_LEFT].setSelected(l);
-        cbEdges[EDGE_BOTTOM].setSelected(b);
-        cbEdges[EDGE_RIGHT].setSelected(r);
+        cbEdges.get(Edge.Top).setSelected(t);
+        cbEdges.get(Edge.Left).setSelected(l);
+        cbEdges.get(Edge.Bottom).setSelected(b);
+        cbEdges.get(Edge.Right).setSelected(r);
         if (margin != Integer.MIN_VALUE) {
           spinnerMargin.setValue(margin);
         }
@@ -166,10 +183,11 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
     JLabel l2 = new JLabel("Margin:");
     JLabel l3 = new JLabel("pixels");
 
-    cbEdges = new JCheckBox[4];
-    for (int i = 0; i < cbEdges.length; i++) {
-      cbEdges[i] = new JCheckBox(EDGE_LABELS[i], true);
-      cbEdges[i].addActionListener(this);
+    cbEdges = new EnumMap<>(Edge.class);
+    for (final Edge edge : Edge.values()) {
+      final JCheckBox cb = new JCheckBox(edge.getLabel(), true);
+      cb.addActionListener(this);
+      cbEdges.put(edge, cb);
     }
 
     spinnerMargin = new JSpinner(new SpinnerNumberModel(0, 0, 255, 1));
@@ -181,16 +199,16 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
     JPanel p1 = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 0, 0), 0, 0);
-    p1.add(cbEdges[EDGE_TOP], c);
+    p1.add(cbEdges.get(Edge.Top), c);
     ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 8, 0, 0), 0, 0);
-    p1.add(cbEdges[EDGE_LEFT], c);
+    p1.add(cbEdges.get(Edge.Left), c);
     ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 8, 0, 0), 0, 0);
-    p1.add(cbEdges[EDGE_BOTTOM], c);
+    p1.add(cbEdges.get(Edge.Bottom), c);
     ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 8, 0, 0), 0, 0);
-    p1.add(cbEdges[EDGE_RIGHT], c);
+    p1.add(cbEdges.get(Edge.Right), c);
 
     JPanel p2 = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
@@ -235,8 +253,8 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
     if (event.getSource() == cbAdjustCenter) {
       fireChangeListener();
     } else {
-      for (JCheckBox cbEdge : cbEdges) {
-        if (cbEdge == event.getSource()) {
+      for (final JCheckBox cb : cbEdges.values()) {
+        if (cb == event.getSource()) {
           fireChangeListener();
           return;
         }
@@ -292,12 +310,12 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
 
       // calculating the properties of the resulting image
       int left = 0, right = width - 1, top = 0, bottom = height - 1;
-      boolean edgeLeft = !cbEdges[EDGE_LEFT].isSelected(), edgeRight = !cbEdges[EDGE_RIGHT].isSelected(),
-          edgeTop = !cbEdges[EDGE_TOP].isSelected(), edgeBottom = !cbEdges[EDGE_BOTTOM].isSelected();
+      boolean edgeLeft = !cbEdges.get(Edge.Left).isSelected(), edgeRight = !cbEdges.get(Edge.Right).isSelected(),
+          edgeTop = !cbEdges.get(Edge.Top).isSelected(), edgeBottom = !cbEdges.get(Edge.Bottom).isSelected();
       while ((left < right || top < bottom) && (!edgeLeft || !edgeRight || !edgeTop || !edgeBottom)) {
         int ofs, step;
         // checking top edge
-        if (cbEdges[EDGE_TOP].isSelected() && !edgeTop) {
+        if (cbEdges.get(Edge.Top).isSelected() && !edgeTop) {
           ofs = top * width;
           step = 1;
           for (int x = 0; x < width; x++, ofs += step) {
@@ -316,7 +334,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
         }
 
         // checking bottom edge
-        if (cbEdges[EDGE_BOTTOM].isSelected() && !edgeBottom) {
+        if (cbEdges.get(Edge.Bottom).isSelected() && !edgeBottom) {
           ofs = bottom * width;
           step = 1;
           for (int x = 0; x < width; x++, ofs += step) {
@@ -335,7 +353,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
         }
 
         // checking left edge
-        if (cbEdges[EDGE_LEFT].isSelected() && !edgeLeft) {
+        if (cbEdges.get(Edge.Left).isSelected() && !edgeLeft) {
           ofs = left;
           step = width;
           for (int y = 0; y < height; y++, ofs += step) {
@@ -354,7 +372,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
         }
 
         // checking right edge
-        if (cbEdges[EDGE_RIGHT].isSelected() && !edgeRight) {
+        if (cbEdges.get(Edge.Right).isSelected() && !edgeRight) {
           ofs = right;
           step = width;
           for (int y = 0; y < height; y++, ofs += step) {
@@ -392,18 +410,18 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
       int dstY = 0;
       newWidth = right - left + 1;
       newHeight = bottom - top + 1;
-      if (cbEdges[EDGE_LEFT].isSelected()) {
+      if (cbEdges.get(Edge.Left).isSelected()) {
         newWidth += margin;
         dstX += margin;
       }
-      if (cbEdges[EDGE_RIGHT].isSelected()) {
+      if (cbEdges.get(Edge.Right).isSelected()) {
         newWidth += margin;
       }
-      if (cbEdges[EDGE_TOP].isSelected()) {
+      if (cbEdges.get(Edge.Top).isSelected()) {
         newHeight += margin;
         dstY += margin;
       }
-      if (cbEdges[EDGE_BOTTOM].isSelected()) {
+      if (cbEdges.get(Edge.Bottom).isSelected()) {
         newHeight += margin;
       }
       if (srcB != null) {

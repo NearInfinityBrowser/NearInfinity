@@ -43,13 +43,13 @@ public class CharacterOldDecoder extends CharacterBaseDecoder {
   public static final DecoderAttribute KEY_SHADOW = DecoderAttribute.with("shadow", DecoderAttribute.DataType.STRING);
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence. */
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP = new HashMap<>();
 
   /** BAM suffix and cycle index for extended walk directions. */
   private static final Couple<String, Integer> WALK_EXTRA = Couple.with("W2", 0);
 
   /** Set of invalid attack type / animation sequence combinations. */
-  private static final EnumMap<AttackType, EnumSet<Sequence>> FORBIDDEN_SEQUENCES_MAP = new EnumMap<AttackType, EnumSet<Sequence>>(
+  private static final EnumMap<AttackType, EnumSet<Sequence>> FORBIDDEN_SEQUENCES_MAP = new EnumMap<>(
       AttackType.class);
 
   // the default shadow of the animation

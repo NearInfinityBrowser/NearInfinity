@@ -11,6 +11,7 @@ import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rsyntaxtextarea.folding.Fold;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldType;
@@ -61,17 +62,17 @@ public class BCSFoldParser implements FoldParser {
               // otherwise this MLC is continuing on to yet another line
             } else {
               // if we're in an MLC that ends on a later line...
-              if (t.getType() == Token.COMMENT_MULTILINE && !t.endsWith(MLC_END)) {
+              if (t.getType() == TokenTypes.COMMENT_MULTILINE && !t.endsWith(MLC_END)) {
                 inMLC = true;
                 mlcStart = t.getOffset();
               }
             }
-          } else if (t.is(Token.RESERVED_WORD, BLOCK_START)) {
+          } else if (t.is(TokenTypes.RESERVED_WORD, BLOCK_START)) {
             // a script block starts
             if (curFold == null) {
               curFold = new Fold(FoldType.CODE, textArea, t.getOffset());
             }
-          } else if (t.is(Token.RESERVED_WORD, BLOCK_END)) {
+          } else if (t.is(TokenTypes.RESERVED_WORD, BLOCK_END)) {
             // a script block ends - we don't need to consider nested blocks
             if (curFold != null) {
               curFold.setEndOffset(t.getEndOffset() - 1);

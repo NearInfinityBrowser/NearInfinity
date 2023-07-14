@@ -222,7 +222,7 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
       buttonPanel.add(openStringTableButton);
       buttonPanel.add(saveButton);
 
-      tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+      tabbedPane = new JTabbedPane(SwingConstants.TOP);
 
       // Male string table
       JScrollPane scrollTable = new JScrollPane(table);

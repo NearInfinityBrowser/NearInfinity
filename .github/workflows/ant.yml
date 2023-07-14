@@ -2,9 +2,9 @@ name: Java CI with Apache Ant
 
 on:
   push:
-    branches: [ devel, master ]
+    branches: [ devel ]
   pull_request:
-    branches: [ devel, master ]
+    branches: [ devel ]
 
 jobs:
   build:
@@ -17,4 +17,15 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
       - name: Build with Ant
-        run: ant -noinput -buildfile build.xml
+        run: |
+          hash=$(echo "${{ github.sha }}" | sed -e 's/\(.\{7\}\).*/\1/')
+          sed -i "s/\(VERSION *= *\"v\?[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\)[^\"]*\"/\1-$(date +%Y%m%d) (${hash})\"/" src/org/infinity/NearInfinity.java
+          sed -i 's/debug="false"/debug="true"/' build.xml
+          ant -noinput -buildfile build.xml
+      - name: Upload artifact
+        uses: pyTooling/Actions/releaser@r0
+        with:
+          tag: nightly
+          rm: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: NearInfinity.jar

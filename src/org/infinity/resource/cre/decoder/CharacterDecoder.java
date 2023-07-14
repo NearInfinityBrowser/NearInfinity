@@ -48,13 +48,13 @@ public class CharacterDecoder extends CharacterBaseDecoder {
       DecoderAttribute.DataType.STRING);
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (unsplit version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_UNSPLIT = new HashMap<>();
 
   /** Assigns BAM suffix and cycle index to a specific animation sequence (split version). */
-  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<Sequence, Couple<String, Integer>>();
+  private static final HashMap<Sequence, Couple<String, Integer>> SUFFIX_MAP_SPLIT = new HashMap<>();
 
   /** Set of invalid attack type / animation sequence combinations. */
-  private static final EnumMap<AttackType, EnumSet<Sequence>> FORBIDDEN_SEQUENCES_MAP = new EnumMap<AttackType, EnumSet<Sequence>>(
+  private static final EnumMap<AttackType, EnumSet<Sequence>> FORBIDDEN_SEQUENCES_MAP = new EnumMap<>(
       AttackType.class);
 
   static {

@@ -10,6 +10,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
@@ -122,14 +124,18 @@ public class LayerObjectAmbient extends LayerObject {
    * @return The layer item of specified type.
    */
   @Override
-  public AbstractLayerItem getLayerItem(int type) {
-    if (type == ViewerConstants.AMBIENT_ITEM_RANGE) {
-      return itemShape;
+  public AbstractLayerItem[] getLayerItems(int type) {
+    final List<AbstractLayerItem> list = new ArrayList<>();
+
+    if ((type & ViewerConstants.AMBIENT_ITEM_RANGE) == ViewerConstants.AMBIENT_ITEM_RANGE && itemShape != null) {
+      list.add(itemShape);
     }
-    if (type == ViewerConstants.AMBIENT_ITEM_ICON) {
-      return itemIcon;
+
+    if ((type & ViewerConstants.AMBIENT_ITEM_ICON) == ViewerConstants.AMBIENT_ITEM_ICON) {
+      list.add(itemIcon);
     }
-    return null;
+
+    return list.toArray(new AbstractLayerItem[0]);
   }
 
   @Override

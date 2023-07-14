@@ -30,21 +30,21 @@ public class BCSTokenMaker extends AbstractTokenMaker {
   public static final String SYNTAX_STYLE_BCS = "text/BCS";
 
   // available token types
-  public static final int TOKEN_IDENTIFIER    = Token.IDENTIFIER;   // used for unrecognized literals
-  public static final int TOKEN_KEYWORD       = Token.RESERVED_WORD;
-  public static final int TOKEN_ACTION        = Token.FUNCTION;
-  public static final int TOKEN_TRIGGER       = Token.DATA_TYPE;
-  public static final int TOKEN_OBJECT        = Token.VARIABLE;
-  public static final int TOKEN_NUMBER        = Token.LITERAL_NUMBER_DECIMAL_INT;
-  public static final int TOKEN_HEXNUMBER     = Token.LITERAL_NUMBER_HEXADECIMAL;
-  public static final int TOKEN_BINNUMBER     = Token.LITERAL_NUMBER_FLOAT;
-  public static final int TOKEN_STRING        = Token.LITERAL_STRING_DOUBLE_QUOTE;
-  public static final int TOKEN_COMMENT_LINE  = Token.COMMENT_EOL;
-  public static final int TOKEN_COMMENT_BLOCK = Token.COMMENT_MULTILINE;
-  public static final int TOKEN_SYMBOL        = Token.MARKUP_TAG_NAME;
-  public static final int TOKEN_SYMBOL_SPELL  = Token.MARKUP_TAG_ATTRIBUTE;
-  public static final int TOKEN_OPERATOR      = Token.OPERATOR;
-  public static final int TOKEN_WHITESPACE    = Token.WHITESPACE;
+  public static final int TOKEN_IDENTIFIER    = TokenTypes.IDENTIFIER;   // used for unrecognized literals
+  public static final int TOKEN_KEYWORD       = TokenTypes.RESERVED_WORD;
+  public static final int TOKEN_ACTION        = TokenTypes.FUNCTION;
+  public static final int TOKEN_TRIGGER       = TokenTypes.DATA_TYPE;
+  public static final int TOKEN_OBJECT        = TokenTypes.VARIABLE;
+  public static final int TOKEN_NUMBER        = TokenTypes.LITERAL_NUMBER_DECIMAL_INT;
+  public static final int TOKEN_HEXNUMBER     = TokenTypes.LITERAL_NUMBER_HEXADECIMAL;
+  public static final int TOKEN_BINNUMBER     = TokenTypes.LITERAL_NUMBER_FLOAT;
+  public static final int TOKEN_STRING        = TokenTypes.LITERAL_STRING_DOUBLE_QUOTE;
+  public static final int TOKEN_COMMENT_LINE  = TokenTypes.COMMENT_EOL;
+  public static final int TOKEN_COMMENT_BLOCK = TokenTypes.COMMENT_MULTILINE;
+  public static final int TOKEN_SYMBOL        = TokenTypes.MARKUP_TAG_NAME;
+  public static final int TOKEN_SYMBOL_SPELL  = TokenTypes.MARKUP_TAG_ATTRIBUTE;
+  public static final int TOKEN_OPERATOR      = TokenTypes.OPERATOR;
+  public static final int TOKEN_WHITESPACE    = TokenTypes.WHITESPACE;
 
   private static final String CHAR_WHITE_SPACE    = " \t";
   private static final String CHAR_OPERATOR      = "!|,.()[]";

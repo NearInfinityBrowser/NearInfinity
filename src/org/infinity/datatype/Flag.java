@@ -241,8 +241,8 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return i < 0 || i > table.length ? null : table[i];
   }
 
-  public boolean isFlagSet(int i) {
-    long bitnr = 1L << i;
+  public boolean isFlagSet(int bit) {
+    long bitnr = 1L << bit;
     return (value & bitnr) == bitnr;
   }
 

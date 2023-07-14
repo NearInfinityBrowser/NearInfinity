@@ -141,7 +141,7 @@ public class BaseOpcode {
   public static final TreeMap<Long, String> COLOR_LOCATIONS_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> PROJECTILES_IWD_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> INC_TYPES_MAP = new TreeMap<>();
-  public static final TreeMap<Long, String> ATTACKS_EE_MAP = new TreeMap<Long, String>();
+  public static final TreeMap<Long, String> ATTACKS_EE_MAP = new TreeMap<>();
 
   public static final String[] INC_TYPES = { "Increment", "Set", "Set % of" };
 

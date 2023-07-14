@@ -28,6 +28,7 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ToolTipTableCellRenderer;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -43,7 +44,8 @@ final class ViewerSpells extends JPanel implements ActionListener {
     super(new BorderLayout(0, 3));
     tableModel = new MemSpellTableModel(cre);
     table = new JTable(tableModel);
-    table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
+    table.setDefaultRenderer(Object.class,
+        new ToolTipTableCellRenderer(BrowserMenuBar.getInstance().getOptions().showResourceListIcons()));
     ((DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer())
         .setHorizontalAlignment(SwingConstants.LEFT);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

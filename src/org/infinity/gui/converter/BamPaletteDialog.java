@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -49,6 +51,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
@@ -72,7 +75,8 @@ class BamPaletteDialog extends JDialog
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<>();
   private final int[][] palettes = new int[2][];
 
-  private ConvertToBam converter;
+  private final ConvertToBam converter;
+
   private ColorGrid cgPalette;
   private JLabel lInfoType;
   private JLabel lInfoIndex;
@@ -362,25 +366,27 @@ class BamPaletteDialog extends JDialog
         }
       } else {
         // reducing color count to max. 256
+        int threshold = ConvertToBam.getUseAlpha() ? -1 : ConvertToBam.getTransparencyThreshold();
+        int alpha = threshold >= 0 ? 0xff000000 : 0;
+        Set<Integer> colors = colorMap
+            .keySet()
+            .stream()
+            .map(color -> PseudoBamDecoder.isTransparentColor(color, threshold) ? Green : color | alpha)
+            .collect(Collectors.toSet());
 
-        // medianCut() should not consider the special transparent green color, workaround to keep it preserved
-        final Integer savedGreen = colorMap.remove(Green);
-        final int[] pixels = new int[colorMap.size()];
-        final Iterator<Integer> iter = colorMap.keySet().iterator();
-        int idx = 0;
-        while (idx < pixels.length && iter.hasNext()) {
-          pixels[idx] = iter.next();
-          idx++;
-        }
-        final int desiredColors = savedGreen != null ? 255 : 256;
+        // medianCut() should not consider the special transparent "green" color, workaround to keep it preserved
+        boolean hasGreen = colors.remove(Green);
+
+        final int[] pixels = colors.stream().mapToInt(Integer::intValue).toArray();
+        final int desiredColors = hasGreen ? 255 : 256;
         ColorConvert.medianCut(pixels, desiredColors, palettes[TYPE_GENERATED], false);
-        if (savedGreen != null) {
-          colorMap.put(Green, savedGreen);
+
+        if (hasGreen) {
           palettes[TYPE_GENERATED][255] = Green;
         }
       }
 
-      // moving special "green" to the first index
+      // moving special "green" color to the first index
       if ((palettes[TYPE_GENERATED][0] & 0x00ffffff) != 0x0000ff00) {
         for (int i = 1; i < palettes[TYPE_GENERATED].length; i++) {
           if ((palettes[TYPE_GENERATED][i] & 0x00ffffff) == 0x0000ff00) {
@@ -394,7 +400,7 @@ class BamPaletteDialog extends JDialog
 
       if (colorMap.size() > 256) {
         boolean ignoreAlpha = !(Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
-        int startIdx = (palettes[TYPE_GENERATED][0] & 0xffffff) == 0x00ff00 ? 1 : 0;
+        int startIdx = (palettes[TYPE_GENERATED][0] | 0xff000000) == Green ? 1 : 0;
         ColorConvert.sortPalette(palettes[TYPE_GENERATED], startIdx, BamOptionsDialog.getSortPalette(), ignoreAlpha);
       }
 

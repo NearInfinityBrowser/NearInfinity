@@ -66,14 +66,6 @@ public class OptionCheckBox extends OptionElementBase {
     return this;
   }
 
-  @Override
-  protected OptionCheckBox setUiEnabled(boolean enable) {
-    if (checkBox != null) {
-      checkBox.setEnabled(enable);
-    }
-    return this;
-  }
-
   /**
    * Returns the function that will be executed right before the UI elements for the option are created.
    */
@@ -154,6 +146,8 @@ public class OptionCheckBox extends OptionElementBase {
     checkBox.setText(getLabel());
     checkBox.setSelected(getValue());
     checkBox.setEnabled(isEnabled());
+    addUiComponent(checkBox);
+
     return this;
   }
 
@@ -164,7 +158,9 @@ public class OptionCheckBox extends OptionElementBase {
 
   /** Sets the {@code JCheckBox} component of the OptionCheckBox UI. */
   public OptionCheckBox setUiCheckBox(JCheckBox checkBox) {
+    removeUiComponent(this.checkBox);
     this.checkBox = checkBox;
+    addUiComponent(this.checkBox);
     return this;
   }
 

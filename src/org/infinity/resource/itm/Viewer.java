@@ -13,11 +13,13 @@ import java.awt.Insets;
 import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
 import org.infinity.datatype.EffectType;
@@ -36,28 +38,85 @@ import org.infinity.util.Table2daCache;
 final class Viewer extends JPanel {
   Viewer(ItmResource itm) {
     // row 0, column 0
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
-    JComponent groundIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
-    JPanel iconsPanel = new JPanel(new GridLayout(2, 1, 0, 6));
-    iconsPanel.add(iconPanel);
-    iconsPanel.add(groundIconPanel);
-
-    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_FLAGS), 1);
-
+    // top region
+    // Properties panel
     JPanel propertiesPanel = makeFieldPanel(itm);
 
-    JPanel iconsFlagsPanel = new JPanel(new BorderLayout(3, 0));
-    iconsFlagsPanel.add(iconsPanel, BorderLayout.CENTER);
-    iconsFlagsPanel.add(flagsPanel, BorderLayout.WEST);
+    // Icons panel
+    JComponent itemIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
+    JComponent groundIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
+    JPanel iconsPanel = new JPanel(new GridLayout(2, 1, 0, 6));
+    iconsPanel.add(itemIconPanel);
+    iconsPanel.add(groundIconPanel);
+
+    // laying out properties and icons
+    JPanel iconsPropertiesPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = ViewerUtil.setGBC(null, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    iconsPropertiesPanel.add(propertiesPanel, gbc);
+    gbc = ViewerUtil.setGBC(null, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
+    iconsPropertiesPanel.add(iconsPanel, gbc);
+
+    // bottom region
+    // Flag panel
+    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_FLAGS), 1);
+
+    // General usability flags panel
+    JPanel usabilityPanel = ViewerUtil.makeCheckPanel((Flag) itm.getAttribute(ItmResource.ITM_UNUSABLE_BY), 1);
+
+    // Kit-specific usability flags panel
+    JPanel kitUsabilityPanel = new JPanel();
+    kitUsabilityPanel.setLayout(new BoxLayout(kitUsabilityPanel, BoxLayout.Y_AXIS));
+
+    int kitPanelCount = 0;
+    JPanel kitUsabilityPanel1 = null;
+    StructEntry unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_1);
+    if (unusableEntry != null) {
+      kitUsabilityPanel1 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
+      kitUsabilityPanel.add(kitUsabilityPanel1);
+      kitPanelCount++;
+    }
+    JPanel kitUsabilityPanel2 = null;
+    unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_2);
+    if (unusableEntry != null) {
+      kitUsabilityPanel2 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
+      kitUsabilityPanel.add(kitUsabilityPanel2);
+      kitPanelCount++;
+    }
+    JPanel kitUsabilityPanel3 = null;
+    unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_3);
+    if (unusableEntry != null) {
+      kitUsabilityPanel3 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
+      kitUsabilityPanel.add(kitUsabilityPanel3);
+      kitPanelCount++;
+    }
+    JPanel kitUsabilityPanel4 = null;
+    unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_4);
+    if (unusableEntry != null) {
+      kitUsabilityPanel4 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
+      kitUsabilityPanel.add(kitUsabilityPanel4);
+      kitPanelCount++;
+    }
+
+    // laying out item and usability flags
+    JPanel flagsUsabilityPanel = new JPanel();
+    flagsUsabilityPanel.setLayout(new BoxLayout(flagsUsabilityPanel, BoxLayout.X_AXIS));
+    flagsUsabilityPanel.add(flagsPanel);
+    flagsUsabilityPanel.add(usabilityPanel);
+    if (kitPanelCount > 0) {
+      flagsUsabilityPanel.add(kitUsabilityPanel);
+    }
 
     JPanel leftPanel = new JPanel(new BorderLayout());
-    leftPanel.add(propertiesPanel, BorderLayout.NORTH);
-    leftPanel.add(iconsFlagsPanel, BorderLayout.CENTER);
+    leftPanel.add(iconsPropertiesPanel, BorderLayout.NORTH);
+    leftPanel.add(flagsUsabilityPanel, BorderLayout.CENTER);
 
     JScrollPane scrollPane = new JScrollPane(leftPanel);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.setPreferredSize(scrollPane.getMinimumSize());
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
     // row 0, column 1
     StructEntry descGeneral = itm.getAttribute(ItmResource.ITM_DESCRIPTION_GENERAL);
