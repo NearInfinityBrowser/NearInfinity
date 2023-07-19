@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -32,6 +34,7 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
@@ -56,6 +59,10 @@ public class ResourceRef extends Datatype
     implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener {
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
+  /** List of resource types that are can be used to display associated icons.  */
+  private static final HashSet<String> ICON_EXTENSIONS = new HashSet<>(
+      Arrays.asList(new String[] { "BMP", "ITM", "SPL" }));
+
   /** Special constant that represents absense of resource in the field. */
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
 
@@ -78,6 +85,14 @@ public class ResourceRef extends Datatype
    * ability to enter resource reference manually.
    */
   private TextListPanel<ResourceRefEntry> list;
+
+  /**
+   * Returns a list of resource extensions that can be used to display associated icons.
+   * @return String set with file extensions (without leading dot).
+   */
+  public static Set<String> getIconExtensions() {
+    return Collections.unmodifiableSet(ICON_EXTENSIONS);
+  }
 
   public ResourceRef(ByteBuffer buffer, int offset, String name, String... types) {
     this(buffer, offset, 8, name, types);
@@ -130,7 +145,7 @@ public class ResourceRef extends Datatype
     addExtraEntries(values);
     Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
     boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
-        Arrays.stream(types).anyMatch(s -> s.equalsIgnoreCase("ITM") || s.equalsIgnoreCase("SPL"));
+        Arrays.stream(types).anyMatch(s -> ICON_EXTENSIONS.contains(s.toUpperCase()));
     list = new TextListPanel<>(values, false, showIcons);
     list.addMouseListener(new MouseAdapter() {
       @Override
@@ -170,33 +185,21 @@ public class ResourceRef extends Datatype
     bView.setEnabled(isEditable(list.getSelectedValue()));
     list.addListSelectionListener(this);
 
-    GridBagLayout gbl = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
-    JPanel panel = new JPanel(gbl);
+    GridBagConstraints gbc = null;
+    JPanel panel = new JPanel(new GridBagLayout());
 
-    gbc.weightx = 1.0;
-    gbc.weighty = 1.0;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.gridheight = 2;
-    gbl.setConstraints(list, gbc);
-    panel.add(list);
-
-    gbc.gridheight = 1;
-    gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(3, 6, 3, 0);
-    gbc.anchor = GridBagConstraints.SOUTH;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbl.setConstraints(bUpdate, gbc);
-    panel.add(bUpdate);
-
-    gbc.gridx = 1;
-    gbc.gridy = 1;
-    gbc.anchor = GridBagConstraints.NORTH;
-    gbl.setConstraints(bView, gbc);
-    panel.add(bView);
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(list, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL,
+        new Insets(3, 6, 3, 0), 0, 0);
+    panel.add(bUpdate, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
+        new Insets(3, 6, 3, 0), 0, 0);
+    panel.add(bView, gbc);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(panel.getMinimumSize());
     return panel;
   }
 

@@ -14,12 +14,14 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -348,10 +350,14 @@ public class TextListPanel<E> extends JPanel
           Object o = bmp.getDataOf(fmt.getValue());
           if (o instanceof ResourceBitmap.RefEntry) {
             final ResourceBitmap.RefEntry entry = (ResourceBitmap.RefEntry) o;
-            final ResourceEntry iconEntry = ResourceFactory.getResourceIcon(entry.getResourceEntry());
-            if (iconEntry != null) {
-              setIcon(IconCache.getIcon(iconEntry, IconCache.getDefaultListIconSize()));
+            ResourceEntry iconEntry = null;
+            Icon defIcon = null;
+            try {
+              iconEntry = ResourceFactory.getResourceIcon(entry.getResourceEntry());
+            } catch (FileNotFoundException e) {
+              defIcon = ResourceFactory.getKeyfile().getIcon("BMP");
             }
+            setIcon(IconCache.getIcon(iconEntry, IconCache.getDefaultListIconSize(), defIcon));
           }
         }
       }

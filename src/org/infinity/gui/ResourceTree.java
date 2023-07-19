@@ -6,6 +6,7 @@ package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GridLayout;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Stack;
 
 import javax.swing.Icon;
@@ -39,14 +41,19 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.icon.Icons;
@@ -76,6 +83,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private boolean showResource = true;
 
   public ResourceTree(ResourceTreeModel treemodel) {
+    new TreeExpandListener(tree);
     tree.setCellRenderer(new ResourceTreeRenderer());
     tree.addKeyListener(new TreeKeyListener());
     tree.addMouseListener(new TreeMouseListener());
@@ -493,6 +501,54 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   // -------------------------- INNER CLASSES --------------------------
 
+  private final class TreeExpandListener implements TreeExpansionListener, TreeWillExpandListener {
+    private final JTree tree;
+
+    private Cursor defaultCursor;
+    private boolean expanding;
+
+    public TreeExpandListener(JTree tree) {
+      this.tree = Objects.requireNonNull(tree);
+      this.expanding = false;
+      if (this.tree != null) {
+        this.tree.addTreeWillExpandListener(this);
+        this.tree.addTreeExpansionListener(this);
+      }
+    }
+
+    @Override
+    public void treeExpanded(TreeExpansionEvent event) {
+      synchronized (this) {
+        if (expanding) {
+          tree.setCursor(defaultCursor);
+          defaultCursor = null;
+          expanding = false;
+        }
+      }
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event) {
+      // nothing to do
+    }
+
+    @Override
+    public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+      synchronized (this) {
+        if (!expanding) {
+          defaultCursor = tree.getCursor();
+          tree.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          expanding = true;
+        }
+      }
+    }
+
+    @Override
+    public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+      // nothing to do
+    }
+  }
+
   private final class TreeKeyListener extends KeyAdapter implements ActionListener {
     private static final int TIMER_DELAY = 1000;
     private String currentkey = "";
@@ -729,8 +785,9 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       Font font = tree.getFont();
       if (leaf && o instanceof ResourceEntry) {
         final ResourceEntry e = (ResourceEntry) o;
-        boolean showIcon = BrowserMenuBar.getInstance().getOptions().showResourceTreeIcons() &&
-            (e.getExtension().equalsIgnoreCase("ITM") || e.getExtension().equalsIgnoreCase("SPL"));
+
+        final boolean showIcon = BrowserMenuBar.getInstance().getOptions().showResourceTreeIcons() &&
+            ResourceRef.getIconExtensions().contains(e.getExtension());
         final Icon icon = showIcon ? IconCache.get(e, iconSize) : e.getIcon();
 
         final BrowserMenuBar options = BrowserMenuBar.getInstance();

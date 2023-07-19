@@ -9,6 +9,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -276,9 +277,10 @@ public final class ResourceFactory implements FileWatchListener {
    *
    * @param entry The {@code ResourceEntry} of the resource.
    * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
-   *         available.
+   *         defined by the resource.
+   * @throws FileNotFoundException if an icon resource is defined but doesn't exist in the game.
    */
-  public static ResourceEntry getResourceIcon(ResourceEntry entry) {
+  public static ResourceEntry getResourceIcon(ResourceEntry entry) throws FileNotFoundException {
     return getResourceIcon(entry, null);
   }
 
@@ -291,9 +293,10 @@ public final class ResourceFactory implements FileWatchListener {
    * @param entry           The {@code ResourceEntry} of the resource.
    * @param forcedExtension Optional file extension string that is used to override the original file type.
    * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
-   *         available.
+   *         defined by the resource.
+   * @throws FileNotFoundException if an icon resource is defined but doesn't exist in the game.
    */
-  public static ResourceEntry getResourceIcon(ResourceEntry entry, String forcedExtension) {
+  public static ResourceEntry getResourceIcon(ResourceEntry entry, String forcedExtension) throws FileNotFoundException {
     ResourceEntry retVal = null;
 
     Class<? extends Resource> clsResource = getResourceType(entry, forcedExtension);
@@ -306,8 +309,14 @@ public final class ResourceFactory implements FileWatchListener {
           final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconResref + ".BAM");
           if (iconEntry != null) {
             retVal = iconEntry;
+          } else {
+            // invalid resref
+            throw new FileNotFoundException("Resource does not exist: " + iconResref + ".BAM");
           }
         }
+      } catch (FileNotFoundException e) {
+        // forward exception to caller
+        throw e;
       } catch (Exception e) {
         e.printStackTrace();
       }
