@@ -59,6 +59,11 @@ import org.infinity.util.StringTable;
 public final class StringRef extends Datatype
     implements Editable, IsNumeric, IsTextual, ActionListener, ChangeListener {
   /**
+   * If this value is defined then it overrides the default check and/or application of TLK syntax highlighting.
+   */
+  private final InfinityTextArea.Language syntaxLanguageOverride;
+
+  /**
    * Button that opens dialog with sound associated with this reference if that sound exists. If no sound assotiated
    * with this string entry, button is disabled.
    */
@@ -94,8 +99,21 @@ public final class StringRef extends Datatype
    * @param value Index of the string in the talk table (TLK file)
    */
   public StringRef(String name, int value) {
+    this(name, value, null);
+  }
+
+  /**
+   * Constructs field description.
+   *
+   * @param name  Name of field in parent struct that has {@code StringRef} type
+   * @param value Index of the string in the talk table (TLK file)
+   * @param languageOverride Specifies a syntax highlighting language that should be applied to the text view component.
+   *                         Overrides the default TLK highlighting if specified.
+   */
+  public StringRef(String name, int value, InfinityTextArea.Language languageOverride) {
     super(0, 4, name);
     this.value = value;
+    this.syntaxLanguageOverride = languageOverride;
   }
 
   /**
@@ -107,7 +125,22 @@ public final class StringRef extends Datatype
    * @param name   Name of field
    */
   public StringRef(ByteBuffer buffer, int offset, String name) {
+    this(buffer, offset, name, null);
+  }
+
+  /**
+   * Constructs field description and reads its value from {@code buffer} starting with offset {@code offset}. Method
+   * reads 4 bytes from {@code buffer}.
+   *
+   * @param buffer           Storage from which value of this field is readed
+   * @param offset           Offset of this field in the {@code buffer}
+   * @param name             Name of field
+   * @param languageOverride Specifies a syntax highlighting language that should be applied to the text view component.
+   *                         Overrides the default TLK highlighting if specified.
+   */
+  public StringRef(ByteBuffer buffer, int offset, String name, InfinityTextArea.Language languageOverride) {
     super(offset, 4, name);
+    this.syntaxLanguageOverride = languageOverride;
     read(buffer, offset);
   }
 
@@ -170,10 +203,12 @@ public final class StringRef extends Datatype
 
       sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
-      if (BrowserMenuBar.getInstance().getOptions().getTlkSyntaxHighlightingEnabled()) {
+      if (syntaxLanguageOverride != null) {
+        taRefText.applyExtendedSettings(syntaxLanguageOverride, null);
+      } else if (BrowserMenuBar.getInstance().getOptions().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
-        taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       }
+      taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
