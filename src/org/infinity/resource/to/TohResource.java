@@ -112,9 +112,13 @@ public final class TohResource extends AbstractStruct implements Resource {
 
   @Override
   protected void viewerInitialized(StructViewer viewer) {
-    // disabling 'Save' button
+    // disabling 'Save' buttons
     JButton bSave = (JButton) viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE);
     if (bSave != null) {
+      bSave.setEnabled(false);
+    }
+    JButton bSaveAs = (JButton) viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE_AS);
+    if (bSaveAs != null) {
       bSave.setEnabled(false);
     }
   }

@@ -674,6 +674,14 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
+  public static boolean saveResourceAs(Resource resource, Component parent) {
+    if (getInstance() != null) {
+      return getInstance().saveResourceAsInternal(resource, parent);
+    } else {
+      return false;
+    }
+  }
+
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource. If user accepts saving then
    * resource will be saved if it implements {@link Writable}
@@ -1549,7 +1557,20 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
+  private boolean saveResourceAsInternal(Resource resource, Component parent) {
+    final Path outFile = getExportFileDialogInternal(parent, resource.getResourceEntry().getResourceName(), true);
+    if (outFile != null) {
+      return saveResourceInternal(resource, parent, outFile);
+    } else {
+      return false;
+    }
+  }
+
   private boolean saveResourceInternal(Resource resource, Component parent) {
+    return saveResourceInternal(resource, parent, null);
+  }
+
+  private boolean saveResourceInternal(Resource resource, Component parent, Path outFile) {
     if (!(resource instanceof Writeable)) {
       JOptionPane.showMessageDialog(parent, "Resource not savable", "Error", JOptionPane.ERROR_MESSAGE);
       return false;
@@ -1558,38 +1579,44 @@ public final class ResourceFactory implements FileWatchListener {
     if (entry == null) {
       return false;
     }
+
     Path outPath;
-    if (entry instanceof BIFFResourceEntry) {
-      Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
-      if (!FileEx.create(overridePath).isDirectory()) {
-        try {
-          Files.createDirectory(overridePath);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
-              JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-          return false;
-        }
-      }
-      outPath = FileManager.query(overridePath, entry.getResourceName());
-      ((BIFFResourceEntry) entry).setOverride(true);
+    if (outFile != null) {
+      outPath = outFile;
     } else {
-      outPath = entry.getActualPath();
-      // extra step for saving resources from a read-only medium (such as DLCs)
-      if (!FileManager.isDefaultFileSystem(outPath)) {
-        outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
-        if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+      if (entry instanceof BIFFResourceEntry) {
+        Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        if (!FileEx.create(overridePath).isDirectory()) {
           try {
-            Files.createDirectories(outPath.getParent());
+            Files.createDirectory(overridePath);
           } catch (IOException e) {
-            JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
+            JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             return false;
           }
         }
+        outPath = FileManager.query(overridePath, entry.getResourceName());
+        ((BIFFResourceEntry) entry).setOverride(true);
+      } else {
+        outPath = entry.getActualPath();
+        // extra step for saving resources from a read-only medium (such as DLCs)
+        if (!FileManager.isDefaultFileSystem(outPath)) {
+          outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
+          if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+            try {
+              Files.createDirectories(outPath.getParent());
+            } catch (IOException e) {
+              JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
+                  JOptionPane.ERROR_MESSAGE);
+              e.printStackTrace();
+              return false;
+            }
+          }
+        }
       }
     }
+
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
       String options[] = { "Overwrite", "Cancel" };
@@ -1612,6 +1639,7 @@ public final class ResourceFactory implements FileWatchListener {
         return false;
       }
     }
+
     try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
       ((Writeable) resource).write(os);
     } catch (IOException e) {
@@ -1619,8 +1647,10 @@ public final class ResourceFactory implements FileWatchListener {
       e.printStackTrace();
       return false;
     }
+
     JOptionPane.showMessageDialog(parent, "File saved to \"" + outPath.toAbsolutePath() + '\"', "Save complete",
         JOptionPane.INFORMATION_MESSAGE);
+
     if ("IDS".equals(entry.getExtension())) {
       IdsMapCache.remove(entry);
       final IdsBrowser idsbrowser = ChildFrame.getFirstFrame(IdsBrowser.class);

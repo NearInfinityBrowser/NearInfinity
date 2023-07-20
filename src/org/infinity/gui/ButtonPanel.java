@@ -39,6 +39,8 @@ public class ButtonPanel extends JPanel {
     EXPORT_MENU,
     /** "Save" (JButton) */
     SAVE,
+    /** "Save as..." (JButton) */
+    SAVE_AS,
     /** "Add..." (ButtonPopupMenu) */
     ADD,
     /** "Remove" (JButton) */
@@ -153,6 +155,12 @@ public class ButtonPanel extends JPanel {
       case SAVE: {
         JButton b = new JButton("Save", Icons.ICON_SAVE_16.getIcon());
         b.setMnemonic('a');
+        retVal = b;
+        break;
+      }
+      case SAVE_AS: {
+        JButton b = new JButton("Save as...", Icons.ICON_SAVE_16.getIcon());
+        b.setMnemonic('s');
         retVal = b;
         break;
       }

@@ -104,7 +104,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     } else if (bpCode.getControlByType(CTRL_DECOMPILE) == event.getSource()) {
       decompile();
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      save();
+      save(false);
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+      save(true);
     } else if (buttonPanel.getControlByType(CTRL_SAVE_SCRIPT) == event.getSource()) {
       saveScript();
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
@@ -133,6 +135,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpCode.getControlByType(CTRL_DECOMPILE).setEnabled(true);
     } else if (event.getDocument() == sourceText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpSource.getControlByType(CTRL_COMPILE).setEnabled(true);
       sourceChanged = true;
     }
@@ -144,6 +147,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpCode.getControlByType(CTRL_DECOMPILE).setEnabled(true);
     } else if (event.getDocument() == sourceText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpSource.getControlByType(CTRL_COMPILE).setEnabled(true);
       sourceChanged = true;
     }
@@ -155,6 +159,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpCode.getControlByType(CTRL_DECOMPILE).setEnabled(true);
     } else if (event.getDocument() == sourceText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpSource.getControlByType(CTRL_COMPILE).setEnabled(true);
       sourceChanged = true;
     }
@@ -309,6 +314,8 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
     JButton bSave = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE);
     bSave.addActionListener(this);
+    JButton bSaveAs = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS);
+    bSaveAs.addActionListener(this);
     JButton bSaveScript = new JButton("Save code", Icons.ICON_SAVE_16.getIcon());
     bSaveScript.addActionListener(this);
     buttonPanel.addControl(bSaveScript, CTRL_SAVE_SCRIPT);
@@ -327,6 +334,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     bpmWarnings.setEnabled(false);
     bDecompile.setEnabled(false);
     bSave.setEnabled(false);
+    bSaveAs.setEnabled(false);
     bpmUses.setEnabled(false);
     bSaveScript.setEnabled(false);
 
@@ -441,9 +449,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     tabbedPane.setSelectedIndex(0);
   }
 
-  private void save() {
-    JButton bSave = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE);
-    ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpSource.getControlByType(CTRL_ERRORS);
+  private void save(boolean interactive) {
+    final JButton bSave = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE);
+    final JButton bSaveAs = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS);
+    final ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpSource.getControlByType(CTRL_ERRORS);
     if (bpmErrors.isEnabled()) {
       String options[] = { "Save", "Cancel" };
       int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
@@ -452,8 +461,15 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         return;
       }
     }
-    if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+    final boolean result;
+    if (interactive) {
+      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor());
+    } else {
+      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+    }
+    if (result) {
       bSave.setEnabled(false);
+      bSaveAs.setEnabled(false);
       sourceChanged = false;
     }
   }

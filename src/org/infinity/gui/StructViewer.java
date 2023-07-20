@@ -403,6 +403,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (struct instanceof Resource && !struct.getFields().isEmpty() && struct.getParent() == null) {
       ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
       ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+      ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS)).addActionListener(this);
     }
 
     JScrollPane scrollTable = new JScrollPane(table);
@@ -526,6 +527,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
         if (ResourceFactory.saveResource((Resource) struct, getTopLevelAncestor())) {
+          struct.setStructChanged(false);
+        }
+      } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+        if (ResourceFactory.saveResourceAs((Resource) struct, getTopLevelAncestor())) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {

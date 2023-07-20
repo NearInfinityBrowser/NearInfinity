@@ -215,6 +215,8 @@ public class PltResource
 
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(false);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
     tabbedPane = new JTabbedPane(SwingConstants.TOP);
@@ -290,6 +292,10 @@ public class PltResource
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == e.getSource()) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+        setRawModified(false);
+      }
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == e.getSource()) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
         setRawModified(false);
       }
     }
@@ -439,6 +445,7 @@ public class PltResource
         hexViewer.clearModified();
       }
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(modified);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(modified);
     }
   }
 
