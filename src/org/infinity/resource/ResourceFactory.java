@@ -105,7 +105,7 @@ public final class ResourceFactory implements FileWatchListener {
   /**
    * Name of tree node that contains important game files that not stored in the BIF archives or override folders.
    */
-  private static final String SPECIAL_CATEGORY = "Special";
+  public static final String SPECIAL_CATEGORY = "Special";
 
   private static ResourceFactory instance;
 
