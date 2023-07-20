@@ -37,6 +37,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.PopupMenuEvent;
@@ -75,6 +76,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private final JButton bnext = new JButton("Forward", Icons.ICON_FORWARD_16.getIcon());
   private final JButton bprev = new JButton("Back", Icons.ICON_BACK_16.getIcon());
   private final JTree tree = new JTree();
+  private final TreeExpandListener expandListener;
   private final Stack<ResourceEntry> nextStack = new Stack<>();
   private final Stack<ResourceEntry> prevStack = new Stack<>();
 
@@ -83,7 +85,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private boolean showResource = true;
 
   public ResourceTree(ResourceTreeModel treemodel) {
-    new TreeExpandListener(tree);
+    expandListener = new TreeExpandListener(tree);
     tree.setCellRenderer(new ResourceTreeRenderer());
     tree.addKeyListener(new TreeKeyListener());
     tree.addMouseListener(new TreeMouseListener());
@@ -190,13 +192,25 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   public void select(ResourceEntry entry, boolean forced) {
-    if (entry == null) {
-      tree.clearSelection();
-    } else if (forced || entry != shownResource) {
-      TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
-      tree.scrollPathToVisible(tp);
-      tree.addSelectionPath(tp);
-    }
+    new SwingWorker<Void, Void>() {
+      @Override
+      protected Void doInBackground() throws Exception {
+          if (entry == null) {
+            tree.clearSelection();
+          } else if (forced || entry != shownResource) {
+            TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
+            try {
+              expandListener.treeWillExpand(new TreeExpansionEvent(tree, tp));
+              tree.scrollPathToVisible(tp);
+              tree.addSelectionPath(tp);
+              tree.repaint();
+            } finally {
+              expandListener.treeExpanded(new TreeExpansionEvent(tree, tp));
+            }
+          }
+        return null;
+      }
+    }.execute();
   }
 
   public ResourceTreeModel getModel() {
@@ -520,7 +534,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     public void treeExpanded(TreeExpansionEvent event) {
       synchronized (this) {
         if (expanding) {
-          tree.setCursor(defaultCursor);
+          NearInfinity.getInstance().setCursor(defaultCursor);
           defaultCursor = null;
           expanding = false;
         }
@@ -537,7 +551,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       synchronized (this) {
         if (!expanding) {
           defaultCursor = tree.getCursor();
-          tree.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          NearInfinity.getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           expanding = true;
         }
       }
