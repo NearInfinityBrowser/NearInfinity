@@ -488,7 +488,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         e.printStackTrace();
       }
 
-      cacheResourceIcons(true);
+      cacheResourceIcons(false);
 
       statusBar = new StatusBar();
       ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
@@ -922,7 +922,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         containerpanel.revalidate();
         containerpanel.repaint();
       }
-      cacheResourceIcons(true);
+      cacheResourceIcons(false);
     } finally {
       blocker.setBlocked(false);
     }
@@ -1527,6 +1527,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     // ensure that ongoing operations have ended before starting a new operation
     cancelCacheResourceIcons();
 
+    // TODO: resolve deadlock when accessing resource tree while cache operation is performed
     if (threaded) {
       iconCacheWorker = new SwingWorker<Void, Void>() {
         @Override
