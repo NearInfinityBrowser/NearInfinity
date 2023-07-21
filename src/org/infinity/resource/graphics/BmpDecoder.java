@@ -181,7 +181,7 @@ public class BmpDecoder {
           pb.rewind();
           palette = new Palette(pb, 0, pb.capacity());
         }
-        info = new Info(image);
+        info = new Info(image, 0, 0);
       } catch (Exception e) {
         image = null;
         palette = null;
@@ -277,7 +277,7 @@ public class BmpDecoder {
 
       this.compression = Arrays
           .stream(Compression.values())
-          .filter(c -> c.ordinal() == compression)
+          .filter(c -> c.getCode() == compression)
           .findFirst()
           .orElse(Compression.UNKNOWN);
       this.width = image.getWidth();
