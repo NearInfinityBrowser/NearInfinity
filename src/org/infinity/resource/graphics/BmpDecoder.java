@@ -181,7 +181,7 @@ public class BmpDecoder {
           pb.rewind();
           palette = new Palette(pb, 0, pb.capacity());
         }
-        info = new Info(image, 0, 0);
+        info = new Info(image);
       } catch (Exception e) {
         image = null;
         palette = null;

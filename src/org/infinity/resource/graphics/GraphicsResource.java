@@ -9,15 +9,19 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.Locale;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.icon.Icons;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -26,6 +30,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 
 public final class GraphicsResource implements Resource, Referenceable, ActionListener {
+  private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
+
   private final ResourceEntry entry;
   private final BmpDecoder decoder;
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -45,6 +51,8 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
+      showProperties();
     }
   }
 
@@ -85,6 +93,11 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
+    bProperties.setMnemonic('p');
+    bProperties.addActionListener(this);
+    buttonPanel.addControl(bProperties, PROPERTIES);
+
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
@@ -105,5 +118,19 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
 
   public BmpDecoder.Info getInfo() {
     return decoder.getInfo();
+  }
+
+  private void showProperties() {
+    // Width, Height, BitsPerPixel, Compression
+    final Function<Integer, String> space = (i) -> new String(new char[i]).replace("\0", "&nbsp;");
+    final String br = "<br/>";
+    final String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+    final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
+    sb.append("Width:").append(space.apply(7)).append(getInfo().getWidth()).append(br);
+    sb.append("Height:").append(space.apply(6)).append(getInfo().getHeight()).append(br);
+    sb.append("Bits/Pixel:").append(space.apply(2)).append(getInfo().getBitsPerPixel()).append(br);
+    sb.append("</div></html>");
+
+    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 }
