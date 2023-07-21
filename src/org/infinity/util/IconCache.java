@@ -19,8 +19,8 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
+import org.infinity.resource.graphics.BmpDecoder;
 import org.infinity.resource.graphics.ColorConvert;
-import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
@@ -295,8 +295,8 @@ public class IconCache {
 
     if (bmpEntry != null) {
       try {
-        final GraphicsResource res = new GraphicsResource(bmpEntry);
-        retVal = res.getImage();
+        final BmpDecoder decoder = BmpDecoder.loadBmp(bmpEntry);
+        retVal = decoder.getImage();
       } catch (Exception e) {
         // No log output; catches lots of false positives
       }
