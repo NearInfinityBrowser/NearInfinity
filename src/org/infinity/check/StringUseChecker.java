@@ -9,6 +9,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,9 +59,148 @@ import org.infinity.util.LuaEntry;
 import org.infinity.util.LuaParser;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 
 public final class StringUseChecker extends AbstractSearcher
     implements Runnable, ListSelectionListener, SearchClient, ActionListener {
+  // List of 2DA table resrefs that should be ignored by the search
+  private static final HashSet<String> BLACKLIST_2DA = new HashSet<>(Arrays.asList(
+      "ABCLASRQ",
+      "ABCLSMOD",
+      "ABDCDSRQ",
+      "ABDCSCRQ",
+      "ABRACEAD",
+      "ABRACERQ",
+      "ABSTART",
+      "ACHIEVEM",
+      "ALIGNMNT",
+      "AREALINK",
+      "AREALINS",
+      "BACKSTAB",
+      "BANTTIMG",
+      "BNTYCHNC",
+      "CACHVALD",
+      "CHRMODST",
+      "CLASCOLR",
+      "CLASISKL",
+      "CLASTHAC",
+      "CLASWEAP",
+      "CLEARAIR",
+      "CLEARTRP",
+      "CLEARWHR",
+      "CLSRCREQ",
+      "CLSSPLAB",
+      "CLSWPBON",
+      "CONCENTR",
+      "CONTAINR",
+      "CONTINGX",
+      "CRIPPSTR",
+      "CSOUND",
+      "DEATH",
+      "DEXMOD",
+      "DONARUMR",
+      "DUALCLAS",
+      "ENTRIES",
+      "EXTANIM",
+      "EXTSPEED",
+      "FALLEN",
+      "FAMILIAR",
+      "FATIGMOD",
+      "FOGAREA",
+      "FOGPT",
+      "HAPPY",
+      "HIDESPL",
+      "HPCLASS",
+      "HPCONBON",
+      "HPINIT",
+      "INTERACT",
+      "INTERDIA",
+      "INTMOD",
+      "INTOXCON",
+      "INTOXMOD",
+      "ITEMANIM",
+      "ITEMEXCL",
+      "ITEMSPEC",
+      "ITEMTYPE",
+      "ITMSLOTS",
+      "KITTABLE",
+      "LAYHANDS",
+      "LORE",
+      "LOREBON",
+      "LUABBR",
+      "LUNUMAB",
+      "LVLMODWM",
+      "MASTAREA",
+      "MGSRCREQ",
+      "MONKFIST",
+      "NPCLEVEL",
+      "NPCLVL25",
+      "NUMWSLOT",
+      "PARTYAI",
+      "PDIALOG",
+      "PORTRAIT",
+      "PPBEHAVE",
+      "PPLANE",
+      "PROFS",
+      "PROFSMAX",
+      "RACECOLR",
+      "RACEFEAT",
+      "RACEHATE",
+      "RACETHAC",
+      "RAISDEAD",
+      "RANDCOLR",
+      "REPMODST",
+      "REPSTART",
+      "REPUTATI",
+      "RMODCHR",
+      "RMODREP",
+      "RNDEQUIP",
+      "SKILLBRD",
+      "SKILLDEX",
+      "SKILLRAC",
+      "SKILLRNG",
+      "SKILLSHM",
+      "SLTSTEAL",
+      "SMTABLES",
+      "SNDCHANN",
+      "SNDENVRN",
+      "SNDRESRF",
+      "SNEAKATT",
+      "SONGLIST",
+      "SPAWNGRP",
+      "SPEECH",
+      "SPELLS",
+      "SPLAUTOP",
+      "SPLPROT",
+      "SPLSHMKN",
+      "SPLSRCKN",
+      "SPRKLCLR",
+      "STARTARE",
+      "STARTPOS",
+      "STATVAL",
+      "STRMOD",
+      "STRMODEX",
+      "STRTGOLD",
+      "STYLBONU",
+      "SUMMLIMT",
+      "T2DA0000",
+      "THAC0",
+      "THIEFSCL",
+      "THIEFSKL",
+      "TRAPLIMT",
+      "VARIMPRT",
+      "WISH",
+      "WMAPLAY",
+      "WSPATCK",
+      "WSPECIAL",
+      "XL3000",
+      "XPBONUS",
+      "XPCAP",
+      "XPLEVEL",
+      "XPLIST"
+  ));
+
   private ChildFrame resultFrame;
   private JTextArea textArea;
 
@@ -178,7 +319,14 @@ public final class StringUseChecker extends AbstractSearcher
       } else if (resource instanceof BcsResource) {
         checkScript((BcsResource) resource);
       } else if (resource instanceof PlainTextResource) {
-        checkTextfile((PlainTextResource) resource);
+        final PlainTextResource textResource = (PlainTextResource) resource;
+        if (entry.getExtension().equalsIgnoreCase("2DA")) {
+          check2da(Table2daCache.get(resource.getResourceEntry(), false));
+        } else if (entry.getExtension().equalsIgnoreCase("MENU")) {
+          checkMenu(textResource.getText());
+        } else {
+          checkTextfile(textResource);
+        }
       } else if (resource instanceof AbstractStruct) {
         checkStruct((AbstractStruct) resource);
       }
@@ -261,6 +409,77 @@ public final class StringUseChecker extends AbstractSearcher
     }
   }
 
+  private void check2da(Table2da table) {
+    if (table != null) {
+      final String resref = table.getResourceEntry().getResourceRef().toUpperCase();
+      if (BLACKLIST_2DA.contains(resref)) {
+        return;
+      }
+
+      // checking default value
+      final Number defValue = toNumber(table.getDefaultValue());
+      if (defValue != null) {
+        updateStringUsed(defValue.longValue());
+      }
+
+      // checking table entries
+      for (int row = 0, numRows = table.getRowCount(); row < numRows; ++row) {
+        for (int col = 0, numCols = table.getColCount(row); col < numCols; ++col) {
+          final Number value = toNumber(table.getEntry(row, col).getValue());
+          if (value != null) {
+            updateStringUsed(value.longValue());
+          }
+        }
+      }
+    }
+  }
+
+  private void checkMenu(String text) {
+    if (text != null) {
+      // Patterns to check...
+      // Note: Named-capturing group "number" must define the number pattern
+      final String[] patterns = {
+          // Match UI element property: text [strref]
+          "^[ \t]*text[ \t]*(?<number>[0-9]+)",
+          // Match specific variable assignment: helpString = [strref]
+          "helpString[ \t]*=[ \t]*(?<number>[0-9]+)",
+          // Match Infinity_FetchString([strref])
+          "Infinity_FetchString\\([ \t]*(?<number>[0-9]+)[ \t]*\\)",
+          // Match getTooltipWithHotkey(x,[strref])
+          "getTooltipWithHotkey\\(.+,[ \t]*(?<number>[0-9]+)[ \t]*\\)",
+          // Match return value of Lua functions
+          // Limiting to greater values to reduce number of false positives
+          "return[ \t]+(?<number>[0-9]{2,})"
+      };
+
+      // Checking...
+      for (final String regex : patterns) {
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+          final Number nr = toNumber(matcher.group("number"));
+          if (nr != null) {
+            updateStringUsed(nr.longValue());
+          }
+        }
+      }
+
+      // Special check: strrefs in arrays
+      final Pattern pattern = Pattern.compile("\\{[^{}\\v]+\\}");
+      final Matcher matcher = pattern.matcher(text);
+      while (matcher.find()) {
+        final String subtext = matcher.group();
+        final Matcher matcher2 = StringReferenceSearcher.NUMBER_PATTERN.matcher(subtext);
+        while (matcher2.find()) {
+          final Number nr = toNumber(matcher2.group());
+          if (nr != null) {
+            updateStringUsed(nr.longValue());
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Mark all strings from {@link StringTable string table} to which the script code refers, as used.
    * <p>
@@ -333,6 +552,30 @@ public final class StringUseChecker extends AbstractSearcher
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  /**
+   * Converts the specified string into a numeric value.
+   *
+   * @param s String containing a potential decimal or hexadecimal number.
+   * @return Number if conversion was successful, {@code null} otherwise.
+   */
+  private Number toNumber(String s) {
+    Number retVal = null;
+
+    if (s != null && !s.isEmpty()) {
+      try {
+        int radix = 10;
+        if (s.toLowerCase().startsWith("0x")) {
+          s = s.substring(2);
+          radix = 16;
+        }
+        retVal = Long.parseLong(s, radix);
+      } catch (Exception e) {
+      }
+    }
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------
