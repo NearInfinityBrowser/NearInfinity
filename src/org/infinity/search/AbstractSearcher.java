@@ -94,7 +94,7 @@ public abstract class AbstractSearcher {
       boolean isCancelled = false;
       Debugging.timerReset();
       int i = 0;
-      for (ResourceEntry entry : entries) {
+      for (final ResourceEntry entry : entries) {
         if (progress.isCanceled()) {
           break;
         }

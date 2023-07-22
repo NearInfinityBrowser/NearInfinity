@@ -41,7 +41,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
 
   /** Array of resource extensions which can contains string references. */
   public static final String[] FILE_TYPES = { "2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM",
-      "INI", "ITM", "SPL", "SRC", "STO", "TOH", "WMP" };
+      "INI", "ITM", "LUA", "PRO", "SPL", "SRC", "STO", "TOH", "WMP" };
 
   /** Searched string reference value. */
   private final int searchvalue;
