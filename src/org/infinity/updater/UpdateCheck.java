@@ -161,7 +161,11 @@ public class UpdateCheck extends JDialog {
     }
 
     bDownload.addActionListener(getListeners());
-    bDownload.setEnabled(getUpdateInfo().getRelease().htmlUrl != null);
+    final URL downloadUrl = getUpdateInfo().getRelease().htmlUrl;
+    if (downloadUrl != null) {
+      bDownload.setToolTipText(downloadUrl.toExternalForm());
+    }
+    bDownload.setEnabled(downloadUrl != null);
 
     bCancel.addActionListener(getListeners());
 
@@ -297,7 +301,7 @@ public class UpdateCheck extends JDialog {
   private void download() {
     boolean bRet = false;
     try {
-      String link = getUpdateInfo().getRelease().getDefaultAsset().browserDownloadUrl.toExternalForm();
+      String link = getUpdateInfo().getRelease().htmlUrl.toExternalForm();
       if (!Utils.isUrlValid(link)) {
         link = getUpdateInfo().getRelease().htmlUrl.toExternalForm();
         if (!Utils.isUrlValid(link)) {
