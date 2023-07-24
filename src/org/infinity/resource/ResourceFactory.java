@@ -554,6 +554,30 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
+  /**
+   * Attempts to determine the parent {@link ResourceEntry} of the specified {@link StructEntry} instance.
+   *
+   * @param struct A {@link StructEntry} instance.
+   * @return {@code ResourceEntry} of the resource containing {@code struct}. Returns {@code null} if resource could not
+   *         be determined.
+   */
+  public static ResourceEntry getResourceEntry(StructEntry struct) {
+    ResourceEntry entry = null;
+
+    while (struct != null) {
+      if (struct instanceof AbstractStruct) {
+        final AbstractStruct as = (AbstractStruct) struct;
+        if (as.getResourceEntry() != null) {
+          entry = as.getResourceEntry();
+          break;
+        }
+      }
+      struct = struct.getParent();
+    }
+
+    return entry;
+  }
+
   /** Returns the resource tree model of the current game. */
   public static ResourceTreeModel getResourceTreeModel() {
     if (getInstance() != null) {

@@ -11,6 +11,7 @@ import java.util.List;
 import javax.swing.JButton;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
@@ -121,5 +122,92 @@ public final class TohResource extends AbstractStruct implements Resource {
     if (bSaveAs != null) {
       bSave.setEnabled(false);
     }
+  }
+
+  /**
+   * Returns the string for {@code strref} from the given string override resource entries.
+   *
+   * @param tohEntry {@link ResourceEntry} instance referencing a TOH resource. Required by both EE and non-EE games.
+   * @param totEntry {@link ResourceEntry} instance referencing a TOT resource. Required only by non-EE games.
+   * @param strref The string reference to look up.
+   * @return String referenced by {@code strref} if found, {@code null} otherwise.
+   */
+  public static String getOverrideString(ResourceEntry tohEntry, ResourceEntry totEntry, int strref) {
+    TohResource toh = null;
+    TotResource tot = null;
+    try {
+      toh = (tohEntry != null) ? new TohResource(tohEntry) : null;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    if (!Profile.isEnhancedEdition()) {
+      try {
+        tot = (totEntry != null) ? new TotResource(totEntry, toh) : null;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return getOverrideString(toh, tot, strref);
+  }
+
+  /**
+   * Returns the string for {@code strref} from the given string override resources.
+   *
+   * @param toh {@link TohResource} instance. Required by both EE and non-EE games.
+   * @param tot {@link TotResource} instance. Required only by non-EE games.
+   * @param strref The string reference to look up.
+   * @return String referenced by {@code strref} if found, {@code null} otherwise.
+   */
+  public static String getOverrideString(TohResource toh, TotResource tot, int strref) {
+    String retVal = null;
+
+    if (strref < 0 || toh == null || (!Profile.isEnhancedEdition() && tot == null)) {
+      return retVal;
+    }
+
+    if (Profile.isEnhancedEdition()) {
+      // Only TOH resource is needed
+      IsNumeric so = (IsNumeric) toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
+      IsNumeric sc = (IsNumeric) toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+      if (so != null && sc != null && sc.getValue() > 0) {
+        for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
+          StrRefEntry2 strrefEntry = (StrRefEntry2) toh.getAttribute(curOfs, false);
+          if (strrefEntry != null) {
+            int v = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
+            if (v == strref) {
+              int sofs = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
+              StringEntry2 se = (StringEntry2) toh.getAttribute(so.getValue() + sofs, false);
+              if (se != null) {
+                retVal = se.getAttribute(StringEntry2.TOH_STRING_TEXT).toString();
+              }
+              break;
+            }
+            curOfs += strrefEntry.getSize();
+          }
+        }
+      }
+    } else {
+      // Utilizing both TOT and TOH
+      IsNumeric sc = (IsNumeric) toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+      if (sc != null && sc.getValue() > 0) {
+        for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
+          StrRefEntry strrefEntry = (StrRefEntry) toh.getAttribute(curOfs, false);
+          if (strrefEntry != null) {
+            int v = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
+            if (v == strref) {
+              int sofs = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
+              StringEntry se = (StringEntry) tot.getAttribute(sofs, false);
+              if (se != null) {
+                retVal = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
+              }
+              break;
+            }
+            curOfs += strrefEntry.getSize();
+          }
+        }
+      }
+    }
+
+    return retVal;
   }
 }

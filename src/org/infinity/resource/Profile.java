@@ -469,6 +469,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
     GET_IDS_ALIGNMENT,
     /** Property: ({@code String}) The name of the .GAM file that is stored in saved games. */
     GET_GAM_NAME,
+    /** Property: ({@code String}) The name of the .SAV file that is stored in saved games. */
+    GET_SAV_NAME,
     /** Property: ({@code Boolean}) Indices whether overlays in tilesets are stenciled. */
     IS_TILESET_STENCILED,
   }
@@ -2375,15 +2377,19 @@ public final class Profile implements FileWatcher.FileWatchListener {
     switch (engine) {
       case IWD:
         addEntry(Key.GET_GAM_NAME, Type.STRING, "ICEWIND.GAM");
+        addEntry(Key.GET_SAV_NAME, Type.STRING, "ICEWIND.SAV");
         break;
       case IWD2:
         addEntry(Key.GET_GAM_NAME, Type.STRING, "ICEWIND2.GAM");
+        addEntry(Key.GET_SAV_NAME, Type.STRING, "ICEWIND2.SAV");
         break;
       case PST:
         addEntry(Key.GET_GAM_NAME, Type.STRING, "TORMENT.GAM");
+        addEntry(Key.GET_SAV_NAME, Type.STRING, "TORMENT.SAV");
         break;
       default:
         addEntry(Key.GET_GAM_NAME, Type.STRING, "BALDUR.GAM");
+        addEntry(Key.GET_SAV_NAME, Type.STRING, "BALDUR.SAV");
     }
 
     // display mode of overlays in tilesets

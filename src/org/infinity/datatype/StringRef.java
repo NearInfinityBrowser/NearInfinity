@@ -17,7 +17,10 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -39,11 +42,18 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.key.BufferedResourceEntry;
+import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sav.IOHandler;
+import org.infinity.resource.sav.SavResourceEntry;
+import org.infinity.resource.to.TohResource;
 import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.FileManager;
 
 /**
  * A struct field that represents reference to string in a talk table file (dialog.tlk or dialogF.tlk).
@@ -149,8 +159,8 @@ public final class StringRef extends Datatype
   @Override
   public void actionPerformed(ActionEvent event) {
     if (event.getSource() == bUpdate) {
-      taRefText.setText(StringTable.getStringRef(value));
-      enablePlay(value);
+      taRefText.setText(getStringRef(value));
+      updateButtonStates(value);
     } else if (event.getSource() == bEdit) {
       StringEditor.edit(value);
     } else if (event.getSource() == bPlay) {
@@ -168,8 +178,8 @@ public final class StringRef extends Datatype
   @Override
   public void stateChanged(ChangeEvent e) {
     value = getValueFromEditor();
-    taRefText.setText(StringTable.getStringRef(value));
-    enablePlay(value);
+    taRefText.setText(getStringRef(value));
+    updateButtonStates(value);
   }
 
   // --------------------- End Interface ChangeListener ---------------------
@@ -225,8 +235,8 @@ public final class StringRef extends Datatype
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
-    enablePlay(value);
-    taRefText.setText(StringTable.getStringRef(value));
+    updateButtonStates(value);
+    taRefText.setText(getStringRef(value));
     taRefText.setCaretPosition(0);
     InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
     scroll.setLineNumbersEnabled(false);
@@ -332,7 +342,7 @@ public final class StringRef extends Datatype
     if (fmt == null) {
       fmt = StringTable.Format.NONE;
     }
-    return StringTable.getStringRef(value, fmt);
+    return getStringRef(value, fmt);
   }
 
   @Override
@@ -376,7 +386,7 @@ public final class StringRef extends Datatype
 
   @Override
   public String getText() {
-    return StringTable.getStringRef(value);
+    return getStringRef(value);
   }
 
   // --------------------- End Interface IsTextual ---------------------
@@ -384,13 +394,24 @@ public final class StringRef extends Datatype
   public void setValue(int newValue) {
     final int oldValue = value;
     value = newValue;
-    taRefText.setText(StringTable.getStringRef(newValue));
+    taRefText.setText(getStringRef(newValue));
     sRefNr.setValue(newValue);
-    enablePlay(newValue);
+    updateButtonStates(newValue);
 
     if (oldValue != newValue) {
       firePropertyChange(oldValue, newValue);
     }
+  }
+
+  /**
+   * Enables or disables buttons in the string reference UI component depending on availability of the
+   * respective resource.
+   *
+   * @param value Value of string reference.
+   */
+  private void updateButtonStates(int value) {
+    enablePlay(value);
+    enableEdit(value);
   }
 
   /**
@@ -404,10 +425,81 @@ public final class StringRef extends Datatype
   }
 
   /**
+   * Enables or disables button for opening the string table editor with the specified StringRef value.
+   *
+   * @param value Value of string reference
+   */
+  private void enableEdit(int value) {
+    bEdit.setEnabled(StringTable.isValidStringRef(value));
+  }
+
+  /**
    * Extracts current value of string reference from editor. This value may not be saved yet in string field of
    * {@link #getParent() owner structure}, it is value of current string that editor is display.
    */
   private int getValueFromEditor() {
     return ((Number) sRefNr.getValue()).intValue();
+  }
+
+  private String getStringRef(int strref) {
+    return getStringRef(strref, StringTable.getDisplayFormat());
+  }
+
+  private String getStringRef(int strref, StringTable.Format fmt) {
+    String retVal = null;
+
+    // overridden string?
+    if (strref >= 0) {
+      final ResourceEntry curEntry = ResourceFactory.getResourceEntry(this);
+      if (curEntry instanceof FileResourceEntry) {
+        final FileResourceEntry fileEntry = (FileResourceEntry) curEntry;
+        final Path basePath = fileEntry.getActualPath().getParent();
+        ResourceEntry tohEntry = null;
+        ResourceEntry totEntry = null;
+
+        final Path savFile = FileManager.resolveExisting(basePath.resolve(Profile.<String>getProperty(Profile.Key.GET_SAV_NAME)));
+        if (savFile != null) {
+          // load TOH/TOT from SAV file
+          try {
+            final IOHandler handler = new IOHandler(new FileResourceEntry(savFile), false);
+            List<SavResourceEntry> overrideFiles = handler.getFileEntries().stream()
+                .filter(e -> e.getResourceName().equalsIgnoreCase("DEFAULT.TOH") ||
+                             e.getResourceName().equalsIgnoreCase("DEFAULT.TOT"))
+                .collect(Collectors.toList());
+            for (final SavResourceEntry se : overrideFiles) {
+              if (se.getExtension().equalsIgnoreCase("TOH")) {
+                tohEntry =  new BufferedResourceEntry(se.decompress(), se.getResourceName());
+              } else if (se.getExtension().equalsIgnoreCase("TOT")) {
+                totEntry = new BufferedResourceEntry(se.decompress(), se.getResourceName());
+              }
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        } else {
+          // load TOH/TOT directly
+          final Path tohFile = FileManager.resolveExisting(basePath.resolve("DEFAULT.TOH"));
+          if (tohFile != null) {
+            tohEntry = new FileResourceEntry(tohFile);
+          }
+          final Path totFile = FileManager.resolveExisting(basePath.resolve("DEFAULT.TOT"));
+          if (totFile != null) {
+            totEntry = new FileResourceEntry(totFile);
+          }
+        }
+
+        String text = TohResource.getOverrideString(tohEntry, totEntry, strref);
+        if (text != null) {
+          retVal = text;
+        }
+      }
+    }
+
+    // regular string?
+    if (retVal == null) {
+      retVal = StringTable.getStringRef(strref, fmt);
+    }
+
+    return retVal;
   }
 }

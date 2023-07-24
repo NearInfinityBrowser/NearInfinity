@@ -31,7 +31,7 @@ public final class IOHandler implements Writeable {
 
   private Path tempFolder;
 
-  public IOHandler(ResourceEntry entry) throws Exception {
+  public IOHandler(ResourceEntry entry, boolean sortByName) throws Exception {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer(true); // ignoreOverride - no real effect
     header = new TextString(buffer, 0, 8, null);
@@ -45,7 +45,9 @@ public final class IOHandler implements Writeable {
       fileEntries.add(fileEntry);
       offset = fileEntry.getEndOffset();
     }
-    Collections.sort(fileEntries);
+    if (sortByName) {
+      Collections.sort(fileEntries);
+    }
   }
 
   // --------------------- Begin Interface Writeable ---------------------
@@ -119,7 +121,7 @@ public final class IOHandler implements Writeable {
     return entries;
   }
 
-  public List<? extends ResourceEntry> getFileEntries() {
+  public List<SavResourceEntry> getFileEntries() {
     return fileEntries;
   }
 
