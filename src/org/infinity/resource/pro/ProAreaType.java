@@ -63,7 +63,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
 
   public static final String[] AREA_FLAGS_EX_ARRAY = { "No flags set", "Paletted ring", "Random speed",
       "Start scattered", "Paletted center", "Repeat scattering", "Paletted animation", null, null, null,
-      "Oriented fireball puffs", "Use hit dice lookup", null, null, "Blend are/ring anim", "Glow area/ring anim",
+      "Oriented fireball puffs", "Use hit dice lookup", null, null, "Blend area/ring anim", "Glow area/ring anim",
       "Hit point limit", };
 
   static {
