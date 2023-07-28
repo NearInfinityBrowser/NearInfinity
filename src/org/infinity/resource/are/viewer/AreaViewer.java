@@ -1640,7 +1640,7 @@ public class AreaViewer extends ChildFrame {
         JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.REGION)];
         cbLayerRegionTarget.setEnabled(cb.isSelected() && cb.isEnabled());
         boolean state = cbLayerRegionTarget.isEnabled() && cbLayerRegionTarget.isSelected();
-        layer.setIconLayerEnabled(state);
+        layer.setLayerEnabled(LayerRegion.LAYER_ICONS_TARGET, state);
       } else {
         cbLayerRegionTarget.setEnabled(false);
       }
@@ -1659,7 +1659,7 @@ public class AreaViewer extends ChildFrame {
         JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.CONTAINER)];
         cbLayerContainerTarget.setEnabled(cb.isSelected() && cb.isEnabled());
         boolean state = cbLayerContainerTarget.isEnabled() && cbLayerContainerTarget.isSelected();
-        layer.setIconLayerEnabled(state);
+        layer.setLayerEnabled(LayerContainer.LAYER_ICONS_TARGET, state);
       } else {
         cbLayerContainerTarget.setEnabled(false);
       }
@@ -1678,7 +1678,7 @@ public class AreaViewer extends ChildFrame {
         JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.DOOR)];
         cbLayerDoorTarget.setEnabled(cb.isSelected() && cb.isEnabled());
         boolean state = cbLayerDoorTarget.isEnabled() && cbLayerDoorTarget.isSelected();
-        layer.setIconLayerEnabled(state);
+        layer.setLayerEnabled(LayerDoor.LAYER_ICONS_TARGET, state);
       } else {
         cbLayerDoorTarget.setEnabled(false);
       }
@@ -1840,6 +1840,7 @@ public class AreaViewer extends ChildFrame {
           type = ViewerConstants.LAYER_ITEM_POLY;
           break;
         case DOOR:
+        case DOOR_CELLS:
           type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
           break;
         case CONTAINER_TARGET:
@@ -1900,6 +1901,7 @@ public class AreaViewer extends ChildFrame {
         type = ViewerConstants.LAYER_ITEM_POLY;
         break;
       case DOOR:
+      case DOOR_CELLS:
         type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
         break;
       case CONTAINER_TARGET:
@@ -1948,6 +1950,7 @@ public class AreaViewer extends ChildFrame {
               type = ViewerConstants.LAYER_ITEM_POLY;
               break;
             case DOOR:
+            case DOOR_CELLS:
               type = ViewerConstants.DOOR_ANY | ViewerConstants.LAYER_ITEM_POLY;
               break;
             case CONTAINER_TARGET:
@@ -2136,9 +2139,12 @@ public class AreaViewer extends ChildFrame {
       // applying animation active override settings
       ((LayerAnimation) layerManager.getLayer(LayerType.ANIMATION))
           .setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
-      ((LayerContainer) layerManager.getLayer(LayerType.CONTAINER)).setIconLayerEnabled(Settings.ShowContainerTargets);
-      ((LayerDoor) layerManager.getLayer(LayerType.DOOR)).setIconLayerEnabled(Settings.ShowDoorTargets);
-      ((LayerRegion) layerManager.getLayer(LayerType.REGION)).setIconLayerEnabled(Settings.ShowRegionTargets);
+      ((LayerContainer) layerManager.getLayer(LayerType.CONTAINER)).setLayerEnabled(LayerContainer.LAYER_ICONS_TARGET,
+          Settings.ShowContainerTargets);
+      ((LayerDoor) layerManager.getLayer(LayerType.DOOR)).setLayerEnabled(LayerDoor.LAYER_ICONS_TARGET,
+          Settings.ShowDoorTargets);
+      ((LayerRegion) layerManager.getLayer(LayerType.REGION)).setLayerEnabled(LayerRegion.LAYER_ICONS_TARGET,
+          Settings.ShowRegionTargets);
 
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {

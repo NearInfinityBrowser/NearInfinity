@@ -12,24 +12,21 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
 
 /**
- * Manages door layer objects.
+ * Manages blocked cells of door layer objects.
  */
-public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource> {
-  /** Identifier for the target icons sublayer. */
-  public static final int LAYER_ICONS_TARGET  = 1;
-
+public class LayerDoorCells extends BasicLayer<LayerObjectDoorCells, AreResource> {
   private static final String AVAILABLE_FMT = "Doors: %d";
 
   private boolean doorClosed;
 
-  public LayerDoor(AreResource are, AreaViewer viewer) {
-    super(are, ViewerConstants.LayerType.DOOR, viewer);
+  public LayerDoorCells(AreResource are, AreaViewer viewer) {
+    super(are, ViewerConstants.LayerType.DOOR_CELLS, viewer);
     loadLayer();
   }
 
   @Override
   protected void loadLayer() {
-    loadLayerItems(ARE_OFFSET_DOORS, ARE_NUM_DOORS, Door.class, d -> new LayerObjectDoor(parent, d));
+    loadLayerItems(ARE_OFFSET_DOORS, ARE_NUM_DOORS, Door.class, d -> new LayerObjectDoorCells(parent, d));
   }
 
   @Override
@@ -42,27 +39,27 @@ public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource>
   public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
 
+//    getLayerObjects().stream().forEach(obj -> {
+//      AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN | ViewerConstants.LAYER_ITEM_ICON);
+//      for (final AbstractLayerItem item : items) {
+//        item.setVisible(isLayerVisible() && !doorClosed);
+//      }
+//
+//      items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED | ViewerConstants.LAYER_ITEM_ICON);
+//      for (final AbstractLayerItem item : items) {
+//        item.setVisible(isLayerVisible() && doorClosed);
+//      }
+//    });
+
     getLayerObjects().stream().forEach(obj -> {
       AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN | ViewerConstants.LAYER_ITEM_POLY);
       for (final AbstractLayerItem item : items) {
-        item.setVisible(isLayerVisible(LAYER_PRIMARY) && isLayerEnabled(LAYER_PRIMARY) && !doorClosed);
+        item.setVisible(isLayerVisible() && !doorClosed);
       }
 
       items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED | ViewerConstants.LAYER_ITEM_POLY);
       for (final AbstractLayerItem item : items) {
-        item.setVisible(isLayerVisible(LAYER_PRIMARY) && isLayerEnabled(LAYER_PRIMARY) && doorClosed);
-      }
-
-      items = obj.getLayerItems(ViewerConstants.LAYER_ITEM_ICON);
-      for (final AbstractLayerItem item : items) {
-        switch (item.getId()) {
-          case LAYER_ICONS_TARGET:
-            item.setVisible(isLayerVisible(LAYER_ICONS_TARGET) && isLayerEnabled(LAYER_ICONS_TARGET));
-            break;
-          default:
-            item.setVisible(false);
-            System.out.println("Unknown layer id: " + item.getId());
-        }
+        item.setVisible(isLayerVisible() && doorClosed);
       }
     });
   }
@@ -90,4 +87,5 @@ public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource>
       }
     }
   }
+
 }

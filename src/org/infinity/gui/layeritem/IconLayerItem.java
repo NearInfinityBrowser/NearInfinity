@@ -45,6 +45,17 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    * @param message  An arbitrary text message
    */
   public IconLayerItem(Viewable viewable, String message) {
+    this(viewable, message, 0);
+  }
+
+  /**
+   * Initialize object with an associated Viewable and an additional text message.
+   *
+   * @param viewable Associated Viewable object
+   * @param message  An arbitrary text message
+   * @param id       Identifier that associates this item with a specific sublayer.
+   */
+  public IconLayerItem(Viewable viewable, String message, int id) {
     this(viewable, message, null, null);
   }
 
@@ -58,7 +69,21 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    * @param center   Logical center position within the icon
    */
   public IconLayerItem(Viewable viewable, String tooltip, Image image, Point center) {
-    super(viewable, tooltip);
+    this(viewable, tooltip, 0, image, center);
+  }
+
+  /**
+   * Initialize object with an associated Viewable, an additional text message, an image for the visual representation
+   * and a locical center position within the icon.
+   *
+   * @param viewable Associated Viewable object
+   * @param tooltip  A short text message shown as tooltip or menu item text
+   * @param id       Identifier that associates this item with a specific sublayer.
+   * @param image    The image to display
+   * @param center   Logical center position within the icon
+   */
+  public IconLayerItem(Viewable viewable, String tooltip, int id, Image image, Point center) {
+    super(viewable, tooltip, id);
     setLayout(new BorderLayout());
     // preparing icon
     rcCanvas = new FrameCanvas(this);

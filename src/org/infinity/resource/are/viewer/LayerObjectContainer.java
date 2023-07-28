@@ -190,7 +190,7 @@ public class LayerObjectContainer extends LayerObject {
     IconLayerItem retVal = null;
 
     if (pt.x > 0 && pt.y > 0) {
-      retVal = new IconLayerItem(container, label, icons[0], CENTER);
+      retVal = new IconLayerItem(container, label, LayerContainer.LAYER_ICONS_TARGET, icons[0], CENTER);
       retVal.setLabelEnabled(Settings.ShowLabelContainerTargets);
       retVal.setName(getCategory());
       retVal.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
