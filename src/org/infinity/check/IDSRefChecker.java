@@ -18,7 +18,7 @@ public final class IDSRefChecker extends AbstractChecker {
   private final ReferenceHitFrame hitFrame;
 
   public IDSRefChecker() {
-    super("IDSRef Checker", "IDSRefChecker", new String[] { "CRE", "EFF", "ITM", "PRO", "SPL" });
+    super("IDSRef Checker", new String[] { "CRE", "EFF", "ITM", "PRO", "SPL" });
     hitFrame = new ReferenceHitFrame("Unknown IDS references", NearInfinity.getInstance());
   }
 
@@ -26,7 +26,7 @@ public final class IDSRefChecker extends AbstractChecker {
 
   @Override
   public void run() {
-    if (runCheck(files)) {
+    if (runCheck(getFiles())) {
       hitFrame.close();
     } else {
       hitFrame.setVisible(true);

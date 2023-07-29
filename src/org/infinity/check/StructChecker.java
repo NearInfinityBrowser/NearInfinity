@@ -85,7 +85,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
   private final SortableTable table;
 
   public StructChecker() {
-    super("Find Corrupted Files", "StructChecker", FILETYPES);
+    super("Find Corrupted Files", FILETYPES);
 
     table = new SortableTable(new String[] { "File", "Offset", "Error message" },
         new Class<?>[] { ResourceEntry.class, String.class, String.class }, // TODO: replace "Offset" by Integer
@@ -131,7 +131,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
   @Override
   public void run() {
-    if (runCheck(files)) {
+    if (runCheck(getFiles())) {
       resultFrame.close();
       return;
     }
