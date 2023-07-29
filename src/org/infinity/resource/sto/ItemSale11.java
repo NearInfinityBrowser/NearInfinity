@@ -12,6 +12,8 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.Unknown;
+import org.infinity.gui.InfinityTextArea;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
@@ -56,7 +58,9 @@ public final class ItemSale11 extends AbstractStruct implements AddRemovable {
     addField(new Flag(buffer, offset + 16, 4, STO_SALE_FLAGS, ITEM_FLAGS_ARRAY));
     addField(new DecNumber(buffer, offset + 20, 4, STO_SALE_NUM_IN_STOCK));
     addField(new Bitmap(buffer, offset + 24, 4, STO_SALE_INFINITE_SUPPLY, OPTION_NOYES));
-    addField(new StringRef(buffer, offset + 28, STO_SALE_TRIGGER));
+    final InfinityTextArea.Language languageOverride =
+        BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled() ? InfinityTextArea.Language.BCS : null;
+    addField(new StringRef(buffer, offset + 28, STO_SALE_TRIGGER, languageOverride));
     addField(new Unknown(buffer, offset + 32, 56));
     return offset + 88;
   }

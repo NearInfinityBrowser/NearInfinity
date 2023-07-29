@@ -34,11 +34,13 @@ public class LayerObjectAreActor extends LayerObjectActor {
 
   static {
     ICONS.put(Allegiance.GOOD, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_G_1.getIcon().getImage(),
-        ViewerIcons.ICON_ITM_ARE_ACTOR_G_2.getIcon().getImage() });
+                                             ViewerIcons.ICON_ITM_ARE_ACTOR_G_2.getIcon().getImage() });
+
     ICONS.put(Allegiance.NEUTRAL, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_B_1.getIcon().getImage(),
-        ViewerIcons.ICON_ITM_ARE_ACTOR_B_2.getIcon().getImage() });
+                                                ViewerIcons.ICON_ITM_ARE_ACTOR_B_2.getIcon().getImage() });
+
     ICONS.put(Allegiance.ENEMY, new Image[] { ViewerIcons.ICON_ITM_ARE_ACTOR_R_1.getIcon().getImage(),
-        ViewerIcons.ICON_ITM_ARE_ACTOR_R_2.getIcon().getImage() });
+                                              ViewerIcons.ICON_ITM_ARE_ACTOR_R_2.getIcon().getImage() });
   }
 
   private final Actor actor;

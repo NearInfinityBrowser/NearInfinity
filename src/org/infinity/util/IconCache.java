@@ -9,6 +9,7 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import javax.swing.Icon;
@@ -18,8 +19,8 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
+import org.infinity.resource.graphics.BmpDecoder;
 import org.infinity.resource.graphics.ColorConvert;
-import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
@@ -63,6 +64,22 @@ public class IconCache {
         k -> new ImageIcon(ColorConvert.createCompatibleImage(size, size, Transparency.BITMASK)));
   }
 
+  /** Returns the {@link Image} stored by the given {@link Icon} instance. */
+  public static synchronized Image getIconImage(Icon icon) {
+    Image retVal = null;
+
+    if (icon instanceof ImageIcon) {
+      retVal = ((ImageIcon) icon).getImage();
+    } else if (icon != null) {
+      retVal = ColorConvert.createCompatibleImage(icon.getIconWidth(), icon.getIconHeight(), Transparency.TRANSLUCENT);
+      Graphics2D g = ((BufferedImage) retVal).createGraphics();
+      icon.paintIcon(null, g, 0, 0);
+      g.dispose();
+    }
+
+    return retVal;
+  }
+
   /** Removes all icons associated with the specified BAM {@link ResourceEntry}. */
   public static synchronized void remove(ResourceEntry entry) {
     if (entry != null) {
@@ -84,6 +101,18 @@ public class IconCache {
    * @return {@link Icon} from the specified graphics resource. Returns {@code null} if icon is not available.
    */
   public static synchronized Icon getIcon(ResourceEntry entry, int size) {
+    return getIcon(entry, size, null);
+  }
+
+  /**
+   * Returns the icon associated with the specified graphics {@link ResourceEntry} scaled to the specified size.
+   *
+   * @param entry {@link ResourceEntry} of a supported graphics resource. Currently supported: BAM, BMP.
+   * @param size Width and height of the resulting icon, in pixels.
+   * @param defIcon Use this icon resource if the specified graphics resource is {@code null}.
+   * @return {@link Icon} from the specified graphics resource. Returns {@code null} if icon is not available.
+   */
+  public static synchronized Icon getIcon(ResourceEntry entry, int size, Icon defIcon) {
     if (size < MIN_SIZE) {
       return null;
     }
@@ -108,7 +137,11 @@ public class IconCache {
     }
 
     if (retVal == null) {
-      retVal = getDefaultIcon(size);
+      if (defIcon != null) {
+        retVal = defIcon;
+      } else {
+        retVal = getDefaultIcon(size);
+      }
     }
 
     return retVal;
@@ -122,18 +155,37 @@ public class IconCache {
    * @return {@link Icon} associated with the specified game resource. Returns {@code null} if icon is not available.
    */
   public static synchronized Icon get(ResourceEntry entry, int size) {
+    return get(entry, size, null);
+  }
+
+  /**
+   * Returns the icon associated with the specified {@link ResourceEntry} scaled to the specified size.
+   *
+   * @param entry {@link ResourceEntry} of a supported game resource. Currently supported: ITM, SPL, BAM, BMP.
+   * @param size Width and height of the resulting icon, in pixels.
+   * @param defIcon Use this icon resource if the specified game resource doesn't provide an icon definition.
+   * @return {@link Icon} associated with the specified game resource. Returns {@code null} if icon is not available.
+   */
+  public static synchronized Icon get(ResourceEntry entry, int size, Icon defIcon) {
     ResourceEntry graphicsEntry = null;
 
     if (entry != null) {
       final String ext = entry.getExtension().toUpperCase();
       if (ext.equals("ITM") || ext.equals("SPL")) {
-        graphicsEntry = ResourceFactory.getResourceIcon(entry);
+        try {
+          graphicsEntry = ResourceFactory.getResourceIcon(entry);
+          if (graphicsEntry == null && defIcon == null) {
+            defIcon = entry.getIcon();
+          }
+        } catch (FileNotFoundException e) {
+          defIcon = getDefaultIcon(size);
+        }
       } else if (ext.equals("BAM") || ext.equals("BMP")) {
         graphicsEntry = entry;
       }
     }
 
-    return getIcon(graphicsEntry, size);
+    return getIcon(graphicsEntry, size, defIcon);
   }
 
   /** Returns the cached icon for the specified BAM {@link ResourceEntry} and {@code size}. */
@@ -243,10 +295,10 @@ public class IconCache {
 
     if (bmpEntry != null) {
       try {
-        final GraphicsResource res = new GraphicsResource(bmpEntry);
-        retVal = res.getImage();
+        final BmpDecoder decoder = BmpDecoder.loadBmp(bmpEntry);
+        retVal = decoder.getImage();
       } catch (Exception e) {
-        e.printStackTrace();
+        // No log output; catches lots of false positives
       }
     }
 

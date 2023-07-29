@@ -174,14 +174,16 @@ public class PreferencesDialog extends JDialog {
                       + "in parentheses if available, such as creature, item or spell names.",
                   AppOption.SHOW_TREE_SEARCH_NAMES),
               OptionCheckBox.create(AppOption.SHOW_RESOURCE_TREE_ICONS.getName(), AppOption.SHOW_RESOURCE_TREE_ICONS.getLabel(),
-                  "With this option enabled Near Infinity shows icons alongside names in the resource tree for ITM and "
-                      + "SPL resources."
-                      + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
+                  "With this option enabled Near Infinity shows icons alongside names in the resource tree for BMP, ITM "
+                      + "and SPL resources."
+                      + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
+                      + "noticeable lags on slower systems.</p>",
                       AppOption.SHOW_RESOURCE_TREE_ICONS),
               OptionCheckBox.create(AppOption.SHOW_RESOURCE_LIST_ICONS.getName(), AppOption.SHOW_RESOURCE_LIST_ICONS.getLabel(),
                   "With this option enabled Near Infinity shows icons alongside names in resource selection lists and "
-                  + "tables for ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
-                      + "<p><strong>Caution:</strong> Enabling this option may result in noticeable lags on slower systems.</p>",
+                      + "tables for BMP, ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
+                      + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
+                      + "noticeable lags on slower systems.</p>",
                   AppOption.SHOW_RESOURCE_LIST_ICONS),
               OptionCheckBox.create(AppOption.HIGHLIGHT_OVERRIDDEN.getName(), AppOption.HIGHLIGHT_OVERRIDDEN.getLabel(),
                   "If checked, files that are listed in the <em>chitin.key</em> and are also available in the "

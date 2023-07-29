@@ -103,7 +103,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
         }
       }
       if (gamEntry == null) {
-        gamEntry = ResourceFactory.getResourceEntry(Profile.getProperty(Profile.Key.GET_GAM_NAME));
+        gamEntry = ResourceFactory.getResourceEntry(Profile.<String>getProperty(Profile.Key.GET_GAM_NAME));
       }
 
       // scanning global NPCs

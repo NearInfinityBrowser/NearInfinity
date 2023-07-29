@@ -33,20 +33,35 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private final Vector<ActionListener> actionListener = new Vector<>();
   private final Vector<LayerItemListener> itemStateListener = new Vector<>();
   private final Viewable viewable;
+  private final Point center;
+  private final int id;
+
   private Object objData;
   private ItemState itemState;
-  private final Point center;
+
+  /**
+   * Initialize object with a associated viewable object and message for both info box and quick info.
+   * The item is automatically associated with the primary sublayer.
+   *
+   * @param viewable Associated Viewable object
+   * @param tooltip  A short text message shown as tooltip or menu item text
+   */
+  public AbstractLayerItem(Viewable viewable, String tooltip) {
+    this(viewable, tooltip, 0);
+  }
 
   /**
    * Initialize object with a associated viewable object and message for both info box and quick info.
    *
    * @param viewable Associated Viewable object
    * @param tooltip  A short text message shown as tooltip or menu item text
+   * @param id       Identifier that associates this item with a specific sublayer.
    */
-  public AbstractLayerItem(Viewable viewable, String tooltip) {
+  public AbstractLayerItem(Viewable viewable, String tooltip, int id) {
     this.viewable = viewable;
     this.itemState = ItemState.NORMAL;
     this.center = new Point();
+    this.id = id;
     if (viewable instanceof StructEntry) {
       setToolTipText(((StructEntry) viewable).getName() + ": " + tooltip);
     } else {
@@ -113,6 +128,15 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    */
   public ItemState getItemState() {
     return itemState;
+  }
+
+  /**
+   * Returns the sublayer identifier associated with this layer item.
+   *
+   * @return Sublayer iIdentifier for this layer item.
+   */
+  public int getId() {
+    return id;
   }
 
   /**

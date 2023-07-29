@@ -187,6 +187,11 @@ public final class MusResource
         setDocumentModified(false);
       }
       viewer.loadMusResource(this);
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor())) {
+        setDocumentModified(false);
+      }
+      viewer.loadMusResource(this);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
@@ -339,6 +344,9 @@ public final class MusResource
     JButton bSave = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE);
     bSave.addActionListener(this);
     bSave.setEnabled(getDocumentModified());
+    JButton bSaveAs = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS);
+    bSaveAs.addActionListener(this);
+    bSaveAs.setEnabled(getDocumentModified());
 
     JPanel lowerpanel = new JPanel();
     lowerpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -360,6 +368,7 @@ public final class MusResource
     if (b != resourceChanged) {
       resourceChanged = b;
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(resourceChanged);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(resourceChanged);
     }
   }
 }

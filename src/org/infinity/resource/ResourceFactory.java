@@ -9,6 +9,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -104,7 +105,7 @@ public final class ResourceFactory implements FileWatchListener {
   /**
    * Name of tree node that contains important game files that not stored in the BIF archives or override folders.
    */
-  private static final String SPECIAL_CATEGORY = "Special";
+  public static final String SPECIAL_CATEGORY = "Special";
 
   private static ResourceFactory instance;
 
@@ -276,9 +277,10 @@ public final class ResourceFactory implements FileWatchListener {
    *
    * @param entry The {@code ResourceEntry} of the resource.
    * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
-   *         available.
+   *         defined by the resource.
+   * @throws FileNotFoundException if an icon resource is defined but doesn't exist in the game.
    */
-  public static ResourceEntry getResourceIcon(ResourceEntry entry) {
+  public static ResourceEntry getResourceIcon(ResourceEntry entry) throws FileNotFoundException {
     return getResourceIcon(entry, null);
   }
 
@@ -291,9 +293,10 @@ public final class ResourceFactory implements FileWatchListener {
    * @param entry           The {@code ResourceEntry} of the resource.
    * @param forcedExtension Optional file extension string that is used to override the original file type.
    * @return BAM {@link ResourceEntry} of the icon associated with the resource. Returns {@code null} if icon is not
-   *         available.
+   *         defined by the resource.
+   * @throws FileNotFoundException if an icon resource is defined but doesn't exist in the game.
    */
-  public static ResourceEntry getResourceIcon(ResourceEntry entry, String forcedExtension) {
+  public static ResourceEntry getResourceIcon(ResourceEntry entry, String forcedExtension) throws FileNotFoundException {
     ResourceEntry retVal = null;
 
     Class<? extends Resource> clsResource = getResourceType(entry, forcedExtension);
@@ -306,8 +309,14 @@ public final class ResourceFactory implements FileWatchListener {
           final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconResref + ".BAM");
           if (iconEntry != null) {
             retVal = iconEntry;
+          } else {
+            // invalid resref
+            throw new FileNotFoundException("Resource does not exist: " + iconResref + ".BAM");
           }
         }
+      } catch (FileNotFoundException e) {
+        // forward exception to caller
+        throw e;
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -545,6 +554,30 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
+  /**
+   * Attempts to determine the parent {@link ResourceEntry} of the specified {@link StructEntry} instance.
+   *
+   * @param struct A {@link StructEntry} instance.
+   * @return {@code ResourceEntry} of the resource containing {@code struct}. Returns {@code null} if resource could not
+   *         be determined.
+   */
+  public static ResourceEntry getResourceEntry(StructEntry struct) {
+    ResourceEntry entry = null;
+
+    while (struct != null) {
+      if (struct instanceof AbstractStruct) {
+        final AbstractStruct as = (AbstractStruct) struct;
+        if (as.getResourceEntry() != null) {
+          entry = as.getResourceEntry();
+          break;
+        }
+      }
+      struct = struct.getParent();
+    }
+
+    return entry;
+  }
+
   /** Returns the resource tree model of the current game. */
   public static ResourceTreeModel getResourceTreeModel() {
     if (getInstance() != null) {
@@ -660,6 +693,14 @@ public final class ResourceFactory implements FileWatchListener {
   public static boolean saveResource(Resource resource, Component parent) {
     if (getInstance() != null) {
       return getInstance().saveResourceInternal(resource, parent);
+    } else {
+      return false;
+    }
+  }
+
+  public static boolean saveResourceAs(Resource resource, Component parent) {
+    if (getInstance() != null) {
+      return getInstance().saveResourceAsInternal(resource, parent);
     } else {
       return false;
     }
@@ -1540,7 +1581,20 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
+  private boolean saveResourceAsInternal(Resource resource, Component parent) {
+    final Path outFile = getExportFileDialogInternal(parent, resource.getResourceEntry().getResourceName(), true);
+    if (outFile != null) {
+      return saveResourceInternal(resource, parent, outFile);
+    } else {
+      return false;
+    }
+  }
+
   private boolean saveResourceInternal(Resource resource, Component parent) {
+    return saveResourceInternal(resource, parent, null);
+  }
+
+  private boolean saveResourceInternal(Resource resource, Component parent, Path outFile) {
     if (!(resource instanceof Writeable)) {
       JOptionPane.showMessageDialog(parent, "Resource not savable", "Error", JOptionPane.ERROR_MESSAGE);
       return false;
@@ -1549,38 +1603,44 @@ public final class ResourceFactory implements FileWatchListener {
     if (entry == null) {
       return false;
     }
+
     Path outPath;
-    if (entry instanceof BIFFResourceEntry) {
-      Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
-      if (!FileEx.create(overridePath).isDirectory()) {
-        try {
-          Files.createDirectory(overridePath);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
-              JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-          return false;
-        }
-      }
-      outPath = FileManager.query(overridePath, entry.getResourceName());
-      ((BIFFResourceEntry) entry).setOverride(true);
+    if (outFile != null) {
+      outPath = outFile;
     } else {
-      outPath = entry.getActualPath();
-      // extra step for saving resources from a read-only medium (such as DLCs)
-      if (!FileManager.isDefaultFileSystem(outPath)) {
-        outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
-        if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+      if (entry instanceof BIFFResourceEntry) {
+        Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        if (!FileEx.create(overridePath).isDirectory()) {
           try {
-            Files.createDirectories(outPath.getParent());
+            Files.createDirectory(overridePath);
           } catch (IOException e) {
-            JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
+            JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             return false;
           }
         }
+        outPath = FileManager.query(overridePath, entry.getResourceName());
+        ((BIFFResourceEntry) entry).setOverride(true);
+      } else {
+        outPath = entry.getActualPath();
+        // extra step for saving resources from a read-only medium (such as DLCs)
+        if (!FileManager.isDefaultFileSystem(outPath)) {
+          outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
+          if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+            try {
+              Files.createDirectories(outPath.getParent());
+            } catch (IOException e) {
+              JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
+                  JOptionPane.ERROR_MESSAGE);
+              e.printStackTrace();
+              return false;
+            }
+          }
+        }
       }
     }
+
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
       String options[] = { "Overwrite", "Cancel" };
@@ -1603,6 +1663,7 @@ public final class ResourceFactory implements FileWatchListener {
         return false;
       }
     }
+
     try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
       ((Writeable) resource).write(os);
     } catch (IOException e) {
@@ -1610,8 +1671,10 @@ public final class ResourceFactory implements FileWatchListener {
       e.printStackTrace();
       return false;
     }
+
     JOptionPane.showMessageDialog(parent, "File saved to \"" + outPath.toAbsolutePath() + '\"', "Save complete",
         JOptionPane.INFORMATION_MESSAGE);
+
     if ("IDS".equals(entry.getExtension())) {
       IdsMapCache.remove(entry);
       final IdsBrowser idsbrowser = ChildFrame.getFirstFrame(IdsBrowser.class);

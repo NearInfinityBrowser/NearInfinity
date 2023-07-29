@@ -340,6 +340,10 @@ public class PlainTextResource
       if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
         resourceChanged = false;
       }
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor())) {
+        resourceChanged = false;
+      }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
@@ -521,6 +525,7 @@ public class PlainTextResource
     }
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());

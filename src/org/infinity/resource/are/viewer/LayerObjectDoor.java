@@ -65,10 +65,10 @@ public class LayerObjectDoor extends LayerObject {
     doorMap.put(Integer.valueOf(ViewerConstants.DOOR_OPEN), doorOpen);
     final DoorInfo doorClosed = new DoorInfo();
     doorMap.put(Integer.valueOf(ViewerConstants.DOOR_CLOSED), doorClosed);
-    String label = null;
+    String name = null;
     try {
-      String attr = getAttributes();
-      final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
+      String attr = getAttributes(this.door);
+      name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
       final int vOfs = ((IsNumeric) parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
 
       // processing opened state door
@@ -81,7 +81,6 @@ public class LayerObjectDoor extends LayerObject {
       vNum = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
       doorClosed.setCoords(loadVertices(door, vOfs, 0, vNum, ClosedVertex.class));
 
-      label = door.getAttribute(Door.ARE_DOOR_NAME).toString();
       closePoint.x = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LOCATION_CLOSE_X)).getValue();
       closePoint.y = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LOCATION_CLOSE_Y)).getValue();
       openPoint.x = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LOCATION_OPEN_X)).getValue();
@@ -109,9 +108,9 @@ public class LayerObjectDoor extends LayerObject {
       info.setItem(item);
     }
 
-    itemIconClose = createValidatedLayerItem(closePoint, label, getIcons(ICONS_CLOSE));
-    itemIconOpen = createValidatedLayerItem(openPoint, label, getIcons(ICONS_OPEN));
-    itemIconLaunch = createValidatedLayerItem(launchPoint, label, getIcons(ICONS_LAUNCH));
+    itemIconClose = createValidatedLayerItem(closePoint, name, getIcons(ICONS_CLOSE));
+    itemIconOpen = createValidatedLayerItem(openPoint, name, getIcons(ICONS_OPEN));
+    itemIconLaunch = createValidatedLayerItem(launchPoint, name, getIcons(ICONS_LAUNCH));
   }
 
   @Override
@@ -218,7 +217,10 @@ public class LayerObjectDoor extends LayerObject {
     }
   }
 
-  private String getAttributes() {
+  /**
+   * Returns a descriptive string for the specified {@link Door} structure.
+   */
+  public static String getAttributes(Door door) {
     final StringBuilder sb = new StringBuilder();
     sb.append('[');
 
@@ -256,7 +258,7 @@ public class LayerObjectDoor extends LayerObject {
     IconLayerItem retVal = null;
 
     if (pt.x > 0 && pt.y > 0) {
-      retVal = new IconLayerItem(door, label, icons[0], CENTER);
+      retVal = new IconLayerItem(door, label, LayerDoor.LAYER_ICONS_TARGET, icons[0], CENTER);
       retVal.setLabelEnabled(Settings.ShowLabelDoorTargets);
       retVal.setName(getCategory());
       retVal.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

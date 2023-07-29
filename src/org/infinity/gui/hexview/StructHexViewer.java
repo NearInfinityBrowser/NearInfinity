@@ -98,6 +98,7 @@ public class StructHexViewer extends JPanel
   private static final ButtonPanel.Control BUTTON_FINDNEXT  = ButtonPanel.Control.CUSTOM_1;
   private static final ButtonPanel.Control BUTTON_EXPORT    = ButtonPanel.Control.EXPORT_BUTTON;
   private static final ButtonPanel.Control BUTTON_SAVE      = ButtonPanel.Control.SAVE;
+  private static final ButtonPanel.Control BUTTON_SAVE_AS   = ButtonPanel.Control.SAVE_AS;
   private static final ButtonPanel.Control BUTTON_REFRESH   = ButtonPanel.Control.CUSTOM_2;
 
   private static final String FMT_OFFSET = "%1$Xh (%1$d)";
@@ -239,69 +240,13 @@ public class StructHexViewer extends JPanel
       ResourceFactory.exportResource(getStruct().getResourceEntry(), getTopLevelAncestor());
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_SAVE)) {
-      // XXX: Ugly hack: mimicking ResourceFactory.saveResource()
-      IDataProvider dataProvider = getHexView().getData();
-      ResourceEntry entry = getStruct().getResourceEntry();
-      Path outPath;
-      if (entry instanceof BIFFResourceEntry) {
-        Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
-        if (!FileEx.create(overridePath).isDirectory()) {
-          try {
-            Files.createDirectory(overridePath);
-          } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Unable to create override folder.", "Error",
-                JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-            return;
-          }
-        }
-        outPath = FileManager.query(overridePath, entry.getResourceName());
-        ((BIFFResourceEntry) entry).setOverride(true);
-      } else {
-        outPath = entry.getActualPath();
-      }
-      if (FileEx.create(outPath).exists()) {
-        outPath = outPath.toAbsolutePath();
-        String options[] = { "Overwrite", "Cancel" };
-        if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
-          if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
-            try {
-              Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
-              if (FileEx.create(bakPath).isFile()) {
-                Files.delete(bakPath);
-              }
-              if (!FileEx.create(bakPath).exists()) {
-                Files.move(outPath, bakPath);
-              }
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        } else {
-          return;
-        }
-      }
-
-      try {
-        byte[] buffer = dataProvider.getData(0, dataProvider.getDataLength());
-        try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
-          // make sure that nothing interferes with the writing process
-          getHexView().setEnabled(false);
-          StreamUtils.writeBytes(os, buffer);
-        } finally {
-          getHexView().setEnabled(true);
-        }
-        buffer = null;
-        getStruct().setStructChanged(false);
-        getHexView().clearModified();
-        JOptionPane.showMessageDialog(this, "File saved to \"" + outPath.toAbsolutePath() + '\"', "Save complete",
-            JOptionPane.INFORMATION_MESSAGE);
-      } catch (IOException e) {
-        JOptionPane.showMessageDialog(this, "Error while saving " + getStruct().getResourceEntry().toString(), "Error",
-            JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
-        return;
+      saveResource(null);
+      getHexView().requestFocusInWindow();
+    } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_SAVE_AS)) {
+      final Path outFile = ResourceFactory.getExportFileDialog(getTopLevelAncestor(),
+          getStruct().getResourceEntry().getResourceName(), true);
+      if (outFile != null) {
+        saveResource(outFile);
       }
       getHexView().requestFocusInWindow();
     } else if (event.getSource() == buttonPanel.getControlByType(BUTTON_REFRESH)) {
@@ -435,6 +380,8 @@ public class StructHexViewer extends JPanel
     b.addActionListener(this);
     b = (JButton) buttonPanel.addControl(BUTTON_SAVE);
     b.addActionListener(this);
+    b = (JButton) buttonPanel.addControl(BUTTON_SAVE_AS);
+    b.addActionListener(this);
     b = (JButton) buttonPanel.addControl(new JButton("Refresh"), BUTTON_REFRESH);
     b.setIcon(Icons.ICON_REFRESH_16.getIcon());
     b.setToolTipText("Force a refresh of the displayed data");
@@ -522,6 +469,79 @@ public class StructHexViewer extends JPanel
 
   private IColormap getColorMap() {
     return colorMap;
+  }
+
+  private boolean saveResource(Path outFile) {
+    // XXX: Ugly hack: mimicking ResourceFactory.saveResourceInternal()
+    IDataProvider dataProvider = getHexView().getData();
+    ResourceEntry entry = getStruct().getResourceEntry();
+    Path outPath;
+    if (outFile != null) {
+      outPath = outFile;
+    } else {
+      if (entry instanceof BIFFResourceEntry) {
+        Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        if (!FileEx.create(overridePath).isDirectory()) {
+          try {
+            Files.createDirectory(overridePath);
+          } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Unable to create override folder.", "Error",
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return false;
+          }
+        }
+        outPath = FileManager.query(overridePath, entry.getResourceName());
+        ((BIFFResourceEntry) entry).setOverride(true);
+      } else {
+        outPath = entry.getActualPath();
+      }
+    }
+
+    if (FileEx.create(outPath).exists()) {
+      outPath = outPath.toAbsolutePath();
+      String options[] = { "Overwrite", "Cancel" };
+      if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
+          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
+        if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
+          try {
+            Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
+            if (FileEx.create(bakPath).isFile()) {
+              Files.delete(bakPath);
+            }
+            if (!FileEx.create(bakPath).exists()) {
+              Files.move(outPath, bakPath);
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      } else {
+        return false;
+      }
+    }
+
+    try {
+      byte[] buffer = dataProvider.getData(0, dataProvider.getDataLength());
+      try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
+        // make sure that nothing interferes with the writing process
+        getHexView().setEnabled(false);
+        StreamUtils.writeBytes(os, buffer);
+      } finally {
+        getHexView().setEnabled(true);
+      }
+      buffer = null;
+      getStruct().setStructChanged(false);
+      getHexView().clearModified();
+      JOptionPane.showMessageDialog(this, "File saved to \"" + outPath.toAbsolutePath() + '\"', "Save complete",
+          JOptionPane.INFORMATION_MESSAGE);
+    } catch (IOException e) {
+      JOptionPane.showMessageDialog(this, "Error while saving " + getStruct().getResourceEntry().toString(), "Error",
+          JOptionPane.ERROR_MESSAGE);
+      e.printStackTrace();
+      return false;
+    }
+    return true;
   }
 
   // -------------------------- INNER CLASSES --------------------------

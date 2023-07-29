@@ -39,7 +39,11 @@ public final class TotResource extends AbstractStruct implements Resource {
   public static final String TOT_EMPTY = "(empty)";
 
   public TotResource(ResourceEntry entry) throws Exception {
-    super(entry);
+    this(entry, null);
+  }
+
+  public TotResource(ResourceEntry entry, TohResource toh) throws Exception {
+    super(entry, toh);
   }
 
   @Override
@@ -114,9 +118,9 @@ public final class TotResource extends AbstractStruct implements Resource {
    * @return {@code TohResource} instance if loaded successfully, {@code null} otherwise.
    */
   private TohResource loadAssociatedToh(ResourceEntry totResource) {
-    TohResource toh = null;
+    TohResource toh = (getExtraData() instanceof TohResource) ? (TohResource) getExtraData() : null;
 
-    if (totResource != null) {
+    if (toh == null && totResource != null) {
       final Path totPath = totResource.getActualPath();
       if (totPath != null) {
         String fileName = totPath.getName(totPath.getNameCount() - 1).toString();

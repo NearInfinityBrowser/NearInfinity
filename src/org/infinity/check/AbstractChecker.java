@@ -44,13 +44,20 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   private final String key;
 
   /** Resources, selected for check. */
-  protected List<ResourceEntry> files;
+  private List<ResourceEntry> files;
 
-  public AbstractChecker(String title, String key, String[] filetypes) {
+  public AbstractChecker(String title, String[] filetypes) {
     super(CHECK_MULTI_TYPE_FORMAT, NearInfinity.getInstance());
     settingsWindow = new ChildFrame(title, true);
     settingsWindow.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-    this.key = key;
+
+    // generating unique key for this checker type
+    String className = getClass().getSimpleName();
+    if (className.isEmpty()) {
+      className = getClass().getName();
+    }
+    this.key = className;
+
     selector = new FileTypeSelector("Select files to check:", key, filetypes, null);
 
     final JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -83,6 +90,15 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
    */
   protected boolean runCheck(List<ResourceEntry> entries) {
     return runSearch("Checking", entries);
+  }
+
+  /**
+   * Returns a list of resources for checking.
+   *
+   * @return List of resources of the selected types.
+   */
+  protected List<ResourceEntry> getFiles() {
+    return files;
   }
 
   @Override

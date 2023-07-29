@@ -983,6 +983,22 @@ public class BaseOpcode {
     return getOpcode(id).makeEffectStruct(parent, buffer, offset, list, isVersion1);
   }
 
+  /**
+   * Returns the specified opcode instance. Returns a default instance if the requested opcode doesn't exist.
+   *
+   * @param id  The opcode number.
+   * @return {@code BaseOpcode} instance of the requested opcode. Returns a default opcode instance for unknown or
+   *         unsupported opcodes.
+   */
+  public static BaseOpcode getOpcode(int id) {
+    final BaseOpcode opcode = getOpcodeMap().get(id);
+    if (opcode != null) {
+      return opcode;
+    } else {
+      return DefaultOpcode.get(id);
+    }
+  }
+
   /** Returns whether the current game is enhanced by TobEx. */
   protected static boolean isTobEx() {
     return Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
@@ -991,22 +1007,6 @@ public class BaseOpcode {
   /** Returns whether the current game is enhanced by EEEx. */
   protected static boolean isEEEx() {
     return Profile.getProperty(Profile.Key.IS_GAME_EEEX);
-  }
-
-  /**
-   * Returns the specified opcode instance. Returns a default instance if the requested opcode doesn't exist.
-   *
-   * @param id  The opcode number.
-   * @return {@code BaseOpcode} instance of the requested opcode. Returns a default opcode instance for unknown or
-   *         unsupported opcodes.
-   */
-  protected static BaseOpcode getOpcode(int id) {
-    final BaseOpcode opcode = getOpcodeMap().get(id);
-    if (opcode != null) {
-      return opcode;
-    } else {
-      return DefaultOpcode.get(id);
-    }
   }
 
   /** Used internally to return a valid opcode list for the current game. */

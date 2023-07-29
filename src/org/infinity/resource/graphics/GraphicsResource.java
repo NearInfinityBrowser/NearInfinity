@@ -9,37 +9,38 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
+import java.util.Locale;
+import java.util.function.Function;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.icon.Icons;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.io.StreamUtils;
 
 public final class GraphicsResource implements Resource, Referenceable, ActionListener {
+  private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
+
   private final ResourceEntry entry;
+  private final BmpDecoder decoder;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
-  private BufferedImage image;
   private JPanel panel;
-  private Palette palette;
 
   public GraphicsResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
-    init();
+    this.decoder = BmpDecoder.loadBmp(entry);
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -50,6 +51,8 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
+      showProperties();
     }
   }
 
@@ -82,13 +85,18 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
 
   @Override
   public JComponent makeViewer(ViewableContainer container) {
-    RenderCanvas rcCanvas = new RenderCanvas(image);
+    RenderCanvas rcCanvas = new RenderCanvas(decoder.getImage());
     JScrollPane scroll = new JScrollPane(rcCanvas);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
+    bProperties.setMnemonic('p');
+    bProperties.addActionListener(this);
+    buttonPanel.addControl(bProperties, PROPERTIES);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
@@ -101,90 +109,28 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
   // --------------------- End Interface Viewable ---------------------
 
   public BufferedImage getImage() {
-    return image;
+    return decoder.getImage();
   }
 
   public Palette getPalette() {
-    return palette;
+    return decoder.getPalette();
   }
 
-  private void init() throws Exception {
-    ByteBuffer buffer = entry.getResourceBuffer();
-    // Checking signature
-    boolean isBMP = false;
-    if ("BM".equals(StreamUtils.readString(buffer, 0, 2))) {
-      isBMP = true;
-    }
-
-    image = null;
-    if (isBMP) {
-      int rasteroff = buffer.getInt(10);
-
-      int width = buffer.getInt(18);
-      int height = buffer.getInt(22);
-      int bitcount = buffer.getShort(28);
-      int compression = buffer.getInt(30);
-      if ((compression == 0 || compression == 3) && bitcount <= 32) {
-        int colsUsed = buffer.getInt(46); // Colorsused
-
-        if (bitcount <= 8) {
-          if (colsUsed == 0) {
-            colsUsed = 1 << bitcount;
-          }
-          int palSize = 4 * colsUsed;
-          palette = new Palette(buffer, rasteroff - palSize, palSize);
-        }
-
-        int bytesprline = bitcount * width / 8;
-        int padded = 4 - bytesprline % 4;
-        if (padded == 4) {
-          padded = 0;
-        }
-
-        image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
-        int offset = rasteroff;
-        for (int y = height - 1; y >= 0; y--) {
-          setPixels(buffer, offset, bitcount, bytesprline, y, palette);
-          offset += bytesprline + padded;
-        }
-      }
-    }
-    if (image == null) {
-      try (InputStream is = entry.getResourceDataAsStream()) {
-        image = ImageIO.read(is);
-      } catch (Exception e) {
-        image = null;
-        throw new Exception("Unsupported graphics format");
-      }
-    }
+  public BmpDecoder.Info getInfo() {
+    return decoder.getInfo();
   }
 
-  private void setPixels(ByteBuffer buffer, int offset, int bitcount, int width, int y, Palette palette) {
-    if (bitcount == 4) {
-      int pix = 0;
-      for (int x = 0; x < width; x++) {
-        int color = buffer.get(offset + x) & 0xff;
-        int color1 = (color >> 4) & 0x0f;
-        image.setRGB(pix++, y, palette.getColor(color1));
-        int color2 = color & 0x0f;
-        image.setRGB(pix++, y, palette.getColor(color2));
-      }
-    } else if (bitcount == 8) {
-      for (int x = 0; x < width; x++) {
-        image.setRGB(x, y, palette.getColor(buffer.get(offset + x) & 0xff));
-      }
-    } else if (bitcount == 24) {
-      for (int x = 0; x < width / 3; x++) {
-        int rgb = (buffer.get(offset + 3 * x + 2) & 0xff) << 16;
-        rgb |= (buffer.get(offset + 3 * x + 1) & 0xff) << 8;
-        rgb |= buffer.get(offset + 3 * x) & 0xff;
-        image.setRGB(x, y, rgb);
-      }
-    } else if (bitcount == 32) {
-      for (int x = 0; x < width / 4; x++) {
-        int rgb = buffer.getInt(offset + 4 * x);
-        image.setRGB(x, y, rgb);
-      }
-    }
+  private void showProperties() {
+    // Width, Height, BitsPerPixel, Compression
+    final Function<Integer, String> space = (i) -> new String(new char[i]).replace("\0", "&nbsp;");
+    final String br = "<br/>";
+    final String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+    final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
+    sb.append("Width:").append(space.apply(7)).append(getInfo().getWidth()).append(br);
+    sb.append("Height:").append(space.apply(6)).append(getInfo().getHeight()).append(br);
+    sb.append("Bits/Pixel:").append(space.apply(2)).append(getInfo().getBitsPerPixel()).append(br);
+    sb.append("</div></html>");
+
+    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 }

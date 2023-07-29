@@ -10,6 +10,7 @@ import java.util.List;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.EffectBitmap;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -20,7 +21,6 @@ import org.infinity.resource.StructEntry;
 public class Opcode261 extends BaseOpcode {
   private static final String EFFECT_SPELL_LEVEL  = "Spell level";
   private static final String EFFECT_SPELL_CLASS  = "Spell class";
-  private static final String EFFECT_FX           = "Effect";
 
   private static final String RES_TYPE_IWD2 = "SPL";
 
@@ -63,7 +63,7 @@ public class Opcode261 extends BaseOpcode {
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_FX, getEffectNames()));
+    list.add(new EffectBitmap(buffer, offset + 4, 4));
     return null;
   }
 
@@ -71,7 +71,7 @@ public class Opcode261 extends BaseOpcode {
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_FX, getEffectNames()));
+    list.add(new EffectBitmap(buffer, offset + 4, 4));
     return RES_TYPE_IWD2;
   }
 

@@ -28,7 +28,7 @@ public final class ResRefChecker extends AbstractChecker {
   private List<String> extraValues;
 
   public ResRefChecker() {
-    super("ResRef Checker", "ResRefChecker", FILE_TYPES);
+    super("ResRef Checker", FILE_TYPES);
     hitFrame = new ReferenceHitFrame("Illegal ResourceRefs", NearInfinity.getInstance());
 
     final ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
@@ -42,7 +42,7 @@ public final class ResRefChecker extends AbstractChecker {
 
   @Override
   public void run() {
-    if (runCheck(files)) {
+    if (runCheck(getFiles())) {
       hitFrame.close();
     } else {
       hitFrame.setVisible(true);
