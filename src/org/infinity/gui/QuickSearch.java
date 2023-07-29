@@ -4,6 +4,7 @@
 
 package org.infinity.gui;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -21,9 +22,10 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -54,6 +56,9 @@ public class QuickSearch extends JPanel implements Runnable {
     CANCEL, OPEN, OPEN_NEW,
   }
 
+  // Max. number of visible rows in the popup menu list
+  private static final int MAX_ROW_COUNT = 12;
+
   private final ButtonPopupWindow parent;
   private final ResourceTree tree;
   private final MapTree<Character, List<ResourceEntry>> resourceTree;
@@ -61,7 +66,7 @@ public class QuickSearch extends JPanel implements Runnable {
   private final JPanel mainPanel = new JPanel(new GridBagLayout());
 
   private JLabel lSearch;
-  private JComboBox<ResourceEntry> cbSearch;
+  private WideComboBox<ResourceEntry> cbSearch;
   private JTextComponent tcEdit;
   private JButton bOk;
   private JButton bOkNew;
@@ -164,7 +169,9 @@ public class QuickSearch extends JPanel implements Runnable {
 
     lSearch = new JLabel("Search:", SwingConstants.LEFT);
 
-    cbSearch = new JComboBox<>();
+    cbSearch = new WideComboBox<>();
+    cbSearch.setRenderer(new QuickListCellRenderer());
+    cbSearch.setFormatter(item -> QuickListCellRenderer.getFormattedValue(item));
     cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW")); // space for at least 8.4 characters
     cbSearch.setEditable(true);
     tcEdit = (JTextComponent) cbSearch.getEditor().getEditorComponent();
@@ -395,7 +402,7 @@ public class QuickSearch extends JPanel implements Runnable {
               cbModel.addListDataListener(listener);
             }
 
-            cbSearch.setMaximumRowCount(Math.min(8, cbModel.getSize()));
+            cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
             if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
               cbSearch.showPopup();
             } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
@@ -423,4 +430,40 @@ public class QuickSearch extends JPanel implements Runnable {
   }
 
   // --------------------- End Interface Runnable ---------------------
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  private static class QuickListCellRenderer extends DefaultListCellRenderer {
+    public QuickListCellRenderer() {
+      super();
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      setText(getFormattedValue(value));
+      return this;
+    }
+
+    /**
+     * Returns the formatted string of {@code value} as it is provided by the renderer.
+     *
+     * @param value Value to be converted into a formatted string.
+     * @return Formatted string based on {@code value}. Returns empty string if {@code value} is {@code null}.
+     */
+    public static String getFormattedValue(Object value) {
+      String retVal = "";
+      if (value != null) {
+        retVal = value.toString();
+        if (value instanceof ResourceEntry) {
+          final String name = ((ResourceEntry) value).getSearchString();
+          if (name != null) {
+            retVal = retVal + " (" + name + ")";
+          }
+        }
+      }
+      return retVal;
+    }
+  }
 }

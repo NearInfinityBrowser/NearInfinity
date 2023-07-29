@@ -20,7 +20,7 @@ public class EffectsIndexChecker extends AbstractChecker {
   private final ReferenceHitFrame hitFrame;
 
   public EffectsIndexChecker() {
-    super("Effects Index Checker", "EffectsIndexChecker", new String[] { "ITM", "SPL" });
+    super("Effects Index Checker", new String[] { "ITM", "SPL" });
     hitFrame = new ReferenceHitFrame("Mis-indexed Effects", NearInfinity.getInstance());
   }
 
@@ -28,7 +28,7 @@ public class EffectsIndexChecker extends AbstractChecker {
 
   @Override
   public void run() {
-    if (runCheck(files)) {
+    if (runCheck(getFiles())) {
       hitFrame.close();
     } else {
       hitFrame.setVisible(true);

@@ -120,6 +120,11 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
         setTextModified(false);
         setRawModified(false);
       }
+    } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS)) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+        setTextModified(false);
+        setRawModified(false);
+      }
     }
   }
 
@@ -180,6 +185,8 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(false);
 
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -348,6 +355,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
   private void setSaveButtonEnabled(boolean enable) {
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(enable);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(enable);
   }
 
   private void updateStatusBar() {

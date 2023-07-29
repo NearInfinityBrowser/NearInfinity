@@ -13,7 +13,10 @@ import org.infinity.resource.are.ITEPoint;
 /**
  * Manages region layer objects.
  */
-public class LayerRegion extends BasicTargetLayer<LayerObjectRegion, AreResource> {
+public class LayerRegion extends BasicCompositeLayer<LayerObjectRegion, AreResource> {
+  /** Identifier for the target icons sublayer. */
+  public static final int LAYER_ICONS_TARGET = 1;
+
   private static final String AVAILABLE_FMT = "Regions: %d";
 
   public LayerRegion(AreResource are, AreaViewer viewer) {

@@ -81,9 +81,34 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
   private JMenuItem miAddExternal;
   private JMenuItem miAddInternal;
 
+  /**
+   * Decompresses and returns a specific resource from the given SAV resource.
+   *
+   * @param savEntry The SAV resource containing the given resource.
+   * @param resourceName Full name (name dot extension) of the resource to load.
+   * @return {@link Resource} instance of the given resource. Returns {@code null} if the resource is not available.
+   * @throws Exception
+   */
+  public static Resource loadResource(ResourceEntry savEntry, String resourceName) throws Exception {
+    Resource retVal = null;
+
+    final IOHandler handler = new IOHandler(savEntry, false);
+    final SavResourceEntry resEntry = handler
+        .getFileEntries()
+        .stream()
+        .filter(e -> e.getResourceName().equalsIgnoreCase(resourceName))
+        .findFirst()
+        .orElse(null);
+    if (resEntry != null) {
+      retVal = ResourceFactory.getResource(resEntry);
+    }
+
+    return retVal;
+  }
+
   public SavResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
-    handler = new IOHandler(entry);
+    handler = new IOHandler(entry, true);
   }
 
   // --------------------- Begin Interface ActionListener ---------------------

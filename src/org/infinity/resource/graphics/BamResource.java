@@ -247,6 +247,10 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
         setRawModified(false);
       }
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+        setRawModified(false);
+      }
     } else if (event.getSource() == timer) {
       if (curCycle >= 0) {
         curFrame = (curFrame + 1) % bamControl.cycleFrameCount();
@@ -565,6 +569,8 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.EXPORT_MENU);
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
+    ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(false);
     buttonPanel.addControl(bProperties, PROPERTIES);
     buttonPanel.addControl(bEdit, BAM_EDIT);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
@@ -1302,6 +1308,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
         hexViewer.clearModified();
       }
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(modified);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(modified);
     }
   }
 }

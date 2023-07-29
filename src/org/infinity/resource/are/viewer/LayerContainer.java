@@ -13,7 +13,10 @@ import org.infinity.resource.are.Container;
 /**
  * Manages container layer objects.
  */
-public class LayerContainer extends BasicTargetLayer<LayerObjectContainer, AreResource> {
+public class LayerContainer extends BasicCompositeLayer<LayerObjectContainer, AreResource> {
+  /** Identifier for the target icons sublayer. */
+  public static final int LAYER_ICONS_TARGET = 1;
+
   private static final String AVAILABLE_FMT = "Containers: %d";
 
   public LayerContainer(AreResource are, AreaViewer viewer) {

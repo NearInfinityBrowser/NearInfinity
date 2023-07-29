@@ -766,6 +766,64 @@ public final class CreResource extends AbstractStruct
     return retVal;
   }
 
+  /**
+   * Removes characters from flag descriptions which are shared by all relevant ids entries.
+   *
+   * @param field The {@link IdsFlag} instance to adjust.
+   * @param idsFile Associated IDS file.
+   * @param separatorChar Character to separate individual words (usually {@code '_'}).
+   * @return Updated {@link IdsFlag} instance.
+   */
+  public static IdsFlag uniqueIdsFlag(IdsFlag field, String idsFile, char separatorChar) {
+    if (field == null) {
+      return field;
+    }
+    IdsMap map = IdsMapCache.get(idsFile);
+    if (map == null) {
+      return field;
+    }
+
+    String[] table = new String[field.getSize() * 8];
+    // determine longest common prefix
+    IdsMapEntry entry = map.get(0L);
+    String prefix = (entry != null) ? entry.getSymbol() : null;
+    for (int i = 0; i < table.length; i++) {
+      entry = map.get(1L << i);
+      if (entry != null) {
+        if (prefix == null) {
+          prefix = entry.getSymbol();
+        } else {
+          String name = entry.getSymbol();
+          for (int j = 0, jmax = Math.min(prefix.length(), name.length()); j < jmax; j++) {
+            if (Character.toUpperCase(prefix.charAt(j)) != Character.toUpperCase(name.charAt(j))) {
+              prefix = prefix.substring(0, j);
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (prefix == null) {
+      prefix = "";
+    }
+
+    // cut off prefix after last matching separator character
+    if (separatorChar != 0) {
+      prefix = prefix.substring(0, prefix.lastIndexOf(separatorChar) + 1);
+    }
+
+    // update flag descriptions
+    entry = map.get(0L);
+    field.setEmptyDesc((entry != null) ? entry.getSymbol().substring(prefix.length()) : null);
+    for (int i = 0; i < table.length; i++) {
+      entry = map.get(1L << i);
+      table[i] = (entry != null) ? entry.getSymbol().substring(prefix.length()) : null;
+    }
+    field.setFlagDescriptions(field.getSize(), table, 0);
+
+    return field;
+  }
+
   public CreResource(String name) throws Exception {
     super(null, name,
         StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE, null, null).getBuffer(), 0);
@@ -2034,57 +2092,6 @@ public final class CreResource extends AbstractStruct
     }
 
     return startOffset;
-  }
-
-  // Removes characters from flag descriptions which are shared by all relevant ids entries.
-  private IdsFlag uniqueIdsFlag(IdsFlag field, String idsFile, char separatorChar) {
-    if (field == null) {
-      return field;
-    }
-    IdsMap map = IdsMapCache.get(idsFile);
-    if (map == null) {
-      return field;
-    }
-
-    String[] table = new String[field.getSize() * 8];
-    // determine longest common prefix
-    IdsMapEntry entry = map.get(0L);
-    String prefix = (entry != null) ? entry.getSymbol() : null;
-    for (int i = 0; i < table.length; i++) {
-      entry = map.get(1L << i);
-      if (entry != null) {
-        if (prefix == null) {
-          prefix = entry.getSymbol();
-        } else {
-          String name = entry.getSymbol();
-          for (int j = 0, jmax = Math.min(prefix.length(), name.length()); j < jmax; j++) {
-            if (Character.toUpperCase(prefix.charAt(j)) != Character.toUpperCase(name.charAt(j))) {
-              prefix = prefix.substring(0, j);
-              break;
-            }
-          }
-        }
-      }
-    }
-    if (prefix == null) {
-      prefix = "";
-    }
-
-    // cut off prefix after last matching separator character
-    if (separatorChar != 0) {
-      prefix = prefix.substring(0, prefix.lastIndexOf(separatorChar) + 1);
-    }
-
-    // update flag descriptions
-    entry = map.get(0L);
-    field.setEmptyDesc((entry != null) ? entry.getSymbol().substring(prefix.length()) : null);
-    for (int i = 0; i < table.length; i++) {
-      entry = map.get(1L << i);
-      table[i] = (entry != null) ? entry.getSymbol().substring(prefix.length()) : null;
-    }
-    field.setFlagDescriptions(field.getSize(), table, 0);
-
-    return field;
   }
 
   /**

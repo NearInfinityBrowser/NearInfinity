@@ -246,7 +246,7 @@ public class LayerObjectRegion extends LayerObject {
     IconLayerItem retVal = null;
 
     if (pt.x > 0 && pt.y > 0) {
-      retVal = new IconLayerItem(region, label, icons[0], CENTER);
+      retVal = new IconLayerItem(region, label, LayerRegion.LAYER_ICONS_TARGET, icons[0], CENTER);
       retVal.setLabelEnabled(Settings.ShowLabelRegionTargets);
       retVal.setName(getCategory());
       retVal.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

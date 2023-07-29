@@ -23,6 +23,7 @@ jobs:
           sed -i 's/debug="false"/debug="true"/' build.xml
           ant -noinput -buildfile build.xml
       - name: Upload artifact
+        if: ${{ github.actor != 'NearInfinityBrowser' }}
         uses: pyTooling/Actions/releaser@r0
         with:
           tag: nightly

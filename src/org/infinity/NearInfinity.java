@@ -75,6 +75,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FontUIResource;
 
 import org.infinity.datatype.ProRef;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.SpellProtType;
 import org.infinity.datatype.Summon2daBitmap;
@@ -135,7 +136,7 @@ import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   // the current Near Infinity version
-  private static final String VERSION = "v2.4-20230714";
+  private static final String VERSION = "v2.4-20230729";
 
   // the minimum supported Java version
   private static final int JAVA_VERSION_MIN = 8;
@@ -1503,9 +1504,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           sizeList.add(IconCache.getDefaultListIconSize());
         }
         if (!sizeList.isEmpty()) {
-          final String[] types = { "ITM", "SPL" };
           int[] sizes = sizeList.stream().mapToInt(Integer::intValue).toArray();
-          for (final String type : types) {
+          for (final String type : ResourceRef.getIconExtensions()) {
             final List<ResourceEntry> resources = ResourceFactory.getResources(type);
             if (resources != null) {
               for (final ResourceEntry e : resources) {

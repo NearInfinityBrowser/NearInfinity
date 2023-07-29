@@ -339,7 +339,9 @@ public final class BcsResource
     } else if (bpCompiled.getControlByType(CTRL_DECOMPILE) == event.getSource()) {
       decompile();
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      save();
+      save(false);
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
+      save(true);
     }
   }
 
@@ -389,6 +391,7 @@ public final class BcsResource
   public void insertUpdate(DocumentEvent event) {
     if (event.getDocument() == codeText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpCompiled.getControlByType(CTRL_DECOMPILE).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -402,6 +405,7 @@ public final class BcsResource
   public void removeUpdate(DocumentEvent event) {
     if (event.getDocument() == codeText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpCompiled.getControlByType(CTRL_DECOMPILE).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -415,6 +419,7 @@ public final class BcsResource
   public void changedUpdate(DocumentEvent event) {
     if (event.getDocument() == codeText.getDocument()) {
       buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS).setEnabled(true);
       bpCompiled.getControlByType(CTRL_DECOMPILE).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -628,7 +633,8 @@ public final class BcsResource
     bpmExport.addItemListener(this);
     JButton bSave = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE);
     bSave.addActionListener(this);
-    bSave.setEnabled(false);
+    JButton bSaveAs = (JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE_AS);
+    bSaveAs.addActionListener(this);
 
     tabbedPane = new JTabbedPane();
     tabbedPane.addTab("Script source (decompiled)", decompiledPanel);
@@ -650,6 +656,7 @@ public final class BcsResource
     }
     bDecompile.setEnabled(false);
     bSave.setEnabled(false);
+    bSaveAs.setEnabled(false);
 
     return panel;
   }
@@ -754,9 +761,10 @@ public final class BcsResource
     tabbedPane.setSelectedIndex(0);
   }
 
-  private void save() {
-    JButton bSave = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE);
-    ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpDecompile.getControlByType(CTRL_ERRORS);
+  private void save(boolean interactive) {
+    final JButton bSave = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE);
+    final JButton bSaveAs = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS);
+    final ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpDecompile.getControlByType(CTRL_ERRORS);
     if (bpmErrors.isEnabled()) {
       String options[] = { "Save", "Cancel" };
       int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
@@ -765,8 +773,15 @@ public final class BcsResource
         return;
       }
     }
-    if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+    final boolean result;
+    if (interactive) {
+      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor());
+    } else {
+      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+    }
+    if (result) {
       bSave.setEnabled(false);
+      bSaveAs.setEnabled(false);
       sourceChanged = false;
       codeChanged = false;
     }

@@ -11,19 +11,12 @@ import java.nio.file.Path;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.key.FileResourceEntry;
-import org.infinity.resource.to.StrRefEntry;
-import org.infinity.resource.to.StrRefEntry2;
-import org.infinity.resource.to.StringEntry;
-import org.infinity.resource.to.StringEntry2;
 import org.infinity.resource.to.TohResource;
-import org.infinity.resource.to.TotResource;
-import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
 /**
@@ -52,65 +45,17 @@ public class LayerObjectAutomap extends LayerObject {
         msg = note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT).toString();
       } else {
         // fetching string from talk override
-        msg = "[user-defined]";
         int srcStrref = ((IsNumeric) note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
+        msg = String.format("[Overridden string (Strref: %d)]", srcStrref);
         if (srcStrref > 0) {
           String path = parent.getResourceEntry().getActualPath().toString();
           path = path.replace(parent.getResourceEntry().getResourceName(), "");
-          if (Profile.isEnhancedEdition()) {
-            // processing new TOH structure
-            Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
-            if (FileEx.create(tohFile).exists()) {
-              FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
-              TohResource toh = new TohResource(tohEntry);
-              IsNumeric so = (IsNumeric) toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
-              IsNumeric sc = (IsNumeric) toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
-              if (so != null && sc != null && sc.getValue() > 0) {
-                for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
-                  StrRefEntry2 strref = (StrRefEntry2) toh.getAttribute(curOfs, false);
-                  if (strref != null) {
-                    int v = ((IsNumeric) strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
-                    if (v == srcStrref) {
-                      int sofs = ((IsNumeric) strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
-                      StringEntry2 se = (StringEntry2) toh.getAttribute(so.getValue() + sofs, false);
-                      if (se != null) {
-                        msg = se.getAttribute(StringEntry2.TOH_STRING_TEXT).toString();
-                      }
-                      break;
-                    }
-                    curOfs += strref.getSize();
-                  }
-                }
-              }
-            }
-          } else {
-            // processing legacy TOH/TOT structures
-            Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
-            Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
-            if (FileEx.create(tohFile).exists() && FileEx.create(totFile).exists()) {
-              FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
-              FileResourceEntry totEntry = new FileResourceEntry(totFile);
-              TohResource toh = new TohResource(tohEntry);
-              TotResource tot = new TotResource(totEntry);
-              IsNumeric sc = (IsNumeric) toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
-              if (sc != null && sc.getValue() > 0) {
-                for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
-                  StrRefEntry strref = (StrRefEntry) toh.getAttribute(curOfs, false);
-                  if (strref != null) {
-                    int v = ((IsNumeric) strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
-                    if (v == srcStrref) {
-                      int sofs = ((IsNumeric) strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
-                      StringEntry se = (StringEntry) tot.getAttribute(sofs, false);
-                      if (se != null) {
-                        msg = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
-                      }
-                      break;
-                    }
-                    curOfs += strref.getSize();
-                  }
-                }
-              }
-            }
+          final Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
+          final Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
+          final String result = TohResource.getOverrideString(new FileResourceEntry(tohFile),
+              new FileResourceEntry(totFile), srcStrref);
+          if (result != null) {
+            msg = result;
           }
         }
       }

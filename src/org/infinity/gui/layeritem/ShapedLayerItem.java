@@ -44,6 +44,19 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    * @param shape    The shape to display
    */
   public ShapedLayerItem(Viewable viewable, String tooltip, Shape shape) {
+    this(viewable, tooltip, 0, shape);
+  }
+
+  /**
+   * Initialize object with an associated Viewable, an additional text message and a shape for the visual
+   * representation.
+   *
+   * @param viewable Associated Viewable object
+   * @param tooltip  A short text message shown as tooltip or menu item text
+   * @param id       Identifier that associates this item with a specific sublayer.
+   * @param shape    The shape to display
+   */
+  public ShapedLayerItem(Viewable viewable, String tooltip, int id, Shape shape) {
     super(viewable, tooltip);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);

@@ -29,7 +29,8 @@ public final class LayerManager {
       LayerType.REGION,
       LayerType.TRANSITION,
       LayerType.DOOR_POLY,
-      LayerType.WALL_POLY
+      LayerType.WALL_POLY,
+      LayerType.DOOR_CELLS
   };
 
   private final EnumMap<LayerType, BasicLayer<?, ?>> layers = new EnumMap<>(LayerType.class);
@@ -360,6 +361,7 @@ public final class LayerManager {
    */
   public void setDoorState(int state) {
     ((LayerDoor) getLayer(LayerType.DOOR)).setDoorState(state);
+    ((LayerDoorCells) getLayer(LayerType.DOOR_CELLS)).setDoorState(state);
     ((LayerDoorPoly) getLayer(LayerType.DOOR_POLY)).setDoorState(state);
   }
 
@@ -586,6 +588,7 @@ public final class LayerManager {
           case CONTAINER:
           case AMBIENT:
           case DOOR:
+          case DOOR_CELLS:
           case ANIMATION:
           case AUTOMAP:
           case SPAWN_POINT:
@@ -664,6 +667,16 @@ public final class LayerManager {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
             LayerDoor obj = new LayerDoor(are, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case DOOR_CELLS: {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerDoorCells obj = new LayerDoorCells(are, getViewer());
             layers.put(layer, obj);
             retVal = obj.getLayerObjectCount();
           }

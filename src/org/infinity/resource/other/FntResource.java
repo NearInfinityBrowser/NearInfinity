@@ -89,5 +89,9 @@ public final class FntResource extends AbstractStruct implements Resource, HasVi
     if (bSave != null) {
       bSave.setEnabled(false);
     }
+    JButton bSaveAs = (JButton) viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE_AS);
+    if (bSaveAs != null) {
+      bSaveAs.setEnabled(false);
+    }
   }
 }

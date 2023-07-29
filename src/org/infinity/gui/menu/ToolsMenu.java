@@ -20,6 +20,7 @@ import org.infinity.NearInfinity;
 import org.infinity.check.BCSIDSChecker;
 import org.infinity.check.CreInvChecker;
 import org.infinity.check.DialogChecker;
+import org.infinity.check.EffectValidationChecker;
 import org.infinity.check.EffectsIndexChecker;
 import org.infinity.check.IDSRefChecker;
 import org.infinity.check.ResRefChecker;
@@ -79,6 +80,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
   private final JMenuItem toolMassExport;
 
   private final JMenuItem toolCheckEffectsIndex;
+  private final JMenuItem toolCheckEffectIsValid;
 
   private final JMenuItem toolConvImageToBam;
   private final JMenuItem toolConvImageToBmp;
@@ -190,6 +192,11 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
     toolCheckEffectsIndex = BrowserMenuBar.makeMenuItem("For Mis-indexed Effects...", -1, Icons.ICON_FIND_16.getIcon(),
         -1, this);
     checkMenu.add(toolCheckEffectsIndex);
+
+    toolCheckEffectIsValid = BrowserMenuBar.makeMenuItem("For Invalid Effect Opcodes...", -1,
+        Icons.ICON_FIND_16.getIcon(), -1, this);
+    toolCheckEffectIsValid.setToolTipText("Reports opcodes that are unknown or not supported by this game");
+    checkMenu.add(toolCheckEffectIsValid);
     // *** End Check submenu ***
 
     // *** Begin Convert submenu ***
@@ -370,6 +377,8 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
       new MassExporter();
     } else if (event.getSource() == toolCheckEffectsIndex) {
       new EffectsIndexChecker();
+    } else if (event.getSource() == toolCheckEffectIsValid) {
+      new EffectValidationChecker();
     } else if (event.getSource() == toolConvImageToPvrz) {
       ChildFrame.show(ConvertToPvrz.class, ConvertToPvrz::new);
     } else if (event.getSource() == toolConvImageToTis) {

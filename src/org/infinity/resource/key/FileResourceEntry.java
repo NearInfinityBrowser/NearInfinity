@@ -156,6 +156,15 @@ public final class FileResourceEntry extends ResourceEntry {
       retVal = ResourceFactory.getResourceTreeModel().getFolder(getTreeFolderName());
     }
 
+    // check "Special" folder
+    if (retVal == null) {
+      final ResourceTreeFolder specialFolder =
+          ResourceFactory.getResourceTreeModel().getFolder(ResourceFactory.SPECIAL_CATEGORY);
+      if (specialFolder.getResourceEntries().contains(this)) {
+        retVal = specialFolder;
+      }
+    }
+
     return retVal;
   }
 

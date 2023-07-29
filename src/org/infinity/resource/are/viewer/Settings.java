@@ -34,6 +34,7 @@ public class Settings {
       ViewerConstants.LayerStackingType.DOOR,
       ViewerConstants.LayerStackingType.DOOR_POLY,
       ViewerConstants.LayerStackingType.WALL_POLY,
+      ViewerConstants.LayerStackingType.DOOR_CELLS,
       ViewerConstants.LayerStackingType.AMBIENT_RANGE,
       ViewerConstants.LayerStackingType.TRANSITION
   };
@@ -566,6 +567,8 @@ public class Settings {
       case DOOR:
       case DOOR_TARGET:
         return LayerType.DOOR;
+      case DOOR_CELLS:
+        return LayerType.DOOR_CELLS;
       case DOOR_POLY:
         return LayerType.DOOR_POLY;
       case ENTRANCE:
@@ -601,6 +604,8 @@ public class Settings {
         return new LayerStackingType[] { LayerStackingType.CONTAINER, LayerStackingType.CONTAINER_TARGET };
       case DOOR:
         return new LayerStackingType[] { LayerStackingType.DOOR, LayerStackingType.DOOR_TARGET };
+      case DOOR_CELLS:
+        return new LayerStackingType[] { LayerStackingType.DOOR_CELLS };
       case DOOR_POLY:
         return new LayerStackingType[] { LayerStackingType.DOOR_POLY };
       case ENTRANCE:

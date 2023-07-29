@@ -13,6 +13,8 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.are.AreResource;
+import org.infinity.resource.cre.CreResource;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
@@ -136,8 +138,17 @@ public class SpellProtType extends Bitmap {
 
   public StructEntry createCreatureValueFromType(ByteBuffer buffer, int offset, int size, String name) {
     if (useCustomValue()) {
-      String idsFile = getIdsFile();
-      if (!idsFile.isEmpty()) {
+      final int stat = getSpellProtStat();
+      final String idsFile = getIdsFile();
+      if (stat == 0x106 && useCustomValue()) {
+        // AREATYPE.IDS as flags
+        return new Flag(buffer, offset, size, DEFAULT_NAME_VALUE,
+            IdsMapCache.getUpdatedIdsFlags(AreResource.FLAGS_ARRAY, idsFile, 2, false, false));
+      } else if (stat == 0x111 && useCustomValue()) {
+        // STATE.IDS as flags
+        return CreResource.uniqueIdsFlag(new IdsFlag(buffer, offset, size, DEFAULT_NAME_VALUE, idsFile),
+            idsFile, '_');
+      } else if (!idsFile.isEmpty()) {
         return new IdsBitmap(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_VALUE), idsFile);
       } else {
         return new DecNumber(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_VALUE));
@@ -197,6 +208,51 @@ public class SpellProtType extends Bitmap {
       }
     }
     return "";
+  }
+
+  /**
+   * Returns the STAT value associated with the current SPLPROT.2DA entry.
+   *
+   * @return STAT value of the current SPLPROT.2DA entry. Returns -1 for hardcoded entries.
+   */
+  public int getSpellProtStat() {
+    if (isExternalized()) {
+      Table2da table = Table2daCache.get(TABLE_NAME);
+      if (table != null) {
+        return toNumber(table.get(getValue(), 1), -1);
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the VALUE value associated with the current SPLPROT.2DA entry.
+   *
+   * @return VALUE value of the current SPLPROT.2DA entry. Returns -1 for hardcoded entries.
+   */
+  public int getSpellProtValue() {
+    if (isExternalized()) {
+      Table2da table = Table2daCache.get(TABLE_NAME);
+      if (table != null) {
+        return toNumber(table.get(getValue(), 2), -1);
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the RELATION value associated with the current SPLPROT.2DA entry.
+   *
+   * @return RELATION value of the current SPLPROT.2DA entry. Returns -1 for hardcoded entries.
+   */
+  public int getSpellProtRelation() {
+    if (isExternalized()) {
+      Table2da table = Table2daCache.get(TABLE_NAME);
+      if (table != null) {
+        return toNumber(table.get(getValue(), 3), -1);
+      }
+    }
+    return -1;
   }
 
   /** Returns whether creature table has been externalized into a 2DA file. */

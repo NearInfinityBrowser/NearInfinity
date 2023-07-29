@@ -91,6 +91,11 @@ public abstract class AbstractStruct extends AbstractTableModel
    */
   private String name;
 
+  /**
+   * Arbitrary data that is associated with this structure.
+   */
+  private final Object extraData;
+
   private StructViewer viewer;
   private boolean structChanged;
 
@@ -153,7 +158,20 @@ public abstract class AbstractStruct extends AbstractTableModel
    * @throws Exception If resource can not be readed
    */
   protected AbstractStruct(ResourceEntry entry) throws Exception {
+    this(entry, null);
+  }
+
+  /**
+   * Creates top-level struct, that represents specified resource. Reads specified resource and creates it structured
+   * representation.
+   *
+   * @param entry Pointer to resource for read
+   * @param extraData Arbitrary data for use in derived classes or by explicit queries.
+   * @throws Exception If resource can not be readed
+   */
+  protected AbstractStruct(ResourceEntry entry, Object extraData) throws Exception {
     this.entry = entry;
+    this.extraData = extraData;
     fields = new ArrayList<>();
     name = entry.getResourceName();
     ByteBuffer bb = entry.getResourceBuffer();
@@ -167,6 +185,7 @@ public abstract class AbstractStruct extends AbstractTableModel
 
   protected AbstractStruct(AbstractStruct superStruct, String name, int startoffset, int listSize) {
     this.entry = null;
+    this.extraData = null;
     this.superStruct = superStruct;
     this.name = name;
     this.startoffset = startoffset;
@@ -813,8 +832,22 @@ public abstract class AbstractStruct extends AbstractTableModel
     return flatList;
   }
 
+  /**
+   * Returns the {@link ResourceEntry} associated with this structure. May return {@code null} if the structure
+   * is not directly associated with a resource.
+   */
   public ResourceEntry getResourceEntry() {
     return entry;
+  }
+
+  /**
+   * Returns arbitrary data that can be assigned to this structure in the constructor.
+   *
+   * This is a workaround to associate data for methods that are called by the {@code AbstractStruct} constructor
+   * before the derived class can process the data further.
+   */
+  public Object getExtraData() {
+    return extraData;
   }
 
   public AbstractStruct getSuperStruct(StructEntry structEntry) {
