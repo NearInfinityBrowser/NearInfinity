@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.EffectBitmap;
 import org.infinity.datatype.EffectType;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -53,8 +55,8 @@ public class EffectValidationChecker extends AbstractChecker {
 
   private void search(ResourceEntry entry, AbstractStruct struct) {
     for (final StructEntry field : struct.getFlatFields()) {
-      if (field instanceof EffectType) {
-        int value = ((EffectType) field).getValue();
+      if (field instanceof EffectType || field instanceof EffectBitmap) {
+        int value = ((IsNumeric) field).getValue();
         final BaseOpcode opcode = BaseOpcode.getOpcode(value);
         if (opcode instanceof DefaultOpcode) {
           synchronized (hitFrame) {

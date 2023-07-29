@@ -7,9 +7,9 @@ package org.infinity.resource.effects;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.EffectBitmap;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
@@ -18,7 +18,6 @@ import org.infinity.resource.StructEntry;
  */
 public class Opcode337 extends BaseOpcode {
   private static final String EFFECT_MATCH_P2_VALUE = "Match 'Parameter 2' value";
-  private static final String EFFECT_FX             = "Effect";
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
@@ -38,7 +37,7 @@ public class Opcode337 extends BaseOpcode {
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_MATCH_P2_VALUE));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_FX, getEffectNames()));
+    list.add(new EffectBitmap(buffer, offset + 4, 4));
     return null;
   }
 }
