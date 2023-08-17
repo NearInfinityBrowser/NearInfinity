@@ -40,6 +40,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sound.SoundResource;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -80,6 +81,9 @@ public class ResourceRef extends Datatype
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
 
+  /** Button that used to play sound of current selected element in the list. */
+  private JButton bPlay;
+
   /**
    * GUI component that lists all available resources that can be set to this resource reference and have edit field for
    * ability to enter resource reference manually.
@@ -116,6 +120,12 @@ public class ResourceRef extends Datatype
       final ResourceRefEntry selected = list.getSelectedValue();
       if (isEditable(selected)) {
         new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(selected.entry));
+      }
+    } else if (event.getSource() == bPlay) {
+      final ResourceRefEntry selected = list.getSelectedValue();
+      if (isSound(selected)) {
+        SoundResource res = (SoundResource) ResourceFactory.getResource(selected.entry);
+        res.playSound();
       }
     }
   }
@@ -183,12 +193,15 @@ public class ResourceRef extends Datatype
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
     bView.setEnabled(isEditable(list.getSelectedValue()));
+    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
+    bPlay.addActionListener(this);
+    bPlay.setEnabled(isSound(list.getSelectedValue()));
     list.addListSelectionListener(this);
 
     GridBagConstraints gbc = null;
     JPanel panel = new JPanel(new GridBagLayout());
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 3, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
     panel.add(list, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL,
@@ -197,6 +210,10 @@ public class ResourceRef extends Datatype
     gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
         new Insets(3, 6, 3, 0), 0, 0);
     panel.add(bView, gbc);
+
+    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 1.0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
+            new Insets(3, 6, 3, 0), 0, 0);
+    panel.add(bPlay, gbc);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
     panel.setPreferredSize(panel.getMinimumSize());
@@ -252,6 +269,7 @@ public class ResourceRef extends Datatype
   @Override
   public void valueChanged(ListSelectionEvent e) {
     bView.setEnabled(isEditable(list.getSelectedValue()));
+    bPlay.setEnabled(isSound(list.getSelectedValue()));
   }
 
   @Override
@@ -375,6 +393,10 @@ public class ResourceRef extends Datatype
 
   private boolean isEditable(ResourceRefEntry ref) {
     return ref != null && ref != NONE && ref.entry != null;
+  }
+
+  private boolean isSound(ResourceRefEntry ref) {
+    return ref != null && ref != NONE && ref.entry != null && ref.entry.getExtension().equalsIgnoreCase("WAV");
   }
 
   private void setValue(String newValue) {
