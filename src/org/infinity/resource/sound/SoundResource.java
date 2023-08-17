@@ -168,8 +168,10 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   @Override
   public void run() {
-    bPlay.setIcon(PLAY_ICONS.get(false));
-    bStop.setEnabled(true);
+    if (bPlay != null) {
+      bPlay.setIcon(PLAY_ICONS.get(false));
+      bStop.setEnabled(true);
+    }
     if (audioBuffer != null) {
       final TimerElapsedTask timerTask = new TimerElapsedTask(250L);
       try {
@@ -182,8 +184,10 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
       player.stopPlay();
       timerTask.stop();
     }
-    bStop.setEnabled(false);
-    bPlay.setIcon(PLAY_ICONS.get(true));
+    if (bPlay != null) {
+      bStop.setEnabled(false);
+      bPlay.setIcon(PLAY_ICONS.get(true));
+    }
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -294,10 +298,11 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     if (bPlay != null) {
       bPlay.setEnabled(b);
       bPlay.setIcon(PLAY_ICONS.get(true));
+
+      updateTimeLabel(0);
+      miConvert.setEnabled(b);
+      buttonPanel.getControlByType(PROPERTIES).setEnabled(true);
     }
-    updateTimeLabel(0);
-    miConvert.setEnabled(b);
-    buttonPanel.getControlByType(PROPERTIES).setEnabled(true);
   }
 
   private synchronized void setClosed(boolean b) {
@@ -448,16 +453,22 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         timer.cancel();
         timer = null;
         paused = false;
-        updateTimeLabel(0L);
+        if (bPlay != null) {
+          updateTimeLabel(0L);
+        }
       }
     }
 
     @Override
     public void run() {
-      if (!paused && timer != null && player != null && player.getDataLine() != null) {
+      if (!paused && timer != null && player != null && player.getDataLine() != null && bPlay != null) {
         updateTimeLabel(player.getDataLine().getMicrosecondPosition() / 1000L);
       }
     }
+  }
 
+  public void playSound() {
+    loadAudio();
+    new Thread(this).start();
   }
 }
