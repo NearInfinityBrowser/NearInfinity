@@ -396,7 +396,7 @@ public class ResourceRef extends Datatype
   }
 
   private boolean isSound(ResourceRefEntry ref) {
-    return ref != null && ref != NONE && ref.entry != null && ref.entry.getExtension().equalsIgnoreCase("WAV");
+    return ref != null && ref != NONE && ref.entry != null && ref.entry.isSound();
   }
 
   private void setValue(String newValue) {
