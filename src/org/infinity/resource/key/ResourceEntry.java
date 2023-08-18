@@ -280,4 +280,10 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   public abstract ResourceTreeFolder getTreeFolder();
 
   public abstract boolean hasOverride();
+
+  public boolean isSound() {
+    String extension = getExtension().toUpperCase();
+
+    return extension.equals("WAV") || extension.equals("MUS") || extension.equals("ACM");
+  }
 }
