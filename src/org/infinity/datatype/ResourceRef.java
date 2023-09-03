@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -38,6 +39,8 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Closeable;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
@@ -90,6 +93,9 @@ public class ResourceRef extends Datatype
    */
   private TextListPanel<ResourceRefEntry> list;
 
+  /** Contains the {@link Resource} of the currently selected resource reference. */
+  private Resource currentResource;
+
   /**
    * Returns a list of resource extensions that can be used to display associated icons.
    * @return String set with file extensions (without leading dot).
@@ -124,8 +130,11 @@ public class ResourceRef extends Datatype
     } else if (event.getSource() == bPlay) {
       final ResourceRefEntry selected = list.getSelectedValue();
       if (isSound(selected)) {
+        // prevent overlapping sound playback
+        closeResource(currentResource);
         SoundResource res = (SoundResource) ResourceFactory.getResource(selected.entry);
         res.playSound();
+        currentResource = res;
       }
     }
   }
@@ -192,28 +201,41 @@ public class ResourceRef extends Datatype
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
-    bView.setEnabled(isEditable(list.getSelectedValue()));
     bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
-    bPlay.setEnabled(isSound(list.getSelectedValue()));
     list.addListSelectionListener(this);
+    setResourceEntryUpdated(list.getSelectedValue());
 
     GridBagConstraints gbc = null;
     JPanel panel = new JPanel(new GridBagLayout());
 
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 3, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 5, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
     panel.add(list, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL,
+
+    // spacer keeps controls in the center
+    final JPanel spacerTop = new JPanel();
+    spacerTop.setMinimumSize(new Dimension());
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(spacerTop, gbc);
+
+    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
         new Insets(3, 6, 3, 0), 0, 0);
     panel.add(bUpdate, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 1.0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
+    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
         new Insets(3, 6, 3, 0), 0, 0);
     panel.add(bView, gbc);
-
-    gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 1.0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
-            new Insets(3, 6, 3, 0), 0, 0);
+    gbc = ViewerUtil.setGBC(gbc, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+            new Insets(24, 6, 3, 0), 0, 0);
     panel.add(bPlay, gbc);
+
+    // spacer keeps controls in the center
+    final JPanel spacerBottom = new JPanel();
+    spacerTop.setMinimumSize(new Dimension());
+    gbc = ViewerUtil.setGBC(gbc, 1, 4, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(spacerBottom, gbc);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
     panel.setPreferredSize(panel.getMinimumSize());
@@ -268,8 +290,7 @@ public class ResourceRef extends Datatype
 
   @Override
   public void valueChanged(ListSelectionEvent e) {
-    bView.setEnabled(isEditable(list.getSelectedValue()));
-    bPlay.setEnabled(isSound(list.getSelectedValue()));
+    setResourceEntryUpdated(list.getSelectedValue());
   }
 
   @Override
@@ -389,6 +410,27 @@ public class ResourceRef extends Datatype
    * @param entries List with selectable resources. Implementers must add additional resources to it. Never {@code null}
    */
   void addExtraEntries(List<ResourceRefEntry> entries) {
+  }
+
+  private void setResourceEntryUpdated(ResourceRefEntry entry) {
+    closeResource(currentResource);
+    if (entry != null) {
+      bView.setEnabled(isEditable(entry));
+      bPlay.setEnabled(isSound(entry));
+    } else {
+      bView.setEnabled(false);
+      bPlay.setEnabled(false);
+    }
+  }
+
+  private void closeResource(Resource resource) {
+    if (resource instanceof Closeable) {
+      try {
+        ((Closeable) resource).close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   private boolean isEditable(ResourceRefEntry ref) {
