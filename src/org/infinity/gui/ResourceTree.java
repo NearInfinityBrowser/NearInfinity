@@ -68,6 +68,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.IconCache;
+import org.infinity.util.Operation;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -192,23 +193,37 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
   public void select(ResourceEntry entry, boolean forced) {
+    select(entry, forced, null);
+  }
+
+  public void select(ResourceEntry entry, Operation doneOperation) {
+    select(entry, false, doneOperation);
+  }
+
+  public void select(ResourceEntry entry, boolean forced, Operation doneOperation) {
     new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
-          if (entry == null) {
-            tree.clearSelection();
-          } else if (forced || entry != shownResource) {
-            TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
-            try {
-              expandListener.treeWillExpand(new TreeExpansionEvent(tree, tp));
-              tree.scrollPathToVisible(tp);
-              tree.addSelectionPath(tp);
-              tree.repaint();
-            } finally {
-              expandListener.treeExpanded(new TreeExpansionEvent(tree, tp));
-            }
+        if (entry == null) {
+          tree.clearSelection();
+        } else if (forced || entry != shownResource) {
+          TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
+          try {
+            expandListener.treeWillExpand(new TreeExpansionEvent(tree, tp));
+            tree.scrollPathToVisible(tp);
+            tree.addSelectionPath(tp);
+            tree.repaint();
+          } finally {
+            expandListener.treeExpanded(new TreeExpansionEvent(tree, tp));
           }
+        }
         return null;
+      }
+      @Override
+      protected void done() {
+        if (doneOperation != null) {
+          doneOperation.perform();
+        }
       }
     }.execute();
   }

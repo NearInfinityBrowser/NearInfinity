@@ -77,6 +77,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 import org.infinity.util.SimpleListModel;
 
 public class AdvancedSearch extends ChildFrame implements Runnable {
@@ -819,12 +820,16 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         if (row != -1) {
           ResourceEntry entry = (ResourceEntry) listResults.getValueAt(row, 0);
           if (entry != null) {
-            NearInfinity.getInstance().showResourceEntry(entry);
-            Viewable viewable = NearInfinity.getInstance().getViewable();
-            showEntryInViewer(row, viewable);
-            if (viewable instanceof DlgResource) {
-              NearInfinity.getInstance().toFront();
-            }
+            NearInfinity.getInstance().showResourceEntry(entry, new Operation() {
+              @Override
+              public void perform() {
+                Viewable viewable = NearInfinity.getInstance().getViewable();
+                showEntryInViewer(row, viewable);
+                if (viewable instanceof DlgResource) {
+                  NearInfinity.getInstance().toFront();
+                }
+              }
+            });
           }
         }
       } else if (event.getSource() == bOpenNew) {

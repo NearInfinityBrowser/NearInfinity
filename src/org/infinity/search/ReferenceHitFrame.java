@@ -43,6 +43,7 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener {
   private static final String QUERY_STRING = "string reference";
@@ -130,12 +131,16 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
             ((ViewFrame) parent).toFront();
           }
         } else {
-          NearInfinity.getInstance().showResourceEntry(entry);
-          Viewable viewable = NearInfinity.getInstance().getViewable();
-          showEntryInViewer(row, viewable);
-          if (viewable instanceof DlgResource) {
-            NearInfinity.getInstance().toFront();
-          }
+          NearInfinity.getInstance().showResourceEntry(entry, new Operation() {
+            @Override
+            public void perform() {
+              Viewable viewable = NearInfinity.getInstance().getViewable();
+              showEntryInViewer(row, viewable);
+              if (viewable instanceof DlgResource) {
+                NearInfinity.getInstance().toFront();
+              }
+            }
+          });
         }
       }
     } else if (event.getSource() == bopennew) {

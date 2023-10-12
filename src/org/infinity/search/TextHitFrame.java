@@ -36,6 +36,7 @@ import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener {
   private final Component parent;
@@ -119,11 +120,15 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
             ((TextResource) res).highlightText(((Integer) table.getValueAt(row, 2)), query);
           }
         } else {
-          NearInfinity.getInstance().showResourceEntry(entry);
-          Viewable viewable = NearInfinity.getInstance().getViewable();
-          if (viewable instanceof TextResource) {
-            ((TextResource) viewable).highlightText(((Integer) table.getValueAt(row, 2)), query);
-          }
+          NearInfinity.getInstance().showResourceEntry(entry, new Operation() {
+            @Override
+            public void perform() {
+              Viewable viewable = NearInfinity.getInstance().getViewable();
+              if (viewable instanceof TextResource) {
+                ((TextResource) viewable).highlightText(((Integer) table.getValueAt(row, 2)), query);
+              }
+            }
+          });
         }
       }
     } else if (event.getSource() == bopennew) {

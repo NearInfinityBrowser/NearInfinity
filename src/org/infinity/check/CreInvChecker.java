@@ -44,6 +44,7 @@ import org.infinity.resource.cre.Item;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 
 /** Performs checking {@link CreResource CRE} & {@code CHR} resources. */
 public final class CreInvChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener {
@@ -68,9 +69,13 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
-            .selectEntry(((Item) table.getValueAt(row, 2)).getName());
+        NearInfinity.getInstance().showResourceEntry(resourceEntry, new Operation() {
+          @Override
+          public void perform() {
+            ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
+                .selectEntry(((Item) table.getValueAt(row, 2)).getName());
+          }
+        });
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();

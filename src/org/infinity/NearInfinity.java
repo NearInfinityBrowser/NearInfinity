@@ -888,7 +888,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   public void showResourceEntry(ResourceEntry resourceEntry) {
-    tree.select(resourceEntry);
+    showResourceEntry(resourceEntry, null);
+  }
+
+  public void showResourceEntry(ResourceEntry resourceEntry, Operation doneOperation) {
+    tree.select(resourceEntry, doneOperation);
   }
 
   public void quit() {

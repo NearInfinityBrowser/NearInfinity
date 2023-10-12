@@ -41,6 +41,7 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener {
@@ -65,9 +66,13 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        BcsResource bcsfile = (BcsResource) NearInfinity.getInstance().getViewable();
-        bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
+        NearInfinity.getInstance().showResourceEntry(resourceEntry, new Operation() {
+          @Override
+          public void perform() {
+            BcsResource bcsfile = (BcsResource) NearInfinity.getInstance().getViewable();
+            bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
+          }
+        });
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
