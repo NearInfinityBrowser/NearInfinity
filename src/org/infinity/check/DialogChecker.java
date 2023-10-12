@@ -48,7 +48,6 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
-import org.infinity.util.Operation;
 
 /** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher
@@ -86,13 +85,9 @@ public final class DialogChecker extends AbstractSearcher
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         final SortableTable tableCapture = table;
-        NearInfinity.getInstance().showResourceEntry(resourceEntry, new Operation() {
-          @Override
-          public void perform() {
-            ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
-                .selectEntry((String) tableCapture.getValueAt(row, 1));
-          }
-        });
+        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+            () -> ((AbstractStruct)NearInfinity.getInstance().getViewable()).getViewer()
+                .selectEntry((String)tableCapture.getValueAt(row, 1)));
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();

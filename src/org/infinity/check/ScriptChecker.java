@@ -43,7 +43,6 @@ import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
-import org.infinity.util.Operation;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class ScriptChecker extends AbstractSearcher
@@ -78,13 +77,9 @@ public final class ScriptChecker extends AbstractSearcher
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         final SortableTable tableCapture = table;
-        NearInfinity.getInstance().showResourceEntry(resourceEntry, new Operation() {
-          @Override
-          public void perform() {
-            ((BcsResource) NearInfinity.getInstance().getViewable())
-                .highlightText(((Integer) tableCapture.getValueAt(row, 2)), null);
-          }
-        });
+        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+            () -> ((BcsResource)NearInfinity.getInstance().getViewable())
+                .highlightText(((Integer)tableCapture.getValueAt(row, 2)), null));
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();

@@ -219,6 +219,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
         return null;
       }
+
       @Override
       protected void done() {
         if (doneOperation != null) {
