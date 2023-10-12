@@ -130,12 +130,13 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
             ((ViewFrame) parent).toFront();
           }
         } else {
-          NearInfinity.getInstance().showResourceEntry(entry);
-          Viewable viewable = NearInfinity.getInstance().getViewable();
-          showEntryInViewer(row, viewable);
-          if (viewable instanceof DlgResource) {
-            NearInfinity.getInstance().toFront();
-          }
+          NearInfinity.getInstance().showResourceEntry(entry, () -> {
+            Viewable viewable = NearInfinity.getInstance().getViewable();
+            showEntryInViewer(row, viewable);
+            if (viewable instanceof DlgResource) {
+              NearInfinity.getInstance().toFront();
+            }
+          });
         }
       }
     } else if (event.getSource() == bopennew) {

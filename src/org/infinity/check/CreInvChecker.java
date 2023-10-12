@@ -68,9 +68,9 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
-            .selectEntry(((Item) table.getValueAt(row, 2)).getName());
+        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+            () -> ((AbstractStruct)NearInfinity.getInstance().getViewable()).getViewer()
+                .selectEntry(((Item)table.getValueAt(row, 2)).getName()));
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
