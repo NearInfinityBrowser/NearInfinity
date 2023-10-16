@@ -247,6 +247,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } else {
       chooser = new JFileChooser(Profile.getGameRoot().toFile());
     }
+    chooser.setFileHidingEnabled(false);
     chooser.setDialogTitle("Open game: Locate keyfile");
     chooser.setFileFilter(new FileFilter() {
       @Override
