@@ -24,6 +24,8 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.imageio.ImageIO;
@@ -346,86 +348,102 @@ public class ViewerMap extends JPanel {
     }
   }
 
-  /** Displays all map distances from the specified area (by index). */
+  /**
+   * Displays all map distances from the specified area (by index).
+   *
+   * @param areaIndex Map index for showing distances. Specify negative value to show distances for all available maps.
+   */
   private void showMapDistances(int areaIndex) {
-    AreaEntry area = getAreaEntry(areaIndex, true);
-    if (area != null) {
-      final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
-      final Color[] dirColor = { Color.GREEN, Color.RED, Color.CYAN, Color.YELLOW };
-      final int[] links = new int[8];
-      final int linkSize = 216; // size of a single area link structure
-      int ofsLinkBase = ((IsNumeric) getEntry().getAttribute(MapEntry.WMP_MAP_OFFSET_AREA_LINKS)).getValue();
+    final List<Integer> areaIndices = new ArrayList<>();
+    if (areaIndex >= 0) {
+      areaIndices.add(areaIndex);
+    } else {
+      int numAreas = ((IsNumeric) mapEntry.getAttribute(MapEntry.WMP_MAP_NUM_AREAS)).getValue();
+      for (int i = 0; i < numAreas; i++) {
+        areaIndices.add(i);
+      }
+    }
 
-      links[0] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_NORTH)).getValue();
-      links[1] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_NORTH)).getValue();
-      links[2] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_WEST)).getValue();
-      links[3] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_WEST)).getValue();
-      links[4] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_SOUTH)).getValue();
-      links[5] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_SOUTH)).getValue();
-      links[6] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_EAST)).getValue();
-      links[7] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_EAST)).getValue();
-      for (int dir = 0; dir < srcDir.length; dir++) {
-        Direction curDir = srcDir[dir];
-        Point ptOrigin = getMapIconCoordinate(areaIndex, curDir, true);
-        for (int dirIndex = 0, dirCount = links[dir * 2 + 1]; dirIndex < dirCount; dirIndex++) {
-          int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex) * linkSize;
-          AreaLink destLink = (AreaLink) area.getAttribute(ofsLink, false);
+    for (final int curAreaIndex : areaIndices) {
+      AreaEntry area = getAreaEntry(curAreaIndex, true);
+      if (area != null) {
+        final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
+        final Color[] dirColor = { Color.GREEN, Color.RED, Color.CYAN, Color.YELLOW };
+        final int[] links = new int[8];
+        final int linkSize = 216; // size of a single area link structure
+        int ofsLinkBase = ((IsNumeric) getEntry().getAttribute(MapEntry.WMP_MAP_OFFSET_AREA_LINKS)).getValue();
 
-          if (destLink != null) {
-            int dstAreaIndex = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
-            Flag flag = (Flag) destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
-            Direction dstDir = Direction.NORTH;
-            if (flag.isFlagSet(1)) {
-              dstDir = Direction.EAST;
-            } else if (flag.isFlagSet(2)) {
-              dstDir = Direction.SOUTH;
-            } else if (flag.isFlagSet(3)) {
-              dstDir = Direction.WEST;
-            }
-            Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir, false);
+        links[0] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_NORTH)).getValue();
+        links[1] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_NORTH)).getValue();
+        links[2] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_WEST)).getValue();
+        links[3] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_WEST)).getValue();
+        links[4] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_SOUTH)).getValue();
+        links[5] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_SOUTH)).getValue();
+        links[6] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_FIRST_LINK_EAST)).getValue();
+        links[7] = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_EAST)).getValue();
+        for (int dir = 0; dir < srcDir.length; dir++) {
+          Direction curDir = srcDir[dir];
+          Point ptOrigin = getMapIconCoordinate(curAreaIndex, curDir, true);
+          for (int dirIndex = 0, dirCount = links[dir * 2 + 1]; dirIndex < dirCount; dirIndex++) {
+            int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex) * linkSize;
+            AreaLink destLink = (AreaLink) area.getAttribute(ofsLink, false);
 
-            // checking for random encounters during travels
-            boolean hasRandomEncounters = false;
-            if (((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
-              for (int rnd = 1; rnd < 6; rnd++) {
-                String rndArea = ((IsReference) destLink
-                    .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd))).getResourceName();
-                if (ResourceFactory.resourceExists(rndArea)) {
-                  hasRandomEncounters = true;
-                  break;
+            if (destLink != null) {
+              int dstAreaIndex = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
+              Flag flag = (Flag) destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
+              Direction dstDir = Direction.NORTH;
+              if (flag.isFlagSet(1)) {
+                dstDir = Direction.EAST;
+              } else if (flag.isFlagSet(2)) {
+                dstDir = Direction.SOUTH;
+              } else if (flag.isFlagSet(3)) {
+                dstDir = Direction.WEST;
+              }
+              Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir, false);
+
+              // checking for random encounters during travels
+              boolean hasRandomEncounters = false;
+              if (((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
+                for (int rnd = 1; rnd < 6; rnd++) {
+                  String rndArea = ((IsReference) destLink
+                      .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd))).getResourceName();
+                  if (ResourceFactory.resourceExists(rndArea)) {
+                    hasRandomEncounters = true;
+                    break;
+                  }
                 }
               }
-            }
 
-            Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
-            g.setFont(g.getFont().deriveFont(g.getFont().getSize2D() * 0.8f));
-            try {
-              // drawing line
-              g.setColor(dirColor[dir]);
-              if (hasRandomEncounters) {
-                g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f,
-                    new float[] { 6.0f, 4.0f }, 0.0f));
-              } else {
-                g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+              Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
+              g.setFont(g.getFont().deriveFont(g.getFont().getSize2D() * 0.8f));
+              try {
+                // drawing line
+                g.setColor(dirColor[dir]);
+                if (hasRandomEncounters) {
+                  g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f,
+                      new float[] { 6.0f, 4.0f }, 0.0f));
+                } else {
+                  g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+                }
+                g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
+
+                // printing travel time (in hours)
+                String duration = String.format("%d h",
+                    ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
+                LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
+                Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
+                int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 3;
+                int textY = ptOrigin.y + ((ptTarget.y - ptOrigin.y) - rectText.getBounds().height) / 3;
+                int textWidth = rectText.getBounds().width;
+                int textHeight = rectText.getBounds().height;
+                g.setColor(Color.LIGHT_GRAY);
+                g.fillRect(textX - 2, textY, textWidth + 4, textHeight);
+                g.setColor(Color.BLUE);
+                g.drawString(duration, textX, textY + lm.getAscent() + lm.getLeading());
+              } finally {
+                g.dispose();
+                g = null;
               }
-              g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
-
-              // printing travel time (in hours)
-              String duration = String.format("%d h",
-                  ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
-              LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
-              Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
-              int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 2;
-              int textY = ptOrigin.y + ((ptTarget.y - ptOrigin.y) - rectText.getBounds().height) / 2;
-              int textWidth = rectText.getBounds().width;
-              int textHeight = rectText.getBounds().height;
-              g.setColor(Color.LIGHT_GRAY);
-              g.fillRect(textX - 2, textY, textWidth + 4, textHeight);
-              g.setColor(Color.BLUE);
-              g.drawString(duration, textX, textY + lm.getAscent() + lm.getLeading());
-            } finally {
-              g.dispose();
-              g = null;
             }
           }
         }
