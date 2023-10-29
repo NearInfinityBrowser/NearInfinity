@@ -17,6 +17,9 @@ jobs:
   deploy-jar:
     if: ${{ github.repository == 'Argent77/NearInfinity' }}
     runs-on: ubuntu-latest
+    name: Build NearInfinity.jar
+    outputs:
+      ni_version: ${{ steps.ni-build.outputs.NI_VERSION }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,13 +30,15 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Ant
+        id: ni-build
         run: |
           ant -noinput -buildfile build.xml
+          echo "NI_VERSION=$(java -jar "NearInfinity.jar" -version 2>/dev/null | grep -Eo '[0-9]{8}')" >> "$GITHUB_OUTPUT"
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v3
         with:
-          name: NearInfinity
+          name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}
           path: NearInfinity.jar
 
   # Build and upload installer versions for Windows and macOS
@@ -70,7 +75,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v3
         with:
-          name: NearInfinity
+          name: NearInfinity-${{ needs.deploy-jar.outputs.ni_version }}
           path: jar
 
       - name: Set up installer data
