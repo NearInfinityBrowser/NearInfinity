@@ -41,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -169,6 +170,7 @@ public class ViewerMap extends JPanel {
 
         listPanel = (StructListPanel) ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class,
             AreaEntry.WMP_AREA_CURRENT, new WmpAreaListRenderer(mapIcons), listeners);
+        listPanel.getList().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane mapScroll = new JScrollPane(rcMap);
         mapScroll.getVerticalScrollBar().setUnitIncrement(16);
         mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
@@ -232,7 +234,7 @@ public class ViewerMap extends JPanel {
         showMapIconLabels();
       }
       if (showDistances) {
-        showMapDistances(listPanel.getList().getSelectedIndex());
+        showMapDistances(listPanel.getList().getSelectedIndices());
       }
     }
     showDot((AreaEntry) listPanel.getList().getSelectedValue(), false);
@@ -351,20 +353,23 @@ public class ViewerMap extends JPanel {
   /**
    * Displays all map distances from the specified area (by index).
    *
-   * @param areaIndex Map index for showing distances. Specify negative value to show distances for all available maps.
+   * @param areaIndices Sequence of map indices for showing distances. Specify no parameters to show distances for all
+   *                    available maps.
    */
-  private void showMapDistances(int areaIndex) {
-    final List<Integer> areaIndices = new ArrayList<>();
-    if (areaIndex >= 0) {
-      areaIndices.add(areaIndex);
-    } else {
+  private void showMapDistances(int... areaIndices) {
+    final List<Integer> areaIndicesList = new ArrayList<>();
+    if (areaIndices.length == 0) {
       int numAreas = ((IsNumeric) mapEntry.getAttribute(MapEntry.WMP_MAP_NUM_AREAS)).getValue();
       for (int i = 0; i < numAreas; i++) {
-        areaIndices.add(i);
+        areaIndicesList.add(i);
+      }
+    } else {
+      for (final int idx : areaIndices) {
+        areaIndicesList.add(idx);
       }
     }
 
-    for (final int curAreaIndex : areaIndices) {
+    for (final int curAreaIndex : areaIndicesList) {
       AreaEntry area = getAreaEntry(curAreaIndex, true);
       if (area != null) {
         final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
