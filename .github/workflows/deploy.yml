@@ -65,13 +65,32 @@ jobs:
 
       - name: Echo JAVA_HOME (windows)
         if: (matrix.os == 'windows-latest')
-        run: echo $env:JAVA_HOME
+        run: |
+          echo $env:JAVA_HOME
+          java -version
 
       - name: Echo JAVA_HOME (macos)
         if: (matrix.os != 'windows-latest')
-        run: echo $JAVA_HOME
+        run: |
+          echo $JAVA_HOME
+          java -version
 
       # Preparations
+      - name: Download and install zip tool (windows)
+        if: (matrix.os == 'windows-latest')
+        run: |
+          $BaseDir=".\tools"
+          $UrlZip="http://downloads.sourceforge.net/gnuwin32/zip-3.0-bin.zip"
+          $PathZip="zip-3.0-bin.zip"
+          $UrlZipDep="http://downloads.sourceforge.net/gnuwin32/zip-3.0-dep.zip"
+          $PathZipDep="zip-3.0-dep.zip"
+          (New-Object System.Net.WebClient).DownloadFile($UrlZip, $PathZip)
+          (New-Object System.Net.WebClient).DownloadFile($UrlZipDep, $PathZipDep)
+          Expand-Archive -LiteralPath $PathZip -DestinationPath $BaseDir
+          Expand-Archive -LiteralPath $PathZipDep -DestinationPath $BaseDir
+          del $PathZip
+          del $PathZipDep
+
       - name: Download JAR artifact
         uses: actions/download-artifact@v3
         with:
@@ -85,11 +104,15 @@ jobs:
           path: assets
 
       # Building
-      - name: Build installer (windows)
+      - name: Build portable archive and installer (windows)
         if: (matrix.os == 'windows-latest')
         run: |
+          $BaseDir=".\tools"
+          $env:Path += ";$([IO.Path]::GetFullPath($BaseDir))\bin"
           move assets\redistributable\windows\package .
+          move assets\redistributable\windows\build-image.cmd .
           move assets\redistributable\windows\build-installer.cmd .
+          .\build-image.cmd
           .\build-installer.cmd
 
       - name: Build installer (macos)
@@ -110,6 +133,13 @@ jobs:
         run: ls -l
 
       # Uploading
+      - name: Upload portable artifact (windows)
+        if: (matrix.os == 'windows-latest')
+        uses: actions/upload-artifact@v3
+        with:
+          name: portable-windows
+          path: NearInfinity-*.zip
+
       - name: Upload exe artifact (windows)
         if: (matrix.os == 'windows-latest')
         uses: actions/upload-artifact@v3
