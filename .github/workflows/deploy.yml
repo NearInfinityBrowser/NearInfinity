@@ -89,8 +89,8 @@ jobs:
         if: (matrix.os == 'windows-latest')
         run: |
           move assets\redistributable\windows\package .
-          move assets\redistributable\windows\build.cmd .
-          .\build.cmd
+          move assets\redistributable\windows\build-installer.cmd .
+          .\build-installer.cmd
 
       - name: Build installer (macos)
         if: (matrix.os == 'macos-latest')
