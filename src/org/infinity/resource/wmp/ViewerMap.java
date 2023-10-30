@@ -393,6 +393,23 @@ public class ViewerMap extends JPanel {
             int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex) * linkSize;
             AreaLink destLink = (AreaLink) area.getAttribute(ofsLink, false);
 
+            // finding corresponding travel distances between selected areas
+            if (destLink != null && areaIndices.length > 1) {
+              final int destAreaIdx = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
+              final AreaEntry destArea = getAreaEntry(destAreaIdx, false);
+              boolean found = false;
+              if (destArea != null) {
+                found = areaIndicesList
+                    .stream()
+                    .filter(idx -> curAreaIndex != idx && destArea.equals(getAreaEntry(idx, true)))
+                    .findAny()
+                    .isPresent();
+              }
+              if (!found) {
+                destLink = null;
+              }
+            }
+
             if (destLink != null) {
               int dstAreaIndex = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
               Flag flag = (Flag) destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
