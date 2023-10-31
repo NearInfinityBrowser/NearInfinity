@@ -76,21 +76,6 @@ jobs:
           java -version
 
       # Preparations
-      - name: Download and install zip tool (windows)
-        if: (matrix.os == 'windows-latest')
-        run: |
-          $BaseDir=".\tools"
-          $UrlZip="http://downloads.sourceforge.net/gnuwin32/zip-3.0-bin.zip"
-          $PathZip="zip-3.0-bin.zip"
-          $UrlZipDep="http://downloads.sourceforge.net/gnuwin32/zip-3.0-dep.zip"
-          $PathZipDep="zip-3.0-dep.zip"
-          (New-Object System.Net.WebClient).DownloadFile($UrlZip, $PathZip)
-          (New-Object System.Net.WebClient).DownloadFile($UrlZipDep, $PathZipDep)
-          Expand-Archive -LiteralPath $PathZip -DestinationPath $BaseDir
-          Expand-Archive -LiteralPath $PathZipDep -DestinationPath $BaseDir
-          del $PathZip
-          del $PathZipDep
-
       - name: Download JAR artifact
         uses: actions/download-artifact@v3
         with:
