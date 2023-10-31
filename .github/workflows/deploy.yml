@@ -92,8 +92,6 @@ jobs:
       - name: Build portable archive and installer (windows)
         if: (matrix.os == 'windows-latest')
         run: |
-          $BaseDir=".\tools"
-          $env:Path += ";$([IO.Path]::GetFullPath($BaseDir))\bin"
           move assets\redistributable\windows\package .
           move assets\redistributable\windows\build-image.cmd .
           move assets\redistributable\windows\build-installer.cmd .
