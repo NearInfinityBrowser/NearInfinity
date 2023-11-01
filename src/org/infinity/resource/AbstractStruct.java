@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
@@ -588,6 +590,7 @@ public abstract class AbstractStruct extends AbstractTableModel
     }
     setStructChanged(true);
     fireTableRowsInserted(index, index);
+    updateRemovableIndices(addedEntry.getClass());
     return index;
   }
 
@@ -947,6 +950,7 @@ public abstract class AbstractStruct extends AbstractTableModel
       superStruct.datatypeRemovedInChild(this, removedEntry);
     }
     fireTableRowsDeleted(index, index);
+    updateRemovableIndices(removedEntry.getClass());
     setStructChanged(true);
   }
 
@@ -1044,6 +1048,52 @@ public abstract class AbstractStruct extends AbstractTableModel
     structChanged = changed;
     if (superStruct != null) {
       superStruct.setStructChanged(changed);
+    }
+  }
+
+  /**
+   * Ensures that all {@link AddRemovable} of the specified type are properly indexed in sequential order.
+   *
+   * @param cls Class type of the AddRemovables to update.
+   */
+  public void updateRemovableIndices(Class<? extends AddRemovable> cls) {
+    if (cls == null) {
+      return;
+    }
+
+    final List<StructEntry> fieldList = new ArrayList<>(getFields(cls));
+    if (fieldList.isEmpty()) {
+      return;
+    }
+    fieldList.sort((f1, f2) -> f1.getOffset() - f2.getOffset());
+
+    int minIndex = Integer.MAX_VALUE;
+    int maxIndex = Integer.MIN_VALUE;
+    final Pattern patName = Pattern.compile("^(.+) ([0-9]+)$");
+    for (int i = 0, size = fieldList.size(); i < size; i++) {
+      final StructEntry entry = fieldList.get(i);
+      final Matcher m = patName.matcher(entry.getName());
+      final String name;
+      if (m.matches()) {
+        // existing or copy-pasted entry
+        name = m.group(1);
+//        System.out.printf("Existing/pasted: name=%s, newIndex=%d\n", entry.getName(), i);
+      } else {
+        // newly added entry
+        name = entry.getName();
+//        System.out.printf("Newly added: name=%s, newIndex=%d\n", name, i);
+      }
+
+      final String newName = name + " " + i;
+      entry.setName(newName);
+
+      final int fieldIdx = fields.indexOf(entry);
+      minIndex = Math.min(minIndex, fieldIdx);
+      maxIndex = Math.max(maxIndex, fieldIdx);
+    }
+
+    if (minIndex != Integer.MAX_VALUE && maxIndex != Integer.MIN_VALUE) {
+      fireTableRowsUpdated(minIndex, maxIndex);
     }
   }
 
