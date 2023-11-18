@@ -95,6 +95,14 @@ import org.infinity.util.Misc;
  * that were formerly presented as individual entries in the "Options" menu.
  */
 public class PreferencesDialog extends JDialog {
+  /**
+   * Blacklisted L&F themes: These themes should not be listed in the Preferences dialog.
+   * <p>
+   * List contains the fully qualified class names of L&F themes.
+   * </p>
+   */
+  private static final List<String> LOOK_AND_FEEL_BLACKLIST = Arrays.asList("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+
   /** Definition of category names. */
   public enum Category {
     DEFAULT(""),
@@ -455,9 +463,7 @@ public class PreferencesDialog extends JDialog {
               OptionGroupBox.create(AppOption.LOOK_AND_FEEL_CLASS.getName(), AppOption.LOOK_AND_FEEL_CLASS.getLabel(),
                   "Choose a Look & Feel theme for the GUI."
                       + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
-                      + "It is available on all platforms.</p>"
-                      + "<p><strong>Note:</strong> It is not recommended to use the \"Nimbus\" L&F theme. The theme "
-                      + "initializes an incomplete set of UI properties, which can result in display errors.</p>",
+                      + "It is available on all platforms.</p>",
                   0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
               .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
               OptionGroupBox.create(AppOption.TEXT_FONT.getName(), AppOption.TEXT_FONT.getLabel(),
@@ -1379,6 +1385,12 @@ public class PreferencesDialog extends JDialog {
     LookAndFeelInfo[] info = UIManager.getInstalledLookAndFeels();
     for (int i = 0, curIdx = 0; i < info.length; i++) {
       final LookAndFeelInfo lf = info[i];
+
+      // check if theme is black-listed
+      if (lf != null && LOOK_AND_FEEL_BLACKLIST.contains(lf.getClassName())) {
+        continue;
+      }
+
       try {
         // L&F description is only available from class instance
         final Class<?> cls = Class.forName(lf.getClassName());
