@@ -285,6 +285,16 @@ public class PreferencesDialog extends JDialog {
               )
           ),
           OptionCategory.create(Category.MISC_RESOURCE_TYPES,
+              OptionGroup.create("2DA",
+                  OptionGroupBox.create(AppOption.AUTO_ALIGN_2DA.getName(), AppOption.AUTO_ALIGN_2DA.getLabel(),
+                      "Choose how to to automatically align 2DA table columns when the resource is opened.<p>"
+                          + "<strong>Disabled:</strong> Table data is not modified.<br/>"
+                          + "<strong>Compact:</strong> Column widths are calculated individually.<br/>"
+                          + "<strong>Uniform:</strong> Column widths are calculated evenly (comparable to Weidu's PRETTY_PRINT_2DA.)"
+                          + "<p><strong>Note:</strong> Formatting is discarded when the resource is closed unless the changes "
+                          + "are explicitly saved.</p>",
+                      0, OptionsMenuItem.AutoAlign2da.values(), AppOption.AUTO_ALIGN_2DA)
+              ),
               OptionGroup.create("GLSL",
                   OptionGroupBox.create(AppOption.GLSL_COLOR_SCHEME.getName(), AppOption.GLSL_COLOR_SCHEME.getLabel(),
                       "Select a color scheme for GLSL resources.<p>"
