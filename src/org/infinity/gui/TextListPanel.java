@@ -41,6 +41,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.AbstractBitmap;
+import org.infinity.datatype.IwdRef;
 import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
@@ -345,7 +346,8 @@ public class TextListPanel<E> extends JPanel
       } else if (value instanceof AbstractBitmap.FormattedData<?>) {
         // resolving Resource Bitmap
         final AbstractBitmap.FormattedData<?> fmt = (AbstractBitmap.FormattedData<?>) value;
-        if (fmt.getParent() != null) {
+        // Limit icon preview to parent type: IwdRef
+        if (fmt.getParent() instanceof IwdRef) {
           final AbstractBitmap<?> bmp = fmt.getParent();
           Object o = bmp.getDataOf(fmt.getValue());
           if (o instanceof ResourceBitmap.RefEntry) {

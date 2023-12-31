@@ -119,11 +119,12 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
             ((TextResource) res).highlightText(((Integer) table.getValueAt(row, 2)), query);
           }
         } else {
-          NearInfinity.getInstance().showResourceEntry(entry);
-          Viewable viewable = NearInfinity.getInstance().getViewable();
-          if (viewable instanceof TextResource) {
-            ((TextResource) viewable).highlightText(((Integer) table.getValueAt(row, 2)), query);
-          }
+          NearInfinity.getInstance().showResourceEntry(entry, () -> {
+            Viewable viewable = NearInfinity.getInstance().getViewable();
+            if (viewable instanceof TextResource) {
+              ((TextResource) viewable).highlightText(((Integer) table.getValueAt(row, 2)), query);
+            }
+          });
         }
       }
     } else if (event.getSource() == bopennew) {

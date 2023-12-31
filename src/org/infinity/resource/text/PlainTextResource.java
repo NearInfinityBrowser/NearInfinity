@@ -138,6 +138,26 @@ public class PlainTextResource
   }
 
   /**
+   * Aligns table columns individually.
+   *
+   * @param text The text content with table columns.
+   * @return The aligned text. Returns {@code null} if {@code text} argument is {@code null}.
+   */
+  public static String alignTableColumnsCompact(String text) {
+    return alignTableColumns(text, 2, true, 4);
+  }
+
+  /**
+   * Aligns all table columns evenly, comparable to WeiDU's PRETTY_PRINT_2DA.
+   *
+   * @param text The text content with table columns.
+   * @return The aligned text. Returns {@code null} if {@code text} argument is {@code null}.
+   */
+  public static String alignTableColumnsUniform(String text) {
+    return alignTableColumns(text, 1, false, 1);
+  }
+
+  /**
    * Aligns table columns to improve readability.
    *
    * @param text The text content with table columns.
@@ -329,7 +349,7 @@ public class PlainTextResource
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     final Charset cs = Misc.getCharsetFrom(BrowserMenuBar.getInstance().getOptions().getSelectedCharset());
-    text = StreamUtils.readString(buffer, buffer.limit(), cs);
+    text = applyTransformText(StreamUtils.readString(buffer, buffer.limit(), cs));
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -416,9 +436,9 @@ public class PlainTextResource
       if (bpmFormat.getSelectedItem() == miFormatTrim) {
         setText(trimSpaces(editor.getText(), true, false));
       } else if (bpmFormat.getSelectedItem() == miFormatAlignCompact) {
-        setText(alignTableColumns(editor.getText(), 2, true, 4));
+        setText(alignTableColumnsCompact(editor.getText()));
       } else if (bpmFormat.getSelectedItem() == miFormatAlignUniform) {
-        setText(alignTableColumns(editor.getText(), 1, false, 1));
+        setText(alignTableColumnsUniform(editor.getText()));
       } else if (bpmFormat.getSelectedItem() == miFormatSort) {
         setText(sortTable(editor.getText(), true, entry.getResourceRef().equalsIgnoreCase("TRIGGER")));
       }
@@ -638,4 +658,30 @@ public class PlainTextResource
       pane.applyExtendedSettings(language);
     }
   }
+
+  private String applyTransformText(String data) {
+    if (data == null) {
+      return data;
+    }
+
+    final String ext = (entry != null) ? entry.getExtension() : "";
+    if (ext.equals("2DA")) {
+      return applyAutoAlign2da(data);
+    }
+
+    return data;
+  }
+
+  private String applyAutoAlign2da(String data) {
+    switch (BrowserMenuBar.getInstance().getOptions().getAutoAlign2da()) {
+      case COMPACT:
+        return alignTableColumnsCompact(data);
+      case UNIFORM:
+        return alignTableColumnsUniform(data);
+      default:
+    }
+
+    return data;
+  }
+
 }

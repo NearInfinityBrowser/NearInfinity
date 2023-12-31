@@ -206,6 +206,9 @@ public class AppOption {
   public static final AppOption BCS_INDENT = new AppOption(OptionsMenuItem.OPTION_BCS_INDENT, "Indentation", 1);
 
   // Category: Misc. Types
+  /** Menu Options > Misc. Types: AutoAlign2da (Integer, Default: 0) */
+  public static final AppOption AUTO_ALIGN_2DA = new AppOption(OptionsMenuItem.OPTION_2DA_AUTOALIGN,
+      "Auto-Align 2DA Columns", 0);
   /** Menu Options > Misc. Types: GlslColorScheme (Integer, Default: 0) */
   public static final AppOption GLSL_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_GLSL_COLORSCHEME,
       "GLSL Color Scheme", 0);

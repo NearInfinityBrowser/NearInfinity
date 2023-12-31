@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.Center;
@@ -39,12 +41,16 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.AddRemovable;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
+import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sto.ItemSale11;
 import org.infinity.resource.wed.Overlay;
@@ -99,14 +105,12 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
+        showInViewer((Corruption) table.getTableItemAt(row), false);
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        new ViewFrame(resultFrame, ResourceFactory.getResource(resourceEntry));
+        showInViewer((Corruption) table.getTableItemAt(row), true);
       }
     } else if (event.getSource() == bsave) {
       table.saveCheckResult(resultFrame, "Corrupted files");
@@ -170,10 +174,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
           if (event.getClickCount() == 2) {
             final int row = table.getSelectedRow();
             if (row != -1) {
-              final ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-              final Resource resource = ResourceFactory.getResource(resourceEntry);
-              new ViewFrame(resultFrame, resource);
-              ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
+              showInViewer((Corruption) table.getTableItemAt(row), true);
             }
           }
         }
@@ -256,6 +257,67 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         // invalid signature?
         synchronized (table) {
           table.addTableItem(new Corruption(entry, 0, "Invalid signature: \"" + sig + "\""));
+        }
+      }
+    }
+
+    // Checking for valid substructure offsets and counts
+    // calculating size of static portion of the resource data
+    final HashSet<Class<? extends StructEntry>> removableSet = new HashSet<>();
+    int headerSize = 0;
+    if (Profile.hasProperty(Profile.Key.IS_SUPPORTED_CRE_V22) && entry.getExtension().equalsIgnoreCase("CRE")) {
+      // special: CRE V2.2 static size cannot be determined dynamically
+      final String version = ((TextString) struct.getAttribute(AbstractStruct.COMMON_VERSION)).getText();
+      if ("V2.2".equalsIgnoreCase(version)) {
+        headerSize = 0x62e;
+      }
+    }
+    if (headerSize == 0) {
+      for (final StructEntry field : struct.getFields()) {
+        if (field instanceof SectionOffset) {
+          final Class<? extends StructEntry> cls = ((SectionOffset) field).getSection();
+          removableSet.add(cls);
+        }
+        if (field instanceof AddRemovable || removableSet.contains(field.getClass())) {
+          headerSize = field.getOffset();
+          break;
+        } else {
+          headerSize = field.getOffset() + field.getSize();
+        }
+      }
+    }
+    removableSet.clear();
+
+    // CHR offset correction for embedded CRE data
+    int ofsOffset = 0;
+    if (entry.getExtension().equalsIgnoreCase("CHR")) {
+      final StructEntry se = struct.getAttribute(CreResource.CHR_SIGNATURE_2);
+      if (se != null) {
+        ofsOffset = se.getOffset();
+      }
+    }
+
+    // checking offsets
+    for (final StructEntry field : struct.getFields()) {
+      if (field.getOffset() >= headerSize) {
+        break;
+      }
+      if (field instanceof SectionOffset) {
+        final SectionOffset so = (SectionOffset) field;
+        if (so.getValue() + ofsOffset < headerSize) {
+          synchronized (table) {
+            table.addTableItem(new Corruption(entry, so.getOffset(),
+                "Offset field points to header data (field name: \"" + so.getName() + "\", offset: "
+                    + Integer.toHexString(so.getValue()) + "h, header size: "
+                    + Integer.toHexString(headerSize - ofsOffset) + "h)"));
+          }
+        } else if (so.getValue() + ofsOffset > struct.getSize()) {
+          synchronized (table) {
+            table.addTableItem(new Corruption(entry, so.getOffset(),
+                "Offset field value is out of range (field name: \"" + so.getName() + "\", offset: "
+                    + Integer.toHexString(so.getValue()) + "h, resource size: "
+                    + Integer.toHexString(struct.getSize() - ofsOffset) + "h)"));
+          }
         }
       }
     }
@@ -415,16 +477,71 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     }
     return list;
   }
+
+  /**
+   * Opens a view of the referenced resources and selects the field at the offset in question.
+   *
+   * @param corruption {@link Corruption} instance with error information.
+   * @param newWindow  Whether to open the resource in a new window.
+   */
+  private void showInViewer(Corruption corruption, boolean newWindow) {
+    if (corruption == null) {
+      return;
+    }
+
+    if (newWindow) {
+      final ResourceEntry entry = corruption.getResourceEntry();
+      final Resource res = ResourceFactory.getResource(entry);
+      final int offset = corruption.getOffset();
+      new ViewFrame(resultFrame, res);
+      if (res instanceof AbstractStruct) {
+        try {
+          ((AbstractStruct) res).getViewer().selectEntry(offset);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    } else {
+      final ResourceEntry entry = corruption.getResourceEntry();
+      final int offset = corruption.getOffset();
+      NearInfinity.getInstance().showResourceEntry(entry);
+      if (parent instanceof ViewFrame && parent.isVisible()) {
+        final Resource res = ResourceFactory.getResource(entry);
+        ((ViewFrame) parent).setViewable(res);
+        if (res instanceof AbstractStruct) {
+          try {
+            ((AbstractStruct) res).getViewer().selectEntry(offset);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      } else {
+        NearInfinity.getInstance().showResourceEntry(entry, () -> {
+          final Viewable viewable = NearInfinity.getInstance().getViewable();
+          if (viewable instanceof AbstractStruct) {
+            try {
+              ((AbstractStruct) viewable).getViewer().selectEntry(offset);
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
+      }
+    }
+  }
+
   // -------------------------- INNER CLASSES --------------------------
 
   private static final class Corruption implements TableItem {
     private final ResourceEntry resourceEntry;
-    private final String offset;
+    private final int offset;
+    private final String offsetString;
     private final String errorMsg;
 
     private Corruption(ResourceEntry resourceEntry, int offset, String errorMsg) {
       this.resourceEntry = resourceEntry;
-      this.offset = Integer.toHexString(offset) + 'h';
+      this.offset= offset;
+      this.offsetString = Integer.toHexString(offset) + 'h';
       this.errorMsg = errorMsg;
     }
 
@@ -433,15 +550,27 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       if (columnIndex == 0) {
         return resourceEntry;
       } else if (columnIndex == 1) {
-        return offset;
+        return offsetString;
       } else {
         return errorMsg;
       }
     }
 
+    public ResourceEntry getResourceEntry() {
+      return resourceEntry;
+    }
+
+    public int getOffset() {
+      return offset;
+    }
+
+    public String getMessage() {
+      return errorMsg;
+    }
+
     @Override
     public String toString() {
-      return "File: " + resourceEntry.getResourceName() + ", Offset: " + offset + ", Error: " + errorMsg;
+      return "File: " + resourceEntry.getResourceName() + ", Offset: " + offsetString + ", Error: " + errorMsg;
     }
   }
 

@@ -58,6 +58,28 @@ import org.infinity.util.tuples.Couple;
  * Handles Option menu items for the {@link BrowserMenuBar}.
  */
 public class OptionsMenuItem extends JMenuItem implements ActionListener {
+  /** Alignment types available for 2DA resources. */
+  public enum AutoAlign2da {
+    /** Do not align columns. */
+    DISABLED("Disabled"),
+    /** Align columns individually. */
+    COMPACT("Compact"),
+    /** Align columns evenly (comparable to WeiDU's PRETTY_PRINT_2DA). */
+    UNIFORM("Uniform"),
+    ;
+
+    private final String label;
+
+    private AutoAlign2da(String label) {
+      this.label = label;
+    }
+
+    @Override
+    public String toString() {
+      return label;
+    }
+  }
+
   // Symbolic name for the default character set
   private static final String DEFAULT_CHARSET = "Auto";
 
@@ -151,6 +173,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_BCS_CODEFOLDING           = "BcsCodeFolding";
   public static final String OPTION_BCS_AUTO_INDENT           = "BcsAutoIndent";
   public static final String OPTION_BCS_INDENT                = "BcsIndent";
+  public static final String OPTION_2DA_AUTOALIGN             = "AutoAlign2da";
   public static final String OPTION_GLSL_SYNTAXHIGHLIGHTING   = "GlslSyntaxHighlighting";
   public static final String OPTION_GLSL_COLORSCHEME          = "GlslColorScheme";
   public static final String OPTION_GLSL_CODEFOLDING          = "GlslCodeFolding";
@@ -646,6 +669,14 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public String getWeiDUColorScheme() {
     int idx = AppOption.WEIDU_COLOR_SCHEME.getIntValue();
     return COLOR_SCHEME.get(idx).getPath();
+  }
+
+  public AutoAlign2da getAutoAlign2da() {
+    int idx = AppOption.AUTO_ALIGN_2DA.getIntValue();
+    if (idx >= 0 && idx < AutoAlign2da.values().length) {
+      return AutoAlign2da.values()[idx];
+    }
+    return AutoAlign2da.DISABLED;
   }
 
   /** Returns whether the dialog tree viewer shows icons in front of state and response entries. */

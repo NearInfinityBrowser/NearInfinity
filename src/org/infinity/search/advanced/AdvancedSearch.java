@@ -819,12 +819,13 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         if (row != -1) {
           ResourceEntry entry = (ResourceEntry) listResults.getValueAt(row, 0);
           if (entry != null) {
-            NearInfinity.getInstance().showResourceEntry(entry);
-            Viewable viewable = NearInfinity.getInstance().getViewable();
-            showEntryInViewer(row, viewable);
-            if (viewable instanceof DlgResource) {
-              NearInfinity.getInstance().toFront();
-            }
+            NearInfinity.getInstance().showResourceEntry(entry, () -> {
+              Viewable viewable = NearInfinity.getInstance().getViewable();
+              showEntryInViewer(row, viewable);
+              if (viewable instanceof DlgResource) {
+                NearInfinity.getInstance().toFront();
+              }
+            });
           }
         }
       } else if (event.getSource() == bOpenNew) {

@@ -76,9 +76,10 @@ public final class ScriptChecker extends AbstractSearcher
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((BcsResource) NearInfinity.getInstance().getViewable()).highlightText(((Integer) table.getValueAt(row, 2)),
-            null);
+        final SortableTable tableCapture = table;
+        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+            () -> ((BcsResource)NearInfinity.getInstance().getViewable())
+                .highlightText(((Integer)tableCapture.getValueAt(row, 2)), null));
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();
