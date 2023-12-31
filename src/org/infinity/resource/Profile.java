@@ -111,6 +111,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
     IWDHowTotLM(Engine.IWD, "Icewind Dale: Trials of the Luremaster"),
     /** Icewind Dale II */
     IWD2(Engine.IWD2, "Icewind Dale II"),
+    /** Icewind Dale II: Enhanced Edition */
+    IWD2EE(Engine.IWD2, "Icewind Dale II: Enhanced Edition"),
     /** Baldur's Gate: Enhanced Edition */
     BG1EE(Engine.EE, "Baldur's Gate: Enhanced Edition"),
     /** Baldur's Gate: Siege of Dragonspear */
@@ -512,6 +514,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
     GAME_EXTRA_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWDHowTotLM, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWD2EE, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
@@ -533,6 +536,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
     GAME_SAVE_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.IWDHowTotLM, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWD2EE, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
@@ -1527,6 +1531,15 @@ public final class Profile implements FileWatcher.FileWatchListener {
     osMap.put(Platform.OS.WINDOWS, list);
     DEFAULT_GAME_BINARIES.put(Game.IWD2, osMap);
 
+    // IWD2EE (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.UNIX, emptyList);
+    osMap.put(Platform.OS.MAC_OS, emptyList);
+    list = new ArrayList<>();
+    list.add("iwd2ee.exe");
+    osMap.put(Platform.OS.WINDOWS, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWD2EE, osMap);
+
     // BG1EE (Linux, macOS, Windows)
     osMap = new EnumMap<>(Platform.OS.class);
     list = new ArrayList<>();
@@ -1828,7 +1841,9 @@ public final class Profile implements FileWatcher.FileWatchListener {
       if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if (game == Game.IWD2 || (FileEx.create(FileManager.query(gameRoots, "iwd2.exe")).isFile())
+    } else if (game == Game.IWD2 || game == Game.IWD2EE
+        || (FileEx.create(FileManager.query(gameRoots, "iwd2.exe")).isFile()
+            || FileEx.create(FileManager.query(gameRoots, "iwd2ee.exe")).isFile())
         && (FileEx.create(FileManager.query(gameRoots, "Data/Credits.mve")).isFile())) {
       if (game == null) {
         game = Game.IWD2;
@@ -1965,6 +1980,8 @@ public final class Profile implements FileWatcher.FileWatchListener {
       }
     } else if (!isForced && game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
       game = Game.BG1TotSC;
+    } else if (!isForced && game == Game.IWD2 && FileEx.create(FileManager.query(gameRoots, "IEex.dll")).isFile()) {
+      game = Game.IWD2EE;
     }
 
     // updating game type
@@ -2287,7 +2304,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
     addEntry(Key.IS_SUPPORTED_LOG, Type.BOOLEAN, true);
 
-    addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition());
+    addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition() || game == Game.IWD2EE);
 
     addEntry(Key.IS_SUPPORTED_MAZE, Type.BOOLEAN, game == Game.PSTEE);
 

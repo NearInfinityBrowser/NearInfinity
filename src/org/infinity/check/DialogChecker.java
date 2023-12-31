@@ -84,9 +84,10 @@ public final class DialogChecker extends AbstractSearcher
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
-        ((AbstractStruct) NearInfinity.getInstance().getViewable()).getViewer()
-            .selectEntry((String) table.getValueAt(row, 1));
+        final SortableTable tableCapture = table;
+        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+            () -> ((AbstractStruct)NearInfinity.getInstance().getViewable()).getViewer()
+                .selectEntry((String)tableCapture.getValueAt(row, 1)));
       }
     } else if (event.getSource() == bopennew) {
       int row = table.getSelectedRow();

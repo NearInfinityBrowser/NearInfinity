@@ -136,7 +136,7 @@ import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   // the current Near Infinity version
-  private static final String VERSION = "v2.4-20230729";
+  private static final String VERSION = "v2.4-20231231";
 
   // the minimum supported Java version
   private static final int JAVA_VERSION_MIN = 8;
@@ -247,6 +247,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } else {
       chooser = new JFileChooser(Profile.getGameRoot().toFile());
     }
+    chooser.setFileHidingEnabled(false);
     chooser.setDialogTitle("Open game: Locate keyfile");
     chooser.setFileFilter(new FileFilter() {
       @Override
@@ -888,7 +889,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   public void showResourceEntry(ResourceEntry resourceEntry) {
-    tree.select(resourceEntry);
+    showResourceEntry(resourceEntry, null);
+  }
+
+  public void showResourceEntry(ResourceEntry resourceEntry, Operation doneOperation) {
+    tree.select(resourceEntry, doneOperation);
   }
 
   public void quit() {

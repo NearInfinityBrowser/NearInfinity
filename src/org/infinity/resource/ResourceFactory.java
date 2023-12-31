@@ -164,10 +164,11 @@ public final class ResourceFactory implements FileWatchListener {
       } else if (ext.equals("MUS")) {
         cls = MusResource.class;
       } else if (ext.equals("IDS") || ext.equals("2DA") || ext.equals("BIO") || ext.equals("RES") || ext.equals("TXT")
-          || ext.equals("LOG") || // WeiDU log files
-          (ext.equals("SRC") && Profile.getEngine() == Profile.Engine.IWD2)
-          || (Profile.isEnhancedEdition() && (ext.equals("SQL") || ext.equals("GUI") || ext.equals("LUA")
-              || ext.equals("MENU") || ext.equals("GLSL")))) {
+          || ext.equals("LOG") // WeiDU log files
+          || (ext.equals("SRC") && Profile.getEngine() == Profile.Engine.IWD2)
+          || (ext.equals("LUA") && (Profile.isEnhancedEdition() || Profile.getGame() == Profile.Game.IWD2EE))
+          || (Profile.isEnhancedEdition()
+              && (ext.equals("SQL") || ext.equals("GUI") || ext.equals("MENU") || ext.equals("GLSL")))) {
         cls = PlainTextResource.class;
       } else if (ext.equals("INI")) {
         final boolean isPST = Profile.getEngine() == Profile.Engine.PST;

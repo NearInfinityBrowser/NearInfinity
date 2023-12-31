@@ -1,0 +1,138 @@
+# This workflow will build a Java project with Apache Ant and upload the created artifacts
+# on pushes to the master branch.
+
+name: Java CD with Apache Ant
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+    branches: [ "master", "devel" ]
+
+permissions:
+  contents: read
+
+jobs:
+  # Build and upload NearInfinity.jar
+  deploy-jar:
+    if: ${{ github.repository == 'Argent77/NearInfinity' }}
+    runs-on: ubuntu-latest
+    name: Build NearInfinity.jar
+    outputs:
+      ni_version: ${{ steps.ni-build.outputs.NI_VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Build with Ant
+        id: ni-build
+        run: |
+          ant -noinput -buildfile build.xml
+          echo "NI_VERSION=$(java -jar "NearInfinity.jar" -version 2>/dev/null | grep -Eo '[0-9]{8}')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}
+          path: NearInfinity.jar
+
+  # Build and upload installer versions for Windows and macOS
+  deploy-installer:
+    if: ${{ github.repository == 'Argent77/NearInfinity' }}
+    needs: deploy-jar
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, macos-latest ]
+        java: [ '21' ]
+    runs-on: ${{ matrix.os }}
+    name: Create installer for ${{ matrix.os }}, JDK ${{ matrix.java }}
+    steps:
+      # Initializations
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Echo JAVA_HOME (windows)
+        if: (matrix.os == 'windows-latest')
+        run: |
+          echo $env:JAVA_HOME
+          java -version
+
+      - name: Echo JAVA_HOME (macos)
+        if: (matrix.os != 'windows-latest')
+        run: |
+          echo $JAVA_HOME
+          java -version
+
+      # Preparations
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: NearInfinity-${{ needs.deploy-jar.outputs.ni_version }}
+          path: jar
+
+      - name: Set up installer data
+        uses: actions/checkout@v4
+        with:
+          repository: NearInfinityBrowser/NearInfinity-assets
+          path: assets
+
+      # Building
+      - name: Build portable archive and installer (windows)
+        if: (matrix.os == 'windows-latest')
+        run: |
+          move assets\redistributable\windows\package .
+          move assets\redistributable\windows\build-image.cmd .
+          move assets\redistributable\windows\build-installer.cmd .
+          .\build-image.cmd
+          .\build-installer.cmd
+
+      - name: Build installer (macos)
+        if: (matrix.os == 'macos-latest')
+        run: |
+          mv assets/redistributable/macos/package .
+          mv assets/redistributable/macos/build.command .
+          chmod +x build.command
+          ./build.command
+
+      # Validation
+      - name: List built files (windows)
+        if: (matrix.os == 'windows-latest')
+        run: dir
+
+      - name: List built files (macos)
+        if: (matrix.os == 'macos-latest')
+        run: ls -l
+
+      # Uploading
+      - name: Upload portable artifact (windows)
+        if: (matrix.os == 'windows-latest')
+        uses: actions/upload-artifact@v3
+        with:
+          name: portable-windows
+          path: NearInfinity-*.zip
+
+      - name: Upload exe artifact (windows)
+        if: (matrix.os == 'windows-latest')
+        uses: actions/upload-artifact@v3
+        with:
+          name: installer-windows
+          path: NearInfinity-*.exe
+
+      - name: Upload pkg artifact (macos)
+        if: (matrix.os == 'macos-latest')
+        uses: actions/upload-artifact@v3
+        with:
+          name: installer-macos
+          path: NearInfinity-*.pkg
