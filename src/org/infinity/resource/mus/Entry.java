@@ -95,11 +95,25 @@ public class Entry {
     }
   }
 
+  private static String getNormalizedLine(String line)  {
+    String retVal = line;
+    if (retVal != null) {
+      // removing comment if present
+      int pos = retVal.indexOf('#');
+      if (pos >= 0) {
+        retVal = retVal.substring(0, pos);
+      }
+    } else {
+      retVal = "";
+    }
+    return retVal;
+  }
+
   public Entry(ResourceEntry entry, String dir, List<Entry> entries, String line, int nr) {
     this.entry = entry;
     this.dir = dir;
     this.entryList = entries;
-    this.line = line;
+    this.line = getNormalizedLine(line);
     this.nextnr = nr + 1;
   }
 
@@ -139,6 +153,9 @@ public class Entry {
         } else {
           endBuffer = getAudioBuffer(next);
         }
+      } else if (command.startsWith("#")) {
+        // comment starts; no more valid tokens available
+        break;
       } else {
         if (command.equalsIgnoreCase(dir)) {
           command = st.nextToken();
