@@ -286,4 +286,22 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
 
     return extension.equals("WAV") || extension.equals("MUS") || extension.equals("ACM");
   }
+
+  /**
+   * A static method that returns whether any of the listed file extensions supports sound playback.
+   *
+   * @param extensions Array of file extensions to check (without leading dot).
+   * @return {@code true} if any of the file extensions supports sound playback or when an empty extension list is
+   *         provided. {@code false} otherwise.
+   */
+  public static boolean isSound(String... extensions) {
+    boolean retVal = (extensions.length == 0);
+
+    for (final String ext : extensions) {
+      retVal |= (ext != null) && (ext.isEmpty() || ext.equalsIgnoreCase("WAV") || ext.equalsIgnoreCase("MUS") ||
+                                  ext.equalsIgnoreCase("ACM"));
+    }
+
+    return retVal;
+  }
 }

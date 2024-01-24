@@ -203,6 +203,7 @@ public class ResourceRef extends Datatype
     bView.addActionListener(this);
     bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
+    bPlay.setVisible(ResourceEntry.isSound(types));
     list.addListSelectionListener(this);
     setResourceEntryUpdated(list.getSelectedValue());
 
