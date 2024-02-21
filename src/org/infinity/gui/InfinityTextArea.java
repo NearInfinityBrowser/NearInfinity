@@ -54,6 +54,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     NONE(SyntaxConstants.SYNTAX_STYLE_NONE),
     /** Select BCS highlighting. */
     BCS(BCSTokenMaker.SYNTAX_STYLE_BCS),
+    /** Select DLG tree viewer trigger/action highlighting. */
+    DLG(BCSTokenMaker.SYNTAX_STYLE_BCS),
     /** Select TLK highlighting. */
     TLK(TLKTokenMaker.SYNTAX_STYLE_TLK),
     /** Select GLSL highlighting. */
@@ -340,6 +342,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
           case BCS:
             if (BrowserMenuBar.isInstantiated()) {
               schemePath = BrowserMenuBar.getInstance().getOptions().getBcsColorScheme();
+            }
+            break;
+          case DLG:
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptions().getDlgColorScheme();
             }
             break;
           case TLK:

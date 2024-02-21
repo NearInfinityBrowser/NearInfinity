@@ -111,6 +111,18 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
       new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme())
   );
 
+  /**
+   * Available color schemes for highlighted DLG script trigger/action format (title and scheme definition path).
+   * Only "light" color schemes are usable.
+   */
+  private static final List<ColorScheme> DLG_COLOR_SCHEME = Arrays.asList(
+      new ColorScheme(InfinityTextArea.Scheme.DEFAULT.getLabel(), InfinityTextArea.Scheme.DEFAULT.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.ECLIPSE.getLabel(), InfinityTextArea.Scheme.ECLIPSE.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.IDEA.getLabel(), InfinityTextArea.Scheme.IDEA.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.VS.getLabel(), InfinityTextArea.Scheme.VS.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme())
+  );
+
   /** Available color schemes for remaining highlighted formats (scheme, title, description). */
   private static final List<ColorScheme> COLOR_SCHEME = BCS_COLOR_SCHEME.subList(0, BCS_COLOR_SCHEME.size() - 1);
 
@@ -188,6 +200,8 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_WEIDU_SYNTAXHIGHLIGHTING  = "WeiDUSyntaxHighlighting";
   public static final String OPTION_WEIDU_COLORSCHEME         = "WeiDUColorScheme";
 
+  public static final String OPTION_DLG_COLORSCHEME           = "DlgColorScheme";
+  public static final String OPTION_DLG_SYNTAXHIGHLIGHTING    = "DlgSyntaxHighlighting";
   public static final String OPTION_SHOWICONS                 = "DlgShowIcons";
   public static final String OPTION_SORT_STATES_BY_WEIGHT     = "DlgSortStatesByWeight";
   public static final String OPTION_ALWAYS_SHOW_STATE_0       = "DlgAlwaysShowState0";
@@ -225,6 +239,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   /** Returns a list of all available color schemes for BCS format. */
   public static List<ColorScheme> getBcsColorSchemes() {
     return Collections.unmodifiableList(BCS_COLOR_SCHEME);
+  }
+
+  /** Returns a list of all available color schemes for script trigger/action format in DLG tree viewer. */
+  public static List<ColorScheme> getDlgColorSchemes() {
+    return Collections.unmodifiableList(DLG_COLOR_SCHEME);
   }
 
   /** Returns a list of all available color schemes for text-based formats except BCS. */
@@ -626,6 +645,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     return AppOption.WEIDU_SYNTAX_HIGHLIGHTING.getBoolValue();
   }
 
+  /** Returns state of "DLG Tree Viewer: Enable Syntax Highlighting" */
+  public boolean getDlgSyntaxHighlightingEnabled() {
+    return AppOption.DLG_SYNTAX_HIGHLIGHTING.getBoolValue();
+  }
+
   /** Returns state of "BCS: Enable Code Folding" */
   public boolean getBcsCodeFoldingEnabled() {
     return AppOption.BCS_CODE_FOLDING.getBoolValue();
@@ -669,6 +693,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public String getWeiDUColorScheme() {
     int idx = AppOption.WEIDU_COLOR_SCHEME.getIntValue();
     return COLOR_SCHEME.get(idx).getPath();
+  }
+
+  public String getDlgColorScheme() {
+    int idx = AppOption.DLG_COLOR_SCHEME.getIntValue();
+    return DLG_COLOR_SCHEME.get(idx).getPath();
   }
 
   public AutoAlign2da getAutoAlign2da() {

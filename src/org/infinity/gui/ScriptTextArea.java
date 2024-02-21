@@ -76,12 +76,26 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   private Signatures triggers;
   private Signatures actions;
 
+  /**
+   * Constructs a new script text area with BCS language settings.
+   */
   public ScriptTextArea() {
+    this(Language.BCS,
+        BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled());
+  }
+
+  /**
+   * Constructs a new script text area with customized language settings.
+   *
+   * @param language {@link Language} for syntax highlighting.
+   * @param enabled Whether syntax highlighting should be applied.
+   */
+  public ScriptTextArea(Language language, boolean enabled) {
     super(true);
 
     Language lang;
-    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getBcsSyntaxHighlightingEnabled()) {
-      lang = Language.BCS;
+    if (enabled && language != null) {
+      lang = language;
     } else {
       lang = Language.NONE;
     }

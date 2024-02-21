@@ -418,6 +418,19 @@ public class PreferencesDialog extends JDialog {
       ),
       OptionCategory.create(Category.DIALOG_TREE_VIEWER,
           OptionGroup.createDefault(
+              OptionGroupBox.create(AppOption.DLG_COLOR_SCHEME.getName(), AppOption.DLG_COLOR_SCHEME.getLabel(),
+                  "Select a color scheme for display of dialog triggers and actions.<p>"
+                      + "<strong>Default:</strong> A general-purpose default color scheme.<br/>"
+                      + "<strong>Eclipse:</strong> Mimics the default color scheme of the Eclipse IDE.<br/>"
+                      + "<strong>IntelliJ IDEA:</strong> Mimics the default color scheme of IntelliJ IDEA.<br/>"
+                      + "<strong>Visual Studio:</strong> Mimics the default color scheme of Microsoft Visual Studio.<br/>"
+                      + "<strong>BCS Light:</strong> A color scheme that is based on the WeiDU Syntax Highlighter "
+                      + "for Notepad++.</p>",
+                  0, OptionsMenuItem.getDlgColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
+                  AppOption.DLG_COLOR_SCHEME),
+              OptionCheckBox.create(AppOption.DLG_SYNTAX_HIGHLIGHTING.getName(), AppOption.DLG_SYNTAX_HIGHLIGHTING.getLabel(),
+                  "Enables syntax highlighting for dialog triggers and actions.", AppOption.DLG_SYNTAX_HIGHLIGHTING)
+              .setOnCreated(this::dlgSyntaxHighlightingOnCreated).setOnAction(this::dlgSyntaxHighlightingOnAction),
               OptionCheckBox.create(AppOption.DLG_SHOW_ICONS.getName(), AppOption.DLG_SHOW_ICONS.getLabel(),
                   "Enable this option to show small icons in front of dialog states and responses in the dialog tree view.",
                   AppOption.DLG_SHOW_ICONS),
@@ -1268,6 +1281,17 @@ public class PreferencesDialog extends JDialog {
   /** onAction() function for {@link AppOption#WEIDU_SYNTAX_HIGHLIGHTING}. */
   private boolean weiduSyntaxHighlightingOnAction(OptionCheckBox cb) {
     setOptionUiEnabled(AppOption.WEIDU_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#DLG_SYNTAX_HIGHLIGHTING}. */
+  private void dlgSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.DLG_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#DLG_SYNTAX_HIGHLIGHTING}. */
+  private boolean dlgSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.DLG_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
     return true;
   }
 
