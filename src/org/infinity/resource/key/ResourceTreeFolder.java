@@ -213,6 +213,13 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder> 
     }
 
     /**
+     * Fixes build on JDK 21+, where both List and SortedSet have a default reversed() method that clashes
+     */
+    public SortedListSet<T> reversed() {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
      * Replaces the element at the specified position in this set with the specified one. The new element will be moved
      * to the correct location to preserve the sorted state of the list.
      *
