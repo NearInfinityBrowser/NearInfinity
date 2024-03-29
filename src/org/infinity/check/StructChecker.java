@@ -564,6 +564,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       return offset;
     }
 
+    @SuppressWarnings("unused")
     public String getMessage() {
       return errorMsg;
     }

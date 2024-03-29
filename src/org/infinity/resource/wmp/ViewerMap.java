@@ -168,8 +168,8 @@ public class ViewerMap extends JPanel {
         mapScaleX = (float) mapOrig.getWidth() / (float) mapTargetWidth;
         mapScaleY = (float) mapOrig.getHeight() / (float) mapTargetHeight;
 
-        listPanel = (StructListPanel) ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class,
-            AreaEntry.WMP_AREA_CURRENT, new WmpAreaListRenderer(mapIcons), listeners);
+        listPanel = ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, AreaEntry.WMP_AREA_CURRENT,
+            new WmpAreaListRenderer(mapIcons), listeners);
         listPanel.getList().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane mapScroll = new JScrollPane(rcMap);
         mapScroll.getVerticalScrollBar().setUnitIncrement(16);
