@@ -12,8 +12,8 @@
   <property name="apng_writer.file" value="${lib.path.rel}/apng-writer/apng-writer-core.jar"/>
   <property name="json.file" value="${lib.path.rel}/json/json-20230227.jar"/>
   <property name="commonmark.file" value="${lib.path.rel}/commonmark/commonmark-0.21.0.jar"/>
-  <property name="flatlaf.file" value="${lib.path.rel}/flatlaf/flatlaf-3.1.1.jar"/>
-  <property name="flatlafthemes.file" value="${lib.path.rel}/flatlaf/flatlaf-intellij-themes-3.1.1.jar"/>
+  <property name="flatlaf.file" value="${lib.path.rel}/flatlaf/flatlaf-3.4.jar"/>
+  <property name="flatlafthemes.file" value="${lib.path.rel}/flatlaf/flatlaf-intellij-themes-3.4.jar"/>
   <property name="javacc.home" value="lib/javacc"/>
   <property name="parser.path" value="org/infinity/resource/bcs/parser"/>
   <property name="src.parser.path" value="${src.path}/org/infinity/resource/bcs/parser"/>
