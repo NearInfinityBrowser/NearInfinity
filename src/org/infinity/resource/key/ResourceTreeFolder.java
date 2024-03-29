@@ -213,8 +213,12 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder> 
     }
 
     /**
-     * Fixes build on JDK 21+, where both List and SortedSet have a default reversed() method that clashes
+     * @apiNote Stub method required to meet JDK 21 requirements which introduces their own {@code reversed()} method
+     *          to the {@link SortedSet} and {@link List} interfaces.
+     *
+     * TODO: Remove when upgrading source compatibility to JDK 21+
      */
+    @SuppressWarnings("unused")
     public SortedListSet<T> reversed() {
       throw new UnsupportedOperationException();
     }
