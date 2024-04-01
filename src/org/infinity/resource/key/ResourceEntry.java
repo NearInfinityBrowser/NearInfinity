@@ -266,6 +266,12 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
 
   public abstract InputStream getResourceDataAsStream(boolean ignoreOverride) throws Exception;
 
+  /**
+   * Returns basic information about the resource.
+   *
+   * @param ignoreOverride Indicates whether to retrieve data from the biffed resource version.
+   * @return For TIS resources: tile count and size of a tile structure. Everything else: Resource size, in bytes.
+   */
   public abstract int[] getResourceInfo(boolean ignoreOverride) throws Exception;
 
   /** Returns the full resource name (name dot extension) */

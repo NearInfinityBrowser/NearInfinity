@@ -75,6 +75,7 @@ import org.infinity.resource.graphics.Compressor;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.PvrDecoder;
+import org.infinity.resource.graphics.TisConvert;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -629,7 +630,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       TisDecoder decoder = TisDecoder.loadTis(entry);
       if (decoder != null) {
         int tileCount = decoder.getTileCount();
-        int columns = TisResource.calcTileWidth(entry, 1);
+        int columns = TisConvert.calcTileWidth(entry, true, 1);
         int rows = tileCount / columns;
         if ((tileCount % columns) != 0) {
           rows++;
@@ -723,10 +724,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
       if (isTis && cbConvertTisVersion.isSelected() && !isTisV2 && cbConvertTisList.getSelectedIndex() == 1) {
         TisResource tis = new TisResource(entry);
-        tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
+        TisConvert.convertToPvrzTis(tis.getDecoder(), TisConvert.makeTisFileNameValid(output));
       } else if (isTis && cbConvertTisVersion.isSelected() && isTisV2 && cbConvertTisList.getSelectedIndex() == 0) {
         TisResource tis = new TisResource(entry);
-        tis.convertToPaletteTis(output, false);
+        TisConvert.convertToPaletteTis(tis.getTileList(), tis.getDecoder(), output);
       } else if (size >= 0) {
         try (InputStream is = entry.getResourceDataAsStream()) {
           // Keep trying. File may be in use by another thread.
