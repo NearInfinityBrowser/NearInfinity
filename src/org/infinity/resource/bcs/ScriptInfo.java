@@ -55,7 +55,6 @@ public class ScriptInfo {
     si.functionConcatMap.put(109, 0x0001); // IncrementGlobal
     si.functionConcatMap.put(115, 0x0001); // SetGlobalTimer
     si.functionConcatMap.put(141, 0x0001); // GivePartyGoldGlobal
-    si.functionConcatMap.put(165, 0x0001); // AddexperiencePartyGlobal
     si.functionParamCommentMap.put(151, 1);  // DisplayString
     si.functionParamCommentMap.put(197, 1);  // MoveGlobal
 
@@ -235,7 +234,6 @@ public class ScriptInfo {
     si.functionConcatMap.put(109, 0x0001); // IncrementGlobal
     si.functionConcatMap.put(115, 0x0001); // SetGlobalTimer
     si.functionConcatMap.put(141, 0x0001); // GivePartyGoldGlobal
-    si.functionConcatMap.put(165, 0x0001); // AddexperiencePartyGlobal
     si.functionConcatMap.put(308, 0x0001); // SetGlobalTimerOnce
     si.functionConcatMap.put(243, 0x0011); // IncrementGlobalOnce
     si.functionConcatMap.put(0x40A5, 0x0101); // BitGlobal
