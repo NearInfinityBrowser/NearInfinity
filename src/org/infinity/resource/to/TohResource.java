@@ -203,9 +203,6 @@ public final class TohResource extends AbstractStruct implements Resource {
                 if (se != null) {
                   retVal += se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
                   sofs = ((IsNumeric) se.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY)).getValue();
-                  if (sofs != -1) {
-                    sofs += se.getOffset();
-                  }
                 } else {
                   sofs = -1;
                 }

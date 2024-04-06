@@ -120,9 +120,15 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
     } else if (buttonPanel.getControlByType(CTRL_DECOMPRESS) == event.getSource()) {
       decompressData(true);
     } else if (buttonPanel.getControlByType(CTRL_EDIT) == event.getSource()) {
-      ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
-      Resource res = ResourceFactory.getResource(fileentry);
-      new ViewFrame(panel.getTopLevelAncestor(), res);
+      try {
+        ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
+        Resource res = ResourceFactory.getResource(fileentry);
+        new ViewFrame(panel.getTopLevelAncestor(), res);
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Could not open selected resource.", "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CTRL_DELETE) == event.getSource()) {
@@ -209,9 +215,15 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
       @Override
       public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
-          ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
-          Resource res = ResourceFactory.getResource(fileentry);
-          new ViewFrame(panel.getTopLevelAncestor(), res);
+          try {
+            ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
+            Resource res = ResourceFactory.getResource(fileentry);
+            new ViewFrame(panel.getTopLevelAncestor(), res);
+          } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Could not open selected resource.", "Error",
+                JOptionPane.ERROR_MESSAGE);
+          }
         }
       }
     });

@@ -36,7 +36,7 @@ public final class StringEntry extends AbstractStruct {
     addField(new HexNumber(buffer, offset, 4, TOT_STRING_OFFSET_FREE_REGION));
     addField(new HexNumber(buffer, offset + 4, 4, TOT_STRING_OFFSET_PREV_ENTRY));
     addField(new TextEdit(buffer, offset + 8, 512, TOT_STRING_TEXT));
-    addField(new HexNumber(buffer, offset + 520, 4, TOT_STRING_OFFSET_NEXT_ENTRY)); // Note: offset value is relative to structure base offset
+    addField(new HexNumber(buffer, offset + 520, 4, TOT_STRING_OFFSET_NEXT_ENTRY));
     return offset + 524;
   }
 }

@@ -76,14 +76,16 @@ public final class TotResource extends AbstractStruct implements Resource {
           // looping through entries to consider split text segments
           StringEntry stringEntry = new StringEntry(this, buffer, offset, idx);
           while (stringEntry != null) {
+            if (!isStringEntryValid(stringEntry)) {
+              throw new Exception(String.format("Invalid string section found at offset 0x%x", stringEntry.getOffset()));
+            }
             offset = stringEntry.getEndOffset();
             addField(stringEntry);
             idx++;
             int ofsNextEntry = ((IsNumeric) stringEntry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY))
                 .getValue();
             if (ofsNextEntry != -1) {
-              // Note: next entry offset is relative to structure base offset
-              stringEntry = new StringEntry(this, buffer, stringEntry.getOffset() + ofsNextEntry, idx);
+              stringEntry = new StringEntry(this, buffer, ofsNextEntry, idx);
             } else {
               stringEntry = null;
             }
@@ -109,6 +111,28 @@ public final class TotResource extends AbstractStruct implements Resource {
     }
 
     return endoffset;
+  }
+
+  /**
+   * Analyzes a TOT {@code StringEntry} to determine whether the entry contains valid data.
+   *
+   * @param entry a {@link StringEntry}
+   * @return {@code true} if the entry is valid, {@code false} otherwise.
+   */
+  public static boolean isStringEntryValid(StringEntry entry) {
+    boolean retVal = false;
+
+    if (entry != null) {
+      try {
+        int ofsPrev = ((IsNumeric) entry.getAttribute(StringEntry.TOT_STRING_OFFSET_PREV_ENTRY)).getValue();
+        int ofsNext = ((IsNumeric) entry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY)).getValue();
+        retVal = (ofsPrev == -1 && ofsNext == -1) || (ofsPrev != ofsNext);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return retVal;
   }
 
   /**
