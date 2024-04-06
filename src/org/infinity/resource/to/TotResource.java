@@ -81,7 +81,7 @@ public final class TotResource extends AbstractStruct implements Resource {
             idx++;
             int ofsNextEntry = ((IsNumeric) stringEntry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY))
                 .getValue();
-            if (ofsNextEntry >= 0) {
+            if (ofsNextEntry != -1) {
               // Note: next entry offset is relative to structure base offset
               stringEntry = new StringEntry(this, buffer, stringEntry.getOffset() + ofsNextEntry, idx);
             } else {
