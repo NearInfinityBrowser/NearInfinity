@@ -300,13 +300,20 @@ public final class SortableTable extends JTable implements MouseListener {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public int compare(TableItem o1, TableItem o2) {
-      int res;
+      Integer res = null;
       final Object item1 = o1.getObjectAt(sortByColumn);
       final Object item2 = o2.getObjectAt(sortByColumn);
 
       if (item1 instanceof Comparable && item2 instanceof Comparable) {
-        res = ((Comparable) item1).compareTo(item2);
-      } else {
+        // best case: both items can be compared directly
+        try {
+          res = ((Comparable) item1).compareTo(item2);
+        } catch (Exception e) {
+          // ignored
+        }
+      }
+      if (res == null) {
+        // fall-back solution: compare by string
         final String s1 = Objects.toString(item1, "");
         final String s2 = Objects.toString(item2, "");
 
