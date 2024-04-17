@@ -160,23 +160,23 @@ public class GifSequenceReader {
       g = bimg.createGraphics();
       switch (dm) {
         case DO_NOT_DISPOSE: // Copy previous frame to current frame
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+          g.setComposite(AlphaComposite.Src);
           g.drawImage(framePrev.getRenderedImage(), null, 0, 0);
           break;
         case PREVIOUS: // Restore content from two frame ago
           if (index > 1) {
             Frame fpp = frames.get(index - 2);
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+            g.setComposite(AlphaComposite.Src);
             g.drawImage(fpp.getRenderedImage(), null, 0, 0);
           }
           break;
         case BACKGROUND: // Clear with background color
-          Color col = new Color(0, true);
+          Color col = ColorConvert.TRANSPARENT_COLOR;
           if (framePrev.getTransparentIndex() >= 0) {
             IndexColorModel cm = (IndexColorModel) framePrev.getImage().getColorModel();
             col = new Color(cm.getRGB(framePrev.getTransparentIndex()), true);
           }
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+          g.setComposite(AlphaComposite.Src);
           g.setColor(col);
           g.fillRect(0, 0, bimg.getWidth(), bimg.getHeight());
           break;
@@ -190,7 +190,7 @@ public class GifSequenceReader {
 
     if (g != null) {
       // Rendering current frame
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+      g.setComposite(AlphaComposite.SrcOver);
       g.drawImage(gifImg, null, frame.getRect().x, frame.getRect().y);
       g.dispose();
       g = null;

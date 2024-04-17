@@ -617,7 +617,7 @@ public class ViewerMap extends JPanel {
     Graphics2D g = ((BufferedImage) rcMap.getImage()).createGraphics();
     try {
       Composite comp = g.getComposite();
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+      g.setComposite(AlphaComposite.Src);
       g.drawImage(mapOrig, 0, 0, null);
       g.setComposite(comp);
     } finally {

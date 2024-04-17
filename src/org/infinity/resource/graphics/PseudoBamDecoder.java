@@ -5,7 +5,6 @@
 package org.infinity.resource.graphics;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -69,8 +68,6 @@ public class PseudoBamDecoder extends BamDecoder {
 
   /** A value specifying the number of data blocks (BAM v2 specific) [Integer] */
   public static final String OPTION_INT_BLOCKCOUNT = "BlockCount";
-
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
 
   private final PseudoBamFrameEntry defaultFrameInfo = new PseudoBamFrameEntry(null, 0, 0);
   private final HashMap<String, Object> mapOptions = new HashMap<>();
@@ -1314,7 +1311,7 @@ public class PseudoBamDecoder extends BamDecoder {
       Graphics2D g = texture.createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
-        g.setColor(TRANSPARENT_COLOR);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
         for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
           BufferedImage image = listFrames.get(frameIdx).frame;

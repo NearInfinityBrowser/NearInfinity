@@ -57,6 +57,7 @@ import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.util.StringTable;
@@ -1328,7 +1329,7 @@ final class Viewer extends JPanel
           try {
             // 1. clearing image
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
             // 2. drawing control
@@ -1445,7 +1446,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 
@@ -1558,7 +1559,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 
@@ -1672,7 +1673,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 
@@ -1787,7 +1788,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 
@@ -1833,7 +1834,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 
@@ -1949,7 +1950,7 @@ final class Viewer extends JPanel
             // 1. clearing image
             Composite comp = g.getComposite();
             g.setComposite(AlphaComposite.Src);
-            g.setColor(new Color(0, true));
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
             g.fillRect(0, 0, image.getWidth(), image.getHeight());
             g.setComposite(comp);
 

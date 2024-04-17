@@ -4,6 +4,7 @@
 
 package org.infinity.resource.are.viewer;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -621,8 +622,9 @@ public class TilesetRenderer extends RenderCanvas {
         if (forceUpdate) {
           Graphics2D g = (Graphics2D) img.getGraphics();
           try {
-            g.setBackground(new Color(0, true));
-            g.clearRect(0, 0, img.getWidth(null), img.getHeight(null));
+            g.setComposite(AlphaComposite.Src);
+            g.setColor(ColorConvert.TRANSPARENT_COLOR);
+            g.fillRect(0, 0, img.getWidth(null), img.getHeight(null));
           } finally {
             g.dispose();
           }

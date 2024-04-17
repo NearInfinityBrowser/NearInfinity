@@ -5,7 +5,6 @@
 package org.infinity.gui.converter;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -467,14 +466,14 @@ public class ConvertToMos extends ChildFrame
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = texture.createGraphics();
       g.setComposite(AlphaComposite.Src);
-      g.setColor(new Color(0, true));
+      g.setColor(ColorConvert.TRANSPARENT_COLOR);
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       for (final MosEntry entry : entryList) {
         if (entry.page == i) {
           int sx = entry.dstLocation.x, sy = entry.dstLocation.y;
           int dx = entry.srcLocation.x, dy = entry.srcLocation.y;
           int w = entry.width, h = entry.height;
-          g.clearRect(dx, dy, w, h);
+          g.fillRect(dx, dy, w, h);
           g.drawImage(img, dx, dy, dx + w, dy + h, sx, sy, sx + w, sy + h, null);
         }
       }

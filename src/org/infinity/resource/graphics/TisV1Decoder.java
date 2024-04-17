@@ -5,13 +5,13 @@
 package org.infinity.resource.graphics;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
 
@@ -20,7 +20,6 @@ import org.infinity.resource.key.ResourceEntry;
  */
 public class TisV1Decoder extends TisDecoder {
   private static final int HEADER_SIZE = 24; // Size of the TIS header
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
 
   private ByteBuffer tisBuffer;
   private int tileCount;
@@ -37,12 +36,14 @@ public class TisV1Decoder extends TisDecoder {
    * Returns the palette of the specified tile.
    *
    * @param tileIdx The tile index
+   * @param raw     Specifies whether palette entries should be returned unmodified. Otherwise, alpha components are
+   *                  added to all palette entries, and "transparent" palette entry is changed to "black".
    * @return The palette as int array of 256 entries (Format: ARGB). Returns {@code null} on error.
    */
-  public int[] getTilePalette(int tileIdx) {
+  public int[] getTilePalette(int tileIdx, boolean raw) {
     if (tileIdx >= 0 && tileIdx < getTileCount()) {
       int[] palette = new int[256];
-      getTilePalette(tileIdx, palette);
+      getTilePalette(tileIdx, palette, raw);
       return palette;
     } else {
       return null;
@@ -54,18 +55,22 @@ public class TisV1Decoder extends TisDecoder {
    *
    * @param tileIdx The tile index
    * @param buffer  The buffer to write the palette data into.
+   * @param raw     Specifies whether palette entries should be returned unmodified. Otherwise, alpha components are
+   *                  added to all palette entries, and "transparent" palette entry is changed to "black".
    */
-  public void getTilePalette(int tileIdx, int[] buffer) {
+  public void getTilePalette(int tileIdx, int[] buffer, boolean raw) {
     if (buffer != null) {
       int ofs = getTileOffset(tileIdx);
       if (ofs > 0) {
         int maxLen = (buffer.length > 256) ? 256 : buffer.length;
         for (int i = 0; i < maxLen; i++) {
           buffer[i] = tisBuffer.getInt(ofs);
-          if (i == 0 && (buffer[i] & 0x00ffffff) == 0x0000ff00) {
-            buffer[i] &= 0xff000000;
-          } else {
-            buffer[i] |= 0xff000000;
+          if (!raw) {
+            if (i == 0 && (buffer[i] & 0x00ffffff) == 0x0000ff00) {
+              buffer[i] &= 0xff000000;
+            } else {
+              buffer[i] |= 0xff000000;
+            }
           }
           ofs += 4;
         }
@@ -101,6 +106,7 @@ public class TisV1Decoder extends TisDecoder {
       if (ofs > 0) {
         int maxSize = (buffer.length > TILE_DIMENSION * TILE_DIMENSION) ? TILE_DIMENSION * TILE_DIMENSION
             : buffer.length;
+        ofs += 4 * 256; // skipping palette data
         tisBuffer.position(ofs);
         tisBuffer.get(buffer, 0, maxSize);
       }
@@ -216,8 +222,8 @@ public class TisV1Decoder extends TisDecoder {
         buffer = null;
         Graphics2D g = (Graphics2D) canvas.getGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TRANSPARENT_COLOR);
+          g.setComposite(AlphaComposite.Src);
+          g.setColor(ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, TILE_DIMENSION, TILE_DIMENSION);
           g.drawImage(workingCanvas, 0, 0, null);
         } finally {
@@ -238,7 +244,7 @@ public class TisV1Decoder extends TisDecoder {
       int ofs = getTileOffset(tileIdx);
       if (ofs > 0) {
         ofs += 1024; // skipping palette data
-        getTilePalette(tileIdx, workingPalette);
+        getTilePalette(tileIdx, workingPalette, false);
         for (int i = 0; i < size; i++, ofs++) {
           buffer[i] = workingPalette[tisBuffer.get(ofs) & 0xff];
         }
@@ -246,5 +252,34 @@ public class TisV1Decoder extends TisDecoder {
       }
     }
     return false;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(tileCount, tileSize, tisBuffer);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TisV1Decoder other = (TisV1Decoder)obj;
+    return tileCount == other.tileCount && tileSize == other.tileSize && Objects.equals(tisBuffer, other.tisBuffer);
+  }
+
+  @Override
+  public String toString() {
+    return "TisV1Decoder [type=" + getType() + ", tisEntry=" + getResourceEntry() + ", tileCount=" + tileCount
+        + ", tileSize=" + tileSize + "]";
   }
 }
