@@ -87,7 +87,8 @@ public class TilesetRenderer extends RenderCanvas {
   private boolean hasChangedOverlays;
   private boolean hasChangedDoorState;
   private boolean isClosed = false; // opened/closed state of door tiles
-  private boolean showGrid = false; // indicates whether to draw a grid on the tiles
+  private boolean showTileGrid = false; // indicates whether to draw a grid on the tiles
+  private boolean showCellGrid = false; // indicates whether to draw a grid on the cells
   private boolean forcedInterpolation = false; // indicates whether to use a pre-defined interpolation type or set one
                                                // based on zoom factor
   private double zoomFactor = 1.0; // zoom factor for drawing the map
@@ -347,13 +348,25 @@ public class TilesetRenderer extends RenderCanvas {
     }
   }
 
-  public boolean isGridEnabled() {
-    return showGrid;
+  public boolean isTileGridEnabled() {
+    return showTileGrid;
   }
 
-  public void setGridEnabled(boolean enable) {
-    if (enable != showGrid) {
-      showGrid = enable;
+  public void setTileGridEnabled(boolean enable) {
+    if (enable != showTileGrid) {
+      showTileGrid = enable;
+      hasChangedAppearance = true;
+      updateDisplay();
+    }
+  }
+
+  public boolean isCellGridEnabled() {
+    return showCellGrid;
+  }
+
+  public void setCellGridEnabled(boolean enable) {
+    if (enable != showCellGrid) {
+      showCellGrid = enable;
       hasChangedAppearance = true;
       updateDisplay();
     }
@@ -538,20 +551,11 @@ public class TilesetRenderer extends RenderCanvas {
   @Override
   protected void paintCanvas(Graphics g) {
     super.paintCanvas(g);
-    if (showGrid) {
-      double tileWidth = 64.0 * zoomFactor;
-      double tileHeight = 64.0 * zoomFactor;
-      double mapWidth = getMapWidth(true);
-      double mapHeight = getMapHeight(true);
-      g.setColor(Color.GRAY);
-      for (double curY = 0.0; curY < mapHeight; curY += tileHeight) {
-        for (double curX = 0.0; curX < mapWidth; curX += tileWidth) {
-          g.drawLine((int) Math.ceil(curX), (int) Math.ceil(curY + tileHeight), (int) Math.ceil(curX + tileWidth),
-              (int) Math.ceil(curY + tileHeight));
-          g.drawLine((int) Math.ceil(curX + tileWidth), (int) Math.ceil(curY), (int) Math.ceil(curX + tileWidth),
-              (int) Math.ceil(curY + tileHeight));
-        }
-      }
+    if (showCellGrid) {
+      drawGrid(g, 16.0, 12.0, Color.DARK_GRAY);
+    }
+    if (showTileGrid) {
+      drawGrid(g, 64.0, 64.0, Color.GRAY);
     }
   }
 
@@ -752,6 +756,31 @@ public class TilesetRenderer extends RenderCanvas {
       return !listTilesets.get(ovlIdx).listTiles.isEmpty();
     }
     return false;
+  }
+
+  // Draws a grid on the map with the specified parameters
+  private void drawGrid(Graphics g, double gridWidth, double gridHeight, Color color) {
+    if (g == null) {
+      System.err.println("TilesetRenderer.drawGrid: Graphics argument is null");
+      return;
+    }
+    if (color == null) {
+      System.err.println("TilesetRenderer.drawGrid: Color argument is null");
+      return;
+    }
+    final double gridWidthZoomed = gridWidth * zoomFactor;
+    final double gridHeightZoomed = gridHeight * zoomFactor;
+    final double mapWidth = getMapWidth(true);
+    final double mapHeight = getMapHeight(true);
+    g.setColor(color);
+    for (double curY = 0.0; curY < mapHeight; curY += gridHeightZoomed) {
+      for (double curX = 0.0; curX < mapWidth; curX += gridWidthZoomed) {
+        g.drawLine((int) Math.ceil(curX), (int) Math.ceil(curY + gridHeightZoomed), (int) Math.ceil(curX + gridWidthZoomed),
+            (int) Math.ceil(curY + gridHeightZoomed));
+        g.drawLine((int) Math.ceil(curX + gridWidthZoomed), (int) Math.ceil(curY), (int) Math.ceil(curX + gridWidthZoomed),
+            (int) Math.ceil(curY + gridHeightZoomed));
+      }
+    }
   }
 
   // draws all tiles of the map
