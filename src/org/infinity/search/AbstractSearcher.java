@@ -6,7 +6,7 @@ package org.infinity.search;
 
 import java.awt.Component;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
@@ -15,6 +15,7 @@ import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
+import org.infinity.util.Threading;
 
 /**
  * Utility class for performing searching of resources in several threads with ability to cancel search.
@@ -90,48 +91,50 @@ public abstract class AbstractSearcher {
       lastExt = entries.get(0).getExtension();
       updateProgressNote();
 
-      final ThreadPoolExecutor executor = Misc.createThreadPool();
       boolean isCancelled = false;
-      Debugging.timerReset();
-      int i = 0;
-      for (final ResourceEntry entry : entries) {
-        if (progress.isCanceled()) {
-          break;
+      try (final Threading threadPool = new Threading()) {
+        Debugging.timerReset();
+        int i = 0;
+        for (final ResourceEntry entry : entries) {
+          if (progress.isCanceled()) {
+            break;
+          }
+          if (entry == null) {
+            ++i;
+            advanceProgress(false);
+            continue;
+          }
+          if (i++ % 10 == 0) {
+            final String ext = entry.getExtension();
+            if (!lastExt.equalsIgnoreCase(ext)) {
+              lastExt = ext;
+              updateProgressNote();
+            }
+          }
+
+          threadPool.submit(newWorker(entry));
         }
-        if (entry == null) {
-          ++i;
-          advanceProgress(false);
-          continue;
+
+        // enforcing thread termination if process has been cancelled
+        if (isCancelled) {
+          threadPool.shutdownNow();
+        } else {
+          threadPool.shutdown();
         }
-        if (i++ % 10 == 0) {
-          final String ext = entry.getExtension();
-          if (!lastExt.equalsIgnoreCase(ext)) {
-            lastExt = ext;
-            updateProgressNote();
+
+        // waiting for pending threads to terminate
+        while (!threadPool.isTerminated()) {
+          if (!isCancelled && progress.isCanceled()) {
+            threadPool.shutdownNow();
+            isCancelled = true;
+          }
+          try {
+            threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException e) {
           }
         }
-
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(newWorker(entry));
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try {
-          Thread.sleep(1);
-        } catch (InterruptedException e) {
-        }
+      } catch (Exception e) {
+        // ignored
       }
 
       Debugging.timerShow(operation + " completed", Debugging.TimeFormat.MILLISECONDS);

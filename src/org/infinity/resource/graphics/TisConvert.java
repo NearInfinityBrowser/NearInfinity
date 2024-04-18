@@ -1242,13 +1242,13 @@ public class TisConvert {
 
     // compressing to DXT1
     final DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    final int numThreads = config.isMultithreaded() ? 0 : 1;
     final int pvrCode = 7;  // PVR code for DXT1
     final int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
     try {
       // compressing image data
       final byte[] output = new byte[DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType)];
-      DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType, numThreads);
+      DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType,
+          config.isMultithreaded());
       byte[] header = ConvertToPvrz.createPVRHeader(texture.getWidth(), texture.getHeight(), pvrCode);
       byte[] pvrz = new byte[header.length + output.length];
       System.arraycopy(header, 0, pvrz, 0, header.length);

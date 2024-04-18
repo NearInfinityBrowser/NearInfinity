@@ -31,10 +31,9 @@ package org.infinity.resource.graphics;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.infinity.util.Threading;
 import org.infinity.util.tuples.Couple;
 
 /**
@@ -94,7 +93,7 @@ public final class DxtEncoder {
    */
   static public void encodeImage(final int[] pixels, final int width, final int height, final byte[] output,
       final DxtType dxtType) throws Exception {
-    encodeImage(pixels, width, height, output, dxtType, 0);
+    encodeImage(pixels, width, height, output, dxtType, true);
   }
 
   /**
@@ -105,12 +104,11 @@ public final class DxtEncoder {
    * @param height     The height of the image (must be a multiple of 4).
    * @param output     The storage space for the compressed data.
    * @param dxtType    The compression type to use.
-   * @param numThreads Number of threads to use for encoding image data. Specify 0 to automatically determine the
-   *                     optimal number of threads.
+   * @param multithreaded Specify {@code true} to use multiple threads of execution to speed up encoding.
    * @throws Exception
    */
   static public void encodeImage(final int[] pixels, final int width, final int height, final byte[] output,
-      final DxtType dxtType, int numThreads) throws Exception {
+      final DxtType dxtType, boolean multithreaded) throws Exception {
     // consistency check
     if (dxtType == null)
       throw new Exception("No DXT type specified");
@@ -125,72 +123,62 @@ public final class DxtEncoder {
           calcImageSize(width, height, dxtType), (output == null) ? 0 : output.length));
 
     // preparing thread pool
-    final int threadCount;
-    if (numThreads <= 0) {
-      // don't hog *all* cpu power
-      threadCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
-    } else {
-      threadCount = Math.max(1, Math.min(255, numThreads));
-    }
+    final Threading.Priority priority = multithreaded ? Threading.Priority.HIGHEST : Threading.Priority.LOWEST;
+    try (final Threading threadPool = new Threading(priority)) {
+      final int bw = width / 4;
+      final int bh = height / 4;
+      final List<Future<Couple<List<byte[]>, Exception>>> futureList = new ArrayList<>(bh);
+      for (int y = 0; y < bh; y++) {
+        final List<int[]> rowBlocks = new ArrayList<>(bw);
 
-    final ExecutorService executor;
-    if (threadCount > 1) {
-      executor = Executors.newWorkStealingPool(threadCount);
-    } else {
-      executor = Executors.newSingleThreadExecutor();
-    }
-
-    final int bw = width / 4;
-    final int bh = height / 4;
-    final List<Future<Couple<List<byte[]>, Exception>>> futureList = new ArrayList<>(bh);
-    for (int y = 0; y < bh; y++) {
-      final List<int[]> rowBlocks = new ArrayList<>(bw);
-
-      for (int x = 0; x < bw; x++) {
-        // create 4x4 block of pixels for DXTn compression
-        final int[] inBlock = new int[16];
-        int ofs = (y * 4) * width + (x * 4);
-        for (int i = 0; i < 4; i++, ofs += width) {
-          System.arraycopy(pixels, ofs, inBlock, i * 4, 4);
+        for (int x = 0; x < bw; x++) {
+          // create 4x4 block of pixels for DXTn compression
+          final int[] inBlock = new int[16];
+          int ofs = (y * 4) * width + (x * 4);
+          for (int i = 0; i < 4; i++, ofs += width) {
+            System.arraycopy(pixels, ofs, inBlock, i * 4, 4);
+          }
+          rowBlocks.add(inBlock);
         }
-        rowBlocks.add(inBlock);
+
+        // encoding one row per task
+        final Future<Couple<List<byte[]>, Exception>> future = threadPool.submit(() -> {
+          try {
+            final List<byte[]> outList = new ArrayList<>(rowBlocks.size());
+            for (final int[] inBlock : rowBlocks) {
+              final byte[] outBlock = new byte[calcBlockSize(dxtType)];
+              // compress pixel block
+              encodeBlock(inBlock, outBlock, dxtType);
+              outList.add(outBlock);
+            }
+            return new Couple<>(outList, null);
+          } catch (Exception e) {
+            return new Couple<>(null, e);
+          }
+        });
+        futureList.add(future);
       }
 
-      // encoding one row per task
-      final Future<Couple<List<byte[]>, Exception>> future = executor.submit(() -> {
-        try {
-          final List<byte[]> outList = new ArrayList<>(rowBlocks.size());
-          for (final int[] inBlock : rowBlocks) {
-            final byte[] outBlock = new byte[calcBlockSize(dxtType)];
-            // compress pixel block
-            encodeBlock(inBlock, outBlock, dxtType);
-            outList.add(outBlock);
-          }
-          return new Couple<>(outList, null);
-        } catch (Exception e) {
-          return new Couple<>(null, e);
-        }
-      });
-      futureList.add(future);
-    }
+      threadPool.shutdown();
 
-    // assembling encoded blocks to output image
-    int outputOfs = 0; // points to the end of encoded data
-    for (final Future<Couple<List<byte[]>, Exception>> future : futureList) {
-      final Couple<List<byte[]>, Exception> item = future.get();
-      final List<byte[]> list = item.getValue0();
-      if (list != null) {
-        for (final byte[] outBlock : list) {
-          System.arraycopy(outBlock, 0, output, outputOfs, outBlock.length);
-          outputOfs += outBlock.length;
-        }
-      } else {
-        final Exception e = item.getValue1();
-        if (e != null) {
-          throw e;
+      // assembling encoded blocks to output image
+      int outputOfs = 0; // points to the end of encoded data
+      for (final Future<Couple<List<byte[]>, Exception>> future : futureList) {
+        final Couple<List<byte[]>, Exception> item = future.get();
+        final List<byte[]> list = item.getValue0();
+        if (list != null) {
+          for (final byte[] outBlock : list) {
+            System.arraycopy(outBlock, 0, output, outputOfs, outBlock.length);
+            outputOfs += outBlock.length;
+          }
         } else {
-          final int idx = outputOfs / calcBlockSize(dxtType);
-          throw new Exception("Could not encode block at index " + idx);
+          final Exception e = item.getValue1();
+          if (e != null) {
+            throw e;
+          } else {
+            final int idx = outputOfs / calcBlockSize(dxtType);
+            throw new Exception("Could not encode block at index " + idx);
+          }
         }
       }
     }

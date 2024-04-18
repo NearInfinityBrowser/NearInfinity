@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
@@ -406,40 +406,41 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
       // executing multithreaded search
       boolean isCancelled = false;
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
-          String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()), 0, selectedFiles.size());
-      progress.setMillisToDecideToPopup(0);
-      progress.setMillisToPopup(0);
-      progress.setProgress(0);
-      progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
-      Debugging.timerReset();
-      for (int i = 0, count = getResourceCount(); i < count; i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(selectedFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
+      try (final Threading threadPool = new Threading()) {
+        progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
+            String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()), 0, selectedFiles.size());
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(0);
+        progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
+        Debugging.timerReset();
+        for (int i = 0, count = getResourceCount(); i < count; i++) {
+          threadPool.submit(new Worker(selectedFiles.get(i)));
+          if (progress.isCanceled()) {
+            isCancelled = true;
+            break;
+          }
         }
-      }
 
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
+        // enforcing thread termination if process has been cancelled
+        if (isCancelled) {
+          threadPool.shutdownNow();
+        } else {
+          threadPool.shutdown();
+        }
 
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
+        // waiting for pending threads to terminate
+        while (!threadPool.isTerminated()) {
+          if (!isCancelled && progress.isCanceled()) {
+            isCancelled = true;
+            threadPool.shutdownNow();
+          }
+          try {
+            threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException e) {
+          }
         }
-        try {
-          Thread.sleep(1);
-        } catch (InterruptedException e) {
-        }
+      } catch (Exception e) {
       }
 
       if (isCancelled) {
@@ -729,14 +730,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         final ResourceEntry wedEntry = TisConvert.findWed(entry, true);
         final int tilesPerRow = TisConvert.calcTilesetWidth(wedEntry, false, tis.getDecoder().getTileCount());
         final int pvrzBaseIndex = TisConvert.calcPvrzBaseIndex(tisFile);
-        // Mass Exporter is already using multiple threads; no need to overload the cpu with even more threads
-        final boolean multithreaded = (selectedFiles.size() == 1);
         final TisConvert.OverlayConversion convert = (Profile.getEngine() == Profile.Engine.BG2)
             ? TisConvert.OverlayConversion.BG2_TO_BG2EE
             : TisConvert.OverlayConversion.NONE;
         final TisConvert.Config config = Config.createConfigPvrz(tisFile, tis.getDecoder(), wedEntry, tilesPerRow, -1,
             TisConvert.Config.MAX_TEXTURE_SIZE, pvrzBaseIndex, TisConvert.Config.DEFAULT_BORDER_SIZE,
-            TisConvert.Config.MAX_TEXTURE_SIZE / 2, true, multithreaded, convert);
+            TisConvert.Config.MAX_TEXTURE_SIZE / 2, true, true, convert);
         TisConvert.convertToPvrzTis(config, false, null);
       } else if (isTis && cbConvertTisVersion.isSelected() && isTisV2 && cbConvertTisList.getSelectedIndex() == 0) {
         TisResource tis = new TisResource(entry);
