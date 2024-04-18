@@ -43,21 +43,21 @@ public class PvrDecoder {
     if (entry == null) {
       throw new NullPointerException();
     }
-    try (InputStream is = entry.getResourceDataAsStream()) {
-      String key = null;
-      if (entry instanceof FileResourceEntry) {
-        key = ((FileResourceEntry) entry).getActualPath().toString();
-      } else {
-        key = entry.getResourceName();
-      }
-      PvrDecoder decoder = createPvrDecoder(key, is);
-      if (decoder != null) {
-        return decoder;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
+    final String key;
+    if (entry instanceof FileResourceEntry) {
+      key = ((FileResourceEntry) entry).getActualPath().toString();
+    } else {
+      key = entry.getResourceName();
     }
-    return null;
+    PvrDecoder decoder = getCachedPvrDecoder(key);
+    if (decoder == null) {
+      try (InputStream is = entry.getResourceDataAsStream()) {
+        decoder = createPvrDecoder(key, is);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return decoder;
   }
 
   /**
@@ -70,16 +70,16 @@ public class PvrDecoder {
     if (fileName == null) {
       throw new NullPointerException();
     }
-    try (InputStream is = StreamUtils.getInputStream(FileManager.resolve(fileName))) {
-      String key = fileName;
-      PvrDecoder decoder = createPvrDecoder(key, is);
-      if (decoder != null) {
-        return decoder;
+    final String key = fileName;
+    PvrDecoder decoder = getCachedPvrDecoder(key);
+    if (decoder == null) {
+      try (InputStream is = StreamUtils.getInputStream(FileManager.resolve(fileName))) {
+        decoder = createPvrDecoder(key, is);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
-    return null;
+    return decoder;
   }
 
   /**
@@ -89,16 +89,16 @@ public class PvrDecoder {
    * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
   public static PvrDecoder loadPvr(Path file) {
-    try (InputStream is = StreamUtils.getInputStream(file)) {
-      String key = file.getFileName().toString();
-      PvrDecoder decoder = createPvrDecoder(key, is);
-      if (decoder != null) {
-        return decoder;
+    final String key = file.getFileName().toString();
+    PvrDecoder decoder = getCachedPvrDecoder(key);
+    if (decoder == null) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        decoder = createPvrDecoder(key, is);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
-    return null;
+    return decoder;
   }
 
   /**
@@ -111,16 +111,16 @@ public class PvrDecoder {
     if (input == null) {
       throw new NullPointerException();
     }
-    try {
-      String key = Integer.valueOf(input.hashCode()).toString();
-      PvrDecoder decoder = createPvrDecoder(key, input);
-      if (decoder != null) {
-        return decoder;
+    final String key = Integer.valueOf(input.hashCode()).toString();
+    PvrDecoder decoder = getCachedPvrDecoder(key);
+    if (decoder == null) {
+      try {
+        decoder = createPvrDecoder(key, input);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
-    return null;
+    return decoder;
   }
 
   /** Returns the max. number of PvrDecoder objects to cache. */
@@ -155,6 +155,17 @@ public class PvrDecoder {
     } else {
       return 0;
     }
+  }
+
+  // Returns a cached PvrDecoder object if available, null otherwise.
+  private static synchronized PvrDecoder getCachedPvrDecoder(String key) {
+    final PvrDecoder retVal = PVR_CACHE.get(key);
+    if (retVal != null) {
+      // re-inserting entry to prevent premature removal from cache
+      PVR_CACHE.remove(key);
+      PVR_CACHE.put(key, retVal);
+    }
+    return retVal;
   }
 
   // Returns a PvrDecoder object of the specified key if available, or creates and returns a new one otherwise.
