@@ -1203,6 +1203,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
       spHelp = new JScrollPane(taHelp, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
           JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+      spHelp.setMinimumSize(spHelp.getPreferredSize());
 
       // TIS output file
       final String helpTisFile = "Path of the output TIS file.";
