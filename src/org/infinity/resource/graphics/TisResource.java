@@ -505,10 +505,10 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
     if (decoder.getType() == TisDecoder.Type.PVRZ) {
-      miExportPaletteTis = new JMenuItem("as palette-based TIS");
+      miExportPaletteTis = new JMenuItem("as palette-based TIS...");
       miExportPaletteTis.addActionListener(this);
     } else if (decoder.getType() == TisDecoder.Type.PALETTE) {
-      miExportPvrzTis = new JMenuItem("as PVRZ-based TIS");
+      miExportPvrzTis = new JMenuItem("as PVRZ-based TIS...");
       miExportPvrzTis.addActionListener(this);
     }
     miExportPNG = new JMenuItem("as PNG");
@@ -1206,7 +1206,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
       // TIS output file
       final String helpTisFile = "Path of the output TIS file.";
-      lTisFileLabel = new JLabel("TIS Output");
+      lTisFileLabel = new JLabel("TIS Output:");
       lTisFileLabel.addMouseMotionListener(listeners.mouseMotion);
       helpMap.put(lTisFileLabel, helpTisFile);
 
@@ -1432,7 +1432,8 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       buttonGroup.add(rbAuto);
 
       final String helpRadioManual = "Manual customization of tileset parameters. This is the only choice if no "
-          + "associated WED resource could be determined.";
+          + "associated WED resource could be determined. This mode does not prevent visual artifacts around secondary "
+          + "tiles.";
       rbManual = new JRadioButton("Manual");
       rbManual.setMnemonic(KeyEvent.VK_M);
       rbManual.addMouseMotionListener(listeners.mouseMotion);
