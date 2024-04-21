@@ -169,8 +169,6 @@ public class ScriptInfo {
     si.functionConcatMap.put(30, 0x0001); // SetGlobal
     si.functionConcatMap.put(109, 0x0001); // IncrementGlobal
     si.functionConcatMap.put(115, 0x0001); // SetGlobalTimer
-    si.functionConcatMap.put(141, 0x0001); // GivePartyGoldGlobal
-    si.functionConcatMap.put(165, 0x0001); // AddexperiencePartyGlobal
     si.functionConcatMap.put(243, 0x0011); // IncrementGlobalOnce
     si.functionConcatMap.put(0x40A5, 0x0101); // BitGlobal
     si.functionConcatMap.put(247, 0x0101); // BitGlobal
@@ -289,8 +287,6 @@ public class ScriptInfo {
     si.functionConcatMap.put(30, 0x0001); // SetGlobal
     si.functionConcatMap.put(109, 0x0001); // IncrementGlobal
     si.functionConcatMap.put(115, 0x0001); // SetGlobalTimer
-    si.functionConcatMap.put(141, 0x0001); // GivePartyGoldGlobal
-    si.functionConcatMap.put(165, 0x0001); // AddexperiencePartyGlobal
     si.functionConcatMap.put(227, 0x0001); // GlobalBAND
     si.functionConcatMap.put(228, 0x0001); // GlobalBOR
     si.functionConcatMap.put(229, 0x0001); // GlobalSHR
