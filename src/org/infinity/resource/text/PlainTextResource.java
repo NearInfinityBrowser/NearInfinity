@@ -626,6 +626,10 @@ public class PlainTextResource
         if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getLuaSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.LUA;
         }
+      } else if ("MENU".equalsIgnoreCase(entry.getExtension())) {
+        if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getMenuSyntaxHighlightingEnabled()) {
+          language = InfinityTextArea.Language.LUA;
+        }
       } else if ("INI".equalsIgnoreCase(entry.getExtension())) {
         if (!BrowserMenuBar.isInstantiated() || BrowserMenuBar.getInstance().getOptions().getIniSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.INI;

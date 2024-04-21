@@ -343,7 +343,11 @@ public class PreferencesDialog extends JDialog {
                       AppOption.LUA_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.LUA_SYNTAX_HIGHLIGHTING.getName(), AppOption.LUA_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for LUA resources.", AppOption.LUA_SYNTAX_HIGHLIGHTING)
-                  .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction)
+                  .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction),
+                  OptionCheckBox.create(AppOption.MENU_SYNTAX_HIGHLIGHTING.getName(), AppOption.MENU_SYNTAX_HIGHLIGHTING.getLabel(),
+                      "Enables syntax highlighting for MENU resources. Coloring of non-Lua script code won't be 100% accurate.",
+                      AppOption.MENU_SYNTAX_HIGHLIGHTING)
+                  .setOnCreated(this::menuSyntaxHighlightingOnCreated).setOnAction(this::menuSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("SQL",
                   OptionGroupBox.create(AppOption.SQL_COLOR_SCHEME.getName(), AppOption.SQL_COLOR_SCHEME.getLabel(),
@@ -1247,6 +1251,17 @@ public class PreferencesDialog extends JDialog {
 
   /** onAction() function for {@link AppOption#LUA_SYNTAX_HIGHLIGHTING}. */
   private boolean luaSyntaxHighlightingOnAction(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    return true;
+  }
+
+  /** onCreated() function for {@link AppOption#MENU_SYNTAX_HIGHLIGHTING}. */
+  private void menuSyntaxHighlightingOnCreated(OptionCheckBox cb) {
+    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+  }
+
+  /** onAction() function for {@link AppOption#MENU_SYNTAX_HIGHLIGHTING}. */
+  private boolean menuSyntaxHighlightingOnAction(OptionCheckBox cb) {
     setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
     return true;
   }

@@ -230,6 +230,9 @@ public class AppOption {
   /** Menu Options > Misc. Types: LuaSyntaxHighlighting (Boolean, Default: true) */
   public static final AppOption LUA_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_LUA_SYNTAXHIGHLIGHTING,
       "Enable LUA Syntax Highlighting", true);
+  /** Menu Options > Misc. Types: MenuSyntaxHighlighting (Boolean, Default: true) */
+  public static final AppOption MENU_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_MENU_SYNTAXHIGHLIGHTING,
+      "Enable MENU Syntax Highlighting", true);
   /** Menu Options > Misc. Types: SqlColorScheme (Integer, Default: 0) */
   public static final AppOption SQL_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_SQL_COLORSCHEME,
       "SQL Color Scheme", 0);

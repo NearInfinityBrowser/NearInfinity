@@ -192,6 +192,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_INI_SYNTAXHIGHLIGHTING    = "IniSyntaxHighlighting";
   public static final String OPTION_INI_COLORSCHEME           = "IniColorScheme";
   public static final String OPTION_LUA_SYNTAXHIGHLIGHTING    = "LuaSyntaxHighlighting";
+  public static final String OPTION_MENU_SYNTAXHIGHLIGHTING   = "MenuSyntaxHighlighting";
   public static final String OPTION_LUA_COLORSCHEME           = "LuaColorScheme";
   public static final String OPTION_SQL_SYNTAXHIGHLIGHTING    = "SqlSyntaxHighlighting";
   public static final String OPTION_SQL_COLORSCHEME           = "SqlColorScheme";
@@ -628,6 +629,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   /** Returns state of "Enable Syntax Highlighting for LUA" */
   public boolean getLuaSyntaxHighlightingEnabled() {
     return AppOption.LUA_SYNTAX_HIGHLIGHTING.getBoolValue();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for MENU" */
+  public boolean getMenuSyntaxHighlightingEnabled() {
+    return AppOption.MENU_SYNTAX_HIGHLIGHTING.getBoolValue();
   }
 
   /** Returns state of "Enable Syntax Highlighting for SQL" */
