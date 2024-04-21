@@ -237,7 +237,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       fc.setDialogTitle("Choose target directory");
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       if (!tfTargetDir.getText().isEmpty()) {
-        fc.setSelectedFile(FileManager.resolve(tfTargetDir.getText()).toFile());
+        fc.setCurrentDirectory(FileManager.resolve(tfTargetDir.getText()).toFile());
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {

@@ -23,6 +23,7 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -924,6 +925,11 @@ public class ConvertToMos extends ChildFrame
       fc.addChoosableFileFilter(filter);
     }
     fc.setFileFilter(filters[0]);
+    if (Files.isRegularFile(path)) {
+      fc.setSelectedFile(path.toFile());
+    } else {
+      fc.setCurrentDirectory(path.getParent().toFile());
+    }
     int ret = fc.showOpenDialog(this);
     if (ret == JFileChooser.APPROVE_OPTION) {
       return fc.getSelectedFile().toString();

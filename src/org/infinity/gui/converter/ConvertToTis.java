@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -613,7 +614,13 @@ public class ConvertToTis extends ChildFrame
       }
       fc.setFileFilter(filters[0]);
       if (!tfInput.getText().isEmpty()) {
-        fc.setSelectedFile(FileManager.resolve(tfInput.getText()).toFile());
+        final File file = FileManager.resolve(tfInput.getText()).toFile();
+        if (file.isFile()) {
+          fc.setCurrentDirectory(file.getParentFile());
+          fc.setSelectedFile(file);
+        } else {
+          fc.setCurrentDirectory(file.getParentFile());
+        }
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
@@ -641,6 +648,7 @@ public class ConvertToTis extends ChildFrame
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
+      fc.setCurrentDirectory(FileManager.resolve(fileName).toFile());
       fc.setSelectedFile(FileManager.resolve(fileName).toFile());
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
