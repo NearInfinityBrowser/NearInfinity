@@ -7,9 +7,12 @@ package org.infinity.util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.ScriptInfo;
 import org.infinity.resource.key.ResourceEntry;
@@ -17,6 +20,11 @@ import org.infinity.resource.key.ResourceEntry;
 public class IdsMapCache {
   /** Maps upper-cased name of IDS resource to parsed resource. */
   private static final Map<String, IdsMap> CACHE = new HashMap<>();
+
+  /** List of IDS resource names that are known to be malformed. */
+  private static final Set<String> BLACKLIST = new HashSet<>();
+
+  private static boolean blackListInitialized = false;
 
   public static void remove(ResourceEntry entry) {
     if (entry != null) {
@@ -26,10 +34,16 @@ public class IdsMapCache {
 
   public static void clearCache() {
     CACHE.clear();
+    blackListInitialized = false;
   }
 
   public static synchronized IdsMap get(String name) {
     IdsMap retVal = null;
+
+    if (isBlackListed(name)) {
+      return retVal;
+    }
+
     if (name != null) {
       name = name.trim().toUpperCase(Locale.ENGLISH);
       retVal = CACHE.get(name);
@@ -43,8 +57,12 @@ public class IdsMapCache {
           }
         }
         if (entry != null) {
-          retVal = new IdsMap(entry);
-          CACHE.put(name, retVal);
+          try {
+            retVal = new IdsMap(entry);
+            CACHE.put(name, retVal);
+          } catch (Exception e) {
+            System.err.println(e.getMessage());
+          }
         }
       }
     }
@@ -245,5 +263,39 @@ public class IdsMapCache {
     String retVal = name.replace("_", " ").toLowerCase(Locale.ENGLISH);
     retVal = Character.toUpperCase(retVal.charAt(0)) + retVal.substring(1);
     return retVal;
+  }
+
+  /** Returns {@code true} if the specified IDS resref is blacklisted. */
+  private static boolean isBlackListed(String name) {
+    updateBlackList(false);
+    boolean retVal = true;
+    if (name != null) {
+      final String entry = name.trim().toUpperCase(Locale.ROOT);
+      retVal = BLACKLIST.contains(entry);
+    }
+    return retVal;
+  }
+
+  /** Creates a blacklist of IDS resource names which are known to be malformed. */
+  private static void updateBlackList(boolean forced) {
+    if (forced || !blackListInitialized) {
+      synchronized (BLACKLIST) {
+        BLACKLIST.clear();
+        switch (Profile.getGame()) {
+          case PSTEE:
+            BLACKLIST.add("COLOR.IDS");
+            break;
+          case IWD:
+          case IWDHoW:
+          case IWDHowTotLM:
+          case IWD2:
+          case IWD2EE:
+            BLACKLIST.add("PREFAB.IDS");
+            break;
+          default:
+        }
+        blackListInitialized = true;
+      }
+    }
   }
 }
