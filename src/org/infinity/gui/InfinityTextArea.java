@@ -40,6 +40,7 @@ import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
 import org.infinity.resource.text.modes.INITokenMaker;
+import org.infinity.resource.text.modes.MenuTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 import org.infinity.util.Misc;
@@ -64,6 +65,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     INI(INITokenMaker.SYNTAX_STYLE_INI),
     /** Select LUA highlighting. */
     LUA(SyntaxConstants.SYNTAX_STYLE_LUA),
+    /** Select MENU highlighting. */
+    MENU(MenuTokenMaker.SYNTAX_STYLE_MENU),
     /** Select SQL highlighting. */
     SQL(SyntaxConstants.SYNTAX_STYLE_SQL),
     /** Select WeiDU.log highlighting. */
@@ -165,6 +168,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         GLSLTokenMaker.class.getCanonicalName());
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(INITokenMaker.SYNTAX_STYLE_INI,
         INITokenMaker.class.getCanonicalName());
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(MenuTokenMaker.SYNTAX_STYLE_MENU,
+        MenuTokenMaker.class.getCanonicalName());
   }
 
   private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
@@ -367,6 +372,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
           case LUA:
             if (BrowserMenuBar.isInstantiated()) {
               schemePath = BrowserMenuBar.getInstance().getOptions().getLuaColorScheme();
+            }
+            break;
+          case MENU:
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptions().getMenuColorScheme();
             }
             break;
           case SQL:

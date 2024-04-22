@@ -192,8 +192,9 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_INI_SYNTAXHIGHLIGHTING    = "IniSyntaxHighlighting";
   public static final String OPTION_INI_COLORSCHEME           = "IniColorScheme";
   public static final String OPTION_LUA_SYNTAXHIGHLIGHTING    = "LuaSyntaxHighlighting";
-  public static final String OPTION_MENU_SYNTAXHIGHLIGHTING   = "MenuSyntaxHighlighting";
   public static final String OPTION_LUA_COLORSCHEME           = "LuaColorScheme";
+  public static final String OPTION_MENU_SYNTAXHIGHLIGHTING   = "MenuSyntaxHighlighting";
+  public static final String OPTION_MENU_COLORSCHEME          = "MenuColorScheme";
   public static final String OPTION_SQL_SYNTAXHIGHLIGHTING    = "SqlSyntaxHighlighting";
   public static final String OPTION_SQL_COLORSCHEME           = "SqlColorScheme";
   public static final String OPTION_TLK_SYNTAXHIGHLIGHTING    = "TlkSyntaxHighlighting";
@@ -683,6 +684,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
 
   public String getLuaColorScheme() {
     int idx = AppOption.LUA_COLOR_SCHEME.getIntValue();
+    return COLOR_SCHEME.get(idx).getPath();
+  }
+
+  public String getMenuColorScheme() {
+    int idx = AppOption.MENU_COLOR_SCHEME.getIntValue();
     return COLOR_SCHEME.get(idx).getPath();
   }
 

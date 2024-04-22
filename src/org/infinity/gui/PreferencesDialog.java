@@ -343,10 +343,22 @@ public class PreferencesDialog extends JDialog {
                       AppOption.LUA_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.LUA_SYNTAX_HIGHLIGHTING.getName(), AppOption.LUA_SYNTAX_HIGHLIGHTING.getLabel(),
                       "Enables syntax highlighting for LUA resources.", AppOption.LUA_SYNTAX_HIGHLIGHTING)
-                  .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction),
+                  .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction)
+              ),
+              OptionGroup.create("MENU",
+                  OptionGroupBox.create(AppOption.MENU_COLOR_SCHEME.getName(), AppOption.MENU_COLOR_SCHEME.getLabel(),
+                      "Select a color scheme for MENU resources.<p>"
+                          + "<strong>Default:</strong> A general-purpose default color scheme.<br/>"
+                          + "<strong>Dark:</strong> A dark scheme based off of Notepad++'s Obsidian theme.<br/>"
+                          + "<strong>Druid:</strong> A dark green color scheme.<br/>"
+                          + "<strong>Eclipse:</strong> Mimics the default color scheme of the Eclipse IDE.<br/>"
+                          + "<strong>IntelliJ IDEA:</strong> Mimics the default color scheme of IntelliJ IDEA.<br/>"
+                          + "<strong>Monokai:</strong> A dark color scheme inspired by \"Monokai\".<br/>"
+                          + "<strong>Visual Studio:</strong> Mimics the default color scheme of Microsoft Visual Studio.</p>",
+                      0, OptionsMenuItem.getColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
+                      AppOption.MENU_COLOR_SCHEME),
                   OptionCheckBox.create(AppOption.MENU_SYNTAX_HIGHLIGHTING.getName(), AppOption.MENU_SYNTAX_HIGHLIGHTING.getLabel(),
-                      "Enables syntax highlighting for MENU resources. Coloring of non-Lua script code won't be 100% accurate.",
-                      AppOption.MENU_SYNTAX_HIGHLIGHTING)
+                      "Enables syntax highlighting for MENU resources.", AppOption.MENU_SYNTAX_HIGHLIGHTING)
                   .setOnCreated(this::menuSyntaxHighlightingOnCreated).setOnAction(this::menuSyntaxHighlightingOnAction)
               ),
               OptionGroup.create("SQL",
@@ -1257,12 +1269,12 @@ public class PreferencesDialog extends JDialog {
 
   /** onCreated() function for {@link AppOption#MENU_SYNTAX_HIGHLIGHTING}. */
   private void menuSyntaxHighlightingOnCreated(OptionCheckBox cb) {
-    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    setOptionUiEnabled(AppOption.MENU_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
   }
 
   /** onAction() function for {@link AppOption#MENU_SYNTAX_HIGHLIGHTING}. */
   private boolean menuSyntaxHighlightingOnAction(OptionCheckBox cb) {
-    setOptionUiEnabled(AppOption.LUA_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
+    setOptionUiEnabled(AppOption.MENU_COLOR_SCHEME.getName(), cb.getUiCheckBox().isSelected());
     return true;
   }
 

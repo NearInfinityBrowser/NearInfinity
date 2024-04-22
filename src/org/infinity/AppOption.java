@@ -230,6 +230,9 @@ public class AppOption {
   /** Menu Options > Misc. Types: LuaSyntaxHighlighting (Boolean, Default: true) */
   public static final AppOption LUA_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_LUA_SYNTAXHIGHLIGHTING,
       "Enable LUA Syntax Highlighting", true);
+  /** Menu Options > Misc. Types: MenuColorScheme (Integer, Default: 0) */
+  public static final AppOption MENU_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_MENU_COLORSCHEME,
+      "MENU Color Scheme", 0);
   /** Menu Options > Misc. Types: MenuSyntaxHighlighting (Boolean, Default: true) */
   public static final AppOption MENU_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_MENU_SYNTAXHIGHLIGHTING,
       "Enable MENU Syntax Highlighting", true);
