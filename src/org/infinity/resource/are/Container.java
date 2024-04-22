@@ -5,6 +5,10 @@
 package org.infinity.resource.are;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 
@@ -21,8 +25,12 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
+import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 public final class Container extends AbstractStruct
@@ -56,7 +64,7 @@ public final class Container extends AbstractStruct
   public static final String ARE_CONTAINER_BREAK_DIFFICULTY           = "Break difficulty";
   public static final String ARE_CONTAINER_LOCKPICK_STRING            = "Lockpick string";
 
-  public static final String[] TYPE_ARRAY = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf", "Altar",
+  public static final String[] TYPE_ARRAY = { "Default", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf", "Altar",
       "Non-visible", "Spellbook", "Body", "Barrel", "Crate" };
 
   public static final String[] FLAG_ARRAY = { "No flags set", "Locked", "Disable if no owner", "Magical lock",
@@ -178,7 +186,7 @@ public final class Container extends AbstractStruct
     addField(new TextString(buffer, offset, 32, ARE_CONTAINER_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_CONTAINER_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_CONTAINER_LOCATION_Y));
-    addField(new Bitmap(buffer, offset + 36, 2, ARE_CONTAINER_TYPE, TYPE_ARRAY));
+    addField(new Bitmap(buffer, offset + 36, 2, ARE_CONTAINER_TYPE, getContainerTypes()));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_CONTAINER_LOCK_DIFFICULTY));
     addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, FLAG_ARRAY));
     addField(new DecNumber(buffer, offset + 44, 2, ARE_CONTAINER_TRAP_DETECTION_DIFFICULTY));
@@ -203,5 +211,32 @@ public final class Container extends AbstractStruct
     addField(new StringRef(buffer, offset + 132, ARE_CONTAINER_LOCKPICK_STRING));
     addField(new Unknown(buffer, offset + 136, 56));
     return offset + 192;
+  }
+
+  /** Generates a string array of available container types dynamically. */
+  private static String[] getContainerTypes() {
+    String[] retVal = TYPE_ARRAY;
+    final String container_file = "containr.2da";
+    if (Profile.isEnhancedEdition() && ResourceFactory.resourceExists(container_file)) {
+      final List<String> types = new ArrayList<>();
+      final Table2da table = Table2daCache.get(container_file);
+      if (table != null) {
+        for (int row = 0, count = table.getRowCount(); row < count; row++) {
+          final String name = table.get(row, 0);
+          if (name != null && !name.equals(table.getDefaultValue())) {
+            final String nameNormalized = Arrays.stream(name.replace('_', ' ').split("\\s+"))
+                .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
+            types.add(nameNormalized);
+          } else {
+            types.add(TYPE_ARRAY[0]);
+          }
+        }
+      }
+      if (!table.isEmpty()) {
+        retVal = types.toArray(new String[0]);
+      }
+    }
+    return retVal;
   }
 }
