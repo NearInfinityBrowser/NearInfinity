@@ -41,6 +41,11 @@ public final class Animation extends AbstractStruct implements AddRemovable {
       "Draw as background", "Play all frames", "Recolored by palette", "Mirror Y axis", "Don't remove in combat",
       "EE: Use WBM", "EE: Draw stenciled", "EE: Use PVRZ" };
 
+  public static final String[] FLAGS_PSTEE_ARRAY = { "Not shown", "Is shown", "Blended", "Not light source",
+      "Partial animation", "Synchronized draw", "Random start", "Not covered by wall", "Disable on slow machines",
+      "Alt. blending mode", "Play all frames", "Recolored by palette", "Mirror Y axis", "Don't remove in combat",
+      "unused", "unused", "Use PVRZ (non-functional)", "Cover animations" };
+
   Animation() throws Exception {
     super(null, ARE_ANIMATION, StreamUtils.getByteBuffer(76), 0);
   }
@@ -71,7 +76,11 @@ public final class Animation extends AbstractStruct implements AddRemovable {
     }
     addField(new DecNumber(buffer, offset + 48, 2, ARE_ANIMATION_ANIMATION_INDEX));
     addField(new DecNumber(buffer, offset + 50, 2, ARE_ANIMATION_FRAME_INDEX));
-    addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, FLAGS_ARRAY));
+    if ((Profile.getGame() == Profile.Game.PSTEE)) {
+      addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, FLAGS_PSTEE_ARRAY));
+    } else {
+      addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, FLAGS_ARRAY));
+    }
     addField(new DecNumber(buffer, offset + 56, 2, ARE_ANIMATION_LOCATION_Z));
     addField(new DecNumber(buffer, offset + 58, 2, ARE_ANIMATION_TRANSLUCENCY));
     addField(new DecNumber(buffer, offset + 60, 2, ARE_ANIMATION_START_RANGE));

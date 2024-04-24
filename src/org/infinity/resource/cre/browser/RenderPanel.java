@@ -36,7 +36,6 @@ import org.infinity.util.tuples.Couple;
  * This panel handles drawing background and creature animations.
  */
 public class RenderPanel extends JPanel {
-  private static final Color COLOR_TRANSPARENT = new Color(0, true);
   private static final float POS_REL_X = 0.5f;
   private static final float POS_REL_Y = 2.0f / 3.0f;
 
@@ -219,7 +218,7 @@ public class RenderPanel extends JPanel {
         Graphics2D g = (Graphics2D) frame.getGraphics();
         try {
           g.setComposite(AlphaComposite.Src);
-          g.setColor(background != null ? background : COLOR_TRANSPARENT);
+          g.setColor(background != null ? background : ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, frame.getWidth(null), frame.getHeight(null));
         } finally {
           g.dispose();

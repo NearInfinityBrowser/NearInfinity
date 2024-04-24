@@ -29,6 +29,13 @@
 
 package org.infinity.resource.graphics;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
+
+import org.infinity.util.Threading;
+import org.infinity.util.tuples.Couple;
+
 /**
  * Encodes pixel data into the DXT1/DXT3/DXT5 format.
  */
@@ -41,7 +48,7 @@ public final class DxtEncoder {
   }
 
   /**
-   * Encodes an image into a series of DXTn code blocks.
+   * Encodes an image into a series of DXTn code blocks. Multithreading is used to speed up the encoding process.
    *
    * @param pixels  The pixel data as array of integers in ARGB format.
    * @param width   The width of the image (must be a multiple of 4).
@@ -75,17 +82,33 @@ public final class DxtEncoder {
   }
 
   /**
-   * Encodes an image into a series of DXTn code blocks.
+   * Encodes an image into a series of DXTn code blocks. Multithreading is used to speed up the encoding process.
    *
-   * @param pixels  The pixel data as array of integers in ARGB format.
-   * @param width   The width of the image (must be a multiple of 4).
-   * @param height  The height of the image (must be a multiple of 4).
-   * @param output  The storage space for the compressed data.
-   * @param dxtType The compression type to use.
+   * @param pixels   The pixel data as array of integers in ARGB format.
+   * @param width    The width of the image (must be a multiple of 4).
+   * @param height   The height of the image (must be a multiple of 4).
+   * @param output   The storage space for the compressed data.
+   * @param dxtType  The compression type to use.
    * @throws Exception
    */
   static public void encodeImage(final int[] pixels, final int width, final int height, final byte[] output,
       final DxtType dxtType) throws Exception {
+    encodeImage(pixels, width, height, output, dxtType, true);
+  }
+
+  /**
+   * Encodes an image into a series of DXTn code blocks.
+   *
+   * @param pixels     The pixel data as array of integers in ARGB format.
+   * @param width      The width of the image (must be a multiple of 4).
+   * @param height     The height of the image (must be a multiple of 4).
+   * @param output     The storage space for the compressed data.
+   * @param dxtType    The compression type to use.
+   * @param multithreaded Specify {@code true} to use multiple threads of execution to speed up encoding.
+   * @throws Exception
+   */
+  static public void encodeImage(final int[] pixels, final int width, final int height, final byte[] output,
+      final DxtType dxtType, boolean multithreaded) throws Exception {
     // consistency check
     if (dxtType == null)
       throw new Exception("No DXT type specified");
@@ -99,23 +122,64 @@ public final class DxtEncoder {
       throw new Exception(String.format("Insufficient space in output array. Needed: %d bytes, available: %d bytes",
           calcImageSize(width, height, dxtType), (output == null) ? 0 : output.length));
 
-    int outputOfs = 0; // points to the end of encoded data
-    final int bw = width / 4;
-    final int bh = height / 4;
-    final int[] inBlock = new int[16];
-    final byte[] outBlock = new byte[calcBlockSize(dxtType)];
-    for (int y = 0; y < bh; y++) {
-      for (int x = 0; x < bw; x++) {
-        // create 4x4 block of pixels for DXTn compression
-        int ofs = (y * 4) * width + (x * 4);
-        for (int i = 0; i < 4; i++, ofs += width) {
-          System.arraycopy(pixels, ofs, inBlock, i * 4, 4);
+    // preparing thread pool
+    final Threading.Priority priority = multithreaded ? Threading.Priority.HIGHEST : Threading.Priority.LOWEST;
+    try (final Threading threadPool = new Threading(priority)) {
+      final int bw = width / 4;
+      final int bh = height / 4;
+      final List<Future<Couple<List<byte[]>, Exception>>> futureList = new ArrayList<>(bh);
+      for (int y = 0; y < bh; y++) {
+        final List<int[]> rowBlocks = new ArrayList<>(bw);
+
+        for (int x = 0; x < bw; x++) {
+          // create 4x4 block of pixels for DXTn compression
+          final int[] inBlock = new int[16];
+          int ofs = (y * 4) * width + (x * 4);
+          for (int i = 0; i < 4; i++, ofs += width) {
+            System.arraycopy(pixels, ofs, inBlock, i * 4, 4);
+          }
+          rowBlocks.add(inBlock);
         }
 
-        // compress pixel block
-        encodeBlock(inBlock, outBlock, dxtType);
-        System.arraycopy(outBlock, 0, output, outputOfs, outBlock.length);
-        outputOfs += outBlock.length;
+        // encoding one row per task
+        final Future<Couple<List<byte[]>, Exception>> future = threadPool.submit(() -> {
+          try {
+            final List<byte[]> outList = new ArrayList<>(rowBlocks.size());
+            for (final int[] inBlock : rowBlocks) {
+              final byte[] outBlock = new byte[calcBlockSize(dxtType)];
+              // compress pixel block
+              encodeBlock(inBlock, outBlock, dxtType);
+              outList.add(outBlock);
+            }
+            return new Couple<>(outList, null);
+          } catch (Exception e) {
+            return new Couple<>(null, e);
+          }
+        });
+        futureList.add(future);
+      }
+
+      threadPool.shutdown();
+
+      // assembling encoded blocks to output image
+      int outputOfs = 0; // points to the end of encoded data
+      for (final Future<Couple<List<byte[]>, Exception>> future : futureList) {
+        final Couple<List<byte[]>, Exception> item = future.get();
+        final List<byte[]> list = item.getValue0();
+        if (list != null) {
+          for (final byte[] outBlock : list) {
+            System.arraycopy(outBlock, 0, output, outputOfs, outBlock.length);
+            outputOfs += outBlock.length;
+          }
+        } else {
+          final Exception e = item.getValue1();
+          if (e != null) {
+            throw e;
+          } else {
+            final int idx = outputOfs / calcBlockSize(dxtType);
+            throw new Exception("Could not encode block at index " + idx);
+          }
+        }
       }
     }
   }

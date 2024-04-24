@@ -45,12 +45,14 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.StringTable;
@@ -783,7 +785,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
     /** Helper method for creating a ScriptTextArea component. */
     private ScriptTextArea createScriptTextArea(boolean readOnly) {
-      ScriptTextArea ta = new ScriptTextArea();
+      ScriptTextArea ta = new ScriptTextArea(InfinityTextArea.Language.DLG,
+          BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getDlgSyntaxHighlightingEnabled());
       if (readOnly) {
         ta.setBackground(COLOR_BACKGROUND);
         ta.setHighlightCurrentLine(false);

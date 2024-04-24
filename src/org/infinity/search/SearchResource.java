@@ -28,7 +28,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.Vector;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
@@ -97,6 +96,7 @@ import org.infinity.util.Debugging;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.Threading;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 
@@ -228,18 +228,20 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           SearchOptions so = panel.getOptions();
 
           // using parallel jobs to speed up search
-          ThreadPoolExecutor executor = Misc.createThreadPool();
-          for (ResourceEntry element : resources) {
-            Misc.isQueueReady(executor, true, -1);
-            executor.execute(new SearchWorker(found, so, element));
-          }
+          try (final Threading threadPool = new Threading()) {
+            for (ResourceEntry element : resources) {
+              threadPool.submit(new SearchWorker(found, so, element));
+            }
 
-          // waiting for threads to finish
-          executor.shutdown();
-          try {
-            executor.awaitTermination(60, TimeUnit.SECONDS);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
+            // waiting for threads to finish
+            threadPool.shutdown();
+            try {
+              threadPool.awaitTermination(60, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+          } catch (Exception e) {
+            // ignored
           }
 
           // preparing results for output

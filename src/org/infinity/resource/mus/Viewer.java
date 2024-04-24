@@ -160,15 +160,15 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       bPlay.setEnabled(false);
       list.setEnabled(false);
       StringTokenizer tokenizer = new StringTokenizer(mus.getText(), "\r\n");
-      String dir = tokenizer.nextToken().trim();
+      String dir = getNextToken(tokenizer, true);
       listModel.clear();
       entryList.clear();
-      int count = Integer.valueOf(tokenizer.nextToken().trim());
+      int count = Integer.valueOf(getNextToken(tokenizer, true));
       for (int i = 0; i < count; i++) {
         if (isClosed()) {
           return false;
         }
-        Entry entry = new Entry(mus.getResourceEntry(), dir, entryList, tokenizer.nextToken().trim(), i);
+        Entry entry = new Entry(mus.getResourceEntry(), dir, entryList, getNextToken(tokenizer, true), i);
         entryList.add(entry);
         listModel.addElement(entry);
       }
@@ -194,6 +194,24 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Returns the next valid token from the given {@code StringTokenizer}.
+   *
+   * @param tokenizer {@link StringTokenizer} containing string tokens.
+   * @param ignoreComments Whether comments should be skipped.
+   * @return The next string token if available, an empty string otherwise.
+   */
+  private String getNextToken(StringTokenizer tokenizer, boolean ignoreComments) {
+    String retVal = "";
+    while (tokenizer != null && tokenizer.hasMoreTokens()) {
+      retVal = tokenizer.nextToken().trim();
+      if (!ignoreComments || !retVal.startsWith("#")) {
+        break;
+      }
+    }
+    return retVal;
   }
 
   private void initGUI() {

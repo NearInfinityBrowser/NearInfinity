@@ -668,7 +668,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   private final class TreePopupMenu extends JPopupMenu implements ActionListener, PopupMenuListener {
     private final JMenuItem miOpen = new JMenuItem("Open");
-    private final JMenuItem miOpennew = new JMenuItem("Open in new window");
+    private final JMenuItem miOpenNew = new JMenuItem("Open in new window");
+    private final JMenuItem miOpenBiffedNew = new JMenuItem("Open biffed resource in new window");
     private final JMenuItem miReference = new JMenuItem("Find references");
     private final JMenuItem miExport = new JMenuItem("Export");
     private final JMenuItem miAddCopy = new JMenuItem("Add copy of");
@@ -681,8 +682,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       miReference.setEnabled(false);
       miZip.setToolTipText("Create a zip archive out of the selected saved game.");
       Font fnt = miOpen.getFont().deriveFont(Font.PLAIN);
-      for (JMenuItem mi : new JMenuItem[] { miOpen, miOpennew, miReference, miExport, miZip, miAddCopy, miRename,
-          miDelete, miRestore }) {
+      for (JMenuItem mi : new JMenuItem[] { miOpen, miOpenNew, miOpenBiffedNew, miReference, miExport,
+          miZip, miAddCopy, miRename, miDelete, miRestore }) {
         add(mi);
         mi.addActionListener(this);
         mi.setFont(fnt);
@@ -701,7 +702,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     @Override
     public void actionPerformed(ActionEvent event) {
       showResource = true;
-      ResourceEntry node = getResourceEntry();
+      final ResourceEntry node = getResourceEntry();
       if (event.getSource() == miOpen && node != null) {
         if (prevNextNode != null) {
           prevStack.push(prevNextNode);
@@ -712,10 +713,23 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         prevNextNode = node;
         shownResource = node;
         NearInfinity.getInstance().setViewable(ResourceFactory.getResource(node));
-      } else if (event.getSource() == miOpennew && node != null) {
+      } else if (event.getSource() == miOpenNew && node != null) {
         Resource res = ResourceFactory.getResource(node);
         if (res != null) {
           new ViewFrame(NearInfinity.getInstance(), res);
+        }
+      } else if (event.getSource() == miOpenBiffedNew && node != null) {
+        try {
+          final BIFFResourceEntry biffedNode =
+              new BIFFResourceEntry(ResourceFactory.getKeyfile().getResourceEntry(node.getResourceName()), false);
+          final Resource res = ResourceFactory.getResource(biffedNode);
+          if (res != null) {
+            new ViewFrame(NearInfinity.getInstance(), res);
+          }
+        } catch (NullPointerException e) {
+          System.err.println("Does not exist in BIFF: " + node);
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+              "Does not exist in BIFF: " + node, "Error", JOptionPane.ERROR_MESSAGE);
         }
       } else if (event.getSource() == miReference && node != null) {
         Resource res = ResourceFactory.getResource(node);
@@ -764,7 +778,14 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
     @Override
     public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
-      ResourceEntry entry = getResourceEntry();
+      final ResourceEntry entry = getResourceEntry();
+
+      boolean biffEnable =
+          (!BrowserMenuBar.getInstance().getOptions().ignoreOverrides() ||
+              BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) &&
+          entry.hasOverride();
+      miOpenBiffedNew.setEnabled(biffEnable);
+
       Class<? extends Resource> cls = ResourceFactory.getResourceType(entry);
       miReference.setEnabled(cls != null && Referenceable.class.isAssignableFrom(cls));
       miRename.setEnabled(entry instanceof FileResourceEntry);

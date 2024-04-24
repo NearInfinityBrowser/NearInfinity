@@ -33,8 +33,6 @@ import org.infinity.resource.graphics.ColorConvert;
  */
 public class AnimatedLayerItem extends AbstractLayerItem
     implements LayerItemListener, ActionListener, PropertyChangeListener {
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
-
   private final FrameInfo[] frameInfos = { new FrameInfo(), new FrameInfo() };
 
   private BasicAnimationProvider animation;
@@ -484,8 +482,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
     Graphics2D g2 = (Graphics2D) rcCanvas.getImage().getGraphics();
     try {
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-      g2.setColor(TRANSPARENT_COLOR);
+      g2.setComposite(AlphaComposite.Src);
+      g2.setColor(ColorConvert.TRANSPARENT_COLOR);
       g2.fillRect(0, 0, rcCanvas.getImage().getWidth(null), rcCanvas.getImage().getHeight(null));
 
       // drawing animation graphics

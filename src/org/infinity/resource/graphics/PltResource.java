@@ -211,7 +211,7 @@ public class PltResource
     miExport.addActionListener(this);
     miExportPNG = new JMenuItem("as PNG");
     miExportPNG.addActionListener(this);
-    bpmExport.setMenuItems(new JMenuItem[] { miExport, miExportPNG }, false);
+    bpmExport.setMenuItems(new JMenuItem[] { miExportPNG, miExport }, false);
 
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);

@@ -27,6 +27,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
@@ -127,7 +128,8 @@ public class AreaViewer extends ChildFrame {
   private static final String LABEL_DRAW_CLOSED = "Draw closed";
   private static final String LABEL_DRAW_OVERLAYS = "Enable overlays";
   private static final String LABEL_ANIMATE_OVERLAYS = "Animate overlays";
-  private static final String LABEL_DRAW_GRID = "Show grid";
+  private static final String LABEL_DRAW_TILE_GRID = "Show tile grid";
+  private static final String LABEL_DRAW_CELL_GRID = "Show cell grid";
 
   private final Listeners listeners;
   private final Map map;
@@ -160,7 +162,8 @@ public class AreaViewer extends ChildFrame {
   private JCheckBox cbDrawClosed;
   private JCheckBox cbDrawOverlays;
   private JCheckBox cbAnimateOverlays;
-  private JCheckBox cbDrawGrid;
+  private JCheckBox cbDrawTileGrid;
+  private JCheckBox cbDrawCellGrid;
   private JCheckBox cbEnableSchedules;
   private JComboBox<String> cbZoomLevel;
   private JCheckBox cbLayerAmbientRange;
@@ -345,8 +348,11 @@ public class AreaViewer extends ChildFrame {
     cbDrawClosed.setToolTipText("Draw opened or closed states of doors");
     cbDrawClosed.addActionListener(getListeners());
 
-    cbDrawGrid = new JCheckBox(LABEL_DRAW_GRID);
-    cbDrawGrid.addActionListener(getListeners());
+    cbDrawTileGrid = new JCheckBox(LABEL_DRAW_TILE_GRID);
+    cbDrawTileGrid.addActionListener(getListeners());
+
+    cbDrawCellGrid = new JCheckBox(LABEL_DRAW_CELL_GRID);
+    cbDrawCellGrid.addActionListener(getListeners());
 
     cbDrawOverlays = new JCheckBox(LABEL_DRAW_OVERLAYS);
     cbDrawOverlays.setToolTipText("<html>Shows overlay tilesets.<br>"
@@ -376,7 +382,8 @@ public class AreaViewer extends ChildFrame {
     t.add(new DefaultMutableTreeNode(bpwDayTime));
     t.add(new DefaultMutableTreeNode(cbEnableSchedules));
     t.add(new DefaultMutableTreeNode(cbDrawClosed));
-    t.add(new DefaultMutableTreeNode(cbDrawGrid));
+    t.add(new DefaultMutableTreeNode(cbDrawTileGrid));
+    t.add(new DefaultMutableTreeNode(cbDrawCellGrid));
     t2 = new DefaultMutableTreeNode(cbDrawOverlays);
     t2.add(new DefaultMutableTreeNode(cbAnimateOverlays));
     t.add(t2);
@@ -757,9 +764,13 @@ public class AreaViewer extends ChildFrame {
       setDoorState(Settings.DrawClosed);
     }
 
-    // initializing grid
-    cbDrawGrid.setSelected(Settings.DrawGrid);
-    setTileGridEnabled(Settings.DrawGrid);
+    // initializing tile grid
+    cbDrawTileGrid.setSelected(Settings.DrawTileGrid);
+    setTileGridEnabled(Settings.DrawTileGrid);
+
+    // initializing cell grid
+    cbDrawCellGrid.setSelected(Settings.DrawCellGrid);
+    setCellGridEnabled(Settings.DrawCellGrid);
 
     // initializing overlays
     cbDrawOverlays.setSelected(Settings.DrawOverlays);
@@ -872,10 +883,13 @@ public class AreaViewer extends ChildFrame {
       overlayState = "disabled";
     }
 
-    String gridState = isTileGridEnabled() ? "enabled" : "disabled";
+    String tileGridState = isTileGridEnabled() ? "enabled" : "disabled";
 
-    setTitle(String.format("%s  (Time: %02d:00 (%s), Schedules: %s, Doors: %s, Overlays: %s, Grid: %s, Zoom: %d%%)",
-        windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
+    String cellGridState = isCellGridEnabled() ? "enabled" : "disabled";
+
+    setTitle(String.format("%s  (Time: %02d:00 (%s), Schedules: %s, Doors: %s, Overlays: %s, Tile Grid: %s, "
+        + "Cell Grid: %s, Zoom: %d%%)",
+        windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, tileGridState, cellGridState, zoom));
   }
 
   /** Sets day time to a specific hour (0..23). */
@@ -1069,14 +1083,28 @@ public class AreaViewer extends ChildFrame {
 
   /** Returns whether tile grid on map has been enabled. */
   private boolean isTileGridEnabled() {
-    return Settings.DrawGrid;
+    return Settings.DrawTileGrid;
   }
 
   /** Enable/disable tile grid on map. */
   private void setTileGridEnabled(boolean enable) {
-    Settings.DrawGrid = enable;
+    Settings.DrawTileGrid = enable;
     if (rcCanvas != null) {
-      rcCanvas.setGridEnabled(Settings.DrawGrid);
+      rcCanvas.setTileGridEnabled(Settings.DrawTileGrid);
+    }
+    updateWindowTitle();
+  }
+
+  /** Returns whether cell grid on map has been enabled. */
+  private boolean isCellGridEnabled() {
+    return Settings.DrawCellGrid;
+  }
+
+  /** Enable/disable cell grid on map. */
+  private void setCellGridEnabled(boolean enable) {
+    Settings.DrawCellGrid = enable;
+    if (rcCanvas != null) {
+      rcCanvas.setCellGridEnabled(Settings.DrawCellGrid);
     }
     updateWindowTitle();
   }
@@ -2184,22 +2212,18 @@ public class AreaViewer extends ChildFrame {
       try {
         final BufferedImage dstImage;
         if (isExportLayersEnabled()) {
-          double zoom = getZoomFactor();
-          setZoomFactor(1.0, 1.0);
-          try {
-            dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics2D g1 = dstImage.createGraphics();
-            rcCanvas.paint(g1);
-            g1.dispose();
-          } finally {
-            setZoomFactor(zoom, Settings.ZoomFactor);
-          }
+          dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
+          final Graphics2D g1 = dstImage.createGraphics();
+          rcCanvas.paint(g1);
+          g1.dispose();
         } else {
-          VolatileImage srcImage = (VolatileImage) rcCanvas.getImage();
-          dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(), srcImage.getHeight(),
+          final double zoom = getZoomFactor();
+          final VolatileImage srcImage = (VolatileImage) rcCanvas.getImage();
+          dstImage = ColorConvert.createCompatibleImage(rcCanvas.getWidth(), rcCanvas.getHeight(),
               srcImage.getTransparency());
-          Graphics2D g2 = dstImage.createGraphics();
-          g2.drawImage(srcImage, 0, 0, null);
+          final Graphics2D g2 = dstImage.createGraphics();
+          final AffineTransform xform = AffineTransform.getScaleInstance(zoom, zoom);
+          g2.drawImage(srcImage, xform, null);
           g2.dispose();
         }
         bRet = ImageIO.write(dstImage, "png", os);
@@ -2303,10 +2327,17 @@ public class AreaViewer extends ChildFrame {
           } finally {
             WindowBlocker.blockWindow(AreaViewer.this, false);
           }
-        } else if (cb == cbDrawGrid) {
+        } else if (cb == cbDrawTileGrid) {
           WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
             setTileGridEnabled(cb.isSelected());
+          } finally {
+            WindowBlocker.blockWindow(AreaViewer.this, false);
+          }
+        } else if (cb == cbDrawCellGrid) {
+          WindowBlocker.blockWindow(AreaViewer.this, true);
+          try {
+            setCellGridEnabled(cb.isSelected());
           } finally {
             WindowBlocker.blockWindow(AreaViewer.this, false);
           }

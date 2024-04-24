@@ -102,7 +102,7 @@ public class DxtDecoder implements Decodable {
     if (alignedImage != null) {
       Graphics2D g = image.createGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setComposite(AlphaComposite.Src);
         g.drawImage(alignedImage, 0, 0, region.width, region.height, region.x, region.y, region.x + region.width,
             region.y + region.height, null);
       } finally {

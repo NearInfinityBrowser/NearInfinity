@@ -11,6 +11,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -197,7 +198,7 @@ public class TisV2Decoder extends TisDecoder {
       if (updateWorkingCanvas(tileIdx)) {
         Graphics2D g = (Graphics2D) canvas.getGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+          g.setComposite(AlphaComposite.Src);
           g.drawImage(workingCanvas, 0, 0, null);
         } finally {
           g.dispose();
@@ -258,5 +259,35 @@ public class TisV2Decoder extends TisDecoder {
       }
     }
     return false;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(pvrzNameBase, tileCount, tileSize, tisBuffer);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TisV2Decoder other = (TisV2Decoder)obj;
+    return Objects.equals(pvrzNameBase, other.pvrzNameBase) && tileCount == other.tileCount
+        && tileSize == other.tileSize && Objects.equals(tisBuffer, other.tisBuffer);
+  }
+
+  @Override
+  public String toString() {
+    return "TisV2Decoder [type=" + getType() + ", tisEntry=" + getResourceEntry() + ", tileCount=" + tileCount
+        + ", tileSize=" + tileSize + ", pvrzNameBase=" + pvrzNameBase + "]";
   }
 }

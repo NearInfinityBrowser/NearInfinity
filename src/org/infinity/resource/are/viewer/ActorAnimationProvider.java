@@ -5,7 +5,6 @@
 package org.infinity.resource.are.viewer;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -23,8 +22,6 @@ import org.infinity.resource.graphics.ColorConvert;
  * Implements functionality for properly displaying actor sprites.
  */
 public class ActorAnimationProvider extends AbstractAnimationProvider {
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
-
   private SpriteDecoder decoder;
   private SpriteBamControl control;
   private boolean isLooping;
@@ -265,7 +262,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider {
         try {
           // clearing old content
           g.setComposite(AlphaComposite.Src);
-          g.setColor(TRANSPARENT_COLOR);
+          g.setColor(ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();
@@ -312,7 +309,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider {
         g = image.createGraphics();
         try {
           g.setComposite(AlphaComposite.Src);
-          g.setColor(TRANSPARENT_COLOR);
+          g.setColor(ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();

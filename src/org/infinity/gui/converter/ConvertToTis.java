@@ -5,7 +5,6 @@
 package org.infinity.gui.converter;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -23,12 +22,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -506,16 +507,15 @@ public class ConvertToTis extends ChildFrame
       int h = packer.getBinHeight() * 64;
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
       Graphics2D g = texture.createGraphics();
-      g.setBackground(new Color(0, true));
       g.setComposite(AlphaComposite.Src);
-      g.setColor(new Color(0, true));
+      g.setColor(ColorConvert.TRANSPARENT_COLOR);
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       int tw = srcImg.getWidth() / 64;
       for (final TileEntry entry : entryList) {
         if (entry.page == pageIdx) {
           int sx = (entry.tileIndex % tw) * 64, sy = (entry.tileIndex / tw) * 64;
           int dx = entry.x, dy = entry.y;
-          g.clearRect(dx, dy, 64, 64);
+          g.fillRect(dx, dy, 64, 64);
           g.drawImage(srcImg, dx, dy, dx + 64, dy + 64, sx, sy, sx + 64, sy + 64, null);
         }
       }
@@ -614,7 +614,13 @@ public class ConvertToTis extends ChildFrame
       }
       fc.setFileFilter(filters[0]);
       if (!tfInput.getText().isEmpty()) {
-        fc.setSelectedFile(FileManager.resolve(tfInput.getText()).toFile());
+        final File file = FileManager.resolve(tfInput.getText()).toFile();
+        if (file.isFile()) {
+          fc.setCurrentDirectory(file.getParentFile());
+          fc.setSelectedFile(file);
+        } else {
+          fc.setCurrentDirectory(file.getParentFile());
+        }
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
@@ -642,6 +648,7 @@ public class ConvertToTis extends ChildFrame
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
+      fc.setCurrentDirectory(FileManager.resolve(fileName).toFile());
       fc.setSelectedFile(FileManager.resolve(fileName).toFile());
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
@@ -1089,6 +1096,39 @@ public class ConvertToTis extends ChildFrame
       this.page = page;
       this.x = x;
       this.y = y;
+    }
+
+    public TileEntry(TileEntry tileEntry) {
+      Objects.requireNonNull(tileEntry);
+      this.tileIndex = tileEntry.tileIndex;
+      this.page = tileEntry.page;
+      this.x = tileEntry.x;
+      this.y = tileEntry.y;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(page, tileIndex, x, y);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      TileEntry other = (TileEntry)obj;
+      return page == other.page && tileIndex == other.tileIndex && x == other.x && y == other.y;
+    }
+
+    @Override
+    public String toString() {
+      return "TileEntry [tileIndex=" + tileIndex + ", page=" + page + ", x=" + x + ", y=" + y + "]";
     }
   }
 }

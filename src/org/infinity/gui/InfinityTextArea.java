@@ -40,6 +40,7 @@ import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
 import org.infinity.resource.text.modes.INITokenMaker;
+import org.infinity.resource.text.modes.MenuTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 import org.infinity.util.Misc;
@@ -54,6 +55,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     NONE(SyntaxConstants.SYNTAX_STYLE_NONE),
     /** Select BCS highlighting. */
     BCS(BCSTokenMaker.SYNTAX_STYLE_BCS),
+    /** Select DLG tree viewer trigger/action highlighting. */
+    DLG(BCSTokenMaker.SYNTAX_STYLE_BCS),
     /** Select TLK highlighting. */
     TLK(TLKTokenMaker.SYNTAX_STYLE_TLK),
     /** Select GLSL highlighting. */
@@ -62,6 +65,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
     INI(INITokenMaker.SYNTAX_STYLE_INI),
     /** Select LUA highlighting. */
     LUA(SyntaxConstants.SYNTAX_STYLE_LUA),
+    /** Select MENU highlighting. */
+    MENU(MenuTokenMaker.SYNTAX_STYLE_MENU),
     /** Select SQL highlighting. */
     SQL(SyntaxConstants.SYNTAX_STYLE_SQL),
     /** Select WeiDU.log highlighting. */
@@ -163,6 +168,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         GLSLTokenMaker.class.getCanonicalName());
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(INITokenMaker.SYNTAX_STYLE_INI,
         INITokenMaker.class.getCanonicalName());
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping(MenuTokenMaker.SYNTAX_STYLE_MENU,
+        MenuTokenMaker.class.getCanonicalName());
   }
 
   private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
@@ -342,6 +349,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
               schemePath = BrowserMenuBar.getInstance().getOptions().getBcsColorScheme();
             }
             break;
+          case DLG:
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptions().getDlgColorScheme();
+            }
+            break;
           case TLK:
             if (BrowserMenuBar.isInstantiated()) {
               schemePath = BrowserMenuBar.getInstance().getOptions().getTlkColorScheme();
@@ -360,6 +372,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
           case LUA:
             if (BrowserMenuBar.isInstantiated()) {
               schemePath = BrowserMenuBar.getInstance().getOptions().getLuaColorScheme();
+            }
+            break;
+          case MENU:
+            if (BrowserMenuBar.isInstantiated()) {
+              schemePath = BrowserMenuBar.getInstance().getOptions().getMenuColorScheme();
             }
             break;
           case SQL:

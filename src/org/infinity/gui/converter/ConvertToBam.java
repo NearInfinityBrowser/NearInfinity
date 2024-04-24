@@ -2106,8 +2106,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       int imgHeight = target.getImage().getHeight(null);
       Graphics2D g = (Graphics2D) target.getImage().getGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(new Color(0, true));
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, imgWidth, imgHeight);
 
         if (indices != null && indices.length == 1 && indices[0] >= 0 && indices[0] < modelFrames.getSize()) {
@@ -3466,8 +3466,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       // clearing old content
       Graphics2D g = previewCanvas.createGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(new Color(0, true));
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, previewCanvas.getWidth(), previewCanvas.getHeight());
       } finally {
         g.dispose();
@@ -3481,8 +3481,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       g = (Graphics2D) rcPreview.getImage().getGraphics();
       try {
         // clearing old content
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(new Color(0, true));
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, rcPreview.getImage().getWidth(null), rcPreview.getImage().getHeight(null));
 
         // rendering frame
@@ -3680,8 +3680,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       Graphics2D g = (Graphics2D) rcFiltersPreview.getImage().getGraphics();
       try {
         // clearing old content
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(new Color(0, true));
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, canvasWidth, canvasHeight);
 
         // rendering frame
@@ -3878,8 +3878,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     for (int i = 0; i < bamDecoder.frameCount(); i++) {
       Graphics2D g = canvas.createGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(new Color(0, true));
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
       } finally {
         g.dispose();

@@ -311,7 +311,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       }
       rcCanvas.setImage(getImage(state));
     } else {
-      label.setBackground(new Color(0, true));
+      label.setBackground(ColorConvert.TRANSPARENT_COLOR);
       rcCanvas.setImage(null);
     }
   }

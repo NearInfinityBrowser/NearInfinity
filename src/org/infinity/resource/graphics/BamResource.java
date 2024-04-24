@@ -6,7 +6,6 @@ package org.infinity.resource.graphics;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -107,8 +106,6 @@ import tv.porst.jhexview.IDataChangedListener;
  */
 public class BamResource implements Resource, Closeable, Writeable, Referenceable, ActionListener,
     PropertyChangeListener, ChangeListener, IDataChangedListener {
-  private static final Color TransparentColor = new Color(0, true);
-
   private static final int ANIM_DELAY = 1000 / 15; // 15 fps in milliseconds
 
   private static final ButtonPanel.Control CTRL_NEXT_CYCLE  = ButtonPanel.Control.CUSTOM_1;
@@ -539,8 +536,8 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     }
 
     List<JMenuItem> list = new ArrayList<>();
-    if (miExport != null) {
-      list.add(miExport);
+    if (miExportFramesPNG != null) {
+      list.add(miExportFramesPNG);
     }
     if (miExportBAM != null) {
       list.add(miExportBAM);
@@ -548,15 +545,15 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     if (miExportBAMC != null) {
       list.add(miExportBAMC);
     }
-    if (miExportFramesPNG != null) {
-      list.add(miExportFramesPNG);
+    if (miExport != null) {
+      list.add(miExport);
     }
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
     ButtonPopupMenu bpmExport = (ButtonPopupMenu) ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(mi);
+    bpmExport.setMenuItems(mi, false);
 
     JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
@@ -683,8 +680,8 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       BufferedImage image = (BufferedImage) rcDisplay.getImage();
       Graphics2D g = image.createGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        g.setColor(TransparentColor);
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
       } finally {
         g.dispose();

@@ -17,6 +17,7 @@ import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.graphics.BamResource;
+import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 
@@ -82,7 +83,13 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer {
       ResourceEntry entry = ((Resource) viewable).getResourceEntry();
       // setTitle(entry.toString());
       setIconImage(entry.getIcon().getImage());
-      statusBar.setMessage(entry.getActualPath().toString());
+      final String path;
+      if (entry instanceof BIFFResourceEntry) {
+        path = ((BIFFResourceEntry) entry).getActualPath(!entry.hasOverride()).toString();
+      } else {
+        path = entry.getActualPath().toString();
+      }
+      statusBar.setMessage(path);
     } else {
       setIconImage(Keyfile.ICON_STRUCT.getImage());
       setTitle(((StructEntry) viewable).getName());

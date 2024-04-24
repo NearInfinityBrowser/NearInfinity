@@ -362,7 +362,7 @@ public class MosV2Decoder extends MosDecoder {
           BufferedImage imgBlock = decoder.decode(pvrzRect.x, pvrzRect.y, pvrzRect.width, pvrzRect.height);
           Graphics2D g = (Graphics2D) canvas.getGraphics();
           try {
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+            g.setComposite(AlphaComposite.Src);
             g.drawImage(imgBlock, left, top, left + w, top + h, 0, 0, w, h, null);
           } finally {
             g.dispose();

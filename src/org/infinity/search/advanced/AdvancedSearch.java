@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -78,6 +77,7 @@ import org.infinity.search.ReferenceHitFrame;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.Threading;
 
 public class AdvancedSearch extends ChildFrame implements Runnable {
   /** Indicates how to evaluate filter matches against a resource. */
@@ -560,18 +560,20 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         List<SearchOptions> searchOptions = getSearchOptions();
 
         // using parallel jobs to speed up search
-        ThreadPoolExecutor executor = Misc.createThreadPool();
-        for (final ResourceEntry entry : resources) {
-          Misc.isQueueReady(executor, true, -1);
-          executor.execute(new AdvancedSearchWorker(found, filterOp, searchOptions, entry, pbProgress));
-        }
+        try (final Threading threadPool = new Threading()) {
+          for (final ResourceEntry entry : resources) {
+            threadPool.submit(new AdvancedSearchWorker(found, filterOp, searchOptions, entry, pbProgress));
+          }
 
-        // waiting for threads to finish
-        executor.shutdown();
-        try {
-          executor.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+          // waiting for threads to finish
+          threadPool.shutdown();
+          try {
+            threadPool.awaitTermination(60, TimeUnit.SECONDS);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } catch (Exception e) {
+          // ignored
         }
 
         // preparing results for output

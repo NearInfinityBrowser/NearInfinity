@@ -1222,7 +1222,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       Graphics2D g = image.createGraphics();
       try {
         g.setComposite(AlphaComposite.SrcOver);
-        g.setColor(new Color(0, true));
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
         // drawing source frames to target image

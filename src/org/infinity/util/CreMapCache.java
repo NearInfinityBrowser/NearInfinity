@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.infinity.NearInfinity;
@@ -134,43 +133,43 @@ public final class CreMapCache {
           statusBar.setMessage(message);
         }
 
-        ThreadPoolExecutor executor = Misc.createThreadPool();
-        List<ResourceEntry> files = ResourceFactory.getResources("CRE");
-        // Including CHR resources to reduce number of warnings in IWD/IWD2 if NPC mods are installed
-        files.addAll(ResourceFactory.getResources("CHR", Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS)));
-        for (final ResourceEntry entry1 : files) {
-          if (entry1 == null) {
-            continue;
+        try (final Threading threadPool = new Threading()) {
+          List<ResourceEntry> files = ResourceFactory.getResources("CRE");
+          // Including CHR resources to reduce number of warnings in IWD/IWD2 if NPC mods are installed
+          files.addAll(ResourceFactory.getResources("CHR", Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS)));
+          for (final ResourceEntry entry1 : files) {
+            if (entry1 == null) {
+              continue;
+            }
+
+            threadPool.submit(new CreWorker(entry1));
           }
 
-          Misc.isQueueReady(executor, true, -1);
-          executor.execute(new CreWorker(entry1));
-        }
+          SCRIPT_NAMES_ARE.add("none"); // default script name for many CRE resources
+          for (final ResourceEntry entry2 : ResourceFactory.getResources("ARE")) {
+            if (entry2 == null) {
+              continue;
+            }
 
-        SCRIPT_NAMES_ARE.add("none"); // default script name for many CRE resources
-        for (final ResourceEntry entry2 : ResourceFactory.getResources("ARE")) {
-          if (entry2 == null) {
-            continue;
+            threadPool.submit(new AreWorker(entry2));
           }
 
-          Misc.isQueueReady(executor, true, -1);
-          executor.execute(new AreWorker(entry2));
-        }
+          for (final ResourceEntry entry3 : ResourceFactory.getResources("INI")) {
+            if (entry3 == null) {
+              continue;
+            }
 
-        for (final ResourceEntry entry3 : ResourceFactory.getResources("INI")) {
-          if (entry3 == null) {
-            continue;
+            threadPool.submit(new IniWorker(entry3));
           }
 
-          Misc.isQueueReady(executor, true, -1);
-          executor.execute(new IniWorker(entry3));
-        }
-
-        executor.shutdown();
-        try {
-          executor.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+          threadPool.shutdown();
+          try {
+            threadPool.awaitTermination(60, TimeUnit.SECONDS);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } catch (Exception e) {
+          // ignored
         }
 
         if (statusBar != null && statusBar.getMessage().startsWith(message)) {

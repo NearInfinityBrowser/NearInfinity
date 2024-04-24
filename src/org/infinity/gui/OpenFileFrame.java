@@ -124,40 +124,41 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
     gbc.weightx = 1.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(3, 3, 3, 6);
+    gbc.insets = new Insets(6, 4, 3, 8);
     gbl.setConstraints(rbExternal, gbc);
     pane.add(rbExternal);
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
     gbc.gridwidth = 1;
-    gbc.insets = new Insets(0, 12, 3, 0);
+    gbc.insets = new Insets(0, 8, 3, 0);
     gbl.setConstraints(tfExternalName, gbc);
     pane.add(tfExternalName);
 
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.insets = new Insets(0, 3, 3, 6);
+    gbc.insets = new Insets(0, 3, 3, 8);
     gbl.setConstraints(bExternalBrowse, gbc);
     pane.add(bExternalBrowse);
 
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
-    gbc.insets = new Insets(0, 12, 3, 6);
+    gbc.insets = new Insets(0, 8, 3, 8);
     gbl.setConstraints(lExternalDrop, gbc);
     pane.add(lExternalDrop);
 
     gbc.weighty = 0.0;
+    gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(9, 3, 3, 6);
+    gbc.insets = new Insets(9, 4, 3, 8);
     gbl.setConstraints(rbInternal, gbc);
     pane.add(rbInternal);
 
     gbc.weighty = 3.0;
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.insets = new Insets(0, 12, 3, 6);
+    gbc.insets = new Insets(0, 8, 3, 8);
     gbl.setConstraints(lpInternal, gbc);
     pane.add(lpInternal);
 
@@ -167,18 +168,20 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weighty = 0.0;
-    gbc.insets = new Insets(3, 6, 0, 6);
+    gbc.insets = new Insets(3, 8, 0, 8);
 
     gbl.setConstraints(bPanel, gbc);
     pane.add(bPanel);
 
     gbc.insets.top = 0;
+    gbc.insets.bottom = 6;
     gbc.anchor = GridBagConstraints.CENTER;
     gbc.fill = GridBagConstraints.NONE;
     gbl.setConstraints(cbStayOpen, gbc);
     pane.add(cbStayOpen);
 
-    setSize(330, 400);
+    pack();
+    setMinimumSize(getSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

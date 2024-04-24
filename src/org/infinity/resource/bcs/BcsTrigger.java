@@ -6,6 +6,8 @@ package org.infinity.resource.bcs;
 
 import java.awt.Point;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.infinity.resource.Profile;
 import org.infinity.util.StringBufferStream;
@@ -168,73 +170,87 @@ public class BcsTrigger extends BcsStructureBase {
       if (functions.length == 1) {
         retVal = functions[0];
       } else {
-        // weighting parameter types (strings are most important)
-        int weightI = 1;
-        int weightO = 2;
-        int weightP = 4;
-        int weightS = 8;
-        int bestScore = Integer.MAX_VALUE; // lower is better
-        Signatures.Function fallback = null;
-        for (Signatures.Function f : functions) {
-          int pi = 0, ps = 0, po = 0, pp = 0;
+        // Map of Signatures.Function.Parameter.TYPE_XXX > Number of non-default arguments for that parameter type
+        final HashMap<Character, Integer> paramMap = new HashMap<>();
+
+        int bestScoreAvg = Integer.MAX_VALUE;   // lower is better; zero indicates a perfect match
+        int bestScoreVal = Integer.MAX_VALUE;   // lower is better; zero indicates a perfect match
+        int bestNumParams = Integer.MAX_VALUE;  // cosmetic: lower value indicates a shorter function signature
+        for (final Signatures.Function f : functions) {
+          paramMap.clear();
           for (int i = 0, cnt = f.getNumParameters(); i < cnt; i++) {
-            Signatures.Function.Parameter param = f.getParameter(i);
-            switch (param.getType()) {
-              case Signatures.Function.Parameter.TYPE_INTEGER:
-                pi++;
-                break;
-              case Signatures.Function.Parameter.TYPE_STRING:
-                ps++;
-                break;
-              case Signatures.Function.Parameter.TYPE_OBJECT:
-                po++;
-                break;
-              case Signatures.Function.Parameter.TYPE_POINT:
-                pp++;
-                break;
-            }
+            final Signatures.Function.Parameter param = f.getParameter(i);
+            final char ptype = param.getType();
+            final int pcount = paramMap.getOrDefault(ptype, 0);
+            paramMap.put(ptype, pcount + 1);
           }
 
-          // prefer function signature with string arguments for fallback solution
-          if (fallback == null && ps > 0) {
-            fallback = f;
-          }
-
-          // evaluating remaining arguments
+          int scoreInt = 0;
           for (int i = 0; i < 3; i++) {
-            if (getNumericParam(i) != 0) {
-              pi--;
+            // checking int params
+            if ((getNumericParam(i) != 0)) {
+              scoreInt++;
             }
           }
 
+          int scoreStr = 0;
           for (int i = 0; i < 4; i++) {
+            // checking string params
             try {
-              if (!getStringParam(f, i).isEmpty()) {
-                ps--;
+              final Signatures.Function f2 = paramMap.containsKey(Signatures.Function.Parameter.TYPE_STRING) ? f : null;
+              if (!getStringParam(f2, i).isEmpty()) {
+                scoreStr++;
               }
             } catch (IllegalArgumentException e) {
+              // no more strings available
               break;
             }
           }
 
-          if (!getObjectParam(0).isEmpty()) {
-            po--;
+          // checking object param
+          int scoreObj = !getObjectParam(0).isEmpty() ? 1 : 0;
+
+          // checking point param
+          int scorePt = (getPointParam(0).x != 0 || getPointParam(0).y != 0) ? 1 : 0;
+
+          for (final Map.Entry<Character, Integer> entry : paramMap.entrySet()) {
+            final char ptype = entry.getKey();
+            final int pcount = entry.getValue();
+            switch (ptype) {
+              case Signatures.Function.Parameter.TYPE_INTEGER:
+                scoreInt -= pcount;
+                break;
+              case Signatures.Function.Parameter.TYPE_STRING:
+                scoreStr -= pcount;
+                break;
+              case Signatures.Function.Parameter.TYPE_OBJECT:
+                scoreObj -= pcount;
+                break;
+              case Signatures.Function.Parameter.TYPE_POINT:
+                scorePt -= pcount;
+                break;
+            }
           }
 
-          if (getPointParam(0).x != 0 || getPointParam(0).y != 0) {
-            pp--;
-          }
-
-          // finding match
-          int score = Math.abs(pi * weightI + ps * weightS + po * weightO + pp * weightP);
-          if (score < bestScore) {
-            bestScore = score;
+          // How to determine a match:
+          // - no match stored yet OR
+          // - individual score is less OR    <-- individual score <= 0: perfect match is found
+          // - individual score is equal AND
+          //    - avg. score is less OR
+          //    - avg. score is equal AND
+          //      - parameter count is less   <-- helps finding the most compact function signature if several are eligible
+          int numParams = f.getNumParameters();
+          int scoreVal = Math.max(scoreInt, Math.max(scoreStr, Math.max(scoreObj, scorePt)));
+          int scoreAvg = Math.max(0, scoreInt + scoreStr + scoreObj + scorePt);
+          if (retVal == null ||
+              scoreVal < bestScoreVal ||
+              (scoreVal == bestScoreVal && (scoreAvg < bestScoreAvg ||
+                                            (scoreAvg == bestScoreAvg && numParams < bestNumParams)))) {
+            bestNumParams = numParams;
+            bestScoreVal = scoreVal;
+            bestScoreAvg = scoreAvg;
             retVal = f;
           }
-        }
-
-        if (retVal == null) {
-          retVal = (fallback != null) ? fallback : functions[0];
         }
       }
     }
