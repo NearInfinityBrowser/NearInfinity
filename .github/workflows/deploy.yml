@@ -36,7 +36,7 @@ jobs:
           echo "NI_VERSION=$(java -jar "NearInfinity.jar" -version 2>/dev/null | grep -Eo '[0-9]{8}')" >> "$GITHUB_OUTPUT"
 
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}
           path: NearInfinity.jar
@@ -77,7 +77,7 @@ jobs:
 
       # Preparations
       - name: Download JAR artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: NearInfinity-${{ needs.deploy-jar.outputs.ni_version }}
           path: jar
@@ -118,28 +118,28 @@ jobs:
       # Uploading
       - name: Upload portable artifact (windows)
         if: (matrix.os == 'windows-latest')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: portable-windows
           path: NearInfinity-*.zip
 
       - name: Upload exe artifact (windows)
         if: (matrix.os == 'windows-latest')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: installer-windows
           path: NearInfinity-*.exe
 
       - name: Upload pkg artifact (macos)
         if: (matrix.os == 'macos-13')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: installer-macos-x86_64
           path: NearInfinity-*.pkg
 
       - name: Upload pkg artifact (macos-arm64)
         if: (matrix.os == 'macos-14')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: installer-macos-arm64
           path: NearInfinity-*.pkg
