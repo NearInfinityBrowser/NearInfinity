@@ -23,6 +23,7 @@ import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructureFactory;
+import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 
@@ -78,6 +79,7 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
 
   private final JMenu newFileMenu;
   private final JMenuItem fileOpenNew;
+  private final JMenuItem fileOpenBiffedNew;
   private final JMenuItem fileReference;
   private final JMenuItem fileExport;
   private final JMenuItem fileAddCopy;
@@ -98,6 +100,10 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
     fileOpenNew = BrowserMenuBar.makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.ICON_OPEN_16.getIcon(), -1, this);
     fileOpenNew.setEnabled(false);
     add(fileOpenNew);
+    fileOpenBiffedNew = BrowserMenuBar.makeMenuItem("Open Biffed Resource in New Window", KeyEvent.VK_W,
+        Icons.ICON_OPEN_16.getIcon(), -1, this);
+    fileOpenBiffedNew.setEnabled(false);
+    add(fileOpenBiffedNew);
     fileReference = BrowserMenuBar.makeMenuItem("Find references...", KeyEvent.VK_F, Icons.ICON_FIND_16.getIcon(), -1, this);
     fileReference.setEnabled(false);
     add(fileReference);
@@ -136,9 +142,17 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
   }
 
   public void resourceEntrySelected(ResourceEntry entry) {
+    boolean biffEnable = entry != null &&
+        (!BrowserMenuBar.getInstance().getOptions().ignoreOverrides() ||
+            BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) &&
+        entry.hasOverride();
+    fileOpenBiffedNew.setEnabled(biffEnable);
+
     fileOpenNew.setEnabled(entry != null);
+
     Class<? extends Resource> cls = ResourceFactory.getResourceType(entry);
     fileReference.setEnabled(cls != null && Referenceable.class.isAssignableFrom(cls));
+
     fileExport.setEnabled(entry != null);
     fileAddCopy.setEnabled(entry != null);
     fileRename.setEnabled(entry instanceof FileResourceEntry);
@@ -157,6 +171,20 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
       Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());
       if (res != null) {
         new ViewFrame(NearInfinity.getInstance(), res);
+      }
+    } else if (event.getSource() == fileOpenBiffedNew) {
+      final ResourceEntry node = NearInfinity.getInstance().getResourceTree().getSelected();
+      try {
+        final BIFFResourceEntry biffedNode =
+            new BIFFResourceEntry(ResourceFactory.getKeyfile().getResourceEntry(node.getResourceName()), false);
+        final Resource res = ResourceFactory.getResource(biffedNode);
+        if (res != null) {
+          new ViewFrame(NearInfinity.getInstance(), res);
+        }
+      } catch (NullPointerException e) {
+        System.err.println("Does not exist in BIFF: " + node);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            "Does not exist in BIFF: " + node, "Error", JOptionPane.ERROR_MESSAGE);
       }
     } else if (event.getSource() == fileReference) {
       Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());

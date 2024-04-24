@@ -7,6 +7,7 @@ package org.infinity.resource.graphics;
 import java.awt.Image;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
@@ -162,6 +163,32 @@ public abstract class TisDecoder {
   protected void setType(Type type) {
     this.type = type;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(tisEntry, type);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TisDecoder other = (TisDecoder)obj;
+    return Objects.equals(tisEntry, other.tisEntry) && type == other.type;
+  }
+
+  @Override
+  public String toString() {
+    return "TisDecoder [type=" + type + ", tisEntry=" + tisEntry + "]";
+  }
+
 
   // -------------------------- INNER CLASSES --------------------------
 

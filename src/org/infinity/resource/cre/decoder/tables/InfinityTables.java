@@ -53,8 +53,12 @@ public class InfinityTables {
       return retVal;
     }
 
-    IdsMap table = new IdsMap(entry);
-    retVal.addAll(processTable(table, animationId));
+    try {
+      IdsMap table = new IdsMap(entry);
+      retVal.addAll(processTable(table, animationId));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     return retVal;
   }

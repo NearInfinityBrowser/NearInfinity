@@ -5,7 +5,6 @@
 package org.infinity.resource.are.viewer;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -21,8 +20,6 @@ import org.infinity.resource.graphics.ColorConvert;
  * Implements functionality for properly displaying background animations.
  */
 public class BackgroundAnimationProvider extends AbstractAnimationProvider {
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
-
   // upscaled luma weights for use with faster right-shift (by 16)
   private static final int LUMA_R = 19595;
   private static final int LUMA_G = 38470;
@@ -372,8 +369,8 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider {
         // clearing old content
         Graphics2D g = image.createGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TRANSPARENT_COLOR);
+          g.setComposite(AlphaComposite.Src);
+          g.setColor(ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
           // rendering frame
@@ -429,8 +426,8 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider {
       } else {
         Graphics2D g = image.createGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-          g.setColor(TRANSPARENT_COLOR);
+          g.setComposite(AlphaComposite.Src);
+          g.setColor(ColorConvert.TRANSPARENT_COLOR);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {
           g.dispose();

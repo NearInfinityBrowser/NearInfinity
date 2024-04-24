@@ -190,7 +190,7 @@ public class AppOption {
   public static final AppOption TEXT_TAB_SIZE = new AppOption(OptionsMenuItem.OPTION_TEXT_TABSIZE, "Tab Size", 1);
 
   // Category: BCS and BAF
-  /** Menu Options > BCS and BAF: BcsColorScheme (Integer, Default: 6) */
+  /** Menu Options > BCS and BAF: BcsColorScheme (Integer, Default: last item in list) */
   public static final AppOption BCS_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_BCS_COLORSCHEME,
       "BCS Color Scheme", OptionsMenuItem.getBcsColorSchemes().size() - 1);
   /** Menu Options > BCS and BAF: BcsSyntaxHighlighting (Boolean, Default: true) */
@@ -230,6 +230,12 @@ public class AppOption {
   /** Menu Options > Misc. Types: LuaSyntaxHighlighting (Boolean, Default: true) */
   public static final AppOption LUA_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_LUA_SYNTAXHIGHLIGHTING,
       "Enable LUA Syntax Highlighting", true);
+  /** Menu Options > Misc. Types: MenuColorScheme (Integer, Default: 0) */
+  public static final AppOption MENU_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_MENU_COLORSCHEME,
+      "MENU Color Scheme", 0);
+  /** Menu Options > Misc. Types: MenuSyntaxHighlighting (Boolean, Default: true) */
+  public static final AppOption MENU_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_MENU_SYNTAXHIGHLIGHTING,
+      "Enable MENU Syntax Highlighting", true);
   /** Menu Options > Misc. Types: SqlColorScheme (Integer, Default: 0) */
   public static final AppOption SQL_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_SQL_COLORSCHEME,
       "SQL Color Scheme", 0);
@@ -250,6 +256,12 @@ public class AppOption {
       "Enable WeiDU Syntax Highlighting", true);
 
   // Category: Dialog Tree Viewer
+  /** Menu Options > Dialog Tree Viewer: DlgColorScheme (Integer, Default: last item in list) */
+  public static final AppOption DLG_COLOR_SCHEME = new AppOption(OptionsMenuItem.OPTION_DLG_COLORSCHEME,
+      "Color Scheme", OptionsMenuItem.getDlgColorSchemes().size() - 1);
+  /** Menu Options > Dialog Tree Viewer: DlgSyntaxHighlighting (Boolean, Default: true) */
+  public static final AppOption DLG_SYNTAX_HIGHLIGHTING = new AppOption(OptionsMenuItem.OPTION_DLG_SYNTAXHIGHLIGHTING,
+      "Enable Syntax Highlighting", true);
   /** Menu Options > Dialog Tree Viewer: DlgShowIcons (Boolean, Default: true) */
   public static final AppOption DLG_SHOW_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOWICONS, "Show Icons", true);
   /** Menu Options > Dialog Tree Viewer: DlgSortStatesByWeight (Boolean, Default: true) */

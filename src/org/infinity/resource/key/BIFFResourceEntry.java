@@ -59,6 +59,16 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
     }
   }
 
+  public BIFFResourceEntry(BIFFResourceEntry entry, boolean hasOverride) {
+    Objects.requireNonNull(entry);
+    this.keyFile = entry.keyFile;
+    this.resourceName = entry.resourceName;
+    this.type = entry.type;
+    this.extension = entry.extension;
+    this.locator = entry.locator;
+    this.hasOverride = hasOverride;
+  }
+
   BIFFResourceEntry(Path keyFile, ByteBuffer buffer, int offset) {
     if (keyFile == null || buffer == null) {
       throw new NullPointerException("Path to KEY file and byte buffer with BIFF content must not be null");
@@ -192,7 +202,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
 
   @Override
   public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception {
-    if (!ignoreOverride) {
+    if (!ignoreOverride && hasOverride) {
       List<Path> overrides = Profile.getOverrideFolders(false);
       Path file = FileManager.query(overrides, getResourceName());
       if (file != null && FileEx.create(file).isFile()) {

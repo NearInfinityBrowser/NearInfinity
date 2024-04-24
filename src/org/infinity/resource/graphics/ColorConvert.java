@@ -4,6 +4,7 @@
 
 package org.infinity.resource.graphics;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -91,6 +92,12 @@ public class ColorConvert {
     return getColorDistanceLabCIE94(lab1.getValue0(), lab1.getValue1(), lab1.getValue2(), alpha1, lab2.getValue0(),
         lab2.getValue1(), lab2.getValue2(), alpha2);
   };
+
+  /** Bitmask for the alpha channel of an ARGB color value. */
+  public static final int ALPHA_MASK = 0xff000000;
+
+  /** A {@link Color} definition with alpha=0 (fully transparent). */
+  public static final Color TRANSPARENT_COLOR = new Color(0, true);
 
   // Cache for ARGB key -> CIELAB color space values
   private static final HashMap<Integer, Triple<Double, Double, Double>> ARGB_LAB_CACHE = new HashMap<>();

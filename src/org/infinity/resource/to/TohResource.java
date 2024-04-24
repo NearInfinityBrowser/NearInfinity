@@ -195,10 +195,17 @@ public final class TohResource extends AbstractStruct implements Resource {
           if (strrefEntry != null) {
             int v = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
             if (v == strref) {
+              // string entry may consist of multiple segments
+              retVal = "";
               int sofs = ((IsNumeric) strrefEntry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
-              StringEntry se = (StringEntry) tot.getAttribute(sofs, false);
-              if (se != null) {
-                retVal = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
+              while (sofs >= 0) {
+                StringEntry se = (StringEntry) tot.getAttribute(sofs, false);
+                if (se != null) {
+                  retVal += se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
+                  sofs = ((IsNumeric) se.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY)).getValue();
+                } else {
+                  sofs = -1;
+                }
               }
               break;
             }

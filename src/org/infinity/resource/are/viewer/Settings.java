@@ -63,7 +63,9 @@ public class Settings {
   // Current visibility state of overlays
   public static boolean DrawOverlays = getDefaultDrawOverlays();
   // Current visibility state of the tile grid
-  public static boolean DrawGrid = getDefaultDrawGrid();
+  public static boolean DrawTileGrid = getDefaultDrawTileGrid();
+  // Current visibility state of the cell grid
+  public static boolean DrawCellGrid = getDefaultDrawCellGrid();
   // Current visibility state of ambient range items
   public static boolean ShowAmbientRanges = getDefaultAmbientRanges();
   // Current visibility state of container target locations
@@ -132,7 +134,8 @@ public class Settings {
   private static final String PREFS_MOUSEWHEELZOOM          = "MouseWheelZoom";
   private static final String PREFS_DRAWCLOSED              = "DrawClosed";
   private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
-  private static final String PREFS_DRAWGRID                = "DrawGrid";
+  private static final String PREFS_DRAWTILEGRID            = "DrawGrid";
+  private static final String PREFS_DRAWCELLGRID            = "DrawCellGrid";
   private static final String PREFS_SIDEBARCONTROLS         = "SidebarControls";
   private static final String PREFS_SHOWACTORFRAME          = "ShowActorFrame";
   private static final String PREFS_SHOWACTORSELECTION      = "ShowActorSelectionCircle";
@@ -222,7 +225,8 @@ public class Settings {
         EnableSchedules = prefs.getBoolean(PREFS_ENABLESCHEDULES, getDefaultEnableSchedules());
         DrawClosed = prefs.getBoolean(PREFS_DRAWCLOSED, getDefaultDrawClosed());
         DrawOverlays = prefs.getBoolean(PREFS_DRAWOVERLAYS, getDefaultDrawOverlays());
-        DrawGrid = prefs.getBoolean(PREFS_DRAWGRID, getDefaultDrawGrid());
+        DrawTileGrid = prefs.getBoolean(PREFS_DRAWTILEGRID, getDefaultDrawTileGrid());
+        DrawCellGrid = prefs.getBoolean(PREFS_DRAWCELLGRID, getDefaultDrawCellGrid());
         ShowAmbientRanges = prefs.getBoolean(PREFS_SHOWAMBIENT, getDefaultAmbientRanges());
         ShowContainerTargets = prefs.getBoolean(PREFS_SHOWCONTAINERTARGETS, getDefaultShowContainerTargets());
         ShowDoorTargets = prefs.getBoolean(PREFS_SHOWDOORTARGETS, getDefaultShowDoorTargets());
@@ -286,7 +290,8 @@ public class Settings {
       prefs.putBoolean(PREFS_ENABLESCHEDULES, EnableSchedules);
       prefs.putBoolean(PREFS_DRAWCLOSED, DrawClosed);
       prefs.putBoolean(PREFS_DRAWOVERLAYS, DrawOverlays);
-      prefs.putBoolean(PREFS_DRAWGRID, DrawGrid);
+      prefs.putBoolean(PREFS_DRAWTILEGRID, DrawTileGrid);
+      prefs.putBoolean(PREFS_DRAWCELLGRID, DrawCellGrid);
       prefs.putBoolean(PREFS_SHOWAMBIENT, ShowAmbientRanges);
       prefs.putBoolean(PREFS_SHOWCONTAINERTARGETS, ShowContainerTargets);
       prefs.putBoolean(PREFS_SHOWDOORTARGETS, ShowDoorTargets);
@@ -381,7 +386,11 @@ public class Settings {
     return true;
   }
 
-  public static boolean getDefaultDrawGrid() {
+  public static boolean getDefaultDrawTileGrid() {
+    return false;
+  }
+
+  public static boolean getDefaultDrawCellGrid() {
     return false;
   }
 

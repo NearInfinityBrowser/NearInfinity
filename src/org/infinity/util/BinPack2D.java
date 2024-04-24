@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.infinity.util.tuples.Couple;
 
@@ -244,6 +245,34 @@ public class BinPack2D {
     }
 
     return (float) (usedSurfaceArea) / (float) (binWidth * binHeight);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(binHeight, binWidth, freeRectangles, usedRectangles);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    BinPack2D other = (BinPack2D)obj;
+    return binHeight == other.binHeight && binWidth == other.binWidth
+        && Objects.equals(freeRectangles, other.freeRectangles) && Objects.equals(usedRectangles, other.usedRectangles);
+  }
+
+
+  @Override
+  public String toString() {
+    return "BinPack2D [binWidth=" + binWidth + ", binHeight=" + binHeight + ", usedRectangles=" + usedRectangles
+        + ", freeRectangles=" + freeRectangles + "]";
   }
 
   /**

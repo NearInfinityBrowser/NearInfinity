@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -35,6 +36,10 @@ public final class Decompiler {
       "areatype", "areaflag", "bits", "classmsk", "crearefl", "damages", "doorflag", "dmgtype", "extstate", "invitem",
       "itemflag", "jourtype", "magespec", "splcast", "state", "wmpflag")
       .collect(Collectors.toSet()));
+
+  static {
+    updateBitwiseIds();
+  }
 
   private final Set<Integer> strrefsUsed = new HashSet<>();
   private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
@@ -1132,5 +1137,31 @@ public final class Decompiler {
     }
 
     return retVal;
+  }
+
+  /** Searches for IDS resources with only binary entries and adds them to the global list. */
+  private static void updateBitwiseIds() {
+    final List<ResourceEntry> idsList = ResourceFactory.getResources("ids");
+    for (final ResourceEntry idsEntry : idsList) {
+      final String idsName = idsEntry.getResourceRef().toLowerCase(Locale.ROOT);
+      if (BITWISE_IDS.contains(idsName)) {
+        continue;
+      }
+
+      final IdsMap idsMap = IdsMapCache.get(idsEntry.getResourceName());
+      if (idsMap == null) {
+        continue;
+      }
+
+      boolean binary = (idsMap.size() > 0);
+      for (final Iterator<Long> iter = idsMap.getKeys().iterator(); iter.hasNext() && binary; ) {
+        final long key = iter.next();
+        binary = (key == 0 || Long.bitCount(key) == 1);
+      }
+
+      if (binary) {
+        BITWISE_IDS.add(idsName);
+      }
+    }
   }
 }

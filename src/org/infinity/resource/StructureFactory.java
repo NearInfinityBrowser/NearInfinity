@@ -410,7 +410,10 @@ public final class StructureFactory {
     structEff.add(ResourceStructure.ID_STRING, 4, "V2.0"); // Version
     structEff.add(ResourceStructure.ID_STRING, 4, "EFF "); // Signature 2
     structEff.add(ResourceStructure.ID_STRING, 4, "V2.0"); // Version 2
-    structEff.add(ResourceStructure.ID_BUFFER, 256); // block of zeros
+
+    final byte[] buf = new byte[256];
+    buf[0x1c] = 100;  // Probability1 = 100
+    structEff.add(ResourceStructure.ID_BUFFER, 256, buf); // EFF data block
 
     return structEff;
   }

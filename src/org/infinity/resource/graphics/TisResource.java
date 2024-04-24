@@ -8,14 +8,19 @@ import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -24,42 +29,54 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
+import java.util.Objects;
+import java.util.Vector;
+import java.util.function.Supplier;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ProgressMonitor;
+import javax.swing.KeyStroke;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -71,10 +88,8 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.TileGrid;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.converter.ConvertToPvrz;
-import org.infinity.gui.converter.ConvertToTis;
-import org.infinity.gui.converter.ConvertToTis.TileEntry;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
@@ -83,19 +98,18 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.ViewableContainer;
+import org.infinity.resource.graphics.TisConvert.Status;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.IndexNumber;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.BinPack2D;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.IntegerHashMap;
+import org.infinity.util.DataString;
+import org.infinity.util.Debugging;
 import org.infinity.util.io.FileEx;
-import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 /**
  * This resource describes a tileset. There are currently two variants available:
@@ -131,12 +145,6 @@ import org.infinity.util.io.StreamUtils;
  */
 public class TisResource implements Resource, Closeable, Referenceable, ActionListener, ChangeListener, ItemListener,
     KeyListener, PropertyChangeListener {
-  private enum Status {
-    SUCCESS, CANCELLED, ERROR, UNSUPPORTED
-  }
-
-  private static final Color TRANSPARENT_COLOR = new Color(0, true);
-
   private static final int DEFAULT_COLUMNS = 5;
 
   private static final String FMT_TILEINFO_SHOW = "Tile %d: Show PVRZ information...";
@@ -151,6 +159,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   private final JMenuItem miTileInfoShow = new JMenuItem();
   private final JMenuItem miTileInfoPvrz = new JMenuItem();
   private final JMenuItem miTileInfoWed = new JMenuItem();
+  private final List<SwingWorker<Status, Void>> workers = new ArrayList<>();
 
   private WedResource wedResource;
   private HashMap<Integer, Tilemap> wedTileMap;
@@ -166,9 +175,6 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
   private JMenuItem miExportPNG;
   private JPanel panel; // top-level panel of the viewer
   private RootPaneContainer rpc;
-  private SwingWorker<Status, Void> workerToPalettedTis;
-  private SwingWorker<Status, Void> workerToPvrzTis;
-  private SwingWorker<Status, Void> workerExport;
   private WindowBlocker blocker;
   private int defaultWidth;
   private int lastTileInfoIndex = -1;
@@ -187,64 +193,42 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportPaletteTis) {
-      final Path tisFile = getTisFileName(panel.getTopLevelAncestor(), false);
-      if (tisFile != null) {
-        blocker = new WindowBlocker(rpc);
-        blocker.setBlocked(true);
-        workerToPalettedTis = new SwingWorker<Status, Void>() {
-          @Override
-          public Status doInBackground() {
-            Status retVal = Status.ERROR;
-            try {
-              retVal = convertToPaletteTis(tisFile, true);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-            return retVal;
-          }
-        };
-        workerToPalettedTis.addPropertyChangeListener(this);
-        workerToPalettedTis.execute();
+      try {
+        final TisConvert.Config config = ConvertTisDialog.show(panel.getTopLevelAncestor(), this);
+        if (config != null) {
+          performBackgroundTask(() -> {
+            Debugging.timerReset();
+            Status status = TisConvert.convertToPaletteTis(config, true, panel.getTopLevelAncestor());
+            Debugging.timerShow("TIS conversion completed", Debugging.TimeFormat.MILLISECONDS);
+            return status;
+          });
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Tileset conversion: " + e.getMessage(), "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     } else if (event.getSource() == miExportPvrzTis) {
-      final Path tisFile = getTisFileName(panel.getTopLevelAncestor(), true);
-      if (tisFile != null) {
-        blocker = new WindowBlocker(rpc);
-        blocker.setBlocked(true);
-        workerToPvrzTis = new SwingWorker<Status, Void>() {
-          @Override
-          public Status doInBackground() {
-            Status retVal = Status.ERROR;
-            try {
-              retVal = convertToPvrzTis(tisFile, true);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-            return retVal;
-          }
-        };
-        workerToPvrzTis.addPropertyChangeListener(this);
-        workerToPvrzTis.execute();
+      try {
+        final TisConvert.Config config = ConvertTisDialog.show(panel.getTopLevelAncestor(), this);
+        if (config != null) {
+          performBackgroundTask(() -> {
+            Debugging.timerReset();
+            Status status = TisConvert.convertToPvrzTis(config, true, panel.getTopLevelAncestor());
+            Debugging.timerShow("TIS conversion completed", Debugging.TimeFormat.MILLISECONDS);
+            return status;
+          });
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Tileset conversion: " + e.getMessage(), "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     } else if (event.getSource() == miExportPNG) {
       final Path pngFile = getPngFileName(panel.getTopLevelAncestor());
       if (pngFile != null) {
-        blocker = new WindowBlocker(rpc);
-        blocker.setBlocked(true);
-        workerExport = new SwingWorker<Status, Void>() {
-          @Override
-          public Status doInBackground() {
-            Status retVal = Status.ERROR;
-            try {
-              retVal = exportPNG(pngFile, true);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-            return retVal;
-          }
-        };
-        workerExport.addPropertyChangeListener(this);
-        workerExport.execute();
+        performBackgroundTask(() -> TisConvert.exportPNG(tileImages, tileGrid.getTileColumns(), pngFile, true,
+            panel.getTopLevelAncestor()));
       }
     } else if (event.getSource() == miTileInfoShow) {
       if (!showPvrzInfo(lastTileInfoIndex)) {
@@ -343,6 +327,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     if (event.getSource() instanceof SwingWorker<?, ?>) {
       @SuppressWarnings("unchecked")
       SwingWorker<Status, Void> worker = (SwingWorker<Status, Void>) event.getSource();
+      workers.remove(worker);
       if ("state".equals(event.getPropertyName()) && SwingWorker.StateValue.DONE == event.getNewValue()) {
         if (blocker != null) {
           blocker.setBlocked(false);
@@ -381,36 +366,29 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
   @Override
   public void close() throws Exception {
-    if (workerToPalettedTis != null) {
-      if (!workerToPalettedTis.isDone()) {
-        workerToPalettedTis.cancel(true);
+    while (!workers.isEmpty()) {
+      SwingWorker<Status, Void> worker = workers.remove(0);
+      if (worker != null && !worker.isDone()) {
+        worker.cancel(true);
       }
-      workerToPalettedTis = null;
+      worker = null;
     }
-    if (workerToPvrzTis != null) {
-      if (!workerToPvrzTis.isDone()) {
-        workerToPvrzTis.cancel(true);
-      }
-      workerToPvrzTis = null;
-    }
-    if (workerExport != null) {
-      if (!workerExport.isDone()) {
-        workerExport.cancel(true);
-      }
-      workerExport = null;
-    }
+
     if (tileImages != null) {
       tileImages.clear();
       tileImages = null;
     }
+
     if (tileGrid != null) {
       tileGrid.clearImages();
       tileGrid = null;
     }
+
     if (decoder != null) {
       decoder.close();
       decoder = null;
     }
+
     System.gc();
   }
 
@@ -527,18 +505,18 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
     if (decoder.getType() == TisDecoder.Type.PVRZ) {
-      miExportPaletteTis = new JMenuItem("as palette-based TIS");
+      miExportPaletteTis = new JMenuItem("as palette-based TIS...");
       miExportPaletteTis.addActionListener(this);
     } else if (decoder.getType() == TisDecoder.Type.PALETTE) {
-      miExportPvrzTis = new JMenuItem("as PVRZ-based TIS");
+      miExportPvrzTis = new JMenuItem("as PVRZ-based TIS...");
       miExportPvrzTis.addActionListener(this);
     }
     miExportPNG = new JMenuItem("as PNG");
     miExportPNG.addActionListener(this);
 
     List<JMenuItem> list = new ArrayList<>();
-    if (miExport != null) {
-      list.add(miExport);
+    if (miExportPNG != null) {
+      list.add(miExportPNG);
     }
     if (miExportPaletteTis != null) {
       list.add(miExportPaletteTis);
@@ -546,8 +524,8 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     if (miExportPvrzTis != null) {
       list.add(miExportPvrzTis);
     }
-    if (miExportPNG != null) {
-      list.add(miExportPNG);
+    if (miExport != null) {
+      list.add(miExport);
     }
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
@@ -555,7 +533,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     }
     ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(mi);
+    bpmExport.setMenuItems(mi, false);
 
     // 4. packing all together
     panel = new JPanel(new BorderLayout());
@@ -568,45 +546,41 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
   // --------------------- End Interface Viewable ---------------------
 
+  /**
+   * Returns a read-only list of decoded tiles.
+   *
+   * @return {@link List} of tiles as {@link Image} objects.
+   */
+  public List<Image> getTileList() {
+    return Collections.unmodifiableList(tileImages);
+  }
+
+  /**
+   * Returns the {@link TisDecoder} instance for this tileset.
+   *
+   * @return {@link TisDecoder} instance.
+   */
+  public TisDecoder getDecoder() {
+    return decoder;
+  }
+
+  /** Returns whether the specified PVRZ index can be found in the current TIS resource. */
+  public boolean containsPvrzReference(int index) {
+    boolean retVal = false;
+    if (index >= 0 && index <= 99) {
+      if (decoder instanceof TisV2Decoder) {
+        TisV2Decoder tisv2 = (TisV2Decoder) decoder;
+        for (int i = 0, count = tisv2.getTileCount(); i < count && !retVal; i++) {
+          retVal = (tisv2.getPvrzPage(i) == index);
+        }
+      }
+    }
+    return retVal;
+  }
+
   // Returns detected or guessed number of tiles per row of the current TIS
   private int getDefaultTilesPerRow() {
     return defaultWidth;
-  }
-
-  // Returns an output filename for a TIS file
-  private Path getTisFileName(Component parent, boolean enforceValidName) {
-    Path retVal = null;
-    JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
-    fc.setDialogTitle("Export resource");
-    fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    FileNameExtensionFilter filter = new FileNameExtensionFilter("TIS files (*.tis)", "tis");
-    fc.addChoosableFileFilter(filter);
-    fc.setFileFilter(filter);
-    fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().getResourceName()));
-    boolean repeat = enforceValidName;
-    do {
-      retVal = null;
-      if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-        retVal = fc.getSelectedFile().toPath();
-        if (enforceValidName && !isTisFileNameValid(retVal)) {
-          JOptionPane.showMessageDialog(parent, "PVRZ-based TIS filenames have to be 2 up to 7 characters long.",
-              "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-          repeat = false;
-        }
-        if (FileEx.create(retVal).exists()) {
-          final String options[] = { "Overwrite", "Cancel" };
-          if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
-              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
-            retVal = null;
-            repeat = false;
-          }
-        }
-      } else {
-        repeat = false;
-      }
-    } while (repeat);
-    return retVal;
   }
 
   // Returns output filename for a PNG file
@@ -639,10 +613,11 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
       decoder = TisDecoder.loadTis(entry);
       if (decoder != null) {
-        wedResource = loadWedForTis(entry);
+        wedResource = TisConvert.loadWedForTis(entry, false);
         initOverlayMap(wedResource);
         int tileCount = decoder.getTileCount();
-        defaultWidth = calcTileWidth(wedResource, tileCount);
+        final ResourceEntry wedEntry = (wedResource != null) ? wedResource.getResourceEntry() : null;
+        defaultWidth = TisConvert.calcTilesetWidth(wedEntry, false, tileCount);
         tileImages = new ArrayList<>(tileCount);
         for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
           BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
@@ -760,695 +735,33 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     return false;
   }
 
-  // Converts the current PVRZ-based tileset into the old tileset variant.
-  public Status convertToPaletteTis(Path output, boolean showProgress) {
-    Status retVal = Status.ERROR;
-    if (output != null) {
-      if (tileImages != null && !tileImages.isEmpty()) {
-        String note = "Converting tile %d / %d";
-        int progressIndex = 0, progressMax = decoder.getTileCount();
-        ProgressMonitor progress = null;
-        if (showProgress) {
-          progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...",
-              String.format(note, progressIndex, progressMax), 0, progressMax);
-          progress.setMillisToDecideToPopup(500);
-          progress.setMillisToPopup(2000);
-        }
-
-        try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(output))) {
-          retVal = Status.SUCCESS;
-
-          // writing header data
-          byte[] header = new byte[24];
-          System.arraycopy("TIS V1  ".getBytes(), 0, header, 0, 8);
-          DynamicArray.putInt(header, 8, decoder.getTileCount());
-          DynamicArray.putInt(header, 12, 0x1400);
-          DynamicArray.putInt(header, 16, 0x18);
-          DynamicArray.putInt(header, 20, 0x40);
-          bos.write(header);
-
-          // writing tile data
-          int[] palette = new int[255];
-          byte[] tilePalette = new byte[1024];
-          byte[] tileData = new byte[64 * 64];
-          BufferedImage image = ColorConvert.createCompatibleImage(decoder.getTileWidth(), decoder.getTileHeight(),
-              Transparency.BITMASK);
-          IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1800); // caching RGBColor -> index
-          for (int tileIdx = 0; tileIdx < decoder.getTileCount(); tileIdx++) {
-            colorCache.clear();
-            if (progress != null && progress.isCanceled()) {
-              retVal = Status.CANCELLED;
-              break;
-            }
-            progressIndex++;
-            if (progress != null && (progressIndex % 100) == 0) {
-              progress.setProgress(progressIndex);
-              progress.setNote(String.format(note, progressIndex, progressMax));
-            }
-
-            Graphics2D g = image.createGraphics();
-            try {
-              g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-              g.setColor(TRANSPARENT_COLOR);
-              g.fillRect(0, 0, image.getWidth(), image.getHeight());
-              g.drawImage(tileImages.get(tileIdx), 0, 0, null);
-            } finally {
-              g.dispose();
-              g = null;
-            }
-
-            int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-            if (ColorConvert.medianCut(pixels, 255, palette, true)) {
-              // filling palette
-              // first palette entry denotes transparency
-              tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
-              tilePalette[1] = (byte) 255;
-              for (int i = 1; i < 256; i++) {
-                tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
-                tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
-                tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
-                tilePalette[(i << 2) + 3] = 0;
-                colorCache.put(palette[i - 1], (byte) (i - 1));
-              }
-              // filling pixel data
-              for (int i = 0; i < tileData.length; i++) {
-                if ((pixels[i] & 0xff000000) == 0) {
-                  tileData[i] = 0;
-                } else {
-                  Byte palIndex = colorCache.get(pixels[i]);
-                  if (palIndex != null) {
-                    tileData[i] = (byte) (palIndex + 1);
-                  } else {
-                    byte color = (byte) ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
-                    tileData[i] = (byte) (color + 1);
-                    colorCache.put(pixels[i], color);
-                  }
-                }
-              }
-            } else {
-              retVal = Status.ERROR;
-              break;
-            }
-            bos.write(tilePalette);
-            bos.write(tileData);
-          }
-          image.flush();
-          image = null;
-          tileData = null;
-          tilePalette = null;
-          palette = null;
-        } catch (Exception e) {
-          retVal = Status.ERROR;
-          e.printStackTrace();
-        } finally {
-          if (progress != null) {
-            progress.close();
-            progress = null;
-          }
-        }
-        if (retVal != Status.SUCCESS && FileEx.create(output).isFile()) {
-          try {
-            Files.delete(output);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-    return retVal;
-  }
-
-  // Converts the current palette-based tileset into the new PVRZ-based variant.
-  public Status convertToPvrzTis(Path output, boolean showProgress) {
-    Status retVal = Status.ERROR;
-    if (output != null) {
-      try {
-        ProgressMonitor progress = null;
-        if (showProgress) {
-          progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Converting TIS...", "Preparing TIS", 0, 5);
-          progress.setMillisToDecideToPopup(0);
-          progress.setMillisToPopup(0);
-        }
-
-        // try to get associated WED resource
-        int numTiles = decoder.getTileCount();
-        String tisName = decoder.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH);
-        String wedName = tisName.replaceFirst("\\.TIS$", ".WED");
-        WedResource wed = null;
-        Overlay ovl = null;
-        try {
-          if (ResourceFactory.resourceExists(wedName)) {
-            wed = new WedResource(ResourceFactory.getResourceEntry(wedName));
-            if (wed != null) {
-              ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
-            }
-          }
-        } catch (Exception e) {
-          wed = null;
-          ovl = null;
-          e.printStackTrace();
-        }
-
-        try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(output))) {
-          // writing header data
-          byte[] header = new byte[24];
-          System.arraycopy("TIS V1  ".getBytes(), 0, header, 0, 8);
-          DynamicArray.putInt(header, 8, numTiles);
-          DynamicArray.putInt(header, 12, 0x0c);
-          DynamicArray.putInt(header, 16, 0x18);
-          DynamicArray.putInt(header, 20, 0x40);
-          bos.write(header);
-
-          // processing tiles
-          final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
-          final int pageDim = 16; // 16 tiles a 64x64 pixels
-          int tisWidth = 1;
-          if (ovl != null) {
-            tisWidth = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
-          }
-          int tisHeight = (numTiles + tisWidth - 1) / tisWidth;
-          int numTilesPrimary = numTiles;
-          if (ovl != null) {
-            tisWidth = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
-            tisHeight = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
-            numTilesPrimary = tisWidth * tisHeight;
-          }
-          boolean[] markedTiles = new boolean[numTiles];
-          Arrays.fill(markedTiles, false);
-          List<TileRect> listRegions = new ArrayList<>(256);
-
-          // divide primary tiles into regions
-          int pw = (tisWidth + pageDim - 1) / pageDim;
-          int ph = (tisHeight + pageDim - 1) / pageDim;
-          for (int py = 0; py < ph; py++) {
-            int y = py * pageDim;
-            int h = Math.min(pageDim, tisHeight - y);
-            for (int px = 0; px < pw; px++) {
-              int x = px * pageDim;
-              int w = Math.min(pageDim, tisWidth - x);
-
-              TileRect rect = new TileRect(x, y, w, h, tisWidth, numTiles, markedTiles);
-              listRegions.add(rect);
-            }
-          }
-
-          // defining additional regions from WED door structures
-          if (wed != null) {
-            int numDoors = ((IsNumeric) wed.getAttribute(WedResource.WED_NUM_DOORS)).getValue();
-            for (int doorIdx = 0; doorIdx < numDoors; doorIdx++) {
-              // for each door...
-              Door door = (Door) wed.getAttribute(Door.WED_DOOR + " " + doorIdx);
-              int numDoorTiles = ((IsNumeric) door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
-              if (numDoorTiles > 0) {
-                Point[] doorTiles = new Point[numDoorTiles];
-                Arrays.fill(doorTiles, null);
-                // getting actual tile indices
-                for (int doorTileIdx = 0; doorTileIdx < numDoorTiles; doorTileIdx++) {
-                  // for each door tilemap...
-                  Point p = new Point(); // x=tilemap, y=tilemap index
-                  int doorTile = ((IsNumeric) door.getAttribute(Door.WED_DOOR_TILEMAP_INDEX + " " + doorTileIdx))
-                      .getValue();
-                  p.x = doorTile;
-                  Tilemap tileMap = (Tilemap) ovl.getAttribute(Tilemap.WED_TILEMAP + " " + doorTile);
-                  // we need both primary and secondary tile index
-                  int index = ((IsNumeric) tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
-                  if (index > numTilesPrimary) {
-                    // found already!
-                    p.y = index;
-                    doorTiles[doorTileIdx] = p;
-                  } else {
-                    // processing another redirection for getting the primary tile index
-                    index = ((IsNumeric) tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
-                    if (index >= 0 && index < numTilesPrimary) {
-                      index = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_TILEMAP_INDEX + " " + index))
-                          .getValue();
-                      if (index > numTilesPrimary) {
-                        // found!
-                        p.y = index;
-                        doorTiles[doorTileIdx] = p;
-                      }
-                    }
-                  }
-                }
-
-                int left = Integer.MAX_VALUE, right = Integer.MIN_VALUE;
-                int top = Integer.MAX_VALUE, bottom = Integer.MIN_VALUE;
-                boolean initialized = false;
-                for (Point p : doorTiles) {
-                  if (p != null) {
-                    initialized = true;
-                    left = Math.min(p.x % tisWidth, left);
-                    right = Math.max(p.x % tisWidth, right);
-                    top = Math.min(p.x / tisWidth, top);
-                    bottom = Math.max(p.x / tisWidth, bottom);
-                  }
-                }
-                if (initialized) {
-                  // divide into regions in case door tile size exceeds max. texture size
-                  int doorWidth = right - left + 1;
-                  int doorHeight = bottom - top + 1;
-                  pw = (doorWidth + pageDim - 1) / pageDim;
-                  ph = (doorHeight + pageDim - 1) / pageDim;
-                  for (int py = 0; py < ph; py++) {
-                    int y = py * pageDim;
-                    int h = Math.min(pageDim, doorHeight - y);
-                    for (int px = 0; px < pw; px++) {
-                      int x = px * pageDim;
-                      int w = Math.min(pageDim, doorWidth - x);
-
-                      TileRect rect = new TileRect(w, h);
-                      for (Point p : doorTiles) {
-                        if (p != null) {
-                          int dx = (p.x % tisWidth) - left;
-                          int dy = (p.x / tisWidth) - top;
-                          if (dx >= x && dx < x + w && dy >= y && dy < y + h && rect.setMarked(dx, dy, p.y)) {
-                            markedTiles[p.y] = true;
-                          }
-                        }
-                      }
-                      listRegions.add(rect);
-                    }
-                  }
-                }
-              }
-            }
-
-            // handling remaining unmarked tiles
-            for (int idx = 0; idx < markedTiles.length; idx++) {
-              if (!markedTiles[idx]) {
-                TileRect rect = new TileRect(1, 1);
-                rect.setMarked(0, 0, idx);
-                listRegions.add(rect);
-              }
-            }
-          }
-
-          // packing tileset regions
-          List<ConvertToTis.TileEntry> entryList = new ArrayList<>(numTiles);
-          List<BinPack2D> pageList = new ArrayList<>();
-          for (TileRect rect : listRegions) {
-            Dimension space = new Dimension(rect.bounds);
-            int pageIndex = -1;
-            Rectangle rectMatch = null;
-            for (int idx = 0; idx < pageList.size(); idx++) {
-              BinPack2D packer = pageList.get(idx);
-              rectMatch = packer.insert(space.width, space.height, binPackRule);
-              if (rectMatch.height > 0) {
-                pageIndex = idx;
-                break;
-              }
-            }
-
-            // create new page?
-            if (pageIndex < 0) {
-              BinPack2D packer = new BinPack2D(pageDim, pageDim);
-              pageList.add(packer);
-              pageIndex = pageList.size() - 1;
-              rectMatch = packer.insert(space.width, space.height, binPackRule);
-            }
-
-            // registering tile entries
-            for (int idx = 0; idx < rect.indices.length; idx++) {
-              int x = rect.getX(idx);
-              int y = rect.getY(idx);
-              ConvertToTis.TileEntry entry;
-              if (rect.indices[idx] >= 0) {
-                entry = new ConvertToTis.TileEntry(rect.indices[idx], pageIndex, (rectMatch.x + x) * 64,
-                    (rectMatch.y + y) * 64);
-                entryList.add(entry);
-              }
-            }
-          }
-
-          // writing TIS entries
-          Collections.sort(entryList, ConvertToTis.TileEntry.CompareByIndex);
-          for (TileEntry entry : entryList) {
-            bos.write(DynamicArray.convertInt(entry.page));
-            bos.write(DynamicArray.convertInt(entry.x));
-            bos.write(DynamicArray.convertInt(entry.y));
-          }
-
-          // generating PVRZ files
-          retVal = writePvrzPages(output, pageList, entryList, progress);
-        } finally {
-          if (progress != null) {
-            progress.close();
-            progress = null;
-          }
-        }
-      } catch (Exception e) {
-        retVal = Status.ERROR;
-        e.printStackTrace();
-      }
-      if (retVal != Status.SUCCESS && FileEx.create(output).isFile()) {
-        try {
-          Files.delete(output);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return retVal;
-  }
-
-  // Converts the tileset into the PNG format.
-  public Status exportPNG(Path output, boolean showProgress) {
-    Status retVal = Status.ERROR;
-    if (output != null) {
-      if (tileImages != null && !tileImages.isEmpty()) {
-        int tilesX = tileGrid.getTileColumns();
-        int tilesY = tileGrid.getTileRows();
-        if (tilesX > 0 && tilesY > 0) {
-          BufferedImage image = null;
-          ProgressMonitor progress = null;
-          if (showProgress) {
-            progress = new ProgressMonitor(panel.getTopLevelAncestor(), "Exporting TIS to PNG...", "", 0, 2);
-            progress.setMillisToDecideToPopup(0);
-            progress.setMillisToPopup(0);
-            progress.setProgress(0);
-          }
-          image = ColorConvert.createCompatibleImage(tilesX * 64, tilesY * 64, Transparency.BITMASK);
-          Graphics2D g = image.createGraphics();
-          for (int idx = 0; idx < tileImages.size(); idx++) {
-            if (tileImages.get(idx) != null) {
-              int tx = idx % tilesX;
-              int ty = idx / tilesX;
-              g.drawImage(tileImages.get(idx), tx * 64, ty * 64, null);
-            }
-          }
-          g.dispose();
-
-          if (progress != null) {
-            progress.setProgress(1);
-          }
-          try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
-            if (ImageIO.write(image, "png", os)) {
-              retVal = Status.SUCCESS;
-            }
-          } catch (IOException e) {
-            retVal = Status.ERROR;
-            e.printStackTrace();
-          }
-          if (progress != null && progress.isCanceled()) {
-            retVal = Status.CANCELLED;
-          }
-          if (progress != null) {
-            progress.close();
-            progress = null;
-          }
-        }
-        if (retVal != Status.SUCCESS && FileEx.create(output).isFile()) {
-          try {
-            Files.delete(output);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-    return retVal;
-  }
-
   /**
-   * Attempts to retrieve the tileset width, in tiles, from the specified WED resource. Falls back to a value
-   * based on {@code defTileCount}, if WED information is not available.
+   * Performs the given operation in a background task.
    *
-   * @param wed           WED resource for this TIS.
-   * @param defTileCount  A an optional tile count that will be used to "guess" the correct number of tiles per row
-   *                      if WED information is no available.
-   * @return Number of tiles per row for the current TIS resource.
+   * @param operation Operation to perform as {@link Supplier} object.
+   * @return {@link SwingWorker} instance that is used to perform the background operation.
    */
-  private int calcTileWidth(WedResource wed, int defTileCount) {
-    int retVal = (defTileCount < 9) ? defTileCount : (int) (Math.sqrt(defTileCount) * 1.18);
-
-    if (wed != null) {
-      final Overlay ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
-      if (ovl != null) {
-        final int width = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
-        if (width > 0) {
-          retVal = width;
-        }
-      }
-    }
-
-    return retVal;
-  }
-
-  // Generates PVRZ files based on the current TIS resource and the specified parameters
-  private Status writePvrzPages(Path tisFile, List<BinPack2D> pageList, List<ConvertToTis.TileEntry> entryList,
-      ProgressMonitor progress) {
-    Status retVal = Status.SUCCESS;
-    DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    int dxtCode = 7; // PVR code for DXT1
-    byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
-    String note = "Generating PVRZ file %s / %s";
-    if (progress != null) {
-      progress.setMaximum(pageList.size() + 1);
-      progress.setProgress(1);
-    }
-
-    try {
-      for (int pageIdx = 0; pageIdx < pageList.size(); pageIdx++) {
-        if (progress != null) {
-          if (progress.isCanceled()) {
-            retVal = Status.CANCELLED;
-            return retVal;
-          }
-          progress.setProgress(pageIdx + 1);
-          progress.setNote(String.format(note, pageIdx + 1, pageList.size()));
-        }
-
-        Path pvrzFile = generatePvrzFileName(tisFile, pageIdx);
-        BinPack2D packer = pageList.get(pageIdx);
-        packer.shrinkBin(true);
-
-        // generating texture image
-        int w = packer.getBinWidth() * 64;
-        int h = packer.getBinHeight() * 64;
-        BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
-        Graphics2D g = texture.createGraphics();
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        try {
-          g.setBackground(new Color(0, true));
-          g.setColor(new Color(0, true));
-          g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-          for (final ConvertToTis.TileEntry entry : entryList) {
-            if (entry.page == pageIdx) {
-              Image tileImg = decoder.getTile(entry.tileIndex);
-              int dx = entry.x, dy = entry.y;
-              g.drawImage(tileImg, dx, dy, dx + 64, dy + 64, 0, 0, 64, 64, null);
-            }
-          }
-        } finally {
-          g.dispose();
-          g = null;
-        }
-
-        int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
-        try {
-          // compressing PVRZ
-          int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
-          DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType);
-          byte[] header = ConvertToPvrz.createPVRHeader(texture.getWidth(), texture.getHeight(), dxtCode);
-          byte[] pvrz = new byte[header.length + outSize];
-          System.arraycopy(header, 0, pvrz, 0, header.length);
-          System.arraycopy(output, 0, pvrz, header.length, outSize);
-          header = null;
-          pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
-
-          // writing PVRZ to disk
-          try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(pvrzFile))) {
-            bos.write(pvrz);
-          } catch (IOException e) {
-            retVal = Status.ERROR;
+  private SwingWorker<Status, Void> performBackgroundTask(Supplier<Status> operation) {
+    if (operation != null) {
+      blocker = new WindowBlocker(rpc);
+      blocker.setBlocked(true);
+      final SwingWorker<Status, Void> worker = new SwingWorker<Status, Void>() {
+        protected Status doInBackground() throws Exception {
+          Status retVal = Status.ERROR;
+          try {
+            retVal = operation.get();
+          } catch (Exception e) {
             e.printStackTrace();
-            return retVal;
           }
-          pvrz = null;
-        } catch (Exception e) {
-          retVal = Status.ERROR;
-          e.printStackTrace();
           return retVal;
         }
-      }
-    } finally {
-      // cleaning up
-      if (retVal != Status.SUCCESS) {
-        for (int i = 0; i < pageList.size(); i++) {
-          Path pvrzFile = generatePvrzFileName(tisFile, i);
-          if (pvrzFile != null && FileEx.create(pvrzFile).isFile()) {
-            try {
-              Files.delete(pvrzFile);
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      }
-    }
-    return retVal;
-  }
-
-  // Generates PVRZ filename with full path from the given parameters
-  private Path generatePvrzFileName(Path tisFile, int page) {
-    if (tisFile != null) {
-      Path path = tisFile.getParent();
-      String tisName = tisFile.getFileName().toString();
-      int extOfs = tisName.lastIndexOf('.');
-      if (extOfs > 0) {
-        tisName = tisName.substring(0, extOfs);
-      }
-      if (Pattern.matches(".{2,7}", tisName)) {
-        String pvrzName = String.format("%s%s%02d.PVRZ", tisName.substring(0, 1),
-            tisName.substring(2, tisName.length()), page);
-        return path.resolve(pvrzName);
-      }
+      };
+      workers.add(worker);
+      worker.addPropertyChangeListener(this);
+      worker.execute();
+      return worker;
     }
     return null;
-  }
-
-  // Returns true only if TIS filename can be used to generate PVRZ filenames from
-  public static boolean isTisFileNameValid(Path fileName) {
-    if (fileName != null) {
-      String name = fileName.getFileName().toString();
-      int extOfs = name.lastIndexOf('.');
-      if (extOfs >= 0) {
-        name = name.substring(0, extOfs);
-      }
-      return Pattern.matches(".{2,7}", name);
-    }
-    return false;
-  }
-
-  // Attempts to fix the specified filename to make it compatible with the naming scheme of TIS V2 files
-  public static Path makeTisFileNameValid(Path fileName) {
-    if (fileName != null && !isTisFileNameValid(fileName)) {
-      Path path = fileName.getParent();
-      String name = fileName.getFileName().toString();
-      String ext = "";
-      int extOfs = name.lastIndexOf('.');
-      if (extOfs >= 0) {
-        ext = name.substring(extOfs);
-        name = name.substring(0, extOfs);
-      }
-
-      boolean isNight = (Character.toUpperCase(name.charAt(name.length() - 1)) == 'N');
-      if (name.length() > 7) {
-        int numDelete = name.length() - 7;
-        int ofsDelete = name.length() - numDelete - (isNight ? 1 : 0);
-        name = name.substring(ofsDelete, numDelete);
-        return path.resolve(name);
-      } else if (name.length() < 2) {
-        String fmt, newName = null;
-        int maxNum;
-        switch (name.length()) {
-          case 0:
-            fmt = name + "%s02d";
-            maxNum = 99;
-            break;
-          default:
-            fmt = name + "%s01d";
-            maxNum = 9;
-            break;
-        }
-        for (int i = 0; i < maxNum; i++) {
-          String s = String.format(fmt, i) + (isNight ? "N" : "") + ext;
-          if (!ResourceFactory.resourceExists(s)) {
-            newName = s;
-            break;
-          }
-        }
-        if (newName != null) {
-          return path.resolve(newName);
-        }
-      }
-    }
-    return fileName;
-  }
-
-  /**
-   * Attempts to find and load the WED resource associated with the specified TIS resource.
-   *
-   * @param tisEntry  The TIS resource entry.
-   * @return          {@code WedResource} instance if successful, {@code null} otherwise.
-   */
-  public static WedResource loadWedForTis(ResourceEntry tisEntry) {
-    WedResource wed = null;
-
-    if (tisEntry != null) {
-      String tisBase = tisEntry.getResourceRef();
-      ResourceEntry wedEntry = null;
-      while (tisBase.length() >= 6) {
-        String wedName = tisBase + ".WED";
-        wedEntry = ResourceFactory.getResourceEntry(wedName);
-        if (wedEntry != null) {
-          break;
-        } else {
-          tisBase = tisBase.substring(0,  tisBase.length() - 1);
-        }
-      }
-
-      if (wedEntry != null) {
-        try {
-          wed = new WedResource(wedEntry);
-        } catch (Exception e) {
-        }
-      }
-    }
-
-    return wed;
-  }
-
-  /**
-   * Attempts to calculate the TIS width from an associated WED file.
-   *
-   * @param entry     The TIS resource entry.
-   * @param tileCount An optional tile count that will be used to "guess" the correct number of tiles per row if no
-   *                  associated WED resource has been found.
-   * @return The number of tiles per row for the specified TIS resource.
-   */
-  public static int calcTileWidth(ResourceEntry entry, int tileCount) {
-    // Try to fetch the correct width from an associated WED if available
-    if (entry != null) {
-      try {
-        String tisNameBase = entry.getResourceRef();
-        ResourceEntry wedEntry = null;
-        while (tisNameBase.length() >= 6) {
-          String wedFileName = tisNameBase + ".WED";
-          wedEntry = ResourceFactory.getResourceEntry(wedFileName);
-          if (wedEntry != null) {
-            break;
-          } else {
-            tisNameBase = tisNameBase.substring(0, tisNameBase.length() - 1);
-          }
-        }
-        if (wedEntry != null) {
-          ByteBuffer wed = wedEntry.getResourceBuffer();
-          if (wed != null) {
-            String sig = StreamUtils.readString(wed, 0, 8);
-            if (sig.equals("WED V1.3")) {
-              final int sizeOvl = 0x18;
-              int numOvl = wed.getInt(8);
-              int ofsOvl = wed.getInt(16);
-              for (int i = 0; i < numOvl; i++) {
-                int ofs = ofsOvl + i * sizeOvl;
-                String tisName = StreamUtils.readString(wed, ofs + 4, 8);
-                if (tisName.equalsIgnoreCase(tisNameBase)) {
-                  int width = wed.getShort(ofs);
-                  if (width > 0) {
-                    return width;
-                  }
-                }
-              }
-            }
-          }
-        }
-      } catch (Exception e) {
-      }
-    }
-    // If WED is not available: approximate the most commonly used aspect ratio found in TIS files
-    // Disadvantage: does not take extra tiles into account
-    return (tileCount < 9) ? tileCount : (int) (Math.sqrt(tileCount) * 1.18);
   }
 
   // Calculates a Dimension structure with the correct number of columns and rows from the specified arguments
@@ -1461,20 +774,6 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       return new Dimension(colSize, Math.max(1, rowSize));
     }
     return null;
-  }
-
-  /** Returns whether the specified PVRZ index can be found in the current TIS resource. */
-  public boolean containsPvrzReference(int index) {
-    boolean retVal = false;
-    if (index >= 0 && index <= 99) {
-      if (decoder instanceof TisV2Decoder) {
-        TisV2Decoder tisv2 = (TisV2Decoder) decoder;
-        for (int i = 0, count = tisv2.getTileCount(); i < count && !retVal; i++) {
-          retVal = (tisv2.getPvrzPage(i) == index);
-        }
-      }
-    }
-    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------
@@ -1513,68 +812,1371 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     }
   }
 
-  // Tracks regions of tiles used for the tile -> pvrz packing algorithm
-  private static class TileRect {
-    private Dimension bounds;
-    private int[] indices;
+  /**
+   * This class implements a customizable tileset preview.
+   */
+  private static class TisPreview {
+    /** Default size of a preview tile, in pixels. */
+    public static final int DEF_TILE_SIZE = 4;
 
-    /** Creates an empty TileRect structure. */
-    TileRect(int width, int height) {
-      width = Math.max(1, width);
-      height = Math.max(1, height);
-      bounds = new Dimension(width, height);
-      indices = new int[width * height];
-      Arrays.fill(indices, -1);
+    /** Default color of the splitter bar. */
+    public static final Color DEF_SPLIT_COLOR = Color.RED;
+
+    /** Default interpolation mode for creating preview tiles. */
+    private static final Object DEF_INTERPOLATION = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+
+    /** Max. number of cached image entries to retain. */
+    private static final int CACHE_SIZE_MAX = 32;
+
+    private final LinkedList<Couple<Dimension, BufferedImage>> imageCache = new LinkedList<>();
+
+    private final List<int[]> tiles = new ArrayList<>();
+
+    private final TisDecoder decoder;
+
+    private int tileSize;
+    private Color splitColor;
+    private Object renderingHints;
+
+    /**
+     * Creates a tileset preview with the following defaults:
+     * <ul>
+     * <li>Tile size: {@link #DEF_TILE_SIZE} pixels</li>
+     * <li>Split Color: Red</li>
+     * <li>Interpolation: Bilinear</li>
+     * </ul>
+     *
+     * @param decoder {@link TisDecoder} instance with tile information.
+     * @throws Exception If preview tiles could not be created.
+     */
+    public TisPreview(TisDecoder decoder) throws Exception {
+      this(decoder, DEF_TILE_SIZE, null, null);
     }
 
-    /** Automatically fills the TileRect structure with valid tile indices. */
-    TileRect(int left, int top, int width, int height, int rowLength, int numTiles, boolean[] markedTiles) {
-      left = Math.max(0, left);
-      top = Math.max(0, top);
+    /**
+     * Creates a tileset preview.
+     *
+     * @param decoder        {@link TisDecoder} instance with tile information.
+     * @param tileSize       Size of the preview tiles, in pixels.
+     * @param splitColor     Color of the splitter that separates primary tiles from secondary tiles.
+     * @param renderingHints Interpolation mode used for createing preview tiles.
+     * @throws Exception If preview tiles could not be created.
+     */
+    public TisPreview(TisDecoder decoder, int tileSize, Color splitColor, Object renderingHints)
+        throws Exception {
+      this.decoder = Objects.requireNonNull(decoder);
+      this.tileSize = Math.max(1, Math.min(64, tileSize));
+      this.splitColor = (splitColor != null) ? splitColor : DEF_SPLIT_COLOR;
+      this.renderingHints = validateRenderingHints(renderingHints);
+      init();
+    }
+
+    /** Returns the associated {@link TisDecoder} instance. */
+    public TisDecoder getDecoder() {
+      return decoder;
+    }
+
+    /** Returns the preview tile size, in pixels. */
+    public int getTileSize() {
+      return tileSize;
+    }
+
+    /** Sets the preview tile size, in pixels. Forces the preview tiles to be recreated. */
+    public TisPreview setTileSize(int tileSize) throws Exception {
+      tileSize = Math.max(1, Math.min(64, tileSize));
+      if (tileSize != this.tileSize) {
+        this.tileSize = tileSize;
+        init();
+      }
+      return this;
+    }
+
+    /** Returns the color of the splitter that separates the primary tile region from secondary tiles. */
+    public Color getSplitColor() {
+      return splitColor;
+    }
+
+//    /** Sets the color of the splitter that separates the primary tile region from secondary tiles. Default: RED */
+//    public TisPreview setSplitColor(Color splitColor) {
+//      this.splitColor = (splitColor != null) ? splitColor : DEF_SPLIT_COLOR;
+//      return this;
+//    }
+
+    /** Returns the interpolation mode used for preview tile creation. */
+    public Object getRenderingHints() {
+      return renderingHints;
+    }
+
+//    /** Sets the interpolation mode for preview tile creation. Forces the preview tiles to be recreated. */
+//    public TisPreview setRenderingHints(Object renderingHints) throws Exception {
+//      renderingHints = validateRenderingHints(renderingHints);
+//      if (renderingHints != this.renderingHints) {
+//        this.renderingHints = renderingHints;
+//        init();
+//      }
+//      return this;
+//    }
+
+    /**
+     * Returns a {@code BufferedImage} instance with the tileset laid out with the specified dimension.
+     *
+     * @param width Tileset width, in # tiles.
+     * @param height Tileset height, in # tiles.
+     * @return A {@link BufferedImage} object with the tileset representation.
+     */
+    public BufferedImage get(int width, int height) {
+      final int tilesPerRow = Math.max(1, Math.min(getDecoder().getTileCount(), width));
+      final int numRows = (getDecoder().getTileCount() + tilesPerRow - 1) / tilesPerRow;
+      final int splitPos = (height < numRows) ? Math.max(0, height) : -1; // y position of the splitter bar
+      final BufferedImage image = createImage(tilesPerRow, numRows);
+      final int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+
+      // rendering tiles according to given parameters
+      final int pixelsPerRow = tilesPerRow * tileSize;
+      for (int y = 0; y < numRows; y++) {
+        for (int x = 0; x < tilesPerRow; x++) {
+          int tileIdx = y * tilesPerRow + x;
+          if (tileIdx < tiles.size()) {
+            final int[] block = tiles.get(tileIdx);
+            for (int srcOfs = 0, dstOfs = (y * pixelsPerRow + x) * tileSize, dy = 0;
+                dy < tileSize;
+                srcOfs += tileSize, dstOfs += pixelsPerRow, dy++) {
+              for (int dx = 0; dx < tileSize; dx++) {
+                buffer[dstOfs + dx] = block[srcOfs + dx];
+              }
+            }
+          }
+        }
+      }
+
+      // rendering splitter
+      if (splitPos >= 0) {
+        final int ofs = splitPos * pixelsPerRow * tileSize;
+        final int len = pixelsPerRow;
+        final int colVal = (getSplitColor().getRGB() & 0x00ffffff) | 0xa0000000;  // reduce alpha by 25 percent
+        Arrays.fill(buffer, ofs, ofs + len, colVal);
+      }
+
+      return image;
+    }
+
+    /**
+     * Returns a {@code BufferedImage} object matching the given parameters.
+     *
+     * @param width Number of tiles per row.
+     * @param height Number of tile rows.
+     * @return A new {@link BufferedImage} object.
+     */
+    private BufferedImage createImage(int width, int height) {
+      BufferedImage retVal = null;
+
       width = Math.max(1, width);
       height = Math.max(1, height);
-      rowLength = Math.max(width, rowLength);
-      bounds = new Dimension(width, height);
-      indices = new int[width * height];
-      for (int by = 0; by < height; by++) {
-        int idx = by * width;
-        int ofs = (top + by) * rowLength;
-        for (int bx = 0; bx < width; bx++) {
-          int tileIdx = ofs + left + bx;
-          if (tileIdx < numTiles) {
-            indices[idx + bx] = tileIdx;
-            if (tileIdx < markedTiles.length) {
-              markedTiles[tileIdx] = true;
-            }
-          } else {
-            indices[idx + bx] = -1;
+      final int imageWidth = width * tileSize;
+      final int imageHeight = height * tileSize;
+      final Dimension dim = new Dimension(imageWidth, imageHeight);
+      Couple<Dimension, BufferedImage> entry =
+          imageCache.stream().filter(c -> c.getValue0().equals(dim)).findFirst().orElse(null);
+      if (entry != null) {
+        retVal = entry.getValue1();
+        // update cache position
+        imageCache.remove(entry);
+        imageCache.addLast(entry);
+      } else {
+        retVal = ColorConvert.createCompatibleImage(imageWidth, imageHeight, true);
+        entry = new Couple<Dimension, BufferedImage>(dim, retVal);
+        imageCache.addLast(entry);
+        // trimming cache
+        if (imageCache.size() > CACHE_SIZE_MAX) {
+          imageCache.removeFirst();
+        }
+      }
+
+      // clearing image content
+      final Graphics2D g = retVal.createGraphics();
+      try {
+        g.setComposite(AlphaComposite.Src);
+        g.setColor(ColorConvert.TRANSPARENT_COLOR);
+        g.fillRect(0, 0, retVal.getWidth(), retVal.getHeight());
+      } finally {
+        g.dispose();
+      }
+
+      return retVal;
+    }
+
+    /** Creates preview tiles from the tileset. */
+    private void init() throws Exception {
+      tiles.clear();
+
+      final AffineTransform xform = AffineTransform.getScaleInstance(tileSize / 64.0, tileSize / 64.0);
+      final BufferedImage tileImg = ColorConvert.createCompatibleImage(64, 64, true);
+
+      for (int idx = 0, size = getDecoder().getTileCount(); idx < size; idx++) {
+        getDecoder().getTile(idx, tileImg);
+
+        // rendering downscaled preview tile
+        final BufferedImage previewImg = ColorConvert.createCompatibleImage(tileSize, tileSize, true);
+        final Graphics2D g = previewImg.createGraphics();
+        try {
+          g.setComposite(AlphaComposite.Src);
+          g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, getRenderingHints());
+          g.drawImage(tileImg, xform, null);
+        } finally {
+          g.dispose();
+        }
+
+        // storing preview tile data
+        final int[] buf = ((DataBufferInt) previewImg.getRaster().getDataBuffer()).getData();
+        tiles.add(Arrays.copyOf(buf, buf.length));
+      }
+    }
+
+    /** Ensures that only interpolation hints are returned. */
+    private Object validateRenderingHints(Object renderingHints) {
+      if (renderingHints != RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR &&
+          renderingHints != RenderingHints.VALUE_INTERPOLATION_BILINEAR &&
+          renderingHints != RenderingHints.VALUE_INTERPOLATION_BICUBIC) {
+        renderingHints = DEF_INTERPOLATION;
+      }
+      return renderingHints;
+    }
+  }
+
+  /**
+   * Provides a dialog with options to customize tileset conversion settings.
+   */
+  private static class ConvertTisDialog extends JDialog {
+    private static final String BORDER_SIZE_LABEL_FMT     = "%d pixel(s)";
+    private static final String SEGMENT_SIZE_LABEL_FMT    = "%d pixels";
+    private static final String PVRZ_BASE_INDEX_LABEL_FMT = "%d";
+    private static final String TILES_PER_ROW_LABEL_FMT   = "%d tile(s)";
+    private static final String ROW_COUNT_LABEL_FMT       = "%d row(s)";
+
+    private final Listeners listeners = new Listeners();
+    private final HashMap<Component, String> helpMap = new HashMap<>();
+
+    private final TisResource tis;
+    private final ResourceEntry wedEntry;
+
+    // set to true only if the dialog is closed by clicking on "OK"
+    private boolean accepted;
+
+    private int defaultTisWidth;
+    private int defaultTisHeight;
+    private int overlayMovementType;
+
+    private JLabel lTisFileLabel;
+    private JLabel lBorderSizeLabel;
+    private JLabel lBorderSize;
+    private JLabel lSegmentSizeLabel;
+    private JLabel lSegmentSize;
+    private JLabel lPvrzBaseIndexLabel;
+    private JLabel lPvrzBaseIndex;
+    private JLabel lOverlayModeLabel;
+    private JLabel lTilesPerRowLabel;
+    private JLabel lTilesPerRow;
+    private JLabel lNumRowsLabel;
+    private JLabel lNumRows;
+    private JLabel lPreviewImageLabel;
+    private JLabel lPreviewImage;
+    private JLabel lPreviewImageZoomLabel;
+    private JLabel lHelpLabel;
+    private JButton bPreviewReset;
+    private JButton bOk;
+    private JButton bCancel;
+    private JButton bTisFile;
+    private JCheckBox cbRemoveBlack;
+    private JCheckBox cbMultithreaded;
+    private JRadioButton rbAuto;
+    private JRadioButton rbManual;
+    private JTextField tfTisFile;
+    private JTextArea taHelp;
+    private JSlider sBorderSize;
+    private JSlider sSegmentSize;
+    private JSlider sPvrzBaseIndex;
+    private JSlider sTilesPerRow;
+    private JSlider sNumRows;
+    private JComboBox<DataString<TisConvert.OverlayConversion>> cbOverlayMode;
+    private JComboBox<DataString<Integer>> cbPreviewImageZoom;
+    private JPanel panelSubAuto;
+    private JPanel panelSubManual;
+    private TisPreview tisPreview;
+    private JScrollPane spPreviewImage;
+    private JScrollPane spHelp;
+
+    /**
+     * Opens a modal dialog and returns a TIS configuration.
+     *
+     * @param owner   Parent {@link Window} for the dialog.
+     * @param decoder {@link TisDecoder} of the source tileset.
+     * @return An initialized {@link TisConvert.Config} object if the user accepts the conversion options. Returns
+     *         {@code null} if the user cancels the operation.
+     */
+    public static TisConvert.Config show(Component owner, TisResource tis) {
+      Window window = SwingUtilities.getWindowAncestor(owner);
+      if (window == null) {
+        window = NearInfinity.getInstance();
+      }
+
+      TisConvert.Config retVal = null;
+      ConvertTisDialog dlg = null;
+      try {
+        dlg = new ConvertTisDialog(window, tis);
+        dlg.setVisible(true);
+        retVal = dlg.getConfig();
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        if (dlg != null) {
+          dlg.dispose();
+          dlg = null;
+        }
+      }
+
+      return retVal;
+    }
+
+    private ConvertTisDialog(Window owner, TisResource tis) {
+      super(owner, Dialog.ModalityType.APPLICATION_MODAL);
+      this.tis = Objects.requireNonNull(tis);
+      this.wedEntry = TisConvert.findWed(tis.entry, true);
+      init();
+    }
+
+    /**
+     * Returns a {@link TisConvert.Config} object initialized with the current dialog settings.
+     * Returns {@code null} if setting are invalid or the user cancelled the dialog.
+     */
+    private TisConvert.Config getConfig() {
+      TisConvert.Config retVal = null;
+      if (!accepted) {
+        return retVal;
+      }
+
+      try {
+        final TisDecoder decoder = tis.getDecoder();
+        final Path tisFile = getTisPath();
+        final List<Image> tileList = getTileList();
+        final int tilesPerRow = getTilesPerRow();
+        final int rowCount = getRowCount();
+        final int textureSize = TisConvert.Config.MAX_TEXTURE_SIZE;
+        final int pvrzBaseIndex = getPvrzBaseIndex();
+        final boolean detectBlack = isDetectBlack();
+        final boolean multithreaded = isMultithreaded();
+        final int borderSize = getBorderSize();
+        final int segmentSize = getSegmentSize();
+        final TisConvert.OverlayConversion convert = getOverlayConversionMode();
+
+        if (decoder instanceof TisV1Decoder) {
+          retVal = TisConvert.Config.createConfigPvrz(tisFile, decoder, wedEntry, tilesPerRow, rowCount, textureSize,
+              pvrzBaseIndex, borderSize, segmentSize, detectBlack, multithreaded, convert);
+        } else if (decoder instanceof TisV2Decoder) {
+          retVal = TisConvert.Config.createConfigPalette(tisFile, tileList, decoder, wedEntry, convert);
+        } else {
+          throw new Exception("Conversion not supported");
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      return retVal;
+    }
+
+    private void init() {
+      // initializing common components
+      final boolean isTisV1 = tis.decoder instanceof TisV1Decoder;
+
+      // dialog help
+      final String helpHelp = "Hover the mouse cursor over the dialog elements for help.";
+      lHelpLabel = new JLabel("Help:");
+      lHelpLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lHelpLabel, helpHelp);
+
+      final int taCols = isTisV1 ? 50 : 30;
+      taHelp = new JTextArea(helpHelp, 3, taCols);
+      taHelp.setEditable(false);
+      taHelp.setLineWrap(true);
+      taHelp.setWrapStyleWord(true);
+      taHelp.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(taHelp, helpHelp);
+
+      spHelp = new JScrollPane(taHelp, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+          JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+      spHelp.setMinimumSize(spHelp.getPreferredSize());
+
+      // TIS output file
+      final String helpTisFile = "Path of the output TIS file.";
+      lTisFileLabel = new JLabel("TIS Output:");
+      lTisFileLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lTisFileLabel, helpTisFile);
+
+      tfTisFile = new JTextField();
+      try {
+        tfTisFile.setText(Profile.getGameRoot().resolve(tis.entry.getResourceName()).toString());
+      } catch (InvalidPathException ex) {
+      }
+      tfTisFile.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(tfTisFile, helpTisFile);
+
+      bTisFile = new JButton("Choose...");
+      bTisFile.setMnemonic(KeyEvent.VK_C);
+      bTisFile.addMouseMotionListener(listeners.mouseMotion);
+      bTisFile.addActionListener(listeners.actionTisFile);
+      helpMap.put(bTisFile, helpTisFile);
+
+      // overlay conversion modes
+      final String helpOverlayMode = "Select an overlay conversion mode to correctly convert overlay tiles from one "
+          + "game to another.";
+      lOverlayModeLabel = new JLabel("Overlay conversion:");
+      lOverlayModeLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lOverlayModeLabel, helpOverlayMode);
+
+      // initializing overlay mode combobox
+      cbOverlayMode = initOverlayModeComboBox(true);
+      cbOverlayMode.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(cbOverlayMode, helpOverlayMode);
+
+      bCancel = new JButton("Cancel");
+      bCancel.addActionListener(listeners.actionCancel);
+
+      bOk = new JButton("OK");
+      bOk.addActionListener(listeners.actionOk);
+      bOk.setPreferredSize(new Dimension(bCancel.getPreferredSize()));  // buttons should have same size
+
+      // conversion-specific initializations
+      if (isTisV1) {
+        initPvrz();
+        setTitle("Convert Tileset: Palette -> PVRZ");
+      } else {
+        initPalette();
+        setTitle("Convert Tileset: PVRZ -> Palette");
+      }
+
+      // continuing common initializations
+      pack();
+      setMinimumSize(getPreferredSize());
+      setLocationRelativeTo(getParent());
+      bOk.requestFocus();
+
+      // default action for ENTER key
+      setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+      getRootPane().setDefaultButton(bOk);
+
+      // default action for ESCAPE key
+      getRootPane().registerKeyboardAction(listeners.actionCancel, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+          JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+      addWindowListener(listeners.windowDialog);
+    }
+
+    private void initPalette() {
+      // laying out components on dialog
+      final GridBagConstraints c = new GridBagConstraints();
+
+      // top panel (tis file)
+      final JPanel panelTop = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelTop.add(lTisFileLabel, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelTop.add(tfTisFile, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelTop.add(bTisFile, c);
+
+      // sub-panel for overlay conversion
+      final JPanel panelSubOverlay = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubOverlay.add(lOverlayModeLabel, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelSubOverlay.add(cbOverlayMode, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelSubOverlay.add(new JPanel(), c);
+
+      // help panel
+      final JPanel panelHelp = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelHelp.add(lHelpLabel, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelHelp.add(spHelp, c);
+
+      // button panel
+      final JPanel panelButtons = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(new JPanel(), c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelButtons.add(bOk, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(bCancel, c);
+
+      // putting all together
+      final JPanel panelMain = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 0, 8), 0, 0);
+      panelMain.add(panelTop, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(16, 8, 0, 8), 0, 0);
+      panelMain.add(panelSubOverlay, c);
+      ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(16, 8, 0, 8), 0, 0);
+      panelMain.add(panelHelp, c);
+      ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 8, 8), 0, 0);
+      panelMain.add(panelButtons, c);
+
+      getContentPane().setLayout(new BorderLayout());
+      getContentPane().add(panelMain, BorderLayout.CENTER);
+
+    }
+
+    private void initPvrz() {
+      // initializing relevant WED information
+      final WedResource wed = TisConvert.loadWedForTis(tis.entry, true);
+      if (wed != null) {
+        final Overlay ovl = (Overlay) wed.getAttribute(Overlay.WED_OVERLAY + " 0");
+        if (ovl != null) {
+          defaultTisWidth = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+          defaultTisHeight = ((IsNumeric) ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+          final StructEntry se = ovl.getAttribute(Overlay.WED_OVERLAY_MOVEMENT_TYPE);
+          if (se != null) {
+            overlayMovementType = ((IsNumeric) se).getValue();
           }
+        }
+      }
+
+      // border size
+      final String helpBorderSize = "Number of pixels to consider from surrounding tiles on PVRZ textures to prevent "
+          + "visual artifacts. Recommended: " + TisConvert.Config.DEFAULT_BORDER_SIZE + " pixels.";
+      lBorderSizeLabel = new JLabel("Border Size:");
+      lBorderSizeLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lBorderSizeLabel, helpBorderSize);
+
+      sBorderSize = new JSlider(0, TisConvert.Config.TILE_SIZE, TisConvert.Config.DEFAULT_BORDER_SIZE);
+      sBorderSize.addMouseMotionListener(listeners.mouseMotion);
+      sBorderSize.addChangeListener(listeners.changeBorderSize);
+      helpMap.put(sBorderSize, helpBorderSize);
+
+      lBorderSize = new JLabel(String.format(BORDER_SIZE_LABEL_FMT, sBorderSize.getValue()));
+      lBorderSize.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lBorderSize, helpBorderSize);
+
+      // segment size
+      final String helpSegmentSize = "Defines the max. size of contiguous blocks of secondary tiles that are placed on "
+          + "PVRZ textures. Smaller sizes may reduce the number of generated PVRZ textures but increase fragmentation. "
+          + "Recommended: 256 or 512 pixels.";
+      lSegmentSizeLabel = new JLabel("Segment Size:");
+      lSegmentSizeLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lSegmentSizeLabel, helpSegmentSize);
+
+      sSegmentSize = new JSlider(6, 10, 9); // 64 (1 << 6) to 1024 (1 << 10)
+      sSegmentSize.addMouseMotionListener(listeners.mouseMotion);
+      sSegmentSize.addChangeListener(listeners.changeSegmentSize);
+      helpMap.put(sSegmentSize, helpSegmentSize);
+
+      lSegmentSize = new JLabel(String.format(SEGMENT_SIZE_LABEL_FMT, getSegmentSize()));
+      lSegmentSize.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lSegmentSize, helpSegmentSize);
+
+      // pvrz base index
+      final String helpPvrzBaseIndex = "Defines the start value for page numbers used by the PVRZ filename scheme "
+          + "(e.g. A260000.PVRZ for index=0, A260013.PVRZ for index=13.) Adjust only to avoid overlapping PVRZ "
+          + "filenames from other TIS files. Default value: 0";
+      lPvrzBaseIndexLabel = new JLabel("PVRZ Base Index:");
+      lPvrzBaseIndexLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lPvrzBaseIndexLabel, helpPvrzBaseIndex);
+
+      sPvrzBaseIndex = new JSlider(0, 99, 0);
+      sPvrzBaseIndex.addMouseMotionListener(listeners.mouseMotion);
+      sPvrzBaseIndex.addChangeListener(listeners.changePvrzBaseIndex);
+      helpMap.put(sPvrzBaseIndex, helpPvrzBaseIndex);
+
+      lPvrzBaseIndex = new JLabel(String.format(PVRZ_BASE_INDEX_LABEL_FMT, getPvrzBaseIndex()));
+      lPvrzBaseIndex.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lPvrzBaseIndex, helpPvrzBaseIndex);
+
+      // remove black tiles
+      final String helpRemoveBlack = "When this option is selected then solid black tiles will be replaced by a global "
+          + "default which can reduce the number of generated PVRZ textures.";
+      cbRemoveBlack = new JCheckBox("Optimize black tiles", true);
+      cbRemoveBlack.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(cbRemoveBlack, helpRemoveBlack);
+
+      // multithreaded
+      final String helpMultithreaded = "Specifies whether to speed up PVRZ texture encoding by using multiple threads "
+          + "of execution.";
+      final int numCores = Runtime.getRuntime().availableProcessors();
+      cbMultithreaded = new JCheckBox("Multithreaded", numCores > 2);
+      cbMultithreaded.setEnabled(numCores > 1);
+      cbMultithreaded.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(cbMultithreaded, helpMultithreaded);
+
+      // radio buttons
+      final ButtonGroup buttonGroup = new ButtonGroup();
+      final String helpRadioAuto = "Automatically configures tileset parameters based on WED information. "
+          + "This mode is only available if an associated WED resource exists.";
+      rbAuto = new JRadioButton("Automatic (recommended)");
+      rbAuto.setMnemonic(KeyEvent.VK_A);
+      rbAuto.setEnabled(wedEntry != null);
+      rbAuto.addMouseMotionListener(listeners.mouseMotion);
+      rbAuto.addItemListener(listeners.itemAuto);
+      helpMap.put(rbAuto, helpRadioAuto);
+      buttonGroup.add(rbAuto);
+
+      final String helpRadioManual = "Manual customization of tileset parameters. This is the only choice if no "
+          + "associated WED resource could be determined. This mode does not prevent visual artifacts around secondary "
+          + "tiles.";
+      rbManual = new JRadioButton("Manual");
+      rbManual.setMnemonic(KeyEvent.VK_M);
+      rbManual.addMouseMotionListener(listeners.mouseMotion);
+      rbManual.addItemListener(listeners.itemManual);
+      helpMap.put(rbManual, helpRadioManual);
+      buttonGroup.add(rbManual);
+
+      // tiles per row
+      final String helpTilesPerRow = "Defines the width of the tileset, in tiles. An incorrect width will create a "
+          + "distorted tileset layout which increases the likelihood of visual artifacts with PVRZ-based tilesets.";
+      lTilesPerRowLabel = new JLabel("Tiles per Row:");
+      lTilesPerRowLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lTilesPerRowLabel, helpTilesPerRow);
+
+      sTilesPerRow = new JSlider(1, tis.decoder.getTileCount());
+      sTilesPerRow.setValue(Math.max(1, Math.min(tis.decoder.getTileCount(), tis.slCols.getValue())));
+      sTilesPerRow.addMouseMotionListener(listeners.mouseMotion);
+      sTilesPerRow.addChangeListener(listeners.changeTilesPerRow);
+      helpMap.put(sTilesPerRow, helpTilesPerRow);
+
+      lTilesPerRow = new JLabel(String.format(TILES_PER_ROW_LABEL_FMT, sTilesPerRow.getValue()));
+      lTilesPerRow.setPreferredSize(new Dimension(bTisFile.getPreferredSize().width, lTilesPerRow.getPreferredSize().height));
+      lTilesPerRow.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lTilesPerRow, helpTilesPerRow);
+
+      // tileset height
+      final String helpNumRows = "Defines the height of the tileset, in tiles. All tiles exceeding the amount of "
+          + "'Tiles Per Row' x 'Tileset Height' are treated as secondary tiles.";
+      lNumRowsLabel = new JLabel("Tileset Height:");
+      lNumRowsLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lNumRowsLabel, helpNumRows);
+
+      sNumRows = new JSlider(1, tis.decoder.getTileCount() / sTilesPerRow.getValue());
+      sNumRows.setValue((defaultTisHeight > 0) ? defaultTisHeight : sNumRows.getMaximum());
+      sNumRows.addMouseMotionListener(listeners.mouseMotion);
+      sNumRows.addChangeListener(listeners.changeNumRows);
+      helpMap.put(sNumRows, helpNumRows);
+
+      lNumRows = new JLabel(String.format(ROW_COUNT_LABEL_FMT, sNumRows.getValue()));
+      lNumRows.setPreferredSize(new Dimension(bTisFile.getPreferredSize().width, lTilesPerRow.getPreferredSize().height));
+      lNumRows.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lNumRows, helpNumRows);
+
+      // tileset preview
+      final String helpPreviewImage = "A visual representation of the tileset layout to help setting the right width "
+          + "and height parameters.";
+      lPreviewImageLabel = new JLabel("Tileset Preview:");
+      lPreviewImageLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lPreviewImageLabel, helpPreviewImage);
+
+      try {
+        tisPreview = new TisPreview(tis.decoder);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      final int previewWidth = sTilesPerRow.getValue();
+      final int previewHeight = sNumRows.getValue();
+      lPreviewImage = new JLabel(new ImageIcon(tisPreview.get(previewWidth, previewHeight)));
+      lPreviewImage.setHorizontalAlignment(SwingConstants.LEFT);
+      lPreviewImage.setVerticalAlignment(SwingConstants.TOP);
+      lPreviewImage.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lPreviewImage, helpPreviewImage);
+
+      spPreviewImage = new JScrollPane(lPreviewImage, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+          JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      spPreviewImage.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+      spPreviewImage.getHorizontalScrollBar().setUnitIncrement(16);
+      spPreviewImage.getVerticalScrollBar().setUnitIncrement(16);
+      // setting default preview dimension
+      if (defaultTisWidth > 0 && defaultTisHeight > 0) {
+        final int width = defaultTisWidth * tisPreview.getTileSize();
+        final int height = ((tis.decoder.getTileCount() + defaultTisWidth - 1) / defaultTisWidth) * tisPreview.getTileSize();
+        spPreviewImage.setPreferredSize(new Dimension(width + 2, height + 2));
+      } else {
+        final int tisWidth = Math.min(80, previewWidth) * tisPreview.getTileSize();
+        final int height = (tis.decoder.getTileCount() + previewWidth - 1) / previewWidth;
+        final int tisHeight = Math.min(60, height) * tisPreview.getTileSize();
+        spPreviewImage.setPreferredSize(new Dimension(tisWidth + 2, tisHeight + 2));
+      }
+
+      bPreviewReset = new JButton("Reset");
+      bPreviewReset.setEnabled(defaultTisHeight > 0);
+      bPreviewReset.setToolTipText("Click to reset tileset dimensions");
+      bPreviewReset.addMouseMotionListener(listeners.mouseMotion);
+      bPreviewReset.addActionListener(listeners.actionPreviewReset);
+      helpMap.put(bPreviewReset, helpPreviewImage);
+
+      lPreviewImageZoomLabel = new JLabel("Zoom:");
+      lPreviewImageZoomLabel.addMouseMotionListener(listeners.mouseMotion);
+      helpMap.put(lPreviewImageZoomLabel, helpPreviewImage);
+
+      final Vector<DataString<Integer>> previewImageZoomValues = new Vector<>();
+      for (final int zoom : new int[] {1, 2, 3, 4, 6, 8, 12, 16}) {
+        previewImageZoomValues.add(new DataString<Integer>(String.format("%dx", zoom), zoom));
+      }
+      cbPreviewImageZoom = new JComboBox<DataString<Integer>>(previewImageZoomValues);
+      cbPreviewImageZoom.setSelectedIndex(getPreviewZoomIndex(tisPreview.getTileSize(), 2));
+      cbPreviewImageZoom.addMouseMotionListener(listeners.mouseMotion);
+      cbPreviewImageZoom.addItemListener(listeners.itemPreviewImageZoom);
+      helpMap.put(cbPreviewImageZoom, helpPreviewImage);
+
+      // laying out components on dialog
+      final GridBagConstraints c = new GridBagConstraints();
+
+      // top panel (tis file, border size)
+      final JPanel panelTop = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelTop.add(lTisFileLabel, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelTop.add(tfTisFile, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelTop.add(bTisFile, c);
+
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(lBorderSizeLabel, c);
+      ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(sBorderSize, c);
+      ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelTop.add(lBorderSize, c);
+
+      ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(lSegmentSizeLabel, c);
+      ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(sSegmentSize, c);
+      ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelTop.add(lSegmentSize, c);
+
+      ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(lPvrzBaseIndexLabel, c);
+      ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelTop.add(sPvrzBaseIndex, c);
+      ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelTop.add(lPvrzBaseIndex, c);
+
+      // sub-panel for checkbox options
+      final JPanel panelSubOptions = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubOptions.add(cbRemoveBlack, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubOptions.add(cbMultithreaded, c);
+
+      ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelTop.add(new JPanel(), c);
+      ViewerUtil.setGBC(c, 1, 4, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelTop.add(panelSubOptions, c);
+
+      // sub-panel for Auto mode (overlay conversion)
+      panelSubAuto = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubAuto.add(lOverlayModeLabel, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelSubAuto.add(cbOverlayMode, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelSubAuto.add(new JPanel(), c);
+
+      // Auto mode panel
+      final JPanel panelAutoMode = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelAutoMode.add(rbAuto, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(12, 24, 0, 0), 0, 0);
+      panelAutoMode.add(panelSubAuto, c);
+
+      // sub-panel for Manual mode (cols, rows, preview)
+      panelSubManual = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubManual.add(lTilesPerRowLabel, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelSubManual.add(sTilesPerRow, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelSubManual.add(lTilesPerRow, c);
+
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelSubManual.add(lNumRowsLabel, c);
+      ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelSubManual.add(sNumRows, c);
+      ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelSubManual.add(lNumRows, c);
+
+      ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelSubManual.add(lPreviewImageLabel, c);
+      ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LAST_LINE_END, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 8), 0, 0);
+      panelSubManual.add(bPreviewReset, c);
+      ViewerUtil.setGBC(c, 1, 2, 1, 2, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+          new Insets(8, 8, 0, 8), 0, 0);
+      panelSubManual.add(spPreviewImage, c);
+      ViewerUtil.setGBC(c, 2, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelSubManual.add(lPreviewImageZoomLabel, c);
+      ViewerUtil.setGBC(c, 2, 3, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelSubManual.add(cbPreviewImageZoom, c);
+
+      // Manual mode panel
+      final JPanel panelManualMode = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelManualMode.add(rbManual, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+          new Insets(12, 24, 0, 0), 0, 0);
+      panelManualMode.add(panelSubManual, c);
+
+      // help panel
+      final JPanel panelHelp = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelHelp.add(lHelpLabel, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 0, 0, 0), 0, 0);
+      panelHelp.add(spHelp, c);
+
+      // button panel
+      final JPanel panelButtons = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(new JPanel(), c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 8), 0, 0);
+      panelButtons.add(bOk, c);
+      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(0, 0, 0, 0), 0, 0);
+      panelButtons.add(bCancel, c);
+
+      // putting all together
+      final JPanel panelMain = new JPanel(new GridBagLayout());
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 0, 8), 0, 0);
+      panelMain.add(panelTop, c);
+      ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(16, 8, 0, 8), 0, 0);
+      panelMain.add(panelAutoMode, c);
+      ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+          new Insets(16, 8, 0, 8), 0, 0);
+      panelMain.add(panelManualMode, c);
+      ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(16, 8, 0, 8), 0, 0);
+      panelMain.add(panelHelp, c);
+      ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(8, 8, 8, 8), 0, 0);
+      panelMain.add(panelButtons, c);
+
+      getContentPane().setLayout(new BorderLayout());
+      getContentPane().add(panelMain, BorderLayout.CENTER);
+
+      // preselecting mode
+      if (wedEntry != null) {
+        rbAuto.setSelected(true);
+      } else {
+        rbManual.setSelected(true);
+      }
+      setPanelEnabled(panelSubAuto, rbAuto.isSelected());
+      setPanelEnabled(panelSubManual, !rbAuto.isSelected());
+    }
+
+    private JComboBox<DataString<TisConvert.OverlayConversion>> initOverlayModeComboBox(boolean preselect) {
+      final boolean isTisV1 = tis.decoder instanceof TisV1Decoder;
+      final boolean isTisV2 = tis.decoder instanceof TisV2Decoder;
+      final boolean isBG1 = Profile.getEngine() == Profile.Engine.BG1;
+      final boolean isBG2 = Profile.getEngine() == Profile.Engine.BG2;
+      final boolean isEE = Profile.isEnhancedEdition();
+      final boolean isBGEE = (Profile.getGame() == Profile.Game.BG1EE) || (Profile.getGame() == Profile.Game.BG1SoD);
+      final boolean hasWed = (wedEntry != null);
+
+      // initializing overlay mode combobox
+      final Vector<DataString<TisConvert.OverlayConversion>> overlayModes = new Vector<>();
+      int overlayModeIndex = 0;
+      for (final TisConvert.OverlayConversion mode : TisConvert.OverlayConversion.values()) {
+        boolean add = false;
+        boolean select = false;
+        switch (mode) {
+          case BG1_TO_BGEE:
+            add = hasWed && isTisV1;
+            select = isBG1 ||
+                     (overlayMovementType == 0 && isBGEE) ||
+                     (overlayMovementType == 2 && isEE && !isBGEE);
+            break;
+          case BG1_TO_BG2EE:
+            add = hasWed && isTisV1;
+            break;
+          case BG2_TO_BGEE:
+            add = hasWed && isTisV1;
+            break;
+          case BG2_TO_BG2EE:
+            add = hasWed && isTisV1;
+            select = isBG2 ||
+                     (overlayMovementType == 0 && isEE && !isBGEE) ||
+                     (overlayMovementType == 2 && isBGEE);
+            break;
+          case BGEE_TO_BG1:
+            add = hasWed && isTisV2;
+            select = isBG1 ||
+                     (overlayMovementType == 0 && isBGEE) ||
+                     (overlayMovementType == 2 && isEE && !isBGEE);
+            break;
+          case BGEE_TO_BG2:
+            add = hasWed && isTisV2;
+            break;
+          case BG2EE_TO_BG1:
+            add = hasWed && isTisV2;
+            break;
+          case BG2EE_TO_BG2:
+            add = hasWed && isTisV2;
+            select = isBG2 ||
+                     (overlayMovementType == 0 && isEE && !isBGEE) ||
+                     (overlayMovementType == 2 && isBGEE);
+            break;
+          default:
+            add = true;
+        }
+
+        if (mode.isImplemented() && add) {
+          final String modeText = mode.toString();
+          final DataString<TisConvert.OverlayConversion> entry =
+              new DataString<TisConvert.OverlayConversion>(modeText, mode, DataString.FMT_STRING_ONLY);
+          overlayModes.add(entry);
+          if (select) {
+            overlayModeIndex = overlayModes.size() - 1;
+          }
+        }
+      }
+
+      final JComboBox<DataString<TisConvert.OverlayConversion>> retVal = new JComboBox<>(overlayModes);
+      if (preselect) {
+        retVal.setSelectedIndex(overlayModeIndex);
+      }
+      return retVal;
+    }
+
+    /** Enables or disables all child component of the given panel. */
+    private void setPanelEnabled(JComponent panel, boolean enable) {
+      if (panel != null) {
+        for (final Component c : panel.getComponents()) {
+          c.setEnabled(enable);
         }
       }
     }
 
     /**
-     * Sets the specified tile index in the TileRect structure. x and y specify a position within the TileRect
-     * structure. tileIndex is the absolute tile index.
+     * Returns the combobox item index that defines the specified {@code zoom}. Returns {@code defIndex} if no matching
+     * entry could be found.
      */
-    public boolean setMarked(int x, int y, int tileIndex) {
-      tileIndex = Math.max(-1, tileIndex);
-      if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
-        int index = y * bounds.width + x;
-        if ((tileIndex != -1 && indices[index] == -1) || (tileIndex == -1 && indices[index] != -1)) {
-          indices[index] = tileIndex;
-          return true;
+    private int getPreviewZoomIndex(int zoom, int defIndex) {
+      for (int idx = 0, size = cbPreviewImageZoom.getModel().getSize(); idx < size; idx++) {
+        final int zoomValue = cbPreviewImageZoom.getModel().getElementAt(idx).getData();
+        if (zoomValue == zoom) {
+          return idx;
         }
       }
-      return false;
+      return defIndex;
     }
 
-    public int getX(int index) {
-      return (index >= 0 && index < bounds.width * bounds.height) ? index % bounds.width : -1;
+    /**
+     * Checks current dialog settings.
+     *
+     * @param interactive Indicates whether a message dialog should notify about failed checks.
+     * @return {@code true} if all checks passed successfully, {@code false} otherwise.
+     */
+    private boolean validateSettings(boolean interactive) {
+      // is TIS path empty?
+      if (tfTisFile.getText().trim().isEmpty()) {
+        if (interactive) {
+          JOptionPane.showMessageDialog(this, "No TIS output file specified.", "Error", JOptionPane.ERROR_MESSAGE);
+          tfTisFile.requestFocus();
+        }
+        return false;
+      }
+
+      try {
+        final Path tisPath = Paths.get(tfTisFile.getText().trim());
+
+        // does TIS filename conform to expected naming scheme?
+        if (tis.getDecoder() instanceof TisV1Decoder && !TisConvert.isTisFileNameValid(tisPath)) {
+          if (interactive) {
+            JOptionPane.showMessageDialog(this, "PVRZ-based TIS filenames have to be 2 up to 7 characters long.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+          }
+          return false;
+        }
+
+        // does TIS file already exist?
+        if (Files.exists(tisPath)) {
+          int result = 1;
+          if (interactive) {
+            final String[] options = { "Overwrite", "Cancel" };
+            result = JOptionPane.showOptionDialog(this, tisPath + " exists. Overwrite?", "Question",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (result != 0) {
+              tfTisFile.requestFocus();
+            }
+          }
+          if (result != 0) {
+            return false;
+          }
+        }
+      } catch (InvalidPathException e) {
+        // is TIS path valid?
+        if (interactive) {
+          JOptionPane.showMessageDialog(this, "Invalid TIS output file specified.", "Error", JOptionPane.ERROR_MESSAGE);
+          tfTisFile.requestFocus();
+        }
+        return false;
+      }
+
+      // PVRZ base index overlaps with existing PVRZ files?
+      if (tis.getDecoder() instanceof TisV1Decoder) {
+        final int pvrzBaseIndex = getPvrzBaseIndex();
+        final int newPvrzBaseIndex = TisConvert.calcPvrzBaseIndex(getTisPath());
+        if (newPvrzBaseIndex > pvrzBaseIndex) {
+          if (interactive) {
+            final String[] options = { "Update", "Keep", "Cancel" };
+            final int result = JOptionPane.showOptionDialog(this,
+                "PVRZ base index overlaps with existing files.\n\nPlease choose:\n"
+                + "Update: Update to next available free index (" + newPvrzBaseIndex + ") and continue.\n"
+                + "Keep: Keep selected index (" + pvrzBaseIndex + ") and overwrite existing files.\n"
+                + "Cancel: Return to the dialog and adjust manually.\n ",
+                "Confirm",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null, options, options[0]);
+            switch (result) {
+              case 0:   // Adjust
+                sPvrzBaseIndex.setValue(newPvrzBaseIndex);
+                break;
+              case 1:   // Keep
+                break;
+              default:  // Cancel
+                sPvrzBaseIndex.requestFocus();
+                return false;
+            }
+          } else {
+            return false;
+          }
+        }
+      }
+
+      // Manual mode: number of secondary tiles must be less than or equal to number of primary tiles
+      if (tis.getDecoder() instanceof TisV1Decoder && isManualMode()) {
+        final int numPriTiles = getRowCount() * getTilesPerRow();
+        final int numSecTiles = tis.getDecoder().getTileCount() - numPriTiles;
+        if (numSecTiles > numPriTiles) {
+          if (interactive) {
+            JOptionPane.showMessageDialog(this, "Number of secondary tiles must not be greater than number\n"
+                + "of primary tiles. Please adjust tileset height accordingly.", "Error", JOptionPane.ERROR_MESSAGE);
+            sNumRows.requestFocus();
+          }
+          return false;
+        }
+      }
+
+      return true;
     }
 
-    public int getY(int index) {
-      return (index >= 0 && index < bounds.width * bounds.height) ? index / bounds.width : -1;
+    /**
+     * Returns a valid TIS file path, based on the given input file name.
+     *
+     * @param fileName Filename string to validate.
+     * @param strict   Specifies whether the given filename must be preserved.
+     * @return Validated, and possibly corrected, filename, as {@link Path} object.
+     */
+    private Path validateTisFileName(String fileName, boolean strict) {
+      Path retVal = null;
+      try {
+        retVal = Paths.get(fileName);
+        if (retVal.getParent() == null || !Files.exists(retVal.getParent())) {
+          retVal = null;
+        }
+      } catch (NullPointerException | IllegalArgumentException e) {
+      }
+
+      if (strict) {
+        return retVal;
+      }
+
+      if (retVal == null) {
+        try {
+          retVal = Profile.getGameRoot().resolve(tis.getResourceEntry().getResourceName());
+          if (retVal.getParent() == null || !Files.exists(retVal.getParent())) {
+            retVal = null;
+          }
+        } catch (IllegalArgumentException e) {
+        }
+      }
+
+      if (retVal == null) {
+        try {
+          retVal = Profile.getGameRoot().resolve("OUTPUT.TIS");
+        } catch (IllegalArgumentException e) {
+        }
+      }
+
+      return retVal;
+    }
+
+    /** Returns the {@link Path} of the output TIS file. */
+    private Path getTisPath() {
+      try {
+        return Paths.get(tfTisFile.getText().trim());
+      } catch (InvalidPathException e) {
+        e.printStackTrace();
+      }
+      return null;
+    }
+
+    /** Returns the border size, in pixels. */
+    private int getBorderSize() {
+      return (sBorderSize != null) ? sBorderSize.getValue() : 0;
+    }
+
+    /** Returns the segment size, in pixels. */
+    private int getSegmentSize() {
+      return (sSegmentSize != null) ? 1 << sSegmentSize.getValue() : 0;
+    }
+
+    /** Returns the PVRZ base index. */
+    private int getPvrzBaseIndex() {
+      return (sPvrzBaseIndex != null) ? sPvrzBaseIndex.getValue() : 0;
+    }
+
+    /** Returns whether black tiles should be detected and optimized. */
+    private boolean isDetectBlack() {
+      return (cbRemoveBlack != null) ? cbRemoveBlack.isSelected() : false;
+    }
+
+    /** Returns whether multithreading is used to encode DXT1 pixel data. */
+    private boolean isMultithreaded() {
+      return (cbMultithreaded != null) ? cbMultithreaded.isSelected() : false;
+    }
+
+    /**
+     * Returns whether automatic configuration mode is enabled. Always returns {@code true} for PVRZ->Palette
+     * conversion.
+     */
+    private boolean isAutoMode() {
+      return (rbAuto != null) ? rbAuto.isSelected() : true;
+    }
+
+    /**
+     * Returns whether manual configuration mode is enabled. Always returns {@code true} for PVRZ->Palette
+     * conversion.
+     */
+    private boolean isManualMode() {
+      return (rbManual != null) ? rbManual.isSelected() : true;
+    }
+
+    /** Returns the selected overlay conversion mode. */
+    private TisConvert.OverlayConversion getOverlayConversionMode() {
+      if (isAutoMode()) {
+        return cbOverlayMode.getModel().getElementAt(cbOverlayMode.getSelectedIndex()).getData();
+      } else {
+        return TisConvert.OverlayConversion.NONE;
+      }
+    }
+
+    /** Returns the number of tiles per row. */
+    private int getTilesPerRow() {
+      return (sTilesPerRow != null && rbManual.isSelected()) ? sTilesPerRow.getValue() : tis.slCols.getValue();
+    }
+
+    /** Returns the number of tileset rows. */
+    private int getRowCount() {
+      return (sNumRows != null && rbManual.isSelected()) ? sNumRows.getValue() : -1;
+    }
+
+    /** Returns the list of tile images. Returns {@code null} for palette->PVRZ conversions. */
+    private List<Image> getTileList() {
+      return (tis.decoder instanceof TisV2Decoder) ? tis.getTileList() : null;
+    }
+
+    /** Child class is used to implement event-related functionality. */
+    private class Listeners  {
+      /** WindowListener: reset "accepted" flag when dialog is shown */
+      private final WindowAdapter windowDialog = new WindowAdapter() {
+        public void windowOpened(WindowEvent e) { accepted = false; }
+      };
+
+      /** MouseMotionListener: updates help text */
+      private final MouseMotionAdapter mouseMotion = new MouseMotionAdapter() {
+        public void mouseMoved(MouseEvent e) {
+          final String msg = helpMap.getOrDefault(e.getSource(), "");
+          taHelp.setText(msg);
+          taHelp.setCaretPosition(0);
+        }
+      };
+
+      /** ActionListener: JButton bPreviewReset */
+      private final ActionListener actionPreviewReset = e -> {
+        if (bPreviewReset.isEnabled()) {
+          if (defaultTisWidth > 0 && defaultTisHeight > 0) {
+            sTilesPerRow.setValue(defaultTisWidth);
+            sNumRows.setValue(defaultTisHeight);
+          }
+        }
+      };
+
+      /** ActionListener: JButton bOK */
+      private final ActionListener actionOk = e -> {
+        if (validateSettings(true)) {
+          accepted = true;
+          setVisible(false);
+        }
+      };
+
+      /** ActionListener: JButton bCancel */
+      private final ActionListener actionCancel = e -> setVisible(false);
+
+      /** ActionListener: JButton bTisFile */
+      private final ActionListener actionTisFile = e -> {
+        final Path outPath = validateTisFileName(tfTisFile.getText(), false);
+        final FileNameExtensionFilter tisFilter = new FileNameExtensionFilter("TIS files (*.tis)", "tis");
+        final JFileChooser chooser = new JFileChooser(outPath.toFile());
+        chooser.setSelectedFile(outPath.toFile());
+        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        chooser.setDialogTitle("Choose output TIS file");
+        chooser.addChoosableFileFilter(tisFilter);
+        chooser.setFileFilter(tisFilter);
+        final int retVal = chooser.showSaveDialog(ConvertTisDialog.this);
+        if (retVal == JFileChooser.APPROVE_OPTION) {
+          // add extension if needed
+          final String tisPath = chooser.getSelectedFile().toString().trim();
+          final String tisFile = chooser.getSelectedFile().getName().trim();
+          final int extIndex = tisFile.indexOf('.');
+          final String ext;
+          if (extIndex < 0) {
+            ext = ".TIS";
+          } else if (extIndex == tisFile.length() - 1) {
+            ext = "TIS";
+          } else {
+            ext = "";
+          }
+          tfTisFile.setText(tisPath + ext);
+        }
+      };
+
+      /** ChangeListener: JSlider sBorderSize */
+      private final ChangeListener changeBorderSize = e -> {
+        final int size = sBorderSize.getValue();
+        lBorderSize.setText(String.format(BORDER_SIZE_LABEL_FMT, size));
+      };
+
+      /** ChangeListener: JSlider sSegmentSize */
+      private final ChangeListener changeSegmentSize = e -> {
+        lSegmentSize.setText(String.format(SEGMENT_SIZE_LABEL_FMT, getSegmentSize()));
+      };
+
+      /** ChangeListener: JSlider: sPvrzBaseIndex */
+      private final ChangeListener changePvrzBaseIndex = e -> {
+        lPvrzBaseIndex.setText(String.format(PVRZ_BASE_INDEX_LABEL_FMT, getPvrzBaseIndex()));
+      };
+
+      /** ChangeListener: JSlider sTilesPerRow */
+      private final ChangeListener changeTilesPerRow = e -> {
+        // updating label
+        final int size = sTilesPerRow.getValue();
+        lTilesPerRow.setText(String.format(TILES_PER_ROW_LABEL_FMT, size));
+
+        // updating numRows range
+        final int numTiles = tis.decoder.getTileCount();
+        final int numRows = numTiles / size;
+        sNumRows.setMaximum(numRows);
+
+        // updating preview
+        final int width = sTilesPerRow.getValue();
+        final int height = sNumRows.getValue();
+        lPreviewImage.setIcon(new ImageIcon(tisPreview.get(width, height)));
+      };
+
+      /** ChangeListener: JSlider sNumRows */
+      private final ChangeListener changeNumRows = e -> {
+        // updating label
+        final int size = sNumRows.getValue();
+        lNumRows.setText(String.format(ROW_COUNT_LABEL_FMT, size));
+
+        // updating preview
+        final int width = sTilesPerRow.getValue();
+        final int height = sNumRows.getValue();
+        lPreviewImage.setIcon(new ImageIcon(tisPreview.get(width, height)));
+      };
+
+      /** ItemListener: JRadioButton rbAuto */
+      private final ItemListener itemAuto = e -> {
+        setPanelEnabled(panelSubAuto, rbAuto.isSelected());
+        setPanelEnabled(panelSubManual, !rbAuto.isSelected());
+      };
+
+      /** ItemListener: JRadioButton rbManual */
+      private final ItemListener itemManual = e -> {
+        setPanelEnabled(panelSubAuto, !rbManual.isSelected());
+        setPanelEnabled(panelSubManual, rbManual.isSelected());
+      };
+
+      private final ItemListener itemPreviewImageZoom = e -> {
+        final DataString<Integer> item = cbPreviewImageZoom.getModel().getElementAt(cbPreviewImageZoom.getSelectedIndex());
+        if (item != null) {
+          final int zoom = item.getData();
+          try {
+            tisPreview.setTileSize(zoom);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+            // revert zoom change (if possible)
+            for (int i = 0, size = cbPreviewImageZoom.getModel().getSize(); i < size; i++) {
+              final int value = cbPreviewImageZoom.getModel().getElementAt(cbPreviewImageZoom.getSelectedIndex()).getData();
+              if (value == tisPreview.getTileSize()) {
+                cbPreviewImageZoom.setSelectedIndex(i);
+                break;
+              }
+            }
+          }
+
+          final int width = sTilesPerRow.getValue();
+          final int height = sNumRows.getValue();
+          lPreviewImage.setIcon(new ImageIcon(tisPreview.get(width, height)));
+        }
+      };
     }
   }
 }

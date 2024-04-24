@@ -213,6 +213,17 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder> 
     }
 
     /**
+     * @apiNote Stub method required to meet JDK 21 requirements which introduces their own {@code reversed()} method
+     *          to the {@link SortedSet} and {@link List} interfaces.
+     *
+     * TODO: Remove when upgrading source compatibility to JDK 21+
+     */
+    @SuppressWarnings("unused")
+    public SortedListSet<T> reversed() {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
      * Replaces the element at the specified position in this set with the specified one. The new element will be moved
      * to the correct location to preserve the sorted state of the list.
      *

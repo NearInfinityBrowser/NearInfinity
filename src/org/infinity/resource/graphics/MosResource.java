@@ -302,8 +302,8 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
       }
     }
     List<JMenuItem> list = new ArrayList<>();
-    if (miExport != null) {
-      list.add(miExport);
+    if (miExportPNG != null) {
+      list.add(miExportPNG);
     }
     if (miExportMOSV1 != null) {
       list.add(miExportMOSV1);
@@ -311,15 +311,15 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
     if (miExportMOSC != null) {
       list.add(miExportMOSC);
     }
-    if (miExportPNG != null) {
-      list.add(miExportPNG);
+    if (miExport != null) {
+      list.add(miExport);
     }
     JMenuItem[] mi = new JMenuItem[list.size()];
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
     ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(mi);
+    bpmExport.setMenuItems(mi, false);
 
     JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);

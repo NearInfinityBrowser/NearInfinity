@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
@@ -75,6 +75,8 @@ import org.infinity.resource.graphics.Compressor;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.PvrDecoder;
+import org.infinity.resource.graphics.TisConvert;
+import org.infinity.resource.graphics.TisConvert.Config;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -404,40 +406,41 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
       // executing multithreaded search
       boolean isCancelled = false;
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
-          String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()), 0, selectedFiles.size());
-      progress.setMillisToDecideToPopup(0);
-      progress.setMillisToPopup(0);
-      progress.setProgress(0);
-      progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
-      Debugging.timerReset();
-      for (int i = 0, count = getResourceCount(); i < count; i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(selectedFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
+      try (final Threading threadPool = new Threading()) {
+        progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
+            String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()), 0, selectedFiles.size());
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(0);
+        progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
+        Debugging.timerReset();
+        for (int i = 0, count = getResourceCount(); i < count; i++) {
+          threadPool.submit(new Worker(selectedFiles.get(i)));
+          if (progress.isCanceled()) {
+            isCancelled = true;
+            break;
+          }
         }
-      }
 
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
+        // enforcing thread termination if process has been cancelled
+        if (isCancelled) {
+          threadPool.shutdownNow();
+        } else {
+          threadPool.shutdown();
+        }
 
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
+        // waiting for pending threads to terminate
+        while (!threadPool.isTerminated()) {
+          if (!isCancelled && progress.isCanceled()) {
+            isCancelled = true;
+            threadPool.shutdownNow();
+          }
+          try {
+            threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException e) {
+          }
         }
-        try {
-          Thread.sleep(1);
-        } catch (InterruptedException e) {
-        }
+      } catch (Exception e) {
       }
 
       if (isCancelled) {
@@ -629,7 +632,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       TisDecoder decoder = TisDecoder.loadTis(entry);
       if (decoder != null) {
         int tileCount = decoder.getTileCount();
-        int columns = TisResource.calcTileWidth(entry, 1);
+        int columns = TisConvert.calcTilesetWidth(entry, true, 1);
         int rows = tileCount / columns;
         if ((tileCount % columns) != 0) {
           rows++;
@@ -722,11 +725,42 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       boolean isTisV2 = isTis && (info[1] == 0x0c);
 
       if (isTis && cbConvertTisVersion.isSelected() && !isTisV2 && cbConvertTisList.getSelectedIndex() == 1) {
-        TisResource tis = new TisResource(entry);
-        tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
+        final Path tisFile = TisConvert.makeTisFileNameValid(output);
+        final TisResource tis = new TisResource(entry);
+        final ResourceEntry wedEntry = TisConvert.findWed(entry, true);
+        final int tilesPerRow = TisConvert.calcTilesetWidth(wedEntry, false, tis.getDecoder().getTileCount());
+        final int pvrzBaseIndex = TisConvert.calcPvrzBaseIndex(tisFile);
+        final TisConvert.OverlayConversion convert = (Profile.getEngine() == Profile.Engine.BG2)
+            ? TisConvert.OverlayConversion.BG2_TO_BG2EE
+            : TisConvert.OverlayConversion.NONE;
+        final TisConvert.Config config = Config.createConfigPvrz(tisFile, tis.getDecoder(), wedEntry, tilesPerRow, -1,
+            TisConvert.Config.MAX_TEXTURE_SIZE, pvrzBaseIndex, TisConvert.Config.DEFAULT_BORDER_SIZE,
+            TisConvert.Config.MAX_TEXTURE_SIZE / 2, true, true, convert);
+        TisConvert.convertToPvrzTis(config, false, null);
       } else if (isTis && cbConvertTisVersion.isSelected() && isTisV2 && cbConvertTisList.getSelectedIndex() == 0) {
         TisResource tis = new TisResource(entry);
-        tis.convertToPaletteTis(output, false);
+
+        // overlay conversion mode depends on game and WED overlay movement type
+        final ResourceEntry wedEntry = TisConvert.findWed(entry, true);
+        final int movementType = TisConvert.getTisMovementType(wedEntry, false);
+        final TisConvert.OverlayConversion convert;
+        switch (Profile.getGame()) {
+          case BG2EE:
+          case IWDEE:
+          case PSTEE:
+          case EET:
+            convert = (movementType == 0) ? TisConvert.OverlayConversion.BG2EE_TO_BG2 : TisConvert.OverlayConversion.NONE;
+            break;
+          case BG1EE:
+            convert = (movementType == 2) ? TisConvert.OverlayConversion.BG2EE_TO_BG2 : TisConvert.OverlayConversion.NONE;
+            break;
+          default:
+            convert = TisConvert.OverlayConversion.NONE;
+        }
+
+        final TisConvert.Config config = Config.createConfigPalette(output, tis.getTileList(), tis.getDecoder(),
+            wedEntry, convert);
+        TisConvert.convertToPaletteTis(config, false, null);
       } else if (size >= 0) {
         try (InputStream is = entry.getResourceDataAsStream()) {
           // Keep trying. File may be in use by another thread.

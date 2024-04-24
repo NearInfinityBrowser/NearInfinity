@@ -120,7 +120,7 @@ public class BamFilterOutputCombine extends BamFilterBaseOutput {
 
     Graphics2D g = image.createGraphics();
     try {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+      g.setComposite(AlphaComposite.Src);
       for (int i = 0; i < decoder.frameCount(); i++) {
         PseudoBamFrameEntry entry = decoder.getFrameInfo(i);
         int px = entry.getCenterX();

@@ -209,7 +209,7 @@ public final class ViewerUtil {
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
   }
 
-  public static JComponent makeBamPanel(ResourceRef iconRef, int animNr, int frameNr) {
+  public static JLabel makeBamPanel(ResourceRef iconRef, int animNr, int frameNr) {
     ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
@@ -233,7 +233,7 @@ public final class ViewerUtil {
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
   }
 
-  public static JComponent makeCheckLabel(StructEntry entry, String yes) {
+  public static JLabel makeCheckLabel(StructEntry entry, String yes) {
     JLabel check = new JLabel(entry.getName());
     if (entry.toString().equalsIgnoreCase(yes)) {
       check.setIcon(Icons.ICON_CHECK_16.getIcon());
@@ -296,7 +296,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass) {
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass) {
     return new StructListPanel(title, struct, listClass, null, null, null);
   }
 
@@ -310,7 +310,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName) {
     return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), null, null);
   }
@@ -326,7 +326,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName, ListCellRenderer<Object> renderer) {
     return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), renderer, null);
   }
@@ -343,7 +343,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       String attrName, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
     return new StructListPanel(title, struct, listClass, getAttributeEntry(attrName), renderer, listener);
   }
@@ -358,7 +358,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       AttributeEntry attrEntry) {
     return new StructListPanel(title, struct, listClass, attrEntry, null, null);
   }
@@ -374,7 +374,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       AttributeEntry attrEntry, ListCellRenderer<Object> renderer) {
     return new StructListPanel(title, struct, listClass, attrEntry, renderer, null);
   }
@@ -391,7 +391,7 @@ public final class ViewerUtil {
    *
    * @return Editor for show list of the specified attributes
    */
-  public static JPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
+  public static StructListPanel makeListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
       AttributeEntry attrEntry, ListCellRenderer<Object> renderer, ListSelectionListener listener) {
     return new StructListPanel(title, struct, listClass, attrEntry, renderer, listener);
   }
@@ -551,8 +551,8 @@ public final class ViewerUtil {
   public static final class StructListPanel extends JPanel implements TableModelListener, ActionListener {
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
-    private final JList<Object> list;
-    private final SimpleListModel<Object> listModel = new SimpleListModel<>();
+    private final JList<StructEntry> list;
+    private final SimpleListModel<StructEntry> listModel = new SimpleListModel<>();
     private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
 
     private StructListPanel(String title, AbstractStruct struct, Class<? extends StructEntry> listClass,
@@ -617,7 +617,7 @@ public final class ViewerUtil {
     }
 
     /** Provides access to the list component of the panel. */
-    public JList<Object> getList() {
+    public JList<StructEntry> getList() {
       return list;
     }
 

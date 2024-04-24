@@ -13,8 +13,6 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.swing.JOptionPane;
-
 import org.infinity.resource.bcs.ScriptInfo;
 import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.key.ResourceEntry;
@@ -26,18 +24,18 @@ public class IdsMap {
   private final ResourceEntry entry;
   private final boolean caseSensitive;
 
-  public IdsMap(ResourceEntry entry) {
+  public IdsMap(ResourceEntry entry) throws Exception {
     this.entry = entry;
     this.caseSensitive = IdsMapCache.isCaseSensitiveMatch(entry.getResourceName());
-    try {
+//    try {
       if (entry.getExtension().equalsIgnoreCase("IDS")) {
         parseIDS();
       } else if (entry.getExtension().equalsIgnoreCase("2DA")) {
         parse2DA();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
   }
 
   @Override
@@ -119,8 +117,7 @@ public class IdsMap {
       try {
         extract2DA(token);
       } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token, "Error",
-            JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException(String.format("Unexpected token [resource=%s, token=\"%s\"]", entry, token));
       }
     }
   }
@@ -133,8 +130,7 @@ public class IdsMap {
       try {
         extractIDS(token);
       } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token, "Error",
-            JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException(String.format("Unexpected token [resource=%s, token=\"%s\"]", entry, token));
       }
     }
 
@@ -150,8 +146,7 @@ public class IdsMap {
         try {
           extractIDS(token);
         } catch (NumberFormatException e) {
-          JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token, "Error",
-              JOptionPane.ERROR_MESSAGE);
+          throw new IllegalArgumentException(String.format("Unexpected token [resource=%s, token=\"%s\"]", entry, token));
         }
       }
     }

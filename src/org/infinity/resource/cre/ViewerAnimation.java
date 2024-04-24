@@ -6,7 +6,6 @@ package org.infinity.resource.cre;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -47,13 +46,13 @@ import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * A basic creature animation viewer.
  */
 public class ViewerAnimation extends JComponent implements ActionListener {
-  private static final Color COLOR_TRANSPARENT  = new Color(0, true);
-  private static final int ANIM_DELAY           = 1000 / 15; // 15 fps in milliseconds
+  private static final int ANIM_DELAY = 1000 / 15; // 15 fps in milliseconds
 
   private static boolean zoom = false;
   private static boolean showSelectionCircle = false;
@@ -169,7 +168,7 @@ public class ViewerAnimation extends JComponent implements ActionListener {
     Graphics2D g = tmpImage.createGraphics();
     try {
       g.setComposite(AlphaComposite.Src);
-      g.setColor(COLOR_TRANSPARENT);
+      g.setColor(ColorConvert.TRANSPARENT_COLOR);
       g.fillRect(0, 0, tmpImage.getWidth(), tmpImage.getHeight());
     } finally {
       g.dispose();
@@ -181,7 +180,7 @@ public class ViewerAnimation extends JComponent implements ActionListener {
     try {
       // clearing old content
       g.setComposite(AlphaComposite.Src);
-      g.setColor(COLOR_TRANSPARENT);
+      g.setColor(ColorConvert.TRANSPARENT_COLOR);
       g.fillRect(0, 0, rcDisplay.getImage().getWidth(null), rcDisplay.getImage().getHeight(null));
 
       // drawing markers

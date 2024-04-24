@@ -114,19 +114,29 @@ public class ResourceStructure implements Cloneable {
     return removeItem(offset);
   }
 
+  /** Removes all items from the structure. */
   public void clear() {
     list.clear();
     cursize = 0;
   }
 
+  /** Returns the current structure size, in bytes. */
   public int size() {
     return cursize;
   }
 
+  /** Returns {@code true} if the structure is empty. */
   public boolean isEmpty() {
     return list.isEmpty();
   }
 
+  /**
+   * Returns the {@link Item} instance found at the specified offset.
+   *
+   * @param offset Absolute byte offset in the structure.
+   * @return {@link Item} instance at the specified offset if found.
+   * @throws IndexOutOfBoundsException if the specified offset is invalid.
+   */
   public Item get(int offset) {
     return getItem(offset);
   }

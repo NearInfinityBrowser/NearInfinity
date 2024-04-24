@@ -21,6 +21,7 @@ import java.util.EventListener;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,6 +58,7 @@ public class FileWatcher implements Runnable {
       this.watcher = FileSystems.getDefault().newWatchService();
     } catch (IOException e) {
       this.watcher = null;
+      System.err.println("Could not initialize file watcher: " + e.getMessage());
     }
     this.thread = null;
     this.timeOutMS = Math.max(timeOutMS, 0L);
@@ -95,6 +97,10 @@ public class FileWatcher implements Runnable {
 
   /** Starts the file watcher background process. Does nothing if the process has already started. */
   public boolean start() {
+    if (Objects.isNull(watcher)) {
+      return false;
+    }
+
     if (thread == null) {
       thread = new Thread(this);
       thread.start();
@@ -163,6 +169,10 @@ public class FileWatcher implements Runnable {
    * @param notifyModify Whether to notify if a file has been modified in the directory.
    */
   public void register(Path dir, boolean recursive, boolean notifyCreate, boolean notifyDelete, boolean notifyModify) {
+    if (Objects.isNull(watcher)) {
+      return;
+    }
+
     dir = FileManager.resolve(dir);
     if (dir != null && FileEx.create(dir).isDirectory()) {
       if (recursive) {

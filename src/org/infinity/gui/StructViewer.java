@@ -21,6 +21,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.print.PageFormat;
@@ -30,6 +32,7 @@ import java.awt.print.PrinterJob;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +53,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -155,19 +159,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miCut = createMenuItem(CMD_CUT, "Cut", Icons.ICON_CUT_16.getIcon(), this);
   private final JMenuItem miCopy = createMenuItem(CMD_COPY, "Copy", Icons.ICON_COPY_16.getIcon(), this);
   private final JMenuItem miPaste = createMenuItem(CMD_PASTE, "Paste", Icons.ICON_PASTE_16.getIcon(), this);
-  private final JMenuItem miToHex = createMenuItem(CMD_TOHEX, "Edit as hex", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToHex = createMenuItem(CMD_TOHEX, "Edit as hexadecimal data", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToString = createMenuItem(CMD_TOSTRING, "Edit as string", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary data", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal data", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hexadecimal number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miAddToAdvSearch = createMenuItem(CMD_ADD_ADV_SEARCH, "Add to Advanced Search", Icons.ICON_FIND_16.getIcon(), this);
   private final JMenuItem miGotoOffset = createMenuItem(CMD_GOTO_OFFSET, "Go to offset", null, this);
   private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.ICON_SELECT_IN_TREE_16.getIcon(), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", Icons.ICON_ROW_INSERT_AFTER_16.getIcon(), this);
-  private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
+  private final JMenuItem miShowNewViewer = createMenuItem(CMD_SHOWNEWVIEWER, "Show in new viewer", null, this);
   private final JMenu miToResref = createResrefMenu(CMD_TORESLIST, "Edit as resref", Profile.getAvailableResourceTypes(), Icons.ICON_REFRESH_16.getIcon(), this);
   private final JPanel lowerpanel = new JPanel(cards);
   private final JPanel editpanel = new JPanel();
@@ -298,6 +302,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       popupmenu.add(miShowNewViewer);
     }
     table.addMouseListener(new PopupListener());
+    table.addKeyListener(new TableKeyListener());
     miCopyValue.setEnabled(false);
     miPasteValue.setEnabled(false);
     miCut.setEnabled(false);
@@ -1536,6 +1541,169 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       // paint header at top
 
       return Printable.PAGE_EXISTS;
+    }
+  }
+
+  /**
+   * This class implements a quick search feature that jumps to the next table entry matching entered characters.
+   */
+  private class TableKeyListener extends KeyAdapter {
+    private static final int TIMER_DELAY = 1000;
+
+    private final Timer timer;
+    private String currentKey;
+
+    public TableKeyListener() {
+      this.currentKey = "";
+      this.timer = new Timer(TIMER_DELAY, e -> resetKey());
+      this.timer.setRepeats(false);
+    }
+
+    public void keyTyped(KeyEvent event) {
+      if (KeyEvent.VK_BACK_SPACE == event.getKeyCode()) {
+        removeKeyChar();
+      } else if (KeyEvent.VK_ENTER != event.getKeyCode()) {
+        appendKeyChar(event.getKeyChar());
+      }
+      timerReset();
+      selectEntry(table.getSelectedColumn(), table.getSelectedRow(), currentKey);
+    }
+
+    /** Adds the specified character to the search string. */
+    private void appendKeyChar(char ch) {
+      synchronized (timer) {
+        // skip control characters
+        if (ch >= ' ') {
+          currentKey += Character.toString(ch);
+        }
+      }
+    }
+
+    /** Removes the last charcater from the search string. */
+    private void removeKeyChar() {
+      synchronized (timer) {
+        if (currentKey.length() > 0) {
+          currentKey = currentKey.substring(0, currentKey.length() - 1);
+        }
+      }
+    }
+
+    /** Clears the search string. */
+    private void resetKey() {
+      synchronized (timer) {
+        currentKey = "";
+      }
+    }
+
+    /** Restarts the input timer. */
+    private void timerReset() {
+      if (timer.isRunning()) {
+        timer.restart();
+      } else {
+        timer.start();
+      }
+    }
+
+    /** Returns {@code true} only if the specified column points to the "Attribute" column. */
+    private boolean isAttributeColumn(int col) {
+      if (col >= 0) {
+        final String colName = table.getModel().getColumnName(col);
+        return AbstractStruct.COLUMN_ATTRIBUTE.equals(colName);
+      }
+      return false;
+    }
+
+    /** Returns {@code true} only if the specified column points to the "Offset" column. */
+    private boolean isOffsetColumn(int col) {
+      if (col >= 0) {
+        final String colName = table.getModel().getColumnName(col);
+        return AbstractStruct.COLUMN_OFFSET.equals(colName);
+      }
+      return false;
+    }
+
+    /** Selects the next matching row based on the given arguments. */
+    private void selectEntry(int col, int row, String key) {
+      row = Math.max(-1, row);
+      col = Math.max(0, col);
+
+      // only enabled for "Attribute" and "Offset" columns
+      if (!isAttributeColumn(col) && !isOffsetColumn(col)) {
+        return;
+      }
+
+      if (key == null) {
+        key = "";
+      }
+
+      final String curKey;
+      final String regex, replacement;
+      if (isAttributeColumn(col)) {
+        // "Attribute" column
+        curKey = key.replaceFirst("^ +", "");
+        regex = null;
+        replacement = null;
+      } else {
+        // "Offset" column
+        if (key.startsWith("+")) {
+          final String ofsPattern = "[-0-9a-fA-F]+ h";
+          regex = ofsPattern + " \\((" + ofsPattern + ")\\)";
+          replacement = "$1";
+        } else {
+          regex = null;
+          replacement = null;
+        }
+        curKey = key.replaceAll("[^0-9a-fA-F]+", "");
+      }
+
+      if (curKey.isEmpty()) {
+        return;
+      }
+
+      for (int y = row, count = table.getRowCount(); y < count; y++) {
+        if (findMatch(y, col, curKey, regex, replacement)) {
+          table.getSelectionModel().setSelectionInterval(y, y);
+          return;
+        }
+      }
+
+      // wrap around
+      for (int y = 0; y < row; y++) {
+        if (findMatch(y, col, curKey, regex, replacement)) {
+          table.getSelectionModel().setSelectionInterval(y, y);
+          return;
+        }
+      }
+    }
+
+    /**
+     * Returns whether the specified key string matches the cell content at the given table location.
+     *
+     * @param row         Row index of the cell.
+     * @param col         Column index of the cell.
+     * @param key         The search string.
+     * @param regex       An optional regular expression that is applied to the cell content. Specify {@code null} to
+     *                      ignore.
+     * @param replacement An optional replacement string that is used in conjunction with {@code regex}. Specify
+     *                      {@code null} to ignore.
+     * @return {@code true} if a match is found, {@code false} otherwise.
+     */
+    private boolean findMatch(int row, int col, String key, String regex, String replacement) {
+      boolean retVal = false;
+      if (key != null) {
+        final Object o = table.getModel().getValueAt(row, col);
+        if (o != null) {
+          final String curKey = key.toUpperCase(Locale.ROOT);
+          final String cellText;
+          if (regex != null && replacement != null) {
+            cellText = o.toString().replaceFirst(regex, replacement).toUpperCase(Locale.ROOT);
+          } else {
+            cellText = o.toString().toUpperCase(Locale.ROOT);
+          }
+          retVal = cellText.startsWith(curKey);
+        }
+      }
+      return retVal;
     }
   }
 }

@@ -19,6 +19,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SecTypeBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
+import org.infinity.resource.effects.BaseOpcode;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.io.StreamUtils;
 
@@ -124,6 +125,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable {
 
   public Effect2() throws Exception {
     super(null, EFFECT, StreamUtils.getByteBuffer(264), 0);
+    ((DecNumber) getAttribute(BaseOpcode.EFFECT_PROBABILITY_1)).setValue(100);
   }
 
   public Effect2(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {

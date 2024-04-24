@@ -9,7 +9,9 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.EffectType;
+import org.infinity.resource.effects.BaseOpcode;
 import org.infinity.util.io.StreamUtils;
 
 public final class Effect extends AbstractStruct implements AddRemovable {
@@ -18,6 +20,7 @@ public final class Effect extends AbstractStruct implements AddRemovable {
 
   public Effect() throws Exception {
     super(null, EFFECT, StreamUtils.getByteBuffer(48), 0);
+    ((DecNumber) getAttribute(BaseOpcode.EFFECT_PROBABILITY_1)).setValue(100);
   }
 
   public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {

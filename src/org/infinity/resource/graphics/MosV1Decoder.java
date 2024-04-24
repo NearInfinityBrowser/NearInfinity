@@ -455,7 +455,7 @@ public class MosV1Decoder extends MosDecoder {
     if (image != null && blockCount > 0) {
       Graphics2D g = (Graphics2D) image.getGraphics();
       try {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC)); // overwriting target regardless of transparency
+        g.setComposite(AlphaComposite.Src); // overwriting target regardless of transparency
         int imgWidth = image.getWidth(null);
         int imgHeight = image.getHeight(null);
         for (int i = 0; i < blockCount; i++) {
