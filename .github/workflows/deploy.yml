@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-13 ]
+        os: [ windows-latest, macos-13, macos-14 ]
         java: [ '21' ]
     runs-on: ${{ matrix.os }}
     name: Create installer for ${{ matrix.os }}, JDK ${{ matrix.java }}
@@ -57,11 +57,19 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up JDK (windows)
+        if: startsWith(matrix.os, 'windows-')
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
+
+      - name: Set up JDK (macos)
+        if: startsWith(matrix.os, 'macos-')
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'oracle'
 
       - name: Echo JAVA_HOME (windows)
         if: startsWith(matrix.os, 'windows-')
@@ -130,9 +138,16 @@ jobs:
           name: installer-windows
           path: NearInfinity-*.exe
 
-      - name: Upload pkg artifact (macos)
-        if: startsWith(matrix.os, 'macos-')
+      - name: Upload pkg artifact (macos-x86_64)
+        if: (matrix.os == 'macos-13')
         uses: actions/upload-artifact@v4
         with:
           name: installer-macos-x86_64
+          path: NearInfinity-*.pkg
+
+      - name: Upload pkg artifact (macos-arm64)
+        if: (matrix.os == 'macos-14')
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-macos-arm64
           path: NearInfinity-*.pkg
