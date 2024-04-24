@@ -41,14 +41,14 @@ jobs:
           name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}
           path: NearInfinity.jar
 
-  # Build and upload installer versions for Windows and macOS
+  # Build and upload installer versions for Windows, macOS-x86_64 and macOS-arm64
   deploy-installer:
     if: ${{ github.repository == 'Argent77/NearInfinity' }}
     needs: deploy-jar
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-latest ]
+        os: [ windows-latest, macos-13, macos-14 ]
         java: [ '21' ]
     runs-on: ${{ matrix.os }}
     name: Create installer for ${{ matrix.os }}, JDK ${{ matrix.java }}
@@ -99,7 +99,7 @@ jobs:
           .\build-installer.cmd
 
       - name: Build installer (macos)
-        if: (matrix.os == 'macos-latest')
+        if: startsWith(matrix.os, 'macos-')
         run: |
           mv assets/redistributable/macos/package .
           mv assets/redistributable/macos/build.command .
@@ -112,7 +112,7 @@ jobs:
         run: dir
 
       - name: List built files (macos)
-        if: (matrix.os == 'macos-latest')
+        if: startsWith(matrix.os, 'macos-')
         run: ls -l
 
       # Uploading
@@ -131,8 +131,15 @@ jobs:
           path: NearInfinity-*.exe
 
       - name: Upload pkg artifact (macos)
-        if: (matrix.os == 'macos-latest')
+        if: (matrix.os == 'macos-13')
         uses: actions/upload-artifact@v3
         with:
-          name: installer-macos
+          name: installer-macos-x86_64
+          path: NearInfinity-*.pkg
+
+      - name: Upload pkg artifact (macos-arm64)
+        if: (matrix.os == 'macos-14')
+        uses: actions/upload-artifact@v3
+        with:
+          name: installer-macos-arm64
           path: NearInfinity-*.pkg
