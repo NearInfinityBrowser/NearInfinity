@@ -136,7 +136,7 @@ import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   // the current Near Infinity version
-  private static final String VERSION = "v2.4-20231231";
+  private static final String VERSION = "v2.4-20240424";
 
   // the minimum supported Java version
   private static final int JAVA_VERSION_MIN = 8;
