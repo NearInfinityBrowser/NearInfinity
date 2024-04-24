@@ -27,6 +27,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
@@ -2211,22 +2212,18 @@ public class AreaViewer extends ChildFrame {
       try {
         final BufferedImage dstImage;
         if (isExportLayersEnabled()) {
-          double zoom = getZoomFactor();
-          setZoomFactor(1.0, 1.0);
-          try {
-            dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics2D g1 = dstImage.createGraphics();
-            rcCanvas.paint(g1);
-            g1.dispose();
-          } finally {
-            setZoomFactor(zoom, Settings.ZoomFactor);
-          }
+          dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
+          final Graphics2D g1 = dstImage.createGraphics();
+          rcCanvas.paint(g1);
+          g1.dispose();
         } else {
-          VolatileImage srcImage = (VolatileImage) rcCanvas.getImage();
-          dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(), srcImage.getHeight(),
+          final double zoom = getZoomFactor();
+          final VolatileImage srcImage = (VolatileImage) rcCanvas.getImage();
+          dstImage = ColorConvert.createCompatibleImage(rcCanvas.getWidth(), rcCanvas.getHeight(),
               srcImage.getTransparency());
-          Graphics2D g2 = dstImage.createGraphics();
-          g2.drawImage(srcImage, 0, 0, null);
+          final Graphics2D g2 = dstImage.createGraphics();
+          final AffineTransform xform = AffineTransform.getScaleInstance(zoom, zoom);
+          g2.drawImage(srcImage, xform, null);
           g2.dispose();
         }
         bRet = ImageIO.write(dstImage, "png", os);
