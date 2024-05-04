@@ -1031,7 +1031,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Bookmark bookmark = BrowserMenuBar.getInstance().getGameMenu().getBookmarkOf(Profile.getChitinKey());
       List<Path> binPaths = null;
       if (bookmark != null) {
-        List<String> list = bookmark.getBinaryPaths(Platform.getPlatform());
+        List<String> list = bookmark.getBinaryPaths(Platform.OS.getCurrentOS());
         if (list != null && !list.isEmpty()) {
           binPaths = new ArrayList<>();
           for (final String name : list) {
@@ -1396,8 +1396,55 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
    * Shows Java Runtime information when there are no components attached to the main view.
    */
   private JPanel createJavaInfoPanel() {
+    final Color fgColor = Misc.orDefault(UIManager.getColor("Label.foreground"), Color.BLACK);
+    final Color warningColor = ((fgColor.getRGB() & 0x808080) == 0)
+        ? new Color(128, 0, 0)    // for light UI themes
+        : new Color(255, 64, 64); // for dark UI themes
+
+    // TODO: Enable deprecation message if 32-bit JRE is detected
+//    final JLabel archNote;
+//    if (Platform.IS_32BIT) {
+//      final String msg = "<html><p>"
+//          + "Support of 32-bit Java Runtime Environments has been deprecated and will be<br/>"
+//          + "removed completely in a future version.<br/><br/>"
+//          + "Please upgrade your Java Runtime Environment to 64-bit if possible.<br/>"
+//          + "Download options can be found on the Near Infinity Wiki page (press F1 to open<br/>"
+//          + "the Wiki in your browser.)</p></html>";
+//      archNote = new JLabel(msg);
+//      archNote.setForeground(warningColor);
+//    } else {
+//      archNote = null;
+//    }
+
     if (!BrowserMenuBar.getInstance().getOptions().showSysInfo()) {
-      return new JPanel();
+      // show only deprecation message
+      final JPanel infoPanel = new JPanel();
+      // TODO: Enable deprecation message if 32-bit JRE is detected (Maybe don't show if SysInfo is disabled?)
+//      if (archNote != null) {
+//        final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+//        final int prefWidth;
+//        final int minWidth = 400;
+//        if (gd != null && (AppOption.APP_WINDOW_STATE.getIntValue() & Frame.MAXIMIZED_HORIZ) != 0) {
+//          prefWidth = Math.max(minWidth, gd.getDisplayMode().getWidth() / 3);
+//        } else {
+//          prefWidth = Math.max(minWidth, AppOption.APP_WINDOW_SIZE_X.getIntValue() / 2);
+//        }
+//        final int prefHeight;
+//        final int minHeight = 400;
+//        if (gd != null && (AppOption.APP_WINDOW_STATE.getIntValue() & Frame.MAXIMIZED_VERT) != 0) {
+//          prefHeight = Math.max(minHeight, gd.getDisplayMode().getHeight() / 3);
+//        } else {
+//          prefHeight = Math.max(minHeight, AppOption.APP_WINDOW_SIZE_Y.getIntValue() / 2);
+//        }
+//
+//        archNote.setMinimumSize(new Dimension(minWidth, minHeight));
+//        archNote.setPreferredSize(new Dimension(prefWidth, prefHeight));
+//        infoPanel.setLayout(new GridBagLayout());
+//        final GridBagConstraints c = ViewerUtil.setGBC(null, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+//            GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+//        infoPanel.add(archNote, c);
+//      }
+      return infoPanel;
     }
 
     final List<Couple<String, String>> entries = new ArrayList<>();
@@ -1453,16 +1500,25 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       row++;
     }
 
+    // TODO: Enable deprecation message if 32-bit JRE is detected
+//    if (archNote != null) {
+//      c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+//          new Insets(16, 0, 0, 0), 0, 0);
+//      infoPanel.add(archNote, c);
+//      row++;
+//    }
+
     if (memoryMax < 480) {
-      String message = "<html><center>Your Java memory settings may not be sufficient to use all features of Near Infinity.<br>";
-      if (System.getProperty("os.arch").contains("64")) {
-        message += "Please consider running Near Infinity with improved memory settings.";
+      String message = "<html>Your Java memory settings may not be sufficient to use all features of Near Infinity.<br/>";
+      if (Platform.IS_32BIT) {
+        message += "Please consider upgrading your Java Runtime Environment to 64-bit or run<br/>"
+            + "Near Infinity with improved memory settings.";
       } else {
-        message += "Please consider upgrading your Java Runtime Environment to 64-bit<br>or run Near Infinity with improved memory settings.";
+        message += "Please consider running Near Infinity with improved memory settings.";
       }
-      message += "</center></html>";
+      message += "</html>";
       final JLabel infoLabel = new JLabel(message);
-      infoLabel.setForeground(new Color(0x800000));
+      infoLabel.setForeground(warningColor);
 
       c = ViewerUtil.setGBC(c, 0, row, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
           new Insets(16, 0, 0, 0), 0, 0);

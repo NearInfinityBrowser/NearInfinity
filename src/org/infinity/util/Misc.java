@@ -591,6 +591,21 @@ public class Misc {
   }
 
   /**
+   * Returns {@code obj} if non-null, otherwise return {@code def}.
+   * @param <T> Type of the return value.
+   * @param obj The value to return if non-null.
+   * @param def A default value
+   * @return Returns {@code obj} if non-null, otherwise {@code def} is returned.
+   */
+  public static <T> T orDefault(T obj, T def) {
+    if (obj != null) {
+      return obj;
+    } else {
+      return def;
+    }
+  }
+
+  /**
    * This method throws a general {@link Exception} without message if the specified condition isn't met.
    *
    * @param cond the condition to meet.

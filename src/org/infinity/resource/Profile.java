@@ -1281,7 +1281,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       game = getGame();
     }
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
 
     EnumMap<Platform.OS, List<String>> osMap = DEFAULT_GAME_BINARIES.get(game);
@@ -1305,7 +1305,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       game = getGame();
     }
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
 
     List<String> listNames = getGameBinaries(game, os);
