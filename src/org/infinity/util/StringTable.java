@@ -77,7 +77,7 @@ public class StringTable {
   /** String entry flag: Available tokens will be resolved */
   public static final short FLAGS_HAS_TOKEN = 0x04;
   /** The default flags value includes all supported bits */
-  public static final short FLAGS_DEFAULT = 0x07;
+  public static final short FLAGS_DEFAULT = FLAGS_HAS_TEXT | FLAGS_HAS_SOUND | FLAGS_HAS_TOKEN;
 
   /** Strref start index for virtual strings referenced by ENGINEST.2DA (EE only) */
   public static final int STRREF_VIRTUAL = 0xf00000;
@@ -1465,6 +1465,10 @@ public class StringTable {
       this.pitch = 0;
       this.text = "";
       resetModified();
+    }
+
+    public StringEntry(StringTable parent, short flags) {
+      this(parent, flags, "", 0, 0, "");
     }
 
     public StringEntry(StringTable parent, short flags, String soundRef, int volume, int pitch, String text) {

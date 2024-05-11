@@ -818,7 +818,8 @@ public class StringEditor extends ChildFrame implements SearchClient {
             WindowBlocker blocker = new WindowBlocker(StringEditor.this);
             try {
               blocker.setBlocked(true);
-              showEntry(addEntry(new StringTable.StringEntry(null), new StringTable.StringEntry(null), true));
+              showEntry(addEntry(new StringTable.StringEntry(null, StringTable.FLAGS_DEFAULT),
+                  new StringTable.StringEntry(null, StringTable.FLAGS_DEFAULT), true));
             } finally {
               blocker.setBlocked(false);
             }
