@@ -182,24 +182,32 @@ public class PlainTextResource
       int maxCols = 0;
       int maxTokenLength = 0;
       final List<List<String>> matrix = new ArrayList<>(lines.length);
-      for (int i = 0; i < lines.length; i++) {
-        final String[] tokens = lines[i].split("\\s+");
+      int i = 0;
+      for (final String item : lines) {
+        final String line = item.trim();
+        if (line.isEmpty()) {
+          continue;
+        }
+
+        final String[] tokens = line.split("\\s+");
         if (tokens.length > 0) {
-          matrix.add(new ArrayList<>(tokens.length));
-          if (matrix.size() == 3) {
-            matrix.get(matrix.size() - 1).add("");
+          i++;
+          final ArrayList<String> row = new ArrayList<>(tokens.length);
+          if (i == 3) {
+            row.add("");
           }
-          for (String token : tokens) {
+          for (final String token : tokens) {
             if (!token.isEmpty()) {
-              matrix.get(i).add(token);
+              row.add(token);
             }
           }
-          if (matrix.size() > 2) {
-            maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
+          if (i > 2) {
+            maxCols = Math.max(maxCols, row.size());
             for (String token : tokens) {
               maxTokenLength = Math.max(maxTokenLength, token.length());
             }
           }
+          matrix.add(row);
         }
       }
 
