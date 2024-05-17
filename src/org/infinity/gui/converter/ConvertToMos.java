@@ -927,8 +927,15 @@ public class ConvertToMos extends ChildFrame
     fc.setFileFilter(filters[0]);
     if (Files.isRegularFile(path)) {
       fc.setSelectedFile(path.toFile());
-    } else {
-      fc.setCurrentDirectory(path.getParent().toFile());
+    } else if (!Files.exists(path)) {
+      // finding existing path
+      Path curPath = path.getParent();
+      while (curPath.getNameCount() > 0 && !Files.exists(curPath)) {
+        curPath = curPath.getParent();
+      }
+      if (curPath.getNameCount() > 0) {
+        fc.setCurrentDirectory(curPath.toFile());
+      }
     }
     int ret = fc.showOpenDialog(this);
     if (ret == JFileChooser.APPROVE_OPTION) {
