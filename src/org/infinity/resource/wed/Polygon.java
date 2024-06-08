@@ -10,7 +10,6 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasChildStructs;
@@ -22,6 +21,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   public static final String WED_POLY_VERTEX_INDEX  = "Vertex index";
   public static final String WED_POLY_NUM_VERTICES  = "# vertices";
   public static final String WED_POLY_FLAGS         = "Polygon flags";
+  public static final String WED_POLY_HEIGHT        = "Height";
   public static final String WED_POLY_MIN_COORD_X   = "Minimum coordinate: X";
   public static final String WED_POLY_MAX_COORD_X   = "Maximum coordinate: X";
   public static final String WED_POLY_MIN_COORD_Y   = "Minimum coordinate: Y";
@@ -92,7 +92,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     addField(new DecNumber(buffer, offset, 4, WED_POLY_VERTEX_INDEX));
     addField(new SectionCount(buffer, offset + 4, 4, WED_POLY_NUM_VERTICES, Vertex.class));
     addField(new Flag(buffer, offset + 8, 1, WED_POLY_FLAGS, FLAGS_ARRAY));
-    addField(new Unknown(buffer, offset + 9, 1));
+    addField(new DecNumber(buffer, offset + 9, 1, WED_POLY_HEIGHT));
     addField(new DecNumber(buffer, offset + 10, 2, WED_POLY_MIN_COORD_X));
     addField(new DecNumber(buffer, offset + 12, 2, WED_POLY_MAX_COORD_X));
     addField(new DecNumber(buffer, offset + 14, 2, WED_POLY_MIN_COORD_Y));
