@@ -437,7 +437,8 @@ public final class CreResource extends AbstractStruct
       "Hide status", "Affected by alternate damage", "Moving between areas", "Been in party", "Holding item",
       "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode", "EE: No tooltip",
       "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
-      "Gender tracking", "Alignment tracking", "Uninterruptible" };
+      "Gender tracking", "Alignment tracking",
+      "Uninterruptible;Used internally to indicate whether execution of creature script actions can be interrupted." };
 
   public static final String[] FLAGS_IWD2_ARRAY = { "No flags set", "Damage don't stop casting", "No corpse",
       "Permanent corpse", null, null, null, null, null, null, "Fallen paladin", "Fallen ranger", "Export allowed", null,
