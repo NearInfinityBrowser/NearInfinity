@@ -310,8 +310,10 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
 
       // calculating the properties of the resulting image
       int left = 0, right = width - 1, top = 0, bottom = height - 1;
-      boolean edgeLeft = !cbEdges.get(Edge.Left).isSelected(), edgeRight = !cbEdges.get(Edge.Right).isSelected(),
-          edgeTop = !cbEdges.get(Edge.Top).isSelected(), edgeBottom = !cbEdges.get(Edge.Bottom).isSelected();
+      boolean edgeLeft = !cbEdges.get(Edge.Left).isSelected();
+      boolean edgeRight = !cbEdges.get(Edge.Right).isSelected();
+      boolean edgeTop = !cbEdges.get(Edge.Top).isSelected();
+      boolean edgeBottom = !cbEdges.get(Edge.Bottom).isSelected();
       while ((left < right || top < bottom) && (!edgeLeft || !edgeRight || !edgeTop || !edgeBottom)) {
         int ofs, step;
         // checking top edge
@@ -402,6 +404,14 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
         if (!edgeBottom) {
           bottom--;
         }
+      }
+
+      // preventing empty frames
+      if (right < left) {
+        left = right = 0;
+      }
+      if (bottom < top) {
+        top = bottom = 0;
       }
 
       // creating new image
