@@ -712,9 +712,11 @@ public final class CreResource extends AbstractStruct
     if (sig.equals("CHR ")) {
       retVal = StreamUtils.readString(is, 32);
     } else {
-      String name = StringTable.getStringRef(StreamUtils.readInt(is));
-      String shortName = StringTable.getStringRef(StreamUtils.readInt(is));
-      if (name.equals(shortName)) {
+      final int strrefName = StreamUtils.readInt(is);
+      final int strrefShortName = StreamUtils.readInt(is);
+      final String name = StringTable.getStringRef(strrefName).trim();
+      final String shortName = StringTable.getStringRef(strrefShortName).trim();
+      if (strrefName == strrefShortName || strrefShortName < 0 || name.equals(shortName) || shortName.isEmpty()) {
         retVal = name;
       } else {
         retVal = name + " - " + shortName;
