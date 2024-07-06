@@ -68,7 +68,6 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Editable;
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
@@ -82,6 +81,8 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnknownBinary;
 import org.infinity.datatype.UnknownDecimal;
+import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.datatype.UnsignHexNumber;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.ViewMode;
 import org.infinity.icon.Icons;
@@ -129,6 +130,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOBIN = "ToBin";
   public static final String CMD_TODEC = "ToDec";
   public static final String CMD_TOINT = "ToInt";
+  public static final String CMD_TOUINT = "ToUint";
   public static final String CMD_TOHEXINT = "ToHexInt";
   public static final String CMD_TOFLAGS = "ToFlags";
   public static final String CMD_TORESLIST = "ToResList";
@@ -163,7 +165,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToString = createMenuItem(CMD_TOSTRING, "Edit as string", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary data", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal data", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as signed number", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToUint = createMenuItem(CMD_TOUINT, "Edit as unsigned number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hexadecimal number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.ICON_REFRESH_16.getIcon(), this);
@@ -288,6 +291,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
     popupmenu.add(miToInt);
+    popupmenu.add(miToUint);
     popupmenu.add(miToHexInt);
     popupmenu.add(miToFlags);
     popupmenu.add(miToResref);
@@ -312,6 +316,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
     miToInt.setEnabled(false);
+    miToUint.setEnabled(false);
     miToHexInt.setEnabled(false);
     miToFlags.setEnabled(false);
     miToResref.setEnabled(false);
@@ -600,6 +605,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(min, miToDec);
     } else if (CMD_TOINT.equals(cmd)) {
       convertAttribute(min, miToInt);
+    } else if (CMD_TOUINT.equals(cmd)) {
+      convertAttribute(min, miToUint);
     } else if (CMD_TOHEXINT.equals(cmd)) {
       convertAttribute(min, miToHexInt);
     } else if (CMD_TOFLAGS.equals(cmd)) {
@@ -716,6 +723,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToInt.setEnabled(false);
+      miToUint.setEnabled(false);
       miToHexInt.setEnabled(false);
       miToFlags.setEnabled(false);
       miToResref.setEnabled(false);
@@ -771,9 +779,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToInt.setEnabled(
           isDataType && isReadable && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
               || selected instanceof SectionOffset || selected instanceof AbstractCode));
+      miToUint.setEnabled(
+          isDataType && isReadable && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
+              || selected instanceof SectionOffset || selected instanceof AbstractCode));
       miToHexInt.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
-          && !(selected instanceof HexNumber || selected instanceof SectionCount || selected instanceof SectionOffset
-              || selected instanceof AbstractCode));
+          && !(selected instanceof UnsignHexNumber || selected instanceof SectionCount ||
+              selected instanceof SectionOffset || selected instanceof AbstractCode));
       miToFlags.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
           && !(selected instanceof Flag || selected instanceof SectionCount || selected instanceof SectionOffset
               || selected instanceof AbstractCode));
@@ -1186,8 +1197,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new UnknownDecimal(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToInt) {
         newentry = new DecNumber(bb, 0, entry.getSize(), entry.getName());
+      } else if (menuitem == miToUint) {
+        newentry = new UnsignDecNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToHexInt) {
-        newentry = new HexNumber(bb, 0, entry.getSize(), entry.getName());
+        newentry = new UnsignHexNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToFlags) {
         newentry = new Flag(bb, 0, entry.getSize(), entry.getName(), null);
       } else if (CMD_TORESLIST.equals(menuitem.getActionCommand())) {
