@@ -667,14 +667,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       AddRemovable toadd = (AddRemovable) item.getClientProperty("prototype");
       try {
         toadd = ((HasChildStructs) struct).confirmAddEntry(toadd);
-        if (toadd != null) {
-          toadd = (AddRemovable) toadd.clone();
-        }
-        int index = struct.addDatatype(toadd);
-        table.getSelectionModel().setSelectionInterval(index, index);
-        table.scrollRectToVisible(table.getCellRect(index, 1, true));
       } catch (Exception e) {
-        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      if (toadd != null) {
+        try {
+          toadd = (AddRemovable) toadd.clone();
+          int index = struct.addDatatype(toadd);
+          table.getSelectionModel().setSelectionInterval(index, index);
+          table.scrollRectToVisible(table.getCellRect(index, 1, true));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     } else if (src == buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU)) {
       final JMenuItem item = ((ButtonPopupMenu) src).getSelectedItem();

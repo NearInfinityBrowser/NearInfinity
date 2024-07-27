@@ -14,10 +14,12 @@ import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TableBitmap;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.io.StreamUtils;
 
-public final class Song extends AbstractStruct { // implements AddRemovable
+public final class Song extends AbstractStruct implements AddRemovable { // implements AddRemovable
   // ARE/Songs-specific field labels
   public static final String ARE_SONGS                      = "Songs";
   public static final String ARE_SONGS_DAY                  = "Day song";
@@ -38,8 +40,17 @@ public final class Song extends AbstractStruct { // implements AddRemovable
   public static final String ARE_SONGS_AMBIENT_VOLUME_NIGHT = "Main ambient volume (night)";
   public static final String ARE_SONGS_REVERB               = "Reverb";
 
+  public Song() throws Exception {
+    super(null, ARE_SONGS, StreamUtils.getByteBuffer(144), 0);
+  }
+
   Song(AreResource are, ByteBuffer buffer, int offset) throws Exception {
     super(are, ARE_SONGS, buffer, offset);
+  }
+
+  @Override
+  public boolean canRemove() {
+    return false;
   }
 
   @Override

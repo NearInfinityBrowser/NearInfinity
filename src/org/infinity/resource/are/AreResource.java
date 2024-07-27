@@ -402,19 +402,33 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
   public AddRemovable[] getPrototypes() throws Exception {
     if (Profile.getEngine() == Profile.Engine.PST) {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
-          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNotePST() };
+          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNotePST(),
+          new Song(), new RestSpawn() };
     } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
           new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNote(),
-          new ProTrap() };
+          new ProTrap(), new Song(), new RestSpawn() };
     } else {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
-          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject() };
+          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new Song(), new RestSpawn() };
     }
   }
 
   @Override
   public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
+    if (entry instanceof Song) {
+      // only one instance allowed
+      final IsNumeric songOffset = (IsNumeric) getAttribute(ARE_OFFSET_SONGS);
+      if (songOffset != null && songOffset.getValue() > 0 && getAttribute(songOffset.getValue(), Song.class) != null) {
+        throw new Exception(Song.ARE_SONGS + " entry already exists.");
+      }
+    } else if (entry instanceof RestSpawn) {
+      // only one instance allowed
+      final IsNumeric restOffset = (IsNumeric) getAttribute(ARE_OFFSET_REST_ENCOUNTERS);
+      if (restOffset != null && restOffset.getValue() > 0 && getAttribute(restOffset.getValue(), RestSpawn.class) != null) {
+        throw new Exception(RestSpawn.ARE_RESTSPAWN + " entry already exists.");
+      }
+    }
     return entry;
   }
 
