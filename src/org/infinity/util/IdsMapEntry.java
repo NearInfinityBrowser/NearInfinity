@@ -13,7 +13,7 @@ import java.util.Iterator;
  */
 public class IdsMapEntry implements Comparable<IdsMapEntry>, Iterable<String> {
   /** Symbolic names that can be used in scripts for specifying {@link #id}. */
-  private final ArrayDeque<String> symbols = new ArrayDeque<>();
+  private final ArrayDeque<String> symbols = new ArrayDeque<>(4);
 
   /** Value that used in compiled scripts. */
   private final long id;

@@ -74,6 +74,7 @@ import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FontUIResource;
 
+import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Song2daBitmap;
@@ -1195,6 +1196,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SpriteUtils.clearCache();
     ItemInfo.clearCache();
     AreResource.clearCache();
+    IdsBitmap.clearCache();
     Song2daBitmap.resetSonglist();
     SpellProtType.resetTypeTable();
     Summon2daBitmap.resetSummonTable();
