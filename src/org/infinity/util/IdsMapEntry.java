@@ -33,9 +33,36 @@ public class IdsMapEntry implements Comparable<IdsMapEntry>, Iterable<String> {
     return symbols.size();
   }
 
-  /** Returns the most recently added symbolic name. */
+  /** Returns the first available symbolic name. */
   public String getSymbol() {
-    return symbols.peek();
+    return symbols.peekFirst();
+  }
+
+  /** Returns the most recently added symbolic name. */
+  public String getLastSymbol() {
+    return symbols.peekLast();
+  }
+
+  /**
+   * Returns the symbolic name at the specified index. Call {@link #getNumSymbols()} to get the number of available
+   * symbolic names.
+   *
+   * @param index Index of the symbolic name.
+   * @return Symbolic name as string.
+   * @throws IndexOutOfBoundsException if {@code index} is out of bounds.
+   */
+  public String getSymbol(int index) throws IndexOutOfBoundsException {
+    if (index < 0 || index >= symbols.size()) {
+      throw new IndexOutOfBoundsException("Index out of bounds: " + index);
+    }
+
+    final Iterator<String> iter = symbols.iterator();
+    String retVal = null;
+    while (index >= 0) {
+      retVal = iter.next();
+      index--;
+    }
+    return retVal;
   }
 
   /** Returns an iterator over the whole collection of available symbols. */
@@ -51,7 +78,7 @@ public class IdsMapEntry implements Comparable<IdsMapEntry>, Iterable<String> {
     }
 
     if (!symbol.isEmpty() && !symbols.contains(symbol)) {
-      symbols.push(symbol);
+      symbols.add(symbol);
     }
   }
 

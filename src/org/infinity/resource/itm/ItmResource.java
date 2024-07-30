@@ -15,12 +15,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -110,24 +110,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   public static final String ITM_DIALOG                 = "Dialogue";
   public static final String ITM_SPEAKER_NAME           = "Speaker name";
   public static final String ITM_WEAPON_COLOR           = "Weapon color";
-
-  public static final String[] CATEGORIES_ARRAY = { "Miscellaneous", "Amulets and necklaces", "Armor",
-      "Belts and girdles", "Boots", "Arrows", "Bracers and gauntlets", "Headgear", "Keys", "Potions", "Rings",
-      "Scrolls", "Shields", "Food", "Bullets", "Bows", "Daggers", "Maces", "Slings", "Small swords", "Large swords",
-      "Hammers", "Morning stars", "Flails", "Darts", "Axes", "Quarterstaves", "Crossbows", "Hand-to-hand weapons",
-      "Spears", "Halberds", "Bolts", "Cloaks and robes", "Gold pieces", "Gems", "Wands", "Containers", "Books",
-      "Familiars", "Tattoos", "Lenses", "Bucklers", "Candles", "Child bodies", "Clubs", "Female bodies", "Keys (old)",
-      "Large shields", "Male bodies", "Medium shields", "Notes", "Rods", "Skulls", "Small shields", "Spider bodies",
-      "Telescopes", "Bottles", "Greatswords", "Bags", "Furs and pelts", "Leather armor", "Studded leather",
-      "Chain mail", "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes", "Scale mail", "Bastard swords",
-      "Scarves", "Rations", "Hats", "Gloves", "Eyeballs", "Earrings", "Teeth", "Bracelets" };
-
-  public static final String[] CATEGORIES11_ARRAY = { "Miscellaneous", "Amulets and necklaces", "Armor",
-      "Belts and girdles", "Boots", "Arrows", "Bracers and gauntlets", "Headgear", "Keys", "Potions", "Rings",
-      "Scrolls", "Shields", "Spells", "Bullets", "Bows", "Daggers", "Maces", "Slings", "Small swords", "Large swords",
-      "Hammers", "Morning stars", "Flails", "Darts", "Axes", "Quarterstaves", "Crossbows", "Hand-to-hand weapons",
-      "Greatswords", "Halberds", "Bolts", "Cloaks and robes", "Copper commons", "Gems", "Wands", "Eyeballs",
-      "Bracelets", "Earrings", "Tattoos", "Lenses", "Teeth" };
 
   public static final String[] FLAGS_ARRAY = { "None", "Critical item", "Two-handed", "Droppable", "Displayable",
       "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed", "Conversable",
@@ -352,10 +334,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
       if (Profile.getGame() == Profile.Game.PSTEE) {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, FLAGS_PSTEE_ARRAY));
-        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES_ARRAY));
+        addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       } else {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, FLAGS11_ARRAY));
-        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES11_ARRAY));
+        addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       }
       addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, USABILITY11_ARRAY));
       addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, Profile.getEquippedAppearanceMap()));
@@ -363,7 +345,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
       addField(
           new Flag(buffer, 24, 4, ITM_FLAGS, IdsMapCache.getUpdatedIdsFlags(FLAGS_ARRAY, "ITEMFLAG.IDS", 4, false, false)));
-      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES_ARRAY));
+      addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       if (isV20) {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, USABILITY20_ARRAY));
       } else {

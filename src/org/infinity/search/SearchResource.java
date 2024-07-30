@@ -61,6 +61,7 @@ import javax.swing.text.PlainDocument;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.KitIdsBitmap;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ProRef;
@@ -2030,17 +2031,17 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       String[] sCat;
       if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
         sFlags = ItmResource.FLAGS11_ARRAY;
-        sCat = ItmResource.CATEGORIES11_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES11_ARRAY;
       } else if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sFlags = ItmResource.FLAGS_ARRAY;
-        sCat = ItmResource.CATEGORIES_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES_ARRAY;
       } else {
         if (Profile.getGame() == Profile.Game.PSTEE) {
           sFlags = ItmResource.FLAGS_PSTEE_ARRAY;
         } else {
           sFlags = ItmResource.FLAGS_ARRAY;
         }
-        sCat = ItmResource.CATEGORIES_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES_ARRAY;
       }
 
       pFlags = new FlagsPanel(4, sFlags);
@@ -5425,8 +5426,9 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         cbLabel[i] = new JCheckBox(String.format("Category %d:", i + 1));
         cbLabel[i].addActionListener(this);
 
-        String[] cat = ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.CATEGORIES11_ARRAY
-            : ItmResource.CATEGORIES_ARRAY;
+        String[] cat = ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11))
+            ? ItemTypeBitmap.CATEGORIES11_ARRAY
+            : ItemTypeBitmap.CATEGORIES_ARRAY;
         cbCategory[i] = new AutoComboBox<>(IndexedString.createArray(cat, 0, 0));
       }
 

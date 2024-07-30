@@ -53,7 +53,7 @@ public class Table2da {
     init(entry);
   }
 
-  /** Returns total number of columns, including header column. */
+  /** Returns total number of data columns. */
   public int getColCount() {
     return table.isEmpty() ? header.size() : columnCount;
   }
@@ -66,7 +66,7 @@ public class Table2da {
     return 0;
   }
 
-  /** Returns number of rows, including header row. */
+  /** Returns number of data rows. */
   public int getRowCount() {
     return table.size();
   }
