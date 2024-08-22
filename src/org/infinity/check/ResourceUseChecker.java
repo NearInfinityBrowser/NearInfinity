@@ -7,24 +7,24 @@ package org.infinity.check;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
@@ -56,11 +56,10 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class ResourceUseChecker extends AbstractSearcher
+public final class ResourceUseChecker extends AbstractChecker
     implements Runnable, ListSelectionListener, ActionListener {
   private static final Pattern RESREF_PATTERN = Pattern.compile("\\w{3,8}");
 
@@ -70,73 +69,26 @@ public final class ResourceUseChecker extends AbstractSearcher
   private static final String[] CHECK_TYPES = { "ARE", "BAM", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
                                                 "TIS", "VEF", "VVC", "WAV", "WED" };
 
-  private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
-  private final JButton bstart = new JButton("Search", Icons.ICON_FIND_16.getIcon());
-  private final JButton bcancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
-  private final JRadioButton[] typeButtons = new JRadioButton[CHECK_TYPES.length];
-  private final List<ResourceEntry> unusedResources = new ArrayList<>();
+  private final TreeMap<String, ResourceEntry> unusedResources = new TreeMap<>(String::compareToIgnoreCase);
+  private final HashSet<String> checkTypes = new HashSet<>(CHECK_TYPES.length * 2);
 
   private ChildFrame resultFrame;
   private JButton bopen;
   private JButton bopennew;
   private JButton bsave;
-  private String checkType;
 
   /** List of the {@link UnusedFileTableItem} objects. */
   private SortableTable table;
 
   public ResourceUseChecker(Component parent) {
-    super(CHECK_MULTI_TYPE_FORMAT, parent);
-    ButtonGroup bg = new ButtonGroup();
-    JPanel radioPanel = new JPanel(new GridLayout(0, 1));
-    for (int i = 0; i < typeButtons.length; i++) {
-      typeButtons[i] = new JRadioButton(CHECK_TYPES[i]);
-      bg.add(typeButtons[i]);
-      radioPanel.add(typeButtons[i]);
-    }
-    typeButtons[0].setSelected(true);
-    bstart.setMnemonic('s');
-    bcancel.setMnemonic('c');
-    bstart.addActionListener(this);
-    bcancel.addActionListener(this);
-    selectframe.getRootPane().setDefaultButton(bstart);
-    selectframe.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
-    radioPanel.setBorder(BorderFactory.createTitledBorder("Select type to search:"));
-
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bstart);
-    bpanel.add(bcancel);
-
-    JPanel mainpanel = new JPanel(new BorderLayout());
-    mainpanel.add(radioPanel, BorderLayout.CENTER);
-    mainpanel.add(bpanel, BorderLayout.SOUTH);
-    mainpanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
-    JPanel pane = (JPanel) selectframe.getContentPane();
-    pane.setLayout(new BorderLayout());
-    pane.add(mainpanel, BorderLayout.CENTER);
-
-    selectframe.pack();
-    Center.center(selectframe, parent.getBounds());
-    selectframe.setVisible(true);
+    super(CHECK_MULTI_TYPE_FORMAT, CHECK_TYPES);
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bstart) {
-      selectframe.setVisible(false);
-      for (int i = 0; i < typeButtons.length; i++) {
-        if (typeButtons[i].isSelected()) {
-          checkType = CHECK_TYPES[i];
-          new Thread(this).start();
-          return;
-        }
-      }
-    } else if (event.getSource() == bcancel) {
-      selectframe.setVisible(false);
-    } else if (event.getSource() == bopen) {
+    if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
@@ -150,7 +102,9 @@ public final class ResourceUseChecker extends AbstractSearcher
         new ViewFrame(resultFrame, resource);
       }
     } else if (event.getSource() == bsave) {
-      table.saveCheckResult(resultFrame, "Unused " + checkType + " resources");
+      table.saveCheckResult(resultFrame, "Unused resources");
+    } else {
+      super.actionPerformed(event);
     }
   }
 
@@ -178,19 +132,30 @@ public final class ResourceUseChecker extends AbstractSearcher
         files.addAll(ResourceFactory.getResources(fileType));
       }
 
-      unusedResources.addAll(ResourceFactory.getResources(checkType));
+      checkTypes.clear();
+      final List<JCheckBox> typeList = getSelector().getFileTypes();
+      for (final JCheckBox cb : typeList) {
+        if (cb.isSelected()) {
+          checkTypes.add(cb.getText());
+        }
+      }
+
+      for (final ResourceEntry e : getFiles()) {
+        unusedResources.put(e.getResourceName(), e);
+      }
+
       if (runSearch("Searching", files)) {
         return;
       }
 
       if (unusedResources.isEmpty()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused " + checkType + "s found", "Info",
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused resources found", "Info",
             JOptionPane.INFORMATION_MESSAGE);
       } else {
         table = new SortableTable(new String[] { "File", "Name" }, new Class<?>[] { ResourceEntry.class, String.class },
             new Integer[] { 200, 200 });
-        for (ResourceEntry entry : unusedResources) {
-          table.addTableItem(new UnusedFileTableItem(entry));
+        for (final Entry<String, ResourceEntry> entry : unusedResources.entrySet()) {
+          table.addTableItem(new UnusedFileTableItem(entry.getValue()));
         }
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
@@ -206,7 +171,7 @@ public final class ResourceUseChecker extends AbstractSearcher
         panel.add(bopen);
         panel.add(bopennew);
         panel.add(bsave);
-        JLabel count = new JLabel(table.getRowCount() + " unused " + checkType + "s found", SwingConstants.CENTER);
+        JLabel count = new JLabel(table.getRowCount() + " unused resources found", SwingConstants.CENTER);
         count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
         JScrollPane scrollTable = new JScrollPane(table);
         scrollTable.getViewport().setBackground(table.getBackground());
@@ -284,7 +249,7 @@ public final class ResourceUseChecker extends AbstractSearcher
             e.printStackTrace();
           }
         }
-      } else if (checkType.equalsIgnoreCase("WAV") && (entry instanceof State || entry instanceof Transition)) {
+      } else if (checkTypes.contains("WAV") && (entry instanceof State || entry instanceof Transition)) {
         for (final StructEntry e : ((AbstractStruct) entry).getFlatFields()) {
           if (e instanceof StringRef) {
             checkSound((StringRef) e);
@@ -308,7 +273,7 @@ public final class ResourceUseChecker extends AbstractSearcher
     for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof ResourceRef) {
         checkResourceRef((ResourceRef) entry);
-      } else if (checkType.equalsIgnoreCase("WAV") && entry instanceof StringRef) {
+      } else if (checkTypes.contains("WAV") && entry instanceof StringRef) {
         checkSound((StringRef) entry);
       }
     }
@@ -317,7 +282,9 @@ public final class ResourceUseChecker extends AbstractSearcher
   private void checkTextfile(PlainTextResource text) {
     final Matcher m = RESREF_PATTERN.matcher(text.getText());
     while (m.find()) {
-      removeEntries(m.group() + '.' + checkType);
+      for (final String checkType : checkTypes) {
+        removeEntries(m.group() + '.' + checkType);
+      }
     }
   }
 
@@ -338,7 +305,7 @@ public final class ResourceUseChecker extends AbstractSearcher
 
     synchronized (unusedResources) {
       for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
-        unusedResources.remove(entry);
+        unusedResources.remove(entry.getResourceName());
       }
     }
   }
@@ -352,7 +319,8 @@ public final class ResourceUseChecker extends AbstractSearcher
    * @param ref Reference to the resource for checking
    */
   private void checkResourceRef(ResourceRef ref) {
-    if (checkType.equalsIgnoreCase(ref.getType())) {
+    final String type = ref.getType().toUpperCase();
+    if (checkTypes.contains(type)) {
       removeEntries(ref.getResourceName());
     }
   }
@@ -384,12 +352,7 @@ public final class ResourceUseChecker extends AbstractSearcher
    */
   private void removeEntries(String name) {
     synchronized (unusedResources) {
-      for (final Iterator<ResourceEntry> it = unusedResources.iterator(); it.hasNext();) {
-        if (it.next().getResourceName().equalsIgnoreCase(name)) {
-          it.remove();
-          break;
-        }
-      }
+      unusedResources.remove(name);
     }
   }
 
