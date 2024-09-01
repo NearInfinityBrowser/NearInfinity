@@ -413,7 +413,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         progress.setMillisToPopup(0);
         progress.setProgress(0);
         progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         for (int i = 0, count = getResourceCount(); i < count; i++) {
           threadPool.submit(new Worker(selectedFiles.get(i)));
           if (progress.isCanceled()) {
@@ -458,7 +458,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       selectedFiles = null;
     }
-    Debugging.timerShow("Mass export completed", Debugging.TimeFormat.MILLISECONDS);
+    DebugTimer.getInstance().timerShow("Mass export completed", DebugTimer.TimeFormat.MILLISECONDS);
   }
 
   // --------------------- End Interface Runnable ---------------------

@@ -74,7 +74,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
@@ -556,7 +556,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
 
       // executing search
       try {
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         List<SearchOptions> searchOptions = getSearchOptions();
 
         // using parallel jobs to speed up search
@@ -596,7 +596,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
             found.size() == 1 ? "" : "es", resourceCount, resourceCount == 1 ? "" : "s"));
       } finally {
-        Debugging.timerShow("Advanced Search", Debugging.TimeFormat.MILLISECONDS);
+        DebugTimer.getInstance().timerShow("Advanced Search", DebugTimer.TimeFormat.MILLISECONDS);
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, STATUS_BUTTONS);

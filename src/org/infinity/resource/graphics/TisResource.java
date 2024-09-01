@@ -107,7 +107,7 @@ import org.infinity.resource.wed.Tilemap;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DataString;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.tuples.Couple;
 
@@ -197,9 +197,9 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         final TisConvert.Config config = ConvertTisDialog.show(panel.getTopLevelAncestor(), this);
         if (config != null) {
           performBackgroundTask(() -> {
-            Debugging.timerReset();
+            DebugTimer.getInstance().timerReset();
             Status status = TisConvert.convertToPaletteTis(config, true, panel.getTopLevelAncestor());
-            Debugging.timerShow("TIS conversion completed", Debugging.TimeFormat.MILLISECONDS);
+            DebugTimer.getInstance().timerShow("TIS conversion completed", DebugTimer.TimeFormat.MILLISECONDS);
             return status;
           });
         }
@@ -213,9 +213,9 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         final TisConvert.Config config = ConvertTisDialog.show(panel.getTopLevelAncestor(), this);
         if (config != null) {
           performBackgroundTask(() -> {
-            Debugging.timerReset();
+            DebugTimer.getInstance().timerReset();
             Status status = TisConvert.convertToPvrzTis(config, true, panel.getTopLevelAncestor());
-            Debugging.timerShow("TIS conversion completed", Debugging.TimeFormat.MILLISECONDS);
+            DebugTimer.getInstance().timerShow("TIS conversion completed", DebugTimer.TimeFormat.MILLISECONDS);
             return status;
           });
         }

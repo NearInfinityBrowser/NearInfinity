@@ -13,7 +13,7 @@ import javax.swing.ProgressMonitor;
 
 import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.Misc;
 import org.infinity.util.Threading;
 
@@ -93,7 +93,7 @@ public abstract class AbstractSearcher {
 
       boolean isCancelled = false;
       try (final Threading threadPool = new Threading()) {
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         int i = 0;
         for (final ResourceEntry entry : entries) {
           if (progress.isCanceled()) {
@@ -137,7 +137,7 @@ public abstract class AbstractSearcher {
         // ignored
       }
 
-      Debugging.timerShow(operation + " completed", Debugging.TimeFormat.MILLISECONDS);
+      DebugTimer.getInstance().timerShow(operation + " completed", DebugTimer.TimeFormat.MILLISECONDS);
 
       if (isCancelled) {
         JOptionPane.showMessageDialog(parent, operation + " cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);

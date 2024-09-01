@@ -93,7 +93,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.ui.ResourceCellRenderer;
 import org.infinity.resource.ui.ResourceListModel;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
@@ -223,7 +223,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
 
       // executing search
       try {
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         OptionsBasePanel panel = mapOptionsPanel.get(type);
         if (panel != null) {
           SearchOptions so = panel.getOptions();
@@ -262,7 +262,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           }
         }
       } finally {
-        Debugging.timerShow("Extended Search", Debugging.TimeFormat.MILLISECONDS);
+        DebugTimer.getInstance().timerShow("Extended Search", DebugTimer.TimeFormat.MILLISECONDS);
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, "buttons");
