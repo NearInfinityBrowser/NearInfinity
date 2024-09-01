@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.util.LauncherUtils;
+import org.tinylog.Logger;
 
 /**
  * Browses for the provided URI on mouse clicks
@@ -30,7 +31,7 @@ public class UrlBrowser implements MouseListener {
       LauncherUtils.browse(url);
       retVal = true;
     } catch (IOException | URISyntaxException e) {
-      e.printStackTrace();
+      Logger.error(e);
       showErrorMessage(e.getMessage());
     }
     return retVal;
@@ -58,7 +59,7 @@ public class UrlBrowser implements MouseListener {
     try {
       LauncherUtils.browse(url);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       showErrorMessage(e.getMessage());
     }
   }

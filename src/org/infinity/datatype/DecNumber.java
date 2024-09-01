@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
+import org.tinylog.Logger;
 
 /**
  * Field that represents numerical value which is usually edited in a decimal mode.
@@ -52,7 +53,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
       }
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return false;

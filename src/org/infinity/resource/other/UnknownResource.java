@@ -46,6 +46,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -337,7 +338,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
               hexViewer.setCurrentOffset(0L);
               panelRaw.add(hexViewer, BorderLayout.CENTER);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             } finally {
               WindowBlocker.blockWindow(false);
             }
@@ -407,7 +408,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
             editor.discardAllEdits(); // don't undo loading operation
             success = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (success) {
             setEditorActive(true);

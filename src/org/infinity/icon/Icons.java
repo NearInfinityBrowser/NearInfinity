@@ -11,6 +11,8 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
+import org.tinylog.Logger;
+
 /**
  * Provides {@code ImageIcon} instances of selected graphics files.
  */
@@ -137,7 +139,7 @@ public enum Icons {
         retVal = new ImageIcon(image);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -167,7 +169,7 @@ public enum Icons {
         retVal = ImageIO.read(is);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;

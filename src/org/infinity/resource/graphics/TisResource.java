@@ -110,6 +110,7 @@ import org.infinity.util.DataString;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * This resource describes a tileset. There are currently two variants available:
@@ -199,12 +200,12 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           performBackgroundTask(() -> {
             DebugTimer.getInstance().timerReset();
             Status status = TisConvert.convertToPaletteTis(config, true, panel.getTopLevelAncestor());
-            DebugTimer.getInstance().timerShow("TIS conversion completed", DebugTimer.TimeFormat.MILLISECONDS);
+            Logger.info(DebugTimer.getInstance().getTimerFormatted("TIS conversion completed"));
             return status;
           });
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Tileset conversion: " + e.getMessage(), "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -215,12 +216,12 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           performBackgroundTask(() -> {
             DebugTimer.getInstance().timerReset();
             Status status = TisConvert.convertToPvrzTis(config, true, panel.getTopLevelAncestor());
-            DebugTimer.getInstance().timerShow("TIS conversion completed", DebugTimer.TimeFormat.MILLISECONDS);
+            Logger.info(DebugTimer.getInstance().getTimerFormatted("TIS conversion completed"));
             return status;
           });
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Tileset conversion: " + e.getMessage(), "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -340,7 +341,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             retVal = Status.ERROR;
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
 
         if (retVal == Status.SUCCESS) {
@@ -629,7 +630,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       }
       WindowBlocker.blockWindow(false);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       WindowBlocker.blockWindow(false);
       if (tileImages == null) {
         tileImages = new ArrayList<>();
@@ -751,7 +752,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           try {
             retVal = operation.get();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           return retVal;
         }
@@ -1126,7 +1127,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         dlg.setVisible(true);
         retVal = dlg.getConfig();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         if (dlg != null) {
           dlg.dispose();
@@ -1177,7 +1178,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           throw new Exception("Conversion not supported");
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       return retVal;
@@ -1488,7 +1489,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       try {
         tisPreview = new TisPreview(tis.decoder);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       final int previewWidth = sTilesPerRow.getValue();
@@ -1962,7 +1963,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       try {
         return Paths.get(tfTisFile.getText().trim());
       } catch (InvalidPathException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       return null;
     }
@@ -2161,7 +2162,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           try {
             tisPreview.setTileSize(zoom);
           } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.error(ex);
             // revert zoom change (if possible)
             for (int i = 0, size = cbPreviewImageZoom.getModel().getSize(); i < size; i++) {
               final int value = cbPreviewImageZoom.getModel().getElementAt(cbPreviewImageZoom.getSelectedIndex()).getData();

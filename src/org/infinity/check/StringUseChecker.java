@@ -61,6 +61,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 public final class StringUseChecker extends AbstractSearcher
     implements Runnable, ListSelectionListener, SearchClient, ActionListener {
@@ -375,9 +376,7 @@ public final class StringUseChecker extends AbstractSearcher
 
           checkCode(compiler.getCode(), type);
         } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
+          Logger.error(e);
         }
       }
     }
@@ -387,9 +386,7 @@ public final class StringUseChecker extends AbstractSearcher
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
-      synchronized (System.err) {
-        e.printStackTrace();
-      }
+      Logger.error(e);
     }
   }
 
@@ -550,7 +547,7 @@ public final class StringUseChecker extends AbstractSearcher
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

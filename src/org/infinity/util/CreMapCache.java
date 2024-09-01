@@ -19,6 +19,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * Maintains a list of script names to CRE resource mappings.
@@ -166,10 +167,10 @@ public final class CreMapCache {
           try {
             threadPool.awaitTermination(60, TimeUnit.SECONDS);
           } catch (InterruptedException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } catch (Exception e) {
-          // ignored
+          Logger.trace(e);
         }
 
         if (statusBar != null && statusBar.getMessage().startsWith(message)) {
@@ -196,9 +197,7 @@ public final class CreMapCache {
       try {
         CreResource.addScriptName(SCRIPT_NAMES_CRE, entry);
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
     }
   }
@@ -215,9 +214,7 @@ public final class CreMapCache {
       try {
         AreResource.addScriptNames(SCRIPT_NAMES_ARE, entry.getResourceBuffer());
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
     }
   }
@@ -250,9 +247,7 @@ public final class CreMapCache {
           }
         }
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
     }
   }

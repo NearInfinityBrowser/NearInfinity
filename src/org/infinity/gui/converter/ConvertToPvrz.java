@@ -59,6 +59,7 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class ConvertToPvrz extends ChildFrame implements ActionListener, PropertyChangeListener {
   private static String currentDir = Profile.getGameRoot().toString();
@@ -276,7 +277,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -613,7 +614,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           } catch (IOException e) {
             bb = null;
             errors++;
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (bb != null) {
             byte[] buffer = bb.array();
@@ -622,7 +623,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
               os.write(output);
             } catch (Exception e) {
               errors++;
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         } else if (isGraphics) {
@@ -744,7 +745,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
             os.write(pvrz);
           } catch (Exception e) {
             errors++;
-            e.printStackTrace();
+            Logger.error(e);
           }
 
           // cleaning up

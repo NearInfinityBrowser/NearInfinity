@@ -57,6 +57,7 @@ import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener, DocumentListener {
   // for source panel
@@ -416,7 +417,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpmUses.setMenuItems(usesItems);
       bpmUses.setEnabled(usesItems.length > 0);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -429,7 +430,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     sourceText.setCaretPosition(0);
     Set<ResourceEntry> uses = decompiler.getResourcesUsed();
@@ -501,7 +502,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       } catch (IOException e) {
         JOptionPane.showMessageDialog(panel, "Error saving " + chooser.getSelectedFile().toString(), "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

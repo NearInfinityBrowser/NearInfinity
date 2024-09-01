@@ -36,6 +36,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.ArrayUtil;
 import org.infinity.util.io.FileEx;
+import org.tinylog.Logger;
 
 public final class SortableTable extends JTable implements MouseListener {
   private static final String WITH_DELIMITERS = "(?<=%1$s)(?!%1$s)|(?<!%1$s)(?=%1$s)";
@@ -129,7 +130,7 @@ public final class SortableTable extends JTable implements MouseListener {
       } catch (IOException ex) {
         JOptionPane.showMessageDialog(parent, "Error while saving " + output + " (details in the trace)", "Error",
             JOptionPane.ERROR_MESSAGE);
-        ex.printStackTrace();
+        Logger.error(ex);
       }
     }
   }
@@ -239,7 +240,7 @@ public final class SortableTable extends JTable implements MouseListener {
       if (!tableItems.isEmpty()) {
         final Object item = tableItems.get(0).getObjectAt(sortByColumn);
         if (item != null && !getColumnClass(sortByColumn).isAssignableFrom(item.getClass())) {
-          System.err.printf("Incompatible item type at column %d: expected %s, found %s\n",
+          Logger.warn("Incompatible item type at column {}: expected {}, found {}",
               sortByColumn, getColumnClass(sortByColumn).getSimpleName(), item.getClass().getSimpleName());
         }
       }

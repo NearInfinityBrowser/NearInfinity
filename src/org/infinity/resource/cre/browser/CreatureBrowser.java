@@ -27,6 +27,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.tinylog.Logger;
 
 /**
  * The Creature Browser implements a highly customizable browser and viewer for creature animations.
@@ -199,7 +200,7 @@ public class CreatureBrowser extends ChildFrame {
   /** A generic catch-all operation that can be used to evaluate exceptions thrown in a background task. */
   private void postTaskDefault(Object o, Exception e) {
     if (e != null) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
@@ -236,7 +237,7 @@ public class CreatureBrowser extends ChildFrame {
             if (retVal.postAction != null) {
               retVal.exception = e;
             } else {
-              e.printStackTrace();
+              Logger.error(e);
             }
           } finally {
             if (blocker != null) {

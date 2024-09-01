@@ -27,6 +27,7 @@ import org.infinity.resource.are.Door;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.ClosedVertex;
 import org.infinity.resource.vertex.OpenVertex;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Door
@@ -88,7 +89,7 @@ public class LayerObjectDoor extends LayerObject {
       launchPoint.x = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LAUNCH_POINT_X)).getValue();
       launchPoint.y = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LAUNCH_POINT_Y)).getValue();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     for (final DoorInfo info: getDoors()) {

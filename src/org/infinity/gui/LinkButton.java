@@ -22,6 +22,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
+import org.tinylog.Logger;
 
 /**
  * A JLabel-based control which supports either internal game resources or external URLs.
@@ -214,7 +215,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
       try {
         Utils.openWebPage(new URL(getUrl()));
       } catch (Exception ex) {
-        ex.printStackTrace();
+        Logger.error(ex);
         JOptionPane.showMessageDialog(((LinkButton) e.getSource()).getTopLevelAncestor(),
             "Error opening link in browser.", "Error", JOptionPane.ERROR_MESSAGE);
       }

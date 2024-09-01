@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Collection of useful stream- and buffer-based operations.
@@ -215,7 +216,7 @@ public class StreamUtils {
       bufTmp.limit(bufTmp.position() + maxLength);
       dst.put(bufTmp);
     } catch (Throwable t) {
-      t.printStackTrace();
+      Logger.error(t);
     } finally {
       src.position(srcPos);
       dst.position(dstPos);
@@ -783,7 +784,7 @@ public class StreamUtils {
           Files.copy(path, zos);
           zos.closeEntry();
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       });
     }

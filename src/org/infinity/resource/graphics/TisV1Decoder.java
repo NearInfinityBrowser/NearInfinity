@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * Handles legacy TIS resources (using palettized tiles).
@@ -199,7 +200,7 @@ public class TisV1Decoder extends TisDecoder {
         workingPalette = new int[256];
         workingCanvas = new BufferedImage(TILE_DIMENSION, TILE_DIMENSION, Transparency.BITMASK);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }

@@ -39,6 +39,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 public class TtfResource implements Resource, DocumentListener, ActionListener {
   private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
@@ -64,7 +65,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
       font = Font.createFont(Font.TRUETYPE_FONT, is);
     } catch (Exception e) {
       font = null;
-      e.printStackTrace();
+      Logger.error(e);
       throw new Exception("Invalid TTF resource");
     }
 
@@ -183,7 +184,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
         try {
           doc.remove(0, doc.getLength());
         } catch (BadLocationException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 
@@ -198,7 +199,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
           doc.insertString(pos, label, as);
           pos += label.length();
         } catch (BadLocationException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
 
         as = new SimpleAttributeSet();
@@ -210,7 +211,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
           doc.insertString(pos, "\n\n", as);
           pos += 2;
         } catch (BadLocationException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       tpDisplay.setCaretPosition(0);

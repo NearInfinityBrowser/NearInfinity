@@ -44,6 +44,8 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
 
+import org.tinylog.Logger;
+
 /**
  * Utility class for zipfile name and comment decoding and encoding.
  */
@@ -139,7 +141,7 @@ public class ZipCoder {
     try {
       return new ZipCoder(Charset.forName(csn));
     } catch (Throwable t) {
-      t.printStackTrace();
+      Logger.error(t);
     }
     return new ZipCoder(Charset.defaultCharset());
   }

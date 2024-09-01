@@ -117,6 +117,7 @@ import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * The Area Viewer shows a selected map with its associated structures, such as actors, regions or animations.
@@ -238,7 +239,7 @@ public class AreaViewer extends ChildFrame {
         try {
           init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return null;
       }
@@ -695,7 +696,7 @@ public class AreaViewer extends ChildFrame {
     try {
       initGuiSettings();
     } catch (OutOfMemoryError e) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(this, "Not enough memory to load area!", "Error", JOptionPane.ERROR_MESSAGE);
       throw e;
     }
@@ -2229,7 +2230,7 @@ public class AreaViewer extends ChildFrame {
         bRet = ImageIO.write(dstImage, "png", os);
         dstImage.flush();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         releaseProgressMonitor();
         WindowBlocker.blockWindow(AreaViewer.this, false);
@@ -2402,7 +2403,7 @@ public class AreaViewer extends ChildFrame {
           try {
             setZoomFactor(Settings.ITEM_ZOOM_FACTOR[cbZoomLevel.getSelectedIndex()], previousZoomFactor);
           } catch (OutOfMemoryError e) {
-            e.printStackTrace();
+            Logger.error(e);
             cbZoomLevel.hidePopup();
             WindowBlocker.blockWindow(AreaViewer.this, false);
             String msg = "Not enough memory to set selected zoom level.\n"
@@ -2554,7 +2555,7 @@ public class AreaViewer extends ChildFrame {
             try {
               setZoomFactor(zoom, previousZoomFactor);
             } catch (OutOfMemoryError e) {
-              e.printStackTrace();
+              Logger.error(e);
               cbZoomLevel.hidePopup();
               WindowBlocker.blockWindow(AreaViewer.this, false);
               String msg = "Not enough memory to set selected zoom level.\n"
@@ -2918,7 +2919,7 @@ public class AreaViewer extends ChildFrame {
               wedItem[dayNight].setVisible(false);
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else {
           wed[dayNight] = wed[ViewerConstants.AREA_DAY];
@@ -2931,7 +2932,7 @@ public class AreaViewer extends ChildFrame {
               try {
                 wed[dayNight] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }

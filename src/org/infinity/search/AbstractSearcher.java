@@ -16,6 +16,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.Misc;
 import org.infinity.util.Threading;
+import org.tinylog.Logger;
 
 /**
  * Utility class for performing searching of resources in several threads with ability to cancel search.
@@ -145,7 +146,7 @@ public abstract class AbstractSearcher {
         // ignored
       }
 
-      DebugTimer.getInstance().timerShow(operation + " completed", DebugTimer.TimeFormat.MILLISECONDS);
+      Logger.info(DebugTimer.getInstance().getTimerFormatted(operation + " completed"));
 
       if (isCancelled) {
         JOptionPane.showMessageDialog(parent, operation + " cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);

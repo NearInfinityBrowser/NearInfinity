@@ -17,6 +17,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.resource.wed.WallPolygon;
 import org.infinity.resource.wed.WedResource;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Wall Polygon
@@ -45,7 +46,7 @@ public class LayerObjectWallPoly extends LayerObject {
       int startIdx = flags.isFlagSet(2) ? 2 : 0; // skipping first two vertices for "hovering walls"
       shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     final Polygon poly = createPolygon(shapeCoords, 1.0);
     final Rectangle bounds = normalizePolygon(poly);

@@ -17,6 +17,7 @@ import org.infinity.resource.are.AutomapNotePST;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapSection;
+import org.tinylog.Logger;
 
 /**
  * Manages automap notes layer objects (both PST-specific and generic types).
@@ -106,7 +107,7 @@ public class LayerAutomap extends BasicLayer<LayerObject, AreResource> {
               objectList.add(obj);
             }
           } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }

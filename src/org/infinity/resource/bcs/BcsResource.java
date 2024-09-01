@@ -62,6 +62,7 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource represent scripted actions. {@code .bcs} files are scripts attached to anything other than the player
@@ -487,7 +488,7 @@ public final class BcsResource
           } catch (IOException e) {
             JOptionPane.showMessageDialog(panel, "Error exporting " + chooser.getSelectedFile().toString(), "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else if (bpmExport.getSelectedItem() == iExportScript) {
@@ -529,7 +530,7 @@ public final class BcsResource
     try {
       return decompiler.getSource();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       return "// Error: " + e.getMessage();
     }
   }
@@ -739,7 +740,7 @@ public final class BcsResource
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       sourceText.setText("/*\nError: " + e.getMessage() + "\n*/");
     }
     sourceText.setCaretPosition(0);

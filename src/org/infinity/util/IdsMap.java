@@ -34,7 +34,7 @@ public class IdsMap {
         parse2DA();
       }
 //    } catch (Exception e) {
-//      e.printStackTrace();
+//      Logger.error(e);
 //    }
   }
 

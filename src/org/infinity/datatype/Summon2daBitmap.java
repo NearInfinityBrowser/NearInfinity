@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 /** Specialized HashBitmap type for parsing {@code SMTABLES.2DA} from IWDEE. */
 public class Summon2daBitmap extends HashBitmap {
@@ -38,10 +39,10 @@ public class Summon2daBitmap extends HashBitmap {
                 String resref = table.get(row, 1).toUpperCase(Locale.ENGLISH) + ".2DA";
                 SUMMON_MAP.put(id, resref);
                 if (!ResourceFactory.resourceExists(resref)) {
-                  System.err.println("Resource does not exist: " + resref);
+                  Logger.warn("Resource does not exist: {}", resref);
                 }
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }

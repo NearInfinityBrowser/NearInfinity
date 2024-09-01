@@ -54,6 +54,7 @@ import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 import ork.sevenstates.apng.APNGSeqWriter;
 
@@ -321,7 +322,7 @@ public class MediaPanel extends JPanel {
         throw new Exception();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       throw new IllegalArgumentException("Could not load animation sequence");
     }
 
@@ -819,7 +820,7 @@ public class MediaPanel extends JPanel {
         JOptionPane.showMessageDialog(browser, message, "Export animation sequence",
             JOptionPane.INFORMATION_MESSAGE);
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(browser, "Unable to export animation sequence.", "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -893,7 +894,7 @@ public class MediaPanel extends JPanel {
             WindowBlocker.blockWindow(getBrowser(), true);
             loadSequence(seq);
           } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.error(ex);
             getBrowser().showErrorMessage(ex.getMessage(), "Sequence selection");
           } finally {
             WindowBlocker.blockWindow(getBrowser(), false);

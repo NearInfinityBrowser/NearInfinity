@@ -16,6 +16,7 @@ import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 /**
  * Specialized {@link HashBitmap} that uses a mix of hardcoded entries and custom entries from ITEMTYPE.2DA
@@ -104,7 +105,7 @@ public class ItemTypeBitmap extends HashBitmap {
           retVal.put((long) idx, catName);
         } catch (NumberFormatException e) {
           // skip entry with log message
-          System.err.printf("%s: Invalid index at row=%d (value=%s)\n", TABLE_NAME, row, idxValue);
+          Logger.warn("{}: Invalid index at row={} (value={})", TABLE_NAME, row, idxValue);
         }
       }
     } else if (Profile.getEngine() == Profile.Engine.PST) {

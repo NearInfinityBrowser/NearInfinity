@@ -19,6 +19,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Decodes a PVR(Z) file. Note: Supports only the minimal set of PVR-specific features required to decode the BGEE's
@@ -54,7 +55,7 @@ public class PvrDecoder {
       try (InputStream is = entry.getResourceDataAsStream()) {
         decoder = createPvrDecoder(key, is);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return decoder;
@@ -76,7 +77,7 @@ public class PvrDecoder {
       try (InputStream is = StreamUtils.getInputStream(FileManager.resolve(fileName))) {
         decoder = createPvrDecoder(key, is);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return decoder;
@@ -95,7 +96,7 @@ public class PvrDecoder {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         decoder = createPvrDecoder(key, is);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return decoder;
@@ -117,7 +118,7 @@ public class PvrDecoder {
       try {
         decoder = createPvrDecoder(key, input);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return decoder;
@@ -189,7 +190,7 @@ public class PvrDecoder {
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

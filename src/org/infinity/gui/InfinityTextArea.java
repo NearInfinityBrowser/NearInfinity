@@ -44,6 +44,7 @@ import org.infinity.resource.text.modes.MenuTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
@@ -402,7 +403,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         } catch (NullPointerException e) {
           // ignore
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 

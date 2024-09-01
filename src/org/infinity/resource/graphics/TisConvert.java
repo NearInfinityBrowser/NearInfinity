@@ -58,6 +58,7 @@ import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * This utility class provides methods for converting tileset (TIS) resources.
@@ -249,7 +250,7 @@ public class TisConvert {
         }
       } catch (IOException e) {
         retVal = Status.ERROR;
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       if (showProgress && progress.isCanceled()) {
@@ -266,7 +267,7 @@ public class TisConvert {
       try {
         Files.delete(pngFile);
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -375,7 +376,7 @@ public class TisConvert {
         } catch (IOException e) {
           // do nothing
         } catch (Exception e) {
-          System.err.println(e.getClass().getName() + ": " + e.getMessage());
+          Logger.warn("{}: {}", e.getClass().getName(), e.getMessage());
         }
       }
       return false;
@@ -639,7 +640,7 @@ public class TisConvert {
       tileImageOut.flush();
     } catch (Exception e) {
       retVal = Status.ERROR;
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       if (showProgress) {
         SwingUtilities.invokeLater(() -> progress.close());
@@ -649,7 +650,7 @@ public class TisConvert {
         try {
           Files.delete(config.getTisFile());
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -913,7 +914,7 @@ public class TisConvert {
       retVal = Status.SUCCESS;
     } catch (Exception e) {
       retVal = Status.ERROR;
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       if (showProgress) {
         SwingUtilities.invokeLater(() -> progress.close());
@@ -1220,7 +1221,7 @@ public class TisConvert {
       throw new IllegalArgumentException("Unsupported texture size (width=" + width + ", height=" + height + ")");
     }
     if (tileMaps.isEmpty()) {
-      System.err.println("PVRZ creation: No tile maps available for " + pvrzFile.getFileName());
+      Logger.warn("PVRZ creation: No tile maps available for {}", pvrzFile.getFileName());
     }
 
     // generating texture image
@@ -1263,7 +1264,7 @@ public class TisConvert {
       try {
         Files.delete(pvrzFile);
       } catch (IOException e2) {
-        e2.printStackTrace();
+        Logger.error(e2);
       }
       throw e;
     }
@@ -1299,7 +1300,7 @@ public class TisConvert {
       if (tmi != null) {
         config.getDecoder().getTile(tmi.getIndex(), tileImg);
       } else {
-        System.err.println("No tile available at " + p);
+        Logger.warn("No tile available at {}", p);
         continue;
       }
 
@@ -1368,7 +1369,7 @@ public class TisConvert {
     Objects.requireNonNull(config);
     Objects.requireNonNull(tileList);
     if (tileList.isEmpty()) {
-      System.out.println(getErrorMessage(config, "Tile list is empty"));
+      Logger.info(getErrorMessage(config, "Tile list is empty"));
     }
 
     try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(config.getTisFile()))) {
@@ -1394,7 +1395,7 @@ public class TisConvert {
       try {
         Files.delete(config.getTisFile());
       } catch (IOException e2) {
-        e2.printStackTrace();
+        Logger.error(e2);
       }
       throw e;
     }
@@ -1928,7 +1929,7 @@ public class TisConvert {
           }
         } catch (Exception e) {
           wedInfo = null;
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 
@@ -1989,7 +1990,7 @@ public class TisConvert {
             case BGEE_TO_BG2:
             case BG2EE_TO_BG1:
             case BG2EE_TO_BG2:
-              System.err.println("Unsupported overlay conversion mode: " + retVal);
+              Logger.warn("Unsupported overlay conversion mode: {}", retVal);
               retVal = OverlayConversion.NONE;
               break;
             default:
@@ -2000,7 +2001,7 @@ public class TisConvert {
             case BG1_TO_BG2EE:
             case BG2_TO_BGEE:
             case BG2_TO_BG2EE:
-              System.err.println("Unsupported overlay conversion mode: " + retVal);
+              Logger.warn("Unsupported overlay conversion mode: {}", retVal);
               retVal = OverlayConversion.NONE;
               break;
             default:

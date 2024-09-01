@@ -65,6 +65,7 @@ import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener {
@@ -229,7 +230,7 @@ public class ConvertToTis extends ChildFrame
         os.write(dst);
       } catch (Exception e) {
         // error handling
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add("Error writing TIS file to disk.");
         return false;
@@ -384,7 +385,7 @@ public class ConvertToTis extends ChildFrame
         os.write(dst);
       } catch (Exception e) {
         // error handling
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add("Error writing TIS file to disk.");
         return false;
@@ -538,14 +539,14 @@ public class ConvertToTis extends ChildFrame
           os.write(pvrz);
         } catch (Exception e) {
           // critical error
-          e.printStackTrace();
+          Logger.error(e);
           result.add(null);
           result.add(String.format("Error writing PVRZ file \"%s\" to disk.", pvrzName));
           return false;
         }
         pvrz = null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add(String.format("Error while generating PVRZ files:\n%s", e.getMessage()));
         return false;
@@ -700,7 +701,7 @@ public class ConvertToTis extends ChildFrame
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 

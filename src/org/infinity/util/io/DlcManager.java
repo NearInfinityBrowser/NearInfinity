@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 import org.infinity.util.io.zip.DlcFileSystem;
 import org.infinity.util.io.zip.DlcFileSystemProvider;
+import org.tinylog.Logger;
 
 /**
  * Manages available DLCs used by the current game.
@@ -106,7 +107,7 @@ public class DlcManager {
                 return key;
               }
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

@@ -57,6 +57,7 @@ import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 public final class StructChecker extends AbstractChecker implements ListSelectionListener {
   private static final String[] FILETYPES = { "ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO", "SPL",
@@ -498,7 +499,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         try {
           ((AbstractStruct) res).getViewer().selectEntry(offset);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     } else {
@@ -512,7 +513,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
           try {
             ((AbstractStruct) res).getViewer().selectEntry(offset);
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else {
@@ -522,7 +523,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
             try {
               ((AbstractStruct) viewable).getViewer().selectEntry(offset);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         });

@@ -25,6 +25,7 @@ import org.infinity.util.ResourceStructure;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 // Create different pre-initialized IE game resources from scratch and writes them to disk.
 public final class StructureFactory {
@@ -142,7 +143,7 @@ public final class StructureFactory {
       } catch (Exception e) {
         JOptionPane.showMessageDialog(parent, "Error while creating " + outFile.getFileName(), title,
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

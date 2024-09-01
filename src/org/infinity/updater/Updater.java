@@ -30,6 +30,7 @@ import java.util.zip.ZipEntry;
 import org.infinity.NearInfinity;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * Provides functions for checking, downloading and updating new versions of Near Infinity.
@@ -545,7 +546,7 @@ public class Updater {
       try {
         autoCheckDate = Utils.getDateTimeFromString(dateTime);
       } catch (DateTimeParseException e) {
-        System.out.println("DateTimeParseException: " + e.getMessage());
+        Logger.warn("DateTimeParseException: {}", e.getMessage());
         autoCheckDate = OffsetDateTime.now();
       }
 

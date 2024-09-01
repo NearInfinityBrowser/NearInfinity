@@ -19,5 +19,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/tinylog/tinylog-api-2.7.0.jar" sourcepath="lib/tinylog/tinylog-api-2.7.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/tinylog/tinylog-impl-2.7.0.jar" sourcepath="lib/tinylog/tinylog-impl-2.7.0-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

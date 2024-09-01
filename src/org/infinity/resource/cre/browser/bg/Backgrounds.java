@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 
 import org.infinity.resource.Profile;
+import org.tinylog.Logger;
 
 /**
  * Backgrounds for the creature animation browser.
@@ -80,7 +81,7 @@ public final class Backgrounds {
       URL url = getValidURL(c, fileName);
       retVal = ImageIO.read(url);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

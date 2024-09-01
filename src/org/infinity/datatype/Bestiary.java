@@ -67,6 +67,7 @@ import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 /**
  * Datatype for {@link GamResource#GAM_BESTIARY Bestiary} field of the {@link GamResource GAM} resource.
@@ -809,18 +810,17 @@ public final class Bestiary extends Datatype implements Editable, TableModel {
   private static List<Creature> readCreatures(String filename, IniMap ini) {
     final IniMapSection init = ini.getSection("init");
     if (init == null) {
-      System.err.println(filename + ": [init] section not found in the file. Creatures not loaded");
+      Logger.warn("{}: [init] section not found in the file. Creatures not loaded", filename);
       return Collections.emptyList();
     }
     final IniMapEntry entry = init.getEntry("beastcount");
     if (entry == null) {
-      System.err.println(filename + ": \"beastcount\" key in [init] section not found. Creatures not loaded");
+      Logger.warn("{}: \"beastcount\" key in [init] section not found. Creatures not loaded", filename);
       return Collections.emptyList();
     }
     final Integer count = entry.getIntValue();
     if (count == null) {
-      System.err.println(filename + ": \"beastcount\" key in [init] section: expected integer buf found "
-          + entry.getValue() + ". Creatures not loaded");
+      Logger.warn("{}: \"beastcount\" key in [init] section: expected integer but found {}. Creatures not loaded.", filename, entry.getValue());
       return Collections.emptyList();
     }
 
@@ -833,8 +833,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel {
         continue;
       }
       if (i < 0 || i >= 256) {
-        System.err.println(
-            filename + ": invalid creature number " + i + ", expected number in range [0; 256]. Creature skipped");
+        Logger.warn("{}: invalid creature number {}, expected number in range [0; 256]. Creature skipped.", filename, i);
         continue;
       }
       result.ensureCapacity(i);

@@ -134,6 +134,7 @@ import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   // the current Near Infinity version
@@ -371,7 +372,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         final LookAndFeel o = lf.getDeclaredConstructor().newInstance();
         UIManager.installLookAndFeel(o.getName(), o.getClass().getCanonicalName());
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -445,7 +446,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         try {
           checkFileAccess(tlkFile);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(NearInfinity.this,
                                         String.format("Unable to open the game \"%s\".\n" +
                                                       "The file \"%s\" is locked by another process.",
@@ -468,7 +469,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         worker.execute();
         worker.get();
       } catch (InterruptedException | ExecutionException e) {
-        e.printStackTrace();
+        Logger.error(e);
         System.exit(10);
       }
 
@@ -484,7 +485,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         UIManager.setLookAndFeel(info.getClassName());
         SwingUtilities.updateComponentTreeUI(this);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       cacheResourceIcons(true);
@@ -623,7 +624,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
             }
           }
         } catch (Exception e) {
-          System.out.println("Failed to check for updates: " + e.getMessage());
+          Logger.warn("Failed to check for updates: {}", e.getMessage());
         }
       }).start();
     }
@@ -704,7 +705,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getOptions().getLookAndFeel();
         updateLookAndFeel(info, true);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     } else if (event.getActionCommand().equals("Collapse")) {
       try {
@@ -840,7 +841,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       try {
         checkFileAccess(tlkPath);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.this,
                                       String.format("The file \"%s\" of the game \"%s\"\nis locked by another process. "
                                           + "Reverting to the previous game.", tlkPath.getFileName(),
@@ -1285,7 +1286,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
       } catch (Exception e) {
         prefsOld = null;
-        e.printStackTrace();
+        Logger.error(e);
       }
       if (isPrefsEmpty && prefsOld != null && !prefsOld.equals(curPrefs)) {
         try {
@@ -1297,7 +1298,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
             curPrefs.clear();
           } catch (BackingStoreException bse) {
           }
-          e.printStackTrace();
+          Logger.error(e);
           if (showError) {
             JOptionPane.showMessageDialog(this, "Error migrating old Near Infinity settings. Using defaults.", "Error",
                 JOptionPane.ERROR_MESSAGE);
@@ -1350,7 +1351,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       method.invoke(instance, closeAllWindows);
     } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException
         | IllegalArgumentException | InvocationTargetException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1370,7 +1371,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
         retVal = true;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -1578,7 +1579,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     };
 
@@ -1593,7 +1594,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           try {
             operation.perform();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           setProgress(100);
           return null;
@@ -1660,7 +1661,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       try {
         text.append(new String(buf, off, len));
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -1698,7 +1699,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         event.acceptDrop(DnDConstants.ACTION_COPY);
         files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         event.dropComplete(false);
       }
       event.dropComplete(true);

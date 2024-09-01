@@ -17,6 +17,7 @@ import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Common base class for handling BAM resources.
@@ -60,7 +61,7 @@ public abstract class BamDecoder {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

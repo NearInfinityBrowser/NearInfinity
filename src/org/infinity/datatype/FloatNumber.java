@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Field that represents numerical value which is usually edited in a floating point mode.
@@ -51,7 +52,7 @@ public class FloatNumber extends Datatype implements InlineEditable {
 
       return true;
     } catch (NumberFormatException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

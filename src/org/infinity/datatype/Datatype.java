@@ -19,6 +19,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Base class for all types of fields. Supplies base properties for fields: its name (not stored in the file), offset in
@@ -152,7 +153,7 @@ public abstract class Datatype implements StructEntry {
     try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
       write(bbos);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     bb.position(0);
     return bb;

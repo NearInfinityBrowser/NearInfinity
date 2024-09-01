@@ -22,6 +22,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class MosV2Decoder extends MosDecoder {
   private static final int HEADER_SIZE = 16;  // size of the MOS header
@@ -59,7 +60,7 @@ public class MosV2Decoder extends MosDecoder {
         retVal = new MosDecoder.MosInfo(width, height, numBlocks);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -307,7 +308,7 @@ public class MosV2Decoder extends MosDecoder {
           dataBlocks.add(block);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -321,7 +322,7 @@ public class MosV2Decoder extends MosDecoder {
         return PvrDecoder.loadPvr(entry);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -372,7 +373,7 @@ public class MosV2Decoder extends MosDecoder {
         }
         return true;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;
@@ -415,7 +416,7 @@ public class MosV2Decoder extends MosDecoder {
           return true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;

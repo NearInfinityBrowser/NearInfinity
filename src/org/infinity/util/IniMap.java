@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Parses Infinity Engine INI files.
@@ -215,7 +216,7 @@ public class IniMap implements Iterable<IniMapSection> {
         final ByteBuffer bb = entry.getResourceBuffer();
         return StreamUtils.readString(bb, bb.limit(), Misc.CHARSET_DEFAULT);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;

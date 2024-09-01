@@ -29,6 +29,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Provides operations for reading, writing and querying information about string tables.
@@ -129,7 +130,7 @@ public class StringTable {
           retVal = true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -712,7 +713,7 @@ public class StringTable {
       instance(type)._writeModified(callback);
       retVal = true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -783,7 +784,7 @@ public class StringTable {
       instance(type)._exportText(outFile, callback);
       retVal = true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -931,7 +932,7 @@ public class StringTable {
         writer.println();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       retVal = false;
     } finally {
       if (callback != null) {
@@ -1016,7 +1017,7 @@ public class StringTable {
             entriesVirtual.put(index, strref);
             index = strref;
           } catch (NumberFormatException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -1109,7 +1110,7 @@ public class StringTable {
           entriesPending = numEntries;
           initialized = true;
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1160,7 +1161,7 @@ public class StringTable {
             text = CharsetDetector.getLookup().decodeString(text);
           }
         } catch (IllegalArgumentException e) {
-          System.err.println("Error: Illegal offset " + ofsString + " for string entry " + index);
+          Logger.error("Error: Illegal offset {} for string entry {}", ofsString, index);
           text = "";
         }
       } else {
@@ -1222,7 +1223,7 @@ public class StringTable {
           }
           entriesPending = 0;
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1242,7 +1243,7 @@ public class StringTable {
             throw new Exception();
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1646,7 +1647,7 @@ public class StringTable {
           addField(e);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

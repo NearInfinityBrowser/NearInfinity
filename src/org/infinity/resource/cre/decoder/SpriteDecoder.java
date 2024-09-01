@@ -60,6 +60,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Specialized BAM decoder for creature animation sprites.
@@ -295,7 +296,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       try {
         retVal = (T) data;
       } catch (ClassCastException e) {
-        // e.printStackTrace();
+        // Logger.error(e);
       }
     }
     return retVal;
@@ -392,7 +393,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       } catch (NullPointerException e) {
         retVal = (seq != Sequence.NONE);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         retVal = (seq != Sequence.NONE);
       }
     }
@@ -841,7 +842,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       try {
         reset();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -1490,7 +1491,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     try {
       retVal = SpriteUtils.getColorGradient(colorIndex, allowRandom);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

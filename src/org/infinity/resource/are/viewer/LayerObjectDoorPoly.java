@@ -23,6 +23,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: WED/Door Polygon.
@@ -63,7 +64,7 @@ public class LayerObjectDoorPoly extends LayerObject {
       // processing closed door polygons
       fillData(ofsClosed, numClosed, numOpen, info);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       if (info == null) {
         info = new String[count];
       }

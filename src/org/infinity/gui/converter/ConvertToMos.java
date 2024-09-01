@@ -63,6 +63,7 @@ import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class ConvertToMos extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener {
@@ -241,7 +242,7 @@ public class ConvertToMos extends ChildFrame
       try (OutputStream os = StreamUtils.getOutputStream(mosFile, true)) {
         os.write(dst);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add("Error writing TIS file to disk.");
         return false;
@@ -386,7 +387,7 @@ public class ConvertToMos extends ChildFrame
       try (OutputStream os = StreamUtils.getOutputStream(mosFile, true)) {
         os.write(dst);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add("Error writing MOS file to disk.");
         return false;
@@ -496,14 +497,14 @@ public class ConvertToMos extends ChildFrame
         try (OutputStream os = StreamUtils.getOutputStream(pvrzFile, true)) {
           os.write(pvrz);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           result.add(null);
           result.add(String.format("Error writing PVRZ file \"%s\" to disk.", pvrzFile));
           return false;
         }
         pvrz = null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         result.add(null);
         result.add(String.format("Error while generating PVRZ files:\n%s", e.getMessage()));
         return false;
@@ -614,7 +615,7 @@ public class ConvertToMos extends ChildFrame
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 

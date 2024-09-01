@@ -8,6 +8,8 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 
+import org.tinylog.Logger;
+
 public class MvePlayer {
   private boolean playing;
   private boolean paused;
@@ -243,7 +245,7 @@ public class MvePlayer {
       try {
         dataLine = AudioSystem.getSourceDataLine(audioFormat);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unsupported audio format");
       }
       dataLine.open(audioFormat, 16384);

@@ -24,6 +24,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * General-purpose creature animation decoder for handling non-existing or unknown animation types.
@@ -50,7 +51,7 @@ public class PlaceholderDecoder extends SpriteDecoder {
       baos.flush();
       retVal = new BufferedResourceEntry(StreamUtils.getByteBuffer(baos.toByteArray()), "placeholder.bam");
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

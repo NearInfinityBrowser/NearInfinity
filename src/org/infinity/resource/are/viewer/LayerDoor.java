@@ -10,6 +10,7 @@ import static org.infinity.resource.are.AreResource.ARE_OFFSET_DOORS;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
+import org.tinylog.Logger;
 
 /**
  * Manages door layer objects.
@@ -61,7 +62,7 @@ public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource>
             break;
           default:
             item.setVisible(false);
-            System.out.println("Unknown layer id: " + item.getId());
+            Logger.info("Unknown layer id: {}", item.getId());
         }
       }
     });

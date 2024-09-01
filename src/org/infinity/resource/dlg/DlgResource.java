@@ -50,6 +50,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * DLG resource contains the structure of conversation, in what is effectievly a state machine. Dialogs contains string
@@ -222,7 +223,7 @@ public final class DlgResource extends AbstractStruct
             throw new Exception();
           }
         } catch (Exception ex) {
-          ex.printStackTrace();
+          Logger.error(ex);
           JOptionPane.showMessageDialog(getViewer().getTopLevelAncestor(),
               "Could not export resource into WeiDU dialog format.", "Error", JOptionPane.ERROR_MESSAGE);
           return;

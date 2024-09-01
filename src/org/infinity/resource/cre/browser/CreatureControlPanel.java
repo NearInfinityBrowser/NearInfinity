@@ -44,6 +44,7 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * This panel provides controls for customizing various aspects of a CRE resource.
@@ -145,7 +146,7 @@ public class CreatureControlPanel extends JPanel {
     try {
       getControlModel().resetDecoder(cre);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       getBrowser().showErrorMessage(e.getMessage(), "Loading creature");
     }
 
@@ -506,7 +507,7 @@ public class CreatureControlPanel extends JPanel {
           getControlModel().creSelectionChanged();
           updateToolTip(cbCreSelection);
         } catch (Exception ex) {
-          ex.printStackTrace();
+          Logger.error(ex);
           getBrowser().showErrorMessage(ex.getMessage(), "Creature selection");
         }
       } else if (e.getSource() == cbCreAnimation) {

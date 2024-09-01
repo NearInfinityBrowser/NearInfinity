@@ -89,6 +89,7 @@ import org.infinity.gui.options.OptionGroupBox;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * This modal dialog provides access to application-wide options and preferences
@@ -1380,7 +1381,7 @@ public class PreferencesDialog extends JDialog {
         gb.getOption().setValue(-size);
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1431,7 +1432,7 @@ public class PreferencesDialog extends JDialog {
 
       return true;
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return true;
@@ -1463,7 +1464,7 @@ public class PreferencesDialog extends JDialog {
             label = ((LookAndFeel) o).getName();
           }
         } catch (Exception e) {
-//          e.printStackTrace();
+//          Logger.error(e);
         }
 
         if (label == null) {
@@ -1484,7 +1485,7 @@ public class PreferencesDialog extends JDialog {
         // need to track item index separately in case that a L&F class is not accessible
         curIdx++;
       } catch (Exception e) {
-//        e.printStackTrace();
+//        Logger.error(e);
       }
     }
 
@@ -1504,7 +1505,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<LookAndFeelInfo> item = (DataItem<LookAndFeelInfo>) gb.getItem(gb.getSelectedIndex());
       gb.getOption().setValue(item.getData().getClassName());
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1557,7 +1558,7 @@ public class PreferencesDialog extends JDialog {
       }
       gb.getOption().setValue(Integer.valueOf(index));
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1583,7 +1584,7 @@ public class PreferencesDialog extends JDialog {
         }
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return true;
@@ -1642,7 +1643,7 @@ public class PreferencesDialog extends JDialog {
         gb.getOption().setValue(item.getData());
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1704,7 +1705,7 @@ public class PreferencesDialog extends JDialog {
         languageDefinitions = OptionsMenuItem.updateGameLanguages(languageDefinitions, Profile.getGame(), langCode);
         gb.getOption().setValue(languageDefinitions);
       } catch (IndexOutOfBoundsException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -1768,7 +1769,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<Integer> item = (DataItem<Integer>) gb.getItem(gb.getSelectedIndex());
       gb.getOption().setValue(item.getData());
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1819,7 +1820,7 @@ public class PreferencesDialog extends JDialog {
 
       return true;
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

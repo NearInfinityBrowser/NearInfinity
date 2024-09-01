@@ -58,6 +58,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 public final class ResourceUseChecker extends AbstractChecker
     implements Runnable, ListSelectionListener, ActionListener {
@@ -245,9 +246,7 @@ public final class ResourceUseChecker extends AbstractChecker
 
           checkCode(compiler.getCode(), type);
         } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
+          Logger.error(e);
         }
       } else if (checkTypes.contains("WAV") && (entry instanceof State || entry instanceof Transition)) {
         for (final StructEntry e : ((AbstractStruct) entry).getFlatFields()) {
@@ -263,9 +262,7 @@ public final class ResourceUseChecker extends AbstractChecker
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
-      synchronized (System.err) {
-        e.printStackTrace();
-      }
+      Logger.error(e);
     }
   }
 

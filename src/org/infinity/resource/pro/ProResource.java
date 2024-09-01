@@ -38,6 +38,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.tinylog.Logger;
 
 /**
  * This resource describes projectiles, and the files are referenced spells and projectile weapons. Projectile files can
@@ -158,7 +159,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
               struct.addDatatype(new ProAreaType(), struct.getFields().size());
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         } else if (proType.getValue() == 2L) { // single target
@@ -171,7 +172,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
             try {
               struct.addDatatype(new ProSingleType(), struct.getFields().size());
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
               return false;
             }
           }

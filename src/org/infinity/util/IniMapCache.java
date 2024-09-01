@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 public class IniMapCache {
   private static final HashMap<ResourceEntry, IniMap> MAP = new HashMap<>();
@@ -35,7 +36,7 @@ public class IniMapCache {
       if (entry != null) {
         retVal = get(entry, ignoreComments);
       } else {
-        System.err.println("Could not find " + name);
+        Logger.warn("Could not find {}", name);
       }
     }
     return retVal;

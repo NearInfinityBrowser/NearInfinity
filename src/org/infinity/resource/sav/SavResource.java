@@ -51,6 +51,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
+import org.tinylog.Logger;
 
 /**
  * This resource acts as a standalone compressed archive. The file is zlib compressed, and allows incremental updates to
@@ -125,7 +126,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
         Resource res = ResourceFactory.getResource(fileentry);
         new ViewFrame(panel.getTopLevelAncestor(), res);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Could not open selected resource.", "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -220,7 +221,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
             Resource res = ResourceFactory.getResource(fileentry);
             new ViewFrame(panel.getTopLevelAncestor(), res);
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Could not open selected resource.", "Error",
                 JOptionPane.ERROR_MESSAGE);
           }
@@ -336,7 +337,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
       if (showError) {
         JOptionPane.showMessageDialog(panel, "Error compressing file", "Error", JOptionPane.ERROR_MESSAGE);
       }
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     return true;
@@ -363,7 +364,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
       if (showError) {
         JOptionPane.showMessageDialog(panel, "Error decompressing file", "Error", JOptionPane.ERROR_MESSAGE);
       }
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     return true;
@@ -412,7 +413,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
         buttonPanel.getControlByType(CTRL_DELETE).setEnabled(filelist.getSelectedIndex() >= 0);
         buttonPanel.getControlByType(CTRL_EDIT).setEnabled(filelist.getSelectedIndex() >= 0);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -426,7 +427,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
         try {
           Files.delete(file);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       entries.remove(resourceEntry);

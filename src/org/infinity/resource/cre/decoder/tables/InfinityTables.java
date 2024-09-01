@@ -21,6 +21,7 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * A static class dedicated to processing Infinity Animation slots.
@@ -57,7 +58,7 @@ public class InfinityTables {
       IdsMap table = new IdsMap(entry);
       retVal.addAll(processTable(table, animationId));
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -95,9 +96,9 @@ public class InfinityTables {
       }
     } catch (InvocationTargetException ite) {
       if (ite.getCause() != null) {
-        ite.getCause().printStackTrace();
+        Logger.error(ite.getCause());
       } else {
-        ite.printStackTrace();
+        Logger.error(ite);
       }
     } catch (Exception e) {
       return retVal;

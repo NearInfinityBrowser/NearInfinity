@@ -50,12 +50,14 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
@@ -640,7 +642,7 @@ public final class Profile {
       try {
         return Enum.valueOf(Game.class, gameName);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unknown game type \"" + gameName + "\" specified. Falling back to \"Unknown\".");
+        Logger.warn("Unknown game type \"{}\" specified. Falling back to \"Unknown\".", gameName);
       }
     }
     return Game.Unknown;
@@ -678,10 +680,12 @@ public final class Profile {
   public static boolean openGame(Path keyFile, String desc, Game forcedGame) {
     try {
       closeGame();
+      final DebugTimer timer = new DebugTimer();
       instance = new Profile(keyFile, desc, forcedGame);
+      Logger.info(timer.getTimerFormatted("Initializing game resources"));
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     closeGame();
     return false;
@@ -1709,7 +1713,7 @@ public final class Profile {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -2572,11 +2576,11 @@ public final class Profile {
                 list.add(dlcRoot);
               }
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         // DLCs of the same root are sorted alphabetically (in reverse order)
         if (!list.isEmpty()) {

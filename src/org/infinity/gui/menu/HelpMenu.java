@@ -45,6 +45,7 @@ import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.DataString;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Handles Help menu items for the {@link BrowserMenuBar}.
@@ -65,6 +66,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
   private final JMenuItem helpApngWriterLicense;
   private final JMenuItem helpCommonMarkLicense;
   private final JMenuItem helpFlatLafLicense;
+  private final JMenuItem helpTinyLogLicense;
   private final JMenuItem helpOracleLicense;
   private final JMenuItem helpUpdateSettings;
   private final JMenuItem helpUpdateCheck;
@@ -117,6 +119,9 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
 
     helpOracleLicense = BrowserMenuBar.makeMenuItem("Oracle License", KeyEvent.VK_O, Icons.ICON_EDIT_16.getIcon(), -1, this);
     miscLicenses.add(helpOracleLicense);
+
+    helpTinyLogLicense = BrowserMenuBar.makeMenuItem("tinylog License", KeyEvent.VK_T, Icons.ICON_EDIT_16.getIcon(), -1, this);
+    miscLicenses.add(helpTinyLogLicense);
 
     addSeparator();
 
@@ -187,6 +192,8 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
       displayLicense("org/infinity/commonmark.License.txt", "BSD License");
     } else if (event.getSource() == helpOracleLicense) {
       displayLicense("org/infinity/Oracle.License.txt", "BSD License");
+    } else if (event.getSource() == helpTinyLogLicense) {
+      displayLicense("org/infinity/tinylog.License.txt", "Apache License");
     } else if (event.getSource() == helpUpdateSettings) {
       UpdaterSettings.showDialog(NearInfinity.getInstance());
     } else if (event.getSource() == helpUpdateCheck) {
@@ -204,7 +211,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
           info = null;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Check for updates: " + e.getMessage(), "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
@@ -257,6 +264,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
         add("JHexView by Sebastian Porst - GNU General Public License.");
         add("CommonMark-Java (\u00A9) Atlassian Pty. Ltd. - BSD License.");
         add("FlatLaf (\u00A9) FormDev Software GmbH - Apache License.");
+        add("tinylog 2 by Martin Winandy - Apache License.");
         add("APNG Writer by Weoulren - BSD License.");
       }
     };
@@ -434,7 +442,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
     try {
       tphelp.setPage(ClassLoader.getSystemResource(classPath));
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, title, JOptionPane.PLAIN_MESSAGE);

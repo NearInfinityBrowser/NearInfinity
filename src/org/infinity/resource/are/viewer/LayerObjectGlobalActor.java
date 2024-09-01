@@ -23,6 +23,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: global GAM/Actor
@@ -119,7 +120,7 @@ public class LayerObjectGlobalActor extends LayerObjectActor {
             item.setAnimation(sprite);
             item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }

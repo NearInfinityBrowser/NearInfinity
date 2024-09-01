@@ -69,6 +69,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class ViewerMap extends JPanel {
   /** Needed to determine map edges to travel from/to. */
@@ -192,7 +193,7 @@ public class ViewerMap extends JPanel {
         pInfo.add(lInfoPos);
         add(pInfo, BorderLayout.SOUTH);
       } catch (Throwable t) {
-        t.printStackTrace();
+        Logger.error(t);
       }
 
       // applying preselected overlays
@@ -673,7 +674,7 @@ public class ViewerMap extends JPanel {
         dstImage.flush();
         dstImage = null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         showDot((AreaEntry) listPanel.getList().getSelectedValue(), false);
         WindowBlocker.blockWindow(wnd, false);

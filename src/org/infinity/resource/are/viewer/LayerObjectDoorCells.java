@@ -23,6 +23,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
 import org.infinity.resource.vertex.ClosedVertexImpeded;
 import org.infinity.resource.vertex.OpenVertexImpeded;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer subtype: ARE/Door blocked cells
@@ -63,7 +64,7 @@ public class LayerObjectDoorCells extends LayerObject {
       itemCoords = createCellPolygons(loadVertices(door, cOfs, 0, cNum, ClosedVertexImpeded.class));
       doorClosed.setCoords(itemCoords);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     for (final DoorInfo info: getDoors()) {

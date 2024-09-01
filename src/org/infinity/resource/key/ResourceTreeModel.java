@@ -25,6 +25,7 @@ import javax.swing.tree.TreePath;
 
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
+import org.tinylog.Logger;
 
 public final class ResourceTreeModel implements TreeModel {
   private final List<TreeModelListener> treeModelListeners = new ArrayList<>();
@@ -111,7 +112,7 @@ public final class ResourceTreeModel implements TreeModel {
         parentFolder.sortChildren(true);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return;
     }
   }

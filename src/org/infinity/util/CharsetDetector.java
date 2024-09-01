@@ -16,6 +16,7 @@ import java.util.List;
 import org.infinity.resource.Profile;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This class provides methods to determine character sets and conversions for selected games and languages.
@@ -190,7 +191,7 @@ public class CharsetDetector {
           }
           ch.close();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

@@ -26,6 +26,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Handles BAM v2 resources.
@@ -220,7 +221,7 @@ public class BamV2Decoder extends BamDecoder {
         defaultControl.setMode(BamControl.Mode.SHARED);
         defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -247,7 +248,7 @@ public class BamV2Decoder extends BamDecoder {
         return PvrDecoder.loadPvr(entry);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -466,7 +467,7 @@ public class BamV2Decoder extends BamDecoder {
               decoder = null;
               srcImage = null;
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

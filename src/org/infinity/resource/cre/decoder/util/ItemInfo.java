@@ -24,6 +24,7 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Provides useful information about equippable items.
@@ -480,7 +481,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
         Misc.requireCondition(is.skip(0x14) == 0x14, "Could not advance in data stream");
         return StreamUtils.readShort(is);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return -1;

@@ -29,6 +29,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.AbstractBIFFReader;
 import org.infinity.resource.key.BIFFEntry;
+import org.tinylog.Logger;
 
 final class ChooseBIFFrame extends ChildFrame implements ActionListener {
   private final BIFFEditor editor;
@@ -211,7 +212,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener {
           close();
           editor.makeEditor(entry, file.getType());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

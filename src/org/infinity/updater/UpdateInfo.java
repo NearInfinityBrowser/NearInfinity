@@ -28,6 +28,7 @@ import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
@@ -570,7 +571,7 @@ public class UpdateInfo {
             reactions = new Reactions(root.getJSONObject(key));
             break;
           default:
-            System.out.printf("Release parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Release parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -722,7 +723,7 @@ public class UpdateInfo {
             siteAdmin = root.getBoolean(key);
             break;
           default:
-            System.out.printf("User parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("User parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -870,7 +871,7 @@ public class UpdateInfo {
             browserDownloadUrl = new URL(root.getString(key));
             break;
           default:
-            System.out.printf("Asset parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Asset parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -972,7 +973,7 @@ public class UpdateInfo {
             eyes = root.getInt(key);
             break;
           default:
-            System.out.printf("Reactions parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Reactions parser: Skipping unknown key \"{}\"", key);
         }
       }
 

@@ -51,6 +51,7 @@ import org.infinity.util.CharsetDetector;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Handles Option menu items for the {@link BrowserMenuBar}.
@@ -966,7 +967,7 @@ public class OptionsMenuItem extends JMenuItem {
             refresh = true;
             restart = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else if (option.equals(AppOption.TEXT_FONT)) {
           int idx = option.getIntValue();

@@ -33,6 +33,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Provides useful information about a creature resource and their equipment.
@@ -893,7 +894,7 @@ public class CreatureInfo {
         itemInfo.overrideDroppableFlag(isUndroppable);
         equipment.put(slot, itemInfo);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

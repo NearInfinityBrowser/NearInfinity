@@ -48,6 +48,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 public final class OpenFileFrame extends ChildFrame implements ActionListener {
   private static final JFileChooser FC = new JFileChooser(".");
@@ -275,7 +276,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
         event.acceptDrop(DnDConstants.ACTION_COPY);
         files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         event.dropComplete(false);
         return;
       }

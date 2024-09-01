@@ -41,6 +41,7 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;
@@ -192,14 +193,11 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
                 s = decompiler.getSource();
               } else {
                 synchronized (System.err) {
-                  System.err.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
+                  Logger.error("Error(s) compiling {} - {}", entry.toString(), searchEntry.getName());
                 }
               }
             } catch (Exception ex) {
-              synchronized (System.err) {
-                System.err.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
-                ex.printStackTrace();
-              }
+              Logger.error(ex, "Exception (de)compiling {} - {}", entry.toString(), searchEntry.getName());
             }
             if (s == null) {
               s = "";

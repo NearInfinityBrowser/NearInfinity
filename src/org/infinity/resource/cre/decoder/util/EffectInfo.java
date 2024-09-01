@@ -28,6 +28,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Manages effects opcodes for a specific target.
@@ -462,7 +463,7 @@ public class EffectInfo {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -476,7 +477,7 @@ public class EffectInfo {
       final List<Effect> retList = resolveEffect(parent, Effect.fromEffectV2(entry.getResourceBuffer(), 8));
       list.addAll(retList);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

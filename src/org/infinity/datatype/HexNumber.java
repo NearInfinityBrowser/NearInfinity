@@ -6,6 +6,8 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 
+import org.tinylog.Logger;
+
 public class HexNumber extends DecNumber {
   public HexNumber(ByteBuffer buffer, int offset, int length, String desc) {
     super(buffer, offset, length, desc);
@@ -19,7 +21,7 @@ public class HexNumber extends DecNumber {
       setValue((int) DecNumber.parseNumber(value, getSize(), true, true));
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import org.tinylog.Logger;
+
 
 /**
  * Central hub for accessing game-related I/O resources.
@@ -336,7 +338,7 @@ public class FileManager {
             break;
           }
         } catch (IllegalArgumentException e) {
-//          e.printStackTrace();
+          Logger.trace(e);
         }
       }
     }

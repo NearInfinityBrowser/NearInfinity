@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Common base class for handling MOS resources.
@@ -53,7 +54,7 @@ public abstract class MosDecoder {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

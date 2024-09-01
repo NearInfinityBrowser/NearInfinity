@@ -19,6 +19,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * This resource serves a similar purpose (and has a similar structure to) {@link StringTable TLK} files. The files can
@@ -128,7 +129,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         int ofsNext = ((IsNumeric) entry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY)).getValue();
         retVal = (ofsPrev == -1 && ofsNext == -1) || (ofsPrev != ofsNext);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -156,7 +157,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         try {
           toh = new TohResource(new FileResourceEntry(tohPath));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

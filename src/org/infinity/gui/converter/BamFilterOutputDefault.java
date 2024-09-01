@@ -17,6 +17,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.tinylog.Logger;
 
 /**
  * The default BAM output filter.
@@ -88,7 +89,7 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput {
           return decoder.exportBamV1(outFile, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw e;
         }
       } else {
@@ -99,7 +100,7 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput {
           return decoder.exportBamV2(outFile, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw e;
         }
       }

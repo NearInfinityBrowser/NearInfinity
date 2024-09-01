@@ -24,6 +24,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.ITEPoint;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.Vertex;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Region
@@ -112,7 +113,7 @@ public class LayerObjectRegion extends LayerObject {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     final Polygon poly = createPolygon(shapeCoords, 1.0);
     final Rectangle bounds = normalizePolygon(poly);

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.tinylog.Logger;
+
 public class BamFilterFactory {
   private static final List<FilterInfo> FILTER_INFO_LIST = new ArrayList<>();
 
@@ -99,7 +101,7 @@ public class BamFilterFactory {
       try {
         return filterClass.getConstructor(ConvertToBam.class).newInstance(parent);
       } catch (Throwable t) {
-        t.printStackTrace();
+        Logger.error(t);
       }
     }
     return null;

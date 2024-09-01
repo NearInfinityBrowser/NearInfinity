@@ -16,6 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.ScriptInfo;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 public class IdsMapCache {
   /** Maps upper-cased name of IDS resource to parsed resource. */
@@ -53,7 +54,7 @@ public class IdsMapCache {
           if (name.equals("ATTSTYLE.IDS")) {
             entry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
           } else {
-            System.err.println("Could not find " + name);
+            Logger.warn("Could not find {}", name);
           }
         }
         if (entry != null) {
@@ -61,7 +62,7 @@ public class IdsMapCache {
             retVal = new IdsMap(entry);
             CACHE.put(name, retVal);
           } catch (Exception e) {
-            System.err.println(e.getMessage());
+            Logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
           }
         }
       }

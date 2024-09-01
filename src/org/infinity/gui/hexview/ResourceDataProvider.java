@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -60,7 +61,7 @@ public class ResourceDataProvider implements IDataProvider {
         }
         return retVal;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -76,7 +77,7 @@ public class ResourceDataProvider implements IDataProvider {
           size = (int) resSize;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return size;

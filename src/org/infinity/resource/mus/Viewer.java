@@ -32,6 +32,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
+import org.tinylog.Logger;
 
 public class Viewer extends JPanel implements Runnable, ActionListener {
   /** Provides quick access to the "play" and "pause" image icon. */
@@ -119,7 +120,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       }
     } catch (Exception e) {
       JOptionPane.showMessageDialog(this, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
     player.stopPlay();
     setPlayButtonState(false);
@@ -182,7 +183,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
         try {
           entry.init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(getTopLevelAncestor(),
               "Error loading " + entry.toString() + '\n' + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }

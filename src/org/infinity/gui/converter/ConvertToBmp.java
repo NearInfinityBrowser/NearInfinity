@@ -58,6 +58,7 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class ConvertToBmp extends ChildFrame implements ActionListener, FocusListener, PropertyChangeListener {
   private static Path currentPath = Profile.getGameRoot();
@@ -221,7 +222,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -522,7 +523,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
       } catch (IOException e) {
         JOptionPane.showMessageDialog(this, "Unable to read files from the specified folder.", "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
       listInputFiles.setSelectedIndex(idx - 1);
@@ -768,7 +769,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
         }
         return true;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;

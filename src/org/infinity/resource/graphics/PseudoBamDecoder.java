@@ -34,6 +34,7 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure. Furthermore, this class provides
@@ -865,7 +866,7 @@ public class PseudoBamDecoder extends BamDecoder {
       try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
         os.write(bamData);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw e;
       }
       bamData = null;
@@ -1014,7 +1015,7 @@ public class PseudoBamDecoder extends BamDecoder {
       try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
         os.write(bamData);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw e;
       }
       bamData = null;
@@ -1347,12 +1348,12 @@ public class PseudoBamDecoder extends BamDecoder {
           os.write(pvrz);
         } catch (Exception e) {
           errorMsg = String.format("Error writing PVRZ file \"%s\" to disk.", pvrzName);
-          e.printStackTrace();
+          Logger.error(e);
         }
         textureData = null;
         pvrz = null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         errorMsg = String.format("Error generating PVRZ files:\n%s.", e.getMessage());
       }
 

@@ -100,6 +100,7 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 public class SearchResource extends ChildFrame implements ActionListener, PropertyChangeListener, Runnable {
   private static final String[] OPTION_PANELS = { "ARE", "CRE", "EFF", "ITM", "PRO", "SPL", "STO", "VVC" };
@@ -129,7 +130,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         try {
           init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return null;
       }
@@ -239,10 +240,10 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
             try {
               threadPool.awaitTermination(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           } catch (Exception e) {
-            // ignored
+            Logger.trace(e);
           }
 
           // preparing results for output
@@ -262,7 +263,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           }
         }
       } finally {
-        DebugTimer.getInstance().timerShow("Extended Search", DebugTimer.TimeFormat.MILLISECONDS);
+        Logger.info(DebugTimer.getInstance().getTimerFormatted("Extended Search"));
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, "buttons");
@@ -5781,7 +5782,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
               setSelectedItem(item);
             }
           } catch (BadLocationException ble) {
-            ble.printStackTrace();
+            Logger.error(ble);
           }
         }
 
@@ -5912,7 +5913,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         super.remove(0, getLength());
         super.insertString(0, text, null);
       } catch (BadLocationException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

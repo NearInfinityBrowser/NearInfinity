@@ -16,6 +16,7 @@ import javax.sound.sampled.AudioFormat;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Decodes a MVE video resource.
@@ -526,7 +527,7 @@ public class MveDecoder {
             return true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;
@@ -777,7 +778,7 @@ public class MveDecoder {
               segments.add(segment);
               curSize += segmentSize;
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
               return false;
             }
           }
@@ -799,7 +800,7 @@ public class MveDecoder {
             nextChunkSize = StreamUtils.readUnsignedShort(in);
             nextChunkType = StreamUtils.readUnsignedShort(in);
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         }

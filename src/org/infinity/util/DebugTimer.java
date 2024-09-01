@@ -58,7 +58,11 @@ public class DebugTimer {
   /** Static class instance for global access to the timer. */
   private static final DebugTimer INSTANCE = new DebugTimer();
 
-  /** Provides access to the global instance of the {@code Debugging} class. */
+  /**
+   * Provides access to the global instance of the {@code DebugTimer} class.
+   *
+   * <p>The global {@code DebugTimer} instance defines {@link TimeFormat#MILLISECONDS} as default.</p>
+   */
   public static synchronized DebugTimer getInstance() {
     return INSTANCE;
   }
@@ -68,7 +72,7 @@ public class DebugTimer {
 
   /** Creates a new {@code Debugging} object with the default time format {@link TimeFormat#MILLISECONDS}. */
   public DebugTimer() {
-    this(null);
+    this(TimeFormat.MILLISECONDS);
   }
 
   /**
@@ -88,29 +92,49 @@ public class DebugTimer {
   }
 
   /**
-   * Shows the elapsed time in the default time format and resets timer.
+   * Prints the elapsed time in the default time format.
    *
-   * @param message Display an optional message
+   * @return A formatted string of the elapsed time.
    */
-  public DebugTimer timerShow(String message) {
-    return timerShow(message, getDefaultTimeFormat());
+  public String getTimerFormatted() {
+    return getTimerFormatted(null, getDefaultTimeFormat());
   }
 
   /**
-   * Shows the elapsed time in the specified time format.
+   * Prints the elapsed time in the specified time format.
    *
-   * @param message Display an optional message
-   * @param format  The temporal resolution of the elapsed time
+   * @param format The temporal resolution of the elapsed time.
+   * @return A formatted string of the elapsed time.
    */
-  public DebugTimer timerShow(String message, TimeFormat format) {
+  public String getTimerFormatted(TimeFormat format) {
+    return getTimerFormatted(null, format);
+  }
+
+  /**
+   * Prints the elapsed time in the default time format with an optional message.
+   *
+   * @param message Optional message to show. Specify {@code null} or an empty string to omit this message.
+   * @return A formatted string with optional message and elapsed time.
+   */
+  public String getTimerFormatted(String message) {
+    return getTimerFormatted(message, getDefaultTimeFormat());
+  }
+
+  /**
+   * Prints the elapsed time in the specified time format with an optional message.
+   *
+   * @param message Optional message to show. Specify {@code null} or an empty string to omit this message.
+   * @param format  The temporal resolution of the elapsed time.
+   * @return A formatted string with optional message and elapsed time.
+   */
+  public String getTimerFormatted(String message, TimeFormat format) {
     final long timeDiff = timerGetRaw();
     format = getTimeFormat(format);
     if (message != null && !message.isEmpty()) {
-      System.out.println("[" + message + "] " + format.toString(timeDiff));
+      return "[" + message + "] " + format.toString(timeDiff);
     } else {
-      System.out.println(format.toString(timeDiff));
+      return format.toString(timeDiff);
     }
-    return this;
   }
 
   /**
@@ -142,9 +166,16 @@ public class DebugTimer {
    * Defines a new default {@link TimeFormat} for use with the non-parameterized methods for getting the
    * timer value.
    *
+   * <p><strong>Note: </strong> The time format cannot be modified for the global {@code DebugTimer} instance
+   * and throws a {@link UnsupportedOperationException}.</p>
+   *
    * @param newTimeFormat new default {@link TimeFormat}.
+   * @throws UnsupportedOperationException if this method is invoked by the global {@link DebugTimer} instance.
    */
   public void setDefaultTimeFormat(TimeFormat newTimeFormat) {
+    if (this == INSTANCE) {
+      throw new UnsupportedOperationException("Default time format cannot be modified for the global instance");
+    }
     this.defaultFormat = (newTimeFormat != null) ? newTimeFormat : TimeFormat.MILLISECONDS;
   }
 

@@ -61,6 +61,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 public class StringEditor extends ChildFrame implements SearchClient {
   public static final String TLK_FLAGS = "Flags";
@@ -143,7 +144,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
           worker.execute();
           worker.get();
         } catch (InterruptedException | ExecutionException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 
@@ -745,7 +746,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
             JOptionPane.INFORMATION_MESSAGE);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       bSync.setEnabled(isSync);
       bAdd.setEnabled(isAdd);

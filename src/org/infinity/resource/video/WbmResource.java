@@ -39,6 +39,7 @@ import org.infinity.util.LauncherUtils;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class WbmResource implements Resource, Closeable, Referenceable, ActionListener {
   private final ResourceEntry entry;
@@ -76,7 +77,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                 "Error opening video or no application registered " + "to play back WBM (WebM) files.", "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } finally {
@@ -182,7 +183,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
         isTempFile = true;
         FileDeletionHook.getInstance().registerFile(retVal);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         retVal = null;
       }
     }

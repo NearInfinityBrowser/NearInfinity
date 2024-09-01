@@ -6,6 +6,8 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 
+import org.tinylog.Logger;
+
 public class UnsignHexNumber extends UnsignDecNumber {
   public UnsignHexNumber(ByteBuffer buffer, int offset, int length, String desc) {
     super(buffer, offset, length, desc);
@@ -19,7 +21,7 @@ public class UnsignHexNumber extends UnsignDecNumber {
       setValue(UnsignDecNumber.parseNumber(value, getSize(), false, true));
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

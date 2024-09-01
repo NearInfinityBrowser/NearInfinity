@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Handles BAM v1 resources (both BAMC and uncompressed BAM V1).
@@ -223,7 +224,7 @@ public class BamV1Decoder extends BamDecoder {
         defaultControl.setMode(BamControl.Mode.SHARED);
         defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -308,9 +309,8 @@ public class BamV1Decoder extends BamDecoder {
           dstOfs += dstWidth - srcWidth;
         }
       } catch (Exception e) {
-        System.err.printf("Error [%s]: input (offset=%d, size=%d), output (offset=%d, size=%d)\n",
-            e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs,
-            bufferB != null ? bufferB.length : bufferI.length);
+        Logger.error("Error [{}]: input (offset={}, size={}), output (offset={}, size={})",
+            e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs, bufferB != null ? bufferB.length : bufferI.length);
       }
       bufferB = null;
       bufferI = null;

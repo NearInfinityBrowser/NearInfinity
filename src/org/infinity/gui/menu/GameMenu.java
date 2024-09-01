@@ -34,6 +34,7 @@ import org.infinity.util.Platform;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Handles Game menu items for the {@link BrowserMenuBar}.
@@ -316,7 +317,7 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
           try {
             isEqual = keyFile.equals(Profile.getChitinKey().toAbsolutePath());
           } catch (IOError e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (!isEqual) {
             int confirm = JOptionPane.YES_OPTION;

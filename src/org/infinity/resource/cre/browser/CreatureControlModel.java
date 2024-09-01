@@ -20,6 +20,7 @@ import org.infinity.resource.cre.decoder.util.CreatureInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo.ItemPredicate;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * This model controls the relationships between creature controls and provides access to the various creature-specific
@@ -480,7 +481,7 @@ public class CreatureControlModel {
     try {
       creSelectionChanged();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

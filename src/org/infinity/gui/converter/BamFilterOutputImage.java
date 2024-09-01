@@ -32,6 +32,7 @@ import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Output filter: Exports each frame as separate image.
@@ -245,7 +246,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
             throw new IOException();
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw new Exception("Could not export frame " + frameIdx);
         }
         image.flush();

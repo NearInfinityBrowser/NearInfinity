@@ -44,6 +44,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public abstract class AbstractStruct extends AbstractTableModel
     implements StructEntry, Viewable, Closeable, Referenceable, PropertyChangeListener {
@@ -296,7 +297,7 @@ public abstract class AbstractStruct extends AbstractTableModel
     try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
       writeFlatFields(bbos);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     bb.position(0);
     return bb;
@@ -1221,7 +1222,7 @@ public abstract class AbstractStruct extends AbstractTableModel
         Unknown hole = new Unknown(buffer, offset, delta, COMMON_UNUSED_BYTES);
         fields.add(hole);
         flatList.add(i, hole);
-        System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " + delta);
+        Logger.warn("Hole: {} off: {} h len: {}", name, Integer.toHexString(offset), delta);
         i++;
       }
       // Using max() as shared data regions may confuse the hole detection algorithm
@@ -1229,8 +1230,7 @@ public abstract class AbstractStruct extends AbstractTableModel
     }
     if (endoffset < buffer.limit()) { // Does this break anything?
       fields.add(new Unknown(buffer, endoffset, buffer.limit() - endoffset, COMMON_UNUSED_BYTES));
-      System.out.println(
-          "Hole: " + name + " off: " + Integer.toHexString(endoffset) + "h len: " + (buffer.limit() - endoffset));
+      Logger.warn("Hole: {} off: {} h len: {}", name, Integer.toHexString(endoffset), (buffer.limit() - endoffset));
       endoffset = buffer.limit();
     }
   }

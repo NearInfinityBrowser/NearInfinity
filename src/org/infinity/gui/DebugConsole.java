@@ -28,6 +28,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
+import org.tinylog.Logger;
 
 public class DebugConsole extends ChildFrame implements ActionListener {
   private final JButton bClearConsole = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
@@ -104,7 +105,7 @@ public class DebugConsole extends ChildFrame implements ActionListener {
               JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
           JOptionPane.showMessageDialog(this, "Error while saving " + output, "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     } else if (event.getSource() == cbExtraInfo) {

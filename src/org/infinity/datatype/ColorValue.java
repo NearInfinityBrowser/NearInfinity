@@ -61,6 +61,7 @@ import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 /**
  * Field that represents indexed color or color range.
@@ -431,7 +432,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
             colors.add(range);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

@@ -23,6 +23,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class IOHandler implements Writeable {
   private final ResourceEntry entry;
@@ -73,13 +74,13 @@ public final class IOHandler implements Writeable {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       try {
         Files.delete(tempFolder);
       } catch (IOException e) {
         FileDeletionHook.getInstance().registerFile(tempFolder);
-        e.printStackTrace();
+        Logger.error(e);
       }
       tempFolder = null;
     }

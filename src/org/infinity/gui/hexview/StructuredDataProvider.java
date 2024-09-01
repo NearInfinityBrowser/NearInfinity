@@ -15,6 +15,7 @@ import java.util.List;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -97,7 +98,7 @@ public class StructuredDataProvider implements IDataProvider {
           try {
             entry.write(os);
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           curOfs += entry.getSize();
         }
@@ -106,7 +107,7 @@ public class StructuredDataProvider implements IDataProvider {
         try {
           System.arraycopy(os.toByteArray(), (int) offset - startOffset, retVal, 0, length);
         } catch (ArrayIndexOutOfBoundsException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
 
         return retVal;
@@ -193,7 +194,7 @@ public class StructuredDataProvider implements IDataProvider {
                 hasChanged = true;
               }
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

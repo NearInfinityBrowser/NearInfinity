@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * Handles new PVRZ-based TIS resources.
@@ -163,7 +164,7 @@ public class TisV2Decoder extends TisDecoder {
 
         workingCanvas = new BufferedImage(TILE_DIMENSION, TILE_DIMENSION, BufferedImage.TYPE_INT_ARGB);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -178,7 +179,7 @@ public class TisV2Decoder extends TisDecoder {
         return PvrDecoder.loadPvr(entry);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -253,7 +254,7 @@ public class TisV2Decoder extends TisDecoder {
           }
           return true;
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           decoder = null;
         }
       }

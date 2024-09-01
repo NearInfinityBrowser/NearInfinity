@@ -93,6 +93,7 @@ import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Handles game-specific resource access.
@@ -259,8 +260,7 @@ public final class ResourceFactory {
         final String msg = String.format("Error reading %s @ %s - %s", entry, entry.getActualPath(), e);
         NearInfinity.getInstance().getStatusBar().setMessage(msg);
       }
-      System.err.println("Error reading " + entry);
-      e.printStackTrace();
+      Logger.error(e, "Error reading {}", entry);
     }
     return res;
   }
@@ -314,7 +314,7 @@ public final class ResourceFactory {
         // forward exception to caller
         throw e;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -418,7 +418,7 @@ public final class ResourceFactory {
           throw new Exception(entry.getResourceName() + ": Unable to determine resource type");
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return cls;
@@ -429,7 +429,7 @@ public final class ResourceFactory {
       try {
         getInstance().exportResourceInternal(entry, parent, null);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -440,7 +440,7 @@ public final class ResourceFactory {
       try {
         getInstance().exportResourceInternal(entry, buffer, filename, parent, null);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -766,7 +766,7 @@ public final class ResourceFactory {
                     .isFile()))) {
           dstream.forEach(path -> list.add(path));
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -802,7 +802,7 @@ public final class ResourceFactory {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Error parsing " + iniFile.getFileName() + ". Using language defaults.", "Error",
             JOptionPane.ERROR_MESSAGE);
@@ -838,7 +838,7 @@ public final class ResourceFactory {
             userPrefix = splitted[splitted.length - 1];
             userPath = FileManager.resolve(userPrefix, EE_DIR);
           } catch (Throwable t) {
-            t.printStackTrace();
+            Logger.error(t);
             return null;
           }
         } else if (osName.contains("mac") || osName.contains("darwin")) {
@@ -908,7 +908,7 @@ public final class ResourceFactory {
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           dirList.clear();
         }
       }
@@ -999,7 +999,7 @@ public final class ResourceFactory {
       loadResourcesInternal();
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1523,7 +1523,7 @@ public final class ResourceFactory {
       } catch (IOException e) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Could not create " + outPath + ".", "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
     }
@@ -1547,7 +1547,7 @@ public final class ResourceFactory {
     } catch (Exception e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error while copying " + entry, "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1586,7 +1586,7 @@ public final class ResourceFactory {
           } catch (IOException e) {
             JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         }
@@ -1603,7 +1603,7 @@ public final class ResourceFactory {
             } catch (IOException e) {
               JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
                   JOptionPane.ERROR_MESSAGE);
-              e.printStackTrace();
+              Logger.error(e);
               return false;
             }
           }
@@ -1626,7 +1626,7 @@ public final class ResourceFactory {
               Files.move(outPath, bakPath);
             }
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else {
@@ -1638,7 +1638,7 @@ public final class ResourceFactory {
       ((Writeable) resource).write(os);
     } catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Error while saving " + entry, "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
 

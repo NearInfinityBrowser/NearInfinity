@@ -16,6 +16,7 @@ import java.util.Arrays;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class MosV1Decoder extends MosDecoder {
   private static final int BLOCK_DIMENSION = 64; // default block dimension
@@ -68,7 +69,7 @@ public class MosV1Decoder extends MosDecoder {
         retVal = new MosDecoder.MosInfo(compressed, width, height, columns, rows, blockSize);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -418,7 +419,7 @@ public class MosV1Decoder extends MosDecoder {
         workingPalette = new int[256];
         workingCanvas = new BufferedImage(BLOCK_DIMENSION, BLOCK_DIMENSION, BufferedImage.TYPE_INT_ARGB);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }

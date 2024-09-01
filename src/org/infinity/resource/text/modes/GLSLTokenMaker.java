@@ -25,6 +25,7 @@ import org.fife.ui.rsyntaxtextarea.AbstractJFlexCTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 
 /**
@@ -3805,7 +3806,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
       yybegin(state);
       return yylex();
     } catch (IOException ioe) {
-      ioe.printStackTrace();
+      Logger.error(ioe);
       return new TokenImpl();
     }
 

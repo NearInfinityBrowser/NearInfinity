@@ -23,6 +23,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class FileResourceEntry extends ResourceEntry {
   private final boolean override;
@@ -56,7 +57,7 @@ public final class FileResourceEntry extends ResourceEntry {
     try {
       return Files.size(file);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return -1L;
   }

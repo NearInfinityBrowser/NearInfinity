@@ -78,6 +78,7 @@ import org.infinity.util.DebugTimer;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
+import org.tinylog.Logger;
 
 public class AdvancedSearch extends ChildFrame implements Runnable {
   /** Indicates how to evaluate filter matches against a resource. */
@@ -175,7 +176,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         try {
           init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return null;
       }
@@ -570,7 +571,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
           try {
             threadPool.awaitTermination(60, TimeUnit.SECONDS);
           } catch (InterruptedException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } catch (Exception e) {
           // ignored
@@ -596,7 +597,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
             found.size() == 1 ? "" : "es", resourceCount, resourceCount == 1 ? "" : "s"));
       } finally {
-        DebugTimer.getInstance().timerShow("Advanced Search", DebugTimer.TimeFormat.MILLISECONDS);
+        Logger.info(DebugTimer.getInstance().getTimerFormatted("Advanced Search"));
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, STATUS_BUTTONS);
@@ -676,7 +677,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         filterList.setSelectedIndex(0);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     return true;
@@ -688,7 +689,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
       return XmlConfig.Export(xmlFile, cbResourceTypes.getSelectedItem().toString(), getSelectedFilterMode(),
           getSearchOptions());
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
   }

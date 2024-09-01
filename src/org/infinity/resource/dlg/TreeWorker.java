@@ -13,6 +13,8 @@ import javax.swing.SwingWorker;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.tinylog.Logger;
+
 //-------------------------- INNER CLASSES --------------------------
 
 /** Applies expand or collapse operations on a set of dialog tree nodes in a background task. */
@@ -49,7 +51,7 @@ class TreeWorker extends SwingWorker<Void, Void> {
         collapseNode(path);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -88,7 +90,7 @@ class TreeWorker extends SwingWorker<Void, Void> {
       try {
         SwingUtilities.invokeAndWait(() -> dlgTree.expandPath(path));
       } catch (InterruptedException | InvocationTargetException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -126,7 +128,7 @@ class TreeWorker extends SwingWorker<Void, Void> {
     try {
       SwingUtilities.invokeAndWait(() -> dlgTree.collapsePath(path));
     } catch (InterruptedException | InvocationTargetException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 }

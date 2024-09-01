@@ -22,6 +22,7 @@ import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.Table2da;
+import org.tinylog.Logger;
 
 /**
  * A static class that provides information and methods for hardcoded creature animations.
@@ -206,12 +207,12 @@ public class SpriteTables {
         }
       } catch (InvocationTargetException ite) {
         if (ite.getCause() != null) {
-          ite.getCause().printStackTrace();
+          Logger.error(ite.getCause());
         } else {
-          ite.printStackTrace();
+          Logger.error(ite);
         }
       } catch (NoSuchMethodException | IllegalAccessException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

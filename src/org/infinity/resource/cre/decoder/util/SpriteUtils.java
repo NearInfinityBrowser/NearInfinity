@@ -65,6 +65,7 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Collection of helpful methods for Sprite rendering.
@@ -448,7 +449,7 @@ public class SpriteUtils {
         retVal = Couple.with(decoder, control);
         BAM_CACHE.put(entry, retVal);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -616,7 +617,7 @@ public class SpriteUtils {
           PALETTE_CACHE.put(entry, retVal);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -711,7 +712,7 @@ public class SpriteUtils {
             COLOR_GRADIENTS.put(y, pixels);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       } else {
         // dummy entry to skip continuous gradient initialization attempts if gradient bitmap isn't available
@@ -1279,7 +1280,7 @@ public class SpriteUtils {
                 break;
               }
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

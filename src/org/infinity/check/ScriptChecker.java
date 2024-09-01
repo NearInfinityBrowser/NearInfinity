@@ -43,6 +43,7 @@ import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class ScriptChecker extends AbstractSearcher
@@ -240,9 +241,7 @@ public final class ScriptChecker extends AbstractSearcher
           }
         }
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
       advanceProgress();
     };

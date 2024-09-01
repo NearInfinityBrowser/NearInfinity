@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 import com.jcraft.jogg.Packet;
 import com.jcraft.jogg.Page;
@@ -243,7 +244,7 @@ public class OggBuffer extends AudioBuffer {
           }
 
           if (result == -1) { // missing or corrupt data at this page position
-            System.err.println("Corrupt or missing data in bitstream; continuing...");
+            Logger.warn("Corrupt or missing data in bitstream; continuing...");
           } else {
             os.pagein(og); // can safely ignore errors at this point
 

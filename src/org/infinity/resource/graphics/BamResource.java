@@ -80,6 +80,7 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -155,7 +156,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
         ((BamV1Decoder.BamV1Control) bamControl).setTransparencyEnabled(transparencyEnabled);
       }
     } catch (Throwable t) {
-      t.printStackTrace();
+      Logger.error(t);
       decoder = null;
     }
     WindowBlocker.blockWindow(false);
@@ -274,7 +275,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
             ByteBuffer buffer = Compressor.decompress(entry.getResourceBuffer());
             ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panelMain.getTopLevelAncestor());
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -293,7 +294,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
             ByteBuffer buffer = Compressor.compress(entry.getResourceBuffer(), "BAMC", "V1  ");
             ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panelMain.getTopLevelAncestor());
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -357,7 +358,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
             l = null;
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         if (bamData != null) {
           if (bamData.length > 0) {
@@ -398,7 +399,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
               hexViewer.setCurrentOffset(0L);
               panelRaw.add(hexViewer, BorderLayout.CENTER);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             } finally {
               WindowBlocker.blockWindow(false);
             }
@@ -846,13 +847,13 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
               counter++;
             } catch (IOException e) {
               failCounter++;
-              System.err.println("Error writing frame #" + i);
+              Logger.warn("Error writing frame #{}", i);
             }
             image.flush();
             image = null;
           } else {
             failCounter++;
-            System.err.println("Skipping frame #" + i);
+            Logger.warn("Skipping frame #{}", i);
           }
         }
       }
@@ -1236,7 +1237,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
             list.add(buf);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return list;
       }
@@ -1286,7 +1287,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
           retVal = (curIndex == index);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

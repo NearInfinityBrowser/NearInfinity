@@ -25,6 +25,7 @@ import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Collection of methods for creating and manipulating CRE resources.
@@ -132,7 +133,7 @@ public class CreUtils {
           retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -172,7 +173,7 @@ public class CreUtils {
           retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -220,7 +221,7 @@ public class CreUtils {
           retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -266,7 +267,7 @@ public class CreUtils {
           retVal = ItemInfo.getValidated(itemEntry);
           retVal.overrideDroppableFlag(((Flag) item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -383,7 +384,7 @@ public class CreUtils {
       cre.addDatatype(newItem);
       setFieldValue(cre.getAttribute(slotName), null, numItems);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -528,7 +529,7 @@ public class CreUtils {
       try {
         retVal = field.read(buf, pos);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -556,7 +557,7 @@ public class CreUtils {
       try {
         retVal = field.read(buf, pos);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

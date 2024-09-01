@@ -111,6 +111,7 @@ import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener, ItemListener,
     ChangeListener, TableModelListener, ComponentListener {
@@ -381,7 +382,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           bRemove.addActionListener(this);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -528,7 +529,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
               try {
                 struct.removeDatatype((AddRemovable) entry, true);
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }
@@ -552,7 +553,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           try {
             pj.print();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -678,7 +679,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           table.getSelectionModel().setSelectionInterval(index, index);
           table.scrollRectToVisible(table.getCellRect(index, 1, true));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     } else if (src == buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU)) {
@@ -977,7 +978,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           try {
             ((Closeable) c).close();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -1227,7 +1228,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       table.getSelectionModel().removeSelectionInterval(index, index);
       table.getSelectionModel().addSelectionInterval(index, index);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

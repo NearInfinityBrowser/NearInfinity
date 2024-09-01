@@ -15,6 +15,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.SpawnPoint;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Spawn Point
@@ -43,7 +44,7 @@ public class LayerObjectSpawnPoint extends LayerObject {
       scheduleFlags = ((Flag) sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
 
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons

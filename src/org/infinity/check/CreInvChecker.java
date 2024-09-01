@@ -44,6 +44,7 @@ import org.infinity.resource.cre.Item;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /** Performs checking {@link CreResource CRE} & {@code CHR} resources. */
 public final class CreInvChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener {
@@ -181,9 +182,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
       try {
         checkCreature(new CreResource(entry));
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
       advanceProgress();
     };

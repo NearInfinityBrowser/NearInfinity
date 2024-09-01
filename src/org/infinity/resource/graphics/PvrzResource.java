@@ -37,6 +37,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource is used to store graphics data that can be directly utilised by the video hardware.
@@ -85,7 +86,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
         decompressed = Compressor.decompress(getResourceEntry().getResourceBuffer(), 0);
       } catch (Exception e) {
         decompressed = null;
-        e.printStackTrace();
+        Logger.error(e);
       }
       if (decompressed != null) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PVR");
@@ -106,7 +107,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
               JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -220,7 +221,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
       sb.append("</code></html>");
       JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       decoder = null;
     }
@@ -242,7 +243,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
         if (decoder != null) {
           decoder = null;
         }
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return image;

@@ -21,6 +21,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: INI/Actor
@@ -71,7 +72,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
     try {
       cre = new CreResource(creEntry);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resource", e);
     }
 
@@ -179,7 +180,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
           item.setAnimation(sprite);
           item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

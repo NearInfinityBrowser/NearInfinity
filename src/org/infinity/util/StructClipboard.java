@@ -21,6 +21,7 @@ import org.infinity.resource.are.ProEffect;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.spl.SplResource;
+import org.tinylog.Logger;
 
 public final class StructClipboard {
   public static final int CLIPBOARD_EMPTY   = 0;
@@ -178,7 +179,7 @@ public final class StructClipboard {
         ++i;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return lastIndex;
   }
@@ -200,7 +201,7 @@ public final class StructClipboard {
         struct.setField(index + i, newEntry);
       }
     } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return 0;
     }
     return contents.size();
@@ -219,7 +220,7 @@ public final class StructClipboard {
         contents.add(entry.clone());
       }
     } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

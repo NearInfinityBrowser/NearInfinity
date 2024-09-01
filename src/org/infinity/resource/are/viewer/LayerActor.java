@@ -33,6 +33,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.tinylog.Logger;
 
 /**
  * Manages actor layer objects.
@@ -83,7 +84,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
               setListeners(obj);
               objectList.add(obj);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }
@@ -121,7 +122,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
                 setListeners(loa);
                 objectList.add(loa);
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }
@@ -191,7 +192,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
             progress.setProgress(i + 1);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         } finally {
           progress.close();
           if (blocker != null) {

@@ -26,6 +26,7 @@ import org.infinity.resource.StructureFactory;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.tinylog.Logger;
 
 /**
  * Handles File menu items for the {@link BrowserMenuBar}.
@@ -182,7 +183,7 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
           new ViewFrame(NearInfinity.getInstance(), res);
         }
       } catch (NullPointerException e) {
-        System.err.println("Does not exist in BIFF: " + node);
+        Logger.warn("Does not exist in BIFF: {}", node);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Does not exist in BIFF: " + node, "Error", JOptionPane.ERROR_MESSAGE);
       }

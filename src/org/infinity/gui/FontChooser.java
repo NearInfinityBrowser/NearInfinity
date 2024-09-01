@@ -49,6 +49,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 //import org.infinity.util.Misc;
 
@@ -61,7 +62,7 @@ import org.infinity.util.Misc;
  * int result = fontChooser.showDialog(parent);
  * if (result == FontChooser.OK_OPTION) {
  *   Font font = fontChooser.getSelectedFont();
- *   System.out.println("Selected Font : " + font);
+ *   Logger.info("Selected Font : {}", font);
  * }
  * </pre>
  *
@@ -495,7 +496,7 @@ public class FontChooser extends JComponent {
         Document doc = event.getDocument();
         newValue = doc.getText(0, doc.getLength());
       } catch (BadLocationException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       if (newValue.length() > 0) {

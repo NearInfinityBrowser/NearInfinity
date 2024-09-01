@@ -79,6 +79,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource describes a "creature". Creatures have several stats (some visible through the game UI) which are
@@ -617,7 +618,7 @@ public final class CreResource extends AbstractStruct
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path, "Conversion complete",
             JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Errors during conversion", "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -627,7 +628,7 @@ public final class CreResource extends AbstractStruct
   private static void convertToSemiStandard(CreResource crefile) {
     final List<StructEntry> fields = crefile.getFields();
     if (!fields.get(1).toString().equals("V1.0")) {
-      System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
+      Logger.warn("Conversion to semi-standard aborted: Unsupported CRE version");
       return;
     }
 
@@ -2135,7 +2136,7 @@ public final class CreResource extends AbstractStruct
             addDatatype(newEff);
             retVal |= true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else if (version == 1 && so.getSection().equals(Effect.class)) {
@@ -2165,7 +2166,7 @@ public final class CreResource extends AbstractStruct
             addDatatype(newEff);
             retVal |= true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
 

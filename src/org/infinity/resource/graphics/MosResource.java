@@ -61,6 +61,7 @@ import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource describes static graphics in a tile based bitmap format. Such files are used for mini-maps and GUI
@@ -137,7 +138,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             buffer = Compressor.decompress(buffer);
             ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
                 JOptionPane.ERROR_MESSAGE);
           }
@@ -156,7 +157,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           buffer = Compressor.compress(buffer, "MOSC", "V1  ");
           ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
               JOptionPane.ERROR_MESSAGE);
         }
@@ -181,7 +182,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
               JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     } else if (event.getSource() == miPvrzShow) {
       if (lastBlockIndex >= 0) {
@@ -223,7 +224,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             l = null;
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         if (mosData != null) {
           if (mosData.length > 0) {
@@ -439,7 +440,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
       sb.append("</div></html>");
       JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       if (decoder != null) {
         decoder.close();
@@ -497,7 +498,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             decoder = MosDecoder.loadMos(entry);
             mosType = decoder.getType();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -654,7 +655,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             list.add(buf);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return list;
       }
@@ -704,7 +705,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           retVal = (curIndex == index);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

@@ -25,6 +25,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.ResourceStructure;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * {@code ComboBoxModel} for the creature selection combo box used in the Creature Animation Browser.
@@ -261,7 +262,7 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
 
         retVal = new BufferedResourceEntry(buf, "*.CRE");
       } catch (StructureException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
 
       return retVal;

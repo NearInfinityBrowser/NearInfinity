@@ -41,6 +41,7 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Triple;
+import org.tinylog.Logger;
 
 /**
  * Contains a set of color-related static methods (little endian order only).
@@ -806,7 +807,7 @@ public class ColorConvert {
           throw new Exception("Invalid BMP resource: " + entry.getResourceName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read BMP resource: " + entry.getResourceName());
       }
     } else {
@@ -840,7 +841,7 @@ public class ColorConvert {
           throw new Exception("Error loading palette from PNG file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read PNG file " + file.getFileName());
       }
     } else {
@@ -893,7 +894,7 @@ public class ColorConvert {
           throw new Exception("Invalid Windows palette file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read Windows palette file " + file.getFileName());
       }
     } else {
@@ -935,7 +936,7 @@ public class ColorConvert {
           throw new Exception("Invalid Adobe Photoshop palette file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read Adobe Photoshop palette file " + file.getFileName());
       }
     } else {
@@ -987,7 +988,7 @@ public class ColorConvert {
           throw new Exception("Unsupport file type.");
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read BAM resource: " + entry.getResourceName());
       }
     } else {

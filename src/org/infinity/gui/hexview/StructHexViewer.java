@@ -77,6 +77,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.HexViewEvent;
@@ -487,7 +488,7 @@ public class StructHexViewer extends JPanel
           } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         }
@@ -513,7 +514,7 @@ public class StructHexViewer extends JPanel
               Files.move(outPath, bakPath);
             }
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else {
@@ -538,7 +539,7 @@ public class StructHexViewer extends JPanel
     } catch (IOException e) {
       JOptionPane.showMessageDialog(this, "Error while saving " + getStruct().getResourceEntry().toString(), "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     return true;

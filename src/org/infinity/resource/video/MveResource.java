@@ -56,6 +56,7 @@ import org.monte.media.FormatKeys;
 import org.monte.media.VideoFormatKeys;
 import org.monte.media.avi.AVIWriter;
 import org.monte.media.math.Rational;
+import org.tinylog.Logger;
 
 /**
  * This resource describes the movies played during the game. Movies can only be played by the engine when they are
@@ -97,7 +98,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       }
     } catch (Exception e) {
       decoder = null;
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error opening " + entry, "Error",
           JOptionPane.ERROR_MESSAGE);
     }
@@ -207,7 +208,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       try {
         decoder.open(entry);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel, "Error starting video playback", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
@@ -221,7 +222,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       player.play(renderer, decoder);
     } catch (Exception e) {
       player.stopPlay();
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
     }
     decoder.close();
@@ -457,7 +458,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
               try {
                 Files.delete(outFile);
               } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
             JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.", "Information",
@@ -489,7 +490,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       }
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     if (!silent) {
       JOptionPane.showMessageDialog(parent, "Error while exporting " + inEntry + " as AVI file.", "Error",

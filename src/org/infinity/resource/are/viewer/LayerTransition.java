@@ -9,6 +9,7 @@ import java.util.List;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
+import org.tinylog.Logger;
 
 /**
  * Manages map transition layer objects.
@@ -33,7 +34,7 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResour
           setListeners(obj);
           list.add(obj);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

@@ -31,6 +31,7 @@ import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.resource.wed.WedResource;
+import org.tinylog.Logger;
 
 /**
  * Specialized renderer for drawing tileset-based graphics data.
@@ -761,11 +762,11 @@ public class TilesetRenderer extends RenderCanvas {
   // Draws a grid on the map with the specified parameters
   private void drawGrid(Graphics g, double gridWidth, double gridHeight, Color color) {
     if (g == null) {
-      System.err.println("TilesetRenderer.drawGrid: Graphics argument is null");
+      Logger.warn("TilesetRenderer.drawGrid: Graphics argument is null");
       return;
     }
     if (color == null) {
-      System.err.println("TilesetRenderer.drawGrid: Color argument is null");
+      Logger.warn("TilesetRenderer.drawGrid: Color argument is null");
       return;
     }
     final double gridWidthZoomed = gridWidth * zoomFactor;
@@ -965,7 +966,7 @@ public class TilesetRenderer extends RenderCanvas {
             if (tileIdx < listTilesets.get(0).listTileData.size()) {
               srcSec = listTilesets.get(0).listTileData.get(tileIdx);
             } else {
-              System.err.println("Invalid tile index: " + tileIdx + " of " + listTilesets.get(0).listTileData.size());
+              Logger.warn("Invalid tile index: {} of {}", tileIdx, listTilesets.get(0).listTileData.size());
             }
           }
 
@@ -1156,7 +1157,7 @@ public class TilesetRenderer extends RenderCanvas {
             decoder.close();
             decoder = null;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             return;
           }
         }

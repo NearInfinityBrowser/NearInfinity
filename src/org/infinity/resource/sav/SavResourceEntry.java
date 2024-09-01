@@ -20,6 +20,7 @@ import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Specialized ResourceEntry class for compressed entries in SAV resources.
@@ -116,7 +117,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
           return new int[] { data.getInt(8), data.getInt(12) };
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       return null;
     }
@@ -150,7 +151,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return -1L;
   }

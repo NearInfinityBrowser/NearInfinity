@@ -64,6 +64,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -286,7 +287,7 @@ public class PltResource
           throw new UnsupportedOperationException("PNG writing is not supported");
         }
       } catch (Exception ioe) {
-        ioe.printStackTrace();
+        Logger.error(ioe);
         JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -341,7 +342,7 @@ public class PltResource
               hexViewer.setCurrentOffset(0L);
               panelRaw.add(hexViewer, BorderLayout.CENTER);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             } finally {
               WindowBlocker.blockWindow(false);
             }
@@ -727,7 +728,7 @@ public class PltResource
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       if (items == null) {

@@ -25,6 +25,7 @@ import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
+import org.tinylog.Logger;
 
 /** Performs search of the specified string reference in other resources. */
 public final class StringReferenceSearcher extends AbstractReferenceSearcher {
@@ -101,8 +102,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
             }
           }
         } catch (Exception e) {
-          System.out.println("Exception in " + dialog.getName() + " - " + sourceCode.getName());
-          e.printStackTrace();
+          Logger.error(e, "Exception in {} - {}", dialog.getName(), sourceCode.getName());
         }
       } else if (o instanceof AbstractStruct) {
         searchDialog(entry, (AbstractStruct) o);
@@ -141,7 +141,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

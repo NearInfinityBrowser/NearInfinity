@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.infinity.datatype.StringRef;
+import org.tinylog.Logger;
 
 public class IniMapEntry {
   /** Regular expression that can be used to split position values in {@link #splitValues(String, String)}. */
@@ -108,7 +109,7 @@ public class IniMapEntry {
           results.add(value.substring(matcher.start(), matcher.end()));
         }
       } catch (PatternSyntaxException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       retVal = new String[results.size()];
       for (int i = 0; i < results.size(); i++) {
@@ -138,7 +139,7 @@ public class IniMapEntry {
         try {
           retVal[i] = Integer.parseInt(results.get(i));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -165,7 +166,7 @@ public class IniMapEntry {
         try {
           retVal[i] = Integer.parseInt(results.get(i));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

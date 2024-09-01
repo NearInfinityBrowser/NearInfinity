@@ -30,6 +30,7 @@ import org.infinity.util.IntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class Keyfile {
   public static final ImageIcon ICON_STRUCT = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
@@ -348,7 +349,7 @@ public class Keyfile {
   // try {
   // Files.deleteIfExists(file);
   // } catch (IOException e) {
-  // e.printStackTrace();
+  // Logger.error(e);
   // }
   // }
   // });
@@ -368,7 +369,7 @@ public class Keyfile {
   //
   // return true;
   // } catch (IOException e) {
-  // e.printStackTrace();
+  // Logger.error(e);
   // }
   //
   // return false;
@@ -455,7 +456,7 @@ public class Keyfile {
             try {
               AbstractBIFFReader.open(biffPath);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

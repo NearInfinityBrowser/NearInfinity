@@ -55,6 +55,7 @@ import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * The ARE resource describes the content of an area (rather than its visual representation). ARE files contain the list
@@ -212,7 +213,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           LuaEntry entries = LuaParser.Parse(luaFiles, "cheatAreas\\w*", false);
           mapNames = createMapNamesFromLua(entries);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       } else if (ResourceFactory.resourceExists("MAPNAME.2DA")) {
         // PST map names

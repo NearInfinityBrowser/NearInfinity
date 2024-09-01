@@ -36,6 +36,7 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Base class for opcode-handling classes. Derived classes should handle one opcode per class for all game variants.
@@ -650,12 +651,12 @@ public class BaseOpcode {
                   portraitIconNames[index] = StringTable.getStringRef(strref);
                 }
               } catch (NumberFormatException nfe) {
-                nfe.printStackTrace();
+                Logger.error(nfe);
               }
             }
           }
         } catch (NullPointerException npe) {
-          npe.printStackTrace();
+          Logger.error(npe);
         }
       }
 
@@ -888,7 +889,7 @@ public class BaseOpcode {
     try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
       entry.write(bbos);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return null;
     }
     return bb;
@@ -913,7 +914,7 @@ public class BaseOpcode {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -1026,7 +1027,7 @@ public class BaseOpcode {
           }
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException
             | InstantiationException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

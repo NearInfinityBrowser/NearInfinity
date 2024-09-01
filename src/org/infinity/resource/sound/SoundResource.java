@@ -43,6 +43,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.WavReferenceSearcher;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Handles all kinds of supported single track audio files.
@@ -179,7 +180,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         player.play(audioBuffer);
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
       player.stopPlay();
       timerTask.stop();
@@ -336,7 +337,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         return true;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
     return false;

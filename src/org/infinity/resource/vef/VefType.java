@@ -14,6 +14,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.tinylog.Logger;
 
 public final class VefType extends Bitmap {
   // VEF/VefType-specific field labels
@@ -42,7 +43,7 @@ public final class VefType extends Bitmap {
       struct.addFields(this, list);
       return true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

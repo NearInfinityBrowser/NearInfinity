@@ -127,6 +127,7 @@ import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 public class ConvertToBam extends ChildFrame implements ActionListener, PropertyChangeListener, FocusListener,
     ChangeListener, ListSelectionListener, MouseListener, KeyListener {
@@ -793,7 +794,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         try {
           result = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -2694,7 +2695,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         }
       } catch (Exception e) {
         retVal = false;
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -2803,7 +2804,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
 
@@ -3425,7 +3426,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       try {
         updateFilteredBamDecoder(getBamVersion(), false);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -3933,7 +3934,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       }
       result.add("Conversion finished successfully.");
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       result.add(null);
       result.add(String.format("Error while exporting BAM files.\n(%s)", e.getMessage()));
     }
@@ -4009,7 +4010,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             throw e;
           }
         } else if (filter instanceof BamFilterBaseTransform) {
@@ -4028,16 +4029,16 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             throw e;
           }
         } else if (filter instanceof BamFilterBaseOutput) {
           // skipping output filter
         } else {
           if (filter != null) {
-            System.err.println(String.format("Skipping unrecognized filter: %s", filter));
+            Logger.warn("Skipping unrecognized filter: {}", filter);
           } else {
-            System.err.println("Skipping null filter");
+            Logger.warn("Skipping null filter");
           }
         }
       }
@@ -5657,7 +5658,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
           retVal = true;
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
           if (!silent) {
             JOptionPane.showMessageDialog(bam, "Error exporting BAM session.", "Error", JOptionPane.ERROR_MESSAGE);
           }

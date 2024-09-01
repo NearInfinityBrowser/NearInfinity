@@ -40,6 +40,7 @@ import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class InfinityAmp extends ChildFrame
     implements ActionListener, ListSelectionListener, Runnable, Closeable {
@@ -284,7 +285,7 @@ public final class InfinityAmp extends ChildFrame
     } catch (Exception e) {
       JOptionPane.showMessageDialog(this, "Error accessing " + musEntry + '\n' + e.getMessage(), "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 }

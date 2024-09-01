@@ -18,6 +18,8 @@ import org.infinity.resource.dlg.ResponseTrigger;
 import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.StateTrigger;
 import org.infinity.resource.dlg.Transition;
+import org.infinity.util.DebugTimer;
+import org.tinylog.Logger;
 
 public class DialogItemRefSearcher implements Runnable {
   private final DlgResource dlg;
@@ -38,7 +40,7 @@ public class DialogItemRefSearcher implements Runnable {
     final List<StructEntry> searchItems = dlg.getFields();
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, searchItems.size());
     progress.setMillisToDecideToPopup(100);
-    long startTime = System.currentTimeMillis();
+    DebugTimer.getInstance().timerReset();
     for (int i = 0; i < searchItems.size(); i++) {
       StructEntry entry = searchItems.get(i);
       if (entry instanceof State || entry instanceof Transition || entry instanceof AbstractCode) {
@@ -50,7 +52,7 @@ public class DialogItemRefSearcher implements Runnable {
         return;
       }
     }
-    System.out.println("Search completed: " + (System.currentTimeMillis() - startTime) + "ms.");
+    Logger.info(DebugTimer.getInstance().getTimerFormatted("Search completed"));
     hitFrame.setVisible(true);
   }
 

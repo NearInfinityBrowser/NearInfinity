@@ -53,6 +53,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
   private static final ButtonPanel.Control CTRL_NEXT_STATE      = ButtonPanel.Control.CUSTOM_1;
@@ -406,7 +407,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       showState(stateNrToShow);
       showTransition(transNrToShow);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -448,7 +449,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (!isValid) {
       if (nr >= 0) {
         // Print warning about not correct resource
-        System.err.println(dlg.getName() + ": state " + nr + " is not exist");
+        Logger.warn("{}: state {} does not exist", dlg.getName(), nr);
       }
       stateTextPanel.clearDisplay();
       stateTriggerPanel.clearDisplay();
@@ -500,10 +501,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (nr >= 0 && currentState != null) {
         // Print warning about not correct resource
         if (isValid) {
-          System.err.println(
-              dlg.getName() + ": transition " + nr + " is not transition from state " + currentState.getNumber());
+          Logger.warn("{}: transition {} is not transition from state {}", dlg.getName(), nr, currentState.getNumber());
         } else if (isBroken) {
-          System.err.println(dlg.getName() + ": transition " + nr + " is not exist");
+          Logger.warn("{}: transition {} does not exist", dlg.getName(), nr);
         }
       }
       transTextPanel.clearDisplay();

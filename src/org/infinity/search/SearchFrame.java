@@ -50,6 +50,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
 //  private static final SearchFrame SEARCH_FRAME = null;
@@ -303,7 +304,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
           String text = tfield.getText();
           regex = Pattern.compile(text, isCase ? 0 : Pattern.CASE_INSENSITIVE);
         } catch (PatternSyntaxException e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(this, "Regular expression error:\n" + e.getMessage(), "Error",
               JOptionPane.ERROR_MESSAGE);
           return;

@@ -35,6 +35,7 @@ import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * Output filter: split BAM and output each part into a separate file.
@@ -472,7 +473,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
           return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw e;
         }
       } else {
@@ -483,7 +484,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
           return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw e;
         }
       }

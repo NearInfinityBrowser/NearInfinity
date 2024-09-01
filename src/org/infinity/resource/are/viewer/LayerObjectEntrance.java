@@ -15,6 +15,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Entrance;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
+import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Entrance
@@ -46,7 +47,7 @@ public class LayerObjectEntrance extends LayerObject {
       final String name = entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME).toString();
       msg = String.format("%s (%s)", name, AbstractStruct.OPTION_ORIENTATION[o]);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons

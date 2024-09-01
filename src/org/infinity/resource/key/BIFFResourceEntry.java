@@ -23,6 +23,7 @@ import org.infinity.resource.Writeable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class BIFFResourceEntry extends ResourceEntry implements Writeable {
   /** Full path to KEY file containing BIFF entry. */
@@ -154,7 +155,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
     try {
       return ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry()).getFile();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -181,7 +182,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

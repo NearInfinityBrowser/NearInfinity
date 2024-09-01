@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Common base class for handling TIS resources.
@@ -55,7 +56,7 @@ public abstract class TisDecoder {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -84,7 +85,7 @@ public abstract class TisDecoder {
           retVal = new TisInfo(numTiles, tileSize, tileDim);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

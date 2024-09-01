@@ -48,6 +48,7 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher
@@ -242,9 +243,7 @@ public final class DialogChecker extends AbstractSearcher
           }
         }
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
       advanceProgress();
     };

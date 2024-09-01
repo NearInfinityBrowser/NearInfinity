@@ -46,6 +46,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Represents reference to another resource in game. This resource can be sound, item, dialog, creature, image.
@@ -429,7 +430,7 @@ public class ResourceRef extends Datatype
       try {
         ((Closeable) resource).close();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

@@ -46,6 +46,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 
 import org.infinity.util.LauncherUtils;
 import org.infinity.util.io.FileEx;
+import org.tinylog.Logger;
 
 /**
  * Generic collection of updater-related methods.
@@ -187,7 +188,7 @@ public class Utils {
         return sb.toString();
 
       } catch (NoSuchAlgorithmException | IOException ioe) {
-        ioe.printStackTrace();
+        Logger.error(ioe);
       }
     }
     return "";

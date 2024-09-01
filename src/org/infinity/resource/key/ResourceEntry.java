@@ -34,6 +34,7 @@ import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   // list of file extensions not shown in the resource tree
@@ -88,7 +89,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
           return new int[] { (int) ch.size() };
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -205,7 +206,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
               JOptionPane.ERROR_MESSAGE);
         }
         searchString = "Error";
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return searchString;

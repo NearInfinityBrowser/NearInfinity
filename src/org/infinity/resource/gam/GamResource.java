@@ -45,6 +45,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.QuestsPanel;
 import org.infinity.resource.text.QuestsResource;
 import org.infinity.util.Variables;
+import org.tinylog.Logger;
 
 /**
  * This resource is used to hold game information in save games. The GAM file does not store {@link AreResource area},
@@ -192,7 +193,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
           try {
             return new QuestsPanel(new QuestsResource().readQuests(), globalVars);
           } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.error(ex);
             final StringWriter w = new StringWriter();
             ex.printStackTrace(new PrintWriter(w));
             return new JTextArea(w.toString());

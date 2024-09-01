@@ -46,6 +46,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * An options dialog for the BAM converter.
@@ -264,7 +265,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
         }
         recentSessions.add(0, session);
       } catch (IOError e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

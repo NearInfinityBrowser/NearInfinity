@@ -14,6 +14,7 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.video.MveDecoder.MveInfo;
 import org.infinity.resource.video.MveDecoder.MveSegment;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Decodes a single 8x8 pixel block of video data. (Internally used by MveDecoder)
@@ -1126,7 +1127,7 @@ public class MveVideoDecoder {
       int srcOfs = srcY * src.getWidth() + srcX;
       int dstOfs = dstY * curBuffer.getWidth() + dstX;
       if (srcOfs < 0) {
-        System.err.println("Debug: copyBlock8x8(src, " + srcX + ", " + srcY + ", " + dstX + ", " + dstY + ")");
+        Logger.debug("copyBlock8x8(src, {}, {}, {}, {})", srcX, srcY, dstX, dstY);
         return;
       }
 

@@ -86,6 +86,7 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
@@ -301,7 +302,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       try {
         pattern = getPattern();
       } catch (IllegalArgumentException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(this, e.getMessage(), "Pattern syntax error", JOptionPane.ERROR_MESSAGE);
         if (e instanceof PatternSyntaxException) {
           final int index = ((PatternSyntaxException)e).getIndex();
@@ -319,7 +320,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         Files.createDirectories(outputPath);
       } catch (IOException e) {
         JOptionPane.showMessageDialog(this, "Unable to create target directory.", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
       setVisible(false);
@@ -458,7 +459,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       selectedFiles = null;
     }
-    DebugTimer.getInstance().timerShow("Mass export completed", DebugTimer.TimeFormat.MILLISECONDS);
+    Logger.info(DebugTimer.getInstance().getTimerFormatted("Mass export completed"));
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -679,13 +680,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         Files.createDirectory(path);
       } catch (IOException e) {
         String msg = String.format("Error creating folder \"%s\". Skipping file \"%s\".", fileBase, fileName);
-        System.err.println(msg);
+        Logger.warn(msg);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
     } else if (!FileEx.create(path).isDirectory()) {
       String msg = String.format("Folder \"%s\" can not be created. Skipping file \"%s\".", fileBase, fileName);
-      System.err.println(msg);
+      Logger.warn(msg);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
@@ -715,7 +716,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   private void exportResource(ResourceEntry entry, Path output) throws Exception {
     if (entry != null && output != null) {
-      System.err.println("Converting " + entry.toString());
+      Logger.info("Converting {}", entry.toString());
       int[] info = entry.getResourceInfo();
       int size = info[0];
       if (info.length > 1) {
@@ -812,8 +813,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         exportResource(entry, output);
       }
     } catch (Exception e) {
-      System.err.println("Error in resource: " + entry.toString());
-      e.printStackTrace();
+      Logger.error(e, "Error in resource: {}", entry);
+
     }
   }
 

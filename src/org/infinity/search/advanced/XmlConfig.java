@@ -27,6 +27,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -151,7 +152,7 @@ public class XmlConfig {
     try {
       builder = domFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     Document document = builder.newDocument();
@@ -318,7 +319,7 @@ public class XmlConfig {
       StreamResult sr = new StreamResult(xmlOut);
       transformer.transform(domSource, sr);
     } catch (TransformerException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
 
@@ -386,17 +387,17 @@ public class XmlConfig {
     builder.setErrorHandler(new ErrorHandler() {
       @Override
       public void warning(SAXParseException exception) throws SAXException {
-        exception.printStackTrace();
+        Logger.error(exception);
       }
 
       @Override
       public void fatalError(SAXParseException exception) throws SAXException {
-        exception.printStackTrace();
+        Logger.error(exception);
       }
 
       @Override
       public void error(SAXParseException exception) throws SAXException {
-        exception.printStackTrace();
+        Logger.error(exception);
       }
     });
 
@@ -1028,7 +1029,7 @@ public class XmlConfig {
   // sb.append(c);
   // isEntity = true;
   // } catch (NumberFormatException e) {
-  // e.printStackTrace();
+  // Logger.error(e);
   // }
   // }
   // }

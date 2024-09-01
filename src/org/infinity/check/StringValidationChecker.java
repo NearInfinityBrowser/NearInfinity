@@ -55,6 +55,7 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class StringValidationChecker extends AbstractSearcher
     implements Runnable, ActionListener, ListSelectionListener {
@@ -257,17 +258,13 @@ public class StringValidationChecker extends AbstractSearcher
             try {
               validateInput(decoder, inBuf, outBuf, entry, idx, isFemale);
             } catch (IllegalStateException | CoderMalfunctionError e) {
-              synchronized (System.err) {
-                e.printStackTrace();
-              }
+              Logger.error(e);
             }
           }
           decoder.reset();
         }
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
 
       advanceProgress();

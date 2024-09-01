@@ -54,6 +54,7 @@ import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * A struct field that represents reference to string in a talk table file (dialog.tlk or dialogF.tlk).
@@ -474,7 +475,7 @@ public final class StringRef extends Datatype
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else {
           // load TOH/TOT directly

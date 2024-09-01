@@ -72,6 +72,7 @@ import org.infinity.util.IconCache;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 public final class ViewerUtil {
   /**
@@ -203,7 +204,7 @@ public final class ViewerUtil {
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
@@ -227,7 +228,7 @@ public final class ViewerUtil {
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
