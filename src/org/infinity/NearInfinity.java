@@ -458,9 +458,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
         CreMapCache.reset();
         BaseOpcode.initOpcodes();
-//        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
-//          FileWatcher.getInstance().start();
-//        }
 
         return null;
       }
@@ -899,7 +896,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public void quit() {
     if (removeViewable()) {
-      // FileWatcher.getInstance().stop();
       ChildFrame.closeWindows();
       storePreferences();
       clearCache(false);
@@ -1181,7 +1177,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       CharsetDetector.clearCache();
     }
     DlcManager.close();
-    FileManager.reset();
     IconCache.clearCache();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();

@@ -10,8 +10,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -57,7 +55,7 @@ import org.infinity.util.tuples.Couple;
 /**
  * Handles Option menu items for the {@link BrowserMenuBar}.
  */
-public class OptionsMenuItem extends JMenuItem implements ActionListener {
+public class OptionsMenuItem extends JMenuItem {
   /** Alignment types available for 2DA resources. */
   public enum AutoAlign2da {
     /** Do not align columns. */
@@ -864,16 +862,6 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     return lang.equalsIgnoreCase(LANGUAGE_AUTODETECT) ? "" : lang;
   }
 
-  /**
-   * Returns whether file changes in override folders are tracked at real time and reflected in the resource tree.
-   *
-   * (not yet implemented)
-   */
-  public boolean getMonitorFileChanges() {
-//      return optionMonitorFileChanges.isSelected();
-    return false;
-  }
-
   /** Returns defValue if masked bit is clear or value if masked bit is already set. */
   public boolean fixOption(int mask, boolean defValue, boolean value) {
     boolean retVal = value;
@@ -884,17 +872,6 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
       AppOption.OPTION_FIXED_INTERNAL.setInitialValue(fixedInternal);
     }
     return retVal;
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    // if (event.getSource() == optionMonitorFileChanges) {
-    //   if (optionMonitorFileChanges.isSelected()) {
-    //     FileWatcher.getInstance().start();
-    //   } else {
-    //     FileWatcher.getInstance().stop();
-    //   }
-    // }
   }
 
   /** Attempts to switch the game language in Enhanced Edition games. */

@@ -20,7 +20,6 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,15 +92,12 @@ import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.FileWatcher;
-import org.infinity.util.io.FileWatcher.FileWatchEvent;
-import org.infinity.util.io.FileWatcher.FileWatchListener;
 import org.infinity.util.io.StreamUtils;
 
 /**
  * Handles game-specific resource access.
  */
-public final class ResourceFactory implements FileWatchListener {
+public final class ResourceFactory {
   /**
    * Name of tree node that contains important game files that not stored in the BIF archives or override folders.
    */
@@ -112,7 +108,6 @@ public final class ResourceFactory implements FileWatchListener {
   private JFileChooser fc;
   private Keyfile keyfile;
   private ResourceTreeModel treeModel;
-  private Path pendingSelection;
 
   public static Keyfile getKeyfile() {
     if (getInstance() != null) {
@@ -1002,7 +997,6 @@ public final class ResourceFactory implements FileWatchListener {
       }
 
       loadResourcesInternal();
-      FileWatcher.getInstance().addFileWatchListener(this);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error", JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
@@ -1011,7 +1005,6 @@ public final class ResourceFactory implements FileWatchListener {
 
   /** Cleans up resources. */
   private void close() {
-    FileWatcher.getInstance().removeFileWatchListener(this);
     // nothing to do yet...
   }
 
@@ -1085,9 +1078,6 @@ public final class ResourceFactory implements FileWatchListener {
     // exporting resource
     if (output != null) {
       try {
-        if (output.getFileName().toString().equalsIgnoreCase(entry.getResourceName())) {
-          setPendingSelection(output);
-        }
         try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
           StreamUtils.writeBytes(os, buffer);
         }
@@ -1096,7 +1086,6 @@ public final class ResourceFactory implements FileWatchListener {
               JOptionPane.INFORMATION_MESSAGE);
         }
       } catch (IOException e) {
-        setPendingSelection(null);
         throw new Exception("Error while exporting " + entry);
       }
     }
@@ -1295,25 +1284,6 @@ public final class ResourceFactory implements FileWatchListener {
         }
         NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
       }
-    }
-  }
-
-  private boolean isPendingSelection(Path path, boolean autoRemove) {
-    boolean retVal = (pendingSelection == path);
-
-    if (pendingSelection != null && path != null) {
-      retVal = path.equals(pendingSelection);
-      if (retVal && autoRemove) {
-        pendingSelection = null;
-      }
-    }
-
-    return retVal;
-  }
-
-  private void setPendingSelection(Path path) {
-    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getMonitorFileChanges()) {
-      pendingSelection = path;
     }
   }
 
@@ -1559,7 +1529,6 @@ public final class ResourceFactory implements FileWatchListener {
     }
 
     try {
-      setPendingSelection(outFile);
       ByteBuffer bb = entry.getResourceBuffer();
       try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
         WritableByteChannel wbc = Channels.newChannel(os);
@@ -1694,18 +1663,4 @@ public final class ResourceFactory implements FileWatchListener {
     }
     return true;
   }
-
-  // --------------------- Begin Interface FileWatchListener ---------------------
-
-  @Override
-  public void fileChanged(FileWatchEvent e) {
-    // System.out.println("ResourceFactory.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
-    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      registerResourceInternal(e.getPath(), isPendingSelection(e.getPath(), true));
-    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
-      unregisterResourceInternal(e.getPath());
-    }
-  }
-
-  // --------------------- End Interface FileWatchListener ---------------------
 }

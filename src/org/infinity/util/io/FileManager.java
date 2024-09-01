@@ -10,31 +10,44 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Locale;
+import java.util.Objects;
 
-import org.infinity.util.Platform;
-import org.infinity.util.io.FileWatcher.FileWatchEvent;
-import org.infinity.util.io.FileWatcher.FileWatchListener;
 
 /**
  * Central hub for accessing game-related I/O resources.
  */
-public class FileManager implements FileWatchListener {
-  private static final HashMap<Path, HashSet<Path>> PATH_CACHE = new HashMap<>();
+public class FileManager {
+  private static boolean caseSensitiveMode = getDefaultCaseSensitiveMode();
 
-  private static FileManager instance;
+  /**
+   * Returns whether file paths should be polled directly from the filesystem
+   * to work with case-sensitive filesystems.
+   *
+   * <p>By default returns {@code true} only for Linux platforms.</p>
+   */
+  public static boolean isCaseSensitiveMode() {
+    return caseSensitiveMode;
+  }
 
-  public static void reset() {
-    PATH_CACHE.clear();
-    if (instance != null) {
-      instance.close();
-    }
-    instance = null;
+  /**
+   * This method can be used to override the default case-sensitive operation mode for filesystems.
+   *
+   * @param force Specify {@code true} to force polling path names from the filesystem.
+   */
+  public static void setCaseSensitiveMode(boolean force) {
+    caseSensitiveMode = force;
+  }
+
+  /** Returns the default case-sensitivity mode for the current platform. */
+  public static boolean getDefaultCaseSensitiveMode() {
+    final String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    return (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd"));
   }
 
   /**
@@ -47,7 +60,7 @@ public class FileManager implements FileWatchListener {
    * @return The {@code Path} based on {@code root} and the specified path elements.
    */
   public static Path query(Path rootPath, String path, String... more) {
-    return getInstance()._query(rootPath, path, more);
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), path, more, false);
   }
 
   /**
@@ -61,24 +74,7 @@ public class FileManager implements FileWatchListener {
    *         priority if {@code path} does not exist.
    */
   public static Path query(List<Path> rootPaths, String path, String... more) {
-    return getInstance()._query(rootPaths, path, more);
-  }
-
-  /**
-   * Returns a {@link Path} to the first matching file of the specified path in one of the listed {@code rootPaths}
-   * filtered by {@code rootFilter}.
-   *
-   * @param rootFilter Limit search to {@code rootPaths} which are based on this root {@code Path}. Specify {@code null}
-   *                   to ignore {@code rootFilter}.
-   * @param rootPaths  List of {@code Path} objects which are searched in order to find {@code path}.
-   * @param path       Relative path to a file or directory.
-   * @param more       More optional path elements that are appended to {@code path}.
-   * @return The {@code Path} to the first matching file. Returns a {@code Path} based on the search path of lowest
-   *         priority based on {@code root} if {@code path} does not exist. Returns a {@code Path} based on the current
-   *         working path if {@code rootPaths} is empty after applying {@code rootFilter}.
-   */
-  public static Path query(Path rootFilter, List<Path> rootPaths, String path, String... more) {
-    return getInstance()._query(rootFilter, rootPaths, path, more);
+    return queryPath(rootPaths, path, more, false);
   }
 
   /**
@@ -92,7 +88,7 @@ public class FileManager implements FileWatchListener {
    *         {@code path} does not exist.
    */
   public static Path queryExisting(Path rootPath, String path, String... more) {
-    return getInstance()._queryExisting(rootPath, path, more);
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), path, more, true);
   }
 
   /**
@@ -105,22 +101,7 @@ public class FileManager implements FileWatchListener {
    * @return The {@code Path} to the first matching file. Returns {@code null} if {@code path} does not exist.
    */
   public static Path queryExisting(List<Path> rootPaths, String path, String... more) {
-    return getInstance()._queryExisting(rootPaths, path, more);
-  }
-
-  /**
-   * Returns a {@link Path} to the first matching file of the specified path in one of the listed {@code rootPaths}
-   * filtered by {@code rootFilter}.
-   *
-   * @param rootFilter Limit search to {@code rootPaths} which are based on this root {@code Path}. Specify {@code null}
-   *                   to ignore {@code rootFilter}.
-   * @param rootPaths  List of {@code Path} objects which are searched in order to find {@code path}.
-   * @param path       Relative path to a file or directory.
-   * @param more       More optional path elements that are appended to {@code path}.
-   * @return The {@code Path} to the first matching file. Returns {@code null} if {@code path} does not exist.
-   */
-  public static Path queryExisting(Path rootFilter, List<Path> rootPaths, String path, String... more) {
-    return getInstance()._queryExisting(rootFilter, rootPaths, path, more);
+    return queryPath(rootPaths, path, more, true);
   }
 
   /**
@@ -133,14 +114,10 @@ public class FileManager implements FileWatchListener {
    * @return The resolved path or {@code null} on error.
    */
   public static Path resolve(String path, String... more) {
-    if (path != null) {
-      try {
-        return _resolve(FileSystems.getDefault().getPath(path, more));
-      } catch (Throwable t) {
-        t.printStackTrace();
-      }
-    }
-    return null;
+    final Path fullPath = Paths.get(Objects.requireNonNull(path), more);
+    final Path rootPath = fullPath.getParent();
+    final String fileName = (fullPath.getFileName() != null) ? fullPath.getFileName().toString() : null;
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, false);
   }
 
   /**
@@ -151,14 +128,10 @@ public class FileManager implements FileWatchListener {
    * @return The resolved path or {@code null} on error or the specified path does not exist.
    */
   public static Path resolveExisting(String path, String... more) {
-    if (path != null) {
-      try {
-        return _resolveExisting(FileSystems.getDefault().getPath(path, more));
-      } catch (Throwable t) {
-        t.printStackTrace();
-      }
-    }
-    return null;
+    final Path fullPath = Paths.get(Objects.requireNonNull(path), more);
+    final Path rootPath = fullPath.getParent();
+    final String fileName = (fullPath.getFileName() != null) ? fullPath.getFileName().toString() : null;
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, true);
   }
 
   /**
@@ -170,7 +143,9 @@ public class FileManager implements FileWatchListener {
    * @return The resolved path.
    */
   public static Path resolve(Path path) {
-    return _resolve(path);
+    final Path rootPath =  Objects.requireNonNull(path).getParent();
+    final String fileName = (path.getFileName() != null) ? path.getFileName().toString() : null;
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, false);
   }
 
   /**
@@ -180,36 +155,9 @@ public class FileManager implements FileWatchListener {
    * @return The resolved path or {@code null} on error or the specified path does not exist.
    */
   public static Path resolveExisting(Path path) {
-    return _resolveExisting(path);
-  }
-
-  /**
-   * Removes the specified directory from the cache.
-   *
-   * @param dir The directory to remove from the cache.
-   */
-  public static void invalidateDirectory(Path dir) {
-    _invalidateDirectory(dir);
-  }
-
-  /**
-   * Registers the specified file in the file cache. This method should always be called if one or more individual files
-   * have been added to a game directory. Does nothing if the parent directory has not been cached yet.
-   *
-   * @param file The file to register.
-   */
-  public static void registerFile(Path file) {
-    _registerFile(file);
-  }
-
-  /**
-   * Removes the specified file from the file cache. This method should always be called if one or more individual files
-   * have been removed from a game directory. Does nothing if the parent directory has not been cached yet.
-   *
-   * @param file The file to unregister.
-   */
-  public static void unregisterFile(Path file) {
-    _unregisterFile(file);
+    final Path rootPath =  Objects.requireNonNull(path).getParent();
+    final String fileName = (path.getFileName() != null) ? path.getFileName().toString() : null;
+    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, true);
   }
 
   /**
@@ -295,6 +243,25 @@ public class FileManager implements FileWatchListener {
   }
 
   /**
+   * Returns the file extension of the specified path string.
+   *
+   * @param path File or folder path string.
+   * @return the empty or non-empty file extension, or {@code null} on error.
+   */
+  public static String getFileExtension(String path) {
+    String retVal = null;
+    if (path != null) {
+      int pos = path.lastIndexOf('.');
+      if (pos >= 0) {
+        retVal = path.substring(pos + 1);
+      } else {
+        retVal = "";
+      }
+    }
+    return retVal;
+  }
+
+  /**
    * Returns the file extension of the specified path.
    *
    * @param path File or folder path.
@@ -303,264 +270,139 @@ public class FileManager implements FileWatchListener {
   public static String getFileExtension(Path path) {
     String retVal = null;
     if (path != null) {
-      String leaf = path.getFileName().toString();
-      int p = leaf.lastIndexOf('.');
-      if (p >= 0) {
-        retVal = leaf.substring(p + 1);
-      } else {
-        retVal = "";
-      }
+      retVal = getFileExtension(path.getFileName().toString());
     }
     return retVal;
   }
 
-  private FileManager() {
-    FileWatcher.getInstance().addFileWatchListener(this);
+  /**
+   * Attempts to resolve the path elements to a {@link Path} that matches the given criteria.
+   *
+   * @param rootPaths List of root {@link Path} instances to test with the specified path elements.
+   * @param path      Path element to resolve against any of the root paths.
+   * @param more      More optional path elements to resolve against any of the root paths.
+   * @param mustExist Specifies whether the resolved path must point to an existing filesystem object.
+   * @return a {@link Path} object with the first path the given criteria, {@code null} otherwise.
+   */
+  private static Path queryPath(List<Path> rootPaths, String path, String[] more, boolean mustExist) {
+    final String[] paths = new String[more.length + 1];
+    paths[0] = path;
+    System.arraycopy(more, 0, paths, 1, more.length);
+    return queryPath(rootPaths, paths, mustExist);
   }
 
-  private Path _query(Path rootPath, String path, String... more) {
-    List<Path> rootPaths = null;
-    if (rootPath != null) {
-      rootPaths = new ArrayList<>();
-      rootPaths.add(rootPath);
-    }
-    return _queryPath(false, (Path) null, rootPaths, path, more);
-  }
-
-  private Path _query(List<Path> rootPaths, String path, String... more) {
-    return _queryPath(false, (Path) null, rootPaths, path, more);
-  }
-
-  private Path _query(Path rootFilter, List<Path> rootPaths, String path, String... more) {
-    return _queryPath(false, rootFilter, rootPaths, path, more);
-  }
-
-  private Path _queryExisting(Path rootPath, String path, String... more) {
-    List<Path> rootPaths = null;
-    if (rootPath != null) {
-      rootPaths = new ArrayList<>();
-      rootPaths.add(rootPath);
-    }
-    return _queryPath(true, (Path) null, rootPaths, path, more);
-  }
-
-  private Path _queryExisting(List<Path> rootPaths, String path, String... more) {
-    return _queryPath(true, (Path) null, rootPaths, path, more);
-  }
-
-  private Path _queryExisting(Path rootFilter, List<Path> rootPaths, String path, String... more) {
-    return _queryPath(true, rootFilter, rootPaths, path, more);
-  }
-
-  private Path _queryPath(boolean mustExist, Path rootFilter, List<Path> rootPaths, String path, String... more) {
-    // path must be defined
-    if (path == null) {
-      return null;
-    }
-
+  /**
+   * Attempts to resolve the path elements to a {@link Path} that matches the given criteria.
+   *
+   * @param rootPaths List of root {@link Path} instances to test with the specified path elements.
+   * @param paths     Optional path elements to resolve against any of the root paths.
+   * @param mustExist Specifies whether the resolved path must point to an existing filesystem object.
+   * @return a {@link Path} object with the first path the given criteria, {@code null} otherwise.
+   */
+  private static Path queryPath(List<Path> rootPaths, String[] paths, boolean mustExist) {
     if (rootPaths == null) {
       rootPaths = new ArrayList<>();
     }
 
-    // filter search
-    if (rootFilter != null) {
-      int idx = 0;
-      while (idx < rootPaths.size()) {
-        Path curPath = rootPaths.get(idx);
-        if (curPath.startsWith(rootFilter)) {
-          rootPaths.remove(idx);
-        } else {
-          idx++;
-        }
-      }
+    if (rootPaths.stream().noneMatch(Objects::nonNull)) {
+      // add current working directory if no root paths are provided
+      rootPaths.add(FileSystems.getDefault().getPath(".").toAbsolutePath().normalize());
     }
 
-    // use current working path as fallback
-    if (rootPaths.isEmpty()) {
-      rootPaths.add(FileSystems.getDefault().getPath("").toAbsolutePath().normalize());
+    if (paths.length == 0) {
+      paths = new String[1];
     }
 
-    // ensure that path is relative
-    if (!path.isEmpty()) {
-      if (path.charAt(0) == '/' || path.charAt(0) == '\\') {
-        path = path.substring(1);
+    if (paths[0] == null) {
+      paths[0] = ".";
+    }
+
+    // ensure that "path" is relative
+    if (!paths[0].isEmpty()) {
+      if (paths[0].charAt(0) == '/' || paths[0].charAt(0) == '\\') {
+        paths[0] = paths[0].substring(1);
       }
     }
 
     Path curPath = null;
-    boolean exists = false;
-    try {
-      for (final Path curRoot : rootPaths) {
+    for (final Path rootPath : rootPaths) {
+      if (rootPath != null) {
         try {
-          Path relPath = curRoot.getFileSystem().getPath(path, more).normalize();
-          if (mustExist) {
-            curPath = _resolveExisting(curRoot.resolve(relPath));
-            if (curPath != null) {
-              exists = true;
-              break;
-            }
-          } else {
-            curPath = _resolve(curRoot.resolve(relPath));
-            if (curPath != null && FileEx.create(curPath).exists()) {
-              exists = true;
-              break;
-            }
+          final String path = paths[0];
+          final String[] more = Arrays.copyOfRange(paths, 1, paths.length);
+          final Path relPath = rootPath.getFileSystem().getPath(path, more).normalize();
+          curPath = resolvePath(rootPath.resolve(relPath), mustExist);
+          if (curPath != null && (mustExist || FileEx.create(curPath).exists())) {
+            break;
           }
-        } catch (Exception e) {
-          // e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+//          e.printStackTrace();
         }
       }
-    } catch (Throwable t) {
-      curPath = null;
-      t.printStackTrace();
-    }
-
-    if (mustExist && !exists) {
-      curPath = null;
     }
 
     return curPath;
   }
 
-  private void close() {
-    FileWatcher.getInstance().removeFileWatchListener(this);
-  }
-
-  @Override
-  public void fileChanged(FileWatchEvent e) {
-    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      if (FileEx.create(e.getPath()).isDirectory()) {
-        // load whole directory into cache
-        _cacheDirectory(e.getPath(), true);
-      } else {
-        _registerFile(e.getPath());
-      }
-    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
-      _unregisterFile(e.getPath());
-    }
-  }
-
-  private static FileManager getInstance() {
-    if (instance == null) {
-      instance = new FileManager();
-    }
-    return instance;
-  }
-
-  // Attempts to find a path which matches an existing path on case-sensitive filesystems.
-  // Simply returns "path" on case-insensitive filesystems.
-  private static Path _resolve(Path path) {
+  /**
+   * Matches as many of the path elements against existing paths.
+   *
+   * @param path   Path to match against existing path.
+   * @param forced Instructs the resolver to return only existing paths.
+   * @return {@link Path} object that matches the given criteria, {@code null} otherwise.
+   */
+  private static Path resolvePath(Path path, boolean forced) {
     Path retVal = path;
-    if (path != null && isFileSystemCaseSensitive(path.getFileSystem()) && !FileEx.create(path).exists()) {
-      boolean found = false;
-      Path curPath = path.normalize().toAbsolutePath();
-      Path dir = curPath.getRoot();
-      for (final Path searchPath : curPath) {
-        String searchString = searchPath.getFileName().toString();
-        found = false;
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {
-          for (final Path dirPath : ds) {
-            String dirString = dirPath.getFileName().toString();
-            if (searchString.equalsIgnoreCase(dirString)) {
-              dir = dir.resolve(dirString);
-              found = true;
+
+    final FileEx pathEx = FileEx.create(path);
+    if (path != null && (isCaseSensitiveMode() || !isDefaultFileSystem(path))) {
+      // validating path segments
+      Path validatedPath = path.getRoot();
+      if (validatedPath != null && FileEx.create(validatedPath).exists()) {
+        int idx = 0;
+        for (; idx < path.getNameCount(); idx++) {
+          final Path pathItem = path.getName(idx);
+          final String pathName = pathItem.toString();
+
+          final Path resolvedPath = validatedPath.resolve(pathName);
+          if (Files.exists(resolvedPath)) {
+            validatedPath = resolvedPath;
+          } else {
+            try (final DirectoryStream<Path> ds = Files.newDirectoryStream(validatedPath,
+                p -> p.getFileName().toString().equalsIgnoreCase(pathName))) {
+              final Iterator<Path> iter = ds.iterator();
+              if (iter.hasNext()) {
+                validatedPath = iter.next();
+              } else {
+                break;
+              }
+            } catch (IOException e) {
               break;
             }
           }
-        } catch (Throwable t) {
         }
-        if (!found) {
-          break;
+
+        // adding remaining unvalidated path segments (if any)
+        if (forced && idx < path.getNameCount()) {
+          validatedPath = null;
+        } else {
+          for (; idx < path.getNameCount(); idx++) {
+            validatedPath = validatedPath.resolve(path.getName(idx));
+          }
         }
-      }
 
-      if (found) {
-        // use detected path
-        retVal = dir;
-      } else if (dir.getNameCount() < curPath.getNameCount()) {
-        // resolve partial path (needed if filename does not exist in path)
-        retVal = dir.resolve(curPath.subpath(dir.getNameCount(), curPath.getNameCount()));
+        retVal = validatedPath;
       }
+    } else if (forced && !pathEx.exists()) {
+      retVal = null;
     }
 
-    return retVal;
-  }
-
-  private static void _registerFile(Path file) {
-    if (file != null) {
-      file = _resolve(file);
-      HashSet<Path> set = PATH_CACHE.get(file.getParent());
-      if (set != null) {
-        set.add(file);
-      }
-    }
-  }
-
-  private static void _unregisterFile(Path file) {
-    if (file != null) {
-      file = _resolve(file);
-      HashSet<Path> set = PATH_CACHE.get(file.getParent());
-      if (set != null) {
-        set.remove(file);
-        if (set.isEmpty()) {
-          PATH_CACHE.remove(file.getParent());
-        }
-      } else if (PATH_CACHE.containsKey(file)) {
-        PATH_CACHE.remove(file);
-      }
-    }
-  }
-
-  private static void _invalidateDirectory(Path dir) {
-    if (dir != null && PATH_CACHE.containsKey(dir)) {
-      PATH_CACHE.remove(dir);
-    }
-  }
-
-  private static Path _resolveExisting(Path path) {
-    Path retVal = _resolve(path);
     if (retVal != null) {
-      Path folder = retVal.getParent();
-      HashSet<Path> list = PATH_CACHE.get(folder);
-      if (list == null) {
-        list = _cacheDirectory(folder, false);
-      }
-      if (list == null) {
-        retVal = null;
-      } else {
-        final String pathString = path.getFileName().toString();
-        retVal = list.stream().filter(p -> pathString.equalsIgnoreCase(p.getFileName().toString())).findAny()
-            .orElse(null);
-      }
+      retVal = retVal.normalize();
     }
+
     return retVal;
   }
-
-  private static HashSet<Path> _cacheDirectory(Path path, boolean force) {
-    HashSet<Path> retVal = null;
-    if (path != null && FileEx.create(path).isDirectory()) {
-      if (force) {
-        PATH_CACHE.remove(path);
-      }
-      retVal = PATH_CACHE.get(path);
-      if (retVal == null) {
-        HashSet<Path> fileList = new HashSet<>();
-        try (Stream<Path> pathStream = Files.list(path)) {
-          pathStream.forEach(file -> {
-            fileList.add(file);
-          });
-        } catch (IOException e) {
-        }
-        retVal = fileList;
-        PATH_CACHE.put(path, retVal);
-      }
-    }
-    return retVal;
-  }
-
-  // Returns whether the specified filesystem is case-sensitive
-  private static boolean isFileSystemCaseSensitive(FileSystem fs) {
-    // quick&dirty solution
-    return Platform.IS_UNIX;
+  private FileManager() {
   }
 }
