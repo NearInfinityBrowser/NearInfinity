@@ -112,6 +112,14 @@ public abstract class AbstractSearcher {
             }
           }
 
+          // XXX: workaround for keeping progress dialog note in sync with actual progress
+          while (threadPool.hasQueuedSubmissions()) {
+            try {
+              Thread.sleep(0);
+            } catch (InterruptedException e) {
+            }
+          }
+
           threadPool.submit(newWorker(entry));
         }
 
