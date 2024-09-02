@@ -192,12 +192,12 @@ public final class ViewerUtil {
   }
 
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr) {
-    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        BamControl ctrl = decoder.createControl();
-        JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        final BamControl ctrl = decoder.createControl();
+        final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         frameNr = Math.min(frameNr, decoder.frameCount() - 1);
         label.setIcon(new ImageIcon(decoder.frameGet(ctrl, frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -211,12 +211,12 @@ public final class ViewerUtil {
   }
 
   public static JLabel makeBamPanel(ResourceRef iconRef, int animNr, int frameNr) {
-    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        BamControl ctrl = decoder.createControl();
-        JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        final BamControl ctrl = decoder.createControl();
+        final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         int frameIdx = -1;
         for (int curAnimIdx = animNr; curAnimIdx >= 0 && frameIdx < 0; curAnimIdx--) {
           for (int curFrameIdx = frameNr; curFrameIdx >= 0 && frameIdx < 0; curFrameIdx--) {
@@ -227,6 +227,38 @@ public final class ViewerUtil {
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+  }
+
+  // Creates a panel with the biggest graphics (by area) available in the specified BAM resource
+  public static JLabel makeMaxBamPanel(ResourceRef iconRef) {
+    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    if (iconEntry != null) {
+      try {
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        int numFrames = decoder.frameCount();
+        int maxSize = -1;
+        int frameIdx = -1;
+        for (int idx = 0; idx < numFrames; idx++) {
+          final BamDecoder.FrameEntry frameInfo = decoder.getFrameInfo(idx);
+          int curSize = frameInfo.getWidth() * frameInfo.getHeight();
+          if (curSize > maxSize) {
+            maxSize = curSize;
+            frameIdx = idx;
+          }
+        }
+        if (frameIdx >= 0) {
+          final BamControl control = decoder.createControl();
+          final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+          label.setIcon(new ImageIcon(decoder.frameGet(control, frameIdx)));
+          label.setVerticalTextPosition(SwingConstants.BOTTOM);
+          label.setHorizontalTextPosition(SwingConstants.CENTER);
+          return label;
+        }
       } catch (Exception e) {
         Logger.error(e);
       }
