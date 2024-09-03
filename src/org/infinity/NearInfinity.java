@@ -402,9 +402,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     // FileDeletionHook provides a way to delete files when the Java Virtual Machine shuts down
     Runtime.getRuntime().addShutdownHook(FileDeletionHook.getInstance());
 
-    // Migrate preferences from "infinity" to "org.infinity" if needed
-    migratePreferences("infinity", Preferences.userNodeForPackage(getClass()), true);
-
     // updating relative default font size globally
     resizeUIFont(AppOption.GLOBAL_FONT_SIZE.getIntValue());
 
@@ -1269,69 +1266,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     }
     setIconImages(list);
-  }
-
-  // Migrate preferences from sourceNode to the currently used prefs node if needed.
-  // Returns true if content of sourceNode has been cloned into the current node.
-  @Deprecated
-  private boolean migratePreferences(String sourceNode, Preferences curPrefs, boolean showError) {
-    boolean retVal = false;
-    if (sourceNode != null && !sourceNode.isEmpty() && curPrefs != null) {
-      Preferences prefsOld = null;
-      boolean isPrefsEmpty = false;
-      try {
-        isPrefsEmpty = (curPrefs.keys().length == 0);
-        sourceNode = sourceNode.trim();
-        if (Preferences.userRoot().nodeExists(sourceNode)) {
-          prefsOld = Preferences.userRoot().node(sourceNode);
-        }
-      } catch (Exception e) {
-        Logger.error(e);
-      }
-      if (isPrefsEmpty && prefsOld != null && !prefsOld.equals(curPrefs)) {
-        try {
-          clonePrefsNode(prefsOld, curPrefs);
-          retVal = true;
-        } catch (Exception e) {
-          try {
-            curPrefs.clear();
-          } catch (BackingStoreException bse) {
-            Logger.warn(e);
-          }
-          Logger.error(e);
-          if (showError) {
-            JOptionPane.showMessageDialog(this, "Error migrating old Near Infinity settings. Using defaults.", "Error",
-                JOptionPane.ERROR_MESSAGE);
-          }
-        }
-      }
-    }
-    return retVal;
-  }
-
-  // Duplicates content from prefsOld to prefsNew recursively
-  @Deprecated
-  private void clonePrefsNode(Preferences prefsOld, Preferences prefsNew) throws Exception {
-    if (prefsOld != null && prefsNew != null && !prefsOld.equals(prefsNew)) {
-      // cloning keys
-      String[] keyNames = prefsOld.keys();
-      if (keyNames != null) {
-        for (String keyName : keyNames) {
-          String value = prefsOld.get(keyName, null);
-          if (value != null) {
-            prefsNew.put(keyName, value);
-          }
-        }
-      }
-
-      // cloning child nodes
-      String[] childNames = prefsOld.childrenNames();
-      if (childNames != null) {
-        for (String childName : childNames) {
-          clonePrefsNode(prefsOld.node(childName), prefsNew.node(childName));
-        }
-      }
-    }
   }
 
   // Enables command-Q on OSX to trigger the window closing callback
