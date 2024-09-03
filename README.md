@@ -32,7 +32,8 @@ cd NearInfinity
 ant
 ```
 
-The sources also contain configuration files for the [Eclipse IDE](https://www.eclipse.org/).
+The sources also contain configuration files for the [Eclipse IDE](https://www.eclipse.org/)
+and [IntelliJ IDEA](https://www.jetbrains.com/idea/download/).
 It is preferred to use `Apache Ant` for compiling Near Infinity, however.
 
 ### Recreate parse tree
