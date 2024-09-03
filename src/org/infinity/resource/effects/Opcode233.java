@@ -19,7 +19,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 233.
+ * Implementation of opcode 233.
  */
 public class Opcode233 extends BaseOpcode {
   private static final String EFFECT_NUM_STARS    = "# stars";
@@ -54,12 +54,6 @@ public class Opcode233 extends BaseOpcode {
     list.add(new MultiNumber(buffer, offset, 4, EFFECT_NUM_STARS, 3, 2, CLASS_TYPES, false));
     list.add(new IdsBitmap(buffer, offset + 4, 4, EFFECT_PROFICIENCY, "STATS.IDS"));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override
@@ -102,12 +96,6 @@ public class Opcode233 extends BaseOpcode {
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     return makeEffectParamsIWD(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

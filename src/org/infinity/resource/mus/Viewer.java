@@ -164,7 +164,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       String dir = getNextToken(tokenizer, true);
       listModel.clear();
       entryList.clear();
-      int count = Integer.valueOf(getNextToken(tokenizer, true));
+      int count = Integer.parseInt(getNextToken(tokenizer, true));
       for (int i = 0; i < count; i++) {
         if (isClosed()) {
           return false;

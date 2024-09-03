@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 409.
+ * Implementation of opcode 409.
  */
 public class Opcode409 extends BaseOpcode {
   private static final String EFFECT_AFFECT = "Affect";

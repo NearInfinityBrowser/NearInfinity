@@ -77,13 +77,14 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   private final ButtonPanel bpSource = new ButtonPanel();
   private final ButtonPanel bpCode = new ButtonPanel();
 
+  private final String text;
+
   private JTabbedPane tabbedPane;
   private JMenuItem iFindAll;
   private JMenuItem iFindThis;
   private JPanel panel;
   private InfinityTextArea codeText;
   private ScriptTextArea sourceText;
-  private String text;
   private boolean sourceChanged = false;
 
   public BafResource(ResourceEntry entry) throws Exception {
@@ -239,6 +240,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       }
       highlightText(startOfs, endOfs);
     } catch (BadLocationException ble) {
+      Logger.warn(ble);
     }
   }
 
@@ -249,6 +251,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       sourceText.moveCaretPosition(endOfs);
       sourceText.getCaret().setSelectionVisible(true);
     } catch (IllegalArgumentException e) {
+      Logger.warn(e);
     }
   }
 
@@ -375,10 +378,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText.clearGutterIcons();
     bpmErrors.setText("Errors (" + errorMap.size() + ")...");
     bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
-    if (errorMap.size() == 0) {
+    if (errorMap.isEmpty()) {
       bpmErrors.setEnabled(false);
     } else {
-      JMenuItem errorItems[] = new JMenuItem[errorMap.size()];
+      JMenuItem[] errorItems = new JMenuItem[errorMap.size()];
       int counter = 0;
       for (final ScriptMessage sm : errorMap) {
         sourceText.setLineError(sm.getLine(), sm.getMessage(), false);
@@ -390,7 +393,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     if (warningMap.isEmpty()) {
       bpmWarnings.setEnabled(false);
     } else {
-      JMenuItem warningItems[] = new JMenuItem[warningMap.size()];
+      JMenuItem[] warningItems = new JMenuItem[warningMap.size()];
       int counter = 0;
       for (final ScriptMessage sm : warningMap) {
         sourceText.setLineWarning(sm.getLine(), sm.getMessage(), false);
@@ -404,7 +407,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     try {
       decompiler.decompile();
       Set<ResourceEntry> uses = decompiler.getResourcesUsed();
-      JMenuItem usesItems[] = new JMenuItem[uses.size()];
+      JMenuItem[] usesItems = new JMenuItem[uses.size()];
       int usesIndex = 0;
       for (final ResourceEntry usesEntry : uses) {
         if (usesEntry.getSearchString() != null) {
@@ -434,7 +437,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     }
     sourceText.setCaretPosition(0);
     Set<ResourceEntry> uses = decompiler.getResourcesUsed();
-    JMenuItem usesItems[] = new JMenuItem[uses.size()];
+    JMenuItem[] usesItems = new JMenuItem[uses.size()];
     int usesIndex = 0;
     for (final ResourceEntry usesEntry : uses) {
       if (usesEntry.getSearchString() != null) {
@@ -455,7 +458,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     final JButton bSaveAs = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS);
     final ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpSource.getControlByType(CTRL_ERRORS);
     if (bpmErrors.isEnabled()) {
-      String options[] = { "Save", "Cancel" };
+      String[] options = { "Save", "Cancel" };
       int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result != 0) {

@@ -7,7 +7,6 @@ package org.infinity.updater;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -79,11 +78,7 @@ public class UpdateInfo {
    * @return {@code true} if the string conforms to the update.xml specification, {@code false} otherwise.
    */
   public static boolean isValidXml(String s, String systemId) {
-    try {
-      return isValidXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8.name())), systemId);
-    } catch (UnsupportedEncodingException e) {
-    }
-    return false;
+    return isValidXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), systemId);
   }
 
   /**
@@ -96,6 +91,7 @@ public class UpdateInfo {
     try (InputStream is = StreamUtils.getInputStream(f)) {
       return isValidXml(is, f.getParent().toAbsolutePath().toString());
     } catch (IOException e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -115,6 +111,7 @@ public class UpdateInfo {
       Document doc = dBuilder.parse(is, systemId);
       return NODE_UPDATE.equals(doc.getDocumentElement().getNodeName());
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -147,7 +144,7 @@ public class UpdateInfo {
    * @param systemId Base path for relative URIs (required for Doctype reference).
    */
   public UpdateInfo(String s, String systemId) throws Exception {
-    parseXml(new ByteArrayInputStream(s.getBytes("UTF-8")), systemId);
+    parseXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), systemId);
   }
 
   /**

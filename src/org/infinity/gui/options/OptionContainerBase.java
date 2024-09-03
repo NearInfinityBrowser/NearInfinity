@@ -15,8 +15,8 @@ public abstract class OptionContainerBase extends OptionBase {
 
   protected OptionContainerBase(Object id, String label, OptionBase... children) {
     super(id, label);
-    for (int i = 0; i < children.length; i++) {
-      addChild(children[i]);
+    for (OptionBase child : children) {
+      addChild(child);
     }
   }
 

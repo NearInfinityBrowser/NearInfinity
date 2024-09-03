@@ -32,7 +32,7 @@ public class IniMapEntry {
   }
 
   public boolean hasKey() {
-    return key != null;
+    return !key.isEmpty();
   }
 
   public String getKey() {
@@ -40,7 +40,7 @@ public class IniMapEntry {
   }
 
   public boolean hasValue() {
-    return value != null;
+    return !value.isEmpty();
   }
 
   public String getValue() {
@@ -48,23 +48,23 @@ public class IniMapEntry {
   }
 
   public Integer getIntValue() {
-    return value == null ? null : Integer.valueOf(value);
+    return hasValue() ? Integer.valueOf(value) : null;
   }
 
   public int getIntValue(int defValue) {
-    return value == null ? defValue : Integer.valueOf(value);
+    return hasValue() ? Integer.parseInt(value) : defValue;
   }
 
   public Double getDoubleValue() {
-    return value == null ? null : Double.valueOf(value);
+    return hasValue() ? Double.valueOf(value) : null;
   }
 
   public double getDoubleValue(double defValue) {
-    return value == null ? defValue : Double.valueOf(value);
+    return hasValue() ? Double.parseDouble(value) : defValue;
   }
 
   public StringRef getStringRefValue() {
-    return value == null ? null : new StringRef(key, Integer.valueOf(value));
+    return hasValue() ? new StringRef(key, Integer.parseInt(value)) : null;
   }
 
   public int getLine() {

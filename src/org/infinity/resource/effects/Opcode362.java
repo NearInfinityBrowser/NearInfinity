@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 362.
+ * Implementation of opcode 362.
  */
 public class Opcode362 extends BaseOpcode {
   private static final String EFFECT_CURRENT_WEAPON = "Current weapon only?";

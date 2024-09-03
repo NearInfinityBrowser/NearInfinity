@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 110.
+ * Implementation of opcode 110.
  */
 public class Opcode110 extends BaseOpcode {
   private static final String[] MOVE_TYPES = { "Run", "Run", "Run", "Run", "Run", "Run", "Run", "Weak", "Walk" };

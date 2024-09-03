@@ -337,7 +337,7 @@ public class Etc2Decoder implements Decodable {
    */
   private void decodeColorSubBlocks(long code, int[] baseColor1, int[] baseColor2, int[] outPixels, boolean hasTransparency) {
     final boolean flipped = isBitSet(code, 32);
-    final boolean opaque = hasTransparency ? isBitSet(code, 33) : true;
+    final boolean opaque = !hasTransparency || isBitSet(code, 33);
     final int[] table = { getBits(code, 37, 3, false), getBits(code, 34, 3, false) };
 
     final int table1Idx= (hasTransparency ? 0 : 1 << 3) | table[0];
@@ -380,7 +380,7 @@ public class Etc2Decoder implements Decodable {
    */
   private void decodeColorModeT(long code, int[] outPixels, boolean hasTransparency) {
     final int distIdx = getBitsEx(code, false, BITS_T_D);
-    final boolean opaque = hasTransparency ? isBitSet(code, 33) : true;
+    final boolean opaque = !hasTransparency || isBitSet(code, 33);
     final int[] baseColor1 = {
         getBits(code, 48, 4, false),      // b
         getBits(code, 52, 4, false),      // g
@@ -438,7 +438,7 @@ public class Etc2Decoder implements Decodable {
    */
   private void decodeColorModeH(long code, int[] outPixels, boolean hasTransparency) {
     final int dIdx = getBitsEx(code, false, BITS_H_D);
-    final boolean opaque = hasTransparency ? isBitSet(code, 33) : true;
+    final boolean opaque = !hasTransparency || isBitSet(code, 33);
     final int[] baseColor1 = {
         getBitsEx(code, false, BITS_H_B), // b
         getBitsEx(code, false, BITS_H_G), // g
@@ -625,7 +625,7 @@ public class Etc2Decoder implements Decodable {
     int retVal = 0;
     for (int i = offsets.length - 1; i >= 0; i--) {
       retVal <<= 1;
-      retVal |= (value >>> offsets[i]) & 1;
+      retVal |= (int) ((value >>> offsets[i]) & 1L);
     }
 
     int maskMsb = 1 << (offsets.length - 1);

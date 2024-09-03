@@ -93,8 +93,8 @@ public class AmbientStaticDecoder extends SpriteDecoder {
 
   @Override
   public List<String> getAnimationFiles(boolean essential) {
-    String resref = getAnimationResref();
-    ArrayList<String> retVal = new ArrayList<String>() {
+    final String resref = getAnimationResref();
+    return new ArrayList<String>() {
       {
         add(resref + "G1.BAM");
         add(resref + "G1E.BAM");
@@ -104,7 +104,6 @@ public class AmbientStaticDecoder extends SpriteDecoder {
         }
       }
     };
-    return retVal;
   }
 
   @Override
@@ -138,7 +137,7 @@ public class AmbientStaticDecoder extends SpriteDecoder {
           && SpriteUtils.bamCyclesExist(entryE, cycleE, SeqDef.DIR_REDUCED_E.length)) {
         retVal = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, cycle, null, behavior);
         SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE, cycleE, null, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
     }
     return retVal;

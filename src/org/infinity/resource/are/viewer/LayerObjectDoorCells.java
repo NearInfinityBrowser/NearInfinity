@@ -8,10 +8,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.infinity.datatype.IsNumeric;
@@ -36,17 +33,16 @@ public class LayerObjectDoorCells extends LayerObject {
   private final Door door;
 
   /**
-   * @param category
-   * @param classType
    * @param parent
+   * @param door
    */
   public LayerObjectDoorCells(AreResource parent, Door door) {
     super("Door", Door.class, parent);
     this.door = door;
     final DoorInfo doorOpen = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_OPEN), doorOpen);
+    doorMap.put(ViewerConstants.DOOR_OPEN, doorOpen);
     final DoorInfo doorClosed = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_CLOSED), doorClosed);
+    doorMap.put(ViewerConstants.DOOR_CLOSED, doorClosed);
     try {
       String attr = LayerObjectDoor.getAttributes(this.door);
       final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
@@ -114,18 +110,14 @@ public class LayerObjectDoorCells extends LayerObject {
       final DoorInfo info = getDoor(ViewerConstants.DOOR_OPEN);
       if (info != null && info.getCellItems() != null) {
         final ShapedLayerItem[] items = info.getCellItems();
-        for (int i = 0; i < items.length; i++) {
-          list.add(items[i]);
-        }
+        list.addAll(Arrays.asList(items));
       }
     }
     if (isClosed) {
       final DoorInfo info = getDoor(ViewerConstants.DOOR_CLOSED);
       if (info != null && info.getCellItems() != null) {
         final ShapedLayerItem[] items = info.getCellItems();
-        for (int i = 0; i < items.length; i++) {
-          list.add(items[i]);
-        }
+        list.addAll(Arrays.asList(items));
       }
     }
 
@@ -138,9 +130,7 @@ public class LayerObjectDoorCells extends LayerObject {
 
     for (final AbstractLayerItem[] items : getDoorItems()) {
       if (items != null) {
-        for (int i = 0; i < items.length; i++) {
-          list.add(items[i]);
-        }
+        list.addAll(Arrays.asList(items));
       }
     }
 
@@ -169,11 +159,11 @@ public class LayerObjectDoorCells extends LayerObject {
   }
 
   private Collection<ShapedLayerItem[]> getDoorItems() {
-    return doorMap.values().stream().map(ci -> ci.getCellItems()).filter(cell -> cell != null).collect(Collectors.toList());
+    return doorMap.values().stream().map(DoorInfo::getCellItems).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   private DoorInfo getDoor(int id) {
-    return doorMap.get(Integer.valueOf(id));
+    return doorMap.get(id);
   }
 
   /**
@@ -192,10 +182,10 @@ public class LayerObjectDoorCells extends LayerObject {
     if (cells != null && cells.length > 0) {
       final int cw = 16;  // search map cell width, in pixels
       final int ch = 12;  // search map cell height, in pixels
-      for (int i = 0; i < cells.length; i++) {
-        final int x = cells[i].x * cw;
-        final int y = cells[i].y * ch;
-        polys.add(new Point[] { new Point(x, y), new Point(x + cw, y), new Point(x + cw, y + ch), new Point(x, y + ch) });
+      for (Point cell : cells) {
+        final int x = cell.x * cw;
+        final int y = cell.y * ch;
+        polys.add(new Point[]{new Point(x, y), new Point(x + cw, y), new Point(x + cw, y + ch), new Point(x, y + ch)});
       }
     }
 

@@ -170,7 +170,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable {
    * @throws Exception
    */
   public Object clone(boolean asV1) throws Exception {
-    StructEntry retVal = null;
+    final AbstractStruct retVal;
 
     if (asV1) {
       ByteBuffer src = getDataBuffer().order(ByteOrder.LITTLE_ENDIAN);
@@ -201,7 +201,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable {
       int offset = getOffset();
       retVal = new Effect(null, dst, 0, getName());
       retVal.setOffset(offset);
-      ((AbstractStruct) retVal).realignStructOffsets();
+      retVal.realignStructOffsets();
     } else {
       retVal = clone();
     }

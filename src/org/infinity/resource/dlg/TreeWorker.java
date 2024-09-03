@@ -18,7 +18,7 @@ import org.tinylog.Logger;
 //-------------------------- INNER CLASSES --------------------------
 
 /** Applies expand or collapse operations on a set of dialog tree nodes in a background task. */
-class TreeWorker extends SwingWorker<Void, Void> {
+public class TreeWorker extends SwingWorker<Void, Void> {
   /** Path that must be collapsed or expanded. */
   private final TreePath path;
 

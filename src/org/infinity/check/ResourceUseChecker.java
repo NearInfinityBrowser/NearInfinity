@@ -308,7 +308,7 @@ public final class ResourceUseChecker extends AbstractChecker
   }
 
   /**
-   * If type (a.k.a. extension) of the resource equals to the {@link #checkType type of checking resources}, removes
+   * If type (a.k.a. extension) of the resource equals to the {@link #checkTypes} type of checking resources, removes
    * specified resource name from {@link #unusedResources}, otherwise do nothing.
    * <p>
    * This method can be called from several threads

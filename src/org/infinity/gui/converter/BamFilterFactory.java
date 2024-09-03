@@ -116,20 +116,18 @@ public class BamFilterFactory {
     List<BamFilterBase> retList = new ArrayList<>();
     List<BamFilterBase> tmpList = new ArrayList<>();
     if (filterList != null) {
-      for (int i = 0; i < filterList.size(); i++) {
-        if (filterList.get(i) instanceof BamFilterBaseOutput) {
-          tmpList.add(filterList.get(i));
+      for (BamFilterBase bamFilterBase : filterList) {
+        if (bamFilterBase instanceof BamFilterBaseOutput) {
+          tmpList.add(bamFilterBase);
         } else {
-          retList.add(filterList.get(i));
+          retList.add(bamFilterBase);
         }
       }
     }
 
     // adding output filters last
     if (!tmpList.isEmpty()) {
-      for (int i = 0; i < tmpList.size(); i++) {
-        retList.add(tmpList.get(i));
-      }
+      retList.addAll(tmpList);
     } else {
       retList.add(BamFilterFactory.createInstance(parent, BamFilterOutputDefault.class));
     }

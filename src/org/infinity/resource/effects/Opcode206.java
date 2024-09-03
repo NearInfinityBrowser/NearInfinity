@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 206.
+ * Implementation of opcode 206.
  */
 public class Opcode206 extends BaseOpcode {
   private static final String EFFECT_EMBALMING_TYPE = "Embalming type";
@@ -48,12 +48,6 @@ public class Opcode206 extends BaseOpcode {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

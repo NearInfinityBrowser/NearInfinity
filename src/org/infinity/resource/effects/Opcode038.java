@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 38.
+ * Implementation of opcode 38.
  */
 public class Opcode038 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

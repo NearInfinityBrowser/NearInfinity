@@ -392,7 +392,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miFindAttribute = new JMenuItem("selected attribute");
       miFindAttribute.setEnabled(false);
       miFindReferences = new JMenuItem("references to this file");
-      miFindReferences.setEnabled(struct instanceof Resource && struct.getParent() == null);
+      miFindReferences.setEnabled(struct.getParent() == null);
       miFindStateReferences = new JMenuItem("references to this state");
       miFindStateReferences.setEnabled(false);
       miFindRefToItem = new JMenuItem("references to selected item in this file");
@@ -772,34 +772,32 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         miFindStateReferences.setEnabled(selected instanceof State);
       }
       final boolean isDataType = (selected instanceof Datatype);
-      final boolean isReadable = (selected instanceof Readable);
-      miToHex.setEnabled(isDataType && isReadable
+      miToHex.setEnabled(isDataType
           && !(selected instanceof Unknown || selected instanceof SectionCount || selected instanceof AbstractCode));
       if (!miToHex.isEnabled() && (selected instanceof UnknownBinary || selected instanceof UnknownDecimal)) {
         miToHex.setEnabled(true);
       }
-      miToBin.setEnabled(isDataType && isReadable && !(selected instanceof UnknownBinary
+      miToBin.setEnabled(isDataType && !(selected instanceof UnknownBinary
           || selected instanceof SectionCount || selected instanceof AbstractCode));
-      miToDec.setEnabled(isDataType && isReadable && !(selected instanceof UnknownDecimal
+      miToDec.setEnabled(isDataType && !(selected instanceof UnknownDecimal
           || selected instanceof SectionCount || selected instanceof AbstractCode));
       miToInt.setEnabled(
-          isDataType && isReadable && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
+          isDataType && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
               || selected instanceof SectionOffset || selected instanceof AbstractCode));
       miToUint.setEnabled(
-          isDataType && isReadable && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
+          isDataType && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
               || selected instanceof SectionOffset || selected instanceof AbstractCode));
-      miToHexInt.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
+      miToHexInt.setEnabled(isDataType && ((Datatype) selected).getSize() <= 4
           && !(selected instanceof UnsignHexNumber || selected instanceof SectionCount ||
               selected instanceof SectionOffset || selected instanceof AbstractCode));
-      miToFlags.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
+      miToFlags.setEnabled(isDataType && ((Datatype) selected).getSize() <= 4
           && !(selected instanceof Flag || selected instanceof SectionCount || selected instanceof SectionOffset
               || selected instanceof AbstractCode));
       miToResref.setEnabled(
-          isDataType && isReadable && selected instanceof IsTextual && ((Datatype) selected).getSize() == 8);
-      miToString.setEnabled(isDataType && isReadable
-          && (selected instanceof Unknown || selected instanceof ResourceRef || selected instanceof TextBitmap)
-          && !(selected instanceof AbstractCode));
-      miReset.setEnabled(isDataType && isReadable && getCachedStructEntry(((Datatype) selected).getOffset()) != null
+          isDataType && selected instanceof IsTextual && ((Datatype) selected).getSize() == 8);
+      miToString.setEnabled(isDataType && (selected instanceof Unknown || selected instanceof ResourceRef
+          || selected instanceof TextBitmap));
+      miReset.setEnabled(isDataType && getCachedStructEntry(((Datatype) selected).getOffset()) != null
           && !(selected instanceof AbstractCode));
       miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset || selected instanceof SectionCount);
@@ -1277,24 +1275,24 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Caches the given StructEntry object. */
   private void setCachedStructEntry(StructEntry struct) {
     if (struct != null) {
-      if (!entryMap.containsKey(Integer.valueOf(struct.getOffset()))) {
+      if (!entryMap.containsKey(struct.getOffset())) {
         entryMap.put(struct.getOffset(), struct);
       }
     }
   }
 
   private StructEntry getCachedStructEntry(int offset) {
-    return entryMap.get(Integer.valueOf(offset));
+    return entryMap.get(offset);
   }
 
   /** Removes the StructEntry object at the given offset and returns it. */
   private StructEntry removeCachedStructEntry(int offset) {
-    return entryMap.remove(Integer.valueOf(offset));
+    return entryMap.remove(offset);
   }
 
   /** Indicates whether the given StructEntry object is equal to the cached object. */
   private boolean isCachedStructEntry(int offset) {
-    return entryMap.containsKey(Integer.valueOf(offset));
+    return entryMap.containsKey(offset);
   }
 
   /** Recycles existing ViewFrame constructs if possible. */
@@ -1456,7 +1454,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     while (root.getParent() != null) {
       root = root.getParent();
     }
-    if (root == null || root.getResourceEntry() == null) {
+    if (root.getResourceEntry() == null) {
       return;
     }
 
@@ -1601,7 +1599,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     /** Removes the last charcater from the search string. */
     private void removeKeyChar() {
       synchronized (timer) {
-        if (currentKey.length() > 0) {
+        if (!currentKey.isEmpty()) {
           currentKey = currentKey.substring(0, currentKey.length() - 1);
         }
       }

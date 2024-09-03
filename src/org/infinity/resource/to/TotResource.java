@@ -61,7 +61,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         });
 
         // handling unmapped region of data
-        if (tohEntries.size() > 0 && tohEntries.get(0).getOffset() > 0) {
+        if (!tohEntries.isEmpty() && tohEntries.get(0).getOffset() > 0) {
           final StrRefEntry entry = (StrRefEntry) tohEntries.get(0);
           final int size = ((IsNumeric) entry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
           if (size > 0) {

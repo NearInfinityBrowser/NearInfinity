@@ -137,11 +137,7 @@ public class FileTypeSelector extends JPanel implements ActionListener {
    * @return List with selected values. Never {@code null}
    */
   public List<ResourceEntry> getResources(String key) {
-    boolean[] selection = LAST_SELECTION.get(key);
-    if (selection == null) {
-      selection = new boolean[filetypes.length];
-      LAST_SELECTION.put(key, selection);
-    }
+    final boolean[] selection = LAST_SELECTION.computeIfAbsent(key, k -> new boolean[filetypes.length]);
 
     final List<ResourceEntry> result = new ArrayList<>();
     for (int i = 0; i < filetypes.length; ++i) {

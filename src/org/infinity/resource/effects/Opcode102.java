@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 102.
+ * Implementation of opcode 102.
  */
 public class Opcode102 extends BaseOpcode {
   private static final String EFFECT_SPELL_LEVEL = "Spell level";

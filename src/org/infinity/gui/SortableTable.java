@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -144,9 +143,7 @@ public final class SortableTable extends JTable implements MouseListener {
    */
   public void ensureIndexIsVisible(int index) {
     Rectangle rect = getCellRect(index, 0, true);
-    if (rect != null) {
-      scrollRectToVisible(rect);
-    }
+    scrollRectToVisible(rect);
   }
 
   @Override
@@ -245,7 +242,7 @@ public final class SortableTable extends JTable implements MouseListener {
         }
       }
 
-      Collections.sort(tableItems, this);
+      tableItems.sort(this);
       fireTableChangedEvent();
     }
 

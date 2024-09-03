@@ -27,11 +27,11 @@ import org.tinylog.Logger;
  */
 public class SavResourceEntry extends ResourceEntry implements Writeable {
   private final String fileName;
+  private final ByteBuffer cdata;
 
   private int offset;
   private int comprLength;
   private int uncomprLength;
-  private ByteBuffer cdata;
 
   public SavResourceEntry(ByteBuffer buffer, int offset) {
     this.offset = offset;
@@ -147,7 +147,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
         if (info.length == 1) {
           return info[0];
         } else if (info.length > 1) {
-          return info[0] * info[1] + 0x18;
+          return (long) info[0] * info[1] + 0x18;
         }
       }
     } catch (Exception e) {
@@ -158,7 +158,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
 
   public ByteBuffer decompress() throws Exception {
     Inflater inflater = new Inflater();
-    byte udata[] = new byte[uncomprLength];
+    byte[] udata = new byte[uncomprLength];
     inflater.setInput(cdata.array());
     inflater.inflate(udata);
     return StreamUtils.getByteBuffer(udata);

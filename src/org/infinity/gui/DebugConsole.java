@@ -79,7 +79,7 @@ public class DebugConsole extends ChildFrame implements ActionListener {
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
         if (FileEx.create(output).exists()) {
-          String options[] = { "Overwrite", "Cancel" };
+          String[] options = { "Overwrite", "Cancel" };
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log",
               JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
             return;

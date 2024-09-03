@@ -43,11 +43,11 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
   /** Actual list of resources in which perform search. */
   private List<ResourceEntry> files;
 
-  AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], Component parent) {
+  AbstractReferenceSearcher(ResourceEntry targetEntry, String[] filetypes, Component parent) {
     this(targetEntry, filetypes, setSelectedFileTypes(targetEntry, filetypes), parent);
   }
 
-  AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], boolean[] preselect, Component parent) {
+  AbstractReferenceSearcher(ResourceEntry targetEntry, String[] filetypes, boolean[] preselect, Component parent) {
     super(SEARCH_MULTI_TYPE_FORMAT, parent);
     this.targetEntry = targetEntry;
 
@@ -230,7 +230,7 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
     }
 
     // defining preselection
-    if (selectedExt != null && selectedExt.length > 0) {
+    if (selectedExt != null) {
       for (int i = 0; i < retVal.length; i++) {
         for (String e : selectedExt) {
           if (e.equalsIgnoreCase(filetypes[i])) {

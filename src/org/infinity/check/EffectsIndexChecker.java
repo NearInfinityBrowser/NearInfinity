@@ -49,8 +49,7 @@ public class EffectsIndexChecker extends AbstractChecker {
   }
 
   private void search(ResourceEntry entry, AbstractStruct struct) {
-    final int numGlobalEffects = ((IsNumeric) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
-    int expectedEffectsIndex = numGlobalEffects;
+    int expectedEffectsIndex = ((IsNumeric) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
     for (final StructEntry e : struct.getFields()) {
       if (e instanceof AbstractAbility) {
         final AbstractAbility abil = (AbstractAbility) e;

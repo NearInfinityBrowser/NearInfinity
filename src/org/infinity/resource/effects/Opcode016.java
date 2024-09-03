@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 16.
+ * Implementation of opcode 16.
  */
 public class Opcode016 extends BaseOpcode {
   private static final String EFFECT_HASTE_TYPE = "Haste type";

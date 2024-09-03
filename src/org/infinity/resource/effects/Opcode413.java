@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 413.
+ * Implementation of opcode 413.
  */
 public class Opcode413 extends BaseOpcode {
   private static final String EFFECT_ANIMATION = "Animation";

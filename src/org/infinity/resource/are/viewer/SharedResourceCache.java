@@ -6,7 +6,6 @@ package org.infinity.resource.are.viewer;
 
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * A global storage class that caches data objects of supported types associated with a unique key.
@@ -164,9 +163,7 @@ public class SharedResourceCache {
     if (type == null) {
       throw new NullPointerException("type is null");
     }
-    Iterator<Object> iter = TABLES.get(type).keySet().iterator();
-    while (iter.hasNext()) {
-      Object key = iter.next();
+    for (final Object key : TABLES.get(type).keySet()) {
       DataWrapper dw = TABLES.get(type).get(key);
       if ((dw.getData() == null && data == null) || (dw.getData() != null && dw.getData().equals(data))) {
         return key;
@@ -189,10 +186,8 @@ public class SharedResourceCache {
     if (key == null) {
       throw new NullPointerException("key is null");
     }
-    if (key != null) {
-      if (TABLES.get(type).containsKey(key)) {
-        return TABLES.get(type).get(key).getRefCount();
-      }
+    if (TABLES.get(type).containsKey(key)) {
+      return TABLES.get(type).get(key).getRefCount();
     }
     return 0;
   }
@@ -205,7 +200,7 @@ public class SharedResourceCache {
 
   /** Wrapper for data objects that supports reference counting. */
   private static class DataWrapper {
-    private Object data;
+    private final Object data;
     private int refCount;
 
     /**

@@ -15,7 +15,7 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +48,7 @@ import org.infinity.search.SongReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource acts as a playlist for ACM files, determining loops and "interrupt state" effects. An "interrupt state
@@ -241,7 +242,7 @@ public final class MusResource
         final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == iFindThis) {
-        new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
+        new TextResourceSearcher(Collections.singletonList(entry), panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == iFindReference) {
         searchReferences(panel.getTopLevelAncestor());
       }
@@ -278,6 +279,7 @@ public final class MusResource
       }
       highlightText(startOfs, endOfs);
     } catch (BadLocationException ble) {
+      Logger.trace(ble);
     }
   }
 
@@ -288,6 +290,7 @@ public final class MusResource
       editor.moveCaretPosition(endOfs - 1);
       editor.getCaret().setSelectionVisible(true);
     } catch (IllegalArgumentException e) {
+      Logger.trace(e);
     }
   }
 

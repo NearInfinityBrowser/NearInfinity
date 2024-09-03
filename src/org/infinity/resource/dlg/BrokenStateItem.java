@@ -15,7 +15,7 @@ import org.infinity.icon.Icons;
  *
  * @author Mingun
  */
-class BrokenStateItem extends StateItem implements BrokenReference {
+public class BrokenStateItem extends StateItem implements BrokenReference {
   private static final ImageIcon ICON = Icons.ICON_WARNING_16.getIcon();
 
   /** Dialog which contains non-existent state. */

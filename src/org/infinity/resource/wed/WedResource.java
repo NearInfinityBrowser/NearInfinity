@@ -217,7 +217,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
         IndexNumber.class);
     addField(offsetPolytable);
 
-    HexNumber offsets[] = new HexNumber[] { offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile, offsetPolygons,
+    HexNumber[] offsets = new HexNumber[] { offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile, offsetPolygons,
         offsetWallgroups, offsetPolytable, new HexNumber(
             ByteBuffer.wrap(Misc.intToArray(buffer.limit() - startOffset)).order(ByteOrder.LITTLE_ENDIAN), 0, 4, "") };
     Arrays.sort(offsets, (s1, s2) -> s1.getValue() - s2.getValue());

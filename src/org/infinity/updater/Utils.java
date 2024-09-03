@@ -53,12 +53,12 @@ import org.tinylog.Logger;
  */
 public class Utils {
   /**
-   * ISO date-time formatter that formats or parses a date-time with anoffset, such as '2011-12-03T10:15:30+01:00'.
+   * ISO date-time formatter that formats or parses a date-time with an offset, such as '2011-12-03T10:15:30+01:00'.
    * <p>
    * This returns an immutable formatter capable of formatting and parsing the ISO-8601 extended offset date-time format.
    * The format consists of:
    * <ul>
-   * <li>The {@link #ISO_LOCAL_DATE_TIME}
+   * <li>The {@code ISO_DATE_TIME}
    * <li>The {@link ZoneOffset#getId() offset ID}. If the offset has seconds then they will be handled even though
    * this is not part of the ISO-8601 standard. Parsing is case insensitive.
    * </ul>
@@ -147,7 +147,7 @@ public class Utils {
    *
    * @return The full path of the current JAR file or an empty string on error.
    */
-  public static String getJarFileName(Class<? extends Object> classType) {
+  public static String getJarFileName(Class<?> classType) {
     if (classType != null) {
       URL url = classType.getProtectionDomain().getCodeSource().getLocation();
       if (url != null) {
@@ -157,6 +157,7 @@ public class Utils {
             return file.toString();
           }
         } catch (URISyntaxException e) {
+          Logger.trace(e);
         }
       }
     }
@@ -259,6 +260,7 @@ public class Utils {
           try (InputStream is = url.openStream()) {
             return true;
           } catch (IOException e) {
+            Logger.trace(e);
           }
         }
       }
@@ -297,7 +299,7 @@ public class Utils {
         // try absolute url first
         retVal = new URL(path);
       } catch (MalformedURLException mue) {
-        retVal = null;
+        Logger.trace(mue);
       }
 
       if (retVal == null && base != null) {
@@ -335,6 +337,7 @@ public class Utils {
         URL url = new URL(link);
         return url.getProtocol().equalsIgnoreCase("https");
       } catch (MalformedURLException e) {
+        Logger.trace(e);
       }
     }
     return false;
@@ -450,6 +453,7 @@ public class Utils {
         try {
           retVal = baos.toString(charset.name());
         } catch (UnsupportedEncodingException e) {
+          Logger.trace(e);
         }
       }
       baos = null;
@@ -520,24 +524,20 @@ public class Utils {
       throws UnknownServiceException, ProtocolException, IOException {
     if (is != null && os != null) {
       byte[] buffer = new byte[4096];
-      try {
-        int totalSize = getFileSizeUrl(url, proxy);
-        int curSize = 0;
-        int size;
-        while ((size = is.read(buffer)) > 0) {
-          os.write(buffer, 0, size);
-          curSize += size;
-          if (fireProgressEvent(listeners, url, curSize, totalSize, false)) {
-            os.flush();
-            return false;
-          }
+      int totalSize = getFileSizeUrl(url, proxy);
+      int curSize = 0;
+      int size;
+      while ((size = is.read(buffer)) > 0) {
+        os.write(buffer, 0, size);
+        curSize += size;
+        if (fireProgressEvent(listeners, url, curSize, totalSize, false)) {
+          os.flush();
+          return false;
         }
-        os.flush();
-        fireProgressEvent(listeners, url, curSize, totalSize, true);
-        return true;
-      } finally {
-        buffer = null;
       }
+      os.flush();
+      fireProgressEvent(listeners, url, curSize, totalSize, true);
+      return true;
     }
     return false;
   }

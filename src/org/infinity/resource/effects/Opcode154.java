@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 154.
+ * Implementation of opcode 154.
  */
 public class Opcode154 extends BaseOpcode {
   private static final String RES_TYPE_EE = "VVC:BAM";

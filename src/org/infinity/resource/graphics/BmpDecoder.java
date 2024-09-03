@@ -89,7 +89,7 @@ public class BmpDecoder {
 
     int bufferSize = bufList.stream().mapToInt(b -> b.length).sum();
     final ByteBuffer bb = StreamUtils.getByteBuffer(bufferSize);
-    bufList.forEach(b -> bb.put(b));
+    bufList.forEach(bb::put);
     bb.rewind();
 
     return new BmpDecoder(bb);
@@ -122,10 +122,7 @@ public class BmpDecoder {
     Objects.requireNonNull(buffer);
 
     // Checking signature
-    boolean isBMP = false;
-    if ("BM".equals(StreamUtils.readString(buffer, 0, 2))) {
-      isBMP = true;
-    }
+    boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
 
     image = null;
     palette = null;
@@ -175,8 +172,8 @@ public class BmpDecoder {
           final int[] colors = new int[numColors];
           icm.getRGBs(colors);
           final ByteBuffer pb = StreamUtils.getByteBuffer(colors.length * 4);
-          for (int i = 0; i < colors.length; i++) {
-            pb.putInt(colors[i]);
+          for (int color : colors) {
+            pb.putInt(color);
           }
           pb.rewind();
           palette = new Palette(pb, 0, pb.capacity());
@@ -263,10 +260,10 @@ public class BmpDecoder {
       }
     }
 
-    private Compression compression;
-    private int width;
-    private int height;
-    private int bpp;
+    private final Compression compression;
+    private final int width;
+    private final int height;
+    private final int bpp;
 
     private Info(BufferedImage image) {
       this(image, -1, 0);

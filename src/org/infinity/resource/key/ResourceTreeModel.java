@@ -183,7 +183,7 @@ public final class ResourceTreeModel implements TreeModel {
       }
       ResourceTreeFolder folder = getFolder(parent, folderName);
       if (folder == null) {
-        if (folderName.length() > 0) {
+        if (!folderName.isEmpty()) {
           folderName = Character.toUpperCase(folderName.charAt(0)) + folderName.substring(1);
         }
         folder = new ResourceTreeFolder(parent, folderName);

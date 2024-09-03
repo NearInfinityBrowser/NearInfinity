@@ -118,6 +118,7 @@ public abstract class AbstractSearcher {
             try {
               Thread.sleep(0);
             } catch (InterruptedException e) {
+              Logger.trace(e);
             }
           }
 
@@ -140,10 +141,11 @@ public abstract class AbstractSearcher {
           try {
             threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
       } catch (Exception e) {
-        // ignored
+        Logger.trace(e);
       }
 
       Logger.info(DebugTimer.getInstance().getTimerFormatted(operation + " completed"));

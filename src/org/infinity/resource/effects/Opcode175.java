@@ -12,7 +12,7 @@ import org.infinity.datatype.IdsTargetType;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 175.
+ * Implementation of opcode 175.
  */
 public class Opcode175 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

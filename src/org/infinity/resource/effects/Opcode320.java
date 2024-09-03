@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 320.
+ * Implementation of opcode 320.
  */
 public class Opcode320 extends BaseOpcode {
   private static final String[] WEATHER_TYPES = { "Normal", "Rain", "Snow", "Nothing" };

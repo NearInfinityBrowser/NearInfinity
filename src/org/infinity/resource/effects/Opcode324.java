@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 324.
+ * Implementation of opcode 324.
  */
 public class Opcode324 extends BaseOpcode {
   private static final String EFFECT_OVERRIDE_STRREF = "EEex: Override strref";

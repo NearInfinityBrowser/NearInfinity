@@ -19,7 +19,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 1.
+ * Implementation of opcode 1.
  */
 public class Opcode001 extends BaseOpcode {
   private static final String[] ATTACKS_IWD = Arrays.copyOf(ATTACKS, 6);
@@ -62,7 +62,7 @@ public class Opcode001 extends BaseOpcode {
     }
 
     Bitmap item = new Bitmap(buffer, offset + 4, 4, EFFECT_MODIFIER_TYPE, INC_TYPES_EE);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       item.addUpdateListener((UpdateListener)parent);
     }
     list.add(item);

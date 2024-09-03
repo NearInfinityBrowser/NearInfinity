@@ -25,6 +25,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 final class ViewerAbility extends JPanel {
   ViewerAbility(Ability ability) {
@@ -125,6 +126,7 @@ final class ViewerAbility extends JPanel {
               try {
                 number = Integer.parseInt(value);
               } catch (NumberFormatException nfe) {
+                Logger.trace(nfe);
               }
               strrefs[col - 1] = number;
             }
@@ -140,6 +142,7 @@ final class ViewerAbility extends JPanel {
             try {
               number = Integer.parseInt(value);
             } catch (NumberFormatException nfe) {
+              Logger.trace(nfe);
             }
             if (number >= 0 && number < strrefs.length) {
               int strref = strrefs[number];

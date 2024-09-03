@@ -120,8 +120,7 @@ public class BIFCReader extends AbstractBIFFReader {
       InputStream is2 = new BifcInputStream(
           new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)), entry.offset,
           entry.count * entry.size);
-      InputStream is = new SequenceInputStream(is1, is2);
-      return is;
+      return new SequenceInputStream(is1, is2);
     } else {
       return new BifcInputStream(new BufferedInputStream(Files.newInputStream(getFile(), StandardOpenOption.READ)),
           entry.offset, entry.size);
@@ -146,7 +145,7 @@ public class BIFCReader extends AbstractBIFFReader {
       int remaining = entryOfs - curOfs;
       while (remaining > 0) {
         long n = is.skip(remaining);
-        remaining -= n;
+        remaining -= (int) n;
       }
 
       // reading file entries
@@ -231,7 +230,7 @@ public class BIFCReader extends AbstractBIFFReader {
     }
 
     @Override
-    public int read(byte b[], int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
       if (available() > 0) {
         return getData(b, off, len);
       }
@@ -329,7 +328,7 @@ public class BIFCReader extends AbstractBIFFReader {
           int remaining = compSize;
           while (remaining > 0) {
             long n = input.skip(remaining);
-            remaining -= n;
+            remaining -= (int) n;
           }
         } else {
           if (inBuffer == null || inBuffer.length < compSize) {

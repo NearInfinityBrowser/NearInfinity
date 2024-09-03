@@ -86,7 +86,7 @@ public class BlendingComposite implements Composite {
 
   /**
    *
-   * @param modes
+   * @param mode
    */
   public BlendingComposite(BlendingMode mode) {
     this(1.0f, mode);
@@ -95,7 +95,7 @@ public class BlendingComposite implements Composite {
   /**
    *
    * @param alpha
-   * @param modes
+   * @param mode
    */
   public BlendingComposite(float alpha, BlendingMode mode) {
     // filtering out null items
@@ -110,7 +110,7 @@ public class BlendingComposite implements Composite {
 
   /**
    *
-   * @param modes
+   * @param mode
    * @return
    */
   public static BlendingComposite getInstance(BlendingMode mode) {
@@ -120,7 +120,7 @@ public class BlendingComposite implements Composite {
   /**
    *
    * @param alpha
-   * @param modes
+   * @param mode
    * @return
    */
   public static BlendingComposite getInstance(float alpha, BlendingMode mode) {
@@ -129,7 +129,7 @@ public class BlendingComposite implements Composite {
 
   /**
    *
-   * @param modes
+   * @param mode
    * @return
    */
   public BlendingComposite derive(BlendingMode mode) {

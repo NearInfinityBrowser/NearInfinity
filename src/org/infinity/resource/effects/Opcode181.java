@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 181.
+ * Implementation of opcode 181.
  */
 public class Opcode181 extends BaseOpcode {
   private static final String EFFECT_DESC_NOTE    = "Description note";
@@ -51,12 +51,6 @@ public class Opcode181 extends BaseOpcode {
     list.add(new ItemTypeBitmap(buffer, offset, 4, EFFECT_ITEM_TYPE));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_RESTRICTION, RESTRICTION_TYPES_EE));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

@@ -292,7 +292,7 @@ public class ViewerMap extends JPanel {
                 strref = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
               }
               String mapName = (strref >= 0) ? StringTable.getStringRef(strref) : null;
-              if (mapName != null && mapName.trim().length() == 0) {
+              if (mapName != null && mapName.trim().isEmpty()) {
                 mapName = null;
               }
 
@@ -402,9 +402,7 @@ public class ViewerMap extends JPanel {
               if (destArea != null) {
                 found = areaIndicesList
                     .stream()
-                    .filter(idx -> curAreaIndex != idx && destArea.equals(getAreaEntry(idx, true)))
-                    .findAny()
-                    .isPresent();
+                    .anyMatch(idx -> curAreaIndex != idx && destArea.equals(getAreaEntry(idx, true)));
               }
               if (!found) {
                 destLink = null;

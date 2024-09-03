@@ -100,7 +100,7 @@ public class DlcManager {
       if (fs != null) {
         for (final String keyFile : KEY_FILES) {
           Path key = fs.getPath(keyFile);
-          if (key != null && FileEx.create(key).isFile()) {
+          if (FileEx.create(key).isFile()) {
             try (InputStream is = StreamUtils.getInputStream(key)) {
               String sig = StreamUtils.readString(is, 8);
               if ("KEY V1  ".equals(sig)) {
@@ -160,6 +160,7 @@ public class DlcManager {
         try {
           fs.close();
         } catch (Throwable t2) {
+          Logger.trace(t2);
         }
         fs = null;
       }
@@ -173,6 +174,7 @@ public class DlcManager {
       try {
         fs.close();
       } catch (IOException e) {
+        Logger.trace(e);
       }
     }
     fileSystems.clear();

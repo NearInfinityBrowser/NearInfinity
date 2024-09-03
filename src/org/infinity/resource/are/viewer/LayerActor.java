@@ -113,12 +113,12 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
         if (res instanceof GamResource) {
           GamResource gamRes = (GamResource) res;
           List<StructEntry> npcList = gamRes.getFields(PartyNPC.class);
-          for (int i = 0, cnt = npcList.size(); i < cnt; i++) {
-            PartyNPC npc = (PartyNPC) npcList.get(i);
-            String area = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
+          for (final StructEntry structEntry : npcList) {
+            final PartyNPC npc = (PartyNPC) structEntry;
+            final String area = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
             if (areEntry.getResourceRef().equalsIgnoreCase(area)) {
               try {
-                LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
+                final LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
                 setListeners(loa);
                 objectList.add(loa);
               } catch (Exception e) {

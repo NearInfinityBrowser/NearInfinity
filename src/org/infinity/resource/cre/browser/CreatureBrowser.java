@@ -224,28 +224,26 @@ public class CreatureBrowser extends ChildFrame {
     if (worker == null && taskInfo != null) {
       worker = new SwingWorker<TaskInfo, Void>() {
         @Override
-        protected TaskInfo doInBackground() throws Exception {
-          TaskInfo retVal = taskInfo;
+        protected TaskInfo doInBackground() {
           WindowBlocker blocker = null;
           try {
-            if (retVal.blockWindow) {
+            if (taskInfo.blockWindow) {
               blocker = new WindowBlocker(CreatureBrowser.this);
               blocker.setBlocked(true);
             }
-            retVal.result = retVal.action.get();
+            taskInfo.result = taskInfo.action.get();
           } catch (Exception e) {
-            if (retVal.postAction != null) {
-              retVal.exception = e;
+            if (taskInfo.postAction != null) {
+              taskInfo.exception = e;
             } else {
               Logger.error(e);
             }
           } finally {
             if (blocker != null) {
               blocker.setBlocked(false);
-              blocker = null;
             }
           }
-          return retVal;
+          return taskInfo;
         }
       };
       worker.addPropertyChangeListener(listeners);
@@ -269,6 +267,7 @@ public class CreatureBrowser extends ChildFrame {
           try {
             retVal = worker.get();
           } catch (ExecutionException | InterruptedException e) {
+            Logger.trace(e);
           }
           if (retVal != null) {
             if (retVal.postAction != null) {

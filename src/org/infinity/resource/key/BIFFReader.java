@@ -18,6 +18,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * Provides read operations for uncompressed BIFF V1 archives.
@@ -72,6 +73,7 @@ public class BIFFReader extends AbstractBIFFReader {
     try {
       return (int) Files.size(getFile());
     } catch (IOException e) {
+      Logger.trace(e);
     }
     return -1;
   }

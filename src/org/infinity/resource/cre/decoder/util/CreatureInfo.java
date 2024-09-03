@@ -377,7 +377,7 @@ public class CreatureInfo {
   /**
    * Returns a list of equipped items in the order of effect application.
    *
-   * @return List of {@code ItemInfo} instances in the order of effect application.
+   * @return Array of {@code ItemInfo} instances in the order of effect application.
    */
   public ItemInfo[] getEffectiveItemInfo() {
     ArrayList<ItemInfo> items = new ArrayList<>();
@@ -389,7 +389,7 @@ public class CreatureInfo {
       }
     }
 
-    return items.toArray(new ItemInfo[items.size()]);
+    return items.toArray(new ItemInfo[0]);
   }
 
   /** Provides access to the {@link EffectInfo} instance which manages effects attached to the current creature. */
@@ -527,7 +527,6 @@ public class CreatureInfo {
    * Returns the color entry of the specified location index for the avatar sprite after applying all equipment and
    * effect colors as well as the source of the color value.
    *
-   * @param opcode        filter by this opcode.
    * @param locationIndex the color location index. Available range: [-1, 6]
    * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are
    *         allowed. Returns {@code -1} for the color entry if value could not be determined.
@@ -1017,6 +1016,7 @@ public class CreatureInfo {
               break;
             }
           } catch (Exception e) {
+            Logger.trace(e);
           }
         }
       }

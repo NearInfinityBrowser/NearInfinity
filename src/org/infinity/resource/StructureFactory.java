@@ -109,7 +109,7 @@ public final class StructureFactory {
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       Path outFile = fc.getSelectedFile().toPath();
       if (FileEx.create(outFile).exists()) {
-        final String options[] = { "Overwrite", "Cancel" };
+        final String[] options = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(parent, outFile + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           return;
@@ -492,7 +492,7 @@ public final class StructureFactory {
     if (dlg.isAccepted()) {
       String text = dlg.getConfig().getText();
       final ResourceStructure structRes = new ResourceStructure();
-      if (text.length() > 0) {
+      if (!text.isEmpty()) {
         structRes.add(ResourceStructure.ID_STRING, text);
       }
 
@@ -678,7 +678,7 @@ public final class StructureFactory {
   // returns filename without extension
   private String extractFileBase(String fileName) {
     String name = extractFileName(fileName);
-    if (name.length() > 0) {
+    if (!name.isEmpty()) {
       int idx = name.lastIndexOf('.');
       if (idx >= 0) {
         return name.substring(0, idx);

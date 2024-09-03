@@ -7,7 +7,6 @@ package org.infinity.resource.are.viewer;
 import static org.infinity.resource.are.AreResource.ARE_NUM_AUTOMAP_NOTES;
 import static org.infinity.resource.are.AreResource.ARE_OFFSET_AUTOMAP_NOTES;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.infinity.resource.Profile;
@@ -73,8 +72,7 @@ public class LayerAutomap extends BasicLayer<LayerObject, AreResource> {
     if (ini != null) {
       final String areResref = are.getResourceEntry().getResourceRef();
       IniMapSection iniSection = null;
-      for (final Iterator<IniMapSection> iter = ini.iterator(); iter.hasNext(); ) {
-        final IniMapSection s = iter.next();
+      for (final IniMapSection s : ini) {
         if (s.getName().equalsIgnoreCase(areResref)) {
           final int count = s.getAsInteger("count", 0);
           if (count > 0) {
@@ -91,6 +89,7 @@ public class LayerAutomap extends BasicLayer<LayerObject, AreResource> {
         try {
           count = iniSection.getAsInteger("count", 0);
         } catch (IllegalArgumentException e) {
+          Logger.warn(e);
         }
         final double scale = 32.0 / 3.0;
         for (int i = 0; i < count; i++) {

@@ -117,9 +117,9 @@ public class PlaceholderDecoder extends SpriteDecoder {
       try {
         int n = Integer.parseInt(value);
         if (n == 0 || n == 1) {
-          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.BOOLEAN), Boolean.valueOf(n != 0));
+          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.BOOLEAN), n != 0);
         } else {
-          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.DECIMAL), Integer.valueOf(n));
+          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.DECIMAL), n);
         }
       } catch (NumberFormatException e) {
         setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.STRING), value);

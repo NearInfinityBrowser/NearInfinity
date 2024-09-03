@@ -4,6 +4,8 @@
 
 package org.infinity.resource.sound;
 
+import org.tinylog.Logger;
+
 import java.io.ByteArrayInputStream;
 
 import javax.sound.sampled.AudioFormat;
@@ -133,11 +135,13 @@ public class AudioPlayer {
       try {
         Thread.sleep(50L);
       } catch (InterruptedException e) {
+        Logger.trace(e);
       }
     }
     try {
       Thread.sleep(150L);
     } catch (InterruptedException e) {
+      Logger.trace(e);
     }
     setStopped(true);
     if (dataLine != null && dataLine.isOpen()) {

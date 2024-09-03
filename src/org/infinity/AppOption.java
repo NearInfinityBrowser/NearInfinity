@@ -78,7 +78,7 @@ public class AppOption {
     if (lang == null || ((String) lang).isEmpty()) {
       lang = Arrays
           .stream(Profile.Game.values())
-          .filter(g -> Profile.isEnhancedEdition(g))
+          .filter(Profile::isEnhancedEdition)
           .map(g -> g.toString() + "=" + OptionsMenuItem.getDefaultGameLanguage())
           .collect(Collectors.joining(";"));
     }
@@ -401,12 +401,12 @@ public class AppOption {
    * @return {@code true} if one or more options have been modified, {@code false} otherwise.
    */
   public static boolean isAnyModified() {
-    return AppOption.getInstances().stream().anyMatch(o -> o.isModified());
+    return AppOption.getInstances().stream().anyMatch(AppOption::isModified);
   }
 
   /** Returns a set of all {@code AppOption} that have been modified. */
   public static List<AppOption> getModifiedOptions() {
-    return AppOption.getInstances().stream().filter(o -> o.isModified()).collect(Collectors.toList());
+    return AppOption.getInstances().stream().filter(AppOption::isModified).collect(Collectors.toList());
   }
 
   /**
@@ -424,7 +424,7 @@ public class AppOption {
 
   /** Discards any changes made to the options and resets them to their initial values. */
   public static void revertAll() {
-    AppOption.getInstances().stream().forEach(o -> o.revert());
+    AppOption.getInstances().stream().forEach(AppOption::revert);
   }
 
   /** Writes all options of this enum back to the persistent Preferences storage. */
@@ -442,7 +442,7 @@ public class AppOption {
     if (collection == null) {
       collection = AppOption.getInstances();
     }
-    collection.stream().forEach(o -> o.storeValue());
+    collection.stream().forEach(AppOption::storeValue);
   }
 
   // /** Used internally to allow only supported types for the generic argument. */
@@ -458,7 +458,7 @@ public class AppOption {
       return classType;
     } else {
       // fail
-      final String t = (classType != null) ? classType.getSimpleName() : "(null)";
+      final String t = classType.getSimpleName();
       throw new ClassCastException("Unsupported value type: " + t);
     }
   }
@@ -466,7 +466,7 @@ public class AppOption {
   /** Returns a {@link Preferences} instance for the specified node. */
   private static Preferences getPrefs(String prefsNode) {
     if (prefsNode != null) {
-      return PREFERENCES.computeIfAbsent(prefsNode, s -> Misc.getPrefs(s));
+      return PREFERENCES.computeIfAbsent(prefsNode, Misc::getPrefs);
     } else {
       return null;
     }
@@ -645,7 +645,7 @@ public class AppOption {
   }
 
   /**
-   * Returns the initial value of the option as set by {@link #setInitialValue(Object)} or {@link #loadValue(Preferences)}.
+   * Returns the initial value of the option as set by {@link #setInitialValue(Object)} or {@link #loadValue()}.
    */
   public Object getInitialValue() {
     return initialValue;
@@ -754,7 +754,7 @@ public class AppOption {
   }
 
   /**
-   * Reverts to the initial value as set by {@link #setInitialValue(Object)} or {@link #loadValue(Preferences)}.
+   * Reverts to the initial value as set by {@link #setInitialValue(Object)} or {@link #loadValue()}.
    */
   public void revert() {
     this.value = this.initialValue;
@@ -883,8 +883,8 @@ public class AppOption {
   /** Used internally to ensure that the specified value is of the same type as {@link #getDefault()}. */
   private Object validate(Object value) throws ClassCastException {
     value = validator.apply(value);
-    if ((value == null && validateType(valueType) == valueType) ||
-        (value != null && valueType.isAssignableFrom(validateType(value.getClass())))) {
+    if (value == null && Objects.equals(validateType(valueType), valueType) ||
+        valueType.isAssignableFrom(validateType(value.getClass()))) {
       // pass
       return value;
     }

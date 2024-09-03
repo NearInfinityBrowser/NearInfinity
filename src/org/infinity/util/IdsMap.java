@@ -64,7 +64,7 @@ public class IdsMap {
 
   /** Returns the entry structure defined by the specified IDS value, or {@code null} otherwise. */
   public IdsMapEntry get(long value) {
-    return idsMap.get(Long.valueOf(normalizedKey(value)));
+    return idsMap.get(normalizedKey(value));
   }
 
   /**

@@ -169,12 +169,12 @@ public class TisConvert {
       return implemented;
     }
 
-    /** Returns a reference to the {@link TilsetUpdater} instance. */
+    /** Returns a reference to the {@link OverlayMapUpdater} instance. */
     private OverlayMapUpdater getUpdater() {
       return updater;
     }
 
-    /** Returns a reference to the {@link TilsetConverter} instance. */
+    /** Returns a reference to the {@link OverlayTileConverter} instance. */
     private OverlayTileConverter getConverter() {
       return converter;
     }
@@ -318,15 +318,12 @@ public class TisConvert {
       } else if (name.length() < 2) {
         String fmt, newName = null;
         int maxNum;
-        switch (name.length()) {
-          case 0:
-            fmt = name + "%s02d";
-            maxNum = 99;
-            break;
-          default:
-            fmt = name + "%s01d";
-            maxNum = 9;
-            break;
+        if (name.isEmpty()) {
+          fmt = name + "%s02d";
+          maxNum = 99;
+        } else {
+          fmt = name + "%s01d";
+          maxNum = 9;
         }
         for (int i = 0; i < maxNum; i++) {
           String s = String.format(fmt, i) + (isNight ? "N" : "") + ext;
@@ -608,7 +605,7 @@ public class TisConvert {
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
           tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2)]     = (byte) (palette[i - 1] & 0xff);
             tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
             tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
@@ -643,7 +640,7 @@ public class TisConvert {
       Logger.error(e);
     } finally {
       if (showProgress) {
-        SwingUtilities.invokeLater(() -> progress.close());
+        SwingUtilities.invokeLater(progress::close);
       }
       if (retVal == Status.ERROR) {
         // deleting incomplete tis file
@@ -701,7 +698,6 @@ public class TisConvert {
         overlayConversion.getUpdater().update(wedInfo);
       }
 
-      final List<TileMap> regions = new ArrayList<>();
       // marks indices of tiles that have already been processed
       final BitSet markedTiles = new BitSet(decoder.getTileCount());
 
@@ -723,7 +719,7 @@ public class TisConvert {
         }
       }
       final List<TileMap> primaryTilesList = createTileRegions(config, tmBase);
-      regions.addAll(primaryTilesList);
+      final List<TileMap> regions = new ArrayList<>(primaryTilesList);
 
       if (showProgress) {
         SwingUtilities.invokeLater(() -> {
@@ -913,11 +909,10 @@ public class TisConvert {
 
       retVal = Status.SUCCESS;
     } catch (Exception e) {
-      retVal = Status.ERROR;
       Logger.error(e);
     } finally {
       if (showProgress) {
-        SwingUtilities.invokeLater(() -> progress.close());
+        SwingUtilities.invokeLater(progress::close);
       }
     }
 
@@ -1027,8 +1022,7 @@ public class TisConvert {
       regionBounds.height = numTilesY;
 
       final Point p2 = new Point();
-      for (final Iterator<Point> iter = locations.iterator(); iter.hasNext(); ) {
-        final Point p = iter.next();
+      for (final Point p : locations) {
         if (regionBounds.contains(p)) {
           final TileMapItem tileMapItem = tileMap.getTile(p);
           if (tileMapItem.getIndex() < 0) {
@@ -1042,7 +1036,8 @@ public class TisConvert {
           tm.setTile(p, tileMapItem.getIndex(), TileMapItem.FLAG_ALL);
 
           // adding left border?
-          p2.x = p.x - 1; p2.y = p.y;
+          p2.x = p.x - 1;
+          p2.y = p.y;
           if (p2.x >= 0 && (p2.x == regionBounds.x - 1 || !locations.contains(p2))) {
             final TileInfo ti = wedInfo.getTile(p2);
             final int tileIdx = (isSecondary && ti.tileSecondary >= 0) ? ti.tileSecondary : ti.getPrimaryTileIndex(framePrimary);
@@ -1057,7 +1052,8 @@ public class TisConvert {
           }
 
           // adding right border?
-          p2.x = p.x + 1; p2.y = p.y;
+          p2.x = p.x + 1;
+          p2.y = p.y;
           if (p2.x < width && (p2.x == regionBounds.x + regionBounds.width || !locations.contains(p2))) {
             final TileInfo ti = wedInfo.getTile(p2);
             final int tileIdx = (isSecondary && ti.tileSecondary >= 0) ? ti.tileSecondary : ti.getPrimaryTileIndex(framePrimary);
@@ -1072,7 +1068,8 @@ public class TisConvert {
           }
 
           // adding top border?
-          p2.x = p.x; p2.y = p.y - 1;
+          p2.x = p.x;
+          p2.y = p.y - 1;
           if (p2.y >= 0 && (p2.y == regionBounds.y - 1 || !locations.contains(p2))) {
             final TileInfo ti = wedInfo.getTile(p2);
             final int tileIdx = (isSecondary && ti.tileSecondary >= 0) ? ti.tileSecondary : ti.getPrimaryTileIndex(framePrimary);
@@ -1087,7 +1084,8 @@ public class TisConvert {
           }
 
           // adding bottom border?
-          p2.x = p.x; p2.y = p.y + 1;
+          p2.x = p.x;
+          p2.y = p.y + 1;
           if (p2.y < height && (p2.y == regionBounds.y + regionBounds.height || !locations.contains(p2))) {
             final TileInfo ti = wedInfo.getTile(p2);
             final int tileIdx = (isSecondary && ti.tileSecondary >= 0) ? ti.tileSecondary : ti.getPrimaryTileIndex(framePrimary);
@@ -1102,7 +1100,8 @@ public class TisConvert {
           }
 
           // adding top-left corner?
-          p2.x = p.x - 1; p2.y = p.y - 1;
+          p2.x = p.x - 1;
+          p2.y = p.y - 1;
           if (p2.x >= 0 && p2.y >= 0 &&
               ((p2.x == regionBounds.x - 1 && p2.y == regionBounds.y - 1) || !locations.contains(p2))) {
             TileMapItem tmi1 = tm.getTile(p.x, p.y - 1);
@@ -1122,7 +1121,8 @@ public class TisConvert {
           }
 
           // adding top-right corner?
-          p2.x = p.x + 1; p2.y = p.y - 1;
+          p2.x = p.x + 1;
+          p2.y = p.y - 1;
           if (p2.x < width && p2.y >= 0 &&
               ((p2.x == regionBounds.x + regionBounds.width && p2.y == regionBounds.y - 1) || !locations.contains(p2))) {
             TileMapItem tmi1 = tm.getTile(p.x, p.y - 1);
@@ -1142,7 +1142,8 @@ public class TisConvert {
           }
 
           // adding bottom-left corner?
-          p2.x = p.x - 1; p2.y = p.y + 1;
+          p2.x = p.x - 1;
+          p2.y = p.y + 1;
           if (p2.x >= 0 && p2.y < height &&
               ((p2.x == regionBounds.x - 1 && p2.y == regionBounds.y + regionBounds.height) || !locations.contains(p2))) {
             TileMapItem tmi1 = tm.getTile(p.x, p.y + 1);
@@ -1162,7 +1163,8 @@ public class TisConvert {
           }
 
           // adding bottom-right corner?
-          p2.x = p.x + 1; p2.y = p.y + 1;
+          p2.x = p.x + 1;
+          p2.y = p.y + 1;
           if (p2.x < width && p2.y < height &&
               ((p2.x == regionBounds.x + regionBounds.width && p2.y == regionBounds.y + regionBounds.height) ||
                   !locations.contains(p2))) {
@@ -1417,8 +1419,8 @@ public class TisConvert {
         tisName = tisName.substring(0, extOfs);
       }
       if (Pattern.matches(".{2,7}", tisName)) {
-        String pvrzName = String.format("%s%s%02d.PVRZ", tisName.substring(0, 1),
-            tisName.substring(2, tisName.length()), page);
+        String pvrzName = String.format("%s%s%02d.PVRZ", tisName.charAt(0),
+            tisName.substring(2), page);
         return path.resolve(pvrzName);
       }
     }
@@ -1748,6 +1750,7 @@ public class TisConvert {
       this.defaultTilesPerRow = config.defaultTilesPerRow;
       this.defaultRowCount = config.defaultRowCount;
       this.textureSize = config.textureSize;
+      this.pvrzBaseIndex = config.pvrzBaseIndex;
       this.borderSize = config.borderSize;
       this.segmentSize = config.segmentSize;
       this.detectBlack = config.detectBlack;
@@ -1928,7 +1931,6 @@ public class TisConvert {
             wedInfo = new WedInfo(wed);
           }
         } catch (Exception e) {
-          wedInfo = null;
           Logger.error(e);
         }
       }
@@ -2056,9 +2058,9 @@ public class TisConvert {
     private final WedResource wed;
 
     /** Tileset width, in tiles. */
-    private int width;
+    private final int width;
     /** Tileset height, in tiles. */
-    private int height;
+    private final int height;
 
     /**
      * Creates a new {@code WedInfo} structure from a WED resource.
@@ -2409,7 +2411,7 @@ public class TisConvert {
      */
     public int getPrimaryTileIndex(int frame) {
       if (frame >= 0) {
-        return tilesPrimary[Math.max(0, frame) % tilesPrimary.length];
+        return tilesPrimary[frame % tilesPrimary.length];
       } else {
         return tilePrimary;
       }
@@ -2992,7 +2994,7 @@ public class TisConvert {
       for (int x = 0; x < bounds.width; x++) {
         final TileMapItem tmi = tiles.get(p);
         if (tmi != null) {
-          if (tmi != null && (tmi.isBottomFlag() || tmi.isBottomLeftFlag() || tmi.isBottomRightFlag())) {
+          if (tmi.isBottomFlag() || tmi.isBottomLeftFlag() || tmi.isBottomRightFlag()) {
             retVal = Math.max(retVal, 1);
           } else if (tmi.isAllFlag()) {
             retVal = Math.max(retVal, 2);

@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 449.
+ * Implementation of opcode 449.
  */
 public class Opcode449 extends BaseOpcode {
   private static final String EFFECT_NUM_HITS = "# hits";

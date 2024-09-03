@@ -37,11 +37,7 @@ package org.infinity.util.io.zip;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
-import java.nio.charset.CodingErrorAction;
+import java.nio.charset.*;
 import java.util.Arrays;
 
 import org.tinylog.Logger;
@@ -105,7 +101,7 @@ public class ZipCoder {
       return getBytes(s);
     }
     if (utf8 == null) {
-      utf8 = new ZipCoder(Charset.forName("UTF-8"));
+      utf8 = new ZipCoder(StandardCharsets.UTF_8);
     }
     return utf8.getBytes(s);
   }
@@ -115,7 +111,7 @@ public class ZipCoder {
       return toString(ba, len);
     }
     if (utf8 == null) {
-      utf8 = new ZipCoder(Charset.forName("UTF-8"));
+      utf8 = new ZipCoder(StandardCharsets.UTF_8);
     }
     return utf8.toString(ba, len);
   }
@@ -124,8 +120,8 @@ public class ZipCoder {
     return isutf8;
   }
 
-  private Charset cs;
-  private boolean isutf8;
+  private final Charset cs;
+  private final boolean isutf8;
   private ZipCoder utf8;
 
   private ZipCoder(Charset cs) {

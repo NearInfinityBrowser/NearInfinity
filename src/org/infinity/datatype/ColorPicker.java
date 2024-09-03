@@ -38,6 +38,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Implements a RGB color picker control.
@@ -150,7 +151,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     tfBri = new JTextField(4); // range: [0..100]
     tfBri.addFocusListener(this);
 
-    JLabel lHue2 = new JLabel("\u00B0");
+    JLabel lHue2 = new JLabel("°");
     JLabel lSat2 = new JLabel("%");
     JLabel lBri2 = new JLabel("%");
 
@@ -541,6 +542,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
           oldVal = max;
         }
       } catch (NumberFormatException nfe) {
+        Logger.trace(nfe);
       }
       tf.setText(Integer.toString(oldVal));
     }

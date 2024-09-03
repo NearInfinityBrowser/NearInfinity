@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 67.
+ * Implementation of opcode 67.
  */
 public class Opcode067 extends BaseOpcode {
   private static final String EFFECT_NUM_CREATURES    = "# creatures";

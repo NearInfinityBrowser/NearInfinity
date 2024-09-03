@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 50.
+ * Implementation of opcode 50.
  */
 public class Opcode050 extends BaseOpcode {
   private static final String EFFECT_CYCLE_SPEED = "Cycle speed";

@@ -75,12 +75,12 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private static boolean isZoom = true;
   private static boolean isFilter = true;
 
-  private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final ResourceEntry entry;
+  private final MvePlayer player;
 
   private MveDecoder decoder;
   private ImageRenderer renderer;
-  private MvePlayer player;
   private JMenuItem miExport;
   private JMenuItem miExportAvi;
   private JPanel panel;
@@ -450,10 +450,8 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
           frameIdx++;
 
           if (!silent && pm.isCanceled()) {
-            if (writer != null) {
-              writer.close();
-              writer = null;
-            }
+            writer.close();
+            writer = null;
             if (FileEx.create(outFile).isFile()) {
               try {
                 Files.delete(outFile);

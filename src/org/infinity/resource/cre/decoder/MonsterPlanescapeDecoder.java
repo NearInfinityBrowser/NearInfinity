@@ -226,7 +226,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder {
     }
     String prefix = isSpecial ? "" : s.substring(0, 1);
     String resref = isSpecial ? s : s.substring(1, s.length() - 1);
-    String suffix = isSpecial ? "" : s.substring(s.length() - 1, s.length());
+    String suffix = isSpecial ? "" : s.substring(s.length() - 1);
     TreeMap<String, String> actions = new TreeMap<>();
     if (isSpecial) {
       actions.put(SLOT_MAP.get(Sequence.PST_STAND), resref);
@@ -540,10 +540,10 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder {
 
         if (directions != null && SpriteUtils.bamCyclesExist(entry, 0, directions.length)) {
           SeqDef tmp = SeqDef.createSequence(seq, directions, false, entry, 0, null);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
           if (mirror) {
             tmp = SeqDef.createSequence(seq, directionsE, true, entry, 1, null);
-            retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+            retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
           }
         }
       }

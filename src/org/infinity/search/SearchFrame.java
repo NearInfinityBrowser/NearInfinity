@@ -228,7 +228,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   @Override
   public void actionPerformed(ActionEvent event) {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
-      if (tfield.getText() == null || tfield.getText().equals("")) {
+      if (tfield.getText() == null || tfield.getText().isEmpty()) {
         return;
       }
       new Thread(this).start();
@@ -240,7 +240,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       new ViewFrame(this, ResourceFactory.getResource(entry));
     } else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
-      if (viewable == null || !(viewable instanceof BcsResource)) {
+      if (!(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
@@ -347,9 +347,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       progress.setValue(0);
 
       list.ensureIndexIsVisible(0);
-      if (found.size() > 0) {
+      if (!found.isEmpty()) {
         Collections.sort(found);
-        list.setListData(found.toArray(new ResourceWrapper[found.size()]));
+        list.setListData(found.toArray(new ResourceWrapper[0]));
         list.setEnabled(true);
       }
     } finally {

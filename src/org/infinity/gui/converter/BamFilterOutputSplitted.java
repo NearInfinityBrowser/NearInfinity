@@ -80,14 +80,12 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(spinnerSplitX.getValue()).append(';');
-    sb.append(spinnerSplitY.getValue()).append(';');
-    sb.append(cbSplitAuto.isSelected()).append(';');
-    sb.append(cbSuffixDigits.getSelectedIndex()).append(';');
-    sb.append(spinnerSuffixStart.getValue()).append(';');
-    sb.append(spinnerSuffixStep.getValue());
-    return sb.toString();
+    return String.valueOf(spinnerSplitX.getValue()) + ';' +
+        spinnerSplitY.getValue() + ';' +
+        cbSplitAuto.isSelected() + ';' +
+        cbSuffixDigits.getSelectedIndex() + ';' +
+        spinnerSuffixStart.getValue() + ';' +
+        spinnerSuffixStep.getValue();
   }
 
   @Override
@@ -96,12 +94,12 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.split(";");
-        Integer splitX = Integer.MIN_VALUE;
-        Integer splitY = Integer.MIN_VALUE;
+        int splitX = Integer.MIN_VALUE;
+        int splitY = Integer.MIN_VALUE;
         boolean auto = true;
         int digits = -1;
-        Integer start = Integer.MIN_VALUE;
-        Integer step = Integer.MIN_VALUE;
+        int start = Integer.MIN_VALUE;
+        int step = Integer.MIN_VALUE;
 
         if (params.length > 0) {
           int min = ((Number) ((SpinnerNumberModel) spinnerSplitX.getModel()).getMinimum()).intValue();
@@ -185,10 +183,10 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
     JLabel l6 = new JLabel("Start at:");
     JLabel l7 = new JLabel("Step by:");
     spinnerSplitX = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
-    ((SpinnerNumberModel) spinnerSplitX.getModel()).setMaximum(Integer.valueOf(MAX_SPLITS));
+    ((SpinnerNumberModel) spinnerSplitX.getModel()).setMaximum(MAX_SPLITS);
     spinnerSplitX.addChangeListener(this);
     spinnerSplitY = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
-    ((SpinnerNumberModel) spinnerSplitY.getModel()).setMaximum(Integer.valueOf(MAX_SPLITS));
+    ((SpinnerNumberModel) spinnerSplitY.getModel()).setMaximum(MAX_SPLITS);
     spinnerSplitY.addChangeListener(this);
     cbSplitAuto = new JCheckBox("Split automatically", true);
     cbSplitAuto.addActionListener(this);
@@ -201,10 +199,10 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
     cbSuffixDigits.setSelectedIndex(1);
     cbSuffixDigits.addActionListener(this);
     spinnerSuffixStart = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
-    ((SpinnerNumberModel) spinnerSuffixStart.getModel()).setMaximum(Integer.valueOf(100000));
+    ((SpinnerNumberModel) spinnerSuffixStart.getModel()).setMaximum(100000);
     spinnerSuffixStart.addChangeListener(this);
     spinnerSuffixStep = new JSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
-    ((SpinnerNumberModel) spinnerSuffixStep.getModel()).setMaximum(Integer.valueOf(10000));
+    ((SpinnerNumberModel) spinnerSuffixStep.getModel()).setMaximum(10000);
     spinnerSuffixStep.addChangeListener(this);
 
     JPanel p1 = new JPanel(new GridBagLayout());
@@ -335,8 +333,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
           }
         }
       } else {
-        segmentsX = ((Integer) spinnerSplitX.getValue()).intValue() + 1;
-        segmentsY = ((Integer) spinnerSplitY.getValue()).intValue() + 1;
+        segmentsX = (Integer) spinnerSplitX.getValue() + 1;
+        segmentsY = (Integer) spinnerSplitY.getValue() + 1;
       }
 
       // calculating individual splits for each frame
@@ -467,8 +465,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-            Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
-        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(getConverter().isBamV1Compressed()));
+            getConverter().getPaletteDialog().getRleIndex());
+        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, getConverter().isBamV1Compressed());
         try {
           return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());

@@ -248,9 +248,7 @@ public final class ResourceFactory {
       Class<? extends Resource> cls = getResourceType(entry, forcedExtension);
       if (cls != null) {
         Constructor<? extends Resource> con = cls.getConstructor(ResourceEntry.class);
-        if (con != null) {
-          res = con.newInstance(entry);
-        }
+        res = con.newInstance(entry);
       }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
@@ -407,7 +405,7 @@ public final class ResourceFactory {
                 cls = getResourceType(entry, "WBM");
               } else if (data.length > 6 && data[3] == 0 && data[4] == 0x78) { // just guessing...
                 cls = getResourceType(entry, "PVRZ");
-              } else if (data.length > 4 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
+              } else if ((data[0] & 0xff) == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
                 cls = getResourceType(entry, "PNG");
               } else if (DynamicArray.getInt(data, 0) == 0x00000100) { // wild guess...
                 cls = getResourceType(entry, "TTF");
@@ -528,11 +526,9 @@ public final class ResourceFactory {
       // checking default override folder list
       if (entry == null) {
         List<Path> extraFolders = Profile.getOverrideFolders(searchExtraDirs);
-        if (extraFolders != null) {
-          Path file = FileManager.query(extraFolders, resourceName);
-          if (file != null && FileEx.create(file).isFile()) {
-            entry = new FileResourceEntry(file);
-          }
+        Path file = FileManager.query(extraFolders, resourceName);
+        if (file != null && FileEx.create(file).isFile()) {
+          entry = new FileResourceEntry(file);
         }
       }
 
@@ -704,7 +700,7 @@ public final class ResourceFactory {
 
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource. If user accepts saving then
-   * resource will be saved if it implements {@link Writable}
+   * resource will be saved if it implements {@link Writeable}
    *
    * @param resource Resource that must be saved
    * @param entry    Entry that represents resource. Must not be {@code null}
@@ -726,7 +722,7 @@ public final class ResourceFactory {
 
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource. If user accepts saving then
-   * resource will be saved if it implements {@link Writable}
+   * resource will be saved if it implements {@link Writeable}
    *
    * @param resource Resource that must be saved
    * @param output   Path of the saved resource. If {@code null} method do nothing
@@ -738,7 +734,7 @@ public final class ResourceFactory {
    */
   public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
     if (output != null) {
-      final String options[] = { "Save changes", "Discard changes", "Cancel" };
+      final String[] options = { "Save changes", "Discard changes", "Cancel" };
       final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?', "Resource changed",
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == JOptionPane.YES_OPTION) {
@@ -764,7 +760,7 @@ public final class ResourceFactory {
                 && entry.getFileName().toString().matches("[a-z]{2}_[A-Z]{2}")
                 && FileEx.create(FileManager.query(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME)))
                     .isFile()))) {
-          dstream.forEach(path -> list.add(path));
+          dstream.forEach(list::add);
         } catch (IOException e) {
           Logger.error(e);
         }
@@ -846,7 +842,7 @@ public final class ResourceFactory {
         } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
-        if (allowMissing || (userPath != null && FileEx.create(userPath).isDirectory())) {
+        if (userPath != null && FileEx.create(userPath).isDirectory()) {
           return userPath;
         }
       }
@@ -866,7 +862,7 @@ public final class ResourceFactory {
       }
       List<Path> dlcList = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
       if (dlcList != null) {
-        dlcList.forEach(path -> dirList.add(path));
+        dirList.addAll(dlcList);
       }
       dirList.add(Profile.getGameRoot());
     } else {
@@ -1057,7 +1053,7 @@ public final class ResourceFactory {
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       path = fc.getSelectedFile().toPath();
       if (!forceOverwrite && FileEx.create(path).exists()) {
-        final String options[] = { "Overwrite", "Cancel" };
+        final String[] options = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           path = null;
@@ -1335,8 +1331,6 @@ public final class ResourceFactory {
   /**
    * Registers in the resourse tree all special game resources that are not stored in the override folders or BIF
    * archives
-   *
-   * @param folderName Folder in the resource tree under which register files
    */
   private void loadSpecialResources() {
     final List<Path> roots = Profile.getRootFolders();
@@ -1508,7 +1502,7 @@ public final class ResourceFactory {
     }
 
     if (FileEx.create(outFile).exists()) {
-      String options[] = { "Overwrite", "Cancel" };
+      String[] options = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
           "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
           options[0]) != 0) {
@@ -1597,7 +1591,7 @@ public final class ResourceFactory {
         // extra step for saving resources from a read-only medium (such as DLCs)
         if (!FileManager.isDefaultFileSystem(outPath)) {
           outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
-          if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+          if (!FileEx.create(outPath.getParent()).exists()) {
             try {
               Files.createDirectories(outPath.getParent());
             } catch (IOException e) {
@@ -1613,7 +1607,7 @@ public final class ResourceFactory {
 
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
-      String options[] = { "Overwrite", "Cancel" };
+      String[] options = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
         if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {

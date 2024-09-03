@@ -20,12 +20,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.function.Function;
 
 import javax.swing.BorderFactory;
@@ -196,7 +191,7 @@ public final class ViewerUtil {
     if (iconEntry != null) {
       try {
         final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        final BamControl ctrl = decoder.createControl();
+        final BamControl ctrl = Objects.requireNonNull(decoder).createControl();
         final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         frameNr = Math.min(frameNr, decoder.frameCount() - 1);
         label.setIcon(new ImageIcon(decoder.frameGet(ctrl, frameNr)));
@@ -215,6 +210,7 @@ public final class ViewerUtil {
     if (iconEntry != null) {
       try {
         final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        assert decoder != null;
         final BamControl ctrl = decoder.createControl();
         final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         int frameIdx = -1;
@@ -240,7 +236,7 @@ public final class ViewerUtil {
     if (iconEntry != null) {
       try {
         final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        int numFrames = decoder.frameCount();
+        int numFrames = Objects.requireNonNull(decoder).frameCount();
         int maxSize = -1;
         int frameIdx = -1;
         for (int idx = 0; idx < numFrames; idx++) {
@@ -618,7 +614,7 @@ public final class ViewerUtil {
             templist.add((AbstractStruct) o);
           }
         }
-        Collections.sort(templist, new StructListComparator(attrEntry));
+        templist.sort(new StructListComparator(attrEntry));
         for (AbstractStruct s : templist) {
           listModel.addElement(s);
         }
@@ -750,7 +746,7 @@ public final class ViewerUtil {
           return resRef.getSearchName() + " (" + resRef.getResourceName() + ')';
         } else if (entry == null || entry.toString().trim().isEmpty()) {
           return value.toString();
-        } else if (entry != null) {
+        } else {
           return entry.toString();
         }
       } else if (value != null) {

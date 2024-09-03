@@ -124,7 +124,7 @@ public final class Viewer extends JPanel {
     if (version.toString().equalsIgnoreCase("V2.2")) {
       tabs.addTab("Feats/Skills", makeFeatsPanel(cre));
       tabs.addTab("Items/Spells", makeItemSpellsPanelIWD2(cre));
-    } else if (version != null) {
+    } else {
       tabs.addTab("Items/Spells", makeItemSpellsPanel(cre));
     }
     setLayout(new BorderLayout());

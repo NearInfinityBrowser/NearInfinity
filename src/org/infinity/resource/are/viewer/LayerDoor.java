@@ -56,13 +56,11 @@ public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource>
 
       items = obj.getLayerItems(ViewerConstants.LAYER_ITEM_ICON);
       for (final AbstractLayerItem item : items) {
-        switch (item.getId()) {
-          case LAYER_ICONS_TARGET:
-            item.setVisible(isLayerVisible(LAYER_ICONS_TARGET) && isLayerEnabled(LAYER_ICONS_TARGET));
-            break;
-          default:
-            item.setVisible(false);
-            Logger.info("Unknown layer id: {}", item.getId());
+        if (item.getId() == LAYER_ICONS_TARGET) {
+          item.setVisible(isLayerVisible(LAYER_ICONS_TARGET) && isLayerEnabled(LAYER_ICONS_TARGET));
+        } else {
+          item.setVisible(false);
+          Logger.info("Unknown layer id: {}", item.getId());
         }
       }
     });

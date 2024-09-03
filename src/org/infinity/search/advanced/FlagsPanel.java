@@ -62,8 +62,8 @@ public class FlagsPanel extends JPanel implements ActionListener {
 
   /** Sets the bits according to the specified value. */
   public void setValue(int value) {
-    for (int i = 0; i < cbFlags.length; i++) {
-      cbFlags[i].setSelected((value & 1) != 0);
+    for (JCheckBox cbFlag : cbFlags) {
+      cbFlag.setSelected((value & 1) != 0);
       value >>>= 1;
     }
   }

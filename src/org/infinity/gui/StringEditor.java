@@ -596,15 +596,20 @@ public class StringEditor extends ChildFrame implements SearchClient {
     StringTable.StringEntry entry = getSelectedEntry();
     if (cellName != null && cellValue != null && entry != null) {
       String name = cellName.toString();
-      if (StringEditor.TLK_FLAGS.equals(name)) {
-        entry.setFlags((short) ((IsNumeric) cellValue).getValue());
-      } else if (StringEditor.TLK_SOUND.equals(name)) {
-        ResourceRef ref = (ResourceRef) cellValue;
-        entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
-      } else if (StringEditor.TLK_VOLUME.equals(name)) {
-        entry.setVolume(((IsNumeric) cellValue).getValue());
-      } else if (StringEditor.TLK_PITCH.equals(name)) {
-        entry.setPitch(((IsNumeric) cellValue).getValue());
+      switch (name) {
+        case StringEditor.TLK_FLAGS:
+          entry.setFlags((short) ((IsNumeric) cellValue).getValue());
+          break;
+        case StringEditor.TLK_SOUND:
+          ResourceRef ref = (ResourceRef) cellValue;
+          entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
+          break;
+        case StringEditor.TLK_VOLUME:
+          entry.setVolume(((IsNumeric) cellValue).getValue());
+          break;
+        case StringEditor.TLK_PITCH:
+          entry.setPitch(((IsNumeric) cellValue).getValue());
+          break;
       }
       updateModifiedUI(getSelectedDialogType());
     }

@@ -203,7 +203,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       final String error = e.getValue();
       if (!error.contains("GTIMES.IDS") && !error.contains("SCROLL.IDS") && !error.contains("SHOUTIDS.IDS")
           && !error.contains("SPECIFIC.IDS") && !error.contains("TIME.IDS")) {
-        synchronized (table) {
+        synchronized (this) {
           table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
         }
       }

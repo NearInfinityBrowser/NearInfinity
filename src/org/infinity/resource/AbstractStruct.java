@@ -379,9 +379,7 @@ public abstract class AbstractStruct extends AbstractTableModel
   public boolean isCellEditable(int row, int col) {
     if (col == 1) {
       Object o = getValueAt(row, col);
-      if (o instanceof InlineEditable && !(o instanceof Editable)) {
-        return true;
-      }
+      return o instanceof InlineEditable && !(o instanceof Editable);
     }
     return false;
   }
@@ -825,6 +823,7 @@ public abstract class AbstractStruct extends AbstractTableModel
     try {
       return fields.get(index);
     } catch (IndexOutOfBoundsException e) {
+      Logger.trace(e);
     }
     return null;
   }
@@ -1007,8 +1006,8 @@ public abstract class AbstractStruct extends AbstractTableModel
       }
     }
     // discard entries
-    for (int i = endindex - 1; i >= startindex; i--) {
-      fields.remove(i);
+    if (endindex > startindex) {
+      fields.subList(startindex, endindex).clear();
     }
     bb.position(0);
     return bb;

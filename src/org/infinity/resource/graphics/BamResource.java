@@ -824,40 +824,40 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
     int max = 0, counter = 0, failCounter = 0;
     try {
-      if (decoder != null) {
-        BamDecoder.BamControl control = decoder.createControl();
-        control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
-        // using selected transparency mode for BAM v1 frames
-        if (control instanceof BamV1Decoder.BamV1Control) {
-          ((BamV1Decoder.BamV1Control) control).setTransparencyEnabled(enableTransparency);
+      BamDecoder.BamControl control = decoder.createControl();
+      control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
+      // using selected transparency mode for BAM v1 frames
+      if (control instanceof BamV1Decoder.BamV1Control) {
+        ((BamV1Decoder.BamV1Control) control).setTransparencyEnabled(enableTransparency);
+      }
+      max = decoder.frameCount();
+      for (int i = 0; i < decoder.frameCount(); i++) {
+        String fileIndex = String.format("%05d", i);
+        BufferedImage image = null;
+        try {
+          image = prepareFrameImage(decoder, i);
+        } catch (Exception e) {
+          Logger.trace(e);
         }
-        max = decoder.frameCount();
-        for (int i = 0; i < decoder.frameCount(); i++) {
-          String fileIndex = String.format("%05d", i);
-          BufferedImage image = null;
+        if (image != null) {
+          decoder.frameGet(control, i, image);
           try {
-            image = prepareFrameImage(decoder, i);
-          } catch (Exception e) {
-          }
-          if (image != null) {
-            decoder.frameGet(control, i, image);
-            try {
-              Path file = filePath.resolve(fileBase + fileIndex + fileExt);
-              ImageIO.write(image, format, file.toFile());
-              counter++;
-            } catch (IOException e) {
-              failCounter++;
-              Logger.warn("Error writing frame #{}", i);
-            }
-            image.flush();
-            image = null;
-          } else {
+            Path file = filePath.resolve(fileBase + fileIndex + fileExt);
+            ImageIO.write(image, format, file.toFile());
+            counter++;
+          } catch (IOException e) {
             failCounter++;
-            Logger.warn("Skipping frame #{}", i);
+            Logger.warn("Error writing frame #{}", i);
           }
+          image.flush();
+          image = null;
+        } else {
+          failCounter++;
+          Logger.warn("Skipping frame #{}", i);
         }
       }
     } catch (Throwable t) {
+      Logger.trace(t);
     }
 
     // displaying results
@@ -1214,9 +1214,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
       // optionally compressing to MOSC V1
       if (compressed) {
-        if (bamArray != null) {
-          bamArray = Compressor.compress(bamArray, "BAMC", "V1  ");
-        }
+        bamArray = Compressor.compress(bamArray, "BAMC", "V1  ");
       }
 
       return bamArray;

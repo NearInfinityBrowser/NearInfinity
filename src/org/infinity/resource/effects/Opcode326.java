@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 326.
+ * Implementation of opcode 326.
  */
 public class Opcode326 extends BaseOpcode {
   private static final String RES_TYPE = "SPL";

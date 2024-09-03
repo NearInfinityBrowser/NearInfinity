@@ -109,7 +109,7 @@ public class MonsterAnkhegDecoder extends SpriteDecoder {
   @Override
   public List<String> getAnimationFiles(boolean essential) {
     String resref = getAnimationResref();
-    ArrayList<String> retVal = new ArrayList<String>() {
+    return new ArrayList<String>() {
       {
         add(resref + "DG1.BAM");
         if (!hasMirroredDirections()) {
@@ -137,7 +137,6 @@ public class MonsterAnkhegDecoder extends SpriteDecoder {
         }
       }
     };
-    return retVal;
   }
 
   @Override
@@ -180,16 +179,16 @@ public class MonsterAnkhegDecoder extends SpriteDecoder {
     String suffix = SegmentDef.fixBehaviorSuffix(data.getValue0());
     for (final String type : new String[] { "D", "" }) {
       ResourceEntry entry = ResourceFactory.getResourceEntry(resref + type + suffix + ".BAM");
-      int cycle = data.getValue1().intValue() * seg;
+      int cycle = data.getValue1() * seg;
       ResourceEntry entryE = ResourceFactory.getResourceEntry(resref + type + suffix + suffixE + ".BAM");
       int cycleE = cycle + eastOfs;
 
       if (SpriteUtils.bamCyclesExist(entry, cycle, dirWest.length)
           && SpriteUtils.bamCyclesExist(entryE, cycleE, dirEast.length)) {
         SeqDef tmp = SeqDef.createSequence(seq, dirWest, false, entry, cycle, null, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         tmp = SeqDef.createSequence(seq, dirEast, hasMirroredDirections(), entryE, cycleE, null, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
     }
 

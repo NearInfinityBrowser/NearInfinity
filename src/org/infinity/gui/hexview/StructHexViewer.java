@@ -412,7 +412,7 @@ public class StructHexViewer extends JPanel
       offset = getHexView().findAscii(offset, getFindData().getText(), getFindData().isCaseSensitive());
       if (offset >= 0) {
         getHexView().setCurrentOffset(offset);
-        getHexView().setSelectionLength(getFindData().getText().length() * 2);
+        getHexView().setSelectionLength(getFindData().getText().length() * 2L);
       } else {
         JOptionPane.showMessageDialog(this, "No match found.", "Find", JOptionPane.INFORMATION_MESSAGE);
       }
@@ -421,7 +421,7 @@ public class StructHexViewer extends JPanel
         offset = getHexView().findHex(offset, getFindData().getBytes());
         if (offset >= 0) {
           getHexView().setCurrentOffset(offset);
-          getHexView().setSelectionLength(getFindData().getBytes().length * 2);
+          getHexView().setSelectionLength(getFindData().getBytes().length * 2L);
         } else {
           JOptionPane.showMessageDialog(this, "No match found.", "Find", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -501,7 +501,7 @@ public class StructHexViewer extends JPanel
 
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
-      String options[] = { "Overwrite", "Cancel" };
+      String[] options = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
         if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
@@ -708,7 +708,7 @@ public class StructHexViewer extends JPanel
   }
 
   /** Manages the representation of a single {@link StructEntry} instance. */
-  private class StructEntryTableModel extends AbstractTableModel {
+  private static class StructEntryTableModel extends AbstractTableModel {
     private final String[] names = { "Name", "Start offset", "Length", "Structure type", "Value" };
 
     private final StructEntry entry;

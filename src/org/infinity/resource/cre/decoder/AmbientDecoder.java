@@ -125,8 +125,8 @@ public class AmbientDecoder extends SpriteDecoder {
 
   @Override
   public List<String> getAnimationFiles(boolean essential) {
-    String resref = getAnimationResref();
-    ArrayList<String> retVal = new ArrayList<String>() {
+    final String resref = getAnimationResref();
+    return new ArrayList<String>() {
       {
         add(resref + "G1.BAM");
         add(resref + "G1E.BAM");
@@ -136,7 +136,6 @@ public class AmbientDecoder extends SpriteDecoder {
         }
       }
     };
-    return retVal;
   }
 
   @Override

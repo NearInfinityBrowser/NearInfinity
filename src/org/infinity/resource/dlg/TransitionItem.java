@@ -20,7 +20,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog transition entry. */
-class TransitionItem extends StateOwnerItem {
+public class TransitionItem extends StateOwnerItem {
   private static final ImageIcon ICON = Icons.ICON_PLAY_16.getIcon();
 
   private final Transition trans;
@@ -123,7 +123,7 @@ class TransitionItem extends StateOwnerItem {
 
   @Override
   public boolean isLeaf() {
-    return isMain() ? nextState == null : true;
+    return !isMain() || nextState == null;
   }
 
   @Override

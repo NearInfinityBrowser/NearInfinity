@@ -62,15 +62,13 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform implements 
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(spinnerLeft.getValue()).append(';');
-    sb.append(spinnerTop.getValue()).append(';');
-    sb.append(spinnerRight.getValue()).append(';');
-    sb.append(spinnerBottom.getValue()).append(';');
-    sb.append(cbAdjustCenter.isSelected()).append(';');
-    sb.append(spinnerCenterX.getValue()).append(';');
-    sb.append(spinnerCenterY.getValue());
-    return sb.toString();
+    return String.valueOf(spinnerLeft.getValue()) + ';' +
+        spinnerTop.getValue() + ';' +
+        spinnerRight.getValue() + ';' +
+        spinnerBottom.getValue() + ';' +
+        cbAdjustCenter.isSelected() + ';' +
+        spinnerCenterX.getValue() + ';' +
+        spinnerCenterY.getValue();
   }
 
   @Override
@@ -79,12 +77,12 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform implements 
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.split(";");
-        Integer left = Integer.MIN_VALUE;
-        Integer top = Integer.MIN_VALUE;
-        Integer right = Integer.MIN_VALUE;
-        Integer bottom = Integer.MIN_VALUE;
-        Integer cx = Integer.MIN_VALUE;
-        Integer cy = Integer.MIN_VALUE;
+        int left = Integer.MIN_VALUE;
+        int top = Integer.MIN_VALUE;
+        int right = Integer.MIN_VALUE;
+        int bottom = Integer.MIN_VALUE;
+        int cx = Integer.MIN_VALUE;
+        int cy = Integer.MIN_VALUE;
         boolean a = true;
 
         if (params.length > 0) {
@@ -325,7 +323,7 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform implements 
   /** Returns a frame padded according to the specified rectangle parameter. */
   public static BufferedImage padFrame(PseudoBamFrameEntry entry, Rectangle canvasRect) {
     BufferedImage dstImage = entry.getFrame();
-    if (entry != null && canvasRect != null && !canvasRect.isEmpty()) {
+    if (canvasRect != null && !canvasRect.isEmpty()) {
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
       int transIndex = 0;

@@ -21,6 +21,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the resource-specific search
@@ -289,10 +290,8 @@ public class SearchOptions {
   public static String getResourceType(String key) {
     if (key != null) {
       String[] segments = key.split("\\.");
-      if (segments != null) {
-        if (segments.length > 2) {
-          return segments[segments.length - 3];
-        }
+      if (segments.length > 2) {
+        return segments[segments.length - 3];
       }
     }
     return "";
@@ -307,10 +306,8 @@ public class SearchOptions {
   public static String getResourceName(String key) {
     if (key != null) {
       String[] segments = key.split("\\.");
-      if (segments != null) {
-        if (segments.length > 1) {
-          return segments[segments.length - 2];
-        }
+      if (segments.length > 1) {
+        return segments[segments.length - 2];
       }
     }
     return "";
@@ -325,12 +322,11 @@ public class SearchOptions {
   public static int getResourceIndex(String key) {
     if (key != null) {
       String[] segments = key.split("\\.");
-      if (segments != null) {
-        if (segments.length > 0) {
-          try {
-            return Integer.parseInt(segments[segments.length - 1]);
-          } catch (NumberFormatException e) {
-          }
+      if (segments.length > 0) {
+        try {
+          return Integer.parseInt(segments[segments.length - 1]);
+        } catch (NumberFormatException e) {
+          Logger.trace(e);
         }
       }
     }
@@ -346,10 +342,8 @@ public class SearchOptions {
   public static int getResourceNameLevel(String key) {
     if (key != null) {
       String[] segments = key.split("\\.");
-      if (segments != null) {
-        if (segments.length > 1) {
-          return segments.length - 2;
-        }
+      if (segments.length > 1) {
+        return segments.length - 2;
       }
     }
     return 0;
@@ -364,10 +358,8 @@ public class SearchOptions {
   public static boolean isResourceByOffset(String key) {
     if (key != null) {
       String[] segments = key.split("\\.");
-      if (segments != null) {
-        if (segments.length > 1) {
-          return segments[segments.length - 2].startsWith("_");
-        }
+      if (segments.length > 1) {
+        return segments[segments.length - 2].startsWith("_");
       }
     }
     return false;
@@ -499,7 +491,7 @@ public class SearchOptions {
 
     // Returns whether entry contains (or equals) value, optionally taking case-sensitivity into account.
     public static boolean matchString(StructEntry entry, Object value, boolean exact, boolean caseSensitive) {
-      if (entry != null && value != null && value instanceof String) {
+      if (entry != null && value instanceof String) {
         // preparing source
         String s1 = (String) value;
         if (s1.isEmpty()) {
@@ -539,7 +531,7 @@ public class SearchOptions {
 
     // Returns whether all bits match (exact=true) or only the set bits match (exact=false)
     public static boolean matchFlags(StructEntry flag, Object value) {
-      if (flag != null && flag instanceof Flag && value != null) {
+      if (flag instanceof Flag && value != null) {
         boolean retVal = true;
         int v;
         boolean isExact;
@@ -557,7 +549,7 @@ public class SearchOptions {
 
         for (int mask = 1, bit = 0; bit < (flag.getSize() << 3); bit++, mask <<= 1) {
           if (isExact) {
-            if (((v & mask) != 0) != ((Flag) flag).isFlagSet(bit)) {
+            if (((v & mask) == 0) == ((Flag) flag).isFlagSet(bit)) {
               retVal = false;
               break;
             }
@@ -606,7 +598,7 @@ public class SearchOptions {
     }
 
     public static boolean matchCustomFilter(AbstractStruct struct, Object match) {
-      if (struct != null && match != null && match instanceof Couple<?, ?>
+      if (struct != null && match instanceof Couple<?, ?>
           && ((Couple<?, ?>) match).getValue0() instanceof String) {
         String fieldName = (String) ((Couple<?, ?>) match).getValue0();
         Object value = ((Couple<?, ?>) match).getValue1();

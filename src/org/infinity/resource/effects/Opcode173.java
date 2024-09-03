@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 173.
+ * Implementation of opcode 173.
  */
 public class Opcode173 extends BaseOpcode {
   private static final String[] INC_TYPES_TOBEX = { INC_TYPES[1], INC_TYPES[0], INC_TYPES[2], "Instantaneous" };

@@ -109,6 +109,7 @@ public final class CreMapCache {
       try {
         Thread.sleep(1);
       } catch (InterruptedException e) {
+        Logger.trace(e);
       }
     }
 

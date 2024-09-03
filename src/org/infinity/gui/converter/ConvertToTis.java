@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -188,7 +187,7 @@ public class ConvertToTis extends ChildFrame
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
           tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2)]     = (byte) (palette[i - 1] & 0xff);
             tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
             tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
@@ -371,7 +370,7 @@ public class ConvertToTis extends ChildFrame
       }
 
       // writing TIS entries
-      Collections.sort(entryList, TileEntry.CompareByIndex);
+      entryList.sort(TileEntry.CompareByIndex);
       for (int i = 0; i < entryList.size(); i++, dstOfs += 12) {
         TileEntry entry = entryList.get(i);
         DynamicArray.putInt(dst, dstOfs, entry.page);
@@ -422,7 +421,7 @@ public class ConvertToTis extends ChildFrame
     Path outFile = FileManager.resolve(tisFilename).toAbsolutePath();
     Path outPath = outFile.getParent();
     String outNameBase = outFile.getFileName().toString();
-    if (outNameBase == null || outNameBase.isEmpty() || outNameBase.charAt(0) == '.') {
+    if (outNameBase.isEmpty() || outNameBase.charAt(0) == '.') {
       outNameBase = "OUTPUT";
     }
     if (outNameBase.lastIndexOf('.') > 0) {
@@ -450,12 +449,11 @@ public class ConvertToTis extends ChildFrame
 
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+    return new FileNameExtensionFilter[] {
         new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bam", "bmp", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
-    return filters;
   }
 
   // generates a PVRZ filename based on the specified parameters
@@ -467,8 +465,7 @@ public class ConvertToTis extends ChildFrame
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
     if (Pattern.matches(".{2,7}", tisNameBase)) {
-      String pvrzName = String.format("%s%s%02d.PVRZ", tisNameBase.substring(0, 1),
-          tisNameBase.substring(2, tisNameBase.length()), page);
+      String pvrzName = String.format("%s%s%02d.PVRZ", tisNameBase.charAt(0), tisNameBase.substring(2), page);
       if (tisPath != null) {
         return tisPath.resolve(pvrzName).toString();
       } else {
@@ -579,28 +576,25 @@ public class ConvertToTis extends ChildFrame
       if (workerConvert == null) {
         final String msg = "TIS output file already exists. Overwrite?";
         Path file = null;
-        do {
-          if (!tfOutput.getText().isEmpty()) {
-            file = FileManager.resolve(tfOutput.getText());
-          }
-          if (file != null) {
-            if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
-                "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-              file = null;
-              workerConvert = new SwingWorker<List<String>, Void>() {
-                @Override
-                public List<String> doInBackground() {
-                  return convert();
-                }
-              };
-              workerConvert.addPropertyChangeListener(this);
-              blocker = new WindowBlocker(this);
-              blocker.setBlocked(true);
-              workerConvert.execute();
-            }
+        if (!tfOutput.getText().isEmpty()) {
+          file = FileManager.resolve(tfOutput.getText());
+        }
+        if (file != null) {
+          if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
+              "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             file = null;
+            workerConvert = new SwingWorker<List<String>, Void>() {
+              @Override
+              public List<String> doInBackground() {
+                return convert();
+              }
+            };
+            workerConvert.addPropertyChangeListener(this);
+            blocker = new WindowBlocker(this);
+            blocker.setBlocked(true);
+            workerConvert.execute();
           }
-        } while (file != null);
+        }
       }
     } else if (event.getSource() == bCancel) {
       hideWindow();
@@ -995,7 +989,7 @@ public class ConvertToTis extends ChildFrame
 
   // returns number of tiles to convert
   private int getTileCount() {
-    return (sTileNum.getValue() > 0) ? sTileNum.getValue() : 0;
+    return Math.max(sTileNum.getValue(), 0);
   }
 
   private String getInputFile() {
@@ -1058,6 +1052,7 @@ public class ConvertToTis extends ChildFrame
     try {
       srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
     } catch (Exception e) {
+      Logger.trace(e);
     }
     if (srcImage == null) {
       ret.add(null);

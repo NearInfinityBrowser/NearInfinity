@@ -68,11 +68,7 @@ public class FixedFocusTraversalPolicy extends FocusTraversalPolicy {
   public void setDefaultComponent(Component c) {
     if (c != null) {
       int idx = order.indexOf(c);
-      if (idx >= 0) {
-        defaultIndex = idx;
-      } else {
-        defaultIndex = 0;
-      }
+      defaultIndex = Math.max(idx, 0);
     } else {
       defaultIndex = 0;
     }

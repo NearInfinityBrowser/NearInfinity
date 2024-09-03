@@ -225,7 +225,7 @@ public class IdsMapCache {
       if (map != null) {
         final int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          final IdsMapEntry entry = map.get((1 << i));
+          final IdsMapEntry entry = map.get((1L << i));
           String s = (entry != null) ? entry.getSymbol() : null;
           if (s != null && !s.isEmpty()) {
             if (prettify) {
@@ -250,7 +250,7 @@ public class IdsMapCache {
     }
 
     // converting list into array
-    return list.toArray(new String[list.size()]);
+    return list.toArray(new String[0]);
   }
 
   /**

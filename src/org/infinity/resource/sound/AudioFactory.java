@@ -166,6 +166,7 @@ public class AudioFactory {
         }
       }
     } catch (Throwable t) {
+      Logger.trace(t);
     }
     return af;
   }

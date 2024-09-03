@@ -163,7 +163,7 @@ public class ResourceRef extends Datatype
       }
     }
     addExtraEntries(values);
-    Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
+    values.sort(IGNORE_CASE_EXT_COMPARATOR);
     boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
         Arrays.stream(types).anyMatch(s -> ICON_EXTENSIONS.contains(s.toUpperCase()));
     list = new TextListPanel<>(values, false, showIcons);

@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -157,7 +156,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
 
   public BifEditorTableLine[] getSelectedValues() {
     final BifEditorTableLine[] selected = new BifEditorTableLine[table.getSelectedRowCount()];
-    int isel[] = table.getSelectedRows();
+    int[] isel = table.getSelectedRows();
     for (int i = 0; i < isel.length; i++) {
       selected[i] = tablemodel.get(isel[i]);
     }
@@ -223,7 +222,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
             entries.add(line);
             return true;
           } else if (line.state == State.BIF) {
-            String options[] = { "Keep updated", "Overwrite updated", "Cancel" };
+            String[] options = { "Keep updated", "Overwrite updated", "Cancel" };
             int choice = JOptionPane.showOptionDialog(parent, "An updated version of this file already exists.",
                 "Updated version exists", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
                 options[0]);
@@ -321,7 +320,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
     }
 
     public void sort() {
-      Collections.sort(entries, this);
+      entries.sort(this);
     }
 
     @Override

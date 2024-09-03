@@ -12,7 +12,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -143,12 +142,7 @@ public final class DialogChecker extends AbstractSearcher
     try {
       final List<ResourceEntry> dlgFiles = ResourceFactory.getResources("DLG");
       if (checkOnlyOverride) {
-        for (Iterator<ResourceEntry> i = dlgFiles.iterator(); i.hasNext();) {
-          ResourceEntry resourceEntry = i.next();
-          if (!resourceEntry.hasOverride()) {
-            i.remove();
-          }
-        }
+        dlgFiles.removeIf(resourceEntry -> !resourceEntry.hasOverride());
       }
 
       final Class<?>[] colClasses = { ResourceEntry.class, String.class, String.class, Integer.class };
@@ -259,12 +253,12 @@ public final class DialogChecker extends AbstractSearcher
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
     final Compiler compiler = new Compiler(code.getText(), type);
     compiler.compile();
-    synchronized (errorTable) {
+    synchronized (this) {
       for (final ScriptMessage sm : compiler.getErrors()) {
         errorTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.ERROR));
       }
     }
-    synchronized (warningTable) {
+    synchronized (this) {
       for (final ScriptMessage sm : compiler.getWarnings()) {
         warningTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING));
       }

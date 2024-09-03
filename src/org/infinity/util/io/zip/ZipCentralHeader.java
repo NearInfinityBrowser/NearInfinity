@@ -107,7 +107,7 @@ public class ZipCentralHeader extends ZipLocalHeader {
     hash = 31 * hash + attribInternal;
     hash = 31 * hash + Long.hashCode(attribExternal);
     hash = 31 * hash + Long.hashCode(ofsLocalHeader);
-    hash = 31 * hash + ((comment == null) ? 0 : comment.hashCode());
+    hash = 31 * hash + ((comment == null) ? 0 : Arrays.hashCode(comment));
     hash = 31 * hash + ((localHeader == null) ? 0 : localHeader.hashCode());
     return hash;
   }
@@ -128,13 +128,7 @@ public class ZipCentralHeader extends ZipLocalHeader {
     if (this == o) {
       return 0;
     } else if (o instanceof ZipCentralHeader) {
-      if (this.ofsLocalHeader < ((ZipCentralHeader) o).ofsLocalHeader) {
-        return -1;
-      } else if (this.ofsLocalHeader > ((ZipCentralHeader) o).ofsLocalHeader) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Long.compare(this.ofsLocalHeader, ((ZipCentralHeader) o).ofsLocalHeader);
     } else if (o != null) {
       return super.compareTo(o);
     } else {

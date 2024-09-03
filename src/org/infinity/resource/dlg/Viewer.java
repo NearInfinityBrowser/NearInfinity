@@ -55,7 +55,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.tinylog.Logger;
 
-final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
+public class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
   private static final ButtonPanel.Control CTRL_NEXT_STATE      = ButtonPanel.Control.CUSTOM_1;
   private static final ButtonPanel.Control CTRL_PREV_STATE      = ButtonPanel.Control.CUSTOM_2;
   private static final ButtonPanel.Control CTRL_NEXT_TRANS      = ButtonPanel.Control.CUSTOM_3;
@@ -131,7 +131,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private DlgResource undoDlg;
   private boolean alive = true;
 
-  Viewer(DlgResource dlg) {
+  public Viewer(DlgResource dlg) {
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
 

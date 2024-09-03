@@ -4,12 +4,7 @@
 
 package org.infinity.util;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.AbstractListModel;
 
@@ -26,9 +21,7 @@ public class SimpleListModel<E> extends AbstractListModel<E> {
   /** Constructs a ListModel object containing the elements from the specified array. */
   public SimpleListModel(E[] items) {
     delegate.ensureCapacity(items.length);
-    for (E item : items) {
-      delegate.add(item);
-    }
+    Collections.addAll(delegate, items);
   }
 
   /** Constructs a ListModel object containing the elements from the specified collection. */

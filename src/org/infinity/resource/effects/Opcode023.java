@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 23.
+ * Implementation of opcode 23.
  */
 public class Opcode023 extends BaseOpcode {
   private static final String[] MODES_EE = { "BG2 mode", "BG1 mode" };

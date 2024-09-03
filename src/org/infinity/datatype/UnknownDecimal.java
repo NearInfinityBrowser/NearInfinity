@@ -32,7 +32,7 @@ public final class UnknownDecimal extends Unknown {
   public boolean updateValue(AbstractStruct struct) {
     String value = textArea.getText().trim();
     value = value.replaceAll("\r?\n", " ") + ' ';
-    byte newdata[] = new byte[buffer.limit()];
+    byte[] newdata = new byte[buffer.limit()];
     int counter = 0;
     try {
       int index = value.indexOf(' ');

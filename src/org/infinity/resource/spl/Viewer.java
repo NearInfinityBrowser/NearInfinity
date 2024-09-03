@@ -28,6 +28,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.tinylog.Logger;
 
 public final class Viewer extends JPanel {
   private static final HashMap<Integer, String> SPELL_PREFIX_MAP = new HashMap<>();
@@ -68,6 +69,7 @@ public final class Viewer extends JPanel {
         try {
           code = Integer.parseInt(s);
         } catch (NumberFormatException e) {
+          Logger.trace(e);
         }
 
         // returning symbolic spell name
@@ -112,7 +114,7 @@ public final class Viewer extends JPanel {
       type = 0;
     }
     int code = value % 1000;
-    String prefix = SPELL_PREFIX_MAP.get(Integer.valueOf(type));
+    String prefix = SPELL_PREFIX_MAP.get(type);
     if (prefix != null) {
       String nameBase = String.format("%s%03d", prefix, code);
       return extension ? nameBase + ".SPL" : nameBase;

@@ -357,7 +357,7 @@ public class EffectDecoder extends SpriteDecoder {
       }
     }
 
-    if (retVal.isEmpty()) {
+    if (retVal != null && retVal.isEmpty()) {
       retVal = null;
     }
 

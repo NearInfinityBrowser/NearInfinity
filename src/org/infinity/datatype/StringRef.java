@@ -203,7 +203,7 @@ public final class StringRef extends Datatype
               JTextField edit = (JTextField) e.getSource();
               // Invoke later to circumvent content validation (may not work correctly on every platform)
               if (e.getClickCount() == 2) {
-                SwingUtilities.invokeLater(() -> edit.selectAll());
+                SwingUtilities.invokeLater(edit::selectAll);
               } else {
                 SwingUtilities.invokeLater(() -> edit.setCaretPosition(edit.viewToModel(e.getPoint())));
               }

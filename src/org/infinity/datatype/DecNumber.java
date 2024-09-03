@@ -26,8 +26,9 @@ import org.tinylog.Logger;
  * </ul>
  */
 public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
+  private final boolean signed;
+
   private long number;
-  private boolean signed;
 
   public DecNumber(ByteBuffer buffer, int offset, int length, String name) {
     this(buffer, offset, length, name, true);
@@ -94,7 +95,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
         if (signed) {
           number = buffer.getInt();
         } else {
-          number = buffer.getInt() & 0xffffffff;
+          number = buffer.getInt() & 0xffffffffL;
         }
         break;
       default:
@@ -174,7 +175,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
       if (value instanceof IsTextual) {
         s = ((IsTextual) value).getText();
       } else {
-        s = (value != null) ? value.toString() : "";
+        s = value.toString();
       }
       s = s.toLowerCase(Locale.ENGLISH);
 

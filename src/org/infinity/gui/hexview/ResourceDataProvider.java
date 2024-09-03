@@ -37,7 +37,7 @@ public class ResourceDataProvider implements IDataProvider {
 
   @Override
   public void addListener(IDataChangedListener listener) {
-    if (listener != null && listeners.indexOf(listener) < 0) {
+    if (listener != null && !listeners.contains(listener)) {
       listeners.add(listener);
     }
   }
@@ -140,11 +140,11 @@ public class ResourceDataProvider implements IDataProvider {
   }
 
   private boolean isModifiedData(int offset) {
-    return modifiedMap.containsKey(Integer.valueOf(offset));
+    return modifiedMap.containsKey(offset);
   }
 
   private byte getModifiedData(int offset) {
-    Byte b = modifiedMap.get(Integer.valueOf(offset));
+    Byte b = modifiedMap.get(offset);
     if (b != null) {
       return b;
     } else {

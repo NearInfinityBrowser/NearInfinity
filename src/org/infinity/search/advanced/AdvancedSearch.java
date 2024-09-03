@@ -591,7 +591,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
 
           // determine number of unique resource entries in the results list
           HashSet<ResourceEntry> entrySet = new HashSet<>();
-          resourceCount = found.stream().filter(e -> entrySet.add(e.getResource())).collect(Collectors.toList()).size();
+          resourceCount = (int) found.stream().filter(e -> entrySet.add(e.getResource())).count();
         }
 
         lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
@@ -634,6 +634,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
     try {
       return (FilterMode) ((ToggleButtonDataModel) bgFilterMode.getSelection()).getData();
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return null;
   }
@@ -872,7 +873,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         if (!event.isPopupTrigger() && event.getClickCount() == 2) {
           // double click triggers filter edit
           Rectangle cellRect = filterList.getCellBounds(filterList.getSelectedIndex(), filterList.getSelectedIndex());
-          if (cellRect != null && event.getPoint() != null && cellRect.contains(event.getPoint())) {
+          if (cellRect != null && cellRect.contains(event.getPoint())) {
             listeners.actionPerformed(new ActionEvent(bFilterEdit, 0, null));
           }
         }
@@ -947,7 +948,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
     public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
       if (event.getSource() == menuFilters) {
         // update menu item states based on current filter list state
-        List<Component> items = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+        List<Component> items = Arrays.stream(menuFilters.getComponents()).filter(c -> c instanceof JMenuItem)
             .collect(Collectors.toList());
         for (int i = 0, cnt = items.size(); i < cnt; i++) {
           JMenuItem mi = (JMenuItem) items.get(i);

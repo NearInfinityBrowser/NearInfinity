@@ -35,6 +35,8 @@
 
 package org.infinity.util.io.zip;
 
+import org.tinylog.Logger;
+
 import java.io.IOException;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttributeView;
@@ -49,7 +51,7 @@ public class DlcFileAttributeView implements BasicFileAttributeView {
   protected static final String VIEW_BASIC = "basic";
   protected static final String VIEW_ZIP = "zip";
 
-  private enum AttrID {
+  protected enum AttrID {
     SIZE, CREATION_TIME, LAST_ACCESS_TIME, LAST_MODIFIED_TIME, IS_DIRECTORY, IS_REGULAR_FILE, IS_SYMBOLIC_LINK,
     IS_OTHER, FILE_KEY, COMPRESSED_SIZE, CRC, METHOD
   }
@@ -117,6 +119,7 @@ public class DlcFileAttributeView implements BasicFileAttributeView {
       }
       return;
     } catch (IllegalArgumentException x) {
+      Logger.trace(x);
     }
     throw new UnsupportedOperationException("'" + attribute + "' is unknown or read-only attribute");
   }
@@ -129,6 +132,7 @@ public class DlcFileAttributeView implements BasicFileAttributeView {
         try {
           map.put(id.name(), attribute(id, dfas));
         } catch (IllegalArgumentException x) {
+          Logger.trace(x);
         }
       }
     } else {
@@ -137,6 +141,7 @@ public class DlcFileAttributeView implements BasicFileAttributeView {
         try {
           map.put(a, attribute(AttrID.valueOf(a), dfas));
         } catch (IllegalArgumentException x) {
+          Logger.trace(x);
         }
       }
     }

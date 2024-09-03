@@ -254,7 +254,7 @@ public final class LayerManager {
    */
   public boolean isScheduled(LayerObject obj) {
     if (obj != null) {
-      return !isScheduleEnabled() || (isScheduleEnabled() && obj.isScheduled(getSchedule()));
+      return !isScheduleEnabled() || obj.isScheduled(getSchedule());
     }
     return false;
   }

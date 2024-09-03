@@ -240,7 +240,7 @@ public class EffectInfo {
 
     Set<Effect> set = effectMap.get(type);
     if (set != null) {
-      set.stream().filter(pred.and(e -> isEffectValid(e, creInfo))).forEach(fx -> retVal.add(fx));
+      set.stream().filter(pred.and(e -> isEffectValid(e, creInfo))).forEach(retVal::add);
     }
 
     return retVal;
@@ -277,7 +277,7 @@ public class EffectInfo {
 
     Set<Effect> set = effectMap.get(type);
     if (set != null) {
-      set.stream().anyMatch(pred);
+      return set.stream().anyMatch(pred);
     }
 
     return false;
@@ -315,11 +315,7 @@ public class EffectInfo {
     List<Effect> effects = resolveEffect(null, effect);
     for (final Effect fx : effects) {
       SegmentDef.SpriteType type = getEffectType(fx);
-      Set<Effect> set = effectMap.get(type);
-      if (set == null) {
-        set = new HashSet<>();
-        effectMap.put(type, set);
-      }
+      Set<Effect> set = effectMap.computeIfAbsent(type, k -> new HashSet<>());
       set.add(fx);
     }
   }
@@ -508,8 +504,7 @@ public class EffectInfo {
    * Evaluates the IDS filter specified by type and entry value for the given target.
    *
    * @param creInfo creature target
-   * @param type    the IDS resource type
-   * @param entry   the IDS entry index
+   * @param effect  the effect structure
    * @return whether creature stat matches reference stat.
    */
   private boolean evaluateIds(CreatureInfo creInfo, Effect effect) {
@@ -869,7 +864,7 @@ public class EffectInfo {
 
     /** Convenience method for creating an {@code Effect} instance from a byte array containing EFF V1 data. */
     public static Effect fromEffectV1(ByteBuffer buf, int startOfs) {
-      Effect retVal = new Effect(buf.order(ByteOrder.LITTLE_ENDIAN).getShort(0x0 + startOfs));
+      Effect retVal = new Effect(buf.order(ByteOrder.LITTLE_ENDIAN).getShort(startOfs));
       retVal.initEffectV1(buf, startOfs);
       return retVal;
     }

@@ -305,7 +305,7 @@ public abstract class LayerObjectActor extends LayerObject {
       sequences = Sequence.values();
     }
 
-    if (decoder == null || sequences.length == 0) {
+    if (decoder == null) {
       return retVal;
     }
 

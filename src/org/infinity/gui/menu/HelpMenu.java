@@ -235,7 +235,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
     };
     // original author
     final String originalVersion = "From Near Infinity 1.32.1 beta 24";
-    final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
+    final String originalCopyright = "Copyright (©) 2001-2005 - Jon Olav Hauglid";
     // List of various contributors (sorted alphabetically)
     final List<Couple<String, String[]>> contributors2 = new ArrayList<Couple<String, String[]>>() {
       {
@@ -257,13 +257,13 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
     // Third-party copyright messages
     final List<String> copyThirdPartyText = new ArrayList<String>() {
       {
-        add("Most icons (\u00A9) eclipse.org - Common Public License.");
-        add("RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.");
+        add("Most icons (©) eclipse.org - Common Public License.");
+        add("RSyntaxTextArea (©) Fifesoft - Berkeley Software Distribution License.");
         add("Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.");
-        add("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.");
+        add("JOrbis (©) JCraft Inc. - GNU Lesser General Public License.");
         add("JHexView by Sebastian Porst - GNU General Public License.");
-        add("CommonMark-Java (\u00A9) Atlassian Pty. Ltd. - BSD License.");
-        add("FlatLaf (\u00A9) FormDev Software GmbH - Apache License.");
+        add("CommonMark-Java (©) Atlassian Pty. Ltd. - BSD License.");
+        add("FlatLaf (©) FormDev Software GmbH - Apache License.");
         add("tinylog 2 by Martin Winandy - Apache License.");
         add("APNG Writer by Weoulren - BSD License.");
       }

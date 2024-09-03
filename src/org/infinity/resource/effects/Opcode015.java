@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 15.
+ * Implementation of opcode 15.
  */
 public class Opcode015 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */
@@ -55,7 +55,7 @@ public class Opcode015 extends BaseOpcode {
     Bitmap item = new Bitmap(buffer, offset + 4, 4, EFFECT_MODIFIER_TYPE,
         new String[] { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Cat's grace" });
     list.add(item);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       item.addUpdateListener((UpdateListener)parent);
     }
     return null;

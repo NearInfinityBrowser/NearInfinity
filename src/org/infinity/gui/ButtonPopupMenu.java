@@ -241,7 +241,7 @@ public class ButtonPopupMenu extends JButton {
       List<JMenuItem> preparedList;
       if (sorted) {
         preparedList = new ArrayList<>(menuItems);
-        Collections.sort(preparedList, MENU_ITEM_COMPARATOR);
+        preparedList.sort(MENU_ITEM_COMPARATOR);
       } else {
         preparedList = menuItems;
       }
@@ -428,7 +428,7 @@ public class ButtonPopupMenu extends JButton {
         }
       } else {
         menu.setVisible(false);
-        Component components[] = menu.getComponents();
+        Component[] components = menu.getComponents();
         for (final Component component : components) {
           if (component instanceof JMenuItem) {
             JMenuItem item = (JMenuItem) component;

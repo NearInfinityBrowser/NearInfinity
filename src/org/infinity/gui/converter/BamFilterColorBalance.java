@@ -78,12 +78,10 @@ public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeL
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(sliderRed.getValue()).append(';');
-    sb.append(sliderGreen.getValue()).append(';');
-    sb.append(sliderBlue.getValue()).append(';');
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return String.valueOf(sliderRed.getValue()) + ';' +
+        sliderGreen.getValue() + ';' +
+        sliderBlue.getValue() + ';' +
+        encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -92,9 +90,9 @@ public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeL
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.trim().split(";");
-        Integer redValue = Integer.MIN_VALUE;
-        Integer greenValue = Integer.MIN_VALUE;
-        Integer blueValue = Integer.MIN_VALUE;
+        int redValue = Integer.MIN_VALUE;
+        int greenValue = Integer.MIN_VALUE;
+        int blueValue = Integer.MIN_VALUE;
         int[] indices = null;
 
         // parsing configuration data
@@ -233,17 +231,17 @@ public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeL
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     } else if (event.getSource() == sliderRed) {
-      spinnerRed.setValue(Integer.valueOf(sliderRed.getValue()));
+      spinnerRed.setValue(sliderRed.getValue());
       if (!sliderRed.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderGreen) {
-      spinnerGreen.setValue(Integer.valueOf(sliderGreen.getValue()));
+      spinnerGreen.setValue(sliderGreen.getValue());
       if (!sliderGreen.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderBlue) {
-      spinnerBlue.setValue(Integer.valueOf(sliderBlue.getValue()));
+      spinnerBlue.setValue(sliderBlue.getValue());
       if (!sliderBlue.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
@@ -305,7 +303,7 @@ public class BamFilterColorBalance extends BamFilterBaseColor implements ChangeL
       float blue = ((Integer) spinnerBlue.getValue()).floatValue() / 255.0f;
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
           float fa = ((buffer[i] >>> 24) & 0xff) / 255.0f;
           float fr = (((buffer[i] >>> 16) & 0xff) / 255.0f) / fa;

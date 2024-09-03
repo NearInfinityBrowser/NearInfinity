@@ -170,7 +170,7 @@ public class DlcFileSystem extends FileSystem {
       StringBuilder sb = new StringBuilder();
       sb.append(first);
       for (String segment : more) {
-        if (segment.length() > 0) {
+        if (!segment.isEmpty()) {
           if (sb.length() > 0) {
             sb.append('/');
           }
@@ -185,7 +185,7 @@ public class DlcFileSystem extends FileSystem {
   @Override
   public PathMatcher getPathMatcher(String syntaxAndPattern) {
     int pos = syntaxAndPattern.indexOf(':');
-    if (pos <= 0 || pos == syntaxAndPattern.length()) {
+    if (pos <= 0) {
       throw new IllegalArgumentException();
     }
     String syntax = syntaxAndPattern.substring(0, pos);
@@ -616,7 +616,7 @@ public class DlcFileSystem extends FileSystem {
         }
 
         private void checkOpen() throws IOException {
-          if (fch == null || !fch.isOpen()) {
+          if (!fch.isOpen()) {
             throw new IOException("Channel not open");
           }
         }

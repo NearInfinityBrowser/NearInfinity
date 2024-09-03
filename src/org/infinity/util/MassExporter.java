@@ -331,7 +331,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION) {
         tfDirectory.setText(fc.getSelectedFile().toString());
       }
-      bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && tfDirectory.getText().length() > 0);
+      bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
     }
   }
 
@@ -341,7 +341,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && tfDirectory.getText().length() > 0);
+    bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -439,9 +439,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           try {
             threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
       } catch (Exception e) {
+        Logger.trace(e);
       }
 
       if (isCancelled) {
@@ -468,11 +470,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
    * Returns an array with all resource types available for the current game.
    */
   private static String[] getAvailableResourceTypes() {
-    List<String> types = Arrays.asList(Profile.getAvailableResourceTypes())
-        .stream()
+    return Arrays
+        .stream(Profile.getAvailableResourceTypes())
         .filter(s -> !TYPES_BLACKLIST.contains(s))
-        .collect(Collectors.toList());
-    return types.toArray(new String[types.size()]);
+        .toArray(String[]::new);
   }
 
   private int getResourceCount() {
@@ -570,7 +571,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   private void decompressWav(ResourceEntry entry, Path output) throws Exception {
     ByteBuffer buffer = StreamUtils.getByteBuffer(AudioFactory.convertAudio(entry));
-    if (buffer != null && buffer.limit() > 0) {
+    if (buffer.limit() > 0) {
       // Keep trying. File may be in use by another thread.
       try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
         StreamUtils.writeBytes(os, buffer);
@@ -915,13 +916,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         try {
           os = StreamUtils.getOutputStream(output, true);
         } catch (FileNotFoundException fnfe) {
-          os = null;
           if (--numAttempts == 0) {
             throw fnfe;
           }
           try {
             Thread.sleep(delayAttempts);
           } catch (InterruptedException ie) {
+            Logger.trace(ie);
           }
         }
       }

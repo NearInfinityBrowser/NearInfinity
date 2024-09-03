@@ -55,6 +55,7 @@ import org.infinity.resource.Profile;
 import org.infinity.util.Platform;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileManager;
+import org.tinylog.Logger;
 
 /**
  * Edit or remove bookmarked games.
@@ -298,8 +299,8 @@ public class BookmarkEditor extends JDialog
     cbPlatform.addItemListener(this);
 
     if (listBookmarks != null) {
-      for (Iterator<Bookmark> iter = listBookmarks.iterator(); iter.hasNext();) {
-        modelEntries.addElement(iter.next());
+      for (Bookmark listBookmark : listBookmarks) {
+        modelEntries.addElement(listBookmark);
       }
       if (!modelEntries.isEmpty()) {
         listEntries.setSelectedIndex(0);
@@ -512,18 +513,15 @@ public class BookmarkEditor extends JDialog
         }
       };
     }
-    if (exeFilter != null) {
-      fc.addChoosableFileFilter(exeFilter);
-    }
+    fc.addChoosableFileFilter(exeFilter);
     fc.addChoosableFileFilter(fc.getAcceptAllFileFilter());
-    if (exeFilter != null) {
-      fc.setFileFilter(exeFilter);
-    }
+    fc.setFileFilter(exeFilter);
     if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
       Path path = fc.getSelectedFile().toPath();
       try {
         path = Profile.getGameRoot().relativize(path);
       } catch (IllegalArgumentException ex) {
+        Logger.trace(ex);
       }
       DefaultListModel<Path> model = getBinPathModel();
       boolean exists = false;

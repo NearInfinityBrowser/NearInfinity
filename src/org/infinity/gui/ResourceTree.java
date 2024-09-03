@@ -335,7 +335,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         Logger.error(e);
       }
     } else if (entry instanceof BIFFResourceEntry) {
-      String options[] = { "Delete", "Cancel" };
+      String[] options = { "Delete", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(),
           "Are you sure you want to delete the " + "override file " + entry + '?', "Delete file",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
@@ -377,8 +377,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           // .bak available -> restore .bak version
           Path curFile = getCurrentFile(entry);
           Path tmpFile = getTempFile(curFile);
-          if (curFile != null && FileEx.create(curFile).isFile() && bakFile != null
-              && FileEx.create(bakFile).isFile()) {
+          if (curFile != null && FileEx.create(curFile).isFile() && FileEx.create(bakFile).isFile()) {
             try {
               Files.move(curFile, tmpFile);
               try {
@@ -541,10 +540,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     public TreeExpandListener(JTree tree) {
       this.tree = Objects.requireNonNull(tree);
       this.expanding = false;
-      if (this.tree != null) {
-        this.tree.addTreeWillExpandListener(this);
-        this.tree.addTreeExpansionListener(this);
-      }
+      this.tree.addTreeWillExpandListener(this);
+      this.tree.addTreeExpansionListener(this);
     }
 
     @Override
@@ -734,7 +731,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
       } else if (event.getSource() == miReference && node != null) {
         Resource res = ResourceFactory.getResource(node);
-        if (res != null && res instanceof Referenceable) {
+        if (res instanceof Referenceable) {
           if (((Referenceable) res).isReferenceable()) {
             ((Referenceable) res).searchReferences(NearInfinity.getInstance());
           } else {

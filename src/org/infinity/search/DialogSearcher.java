@@ -177,7 +177,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
         final Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct) resource);
         for (final Map.Entry<StructEntry, StructEntry> e : searchMap.entrySet()) {
           final StructEntry searchEntry = e.getKey();
-          String s = null;
+          String s = "";
           if (searchEntry instanceof StringRef) {
             s = searchEntry.toString();
           } else if (searchEntry instanceof AbstractCode) {

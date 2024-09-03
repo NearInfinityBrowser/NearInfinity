@@ -598,6 +598,7 @@ public class MveDecoder {
         try {
           mveInput.close();
         } catch (IOException e) {
+          Logger.trace(e);
         }
         mveInput = null;
       }
@@ -853,6 +854,7 @@ public class MveDecoder {
             }
             numRead += n;
           } catch (IOException e) {
+            Logger.trace(e);
           }
         }
       }

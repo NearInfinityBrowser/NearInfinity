@@ -13,7 +13,7 @@ import org.infinity.datatype.IdsBitmap;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 71.
+ * Implementation of opcode 71.
  */
 public class Opcode071 extends BaseOpcode {
   private static final String EFFECT_GENDER = "Gender";

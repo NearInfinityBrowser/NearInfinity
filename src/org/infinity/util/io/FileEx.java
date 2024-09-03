@@ -22,10 +22,11 @@ import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import org.infinity.util.FileDeletionHook;
+import org.tinylog.Logger;
 
 /**
  * Expands the {@link File} class by custom filesystem support.
@@ -138,7 +139,7 @@ public class FileEx extends File {
    * @throws NullPointerException If {@code path} is {@code null}
    */
   public FileEx(Path path) {
-    super((path != null) ? path.toString() : null);
+    super(Objects.requireNonNull(path).toString());
     this.path = validatePath(path);
   }
 
@@ -265,11 +266,12 @@ public class FileEx extends File {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<String> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
-            list.add(iter.next().getFileName().toString());
+          for (Path d : ds) {
+            list.add(d.getFileName().toString());
           }
-          return list.toArray(new String[list.size()]);
+          return list.toArray(new String[0]);
         } catch (Exception ex) {
+          Logger.trace(ex);
         }
       }
       return null;
@@ -285,14 +287,15 @@ public class FileEx extends File {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           File dir = new FileEx(path);
           ArrayList<String> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
-            String s = iter.next().getFileName().toString();
+          for (Path d : ds) {
+            String s = d.getFileName().toString();
             if (filter == null || filter.accept(dir, s)) {
               list.add(s);
             }
           }
-          return list.toArray(new String[list.size()]);
+          return list.toArray(new String[0]);
         } catch (Exception ex) {
+          Logger.trace(ex);
         }
       }
       return null;
@@ -307,11 +310,12 @@ public class FileEx extends File {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<File> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
-            list.add(new FileEx(iter.next()));
+          for (Path d : ds) {
+            list.add(new FileEx(d));
           }
-          return list.toArray(new File[list.size()]);
+          return list.toArray(new File[0]);
         } catch (Exception ex) {
+          Logger.trace(ex);
         }
       }
       return null;
@@ -332,8 +336,9 @@ public class FileEx extends File {
               list.add(new FileEx(p));
             }
           }
-          return list.toArray(new File[list.size()]);
+          return list.toArray(new File[0]);
         } catch (Exception ex) {
+          Logger.trace(ex);
         }
       }
       return null;
@@ -348,14 +353,15 @@ public class FileEx extends File {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path)) {
           ArrayList<File> list = new ArrayList<>();
-          for (Iterator<Path> iter = ds.iterator(); iter.hasNext();) {
-            File f = new FileEx(iter.next());
+          for (Path d : ds) {
+            File f = new FileEx(d);
             if (filter == null || filter.accept(f)) {
               list.add(f);
             }
           }
-          return list.toArray(new File[list.size()]);
+          return list.toArray(new File[0]);
         } catch (Exception ex) {
+          Logger.trace(ex);
         }
       }
       return null;
@@ -443,6 +449,7 @@ public class FileEx extends File {
           throw new UnsupportedOperationException();
         }
       } catch (IOException ex) {
+        Logger.trace(ex);
       }
       return false;
     }
@@ -476,6 +483,7 @@ public class FileEx extends File {
           throw new UnsupportedOperationException();
         }
       } catch (IOException ex) {
+        Logger.trace(ex);
       }
       return false;
     }
@@ -509,6 +517,7 @@ public class FileEx extends File {
           throw new UnsupportedOperationException();
         }
       } catch (IOException ex) {
+        Logger.trace(ex);
       }
       return false;
     }
@@ -542,6 +551,7 @@ public class FileEx extends File {
           throw new UnsupportedOperationException();
         }
       } catch (IOException ex) {
+        Logger.trace(ex);
       }
       return false;
     }
@@ -611,7 +621,7 @@ public class FileEx extends File {
   // Returns a well-defined Path instance for internal use.
   private static Path validatePath(Path path) {
     if (path != null) {
-      if (path.getFileSystem() == null || DEFAULT_FS.equals(path.getFileSystem())) {
+      if (DEFAULT_FS.equals(path.getFileSystem())) {
         path = null;
       }
     }

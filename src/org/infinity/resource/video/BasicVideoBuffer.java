@@ -133,15 +133,11 @@ public class BasicVideoBuffer implements VideoBuffer {
     extraData = new Object[this.numBuffers];
     currentBuffer = 0;
     for (int i = 0; i < this.numBuffers; i++) {
-      if (width > 0 && height > 0) {
-        buffer[i] = ColorConvert.createCompatibleImage(width, height, hasTransparency);
-      } else {
-        buffer[i] = null;
-      }
+      buffer[i] = ColorConvert.createCompatibleImage(width, height, hasTransparency);
       extraData[i] = null;
     }
 
-    return (width > 0 && height > 0);
+    return true;
   }
 
   /**

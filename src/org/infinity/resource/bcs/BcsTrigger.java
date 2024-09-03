@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.infinity.resource.Profile;
 import org.infinity.util.StringBufferStream;
+import org.tinylog.Logger;
 
 /**
  * Handles BCS trigger (TR) byte code structures.
@@ -372,6 +373,7 @@ public class BcsTrigger extends BcsStructureBase {
             }
             cntNums++;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'S':
@@ -384,6 +386,7 @@ public class BcsTrigger extends BcsStructureBase {
             }
             cntStrings++;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'P':
@@ -392,6 +395,7 @@ public class BcsTrigger extends BcsStructureBase {
             t7.x = p.x;
             t7.y = p.y;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'O':
@@ -414,7 +418,7 @@ public class BcsTrigger extends BcsStructureBase {
         return o1.getName().compareTo(o2.getName());
       } else if (o1 == null && o2 == null) {
         return 0;
-      } else if (o1 != null && o2 == null) {
+      } else if (o1 != null) {
         return -1;
       } else {
         return 1;

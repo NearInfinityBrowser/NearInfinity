@@ -91,8 +91,9 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private GameType gameType; // 0=unknown, 1=BG2, 2=IWD, 3=IWD2
   private int lastStrref;
 
+  private final ResConfig config;
+
   private InfinityTextArea taText;
-  private ResConfig config;
 
   public NewResSettings(Window parent) {
     super(parent, "Biography settings");
@@ -265,7 +266,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
   // -------------------------- INNER CLASSES --------------------------
 
-  public class ResConfig {
+  public static class ResConfig {
     private String desc; // field at offset 0x08
 
     public ResConfig() {

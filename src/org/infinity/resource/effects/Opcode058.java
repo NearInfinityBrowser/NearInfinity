@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 58.
+ * Implementation of opcode 58.
  */
 public class Opcode058 extends BaseOpcode {
   private static final String EFFECT_LEVEL              = "Level";

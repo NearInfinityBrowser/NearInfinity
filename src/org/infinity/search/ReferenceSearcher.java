@@ -234,6 +234,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
       try {
         index = Integer.parseInt(matcher.group(1));
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
       if (index >= 0 && index <= 99999) {
         if (bam.containsPvrzReference(index)) {
@@ -251,6 +252,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
       try {
         index = Integer.parseInt(matcher.group(1));
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
       if (index >= 0 && index <= 99999) {
         if (mos.containsPvrzReference(index)) {
@@ -284,6 +286,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
         try {
           index = Integer.parseInt(page);
         } catch (NumberFormatException e) {
+          Logger.trace(e);
         }
         if (pTis.matcher(entry.getResourceName()).find() && index >= 0 && index <= 99) {
           if (tis.containsPvrzReference(index)) {

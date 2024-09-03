@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -334,34 +333,32 @@ public class OptionsMenuItem extends JMenuItem {
     List<Couple<String, String>> list = new ArrayList<>();
     if (definition != null && !definition.isEmpty()) {
       String[] entries = definition.split(";");
-      if (entries != null) {
-        for (final String entry : entries) {
-          String[] elements = entry.split("=");
-          if (elements != null && elements.length == 2) {
-            Profile.Game game = Profile.gameFromString(elements[0]);
-            if (game != Profile.Game.Unknown) {
-              String lang = elements[1].trim();
-              Couple<String, String> pair = null;
-              if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
-                pair = Couple.with(game.toString(), LANGUAGE_AUTODETECT);
-              } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                pair = Couple.with(game.toString(), lang);
-              }
+      for (final String entry : entries) {
+        String[] elements = entry.split("=");
+        if (elements.length == 2) {
+          Profile.Game game = Profile.gameFromString(elements[0]);
+          if (game != Profile.Game.Unknown) {
+            String lang = elements[1].trim();
+            Couple<String, String> pair = null;
+            if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
+              pair = Couple.with(game.toString(), LANGUAGE_AUTODETECT);
+            } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+              pair = Couple.with(game.toString(), lang);
+            }
 
-              // check if game/language pair is already in the list
-              if (pair != null) {
-                for (final Couple<String, String> curPair : list) {
-                  if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
-                    curPair.setValue1(pair.getValue1());
-                    pair = null;
-                    break;
-                  }
+            // check if game/language pair is already in the list
+            if (pair != null) {
+              for (final Couple<String, String> curPair : list) {
+                if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
+                  curPair.setValue1(pair.getValue1());
+                  pair = null;
+                  break;
                 }
               }
+            }
 
-              if (pair != null) {
-                list.add(pair);
-              }
+            if (pair != null) {
+              list.add(pair);
             }
           }
         }
@@ -808,6 +805,7 @@ public class OptionsMenuItem extends JMenuItem {
         info = new LookAndFeelInfo(AppOption.LOOK_AND_FEEL_CLASS.getName(), value);
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
 
     if (info == null) {
@@ -960,6 +958,7 @@ public class OptionsMenuItem extends JMenuItem {
                 lfName = ((LookAndFeel) o).getName();
               }
             } catch (Exception e) {
+              Logger.trace(e);
             }
             final LookAndFeelInfo info = new LookAndFeelInfo(lfName, className);
             NearInfinity.getInstance().updateLookAndFeel(info, false);
@@ -1012,56 +1011,52 @@ public class OptionsMenuItem extends JMenuItem {
       message = "Settings have been applied to Near Infinity.";
     }
 
-    if (sb.length() > 0 || message != null) {
-      // constructing dialog content pane
-      JPanel panel = new JPanel(new BorderLayout(8, 8));
+    // constructing dialog content pane
+    JPanel panel = new JPanel(new BorderLayout(8, 8));
 
-      if (sb.length() > 0) {
-        // constructing list of modified options
-        JLabel modifiedLabel = new JLabel(String.format("Modified settings (%d):", messages.size()), SwingConstants.LEADING);
-        panel.add(modifiedLabel, BorderLayout.NORTH);
+    if (sb.length() > 0) {
+      // constructing list of modified options
+      JLabel modifiedLabel = new JLabel(String.format("Modified settings (%d):", messages.size()), SwingConstants.LEADING);
+      panel.add(modifiedLabel, BorderLayout.NORTH);
 
-        // list of modified options
-        JTextArea textArea = new JTextArea(sb.toString());
+      // list of modified options
+      JTextArea textArea = new JTextArea(sb.toString());
 //        textArea.setBackground(panel.getBackground());
-        textArea.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
-        textArea.setFont(UIManager.getDefaults().getFont("Label.font"));
-        textArea.setEditable(false);
-        textArea.setFocusable(false);
-        textArea.setBorder(BorderFactory.createEmptyBorder());
+      textArea.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
+      textArea.setFont(UIManager.getDefaults().getFont("Label.font"));
+      textArea.setEditable(false);
+      textArea.setFocusable(false);
+      textArea.setBorder(BorderFactory.createEmptyBorder());
 
-        JScrollPane scroller = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroller.setBorder(BorderFactory.createEmptyBorder());
+      JScrollPane scroller = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      scroller.setBorder(BorderFactory.createEmptyBorder());
 
-        panel.add(scroller, BorderLayout.CENTER);
+      panel.add(scroller, BorderLayout.CENTER);
 
-        // limiting number of visible lines
-        final FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
-        int height = Math.min(15, messages.size()) * fm.getHeight() + fm.getHeight() / 2;
-        final Dimension dim = scroller.getPreferredSize();
-        dim.width += UIManager.getInt("ScrollBar.width"); // prevents cut off text
-        dim.height = height;
-        scroller.setPreferredSize(dim);
-      }
-
-      if (message != null) {
-        JTextPane msgPane = new JTextPane();
-        StyledDocument style = msgPane.getStyledDocument();
-        SimpleAttributeSet align = new SimpleAttributeSet();
-        StyleConstants.setAlignment(align, StyleConstants.ALIGN_LEFT);
-        style.setParagraphAttributes(0, style.getLength(), align, false);
-        msgPane.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
-        msgPane.setFont(UIManager.getDefaults().getFont("Label.font"));
-        msgPane.setEditable(false);
-        msgPane.setFocusable(false);
-        msgPane.setBorder(BorderFactory.createEmptyBorder());
-        msgPane.setText(message);
-        panel.add(msgPane, BorderLayout.SOUTH);
-      }
-
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "Settings changed", JOptionPane.INFORMATION_MESSAGE);
+      // limiting number of visible lines
+      final FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+      int height = Math.min(15, messages.size()) * fm.getHeight() + fm.getHeight() / 2;
+      final Dimension dim = scroller.getPreferredSize();
+      dim.width += UIManager.getInt("ScrollBar.width"); // prevents cut off text
+      dim.height = height;
+      scroller.setPreferredSize(dim);
     }
+
+    JTextPane msgPane = new JTextPane();
+    StyledDocument style = msgPane.getStyledDocument();
+    SimpleAttributeSet align = new SimpleAttributeSet();
+    StyleConstants.setAlignment(align, StyleConstants.ALIGN_LEFT);
+    style.setParagraphAttributes(0, style.getLength(), align, false);
+    msgPane.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
+    msgPane.setFont(UIManager.getDefaults().getFont("Label.font"));
+    msgPane.setEditable(false);
+    msgPane.setFocusable(false);
+    msgPane.setBorder(BorderFactory.createEmptyBorder());
+    msgPane.setText(message);
+    panel.add(msgPane, BorderLayout.SOUTH);
+
+    JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "Settings changed", JOptionPane.INFORMATION_MESSAGE);
   }
 
   // -------------------------- INNER CLASSES --------------------------
@@ -1164,9 +1159,9 @@ public class OptionsMenuItem extends JMenuItem {
     private void init() {
       StringBuilder sb = new StringBuilder();
       Charset cs = Charset.forName(getId());
-      if (cs != null && !cs.aliases().isEmpty()) {
+      if (!cs.aliases().isEmpty()) {
         sb.append("Charset aliases: ")
-        .append(cs.aliases().stream().collect(Collectors.joining(", ")));
+        .append(String.join(", ", cs.aliases()));
       }
       desc = sb.toString();
     }

@@ -43,7 +43,7 @@ public class RenderPanel extends JPanel {
   private final CreatureBrowser browser;
 
   // storage for scroll pane view size to track view size changes
-  private Dimension viewSize = new Dimension();
+  private final Dimension viewSize = new Dimension();
 
   private JPanel pCanvas;
   private RenderCanvas rcCanvas;
@@ -233,8 +233,7 @@ public class RenderPanel extends JPanel {
       frame = null;
     }
 
-    Couple<Image, Rectangle> retVal = new Couple<>(frame, frameBounds);
-    return retVal;
+    return new Couple<>(frame, frameBounds);
   }
 
   /**
@@ -416,8 +415,8 @@ public class RenderPanel extends JPanel {
     // apply zoom factor
     if (rcCanvas.getImage() != null) {
       Dimension dim = new Dimension(rcCanvas.getImage().getWidth(null), rcCanvas.getImage().getHeight(null));
-      dim.width *= getZoom();
-      dim.height *= getZoom();
+      dim.width *= (int) getZoom();
+      dim.height *= (int) getZoom();
       rcCanvas.setPreferredSize(dim);
       rcCanvas.setSize(dim);
     }

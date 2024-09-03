@@ -84,7 +84,7 @@ public class CreatureControlModel {
   /**
    * Selects the specified CRE resource and initializes related fields.
    *
-   * @param entry {@code CreResource} instance of the creature
+   * @param cre {@code CreResource} instance of the creature
    * @throws Exception if creature resource could not be initialized
    */
   public void setSelectedCreature(CreResource cre) throws Exception {
@@ -112,7 +112,7 @@ public class CreatureControlModel {
       getModelAnimation().reload();
     }
 
-    int idx = getModelAnimation().getIndexOf(Integer.valueOf(value));
+    int idx = getModelAnimation().getIndexOf(value);
     if (idx >= 0) {
       getModelAnimation().setSelectedItem(getModelAnimation().getElementAt(idx));
     } else {
@@ -127,7 +127,7 @@ public class CreatureControlModel {
       getModelAllegiance().reload();
     }
 
-    int idx = Math.max(0, getModelAllegiance().getIndexOf(Integer.valueOf(value)));
+    int idx = Math.max(0, getModelAllegiance().getIndexOf(value));
     getModelAllegiance().setSelectedItem(getModelAllegiance().getElementAt(idx));
     creAllegianceChanged();
   }
@@ -197,7 +197,7 @@ public class CreatureControlModel {
       model.reload();
     }
 
-    int idx = model.getIndexOf(Integer.valueOf(color));
+    int idx = model.getIndexOf(color);
     model.setSelectedItem(model.getElementAt(idx));
     colorChanged(index);
   }
@@ -344,6 +344,7 @@ public class CreatureControlModel {
         return (ColorEntry) model.getSelectedItem();
       }
     } catch (IndexOutOfBoundsException e) {
+      Logger.trace(e);
     }
     return null;
   }
@@ -450,10 +451,9 @@ public class CreatureControlModel {
       isTwoHanded |= Profile.isEnhancedEdition() && ((info.getFlags() & (1 << 12)) != 0);
       ItemPredicate shieldPred = null;
       if (!isTwoHanded) {
-        shieldPred = (shieldPred == null) ? ItemInfo.FILTER_SHIELD : shieldPred.or(ItemInfo.FILTER_SHIELD);
+        shieldPred = ItemInfo.FILTER_SHIELD;
         if (isMelee) {
-          shieldPred = (shieldPred == null) ? ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED
-              : shieldPred.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
+          shieldPred = shieldPred.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
         }
       }
       if (shieldPred == null) {
@@ -519,7 +519,7 @@ public class CreatureControlModel {
     if (canApply || canReset) {
       boolean randomColor = false;
       for (int i = 0; i < colorModels.size() && !randomColor; i++) {
-        randomColor |= isColorRandom(i);
+        randomColor = isColorRandom(i);
       }
       canApply = randomColor;
       canReset = isCreatureModified();

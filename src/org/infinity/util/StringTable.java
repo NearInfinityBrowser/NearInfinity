@@ -748,6 +748,7 @@ public class StringTable {
       instance(type)._write(callback);
       retVal = true;
     } catch (IOException e) {
+      Logger.trace(e);
     }
 
     return retVal;
@@ -767,6 +768,7 @@ public class StringTable {
       instance(type)._write(tlkFile, callback);
       retVal = true;
     } catch (IOException e) {
+      Logger.trace(e);
     }
 
     return retVal;
@@ -846,10 +848,10 @@ public class StringTable {
     }
     boolean retVal = true;
     try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
-      String newline = System.getProperty("line.separator");
+      String newline = System.lineSeparator();
       // writing header
       String niPath = Utils.getJarFileName(NearInfinity.class);
-      if (niPath == null || niPath.isEmpty()) {
+      if (niPath.isEmpty()) {
         niPath = "Near Infinity";
       }
       niPath += " (" + NearInfinity.getVersion() + ")";
@@ -860,6 +862,7 @@ public class StringTable {
       try {
         pathDialog = Profile.getGameRoot().relativize(pathDialog);
       } catch (IllegalArgumentException e) {
+        Logger.trace(e);
       }
       writer.println("// dialog  : " + pathDialog);
 
@@ -869,6 +872,7 @@ public class StringTable {
         try {
           pathDialog = Profile.getGameRoot().relativize(pathDialog);
         } catch (IllegalArgumentException e) {
+          Logger.trace(e);
         }
         writer.println(pathDialog);
       } else {
@@ -1006,8 +1010,8 @@ public class StringTable {
 
   private int _getTranslatedIndex(int index) {
     if (Profile.isEnhancedEdition() && index >= STRREF_VIRTUAL) {
-      if (entriesVirtual.containsKey(Integer.valueOf(index))) {
-        index = entriesVirtual.get(Integer.valueOf(index));
+      if (entriesVirtual.containsKey(index)) {
+        index = entriesVirtual.get(index);
       } else {
         final Table2da engineTable = Table2daCache.get("ENGINEST.2DA");
         int row = index - STRREF_VIRTUAL;
@@ -1384,6 +1388,7 @@ public class StringTable {
       } catch (IOException | UnsupportedOperationException e) {
         throw e;
       } catch (Exception e) {
+        Logger.trace(e);
       } finally {
         // 3. removing or restoring backup
         if (pathBackup != null) {
@@ -1414,7 +1419,7 @@ public class StringTable {
       }
       boolean success = false;
       try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
-        String newline = System.getProperty("line.separator");
+        String newline = System.lineSeparator();
         for (int idx = 0; idx < _getNumEntries(); idx++) {
           if (callback != null) {
             success = callback.progress(idx);

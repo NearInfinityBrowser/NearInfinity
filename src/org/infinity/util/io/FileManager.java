@@ -11,12 +11,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 import org.tinylog.Logger;
 
@@ -62,7 +57,7 @@ public class FileManager {
    * @return The {@code Path} based on {@code root} and the specified path elements.
    */
   public static Path query(Path rootPath, String path, String... more) {
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), path, more, false);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), path, more, false);
   }
 
   /**
@@ -90,7 +85,7 @@ public class FileManager {
    *         {@code path} does not exist.
    */
   public static Path queryExisting(Path rootPath, String path, String... more) {
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), path, more, true);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), path, more, true);
   }
 
   /**
@@ -119,7 +114,7 @@ public class FileManager {
     final Path fullPath = Paths.get(Objects.requireNonNull(path), more);
     final Path rootPath = fullPath.getParent();
     final String fileName = (fullPath.getFileName() != null) ? fullPath.getFileName().toString() : null;
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, false);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), new String[] {fileName}, false);
   }
 
   /**
@@ -133,7 +128,7 @@ public class FileManager {
     final Path fullPath = Paths.get(Objects.requireNonNull(path), more);
     final Path rootPath = fullPath.getParent();
     final String fileName = (fullPath.getFileName() != null) ? fullPath.getFileName().toString() : null;
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, true);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), new String[] {fileName}, true);
   }
 
   /**
@@ -147,7 +142,7 @@ public class FileManager {
   public static Path resolve(Path path) {
     final Path rootPath =  Objects.requireNonNull(path).getParent();
     final String fileName = (path.getFileName() != null) ? path.getFileName().toString() : null;
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, false);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), new String[] {fileName}, false);
   }
 
   /**
@@ -159,7 +154,7 @@ public class FileManager {
   public static Path resolveExisting(Path path) {
     final Path rootPath =  Objects.requireNonNull(path).getParent();
     final String fileName = (path.getFileName() != null) ? path.getFileName().toString() : null;
-    return queryPath(new ArrayList<>(Arrays.asList(rootPath)), new String[] {fileName}, true);
+    return queryPath(new ArrayList<>(Collections.singletonList(rootPath)), new String[] {fileName}, true);
   }
 
   /**
@@ -171,7 +166,7 @@ public class FileManager {
   public static boolean isReadOnly(Path path) {
     if (path != null) {
       FileSystem fs = path.getFileSystem();
-      if (fs != null && fs.isOpen()) {
+      if (fs.isOpen()) {
         return fs.isReadOnly();
       }
     }
@@ -207,6 +202,7 @@ public class FileManager {
             return true;
           }
         } catch (IOException e) {
+          Logger.trace(e);
         }
       }
     }
@@ -304,6 +300,8 @@ public class FileManager {
   private static Path queryPath(List<Path> rootPaths, String[] paths, boolean mustExist) {
     if (rootPaths == null) {
       rootPaths = new ArrayList<>();
+    } else {
+      rootPaths = new ArrayList<>(rootPaths);
     }
 
     if (rootPaths.stream().noneMatch(Objects::nonNull)) {

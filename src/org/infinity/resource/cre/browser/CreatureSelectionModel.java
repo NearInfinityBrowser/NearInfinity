@@ -85,9 +85,7 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
       int oldSize = creList.size();
       creList.clear();
       selectedItem = null;
-      if (oldSize > 0) {
-        fireIntervalRemoved(this, 0, oldSize - 1);
-      }
+      fireIntervalRemoved(this, 0, oldSize - 1);
     } else {
       selectedItem = null;
     }
@@ -135,9 +133,7 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
     ResourceFactory.getResources("CRE").stream().forEach(re -> creList.add(new CreatureItem(re)));
     Collections.sort(creList);
     creList.add(0, CreatureItem.getDefault());
-    if (!creList.isEmpty()) {
-      fireIntervalAdded(this, 0, creList.size() - 1);
-    }
+    fireIntervalAdded(this, 0, creList.size() - 1);
   }
 
   // -------------------------- INNER CLASSES --------------------------

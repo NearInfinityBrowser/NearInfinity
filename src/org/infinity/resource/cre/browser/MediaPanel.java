@@ -21,7 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -62,7 +61,7 @@ import ork.sevenstates.apng.APNGSeqWriter;
  * This panel provides controls for animation playback and related visual options.
  */
 public class MediaPanel extends JPanel {
-  private static boolean isLoop;
+  private static final boolean isLoop;
 
   static {
     isLoop = true;
@@ -114,7 +113,7 @@ public class MediaPanel extends JPanel {
     Sequence oldSequence = preserveState ? getSequence() : null;
     Direction oldDir = preserveState ? getDirection(getCurrentDirection()) : null;
     int oldFrameIdx = preserveState ? getCurrentFrame() : 0;
-    boolean isRunning = preserveState ? isRunning() : false;
+    boolean isRunning = preserveState && isRunning();
 
     stop();
     modelSequences.removeAllElements();
@@ -664,7 +663,7 @@ public class MediaPanel extends JPanel {
       }
 
       // sorting in descending order: maps relative slider positions to more natural directions
-      Collections.sort(directions, (a, b) -> b - a);
+      directions.sort((a, b) -> b - a);
 
       int min = -directions.size() + 1;
       int max = directions.size();
@@ -732,7 +731,7 @@ public class MediaPanel extends JPanel {
 
   /** Returns the {@code Direction} of the specified direction slider position. Defaults to {@code Direction.S}. */
   private Direction getDirection(int index) {
-    return directionMap.getOrDefault(Integer.valueOf(index), Direction.S);
+    return directionMap.getOrDefault(index, Direction.S);
   }
 
   /** Interactive export of the current animation sequence to an animation file. */

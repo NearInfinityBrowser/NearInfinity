@@ -109,14 +109,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cbType.getSelectedIndex()).append(';');
-    sb.append(rbScaleBoth.isSelected() ? 0 : 1).append(';');
-    sb.append(((SpinnerNumberModel) spinnerFactor.getModel()).getNumber().doubleValue()).append(';');
-    sb.append(((SpinnerNumberModel) spinnerFactorX.getModel()).getNumber().doubleValue()).append(';');
-    sb.append(((SpinnerNumberModel) spinnerFactorY.getModel()).getNumber().doubleValue()).append(';');
-    sb.append(cbAdjustCenter.isSelected());
-    return sb.toString();
+    return String.valueOf(cbType.getSelectedIndex()) + ';' +
+        (rbScaleBoth.isSelected() ? 0 : 1) + ';' +
+        ((SpinnerNumberModel) spinnerFactor.getModel()).getNumber().doubleValue() + ';' +
+        ((SpinnerNumberModel) spinnerFactorX.getModel()).getNumber().doubleValue() + ';' +
+        ((SpinnerNumberModel) spinnerFactorY.getModel()).getNumber().doubleValue() + ';' +
+        cbAdjustCenter.isSelected();
   }
 
   @Override
@@ -126,9 +124,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       if (!config.isEmpty()) {
         String[] params = config.split(";");
         int type = -1;
-        Double factor = Double.MIN_VALUE;
-        Double factorX = Double.MIN_VALUE;
-        Double factorY = Double.MIN_VALUE;
+        double factor = Double.MIN_VALUE;
+        double factorX = Double.MIN_VALUE;
+        double factorY = Double.MIN_VALUE;
         boolean uniformSelected = true;
         boolean adjust = true;
 
@@ -438,15 +436,15 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       int curI = 0, minI = 0, maxI = 0, stepI = 0;
       double curD = 0, minD = 0, maxD = 0, stepD = 0;
       if (isDouble) {
-        curD = ((Double) current);
-        minD = ((Double) min);
-        maxD = ((Double) max);
-        stepD = ((Double) step);
+        curD = current.doubleValue();
+        minD = min.doubleValue();
+        maxD = max.doubleValue();
+        stepD = step.doubleValue();
       } else {
-        curI = ((Integer) current);
-        minI = ((Integer) min);
-        maxI = ((Integer) max);
-        stepI = ((Integer) step);
+        curI = current.intValue();
+        minI = min.intValue();
+        maxI = max.intValue();
+        stepI = step.intValue();
       }
       if (isDouble) {
         if (snm.getValue() instanceof Integer) {
@@ -461,9 +459,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       } else {
         if (snm.getValue() instanceof Double) {
           curI = Math.max(Math.min(curI, maxI), minI);
-          spinner.setModel(new SpinnerNumberModel(curI, minI, (maxI < 10) ? 10 : maxI, stepI));
+          spinner.setModel(new SpinnerNumberModel(curI, minI, Math.max(maxI, 10), stepI));
           if (maxI < 10) {
-            ((SpinnerNumberModel) spinner.getModel()).setMaximum(Integer.valueOf(maxI));
+            ((SpinnerNumberModel) spinner.getModel()).setMaximum(maxI);
           }
         } else {
           snm.setMinimum(minI);

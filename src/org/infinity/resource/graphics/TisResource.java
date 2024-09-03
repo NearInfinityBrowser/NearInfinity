@@ -598,7 +598,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       retVal = fc.getSelectedFile().toPath();
       if (FileEx.create(retVal).exists()) {
-        final String options[] = { "Overwrite", "Cancel" };
+        final String[] options = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           retVal = null;
@@ -672,6 +672,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           wedTileMap.putIfAbsent(idx, tm);
         });
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
   }
@@ -834,10 +835,10 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     private final List<int[]> tiles = new ArrayList<>();
 
     private final TisDecoder decoder;
+    private final Color splitColor;
+    private final Object renderingHints;
 
     private int tileSize;
-    private Color splitColor;
-    private Object renderingHints;
 
     /**
      * Creates a tileset preview with the following defaults:
@@ -942,9 +943,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             for (int srcOfs = 0, dstOfs = (y * pixelsPerRow + x) * tileSize, dy = 0;
                 dy < tileSize;
                 srcOfs += tileSize, dstOfs += pixelsPerRow, dy++) {
-              for (int dx = 0; dx < tileSize; dx++) {
-                buffer[dstOfs + dx] = block[srcOfs + dx];
-              }
+              System.arraycopy(block, srcOfs, buffer, dstOfs, tileSize);
             }
           }
         }
@@ -1109,8 +1108,8 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     /**
      * Opens a modal dialog and returns a TIS configuration.
      *
-     * @param owner   Parent {@link Window} for the dialog.
-     * @param decoder {@link TisDecoder} of the source tileset.
+     * @param owner Parent {@link Window} for the dialog.
+     * @param tis   {@link TisDecoder} of the source tileset.
      * @return An initialized {@link TisConvert.Config} object if the user accepts the conversion options. Returns
      *         {@code null} if the user cancels the operation.
      */
@@ -1216,6 +1215,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       try {
         tfTisFile.setText(Profile.getGameRoot().resolve(tis.entry.getResourceName()).toString());
       } catch (InvalidPathException ex) {
+        Logger.trace(ex);
       }
       tfTisFile.addMouseMotionListener(listeners.mouseMotion);
       helpMap.put(tfTisFile, helpTisFile);
@@ -1932,6 +1932,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           retVal = null;
         }
       } catch (NullPointerException | IllegalArgumentException e) {
+        Logger.trace(e);
       }
 
       if (strict) {
@@ -1945,6 +1946,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             retVal = null;
           }
         } catch (IllegalArgumentException e) {
+          Logger.trace(e);
         }
       }
 
@@ -1952,6 +1954,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         try {
           retVal = Profile.getGameRoot().resolve("OUTPUT.TIS");
         } catch (IllegalArgumentException e) {
+          Logger.trace(e);
         }
       }
 
@@ -1985,12 +1988,12 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
     /** Returns whether black tiles should be detected and optimized. */
     private boolean isDetectBlack() {
-      return (cbRemoveBlack != null) ? cbRemoveBlack.isSelected() : false;
+      return cbRemoveBlack != null && cbRemoveBlack.isSelected();
     }
 
     /** Returns whether multithreading is used to encode DXT1 pixel data. */
     private boolean isMultithreaded() {
-      return (cbMultithreaded != null) ? cbMultithreaded.isSelected() : false;
+      return cbMultithreaded != null && cbMultithreaded.isSelected();
     }
 
     /**
@@ -1998,7 +2001,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
      * conversion.
      */
     private boolean isAutoMode() {
-      return (rbAuto != null) ? rbAuto.isSelected() : true;
+      return rbAuto == null || rbAuto.isSelected();
     }
 
     /**
@@ -2006,7 +2009,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
      * conversion.
      */
     private boolean isManualMode() {
-      return (rbManual != null) ? rbManual.isSelected() : true;
+      return rbManual == null || rbManual.isSelected();
     }
 
     /** Returns the selected overlay conversion mode. */

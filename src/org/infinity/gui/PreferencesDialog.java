@@ -1404,7 +1404,7 @@ public class PreferencesDialog extends JDialog {
       int minFontSize = Arrays.stream(fontSizes).filter(i -> i > 0).min().orElse(0);
       int maxFontSize = Arrays.stream(fontSizes).max().orElse(0);
       String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
-          String.format("Enter font size in percent (%d - %d):", minFontSize, maxFontSize), Integer.valueOf(size));
+          String.format("Enter font size in percent (%d - %d):", minFontSize, maxFontSize), size);
       if (ret == null) {
         selectMatchingGlobalFontSize(gb, size);
         return true;
@@ -1556,7 +1556,7 @@ public class PreferencesDialog extends JDialog {
         AppOption.TEXT_FONT_SIZE.setValue(font.getSize());
         AppOption.TEXT_FONT_STYLE.setValue(font.getStyle());
       }
-      gb.getOption().setValue(Integer.valueOf(index));
+      gb.getOption().setValue(index);
     } catch (IndexOutOfBoundsException e) {
       Logger.error(e);
     }
@@ -1653,6 +1653,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<?> item = (DataItem<?>) gb.getItem(gb.getSelectedIndex());
       return item.getData() != null;
     } catch (IndexOutOfBoundsException e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -1791,8 +1792,7 @@ public class PreferencesDialog extends JDialog {
       int minUiScale = Arrays.stream(scaleFactors).filter(i -> i > 0).min().orElse(0) / 2;
       int maxUiScale = Arrays.stream(scaleFactors).max().orElse(0);
       String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
-          String.format("Enter UI scaling factor in percent (%d - %d):", minUiScale, maxUiScale),
-          Integer.valueOf(factor));
+          String.format("Enter UI scaling factor in percent (%d - %d):", minUiScale, maxUiScale), factor);
       if (ret == null) {
         selectMatchingUiScaleFactor(gb, factor);
         return true;
@@ -1861,11 +1861,9 @@ public class PreferencesDialog extends JDialog {
   private void setUiScaleFactorEnabled(boolean enabled) {
     OptionBase o = optionRoot.findOption(NearInfinity.APP_UI_SCALE_FACTOR);
     if (o instanceof OptionGroupBox) {
-      if (o instanceof OptionGroupBox) {
-        final OptionGroupBox uiScaleFactor = (OptionGroupBox) o;
-        uiScaleFactor.getUiComboBox().setEnabled(enabled);
-        uiScaleFactor.getUiLabel().setEnabled(enabled);
-      }
+      final OptionGroupBox uiScaleFactor = (OptionGroupBox) o;
+      uiScaleFactor.getUiComboBox().setEnabled(enabled);
+      uiScaleFactor.getUiLabel().setEnabled(enabled);
     }
   }
 
@@ -2028,7 +2026,7 @@ public class PreferencesDialog extends JDialog {
       if (fontInfo != null && fontInfo.getData() instanceof Font) {
         final Font oldFont = label.getFont();
         final Font newFont = (Font) fontInfo.getData();
-        label.setFont(Misc.getScaledFont(newFont.deriveFont(oldFont.getSize())));
+        label.setFont(Misc.getScaledFont(newFont.deriveFont(oldFont.getSize2D())));
         label.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
       }
 

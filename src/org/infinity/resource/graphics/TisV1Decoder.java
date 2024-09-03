@@ -63,7 +63,7 @@ public class TisV1Decoder extends TisDecoder {
     if (buffer != null) {
       int ofs = getTileOffset(tileIdx);
       if (ofs > 0) {
-        int maxLen = (buffer.length > 256) ? 256 : buffer.length;
+        int maxLen = Math.min(buffer.length, 256);
         for (int i = 0; i < maxLen; i++) {
           buffer[i] = tisBuffer.getInt(ofs);
           if (!raw) {
@@ -105,8 +105,7 @@ public class TisV1Decoder extends TisDecoder {
     if (buffer != null) {
       int ofs = getTileOffset(tileIdx);
       if (ofs > 0) {
-        int maxSize = (buffer.length > TILE_DIMENSION * TILE_DIMENSION) ? TILE_DIMENSION * TILE_DIMENSION
-            : buffer.length;
+        int maxSize = Math.min(buffer.length, TILE_DIMENSION * TILE_DIMENSION);
         ofs += 4 * 256; // skipping palette data
         tisBuffer.position(ofs);
         tisBuffer.get(buffer, 0, maxSize);

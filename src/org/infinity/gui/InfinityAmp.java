@@ -156,7 +156,7 @@ public final class InfinityAmp extends ChildFrame
       keepPlaying = false;
       player.stopPlay();
     } else if (event.getSource() == bAdd) {
-      int indices[] = allMusList.getSelectedIndices();
+      int[] indices = allMusList.getSelectedIndices();
       for (final int index : indices) {
         selectedMusModel.addElement(allMusModel.get(index));
       }
@@ -168,7 +168,7 @@ public final class InfinityAmp extends ChildFrame
       if (index >= 0) {
         selectedMusList.addSelectionInterval(index, index);
       }
-      bPlay.setEnabled(selectedMusModel.size() > 0);
+      bPlay.setEnabled(!selectedMusModel.isEmpty());
     } else if (event.getSource() == bUp) {
       int index = selectedMusList.getSelectedIndex();
       ResourceEntry o = selectedMusModel.remove(index);

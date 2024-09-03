@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 412.
+ * Implementation of opcode 412.
  */
 public class Opcode412 extends BaseOpcode {
   private static final String EFFECT_CONTROL_TYPE = "Control type";

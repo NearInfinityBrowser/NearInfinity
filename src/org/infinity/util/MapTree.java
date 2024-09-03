@@ -85,8 +85,8 @@ public class MapTree<K, V> implements Cloneable {
   @SuppressWarnings("unchecked")
   public Object clone() {
     MapTree<K, V> node = new MapTree<>(key, value);
-    for (Iterator<MapTree<K, V>> iter = children.values().iterator(); iter.hasNext();) {
-      node.addChild((MapTree<K, V>) iter.next().clone());
+    for (MapTree<K, V> kvMapTree : children.values()) {
+      node.addChild((MapTree<K, V>) kvMapTree.clone());
     }
     return node;
   }
@@ -149,7 +149,7 @@ public class MapTree<K, V> implements Cloneable {
   public MapTree<K, V> findNode(K key) {
     if (key != null) {
       Collection<MapTree<K, V>> retVal = findNodesRecursive(null, this, key, true);
-      if (retVal != null && !retVal.isEmpty()) {
+      if (!retVal.isEmpty()) {
         return retVal.iterator().next();
       }
     }
@@ -229,8 +229,8 @@ public class MapTree<K, V> implements Cloneable {
   public Collection<MapTree<K, V>> removeChildren(Collection<K> keys) {
     Collection<MapTree<K, V>> retVal = new Vector<>();
     if (keys != null && !keys.isEmpty()) {
-      for (Iterator<K> iter = keys.iterator(); iter.hasNext();) {
-        MapTree<K, V> node = removeChild(iter.next());
+      for (K k : keys) {
+        MapTree<K, V> node = removeChild(k);
         if (node != null) {
           retVal.add(node);
         }

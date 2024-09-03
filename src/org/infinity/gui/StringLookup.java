@@ -54,7 +54,7 @@ public final class StringLookup extends ChildFrame implements SearchClient {
     Center.center(this, NearInfinity.getInstance().getBounds());
 
     // pre-caching string table to significantly reduce search time
-    new Thread(() -> StringTable.ensureFullyLoaded()).start();
+    new Thread(StringTable::ensureFullyLoaded).start();
   }
 
   // --------------------- Begin Interface SearchClient ---------------------

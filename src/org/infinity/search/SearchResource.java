@@ -109,6 +109,8 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
   private static final String PROPERTY_OPTIONS = "NearInfinity.Options.IsEmpty";
 
   private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<>();
+  private final JProgressBar pbProgress = new JProgressBar();;
+
   private JPanel pFindOptions, pBottomBar;
   private JList<ResourceEntry> listResults;
   private JLabel lResults;
@@ -120,7 +122,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
   private JToggleButton bShowHideOptions;
   private CardLayout clOptions;
   private CardLayout clBottomBar;
-  private JProgressBar pbProgress;
 
   public SearchResource() {
     super("Extended search (deprecated)");
@@ -164,7 +165,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       }
     } else if (event.getSource() == bInsertRef) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
-      if (viewable == null || !(viewable instanceof BcsResource)) {
+      if (!(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
@@ -414,7 +415,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           if (event.getClickCount() == 2) {
             Rectangle cellRect = listResults.getCellBounds(listResults.getSelectedIndex(),
                 listResults.getSelectedIndex());
-            if (cellRect != null && event.getPoint() != null) {
+            if (cellRect != null) {
               if (cellRect.contains(event.getPoint())) {
                 actionPerformed(new ActionEvent(bOpen, 0, null));
               }
@@ -470,7 +471,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       pBottomButtons.add(new JPanel(), c);
 
       JPanel pBottomProgress = new JPanel(new GridBagLayout());
-      pbProgress = new JProgressBar();
       c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
           new Insets(0, 0, 0, 0), 0, 0);
       pBottomProgress.add(pbProgress, c);
@@ -4754,7 +4754,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           col = 4;
           row = 0;
         }
-        c = ViewerUtil.setGBC(c, col + 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
             GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, (col == 0) ? 0 : 16, 0, 0), 0, 0);
         panel.add(cbStats[i], c);
         c = ViewerUtil.setGBC(c, col + 1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -5687,7 +5687,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
 
     public static JComboBox<IdsMapEntry> getIdsMapEntryList(IdsBitmap ids) {
       final SortedMap<Long, IdsMapEntry> map = ids.getBitmap();
-      final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
+      final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[0]);
       Arrays.sort(list);
       return defaultWidth(new AutoComboBox<>(list), 160);
     }
@@ -5800,10 +5800,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         public void focusGained(FocusEvent e) {
           highlightCompletedText(0);
         }
-
-        @Override
-        public void focusLost(FocusEvent e) {
-        }
       };
 
       configureEditor(comboBox.getEditor());
@@ -5899,9 +5895,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           id = curItem.toString().toUpperCase(Locale.ENGLISH);
         }
 
-        if (name.startsWith(pattern) || id.startsWith(pattern)) {
-          return true;
-        }
+        return name.startsWith(pattern) || id.startsWith(pattern);
       }
       return false;
     }

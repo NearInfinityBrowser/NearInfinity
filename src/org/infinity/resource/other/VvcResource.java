@@ -25,6 +25,7 @@ import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
 import org.infinity.search.SearchOptions;
+import org.tinylog.Logger;
 
 /**
  * This resource describes visual "spell casting" effects ({@link BamResource BAM} files) with optional sounds
@@ -201,7 +202,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = vvc.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -213,7 +214,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(vvc, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(vvc, o);
           } else {
             break;
           }
@@ -221,6 +222,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

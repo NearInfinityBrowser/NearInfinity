@@ -152,12 +152,12 @@ public class LayerObjectIniActor extends LayerObjectActor {
     }
 
     String[] items = IniMapEntry.splitValues(entryPoint.getValue(), IniMapEntry.REGEX_POSITION);
-    if (items == null || creIndex >= items.length) {
+    if (creIndex >= items.length) {
       throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point index (" + creIndex + ")");
     }
 
     int[] pos = IniMapEntry.splitPositionValue(items[creIndex]);
-    if (pos == null || pos.length < 2) {
+    if (pos.length < 2) {
       throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point value #" + creIndex);
     }
 

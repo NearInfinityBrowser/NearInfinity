@@ -381,12 +381,12 @@ public class Keyfile {
       biffList.addAll(list);
     }
     Collections.sort(biffList);
-    return biffList.toArray(new BIFFEntry[biffList.size()]);
+    return biffList.toArray(new BIFFEntry[0]);
   }
 
   public BIFFEntry getBIFFEntry(Path keyFile, int index) {
     List<BIFFEntry> biffs = getBIFFList(keyFile, false);
-    if (biffs != null && biffs.size() > 0) {
+    if (biffs != null && !biffs.isEmpty()) {
       return biffs.get(index);
     }
     return null;

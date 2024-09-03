@@ -87,14 +87,12 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cbEdges.get(Edge.Top).isSelected()).append(';');
-    sb.append(cbEdges.get(Edge.Left).isSelected()).append(';');
-    sb.append(cbEdges.get(Edge.Bottom).isSelected()).append(';');
-    sb.append(cbEdges.get(Edge.Right).isSelected()).append(';');
-    sb.append(((SpinnerNumberModel) spinnerMargin.getModel()).getNumber().intValue()).append(';');
-    sb.append(cbAdjustCenter.isSelected());
-    return sb.toString();
+    return String.valueOf(cbEdges.get(Edge.Top).isSelected()) + ';' +
+        cbEdges.get(Edge.Left).isSelected() + ';' +
+        cbEdges.get(Edge.Bottom).isSelected() + ';' +
+        cbEdges.get(Edge.Right).isSelected() + ';' +
+        ((SpinnerNumberModel) spinnerMargin.getModel()).getNumber().intValue() + ';' +
+        cbAdjustCenter.isSelected();
   }
 
   @Override
@@ -104,7 +102,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
       if (!config.isEmpty()) {
         String[] params = config.split(";");
         boolean t = true, l = true, b = true, r = true;
-        Integer margin = Integer.MIN_VALUE;
+        int margin = Integer.MIN_VALUE;
         boolean a = true;
 
         if (params.length > 0) {

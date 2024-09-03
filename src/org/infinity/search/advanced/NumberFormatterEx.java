@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.swing.JFormattedTextField.AbstractFormatter;
 
 import org.infinity.util.DataString;
+import org.tinylog.Logger;
 
 /**
  * A simplified NumberFormatter that handles conversion from Object to String and back. Allowed text input is limited to
@@ -32,10 +33,11 @@ public class NumberFormatterEx extends AbstractFormatter {
   private static final String FMT_DEC = "%d";
   private static final String FMT_HEX = "%x h";
 
+  private final long valueMin;
+  private final long valueMax;
+  private final long defaultValue;
+
   private NumberFormat numberFormat;
-  private long valueMin;
-  private long valueMax;
-  private long defaultValue;
   private long currentValue;
 
   /**
@@ -66,8 +68,8 @@ public class NumberFormatterEx extends AbstractFormatter {
    */
   public NumberFormatterEx(NumberFormat format, long minValue, long maxValue, long defaultValue) {
     this.numberFormat = (format != null) ? format : NumberFormat.DECIMAL;
-    this.valueMin = (minValue < maxValue) ? minValue : maxValue;
-    this.valueMax = (maxValue > minValue) ? maxValue : minValue;
+    this.valueMin = Math.min(minValue, maxValue);
+    this.valueMax = Math.max(maxValue, minValue);
     this.defaultValue = getBoundedValue(defaultValue);
     this.currentValue = this.defaultValue;
   }
@@ -77,9 +79,9 @@ public class NumberFormatterEx extends AbstractFormatter {
     currentValue = convertToNumber(text);
     switch (numberFormat) {
       case HEXADECIMAL:
-        return DataString.with(String.format(FMT_HEX, currentValue), Long.valueOf(currentValue), "");
+        return DataString.with(String.format(FMT_HEX, currentValue), currentValue, "");
       default:
-        return DataString.with(String.format(FMT_DEC, currentValue), Long.valueOf(currentValue), "");
+        return DataString.with(String.format(FMT_DEC, currentValue), currentValue, "");
     }
   }
 
@@ -145,6 +147,7 @@ public class NumberFormatterEx extends AbstractFormatter {
     try {
       return getNumericValue(getFormattedTextField().getText());
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return currentValue;
   }
@@ -195,7 +198,7 @@ public class NumberFormatterEx extends AbstractFormatter {
           if (m.start(1) > 0)
             s = text.substring(0, m.start(1));
           if (m.end(1) < text.length())
-            s = s + text.substring(m.end(1), text.length());
+            s = s + text.substring(m.end(1));
           text = s;
         }
       }

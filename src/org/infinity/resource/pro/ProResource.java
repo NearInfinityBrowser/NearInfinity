@@ -404,9 +404,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
             o = searchOptions.getOption(key);
             if (structList[idx] != null) {
               StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key), false);
-              retVal &= SearchOptions.Utils.matchNumber(struct, o);
+              retVal = SearchOptions.Utils.matchNumber(struct, o);
             } else {
-              retVal &= (o == null);
+              retVal = (o == null);
             }
           } else {
             break;
@@ -421,9 +421,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
             o = searchOptions.getOption(key);
             if (structList[idx] != null) {
               StructEntry struct = structList[idx].getAttribute(SearchOptions.getResourceName(key), false);
-              retVal &= SearchOptions.Utils.matchFlags(struct, o);
+              retVal = SearchOptions.Utils.matchFlags(struct, o);
             } else {
-              retVal &= (o == null);
+              retVal = (o == null);
             }
           } else {
             break;
@@ -435,9 +435,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
           o = searchOptions.getOption(key);
           if (single != null) {
             StructEntry struct = single.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+            retVal = SearchOptions.Utils.matchResourceRef(struct, o, false);
           } else {
-            retVal &= (o == null);
+            retVal = (o == null);
           }
         }
 
@@ -447,7 +447,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(pro, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(pro, o);
           } else {
             break;
           }
@@ -455,6 +455,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasCh
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

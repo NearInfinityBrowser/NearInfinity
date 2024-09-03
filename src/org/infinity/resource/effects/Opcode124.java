@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 124.
+ * Implementation of opcode 124.
  */
 public class Opcode124 extends BaseOpcode {
   private static final String EFFECT_BEHAVIOR = "Behavior";

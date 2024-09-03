@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 337.
+ * Implementation of opcode 337.
  */
 public class Opcode337 extends BaseOpcode {
   private static final String EFFECT_MATCH_P2_VALUE = "Match 'Parameter 2' value";

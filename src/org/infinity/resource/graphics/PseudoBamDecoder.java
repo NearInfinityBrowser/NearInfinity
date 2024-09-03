@@ -549,8 +549,8 @@ public class PseudoBamDecoder extends BamDecoder {
       } else {
         // drawing on individual canvas
         int srcOfs = 0, dstOfs = 0;
-        int maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
-        int maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
+        int maxWidth = Math.min(dstWidth, srcWidth);
+        int maxHeight = Math.min(dstHeight, srcHeight);
         for (int y = 0; y < maxHeight; y++) {
           for (int x = 0; x < maxWidth; x++) {
             if (srcBufferB != null) {
@@ -624,9 +624,7 @@ public class PseudoBamDecoder extends BamDecoder {
       return (color & 0xff000000) == 0;
     }
     final int Green = 0x0000ff00;
-    if (threshold < 0) {
-      threshold = 0;
-    } else if (threshold > 255) {
+    if (threshold > 255) {
       threshold = 255;
     }
     boolean isAlpha = (((color >>> 24) & 0xff) < (255 - threshold));
@@ -728,7 +726,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
       // encoding frames
       Object o = getOption(OPTION_INT_RLEINDEX);
-      byte rleIndex = (byte) (((o != null) ? ((Integer) o).intValue() : 0) & 0xff);
+      byte rleIndex = (byte) (((o != null) ? (Integer) o : 0) & 0xff);
       byte[] dstData = new byte[maxImageSize];
 
       for (int idx = 0; idx < listFrames.size(); idx++) {
@@ -795,7 +793,7 @@ public class PseudoBamDecoder extends BamDecoder {
       for (int i = 0; i < listFrameData.size(); i++) {
         frameDataOffsets[i] = bamSize;
         o = listFrames.get(i).getOption(OPTION_BOOL_COMPRESSED);
-        if (o == null || !((Boolean) o).booleanValue()) {
+        if (o == null || !(Boolean) o) {
           frameDataOffsets[i] |= 0x80000000;
         }
         bamSize += listFrameData.get(i).length;
@@ -939,15 +937,14 @@ public class PseudoBamDecoder extends BamDecoder {
         Couple<Short, Short> cycle = Couple.with((short) cycleFrames.size(), (short) frameStartIndex);
         listCycleData.add(cycle);
 
-        for (int j = 0; j < cycleFrames.size(); j++) {
-          int idx = cycleFrames.get(j);
+        for (int idx : cycleFrames) {
           try {
             FrameDataV2 frame = listFrameData.get(idx);
             PseudoBamFrameEntry bfe = listFrames.get(idx);
 
             PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.getCenterX(), bfe.getCenterY());
-            entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
-            entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(1));
+            entry.setOption(OPTION_INT_BLOCKINDEX, blockStartIndex);
+            entry.setOption(OPTION_INT_BLOCKCOUNT, 1);
             listFrameEntries.add(entry);
             blockStartIndex++;
             listFrameDataBlocks.add(frame);
@@ -1048,8 +1045,8 @@ public class PseudoBamDecoder extends BamDecoder {
       } else {
         newMap = new HashMap<>(colorMap.size());
         colorMap.forEach((k, v) -> {
-          if ((k.intValue() & 0xff000000) == 0) {
-            k = k.intValue() | 0xff000000;
+          if ((k & 0xff000000) == 0) {
+            k = k | 0xff000000;
           }
           newMap.put(k, v);
         });
@@ -1226,9 +1223,9 @@ public class PseudoBamDecoder extends BamDecoder {
       final int pageDim = 1024;
       final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
-      for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
-        int imgWidth = listFrames.get(frameIdx).frame.getWidth() + 2;
-        int imgHeight = listFrames.get(frameIdx).frame.getHeight() + 2;
+      for (PseudoBamFrameEntry listFrame : listFrames) {
+        int imgWidth = listFrame.frame.getWidth() + 2;
+        int imgHeight = listFrame.frame.getHeight() + 2;
 
         // use multiple of 4 to take advantage of texture compression algorithm
         Dimension space = new Dimension((imgWidth + 3) & ~3, (imgHeight + 3) & ~3);
@@ -1395,10 +1392,11 @@ public class PseudoBamDecoder extends BamDecoder {
   public static class PseudoBamFrameEntry implements FrameEntry {
     private final HashMap<String, Object> mapOptions = new HashMap<>();
 
+    private final int centerX;
+    private final int centerY;
+
     private int width;
     private int height;
-    private int centerX;
-    private int centerY;
     private int overrideCenterX;
     private int overrideCenterY;
     private BufferedImage frame;
@@ -1779,9 +1777,7 @@ public class PseudoBamDecoder extends BamDecoder {
       int index = cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);
       if (index >= 0) {
         BufferedImage image = getDecoder().listFrames.get(index).frame;
-        if (image != null && image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-          return true;
-        }
+        return image != null && image.getType() == BufferedImage.TYPE_BYTE_INDEXED;
       }
       return false;
     }

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -48,6 +49,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * This resource describes a "spell". Spells include mage spells, priest spells, innate abilities, special abilities and
@@ -341,7 +343,7 @@ public final class SplResource extends AbstractStruct
     }
 
     offset = abilOffset.getValue();
-    Ability abilities[] = new Ability[abilCount.getValue()];
+    Ability[] abilities = new Ability[abilCount.getValue()];
     for (int i = 0; i < abilities.length; i++) {
       abilities[i] = new Ability(this, buffer, offset, i);
       addField(abilities[i]);
@@ -444,24 +446,24 @@ public final class SplResource extends AbstractStruct
 
         String[] keyList = new String[] { SearchOptions.SPL_SpellType, SearchOptions.SPL_CastingAnimation,
             SearchOptions.SPL_PrimaryType, SearchOptions.SPL_SecondaryType, SearchOptions.SPL_Level };
-        for (int idx = 0; idx < keyList.length; idx++) {
+        for (String s : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = s;
             o = searchOptions.getOption(key);
             StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            retVal = SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
           }
         }
 
         keyList = new String[] { SearchOptions.SPL_Flags, SearchOptions.SPL_Exclusion };
-        for (int idx = 0; idx < keyList.length; idx++) {
+        for (String s : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = s;
             o = searchOptions.getOption(key);
             StructEntry struct = spl.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -469,22 +471,22 @@ public final class SplResource extends AbstractStruct
 
         keyList = new String[] { SearchOptions.SPL_Effect_Type1, SearchOptions.SPL_Effect_Type2,
             SearchOptions.SPL_Effect_Type3 };
-        for (int idx = 0; idx < keyList.length; idx++) {
+        for (String s : keyList) {
           if (retVal) {
             boolean found = false;
-            key = keyList[idx];
+            key = s;
             o = searchOptions.getOption(key);
-            for (int idx2 = 0; idx2 < effects.length; idx2++) {
+            for (Effect effect : effects) {
               if (!found) {
-                if (effects[idx2] != null) {
-                  StructEntry struct = effects[idx2].getAttribute(SearchOptions.getResourceName(key), false);
-                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                if (effect != null) {
+                  StructEntry struct = effect.getAttribute(SearchOptions.getResourceName(key), false);
+                  found = SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
                 break;
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -499,17 +501,15 @@ public final class SplResource extends AbstractStruct
               SearchOptions.SPL_Ability_Speed, SearchOptions.SPL_Ability_Projectile,
               SearchOptions.SPL_Ability_Effect_Type1, SearchOptions.SPL_Ability_Effect_Type2,
               SearchOptions.SPL_Ability_Effect_Type3 };
-          for (int i = 0; i < keyList.length; i++) {
-            hasAbilityOptions |= (abilityOption.getOption(keyList[i]) != null);
+          for (String s : keyList) {
+            hasAbilityOptions |= (abilityOption.getOption(s) != null);
           }
 
           // tracks matches for each option in every available ability
           final int abilityOptions = keyList.length; // number of supported spell ability options
           boolean[][] abilityMatches = new boolean[abilities.length][abilityOptions];
           for (int i = 0; i < abilities.length; i++) {
-            for (int j = 0; j < abilityMatches[i].length; j++) {
-              abilityMatches[i][j] = false;
-            }
+            Arrays.fill(abilityMatches[i], false);
           }
 
           for (int i = 0; i < abilities.length; i++) {
@@ -536,9 +536,6 @@ public final class SplResource extends AbstractStruct
 
           // evaluating collected results
           boolean[] foundSingle = new boolean[abilityMatches.length]; // for single ability option
-          for (int i = 0; i < foundSingle.length; i++) {
-            foundSingle[i] = false;
-          }
           boolean[] foundMulti = new boolean[abilityOptions]; // for multiple abilities option
           for (int i = 0; i < foundMulti.length; i++) {
             foundMulti[i] = (abilityOption.getOption(keyList[i]) == null);
@@ -555,39 +552,39 @@ public final class SplResource extends AbstractStruct
           }
 
           boolean resultSingle = false;
-          for (int i = 0; i < foundSingle.length; i++) {
-            resultSingle |= foundSingle[i];
+          for (boolean b : foundSingle) {
+            resultSingle |= b;
           }
           resultSingle |= !hasAbilityOptions;
 
           boolean resultMulti = true;
-          for (int i = 0; i < foundMulti.length; i++) {
-            resultMulti &= foundMulti[i];
+          for (boolean b : foundMulti) {
+            resultMulti &= b;
           }
           resultMulti |= !hasAbilityOptions;
 
-          Boolean isAbilitySingle;
+          boolean isAbilitySingle;
           o = abilityOption.getOption(SearchOptions.SPL_Ability_MatchSingle);
-          if (o != null && o instanceof Boolean) {
+          if (o instanceof Boolean) {
             isAbilitySingle = (Boolean) o;
           } else {
             isAbilitySingle = false;
           }
 
           if (isAbilitySingle) {
-            retVal &= resultSingle;
+            retVal = resultSingle;
           } else {
-            retVal &= resultMulti;
+            retVal = resultMulti;
           }
         }
 
         keyList = new String[] { SearchOptions.SPL_Custom1, SearchOptions.SPL_Custom2, SearchOptions.SPL_Custom3,
             SearchOptions.SPL_Custom4 };
-        for (int idx = 0; idx < keyList.length; idx++) {
+        for (String s : keyList) {
           if (retVal) {
-            key = keyList[idx];
+            key = s;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(spl, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(spl, o);
           } else {
             break;
           }
@@ -595,6 +592,7 @@ public final class SplResource extends AbstractStruct
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

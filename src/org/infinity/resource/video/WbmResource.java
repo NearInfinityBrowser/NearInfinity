@@ -107,6 +107,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
         Files.delete(videoFile);
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
   }
 

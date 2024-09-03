@@ -16,7 +16,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
 /** Player {@link DlgResource dialog} option. */
-public final class Transition extends AbstractStruct implements AddRemovable, TreeItemEntry {
+public class Transition extends AbstractStruct implements AddRemovable, TreeItemEntry {
   // DLG/Transition-specific field labels
   public static final String DLG_TRANS                    = "Response";
   public static final String DLG_TRANS_FLAGS              = "Flags";
@@ -34,11 +34,11 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   /** Transition number which is unique defining it in a dialog. */
   private int nr;
 
-  Transition() throws Exception {
+  public Transition() throws Exception {
     super(null, DLG_TRANS, StreamUtils.getByteBuffer(32), 0);
   }
 
-  Transition(DlgResource dlg, ByteBuffer buffer, int offset, int nr) throws Exception {
+  public Transition(DlgResource dlg, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(dlg, DLG_TRANS + " " + nr, buffer, offset);
     this.nr = nr;
   }

@@ -12,6 +12,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.tinylog.Logger;
 
 /**
  * The base class for BAM converter effects filters.
@@ -111,7 +112,7 @@ public abstract class BamFilterBase {
    */
   public void addChangeListener(ChangeListener l) {
     if (l != null) {
-      if (listChangeListeners.indexOf(l) < 0) {
+      if (!listChangeListeners.contains(l)) {
         listChangeListeners.add(l);
       }
     }
@@ -164,6 +165,7 @@ public abstract class BamFilterBase {
           return value;
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return defValue;
@@ -178,6 +180,7 @@ public abstract class BamFilterBase {
           return value;
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return defValue;

@@ -66,7 +66,7 @@ import org.tinylog.Logger;
  * }
  * </pre>
  *
- * Based on JFontChooser (http://osdn.jp/projects/jfontchooser/)
+ * Based on <a href="http://osdn.jp/projects/jfontchooser/">JFontChooser</a>.
  **/
 public class FontChooser extends JComponent {
   // class variables
@@ -205,7 +205,7 @@ public class FontChooser extends JComponent {
       fontStyleList.addListSelectionListener(new ListSelectionHandler(getFontStyleTextField()));
       fontStyleList.setSelectedIndex(0);
       fontStyleList.setFont(Misc.getScaledFont(DEFAULT_FONT));
-      fontStyleList.setPrototypeCellValue(fontStyleList.getModel().getElementAt(0).toString());
+      fontStyleList.setPrototypeCellValue(fontStyleList.getModel().getElementAt(0));
       fontStyleList.setFocusable(false);
     }
     return fontStyleList;
@@ -231,8 +231,7 @@ public class FontChooser extends JComponent {
    * @see #setSelectedFontFamily
    **/
   public String getSelectedFontFamily() {
-    String fontName = getFontFamilyList().getSelectedValue();
-    return fontName;
+    return getFontFamilyList().getSelectedValue();
   }
 
   /**
@@ -283,8 +282,7 @@ public class FontChooser extends JComponent {
    * @see java.awt.Font
    **/
   public Font getSelectedFont() {
-    Font font = new Font(getSelectedFontFamily(), getSelectedFontStyle(), getSelectedFontSize());
-    return font;
+    return new Font(getSelectedFontFamily(), getSelectedFontStyle(), getSelectedFontSize());
   }
 
   /**
@@ -393,7 +391,7 @@ public class FontChooser extends JComponent {
   // -------------------------- INNER CLASSES --------------------------
 
   protected class ListSelectionHandler implements ListSelectionListener {
-    private JTextComponent textComponent;
+    private final JTextComponent textComponent;
 
     ListSelectionHandler(JTextComponent textComponent) {
       this.textComponent = textComponent;
@@ -418,7 +416,7 @@ public class FontChooser extends JComponent {
   }
 
   protected class TextFieldFocusHandlerForTextSelection extends FocusAdapter {
-    private JTextComponent textComponent;
+    private final JTextComponent textComponent;
 
     public TextFieldFocusHandlerForTextSelection(JTextComponent textComponent) {
       this.textComponent = textComponent;
@@ -436,8 +434,8 @@ public class FontChooser extends JComponent {
     }
   }
 
-  protected class TextFieldKeyHandlerForListSelectionUpDown extends KeyAdapter {
-    private JList<String> targetList;
+  protected static class TextFieldKeyHandlerForListSelectionUpDown extends KeyAdapter {
+    private final JList<String> targetList;
 
     public TextFieldKeyHandlerForListSelectionUpDown(JList<String> list) {
       this.targetList = list;
@@ -468,7 +466,7 @@ public class FontChooser extends JComponent {
     }
   }
 
-  protected class ListSearchTextFieldDocumentHandler implements DocumentListener {
+  protected static class ListSearchTextFieldDocumentHandler implements DocumentListener {
     JList<String> targetList;
 
     public ListSearchTextFieldDocumentHandler(JList<String> targetList) {
@@ -499,7 +497,7 @@ public class FontChooser extends JComponent {
         Logger.error(e);
       }
 
-      if (newValue.length() > 0) {
+      if (!newValue.isEmpty()) {
         int index = targetList.getNextMatch(newValue, 0, Position.Bias.Forward);
         if (index < 0) {
           index = 0;
@@ -516,7 +514,7 @@ public class FontChooser extends JComponent {
     }
 
     public class ListSelector implements Runnable {
-      private int index;
+      private final int index;
 
       public ListSelector(int index) {
         this.index = index;
@@ -531,7 +529,7 @@ public class FontChooser extends JComponent {
 
   protected class DialogOKAction extends AbstractAction {
     protected static final String ACTION_NAME = "OK";
-    private JDialog dialog;
+    private final JDialog dialog;
 
     protected DialogOKAction(JDialog dialog) {
       this.dialog = dialog;
@@ -549,7 +547,7 @@ public class FontChooser extends JComponent {
 
   protected class DialogCancelAction extends AbstractAction {
     protected static final String ACTION_NAME = "Cancel";
-    private JDialog dialog;
+    private final JDialog dialog;
 
     protected DialogCancelAction(JDialog dialog) {
       this.dialog = dialog;

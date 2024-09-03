@@ -138,7 +138,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
 
     // making "Attribute" column wider
     tValues.getColumnModel().getColumn(0).setPreferredWidth(dim.width * 3 / 4);
-    tValues.getColumnModel().getColumn(1).setPreferredWidth(dim.width * 1 / 4);
+    tValues.getColumnModel().getColumn(1).setPreferredWidth(dim.width / 4);
 
     tValues.changeSelection(0, 1, false, false);
 
@@ -310,7 +310,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
     }
     int retVal = (data >> pos) & ((1 << bits) - 1);
     if (signed && (retVal & (1 << (bits - 1))) != 0) {
-      retVal |= -1 & ~((1 << bits) - 1);
+      retVal |= -(1 << bits);
     }
     return retVal;
   }
@@ -334,7 +334,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
 
     private final int bits;
     private final int numValues;
-    private boolean signed;
+    private final boolean signed;
 
     public ValueTableModel(int value, int bits, int numValues, String[] labels, boolean signed) {
       if (bits < 1) {
@@ -391,7 +391,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
             } else {
               newVal = Math.min((1 << bits) - 1, Math.max(0, newVal));
             }
-            data[VALUE][rowIndex] = Integer.valueOf(newVal);
+            data[VALUE][rowIndex] = newVal;
             fireTableCellUpdated(rowIndex, columnIndex);
           } catch (NumberFormatException e) {
             Logger.error(e);
@@ -408,7 +408,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex >= 0 && columnIndex < 2) {
-        return getValueAt(0, columnIndex).getClass();
+        return Objects.requireNonNull(getValueAt(0, columnIndex)).getClass();
       } else {
         return Object.class;
       }

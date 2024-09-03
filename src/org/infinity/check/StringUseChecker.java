@@ -513,7 +513,7 @@ public final class StringUseChecker extends AbstractSearcher
     if (strref >= 0 && strref < Integer.MAX_VALUE) {
       final int index = StringTable.getTranslatedIndex((int)strref);
       if (index >= 0 && index < strUsed.length && !strUsed[index]) {
-        synchronized (strUsed) {
+        synchronized (this) {
           strUsed[index] = true;
         }
       }
@@ -569,6 +569,7 @@ public final class StringUseChecker extends AbstractSearcher
         }
         retVal = Long.parseLong(s, radix);
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
 

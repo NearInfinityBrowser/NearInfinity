@@ -53,7 +53,7 @@ public class ItemTypeBitmap extends HashBitmap {
    * Returns a list of available item categories. List entries depend on the detected game and may include
    * static and dynamic elements.
    *
-   * @return Array of strings with item categories.
+   * @return Map of strings with item categories.
    */
   public static TreeMap<Long, String> getItemCategories() {
     synchronized (TABLE_NAME) {

@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -84,14 +85,13 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg, *.pvr)", "bam", "bmp", "png", "jpg",
-            "jpeg", "pvr"),
+    return new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg, *.pvr)",
+            "bam", "bmp", "png", "jpg", "jpeg", "pvr"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg"),
         new FileNameExtensionFilter("PVR files (*.pvr)", "pvr") };
-    return filters;
   }
 
   /**
@@ -211,7 +211,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         if (dir != null && dir.isDirectory()) {
           currentDir = dir.toString();
           FileNameExtensionFilter[] filters = getInputFilters();
-          File[] fileList = dir.listFiles();
+          File[] fileList = Objects.requireNonNull(dir.listFiles());
           for (final File file : fileList) {
             for (final FileNameExtensionFilter filter : filters) {
               if (file != null && file.isFile() && filter.accept(file)) {
@@ -474,7 +474,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     boolean result = (inFile != null && FileEx.create(inFile).isFile());
     if (result) {
       Dimension d = ColorConvert.getImageDimension(inFile);
-      if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
+      if (d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
         result = false;
       }
     }
@@ -632,6 +632,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           try {
             srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
           } catch (Exception e) {
+            Logger.trace(e);
           }
           if (srcImg == null) {
             skippedFiles++;

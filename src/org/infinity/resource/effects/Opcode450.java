@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 450.
+ * Implementation of opcode 450.
  */
 public class Opcode450 extends BaseOpcode {
   private static final String EFFECT_GLOBE_TYPE = "Globe type";

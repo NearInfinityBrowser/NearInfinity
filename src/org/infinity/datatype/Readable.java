@@ -13,7 +13,7 @@ public interface Readable {
    * @param buffer The {@link ByteBuffer} to read from.
    * @param offset The start offset within the buffer.
    * @return The first index after the processed data.
-   * @throws Exception
+   * @throws Exception if an exception occurs.
    */
   int read(ByteBuffer buffer, int offset) throws Exception;
 }

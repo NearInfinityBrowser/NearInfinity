@@ -127,6 +127,7 @@ public class DialogItemRefSearcher implements Runnable {
       try {
         return Integer.parseInt(name.substring(posSpace + 1));
       } catch (NumberFormatException nfe) {
+        Logger.trace(nfe);
       }
     }
     return -1;

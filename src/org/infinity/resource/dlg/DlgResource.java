@@ -190,10 +190,10 @@ public final class DlgResource extends AbstractStruct
     if (fields.size() > 12 && fields.get(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE)) {
       offsetState.setValue(0x34);
     }
-    offsetTrans.setValue(offsetState.getValue() + 0x10 * countState.getValue());
-    offsetStaTri.setValue(offsetTrans.getValue() + 0x20 * countTrans.getValue());
-    offsetTranTri.setValue(offsetStaTri.getValue() + 0x8 * countStaTri.getValue());
-    offsetAction.setValue(offsetTranTri.getValue() + 0x8 * countTranTri.getValue());
+    offsetTrans.setValue(offsetState.getValue() + 0x10L * countState.getValue());
+    offsetStaTri.setValue(offsetTrans.getValue() + 0x20L * countTrans.getValue());
+    offsetTranTri.setValue(offsetStaTri.getValue() + 0x8L * countStaTri.getValue());
+    offsetAction.setValue(offsetTranTri.getValue() + 0x8L * countTranTri.getValue());
     int stringoff = offsetAction.getValue() + 0x8 * countAction.getValue();
     for (final StructEntry o : fields) {
       if (o instanceof AbstractCode) {
@@ -555,7 +555,7 @@ public final class DlgResource extends AbstractStruct
     if (writer != null) {
       // *** write header comment ***
       String niPath = Utils.getJarFileName(NearInfinity.class);
-      if (niPath == null || niPath.isEmpty()) {
+      if (niPath.isEmpty()) {
         niPath = "Near Infinity";
       }
       niPath += " (" + NearInfinity.getVersion() + ")";
@@ -672,14 +672,15 @@ public final class DlgResource extends AbstractStruct
     /** Contains correctly ordered list of responses. */
     public final ArrayList<DlgResponse> responses = new ArrayList<>();
 
+    /** Strref of state. */
+    private final int strref;
+
     /** Space-separated list of transition origins for this state. */
     private String cmtFrom;
     /** Space-separated list of states that are processed before this state. */
     private String cmtWeight;
     /** Used for weight. */
     public int triggerIndex;
-    /** Strref of state. */
-    private int strref;
     /** Trigger text. */
     private String trigger;
 

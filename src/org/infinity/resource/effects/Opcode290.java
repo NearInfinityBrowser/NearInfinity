@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 290.
+ * Implementation of opcode 290.
  */
 public class Opcode290 extends BaseOpcode {
   private static final String EFFECT_TITLE          = "Title";
@@ -56,12 +56,6 @@ public class Opcode290 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -75,12 +69,6 @@ public class Opcode290 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CREATURE_TYPE, CRE_TYPES_IWD));
     return RES_TYPE_IWD;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

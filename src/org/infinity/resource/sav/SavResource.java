@@ -438,7 +438,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
       filelist.setSelectedIndex(entryIndex);
       filelist.revalidate();
       filelist.repaint();
-      if (listModel.size() == 0) {
+      if (listModel.isEmpty()) {
         buttonPanel.getControlByType(CTRL_DELETE).setEnabled(false);
         buttonPanel.getControlByType(CTRL_EDIT).setEnabled(false);
       }

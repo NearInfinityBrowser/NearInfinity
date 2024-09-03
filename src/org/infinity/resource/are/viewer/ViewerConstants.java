@@ -87,7 +87,7 @@ public final class ViewerConstants {
   }
 
   // Flags that identify the different control sections in the sidebar
-  public static final int SIDEBAR_VISUALSTATE = 1 << 0;
+  public static final int SIDEBAR_VISUALSTATE = 1;
   public static final int SIDEBAR_LAYERS      = 1 << 1;
   public static final int SIDEBAR_MINIMAPS    = 1 << 2;
 
@@ -131,7 +131,7 @@ public final class ViewerConstants {
   public static final int ANIM_SHOW_ANIMATED  = 2;
 
   // The layer item types used (LayerObjectContainer, LayerObjectDoor, LayerObjectRegion)
-  public static final int LAYER_ITEM_POLY = 1 << 0;
+  public static final int LAYER_ITEM_POLY = 1;
   public static final int LAYER_ITEM_ICON = 1 << 1;
   public static final int LAYER_ITEM_ANY  = LAYER_ITEM_POLY | LAYER_ITEM_ICON;
 
@@ -141,12 +141,12 @@ public final class ViewerConstants {
   public static final int DOOR_ANY    = DOOR_OPEN | DOOR_CLOSED;
 
   // The layer item types used (LayerObjectAmbient)
-  public static final int AMBIENT_ITEM_ICON   = 1 << 0;
+  public static final int AMBIENT_ITEM_ICON   = 1;
   public static final int AMBIENT_ITEM_RANGE  = 1 << 1;
   public static final int AMBIENT_ITEM_ANY    = AMBIENT_ITEM_ICON | AMBIENT_ITEM_RANGE;
 
   // The ambient sound type
-  public static final int AMBIENT_TYPE_GLOBAL = 1 << 0;
+  public static final int AMBIENT_TYPE_GLOBAL = 1;
   public static final int AMBIENT_TYPE_LOCAL  = 1 << 1;
   public static final int AMBIENT_TYPE_ALL    = AMBIENT_TYPE_GLOBAL | AMBIENT_TYPE_LOCAL;
 

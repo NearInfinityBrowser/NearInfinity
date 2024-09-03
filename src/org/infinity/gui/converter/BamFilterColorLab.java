@@ -82,12 +82,10 @@ public class BamFilterColorLab extends BamFilterBaseColor implements ChangeListe
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(sliderL.getValue()).append(';');
-    sb.append(sliderA.getValue()).append(';');
-    sb.append(sliderB.getValue()).append(';');
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return String.valueOf(sliderL.getValue()) + ';' +
+        sliderA.getValue() + ';' +
+        sliderB.getValue() + ';' +
+        encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -96,9 +94,9 @@ public class BamFilterColorLab extends BamFilterBaseColor implements ChangeListe
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.trim().split(";");
-        Integer lValue = Integer.MIN_VALUE;
-        Integer aValue = Integer.MIN_VALUE;
-        Integer bValue = Integer.MIN_VALUE;
+        int lValue = Integer.MIN_VALUE;
+        int aValue = Integer.MIN_VALUE;
+        int bValue = Integer.MIN_VALUE;
         int[] indices = null;
 
         // parsing configuration data
@@ -234,17 +232,17 @@ public class BamFilterColorLab extends BamFilterBaseColor implements ChangeListe
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     } else if (event.getSource() == sliderL) {
-      spinnerL.setValue(Integer.valueOf(sliderL.getValue()));
+      spinnerL.setValue(sliderL.getValue());
       if (!sliderL.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderA) {
-      spinnerA.setValue(Integer.valueOf(sliderA.getValue()));
+      spinnerA.setValue(sliderA.getValue());
       if (!sliderA.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderB) {
-      spinnerB.setValue(Integer.valueOf(sliderB.getValue()));
+      spinnerB.setValue(sliderB.getValue());
       if (!sliderB.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
@@ -311,7 +309,7 @@ public class BamFilterColorLab extends BamFilterBaseColor implements ChangeListe
       double labB = ((Integer) spinnerB.getValue()).doubleValue();
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           // convert RGB -> Lab
           int fa = isPremultiplied ? (buffer[i] >>> 24) & 0xff : 255;
           int fr = ((buffer[i] >>> 16) & 0xff) * fa / 255;

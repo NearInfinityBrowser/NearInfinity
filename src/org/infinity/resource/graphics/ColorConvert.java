@@ -1218,7 +1218,7 @@ public class ColorConvert {
       a = rgba[3] * rgba[3] * 0.5;
       dist[i] = Math.sqrt(b + g + r + a);
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by saturation.
@@ -1227,11 +1227,11 @@ public class ColorConvert {
     double[] dist = new double[colors.length];
     for (int i = 0; i < colors.length; i++) {
       double[] rgba = getNormalizedColor(colors[i]);
-      double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+      double cmin = Math.min(rgba[0], rgba[1]);
       if (rgba[2] < cmin) {
         cmin = rgba[2];
       }
-      double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+      double cmax = Math.max(rgba[0], rgba[1]);
       if (rgba[2] > cmax) {
         cmax = rgba[2];
       }
@@ -1245,7 +1245,7 @@ public class ColorConvert {
       }
       dist[i] = s;
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by hue.
@@ -1254,11 +1254,11 @@ public class ColorConvert {
     double[] dist = new double[colors.length];
     for (int i = 0; i < colors.length; i++) {
       double[] rgba = getNormalizedColor(colors[i]);
-      double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+      double cmin = Math.min(rgba[0], rgba[1]);
       if (rgba[2] < cmin) {
         cmin = rgba[2];
       }
-      double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+      double cmax = Math.max(rgba[0], rgba[1]);
       if (rgba[2] > cmax) {
         cmax = rgba[2];
       }
@@ -1287,7 +1287,7 @@ public class ColorConvert {
       }
       dist[i] = h;
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by red amount.
@@ -1322,13 +1322,7 @@ public class ColorConvert {
   private static final Comparator<Integer> COMPARE_BY_LAB_L = (c1, c2) -> {
     Triple<Double, Double, Double> dist1 = convertRGBtoLab(c1);
     Triple<Double, Double, Double> dist2 = convertRGBtoLab(c2);
-    if (dist1.getValue0() < dist2.getValue0()) {
-      return -1;
-    } else if (dist1.getValue0() > dist2.getValue0()) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return dist1.getValue0().compareTo(dist2.getValue0());
     // int dist1 = (c1 >>> 24) & 0xff;
     // int dist2 = (c2 >>> 24) & 0xff;
     // return dist1 - dist2;

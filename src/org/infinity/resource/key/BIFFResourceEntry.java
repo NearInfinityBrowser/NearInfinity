@@ -178,7 +178,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
         if (info.length == 1) {
           retVal = info[0];
         } else if (info.length == 2) {
-          retVal = info[0] * info[1] + 0x18;
+          retVal = (long) info[0] * info[1] + 0x18;
         }
       }
     } catch (Exception e) {

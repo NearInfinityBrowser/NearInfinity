@@ -26,6 +26,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 
+import org.tinylog.Logger;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -251,6 +252,7 @@ public class GifSequenceReader {
       try {
         retVal = Integer.parseInt(node.getNodeValue());
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return retVal;
@@ -276,10 +278,11 @@ public class GifSequenceReader {
   // -------------------------- INNER CLASSES --------------------------
 
   public static class Frame {
-    private int index;
+    private final int index;
+    private final Rectangle rect;
+
     private BufferedImage image;
     private BufferedImage renderedImage;
-    private Rectangle rect;
     private int delay;
     private DisposalMethod disposal;
     private int transIndex;

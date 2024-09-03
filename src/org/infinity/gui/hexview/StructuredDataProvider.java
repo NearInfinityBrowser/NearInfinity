@@ -45,7 +45,7 @@ public class StructuredDataProvider implements IDataProvider {
 
   @Override
   public void addListener(IDataChangedListener listener) {
-    if (listener != null && listeners.indexOf(listener) < 0) {
+    if (listener != null && !listeners.contains(listener)) {
       listeners.add(listener);
     }
   }

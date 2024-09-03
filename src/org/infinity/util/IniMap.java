@@ -203,7 +203,7 @@ public class IniMap implements Iterable<IniMapSection> {
       value = line.substring(start, pos).trim();
     }
 
-    if (key != null || value != null) {
+    if (key != null) {
       return new IniMapEntry(key, value, lineNr);
     } else {
       return null;

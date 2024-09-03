@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 177.
+ * Implementation of opcode 177.
  */
 public class Opcode177 extends BaseOpcode {
   private static final String RES_TYPE = "EFF";
@@ -38,11 +38,5 @@ public class Opcode177 extends BaseOpcode {
     list.add(param2.createIdsValueFromType(buffer));
     list.add(param2);
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

@@ -23,7 +23,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
-final class Window extends AbstractStruct { // implements AddRemovable
+final public class Window extends AbstractStruct { // implements AddRemovable
   // CHU/Window-specific field labels
   public static final String CHU_WINDOW_PANEL               = "Panel";
   public static final String CHU_WINDOW_NAME                = "Name";

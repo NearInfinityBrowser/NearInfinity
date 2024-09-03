@@ -20,7 +20,7 @@ import javax.swing.tree.TreeNode;
  *
  * @author Mingun
  */
-final class OrphanTransitions extends TransitionOwnerItem {
+public class OrphanTransitions extends TransitionOwnerItem {
   private final DlgTreeModel parent;
 
   protected final List<TransitionItem> trans = new ArrayList<>();
@@ -51,7 +51,10 @@ final class OrphanTransitions extends TransitionOwnerItem {
 
   @Override
   public int getIndex(TreeNode node) {
-    return trans.indexOf(node);
+    if (node instanceof TransitionItem) {
+      return trans.indexOf(node);
+    }
+    return -1;
   }
 
   @Override
@@ -96,7 +99,10 @@ final class OrphanTransitions extends TransitionOwnerItem {
 
   @Override
   public boolean removeChild(ItemBase child) {
-    return trans.remove(child);
+    if (child instanceof TransitionItem) {
+      return trans.remove(child);
+    }
+    return false;
   }
 
   @Override

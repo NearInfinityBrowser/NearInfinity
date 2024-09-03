@@ -14,6 +14,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.util.Objects;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -102,10 +103,8 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cbSwapType.getSelectedIndex()).append(';');
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return String.valueOf(cbSwapType.getSelectedIndex()) + ';' +
+        encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -246,10 +245,10 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
 
       // shift contains shift values for r, g, b
       final SwapType type = (SwapType) cbSwapType.getSelectedItem();
-      final int[] shift = type.getShift();
+      final int[] shift = Objects.requireNonNull(type).getShift();
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
           int ir = buffer[i] & 0x00ff0000;
           int ig = buffer[i] & 0x0000ff00;

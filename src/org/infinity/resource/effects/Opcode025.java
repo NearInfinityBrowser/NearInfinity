@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 25.
+ * Implementation of opcode 25.
  */
 public class Opcode025 extends BaseOpcode {
   private static final String EFFECT_POISON_TYPE = "Poison type";
@@ -75,7 +75,7 @@ public class Opcode025 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AMOUNT));
     final Bitmap bmp = new Bitmap(buffer, offset + 4, 4, EFFECT_POISON_TYPE, poisonTypes);
     list.add(bmp);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       bmp.addUpdateListener((UpdateListener)parent);
     }
     return null;

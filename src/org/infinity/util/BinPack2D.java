@@ -157,7 +157,7 @@ public class BinPack2D {
     if (rects != null && dst != null) {
       dst.clear();
 
-      while (rects.size() > 0) {
+      while (!rects.isEmpty()) {
         int bestScore1 = Integer.MAX_VALUE;
         int bestScore2 = Integer.MAX_VALUE;
         int bestRectIndex = -1;
@@ -241,7 +241,7 @@ public class BinPack2D {
   public float getOccupancy() {
     long usedSurfaceArea = 0L;
     for (Rectangle r : usedRectangles) {
-      usedSurfaceArea += r.width * r.height;
+      usedSurfaceArea += (long) r.width * r.height;
     }
 
     return (float) (usedSurfaceArea) / (float) (binWidth * binHeight);

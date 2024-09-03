@@ -177,62 +177,62 @@ class ZipConstants
    * fields access methods
    */
   ///////////////////////////////////////////////////////
-  public static final int  CH(byte[] b, int n) { return Byte.toUnsignedInt(b[n]); }
-  public static final int  SH(byte[] b, int n) { return Byte.toUnsignedInt(b[n]) | (Byte.toUnsignedInt(b[n + 1]) << 8); }
-  public static final long LG(byte[] b, int n) { return ((SH(b, n)) | (SH(b, n + 2) << 16)) & 0xffffffffL; }
-  public static final long LL(byte[] b, int n) { return (LG(b, n)) | (LG(b, n + 4) << 32); }
+  public static int  CH(byte[] b, int n) { return Byte.toUnsignedInt(b[n]); }
+  public static int  SH(byte[] b, int n) { return Byte.toUnsignedInt(b[n]) | (Byte.toUnsignedInt(b[n + 1]) << 8); }
+  public static long LG(byte[] b, int n) { return ((SH(b, n)) | ((long) SH(b, n + 2) << 16)) & 0xffffffffL; }
+  public static long LL(byte[] b, int n) { return (LG(b, n)) | (LG(b, n + 4) << 32); }
 
-  public static final long GETSIG(byte[] b) { return LG(b, 0); }
+  public static long GETSIG(byte[] b) { return LG(b, 0); }
 
   // local file (LOC) header fields
-  public static final long LOCSIG(byte[] b) { return LG(b, 0); } // signature
-  public static final int  LOCVER(byte[] b) { return SH(b, 4); } // version needed to extract
-  public static final int  LOCFLG(byte[] b) { return SH(b, 6); } // general purpose bit flags
-  public static final int  LOCHOW(byte[] b) { return SH(b, 8); } // compression method
-  public static final long LOCTIM(byte[] b) { return LG(b, 10);} // modification time
-  public static final long LOCCRC(byte[] b) { return LG(b, 14);} // crc of uncompressed data
-  public static final long LOCSIZ(byte[] b) { return LG(b, 18);} // compressed data size
-  public static final long LOCLEN(byte[] b) { return LG(b, 22);} // uncompressed data size
-  public static final int  LOCNAM(byte[] b) { return SH(b, 26);} // filename length
-  public static final int  LOCEXT(byte[] b) { return SH(b, 28);} // extra field length
+  public static long LOCSIG(byte[] b) { return LG(b, 0); } // signature
+  public static int  LOCVER(byte[] b) { return SH(b, 4); } // version needed to extract
+  public static int  LOCFLG(byte[] b) { return SH(b, 6); } // general purpose bit flags
+  public static int  LOCHOW(byte[] b) { return SH(b, 8); } // compression method
+  public static long LOCTIM(byte[] b) { return LG(b, 10);} // modification time
+  public static long LOCCRC(byte[] b) { return LG(b, 14);} // crc of uncompressed data
+  public static long LOCSIZ(byte[] b) { return LG(b, 18);} // compressed data size
+  public static long LOCLEN(byte[] b) { return LG(b, 22);} // uncompressed data size
+  public static int  LOCNAM(byte[] b) { return SH(b, 26);} // filename length
+  public static int  LOCEXT(byte[] b) { return SH(b, 28);} // extra field length
 
   // extra local (EXT) header fields
-  public static final long EXTCRC(byte[] b) { return LG(b, 4);}  // crc of uncompressed data
-  public static final long EXTSIZ(byte[] b) { return LG(b, 8);}  // compressed size
-  public static final long EXTLEN(byte[] b) { return LG(b, 12);} // uncompressed size
+  public static long EXTCRC(byte[] b) { return LG(b, 4);}  // crc of uncompressed data
+  public static long EXTSIZ(byte[] b) { return LG(b, 8);}  // compressed size
+  public static long EXTLEN(byte[] b) { return LG(b, 12);} // uncompressed size
 
   // end of central directory header (END) fields
-  public static final int  ENDSUB(byte[] b) { return SH(b, 8); }  // number of entries on this disk
-  public static final int  ENDTOT(byte[] b) { return SH(b, 10);}  // total number of entries
-  public static final long ENDSIZ(byte[] b) { return LG(b, 12);}  // central directory size
-  public static final long ENDOFF(byte[] b) { return LG(b, 16);}  // central directory offset
-  public static final int  ENDCOM(byte[] b) { return SH(b, 20);}  // size of zip file comment
-  public static final int  ENDCOM(byte[] b, int off) { return SH(b, off + 20);}
+  public static int  ENDSUB(byte[] b) { return SH(b, 8); }  // number of entries on this disk
+  public static int  ENDTOT(byte[] b) { return SH(b, 10);}  // total number of entries
+  public static long ENDSIZ(byte[] b) { return LG(b, 12);}  // central directory size
+  public static long ENDOFF(byte[] b) { return LG(b, 16);}  // central directory offset
+  public static int  ENDCOM(byte[] b) { return SH(b, 20);}  // size of zip file comment
+  public static int  ENDCOM(byte[] b, int off) { return SH(b, off + 20);}
 
   // zip64 end of central directory recoder fields
-  public static final long ZIP64_ENDTOD(byte[] b) { return LL(b, 24);}  // total number of entries on disk
-  public static final long ZIP64_ENDTOT(byte[] b) { return LL(b, 32);}  // total number of entries
-  public static final long ZIP64_ENDSIZ(byte[] b) { return LL(b, 40);}  // central directory size
-  public static final long ZIP64_ENDOFF(byte[] b) { return LL(b, 48);}  // central directory offset
-  public static final long ZIP64_LOCOFF(byte[] b) { return LL(b, 8);}   // zip64 end offset
+  public static long ZIP64_ENDTOD(byte[] b) { return LL(b, 24);}  // total number of entries on disk
+  public static long ZIP64_ENDTOT(byte[] b) { return LL(b, 32);}  // total number of entries
+  public static long ZIP64_ENDSIZ(byte[] b) { return LL(b, 40);}  // central directory size
+  public static long ZIP64_ENDOFF(byte[] b) { return LL(b, 48);}  // central directory offset
+  public static long ZIP64_LOCOFF(byte[] b) { return LL(b, 8);}   // zip64 end offset
 
   // central directory header (CEN) fields
-  public static final long CENSIG(byte[] b, int pos) { return LG(b, pos + 0); }
-  public static final int  CENVEM(byte[] b, int pos) { return SH(b, pos + 4); }
-  public static final int  CENVER(byte[] b, int pos) { return SH(b, pos + 6); }
-  public static final int  CENFLG(byte[] b, int pos) { return SH(b, pos + 8); }
-  public static final int  CENHOW(byte[] b, int pos) { return SH(b, pos + 10);}
-  public static final long CENTIM(byte[] b, int pos) { return LG(b, pos + 12);}
-  public static final long CENCRC(byte[] b, int pos) { return LG(b, pos + 16);}
-  public static final long CENSIZ(byte[] b, int pos) { return LG(b, pos + 20);}
-  public static final long CENLEN(byte[] b, int pos) { return LG(b, pos + 24);}
-  public static final int  CENNAM(byte[] b, int pos) { return SH(b, pos + 28);}
-  public static final int  CENEXT(byte[] b, int pos) { return SH(b, pos + 30);}
-  public static final int  CENCOM(byte[] b, int pos) { return SH(b, pos + 32);}
-  public static final int  CENDSK(byte[] b, int pos) { return SH(b, pos + 34);}
-  public static final int  CENATT(byte[] b, int pos) { return SH(b, pos + 36);}
-  public static final long CENATX(byte[] b, int pos) { return LG(b, pos + 38);}
-  public static final long CENOFF(byte[] b, int pos) { return LG(b, pos + 42);}
+  public static long CENSIG(byte[] b, int pos) { return LG(b, pos); }
+  public static int  CENVEM(byte[] b, int pos) { return SH(b, pos + 4); }
+  public static int  CENVER(byte[] b, int pos) { return SH(b, pos + 6); }
+  public static int  CENFLG(byte[] b, int pos) { return SH(b, pos + 8); }
+  public static int  CENHOW(byte[] b, int pos) { return SH(b, pos + 10);}
+  public static long CENTIM(byte[] b, int pos) { return LG(b, pos + 12);}
+  public static long CENCRC(byte[] b, int pos) { return LG(b, pos + 16);}
+  public static long CENSIZ(byte[] b, int pos) { return LG(b, pos + 20);}
+  public static long CENLEN(byte[] b, int pos) { return LG(b, pos + 24);}
+  public static int  CENNAM(byte[] b, int pos) { return SH(b, pos + 28);}
+  public static int  CENEXT(byte[] b, int pos) { return SH(b, pos + 30);}
+  public static int  CENCOM(byte[] b, int pos) { return SH(b, pos + 32);}
+  public static int  CENDSK(byte[] b, int pos) { return SH(b, pos + 34);}
+  public static int  CENATT(byte[] b, int pos) { return SH(b, pos + 36);}
+  public static long CENATX(byte[] b, int pos) { return LG(b, pos + 38);}
+  public static long CENOFF(byte[] b, int pos) { return LG(b, pos + 42);}
 
   /* The END header is followed by a variable length comment of size < 64k. */
   public static final long END_MAXLEN = 0xFFFF + ENDHDR;

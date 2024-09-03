@@ -55,8 +55,8 @@ public final class Compressor {
    * @param version   Version ID for the header.
    * @return The compressed data including header.
    */
-  public static byte[] compress(byte data[], String signature, String version) {
-    byte header[] = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
+  public static byte[] compress(byte[] data, String signature, String version) {
+    byte[] header = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
     header = ArrayUtil.mergeArrays(header, DynamicArray.convertInt(data.length));
     byte[] result = compress(data, 0, data.length, false);
     if (result != null) {
@@ -108,7 +108,7 @@ public final class Compressor {
    * @param len Length of data to compress, in bytes. Specify {@code 0} to compress until no more input data is available.
    * @param prependSize If {@code true} then uncompressed size value will be written to the output stream
    *                    before compressed data is written. Ignored if {@code len} is 0.
-   * @return
+   * @return Number of bytes compressed
    * @throws IOException if an I/O error occurs.
    */
   public static int compress(InputStream is, OutputStream os, int len, boolean prependSize) throws IOException {
@@ -163,11 +163,10 @@ public final class Compressor {
    * Decompresses the data of the specified byte array and returns it as a new byte array object.
    *
    * @param buffer Byte array with data to decompress.
-   * @param offset Start offset of compressed data.
    * @return A byte array with decompressed data.
-   * @throws IOException
+   * @throws IOException if an I/O error occurs.
    */
-  public static byte[] decompress(byte buffer[]) throws IOException {
+  public static byte[] decompress(byte[] buffer) throws IOException {
     return decompress(buffer, 8);
   }
 
@@ -175,13 +174,13 @@ public final class Compressor {
    * Decompresses the data of the specified byte array and returns it as a new byte array object.
    *
    * @param buffer Byte array with data to decompress.
-   * @param offset Start offset of compressed data.
+   * @param ofs Start offset of compressed data.
    * @return A byte array with decompressed data.
    * @throws IOException if an I/O error occurs.
    */
-  public static byte[] decompress(byte buffer[], int ofs) throws IOException {
+  public static byte[] decompress(byte[] buffer, int ofs) throws IOException {
     Inflater inflater = new Inflater();
-    byte result[] = new byte[DynamicArray.getInt(buffer, ofs)];
+    byte[] result = new byte[DynamicArray.getInt(buffer, ofs)];
     ofs += 4;
     inflater.setInput(buffer, ofs, buffer.length - ofs);
     try {
@@ -199,7 +198,7 @@ public final class Compressor {
    * @param is {@code InputStream} with data to decompress.
    *           The current stream position should point to the start of the game resource.
    * @return A byte array with decompressed data.
-   * @throws IOException
+   * @throws IOException if an I/O error occurs.
    */
   public static byte[] decompress(InputStream is) throws IOException {
     return decompress(is, 8, 0);

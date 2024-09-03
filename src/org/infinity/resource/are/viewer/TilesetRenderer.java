@@ -122,7 +122,7 @@ public class TilesetRenderer extends RenderCanvas {
    */
   public void addChangeListener(TilesetChangeListener listener) {
     if (listener != null) {
-      if (listChangeListener.indexOf(listener) < 0) {
+      if (!listChangeListener.contains(listener)) {
         listChangeListener.add(listener);
       }
     }
@@ -134,7 +134,7 @@ public class TilesetRenderer extends RenderCanvas {
    * @return All ChangeListeners added or an empty array.
    */
   public TilesetChangeListener[] getChangeListeners() {
-    return (TilesetChangeListener[]) listChangeListener.toArray();
+    return listChangeListener.toArray(new TilesetChangeListener[0]);
   }
 
   /**
@@ -726,7 +726,7 @@ public class TilesetRenderer extends RenderCanvas {
 
       // VolatileImage objects may lose their content under specific circumstances
       if (!forced && getImage() != null && getImage() instanceof VolatileImage) {
-        forced |= ((VolatileImage) getImage()).contentsLost();
+        forced = ((VolatileImage) getImage()).contentsLost();
       }
 
       if (hasChangedMap || hasChangedAppearance || forced) {
@@ -943,7 +943,7 @@ public class TilesetRenderer extends RenderCanvas {
   // draws the specified tile into the target graphics buffer
   private synchronized void drawTile(Tile tile, boolean isDoorTile) {
     if (tile != null) {
-      boolean isDoorClosed = (Profile.getEngine() == Profile.Engine.PST) ? !isClosed : isClosed;
+      boolean isDoorClosed = (Profile.getEngine() == Profile.Engine.PST) != isClosed;
       int[] target = ((DataBufferInt) workingTile.getRaster().getDataBuffer()).getData();
 
       if (overlaysEnabled && tile.hasOverlay() && hasOverlay(tile.getOverlayIndex())) { // overlayed tile
@@ -1117,7 +1117,7 @@ public class TilesetRenderer extends RenderCanvas {
 
     public void advanceTileFrame() {
       if (hasAnimatedTiles) {
-        listTiles.forEach(tile -> tile.advancePrimaryIndex());
+        listTiles.forEach(Tile::advancePrimaryIndex);
       }
     }
 
@@ -1211,8 +1211,7 @@ public class TilesetRenderer extends RenderCanvas {
         }
 
         // grouping overlayed tiles for faster access
-        for (int i = 0, size = listTiles.size(); i < size; i++) {
-          Tile tile = listTiles.get(i);
+        for (Tile tile : listTiles) {
           if (tile.getFlags() > 0) {
             listOverlayTiles.add(tile);
           }
@@ -1232,7 +1231,7 @@ public class TilesetRenderer extends RenderCanvas {
       if (wed != null && ovl != null) {
         String tisName = ((ResourceRef) ovl.getAttribute(Overlay.WED_OVERLAY_TILESET)).getResourceName()
             .toUpperCase(Locale.ENGLISH);
-        if (tisName == null || "None".equalsIgnoreCase(tisName)) {
+        if ("None".equalsIgnoreCase(tisName)) {
           tisName = "";
         }
         if (!tisName.isEmpty()) {
@@ -1265,12 +1264,14 @@ public class TilesetRenderer extends RenderCanvas {
 
   // Stores tilemap information only (no graphics data)
   private static class Tile {
-    private int tileIdx2; // (start) indices of primary and secondary tiles
-    private int[] tileIdx; // tile indices for primary and secondary tiles
-    private int tileCount; // number of primary tiles, currently selected tile
+    private final int tileIdx2; // (start) indices of primary and secondary tiles
+    private final int[] tileIdx; // tile indices for primary and secondary tiles
+    private final int tileCount; // number of primary tiles, currently selected tile
     private int curTile; // number of primary tiles, currently selected tile
-    private int x, y, flags; // (x, y) as pixel coordinates, flags defines overlay usage
-    private boolean isTisV1;
+    private final int x;  // (x, y) as pixel coordinates
+    private final int y;  // (x, y) as pixel coordinates
+    private final int flags; // flags defines overlay usage
+    private final boolean isTisV1;
 
     public Tile(int x, int y, int tileCount, int[] index, int index2, int flags, boolean isTisV1) {
       if (tileCount < 0) {
@@ -1375,7 +1376,7 @@ public class TilesetRenderer extends RenderCanvas {
   private static class DoorInfo {
     // private String name; // door info structure name
     // private boolean isClosed; // indicates the door state for the specified list of tile indices
-    private int[] indices; // list of tilemap indices used for the door
+    private final int[] indices; // list of tilemap indices used for the door
 
     public DoorInfo(String name, boolean isClosed, int[] indices) {
 //      this.name = (name != null) ? name : "";

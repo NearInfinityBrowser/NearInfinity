@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 119.
+ * Implementation of opcode 119.
  */
 public class Opcode119 extends BaseOpcode {
   private static final String EFFECT_NUM_IMAGES = "# images";

@@ -115,6 +115,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           rcImage.setImage(loadImage());
           WindowBlocker.blockWindow(false);
         } catch (Exception e) {
+          Logger.trace(e);
         }
         WindowBlocker.blockWindow(false);
       }
@@ -592,7 +593,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
           tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2)]     = (byte) (palette[i - 1] & 0xff);
             tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
             tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;

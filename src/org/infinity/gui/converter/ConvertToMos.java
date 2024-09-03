@@ -95,7 +95,6 @@ public class ConvertToMos extends ChildFrame
    * @param img          The source image to convert into a MOS resource.
    * @param mosFileName  The name of the resulting MOS file.
    * @param compressed   If {@code true}, converts into a compressed BAMC file.
-   * @param fastConvert  If {@code true}, uses a fast but less accurate color reduction algorith.
    * @param result       Returns more specific information about the conversion process. Data placed in the first item
    *                     indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
@@ -190,7 +189,7 @@ public class ConvertToMos extends ChildFrame
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
           tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2)]     = (byte) (palette[i - 1] & 0xff);
             tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
             tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
@@ -414,12 +413,11 @@ public class ConvertToMos extends ChildFrame
 
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+    return new FileNameExtensionFilter[] {
         new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bam", "bmp", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
-    return filters;
   }
 
   // generates PVRZ textures
@@ -537,30 +535,27 @@ public class ConvertToMos extends ChildFrame
       if (workerConvert == null) {
         final String msg = "MOS output file already exists. Overwrite?";
         Path file = null;
-        do {
-          if (tabPane.getSelectedIndex() == 0 && !tfOutputV1.getText().isEmpty()) {
-            file = FileManager.resolve(tfOutputV1.getText());
-          } else if (tabPane.getSelectedIndex() == 1 & !tfOutputV2.getText().isEmpty()) {
-            file = FileManager.resolve(tfOutputV2.getText());
-          }
-          if (file != null) {
-            if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
-                "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-              file = null;
-              workerConvert = new SwingWorker<List<String>, Void>() {
-                @Override
-                public List<String> doInBackground() {
-                  return convert();
-                }
-              };
-              workerConvert.addPropertyChangeListener(this);
-              blocker = new WindowBlocker(this);
-              blocker.setBlocked(true);
-              workerConvert.execute();
-            }
+        if (tabPane.getSelectedIndex() == 0 && !tfOutputV1.getText().isEmpty()) {
+          file = FileManager.resolve(tfOutputV1.getText());
+        } else if (tabPane.getSelectedIndex() == 1 & !tfOutputV2.getText().isEmpty()) {
+          file = FileManager.resolve(tfOutputV2.getText());
+        }
+        if (file != null) {
+          if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
+              "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             file = null;
+            workerConvert = new SwingWorker<List<String>, Void>() {
+              @Override
+              public List<String> doInBackground() {
+                return convert();
+              }
+            };
+            workerConvert.addPropertyChangeListener(this);
+            blocker = new WindowBlocker(this);
+            blocker.setBlocked(true);
+            workerConvert.execute();
           }
-        } while (file != null);
+        }
       }
     } else if (event.getSource() == bCancel) {
       hideWindow();
@@ -906,6 +901,7 @@ public class ConvertToMos extends ChildFrame
           index = Integer.parseInt(o.toString());
         }
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return index;
@@ -978,6 +974,7 @@ public class ConvertToMos extends ChildFrame
     try {
       srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
     } catch (Exception e) {
+      Logger.trace(e);
     }
     if (srcImage == null) {
       result.add(null);

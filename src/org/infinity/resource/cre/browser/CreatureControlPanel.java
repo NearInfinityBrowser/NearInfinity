@@ -435,7 +435,7 @@ public class CreatureControlPanel extends JPanel {
    */
   public static String[] createColorLabels(SpriteDecoder decoder) {
     String[] retVal = null;
-    if (decoder != null && decoder instanceof MonsterPlanescapeDecoder) {
+    if (decoder instanceof MonsterPlanescapeDecoder) {
       MonsterPlanescapeDecoder mpd = (MonsterPlanescapeDecoder) decoder;
       IdsMap map = IdsMapCache.get("CLOWNRGE.IDS");
       if (map != null) {

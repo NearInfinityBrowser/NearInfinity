@@ -149,6 +149,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
+      Logger.trace(e);
     }
   }
 
@@ -157,6 +158,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
+      Logger.trace(e);
     }
   }
 
@@ -165,6 +167,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
     try {
       updateText(event.getDocument().getText(0, event.getDocument().getLength()));
     } catch (BadLocationException e) {
+      Logger.trace(e);
     }
   }
 

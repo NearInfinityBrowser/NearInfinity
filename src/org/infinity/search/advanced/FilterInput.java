@@ -575,9 +575,7 @@ public class FilterInput extends ChildFrame {
   private static Vector<String> getValueResourceTypes(boolean addEmpty) {
     Vector<String> list = new Vector<>();
     String[] types = Profile.getAvailableResourceTypes();
-    for (String type : types) {
-      list.add(type);
-    }
+    Collections.addAll(list, types);
     Collections.sort(list);
 
     if (addEmpty) {
@@ -895,7 +893,7 @@ public class FilterInput extends ChildFrame {
    * A method for synchronization purposes. Releases the specified synchronization object.
    */
   private void signalRelease(String name) {
-    if (name != null && signalMap.containsKey(name)) {
+    if (name != null) {
       signalMap.remove(name);
     }
   }
@@ -1052,7 +1050,7 @@ public class FilterInput extends ChildFrame {
         JPopupMenu menu = (mi.getParent() instanceof JPopupMenu) ? (JPopupMenu) mi.getParent() : null;
         JFormattedTextField ftf = menuToTextFieldMap.get(menu);
         if (menu != null && ftf != null) {
-          List<Component> list = Arrays.asList(menu.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+          List<Component> list = Arrays.stream(menu.getComponents()).filter(c -> c instanceof JMenuItem)
               .collect(Collectors.toList());
           switch (list.indexOf(mi)) {
             case 0: // dec
@@ -1101,7 +1099,7 @@ public class FilterInput extends ChildFrame {
         JTextField edit = (JTextField) event.getSource();
         if (event.getClickCount() == 2) {
           // Invoke later to circumvent content validation (may not work correctly on every platform)
-          SwingUtilities.invokeLater(() -> edit.selectAll());
+          SwingUtilities.invokeLater(edit::selectAll);
         } else if (!event.isPopupTrigger()) {
           edit.setCaretPosition(edit.viewToModel(event.getPoint()));
           // SwingUtilities.invokeLater(() -> edit.setCaretPosition(edit.viewToModel(event.getPoint())));
@@ -1213,7 +1211,7 @@ public class FilterInput extends ChildFrame {
         JFormattedTextField ftf = menuToTextFieldMap.get(menu);
         if (ftf != null) {
           NumberFormatterEx.NumberFormat fmt = ((NumberFormatterEx) ftf.getFormatter()).getNumberFormat();
-          List<Component> list = Arrays.asList(menu.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+          List<Component> list = Arrays.stream(menu.getComponents()).filter(c -> c instanceof JMenuItem)
               .collect(Collectors.toList());
           if (list.size() >= 2) {
             list.get(0).setEnabled(fmt != NumberFormatterEx.NumberFormat.DECIMAL);

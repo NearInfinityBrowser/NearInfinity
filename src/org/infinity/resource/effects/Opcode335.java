@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 335.
+ * Implementation of opcode 335.
  */
 public class Opcode335 extends BaseOpcode {
   private static final String EFFECT_STATE      = "State";

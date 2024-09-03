@@ -4,13 +4,14 @@
 
 package org.infinity.updater;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -191,7 +192,7 @@ public class Updater {
         final long[] newVersion = getNormalizedVersion(release.tagName);
         compare = compareNormalizedVersion(newVersion, curVersion);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       retVal = (compare > 0);
 
@@ -204,7 +205,7 @@ public class Updater {
   /** Returns the modification time of the current JAR's MANIFEST.MF as {@link FileTime} instance. */
   static FileTime getJarFileTimeValue() throws Exception {
     String jarPath = Utils.getJarFileName(NearInfinity.class);
-    if (jarPath != null && !jarPath.isEmpty()) {
+    if (!jarPath.isEmpty()) {
       try (JarFile jf = new JarFile(jarPath)) {
         ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
         if (manifest != null) {
@@ -225,7 +226,7 @@ public class Updater {
       return OffsetDateTime.ofInstant(ft.toInstant(), ZoneId.systemDefault());
     }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -237,12 +238,13 @@ public class Updater {
    */
   static String getJarFileHash() {
     String path = Utils.getJarFileName(NearInfinity.class);
-    if (path != null && !path.isEmpty()) {
+    if (!path.isEmpty()) {
       Path jarPath = FileManager.resolve(path);
       if (FileEx.create(jarPath).isFile()) {
         try {
-          return Utils.generateMD5Hash(new FileInputStream(path));
+          return Utils.generateMD5Hash(Files.newInputStream(Paths.get(path)));
         } catch (IOException e) {
+          Logger.trace(e);
         }
       }
     }
@@ -294,7 +296,7 @@ public class Updater {
 
     long[] retVal = new long[items.size()];
     for (int i = 0; i < retVal.length; i++) {
-      retVal[i] = items.get(i).longValue();
+      retVal[i] = items.get(i);
     }
 
     return retVal;
@@ -339,7 +341,7 @@ public class Updater {
       prefs = Preferences.userNodeForPackage(getClass());
     } catch (SecurityException se) {
       prefs = null;
-      se.printStackTrace();
+      Logger.error(se);
     }
 
     loadUpdateSettings();
@@ -370,8 +372,8 @@ public class Updater {
         }
         if (isValid) {
           // checking if server is already in list
-          for (Iterator<String> iter = serverList.iterator(); iter.hasNext();) {
-            if (isSameServer(link, iter.next())) {
+          for (String s : serverList) {
+            if (isSameServer(link, s)) {
               // consider both links as equal
               return;
             }
@@ -431,7 +433,7 @@ public class Updater {
       interval = Interval.getDefault();
     }
     OffsetDateTime intervalExpiredAt = getAutoUpdateCheckDate().plus(interval.getInterval());
-    return intervalExpiredAt.compareTo(OffsetDateTime.now()) < 0;
+    return intervalExpiredAt.isBefore(OffsetDateTime.now());
   }
 
   /** Returns whether to use a proxy for accessing remote servers. */
@@ -527,8 +529,8 @@ public class Updater {
         if (!server.isEmpty()) {
           // skip duplicate server URLs
           boolean isSame = false;
-          for (Iterator<String> iter = serverList.iterator(); iter.hasNext();) {
-            if (isSameServer(server, iter.next())) {
+          for (String s : serverList) {
+            if (isSameServer(server, s)) {
               isSame = true;
               break;
             }
@@ -562,7 +564,7 @@ public class Updater {
             proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 
@@ -637,6 +639,7 @@ public class Updater {
         try {
           xml = Utils.downloadText(url, getProxy(), "utf-8");
         } catch (IOException e) {
+          Logger.trace(e);
         }
         if (xml != null && UpdateInfo.isValidXml(xml, url.toExternalForm())) {
           return url.toExternalForm();
@@ -648,6 +651,7 @@ public class Updater {
           return url.toExternalForm();
         }
       } catch (MalformedURLException e) {
+        Logger.trace(e);
       }
     }
     return null;
@@ -672,6 +676,7 @@ public class Updater {
               addServer(info.getGeneral().getServer(i), true);
             } catch (Exception e) {
               // skip adding server on error
+              Logger.trace(e);
             }
           }
 
@@ -679,6 +684,7 @@ public class Updater {
         }
       } catch (IOException e) {
         // skip update server on error and try next
+        Logger.trace(e);
       }
     }
     return null;

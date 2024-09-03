@@ -20,6 +20,7 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 /**
  * Specialized Bitmap type for translating SPLPROT.2DA data into human-readable descriptions.
@@ -195,7 +196,7 @@ public class SpellProtType extends Bitmap {
       Table2da table = Table2daCache.get(TABLE_NAME);
       if (table != null) {
         int id = toNumber(table.get(value, 1), -1);
-        String retVal = STAT_IDS.get(Long.valueOf(id));
+        String retVal = STAT_IDS.get((long) id);
         if (retVal != null) {
           return retVal;
         }
@@ -292,7 +293,7 @@ public class SpellProtType extends Bitmap {
         boolean isCustom = (-1 == toNumber(table.get(value, 2), 0));
         if (isCustom) {
           int id = toNumber(table.get(value, 1), -1);
-          String retVal = STAT_IDS.get(Long.valueOf(id));
+          String retVal = STAT_IDS.get((long) id);
           if (retVal != null) {
             return retVal;
           }
@@ -546,6 +547,7 @@ public class SpellProtType extends Bitmap {
           retVal = Integer.parseInt(value);
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return retVal;

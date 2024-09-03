@@ -40,10 +40,9 @@ public abstract class MosDecoder {
   public static Type getType(ResourceEntry mosEntry) {
     Type retVal = Type.INVALID;
     if (mosEntry != null) {
-      try (InputStream is = mosEntry.getResourceDataAsStream()) {
+      try (final InputStream is = mosEntry.getResourceDataAsStream()) {
         String signature = StreamUtils.readString(is, 4);
         String version = StreamUtils.readString(is, 4);
-        is.close();
         if ("MOSC".equals(signature)) {
           retVal = Type.MOSC;
         } else if ("MOS ".equals(signature)) {

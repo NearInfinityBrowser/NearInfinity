@@ -29,7 +29,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A> {
   /**
    * Creates a new tuple from the array. The array must contain at least 1 element.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param arr the array to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -46,7 +46,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A> {
   /**
    * Creates a new tuple from the collection. The collection must contain at least 1 element.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param col the collection to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -54,7 +54,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A> {
     if (col == null) {
       throw new IllegalArgumentException("Collection cannot be null");
     }
-    if (col.size() < SIZE) {
+    if (col.isEmpty()) {
       throw new IllegalArgumentException("Collection must contain at least 1 element");
     }
     Iterator<T> iter = col.iterator();
@@ -64,7 +64,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A> {
   /**
    * Creates a new tuple from the {@code Iterable} object.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -75,7 +75,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A> {
   /**
    * Creates a new tuple from the {@code Iterable} object, starting the specified index.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @param index    start index in {@code Iterable} object.
    * @return A new tuple instance.

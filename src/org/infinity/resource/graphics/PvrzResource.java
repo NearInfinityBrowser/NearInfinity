@@ -85,7 +85,6 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
       try {
         decompressed = Compressor.decompress(getResourceEntry().getResourceBuffer(), 0);
       } catch (Exception e) {
-        decompressed = null;
         Logger.error(e);
       }
       if (decompressed != null) {

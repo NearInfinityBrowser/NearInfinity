@@ -83,9 +83,7 @@ public class StringValidationChecker extends AbstractSearcher
         final Path path = Profile.getProperty(key);
         if (path != null) {
           final ResourceEntry entry = new FileResourceEntry(path);
-          if (entry != null) {
-            files.add(entry);
-          }
+          files.add(entry);
         }
       }
 
@@ -299,7 +297,7 @@ public class StringValidationChecker extends AbstractSearcher
     while (lenString > 0) {
       final CoderResult cr = decoder.decode(inBuf, outBuf, true);
       if (cr.isError()) {
-        synchronized (table) {
+        synchronized (this) {
           final String text = StringTable.getStringRef(isFemale ? StringTable.Type.FEMALE : StringTable.Type.MALE,
               strref);
           final String infoBytes = (cr.length() == 1) ? " byte" : " bytes";
@@ -347,7 +345,7 @@ public class StringValidationChecker extends AbstractSearcher
         final char ch1 = textAnsi.charAt(ofs);
         final char ch2 = textUtf8.charAt(ofs);
         if (ch1 != ch2) {
-          synchronized(table) {
+          synchronized(this) {
             final String msg = "Possible encoding error found at offset " + ofs;
             table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
             isError = true;
@@ -356,7 +354,7 @@ public class StringValidationChecker extends AbstractSearcher
       }
 
       if (!isError && textAnsi.length() > textUtf8.length()) {
-        synchronized (table) {
+        synchronized (this) {
           final String msg = "Possible encoding error found at offset " + textUtf8.length();
           table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, msg));
         }
@@ -432,8 +430,6 @@ public class StringValidationChecker extends AbstractSearcher
       switch (columnIndex) {
         case 0:
           return resource;
-        case 1:
-          return strref;
         case 2:
           return text;
         case 3:

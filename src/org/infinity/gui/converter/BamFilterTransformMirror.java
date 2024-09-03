@@ -55,11 +55,9 @@ public class BamFilterTransformMirror extends BamFilterBaseTransform implements 
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cbHorizontal.isSelected()).append(';');
-    sb.append(cbVertical.isSelected()).append(';');
-    sb.append(cbAdjustCenter.isSelected());
-    return sb.toString();
+    return String.valueOf(cbHorizontal.isSelected()) + ';' +
+        cbVertical.isSelected() + ';' +
+        cbAdjustCenter.isSelected();
   }
 
   @Override

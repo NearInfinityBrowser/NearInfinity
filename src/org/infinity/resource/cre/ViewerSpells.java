@@ -119,9 +119,8 @@ final class ViewerSpells extends JPanel implements ActionListener {
 
     private void addSpell(int type, int lvl, ResourceRef spell) {
       for (MemSpellTableEntry element : list) {
-        MemSpellTableEntry entry = element;
-        if (spell.getResourceName().equalsIgnoreCase(entry.spell.getResourceName())) {
-          entry.count++;
+        if (spell.getResourceName().equalsIgnoreCase(element.spell.getResourceName())) {
+          element.count++;
           return;
         }
       }

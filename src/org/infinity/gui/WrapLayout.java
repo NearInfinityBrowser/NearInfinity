@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
  * Extends Swing's {@link FlowLayout} by updating the preferred container size whenever the layout changes because. As a
  * result components will not be removed from the visible portion of the UI.
  *
- * Based on Rob Camick's sources: https://tips4java.wordpress.com/2008/11/06/wrap-layout/
+ * <p>Based on Rob Camick's sources: <a href="https://tips4java.wordpress.com/2008/11/06/wrap-layout/">https://tips4java.wordpress.com/2008/11/06/wrap-layout/</a></p>
  */
 public class WrapLayout extends FlowLayout {
   public WrapLayout() {

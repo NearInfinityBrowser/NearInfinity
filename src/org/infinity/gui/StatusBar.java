@@ -56,7 +56,7 @@ public final class StatusBar extends JPanel implements CaretListener {
 
   public String getCursorText() {
     String text = cursorLabel.getText();
-    if (text.length() > 0) {
+    if (!text.isEmpty()) {
       return text.substring(1);
     } else {
       return "";
@@ -70,7 +70,7 @@ public final class StatusBar extends JPanel implements CaretListener {
 
   public String getMessage() {
     String text = messageLabel.getText();
-    if (text.length() > 0) {
+    if (!text.isEmpty()) {
       return text.substring(1);
     } else {
       return "";

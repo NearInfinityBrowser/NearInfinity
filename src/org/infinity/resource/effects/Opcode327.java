@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 327.
+ * Implementation of opcode 327.
  */
 public class Opcode327 extends BaseOpcode {
   private static final String EFFECT_TARGET = "Target";

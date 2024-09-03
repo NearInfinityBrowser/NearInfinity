@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 405.
+ * Implementation of opcode 405.
  */
 public class Opcode405 extends BaseOpcode {
   private static final String EFFECT_INDEX_TO_OVERRIDE  = "Index to override";

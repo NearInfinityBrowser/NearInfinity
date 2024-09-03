@@ -20,7 +20,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 78.
+ * Implementation of opcode 78.
  */
 public class Opcode078 extends BaseOpcode {
   private static final String EFFECT_AMOUNT_PER_SECOND  = "Amount per second";
@@ -83,7 +83,7 @@ public class Opcode078 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AMOUNT));
     final Bitmap bmp = new Bitmap(buffer, offset + 4, 4, EFFECT_DISEASE_TYPE, DISEASE_TYPES_EE);
     list.add(bmp);
-    if (Profile.isEnhancedEdition() && parent != null && parent instanceof UpdateListener) {
+    if (Profile.isEnhancedEdition() && parent instanceof UpdateListener) {
       bmp.addUpdateListener((UpdateListener)parent);
       if (bmp.getValue() == 11 || bmp.getValue() == 12) {
         return RES_TYPE;

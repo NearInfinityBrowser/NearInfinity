@@ -83,8 +83,8 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput {
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-            Integer.valueOf(getConverter().getPaletteDialog().getRleIndex()));
-        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(getConverter().isBamV1Compressed()));
+            getConverter().getPaletteDialog().getRleIndex());
+        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, getConverter().isBamV1Compressed());
         try {
           return decoder.exportBamV1(outFile, getConverter().getProgressMonitor(),
               getConverter().getProgressMonitorStage());

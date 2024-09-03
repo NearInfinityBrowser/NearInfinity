@@ -112,9 +112,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(encodeColorList(paletteDialog.getPalette()));
-    return sb.toString();
+    return encodeColorList(paletteDialog.getPalette());
   }
 
   @Override
@@ -275,7 +273,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         }
 
         // fetching palette data
-        int[] palette = null;
+        final int[] palette;
         if ("BM".equals(new String(signature, 0, 2))) {
           palette = ColorConvert.loadPaletteBMP(paletteFile);
         } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4), new byte[] { (byte) 0x89, 0x50, 0x4e, 0x47 })) {
@@ -299,7 +297,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         }
 
         // applying palette
-        if (palette != null && palette.length > 0) {
+        if (palette.length > 0) {
           loadPalette(palette);
         } else {
           throw new Exception("No palette found in file " + paletteFile.getFileName());

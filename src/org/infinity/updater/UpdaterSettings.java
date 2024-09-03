@@ -18,7 +18,6 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -41,6 +40,7 @@ import javax.swing.text.Document;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.util.Misc;
+import org.tinylog.Logger;
 
 /**
  * Provides a dialog for configuring update-relevant data.
@@ -238,8 +238,8 @@ public class UpdaterSettings extends JDialog {
       if (Utils.isUrlValid(url)) {
         // skip duplicate server URLs
         boolean isSame = false;
-        for (Iterator<String> iter = serverList.iterator(); iter.hasNext();) {
-          if (Updater.isSameServer(url, iter.next())) {
+        for (String s : serverList) {
+          if (Updater.isSameServer(url, s)) {
             isSame = true;
             break;
           }
@@ -339,6 +339,7 @@ public class UpdaterSettings extends JDialog {
           InetSocketAddress addr = new InetSocketAddress(s, port);
           url = addr.getHostName();
         } catch (Exception e) {
+          Logger.trace(e);
         }
         if (url != null && !url.isEmpty()) {
           tfProxyAddress.setText(url);

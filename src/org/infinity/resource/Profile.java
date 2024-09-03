@@ -1395,6 +1395,7 @@ public final class Profile {
       try {
         game = Game.values()[list.getSelectedIndex()];
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
 
@@ -1735,7 +1736,7 @@ public final class Profile {
       addEntry(Key.GET_GAME_DESC, Type.STRING, desc);
     }
 
-    addEntry(Key.IS_FORCED_GAME, Type.BOOLEAN, Boolean.valueOf(forcedGame != null));
+    addEntry(Key.IS_FORCED_GAME, Type.BOOLEAN, forcedGame != null);
     if (forcedGame != null) {
       addEntry(Key.GET_GAME_TYPE, Type.OBJECT, forcedGame);
     }
@@ -1954,7 +1955,7 @@ public final class Profile {
 
     // initializing list of folders containing BIFF archives
     List<Path> biffDirs = ResourceFactory.getBIFFDirs();
-    if (biffDirs != null && !biffDirs.isEmpty()) {
+    if (!biffDirs.isEmpty()) {
       addEntry(Key.GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
     }
 
@@ -2043,8 +2044,7 @@ public final class Profile {
     addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, dlcRoots);
 
     // preparing available game root paths
-    List<Path> roots = new ArrayList<>();
-    roots.addAll(dlcRoots);
+    List<Path> roots = new ArrayList<>(dlcRoots);
     roots.add(gameRoot);
 
     // process each root separately
@@ -2119,13 +2119,14 @@ public final class Profile {
         try {
           Files.createDirectory(FileManager.query(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)));
         } catch (Throwable t) {
+          Logger.trace(t);
         }
       }
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
       gameRoots.add(homeRoot);
-      dlcRoots.forEach(path -> gameRoots.add(path));
+      gameRoots.addAll(dlcRoots);
       gameRoots.add(gameRoot);
 
       // registering override paths
@@ -2423,13 +2424,13 @@ public final class Profile {
       Path exe = FileManager.queryExisting(getGameRoot(), "bgmain.exe");
       if (exe != null) {
         File exeFile = exe.toFile();
-        if (exeFile != null && exeFile.length() == 7839790L) {
+        if (exeFile.length() == 7839790L) {
           try (RandomAccessFile raf = new RandomAccessFile(exeFile, "r")) {
             // checking key signatures
             final int[] sigCheckV1 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x004141de, 0xf9 };
             final int[] sigCheckV2 = { 0x3db6d84, 0x34004c48, 0x54464958, 0x0041412d, 0xf9 };
-            long ofs[] = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
-            int sig[] = new int[ofs.length + 1];
+            long[] ofs = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
+            int[] sig = new int[ofs.length + 1];
             for (int i = 0; i < ofs.length; i++) {
               // reading int signatures
               raf.seek(ofs[i]);
@@ -2450,16 +2451,17 @@ public final class Profile {
             isIAv1 = Arrays.equals(sig, sigCheckV1);
             isIAv2 = Arrays.equals(sig, sigCheckV2);
           } catch (IOException e) {
+            Logger.trace(e);
           }
         }
       }
     }
     if (isIAv1) {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(1)); // v5 or earlier
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 1); // v5 or earlier
     } else if (isIAv2) {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(2)); // v6 or later
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 2); // v6 or later
     } else {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(0)); // not installed
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 0); // not installed
     }
 
     // Add campaign-specific extra folders
@@ -2559,7 +2561,7 @@ public final class Profile {
       gameFolders.add(DataString.with("zip", rootDir.resolve("dlc")));
       gameFolders.add(DataString.with("zip", rootDir));
     }
-    if (homeDir != null && FileEx.create(homeDir).isDirectory()) {
+    if (FileEx.create(homeDir).isDirectory()) {
       gameFolders.add(DataString.with("zip", homeDir));
     }
 
@@ -2685,7 +2687,7 @@ public final class Profile {
 
     @Override
     public String toString() {
-      return String.format("%d:[%s] = %s", key, type, data);
+      return String.format("%s:[%s] = %s", key, type, data);
     }
   }
 }

@@ -214,7 +214,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
     }
 
     // Evaluating results
-    synchronized (table) {
+    synchronized (this) {
       for (final Item item : items) {
         if (item != null) {
           table.addTableItem(new CreInvError(cre.getResourceEntry(), item));

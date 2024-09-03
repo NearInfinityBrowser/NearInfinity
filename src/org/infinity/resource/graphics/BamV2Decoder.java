@@ -157,12 +157,10 @@ public class BamV2Decoder extends BamDecoder {
           bamPath = bamFile.getParent();
           // Skip path if it denotes an override folder of the game
           List<Path> list = Profile.getOverrideFolders(true);
-          if (list != null) {
-            for (final Path path : list) {
-              if (bamPath.equals(path)) {
-                bamPath = null;
-                break;
-              }
+          for (final Path path : list) {
+            if (bamPath.equals(path)) {
+              bamPath = null;
+              break;
             }
           }
         }
@@ -283,8 +281,8 @@ public class BamV2Decoder extends BamDecoder {
       } else {
         // drawing on individual canvas
         int srcOfs = 0, dstOfs = 0;
-        int maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
-        int maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
+        int maxWidth = Math.min(dstWidth, srcWidth);
+        int maxHeight = Math.min(dstHeight, srcHeight);
         for (int y = 0; y < maxHeight; y++) {
           System.arraycopy(srcBuffer, srcOfs, dstBuffer, dstOfs, maxWidth);
           srcOfs += srcWidth;
@@ -340,12 +338,13 @@ public class BamV2Decoder extends BamDecoder {
 
   // Stores information for a single frame entry
   public class BamV2FrameEntry implements BamDecoder.FrameEntry {
-    private final int dataBlockSize = 0x1c; // size of a single data block
+    private static final int DATA_BLOCK_SIZE = 0x1c; // size of a single data block
 
-    private int width;
-    private int height;
-    private int centerX;
-    private int centerY;
+    private final int width;
+    private final int height;
+    private final int centerX;
+    private final int centerY;
+
     private int overrideCenterX;
     private int overrideCenterY;
     private BufferedImage frame;
@@ -416,7 +415,7 @@ public class BamV2Decoder extends BamDecoder {
       final int prime = 31;
       int result = 1;
       result = prime * result
-          + Objects.hash(centerX, centerY, dataBlockSize, height, overrideCenterX, overrideCenterY, width);
+          + Objects.hash(centerX, centerY, height, overrideCenterX, overrideCenterY, width);
       return result;
     }
 
@@ -432,7 +431,7 @@ public class BamV2Decoder extends BamDecoder {
         return false;
       }
       BamV2FrameEntry other = (BamV2FrameEntry) obj;
-      return centerX == other.centerX && centerY == other.centerY && dataBlockSize == other.dataBlockSize
+      return centerX == other.centerX && centerY == other.centerY
           && height == other.height && overrideCenterX == other.overrideCenterX
           && overrideCenterY == other.overrideCenterY && width == other.width;
     }
@@ -442,7 +441,7 @@ public class BamV2Decoder extends BamDecoder {
       if (width > 0 && height > 0) {
         frame = ColorConvert.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
 
-        int ofs = ofsBlocks + start * dataBlockSize;
+        int ofs = ofsBlocks + start * DATA_BLOCK_SIZE;
         for (int i = 0; i < count; i++) {
           int page = buffer.getInt(ofs);
           int srcX = buffer.getInt(ofs + 0x04);
@@ -451,7 +450,7 @@ public class BamV2Decoder extends BamDecoder {
           int h = buffer.getInt(ofs + 0x10);
           int dstX = buffer.getInt(ofs + 0x14);
           int dstY = buffer.getInt(ofs + 0x18);
-          ofs += dataBlockSize;
+          ofs += DATA_BLOCK_SIZE;
 
           PvrDecoder decoder = getPVR(page);
           if (decoder != null) {
@@ -645,7 +644,7 @@ public class BamV2Decoder extends BamDecoder {
   }
 
   // Stores information for a single cycle
-  private class CycleEntry {
+  private static class CycleEntry {
     public int startIndex;
     public int framesCount;
 

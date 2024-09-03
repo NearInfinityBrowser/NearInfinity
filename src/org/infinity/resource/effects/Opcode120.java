@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 120.
+ * Implementation of opcode 120.
  */
 public class Opcode120 extends BaseOpcode {
   private static final String EFFECT_MAX_ENCHANTMENT  = "Maximum enchantment";

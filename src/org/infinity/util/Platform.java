@@ -4,6 +4,10 @@
 
 package org.infinity.util;
 
+import org.tinylog.Logger;
+
+import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.Locale;
 
 /**
@@ -33,7 +37,7 @@ public class Platform {
 
     private OS(String regex) {
       final String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-      this.check = (regex != null) ? osName.matches(regex) : false;
+      this.check = regex != null && osName.matches(regex);
     }
 
     /** Returns whether this {@link OS} enum matches the current operating system. */
@@ -72,7 +76,7 @@ public class Platform {
 
     private Arch(int bitness, String regex) {
       final String arch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
-      this.check = (regex != null) ? arch.matches(regex) : false;
+      this.check = regex != null && arch.matches(regex);
       this.bitness = bitness;
     }
 
@@ -105,10 +109,10 @@ public class Platform {
   public final static boolean IS_64BIT = (Arch.getCurrentArchitecture().bitness == 64);
 
   /** Returns the symbol used to separate individual path strings from each other for the current platform. */
-  public final static String PATH_SEPARATOR = System.getProperty("path.separator");
+  public final static String PATH_SEPARATOR = File.pathSeparator;
 
   /** Returns the system-dependent name-separator character as string for the current platform. */
-  public final static String FILE_SEPARATOR = System.getProperty("file.separator");
+  public final static String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
   /** Returns the major version number of the active Java Runtime. */
   public final static int JAVA_VERSION = getJavaVersion();
@@ -127,6 +131,7 @@ public class Platform {
       }
       retVal = major;
     } catch (NumberFormatException e) {
+      Logger.trace(e);
     }
 
     return retVal;

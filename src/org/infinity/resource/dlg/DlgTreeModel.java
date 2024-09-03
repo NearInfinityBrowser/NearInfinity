@@ -38,7 +38,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.tinylog.Logger;
 
 /** Creates and manages the dialog tree structure. */
-final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, PropertyChangeListener {
+public class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, PropertyChangeListener {
   private final ArrayList<TreeModelListener> listeners = new ArrayList<>();
   /**
    * List of all dialogs, that contains at tree root. Each of these dialogs also stored in the {@link #linkedDialogs}

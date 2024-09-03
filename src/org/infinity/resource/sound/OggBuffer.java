@@ -271,7 +271,7 @@ public class OggBuffer extends AudioBuffer {
 
                 while ((samples = vd.synthesis_pcmout(_pcm, _index)) > 0) {
                   float[][] pcm = _pcm[0];
-                  int bout = (samples < convSize) ? samples : convSize;
+                  int bout = Math.min(samples, convSize);
 
                   // convert floats to 16 bit signed ints (host order) and interleave
                   for (i = 0; i < oggInfo.channels; i++) {

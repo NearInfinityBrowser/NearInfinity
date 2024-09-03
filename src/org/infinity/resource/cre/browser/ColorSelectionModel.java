@@ -40,6 +40,7 @@ import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.tinylog.Logger;
 
 /**
  * {@code ComboBoxModel} for the color selection combo box used in the Creature Animation Browser.
@@ -51,9 +52,10 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
   private final List<ColorEntry> colorList = new ArrayList<>(256);
   private final ColorCellRenderer renderer = new ColorCellRenderer();
 
+  private final IdsMap colorMap;
+
   private Object selectedItem;
   private ResourceEntry colorEntry;
-  private IdsMap colorMap;
 
   public ColorSelectionModel() {
     this(null);
@@ -125,9 +127,7 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
       int oldSize = colorList.size();
       colorList.clear();
       selectedItem = null;
-      if (oldSize > 0) {
-        fireIntervalRemoved(this, 0, oldSize - 1);
-      }
+      fireIntervalRemoved(this, 0, oldSize - 1);
     } else {
       selectedItem = null;
     }
@@ -177,6 +177,7 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
     try {
       image = new GraphicsResource(getColorRangesEntry()).getImage();
     } catch (Exception e) {
+      Logger.trace(e);
     }
 
     int max = (image != null) ? image.getHeight() - 1 : 0;
@@ -185,7 +186,7 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
     }
 
     for (int i = 0; i <= max; i++) {
-      String name = RANDOM_COLORS_MAP.get(Integer.valueOf(i));
+      String name = RANDOM_COLORS_MAP.get(i);
       if (name != null) {
         colorList.add(new ColorEntry(i, name, true));
       } else {
@@ -239,7 +240,7 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
         boolean cellHasFocus) {
-      if (value == null || !(value instanceof ColorEntry)) {
+      if (!(value instanceof ColorEntry)) {
         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
 
@@ -306,8 +307,8 @@ public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.C
 
     private final int index;
     private final Image image;
+    private final String name;
 
-    private String name;
     private State state;
 
     /** Creates a fixed color entry. */

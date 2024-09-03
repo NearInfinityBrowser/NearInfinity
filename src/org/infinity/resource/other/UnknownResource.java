@@ -79,7 +79,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     this.entry = entry;
     int[] data = this.entry.getResourceInfo();
     if (data != null && data.length > 0) {
-      entrySize = (data.length == 1) ? data[0] : (data[0] * data[1]);
+      entrySize = (data.length == 1) ? data[0] : ((long) data[0] * data[1]);
     } else {
       entrySize = 0L;
     }

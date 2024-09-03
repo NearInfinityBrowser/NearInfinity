@@ -12,7 +12,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 129.
+ * Implementation of opcode 129.
  */
 public class Opcode129 extends BaseOpcode {
   private static final String EFFECT_HP_BONUS = "HP bonus";

@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 351.
+ * Implementation of opcode 351.
  */
 public class Opcode351 extends BaseOpcode {
   private static final String EFFECT_AMOUNT = "Amount";

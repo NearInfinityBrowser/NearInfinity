@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 152.
+ * Implementation of opcode 152.
  */
 public class Opcode152 extends BaseOpcode {
   private static final String RES_TYPE = "MVE";

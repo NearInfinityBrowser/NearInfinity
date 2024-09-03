@@ -210,6 +210,7 @@ public class AreaViewer extends ChildFrame {
             return true;
           }
         } catch (Exception e) {
+          Logger.warn(e);
         }
       }
     }
@@ -1398,7 +1399,7 @@ public class AreaViewer extends ChildFrame {
               int lenPrefix = sb.length();
               int lenMsg = item.getToolTipText().length();
               if (lenPrefix + lenMsg > MaxLen) {
-                sb.append(item.getToolTipText().substring(0, MaxLen - lenPrefix));
+                sb.append(item.getToolTipText(), 0, MaxLen - lenPrefix);
                 sb.append("...");
               } else {
                 sb.append(item.getToolTipText());
@@ -1775,7 +1776,7 @@ public class AreaViewer extends ChildFrame {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_NONE;
       } else if (cbLayerRealActor[0].isSelected() && !cbLayerRealActor[1].isSelected()) {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_STILL;
-      } else if (!cbLayerRealActor[0].isSelected() && cbLayerRealActor[1].isSelected()) {
+      } else if (!cbLayerRealActor[0].isSelected()) {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
     }
@@ -1814,7 +1815,7 @@ public class AreaViewer extends ChildFrame {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_NONE;
       } else if (cbLayerRealAnimation[0].isSelected() && !cbLayerRealAnimation[1].isSelected()) {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_STILL;
-      } else if (!cbLayerRealAnimation[0].isSelected() && cbLayerRealAnimation[1].isSelected()) {
+      } else if (!cbLayerRealAnimation[0].isSelected()) {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
     }
@@ -2101,7 +2102,7 @@ public class AreaViewer extends ChildFrame {
 
   /** Recursive function to find the node containing c. */
   private TreeNode getTreeNodeOf(TreeNode node, Component c) {
-    if (node != null && node instanceof DefaultMutableTreeNode && c != null) {
+    if (node instanceof DefaultMutableTreeNode && c != null) {
       if (((DefaultMutableTreeNode) node).getUserObject() == c) {
         return node;
       }
@@ -2593,19 +2594,17 @@ public class AreaViewer extends ChildFrame {
       if (event.getSource() == pDayTime) {
         if (workerLoadMap == null) {
           // loading map in a separate thread
-          if (workerLoadMap == null) {
-            blocker = new WindowBlocker(AreaViewer.this);
-            blocker.setBlocked(true);
-            workerLoadMap = new SwingWorker<Void, Void>() {
-              @Override
-              protected Void doInBackground() throws Exception {
-                setHour(pDayTime.getHour());
-                return null;
-              }
-            };
-            workerLoadMap.addPropertyChangeListener(this);
-            workerLoadMap.execute();
-          }
+          blocker = new WindowBlocker(AreaViewer.this);
+          blocker.setBlocked(true);
+          workerLoadMap = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+              setHour(pDayTime.getHour());
+              return null;
+            }
+          };
+          workerLoadMap.addPropertyChangeListener(this);
+          workerLoadMap.execute();
         }
       }
     }
@@ -2879,7 +2878,7 @@ public class AreaViewer extends ChildFrame {
           }
           int optionIndex = allowCancel ? 1 : 0;
           int optionType = allowCancel ? JOptionPane.YES_NO_CANCEL_OPTION : JOptionPane.YES_NO_OPTION;
-          String options[][] = { { "Save changes", "Discard changes" },
+          String[][] options = { { "Save changes", "Discard changes" },
               { "Save changes", "Discard changes", "Cancel" } };
           int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?', "Resource changed",
               optionType, JOptionPane.WARNING_MESSAGE, null, options[optionIndex], options[optionIndex][0]);
@@ -3131,7 +3130,7 @@ public class AreaViewer extends ChildFrame {
      */
     @SuppressWarnings("unused")
     public ChangeListener[] getChangeListeners() {
-      return listeners.toArray(new ChangeListener[listeners.size()]);
+      return listeners.toArray(new ChangeListener[0]);
     }
 
     @Override

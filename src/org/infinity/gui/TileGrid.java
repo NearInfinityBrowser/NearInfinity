@@ -269,7 +269,7 @@ public class TileGrid extends JComponent {
       throw new NullPointerException();
     }
 
-    if (images.size() > 0) {
+    if (!images.isEmpty()) {
       int startIndex = imageList.size();
       imageList.addAll(images);
       updateTileList(startIndex, images.size());
@@ -327,7 +327,7 @@ public class TileGrid extends JComponent {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index);
     }
 
-    if (images.size() > 0) {
+    if (!images.isEmpty()) {
       imageList.addAll(index, images);
       updateTileList(index, imageList.size() - index);
       validate();
@@ -384,7 +384,7 @@ public class TileGrid extends JComponent {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index);
     }
 
-    if (images.size() > 0) {
+    if (!images.isEmpty()) {
       int count = 0;
       ListIterator<Image> iterSrc = images.listIterator(index);
       ListIterator<Image> iterDst = images.listIterator(index);
@@ -461,9 +461,7 @@ public class TileGrid extends JComponent {
   public int findImage(Image image) {
     if (image != null) {
       int idx = 0;
-      ListIterator<Image> iter = imageList.listIterator();
-      while (iter.hasNext()) {
-        Image listImage = iter.next();
+      for (Image listImage : imageList) {
         if (listImage.equals(image)) {
           return idx;
         }
@@ -749,9 +747,8 @@ public class TileGrid extends JComponent {
     root.removeAll();
 
     // 2. re-add tiles, depending on ordering
-    ListIterator<TileLabel> iter = tileList.listIterator();
-    while (iter.hasNext()) {
-      root.add(iter.next());
+    for (TileLabel tileLabel : tileList) {
+      root.add(tileLabel);
     }
   }
 
@@ -780,17 +777,13 @@ public class TileGrid extends JComponent {
     if (visible != bShowIcons) {
       bShowIcons = visible;
       if (bShowIcons) {
-        ListIterator<Image> iterSrc = imageList.listIterator();
-        ListIterator<TileLabel> iterDst = tileList.listIterator();
-        while (iterDst.hasNext()) {
+        final ListIterator<Image> iterSrc = imageList.listIterator();
+        for (TileLabel tileLabel : tileList) {
           Image image = iterSrc.hasNext() ? iterSrc.next() : null;
-          TileLabel label = iterDst.next();
-          label.setImage(image);
+          tileLabel.setImage(image);
         }
       } else {
-        ListIterator<TileLabel> iter = tileList.listIterator();
-        while (iter.hasNext()) {
-          TileLabel label = iter.next();
+        for (TileLabel label : tileList) {
           label.setImage(null);
         }
       }
@@ -841,7 +834,7 @@ public class TileGrid extends JComponent {
   // -------------------------- INNER CLASSES --------------------------
 
   // Adding grid support to RenderCanvas
-  private class TileLabel extends RenderCanvas {
+  private static class TileLabel extends RenderCanvas {
     private Color gridColor;
     private boolean showGrid;
 

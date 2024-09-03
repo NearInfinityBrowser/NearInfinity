@@ -83,9 +83,7 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
       int oldSize = statusList.size();
       statusList.clear();
       selectedItem = null;
-      if (oldSize > 0) {
-        fireIntervalRemoved(this, 0, oldSize - 1);
-      }
+      fireIntervalRemoved(this, 0, oldSize - 1);
     } else {
       selectedItem = null;
     }

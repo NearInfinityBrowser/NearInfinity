@@ -9,10 +9,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.infinity.datatype.Flag;
@@ -63,9 +60,9 @@ public class LayerObjectDoor extends LayerObject {
     super("Door", Door.class, parent);
     this.door = door;
     final DoorInfo doorOpen = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_OPEN), doorOpen);
+    doorMap.put(ViewerConstants.DOOR_OPEN, doorOpen);
     final DoorInfo doorClosed = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_CLOSED), doorClosed);
+    doorMap.put(ViewerConstants.DOOR_CLOSED, doorClosed);
     String name = null;
     try {
       String attr = getAttributes(this.door);
@@ -274,11 +271,11 @@ public class LayerObjectDoor extends LayerObject {
   }
 
   private Collection<ShapedLayerItem> getDoorItems() {
-    return doorMap.values().stream().map(di -> di.getItem()).filter(item -> item != null).collect(Collectors.toList());
+    return doorMap.values().stream().map(DoorInfo::getItem).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   private DoorInfo getDoor(int id) {
-    return doorMap.get(Integer.valueOf(id));
+    return doorMap.get(id);
   }
 
   // ----------------------------- INNER CLASSES -----------------------------

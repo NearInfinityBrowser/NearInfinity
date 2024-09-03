@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 183.
+ * Implementation of opcode 183.
  */
 public class Opcode183 extends BaseOpcode {
   private static final String EFFECT_ITEM_TYPE = "Item type";
@@ -50,11 +50,5 @@ public class Opcode183 extends BaseOpcode {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
     list.add(new ItemTypeBitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE));
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

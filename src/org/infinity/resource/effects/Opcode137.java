@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 137.
+ * Implementation of opcode 137.
  */
 public class Opcode137 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */
@@ -36,11 +36,5 @@ public class Opcode137 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AMOUNT));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

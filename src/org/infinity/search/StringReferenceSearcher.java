@@ -96,7 +96,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
             decompiler.setGenerateResourcesUsed(true);
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-              if (stringRef.intValue() == searchvalue) {
+              if (stringRef == searchvalue) {
                 addHit(entry, sourceCode.getName(), sourceCode);
               }
             }
@@ -136,7 +136,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
     try {
       decompiler.decompile();
       for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-        if (stringRef.intValue() == searchvalue) {
+        if (stringRef == searchvalue) {
           addHit(entry, null, null);
         }
       }

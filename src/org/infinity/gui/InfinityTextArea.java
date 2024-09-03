@@ -89,7 +89,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
   /** Available color schemes for use when enabling syntax highlighting. */
   public enum Scheme {
     /** Disables any color scheme. */
-    NONE("None", () -> getNoneScheme()),
+    NONE("None", InfinityTextArea::getNoneScheme),
     /** The default color scheme. */
     DEFAULT("Default", () -> SCHEME_DEFAULT),
     /** Color scheme based on Notepad++'s Obsidian scheme. */
@@ -397,9 +397,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
       if (schemePath != null) {
         try (InputStream is = ClassLoader.getSystemResourceAsStream(schemePath)) {
           Theme theme = Theme.load(is);
-          if (theme != null) {
-            theme.apply(edit);
-          }
+          theme.apply(edit);
         } catch (NullPointerException e) {
           // ignore
         } catch (IOException e) {
@@ -526,17 +524,17 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
   /** Get information about the gutter icon at the specified line. */
   public GutterIcon getGutterIconInfo(int line) {
-    return gutterIcons.get(Integer.valueOf(line));
+    return gutterIcons.get(line);
   }
 
   /** Returns whether the gutter icon at the specified line is currently applied. */
   public boolean isGutterIconActive(int line) {
-    return gutterIconsActive.containsKey(Integer.valueOf(line));
+    return gutterIconsActive.containsKey(line);
   }
 
   /** Removes the gutter icon from the specified line. */
   public void removeGutterIcon(int line) {
-    if (gutterIcons.remove(Integer.valueOf(line)) != null) {
+    if (gutterIcons.remove(line) != null) {
       refreshGutterIcon(line);
     }
   }
@@ -577,6 +575,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
         range.x = startLine;
         range.y = endLine;
       } catch (BadLocationException e) {
+        Logger.trace(e);
       }
     }
 
@@ -595,6 +594,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
             GutterIconInfo info = getScrollPane().getGutter().addLineTrackingIcon(item.line, item.icon, item.message);
             gutterIconsActive.put(key, info);
           } catch (BadLocationException e) {
+            Logger.trace(e);
           }
         }
       }
@@ -628,6 +628,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
                 GutterIconInfo info = gutter.addLineTrackingIcon(item.line, item.icon, item.message);
                 gutterIconsActive.put(item.line, info);
               } catch (BadLocationException e) {
+                Logger.trace(e);
               }
             }
           }

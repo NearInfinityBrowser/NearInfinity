@@ -20,7 +20,7 @@ public interface Editable extends StructEntry {
   /**
    * Used to create and setup editor for this object.
    *
-   * @param container
+   * @param container {@link ActionListener} of the parent structure that contains this {@code Editable} instance.
    * @return Component that will be used to edit this object. Must not be {@code null}
    */
   JComponent edit(ActionListener container);

@@ -30,6 +30,7 @@
 package org.infinity.resource.graphics;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -506,9 +507,10 @@ public final class DxtEncoder {
   }
 
   private static class RangeFit extends ColorFit {
-    private Vec3 metric;
-    private Vec3 start;
-    private Vec3 end;
+    private final Vec3 metric;
+    private final Vec3 start;
+    private final Vec3 end;
+
     private float bestError;
 
     public RangeFit(final ColorSet colors, final DxtType dxtType) {
@@ -1089,7 +1091,7 @@ public final class DxtEncoder {
       // write the indices
       for (int i = 0; i < 4; i++) {
         final int idx = 4 * i;
-        block[i + 4] = (byte) ((indices[idx + 0]) | (indices[idx + 1] << 2) | (indices[idx + 2] << 4)
+        block[i + 4] = (byte) ((indices[idx]) | (indices[idx + 1] << 2) | (indices[idx + 2] << 4)
             | (indices[idx + 3] << 6));
       }
     }
@@ -2887,16 +2889,12 @@ public final class DxtEncoder {
 
     public Sym3x3() {
       m = new float[6];
-      for (int i = 0; i < m.length; i++) {
-        m[i] = 0.0f;
-      }
+      Arrays.fill(m, 0.0f);
     }
 
     public Sym3x3(final float s) {
       m = new float[6];
-      for (int i = 0; i < m.length; i++) {
-        m[i] = s;
-      }
+      Arrays.fill(m, s);
     }
 
     @Override

@@ -37,6 +37,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 /**
  * These resource contains a description of the types of items and services available for sale in a given store, inn,
@@ -367,7 +368,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
           key = SearchOptions.STO_Type;
           o = searchOptions.getOption(key);
           StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
-          retVal &= SearchOptions.Utils.matchNumber(struct, o);
+          retVal = SearchOptions.Utils.matchNumber(struct, o);
         }
 
         String[] keyList = new String[] { SearchOptions.STO_Purchased1, SearchOptions.STO_Purchased2,
@@ -382,7 +383,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
                 found |= SearchOptions.Utils.matchNumber(element2, o);
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -394,7 +395,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -407,7 +408,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = sto.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            retVal = SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
           }
@@ -425,7 +426,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
                 found |= SearchOptions.Utils.matchResourceRef(item, o, false);
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -437,7 +438,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(sto, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(sto, o);
           } else {
             break;
           }
@@ -445,6 +446,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

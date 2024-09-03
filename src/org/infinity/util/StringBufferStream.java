@@ -173,7 +173,7 @@ public class StringBufferStream {
   public StringBufferStream skipWhitespace() {
     int pos = position;
     for (; pos < length; pos++) {
-      if (WHITE_SPACE.indexOf(data.charAt(start + pos), 0) < 0) {
+      if (WHITE_SPACE.indexOf(data.charAt(start + pos)) < 0) {
         break;
       }
     }
@@ -324,7 +324,6 @@ public class StringBufferStream {
    * Tests if the substring of this string beginning at the current position starts with the specified search string.
    *
    * @param s The search string.
-   * @return {@code true} if the string at the current position starts with the specified search string.
    * @return {@code true} if the search string matches the substring of this string beginning at the current position,
    *         {@code false} otherwise.
    * @throws NullPointerException if s is {@code null}.

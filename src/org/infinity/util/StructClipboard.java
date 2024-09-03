@@ -139,6 +139,7 @@ public final class StructClipboard {
         for (final AddRemovable targetClass : targetClasses) {
           if (targetClass != null && c.equals(targetClass.getClass())) {
             found = true;
+            break;
           }
         }
         if (!found) {

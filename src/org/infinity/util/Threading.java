@@ -5,7 +5,6 @@
 package org.infinity.util;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +16,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.tinylog.Logger;
 
 /**
  * A convenience class for performing multiple tasks in parallel.
@@ -70,7 +71,7 @@ public class Threading implements AutoCloseable {
   public static final int MAX_THREADS_AVAILABLE = Runtime.getRuntime().availableProcessors();
 
   /** Contains the number of remaining threads for use by new thread pools. */
-  private static AtomicInteger THREADS_AVAILABLE = new AtomicInteger(MAX_THREADS_AVAILABLE);
+  private static final AtomicInteger THREADS_AVAILABLE = new AtomicInteger(MAX_THREADS_AVAILABLE);
 
 
   /** Stores submitted tasks for internal evaluation purposes. */
@@ -186,12 +187,7 @@ public class Threading implements AutoCloseable {
    * @return Number of remaining {@link ForkJoinTask} instances that haven been completed or cancelled yet.
    */
   public synchronized int dispose() {
-    for (final Iterator<Future<?>> iter = taskList.iterator(); iter.hasNext(); ) {
-      final Future<?> future = iter.next();
-      if (future.isDone()) {
-        iter.remove();
-      }
-    }
+    taskList.removeIf(Future::isDone);
     return taskList.size();
   }
 
@@ -199,10 +195,6 @@ public class Threading implements AutoCloseable {
    * Possibly initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be
    * accepted. Tasks that are in the process of being submitted concurrently during the course of this method may or may
    * not be rejected.
-   *
-   * <p>
-   * The predefined {@code Threading} objects {@link #DEFAULT} and {@link #SINGLE} cannot be terminated.
-   * </p>
    */
   public void shutdown() {
     executor.shutdown();
@@ -213,11 +205,7 @@ public class Threading implements AutoCloseable {
    * Possibly attempts to cancel and/or stop all tasks, and reject all subsequently submitted tasks. Invocation has no
    * additional effect if already shut down. Otherwise, tasks that are in the process of being submitted or executed
    * concurrently during the course of this method may or may not be rejected. This method cancels both existing and
-   * unexecuted tasks, in order to permit termination in the presence of task dependencies.
-   *
-   * <p>
-   * The predefined {@code Threading} objects {@link #DEFAULT} and {@link #SINGLE} cannot be terminated.
-   * </p>
+   * not executed tasks, in order to permit termination in the presence of task dependencies.
    */
   public void shutdownNow() {
     executor.shutdownNow();
@@ -274,11 +262,8 @@ public class Threading implements AutoCloseable {
     Objects.requireNonNull(tasks, "Tasks collection is null");
 
     final List<Future<T>> retVal = executor.invokeAll(tasks);
-    if (retVal != null) {
-      for (final Iterator<Future<T>> iter = retVal.iterator(); iter.hasNext(); ) {
-        final Future<T> future = iter.next();
-        registerFuture(future);
-      }
+    for (final Future<T> future : retVal) {
+      registerFuture(future);
     }
     return retVal;
   }
@@ -288,8 +273,6 @@ public class Threading implements AutoCloseable {
    * first. Unlike {@link #awaitTermination(long, TimeUnit)} this method does not depend on a shutdown request, which
    * allows to submit more tasks after completion.
    *
-   * @param timeout the maximum time to wait.
-   * @param unit    the time unit of the timeout argument.
    * @return {@code true} if all submitted tasks terminated and {@code false} if the timeout elapsed before termination.
    * @throws InterruptedException if interrupted while waiting.
    */
@@ -375,6 +358,7 @@ public class Threading implements AutoCloseable {
           try {
             Thread.sleep(100L);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
           final long timeElapsed = System.nanoTime() - timeBase;
           timeBase = System.nanoTime();
@@ -418,7 +402,6 @@ public class Threading implements AutoCloseable {
    * Reserves the amount of threads defined by the given {@code Threading} object and updates
    * {@link #THREADS_AVAILABLE}.
    *
-   * @param threading {@link Threading} object that requests thread reservation.
    * @return {@code true} if reservation completed successfully, {@code false} otherwise.
    */
   private synchronized boolean allocateThreads() {
@@ -434,7 +417,6 @@ public class Threading implements AutoCloseable {
    * Releases the amount of threads defined by the given {@code Threading} object and updates
    * {@link #THREADS_AVAILABLE}.
    *
-   * @param threading {@link Threading} object that requests the release of threads.
    * @return {@code true} if release complete successfully, {@code false} otherwise.
    */
   private synchronized boolean releaseThreads() {
