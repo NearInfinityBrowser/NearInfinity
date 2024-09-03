@@ -27,10 +27,10 @@ import javax.swing.SwingUtilities;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class Keyfile {
   public static final ImageIcon ICON_STRUCT = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();

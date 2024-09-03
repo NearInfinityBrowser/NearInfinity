@@ -23,8 +23,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractJFlexTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
-import org.tinylog.Logger;
-
+import org.infinity.util.Logger;
 
 /**
  * Scanner for the Menu scripting language extension.<p>

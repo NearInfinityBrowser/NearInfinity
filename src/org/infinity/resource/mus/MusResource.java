@@ -46,9 +46,9 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SongReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * This resource acts as a playlist for ACM files, determining loops and "interrupt state" effects. An "interrupt state

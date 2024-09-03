@@ -29,11 +29,11 @@ import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Provides useful information about a creature resource and their equipment.

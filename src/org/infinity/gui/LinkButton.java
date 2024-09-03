@@ -22,7 +22,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * A JLabel-based control which supports either internal game resources or external URLs.

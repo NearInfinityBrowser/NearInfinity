@@ -26,10 +26,10 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class Decompiler {
   // List of IDS resources containing bitwise entries

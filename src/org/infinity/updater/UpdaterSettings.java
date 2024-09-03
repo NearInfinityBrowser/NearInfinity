@@ -39,8 +39,8 @@ import javax.swing.text.Document;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Provides a dialog for configuring update-relevant data.

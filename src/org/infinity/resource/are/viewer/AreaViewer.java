@@ -115,9 +115,9 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * The Area Viewer shows a selected map with its associated structures, such as actors, regions or animations.

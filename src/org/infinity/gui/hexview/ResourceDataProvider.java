@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;

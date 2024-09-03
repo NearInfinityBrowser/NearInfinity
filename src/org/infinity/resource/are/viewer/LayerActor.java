@@ -33,7 +33,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages actor layer objects.

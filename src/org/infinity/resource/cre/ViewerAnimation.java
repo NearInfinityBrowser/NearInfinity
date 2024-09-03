@@ -47,7 +47,7 @@ import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.graphics.ColorConvert;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * A basic creature animation viewer.

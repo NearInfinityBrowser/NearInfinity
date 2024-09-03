@@ -28,7 +28,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public final class Viewer extends JPanel {
   private static final HashMap<Integer, String> SPELL_PREFIX_MAP = new HashMap<>();

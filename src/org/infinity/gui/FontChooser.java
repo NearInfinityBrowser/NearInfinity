@@ -48,10 +48,8 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
-
-//import org.infinity.util.Misc;
 
 /**
  * The {@code FontChooser} class is a swing component for font selection. This class has {@code FileChooser} like APIs.

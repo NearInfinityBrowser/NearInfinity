@@ -24,9 +24,9 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.BOMStringReader;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class Compiler {
   private static final HashMap<String, String> TOKEN_SYMBOL_TO_DESC_MAP = new HashMap<>();

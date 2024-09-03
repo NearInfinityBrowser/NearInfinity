@@ -17,9 +17,9 @@ import org.infinity.resource.graphics.decoder.PvrInfo;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Decodes a PVR(Z) file. Note: Supports only the minimal set of PVR-specific features required to decode the BGEE's

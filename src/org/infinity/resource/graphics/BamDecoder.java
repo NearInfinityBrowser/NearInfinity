@@ -16,8 +16,8 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Common base class for handling BAM resources.

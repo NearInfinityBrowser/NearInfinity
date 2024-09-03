@@ -11,10 +11,15 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
-import org.tinylog.Logger;
-
+import org.infinity.util.Logger;
 
 /**
  * Central hub for accessing game-related I/O resources.

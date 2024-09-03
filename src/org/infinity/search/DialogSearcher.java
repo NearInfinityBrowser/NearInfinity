@@ -41,7 +41,7 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;

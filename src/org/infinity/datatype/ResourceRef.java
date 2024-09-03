@@ -44,9 +44,9 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Represents reference to another resource in game. This resource can be sound, item, dialog, creature, image.

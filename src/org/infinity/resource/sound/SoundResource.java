@@ -42,8 +42,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.WavReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Handles all kinds of supported single track audio files.

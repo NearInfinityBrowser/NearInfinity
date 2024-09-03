@@ -35,8 +35,6 @@
 
 package org.infinity.util.io.zip;
 
-import org.tinylog.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,6 +68,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
+import org.infinity.util.Logger;
 
 /**
  * Path implementation for DLC archives in zip format.

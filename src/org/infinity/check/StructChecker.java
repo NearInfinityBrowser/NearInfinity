@@ -54,9 +54,9 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sto.ItemSale11;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
-import org.tinylog.Logger;
 
 public final class StructChecker extends AbstractChecker implements ListSelectionListener {
   private static final String[] FILETYPES = { "ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO", "SPL",

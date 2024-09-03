@@ -31,7 +31,7 @@ import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.resource.wed.WedResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Specialized renderer for drawing tileset-based graphics data.

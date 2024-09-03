@@ -29,7 +29,6 @@ import org.infinity.resource.StructEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Provides operations for reading, writing and querying information about string tables.

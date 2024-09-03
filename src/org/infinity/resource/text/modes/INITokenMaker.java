@@ -10,7 +10,7 @@ import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * A token maker that turns text into a linked list of {@code Token}s for syntax highlighting Infinity Engine INI

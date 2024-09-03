@@ -54,11 +54,11 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class ConvertToBmp extends ChildFrame implements ActionListener, FocusListener, PropertyChangeListener {
   private static Path currentPath = Profile.getGameRoot();

@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.infinity.util.FileDeletionHook;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Expands the {@link File} class by custom filesystem support.

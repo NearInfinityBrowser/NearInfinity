@@ -20,10 +20,10 @@ import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Writeable;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class BIFFResourceEntry extends ResourceEntry implements Writeable {
   /** Full path to KEY file containing BIFF entry. */

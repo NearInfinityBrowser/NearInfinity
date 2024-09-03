@@ -4,10 +4,12 @@
 
 package org.infinity.resource.video;
 
-import org.tinylog.Logger;
+
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import org.infinity.util.Logger;
 
 /**
  * Represents a container for audio chunks returned by the MveDecoder.

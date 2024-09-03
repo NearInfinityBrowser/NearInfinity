@@ -15,7 +15,7 @@ import java.util.Objects;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles new PVRZ-based TIS resources.

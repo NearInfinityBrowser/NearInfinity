@@ -48,12 +48,12 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * This resource describes an "item". Items include weapons, armor, books, scrolls, rings and more. Items can have

@@ -106,12 +106,12 @@ import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.search.advanced.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener, ItemListener,
     ChangeListener, TableModelListener, ComponentListener {

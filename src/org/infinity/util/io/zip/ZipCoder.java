@@ -37,10 +37,15 @@ package org.infinity.util.io.zip;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.*;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Utility class for zipfile name and comment decoding and encoding.

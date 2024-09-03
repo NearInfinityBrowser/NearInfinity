@@ -23,7 +23,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: WED/Door Polygon.

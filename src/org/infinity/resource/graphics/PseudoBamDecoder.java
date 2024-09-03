@@ -31,10 +31,10 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.resource.Profile;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure. Furthermore, this class provides

@@ -16,7 +16,6 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.ScriptInfo;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
 
 public class IdsMapCache {
   /** Maps upper-cased name of IDS resource to parsed resource. */

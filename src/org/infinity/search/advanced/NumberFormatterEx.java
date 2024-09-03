@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import javax.swing.JFormattedTextField.AbstractFormatter;
 
 import org.infinity.util.DataString;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * A simplified NumberFormatter that handles conversion from Object to String and back. Allowed text input is limited to

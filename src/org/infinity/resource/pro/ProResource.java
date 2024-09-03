@@ -38,7 +38,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * This resource describes projectiles, and the files are referenced spells and projectile weapons. Projectile files can

@@ -4,8 +4,6 @@
 
 package org.infinity.resource.sound;
 
-import org.tinylog.Logger;
-
 import java.io.ByteArrayInputStream;
 
 import javax.sound.sampled.AudioFormat;
@@ -14,6 +12,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
+
+import org.infinity.util.Logger;
 
 public class AudioPlayer {
   private final byte[] buffer = new byte[8196];

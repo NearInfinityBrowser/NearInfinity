@@ -17,10 +17,10 @@ import java.util.zip.Inflater;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Specialized ResourceEntry class for compressed entries in SAV resources.

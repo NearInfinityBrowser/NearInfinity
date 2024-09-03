@@ -17,7 +17,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * The default BAM output filter.

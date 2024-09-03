@@ -20,12 +20,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.infinity.gui.NewChrSettings;
 import org.infinity.gui.NewProSettings;
 import org.infinity.gui.NewResSettings;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.ResourceStructure;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 // Create different pre-initialized IE game resources from scratch and writes them to disk.
 public final class StructureFactory {

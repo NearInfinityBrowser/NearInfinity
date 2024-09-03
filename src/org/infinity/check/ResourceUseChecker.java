@@ -56,9 +56,9 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
-import org.tinylog.Logger;
 
 public final class ResourceUseChecker extends AbstractChecker
     implements Runnable, ListSelectionListener, ActionListener {

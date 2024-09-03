@@ -48,9 +48,9 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * DLG resource contains the structure of conversation, in what is effectievly a state machine. Dialogs contains string

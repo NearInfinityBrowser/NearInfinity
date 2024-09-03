@@ -42,8 +42,8 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class ScriptChecker extends AbstractSearcher

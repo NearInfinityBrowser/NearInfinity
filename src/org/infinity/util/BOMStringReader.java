@@ -4,8 +4,6 @@
 
 package org.infinity.util;
 
-import org.tinylog.Logger;
-
 import java.io.IOException;
 import java.io.StringReader;
 

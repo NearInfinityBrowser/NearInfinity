@@ -23,8 +23,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Collection of useful stream- and buffer-based operations.

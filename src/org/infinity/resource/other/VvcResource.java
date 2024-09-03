@@ -25,7 +25,7 @@ import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
 import org.infinity.search.SearchOptions;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * This resource describes visual "spell casting" effects ({@link BamResource BAM} files) with optional sounds

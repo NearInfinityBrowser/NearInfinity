@@ -11,8 +11,8 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Field that represents numerical value which is usually edited in a floating point mode.

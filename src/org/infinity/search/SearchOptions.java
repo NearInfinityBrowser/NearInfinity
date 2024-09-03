@@ -19,9 +19,9 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the resource-specific search

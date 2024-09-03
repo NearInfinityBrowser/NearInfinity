@@ -21,9 +21,9 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class FileResourceEntry extends ResourceEntry {
   private final boolean override;

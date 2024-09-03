@@ -60,10 +60,10 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 public class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener {
   private final JButton bOpen = new JButton("Open selected", Icons.ICON_OPEN_16.getIcon());

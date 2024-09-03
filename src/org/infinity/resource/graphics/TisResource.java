@@ -108,9 +108,9 @@ import org.infinity.resource.wed.WedResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DataString;
 import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * This resource describes a tileset. There are currently two variants available:

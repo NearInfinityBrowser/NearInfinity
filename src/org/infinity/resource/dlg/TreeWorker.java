@@ -13,7 +13,7 @@ import javax.swing.SwingWorker;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 //-------------------------- INNER CLASSES --------------------------
 

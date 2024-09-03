@@ -18,8 +18,8 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Handles BAM v1 resources (both BAMC and uncompressed BAM V1).

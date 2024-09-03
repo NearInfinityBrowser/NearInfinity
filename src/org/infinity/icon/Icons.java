@@ -11,7 +11,7 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Provides {@code ImageIcon} instances of selected graphics files.

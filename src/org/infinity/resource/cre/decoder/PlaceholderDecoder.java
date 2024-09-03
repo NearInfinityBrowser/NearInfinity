@@ -23,8 +23,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * General-purpose creature animation decoder for handling non-existing or unknown animation types.

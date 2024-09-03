@@ -88,12 +88,12 @@ import org.infinity.resource.wmp.WmpResource;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Handles game-specific resource access.

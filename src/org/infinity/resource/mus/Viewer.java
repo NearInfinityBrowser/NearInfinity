@@ -30,9 +30,9 @@ import javax.swing.UIManager;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
-import org.tinylog.Logger;
 
 public class Viewer extends JPanel implements Runnable, ActionListener {
   /** Provides quick access to the "play" and "pause" image icon. */

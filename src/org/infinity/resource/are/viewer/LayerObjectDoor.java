@@ -9,7 +9,11 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.infinity.datatype.Flag;
@@ -24,7 +28,7 @@ import org.infinity.resource.are.Door;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.ClosedVertex;
 import org.infinity.resource.vertex.OpenVertex;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Door

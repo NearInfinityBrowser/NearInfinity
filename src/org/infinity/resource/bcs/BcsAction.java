@@ -7,8 +7,8 @@ package org.infinity.resource.bcs;
 import java.awt.Point;
 import java.util.Arrays;
 
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
-import org.tinylog.Logger;
 
 /**
  * Handles BCS action (AC) byte code structures.

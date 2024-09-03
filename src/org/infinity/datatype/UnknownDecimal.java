@@ -8,7 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Field that represents binary data in decimal format in their editor.

@@ -9,7 +9,11 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
@@ -18,8 +22,8 @@ import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
-import org.tinylog.Logger;
 
 /**
  * A static class that provides information and methods for hardcoded creature animations.

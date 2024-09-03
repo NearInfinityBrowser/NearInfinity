@@ -46,8 +46,8 @@ import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher

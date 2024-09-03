@@ -23,7 +23,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: global GAM/Actor

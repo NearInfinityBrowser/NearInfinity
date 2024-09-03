@@ -45,9 +45,9 @@ import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * An options dialog for the BAM converter.

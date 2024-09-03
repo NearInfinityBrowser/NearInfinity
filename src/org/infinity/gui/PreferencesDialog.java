@@ -74,6 +74,7 @@ import javax.swing.tree.TreePath;
 import org.infinity.AppOption;
 import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.LogLevel;
 import org.infinity.gui.menu.OptionsMenuItem;
 import org.infinity.gui.menu.OptionsMenuItem.CharsetInfo;
 import org.infinity.gui.menu.OverrideMode;
@@ -88,8 +89,8 @@ import org.infinity.gui.options.OptionGroup;
 import org.infinity.gui.options.OptionGroupBox;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * This modal dialog provides access to application-wide options and preferences
@@ -473,6 +474,19 @@ public class PreferencesDialog extends JDialog {
       ),
       OptionCategory.create(Category.VISUAL_OPTIONS,
           OptionGroup.createDefault(
+              OptionGroupBox.create(AppOption.APP_LOG_LEVEL.getName(), AppOption.APP_LOG_LEVEL.getLabel(),
+                  "Specify the minimum severity level for log messages to be shown in the debug console."
+                      + "<p><strong>" + LogLevel.TRACE + ":</strong> <em>(Not recommended)</em> Log messages for all "
+                      + "unexpected and many expected results which is only useful for developers.<br/>"
+                      + "<p><strong>" + LogLevel.DEBUG + ":</strong> Log messages for diagnostic purposes which can be "
+                      + "relevant for troubleshooting issues with the application.<br/>"
+                      + "<p><strong>" + LogLevel.INFO + ":</strong> Log helpful information as well as warnings and "
+                      + "errors.<br/>"
+                      + "<p><strong>" + LogLevel.WARN + ":</strong> Log only warnings and errors. Choose this option to "
+                      + "reduce the amount of messages without losing relevant information.<br/>"
+                      + "<p><strong>" + LogLevel.ERROR + ":</strong> Log only error messages.<br/>"
+                      + "<p><strong>" + LogLevel.OFF + ":</strong> This option disables logging completely.<br/>",
+                  LogLevel.INFO.ordinal(), LogLevel.values(), AppOption.APP_LOG_LEVEL),
               OptionGroupBox.create(AppOption.SHOW_RES_REF.getName(), AppOption.SHOW_RES_REF.getLabel(),
                   "Choose how resources should be displayed in resource lists.", ResRefMode.RefName.ordinal(),
                   ResRefMode.values(), AppOption.SHOW_RES_REF),

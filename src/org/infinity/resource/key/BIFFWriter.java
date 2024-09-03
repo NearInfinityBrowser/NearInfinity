@@ -20,10 +20,10 @@ import java.util.zip.DeflaterOutputStream;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class BIFFWriter {
   private final BIFFEntry bifEntry;

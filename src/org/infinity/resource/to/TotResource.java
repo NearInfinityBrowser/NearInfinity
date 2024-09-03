@@ -17,9 +17,9 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * This resource serves a similar purpose (and has a similar structure to) {@link StringTable TLK} files. The files can

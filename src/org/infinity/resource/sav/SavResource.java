@@ -49,9 +49,9 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 /**
  * This resource acts as a standalone compressed archive. The file is zlib compressed, and allows incremental updates to

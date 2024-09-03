@@ -21,7 +21,6 @@ import org.infinity.resource.are.ProEffect;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.spl.SplResource;
-import org.tinylog.Logger;
 
 public final class StructClipboard {
   public static final int CLIPBOARD_EMPTY   = 0;

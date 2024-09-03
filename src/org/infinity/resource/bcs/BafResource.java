@@ -54,10 +54,10 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener, DocumentListener {
   // for source panel

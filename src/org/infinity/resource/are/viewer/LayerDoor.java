@@ -10,7 +10,7 @@ import static org.infinity.resource.are.AreResource.ARE_OFFSET_DOORS;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages door layer objects.

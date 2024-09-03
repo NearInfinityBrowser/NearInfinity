@@ -7,8 +7,8 @@ package org.infinity.resource.sound;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer.AudioOverride;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class AudioFactory {
   // supported audio formats

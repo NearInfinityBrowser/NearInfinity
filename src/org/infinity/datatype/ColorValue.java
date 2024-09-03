@@ -58,10 +58,10 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 /**
  * Field that represents indexed color or color range.

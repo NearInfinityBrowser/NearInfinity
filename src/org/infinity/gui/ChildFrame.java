@@ -34,7 +34,7 @@ import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.graphics.BamResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public class ChildFrame extends JFrame {
   private static final List<ChildFrame> WINDOWS = new ArrayList<>();

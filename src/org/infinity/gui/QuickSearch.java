@@ -38,9 +38,9 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.Logger;
 import org.infinity.util.MapTree;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Implements a search panel for quickly finding specific resources.

@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.infinity.datatype.StringRef;
-import org.tinylog.Logger;
 
 public class IniMapEntry {
   /** Regular expression that can be used to split position values in {@link #splitValues(String, String)}. */

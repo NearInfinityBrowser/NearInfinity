@@ -9,7 +9,7 @@ import java.util.List;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages map transition layer objects.

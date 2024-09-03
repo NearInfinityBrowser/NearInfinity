@@ -16,10 +16,10 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.Writeable;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Provides information about the location of resource data within BIFF archives.

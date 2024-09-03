@@ -22,18 +22,17 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.Effect;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 final class ViewerAbility extends JPanel {
   ViewerAbility(Ability ability) {
     JPanel fieldPanel = makeFieldPanel(ability);
     JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class, EffectType.EFFECT_TYPE);
     JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef) ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
-    JComponent boxPanel1 = ViewerUtil.makeCheckPanel((Flag) ability.getAttribute(AbstractAbility.ABILITY_TYPE_FLAGS),
-        1);
+    JComponent boxPanel1 = ViewerUtil.makeCheckPanel((Flag) ability.getAttribute(AbstractAbility.ABILITY_TYPE_FLAGS), 1);
     JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag) ability.getAttribute(Ability.ITM_ABIL_FLAGS), 1);
 
     JPanel boxPanel2 = new JPanel(new GridLayout(0, 1, 0, 3));

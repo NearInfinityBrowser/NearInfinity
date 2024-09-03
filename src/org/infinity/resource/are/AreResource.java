@@ -8,7 +8,11 @@ import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -46,13 +50,13 @@ import org.infinity.resource.wmp.AreaEntry;
 import org.infinity.resource.wmp.WmpResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.LuaEntry;
 import org.infinity.util.LuaParser;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * The ARE resource describes the content of an area (rather than its visual representation). ARE files contain the list

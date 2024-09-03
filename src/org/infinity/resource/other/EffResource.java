@@ -22,7 +22,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * This resource describes an effect (opcode) and its parameters. The resource of version 1 is only ever found embedded

@@ -78,9 +78,9 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;

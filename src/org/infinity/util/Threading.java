@@ -17,8 +17,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.tinylog.Logger;
-
 /**
  * A convenience class for performing multiple tasks in parallel.
  */

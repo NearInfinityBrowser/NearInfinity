@@ -25,7 +25,7 @@ import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /** Performs search of the specified string reference in other resources. */
 public final class StringReferenceSearcher extends AbstractReferenceSearcher {

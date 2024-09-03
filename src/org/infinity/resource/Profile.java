@@ -51,13 +51,13 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
 import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>

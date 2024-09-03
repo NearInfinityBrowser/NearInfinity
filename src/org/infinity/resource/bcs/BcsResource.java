@@ -59,10 +59,10 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.IdsMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * This resource represent scripted actions. {@code .bcs} files are scripts attached to anything other than the player

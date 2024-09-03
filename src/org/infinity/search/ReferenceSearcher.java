@@ -34,7 +34,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.other.EffResource;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public final class ReferenceSearcher extends AbstractReferenceSearcher {
   /** Optional alternate name to search for. */

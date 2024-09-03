@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Field that represents numerical value which is usually edited in a decimal mode.

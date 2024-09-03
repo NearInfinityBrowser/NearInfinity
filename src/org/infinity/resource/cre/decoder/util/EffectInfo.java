@@ -24,11 +24,11 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.spl.SplResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Manages effects opcodes for a specific target.

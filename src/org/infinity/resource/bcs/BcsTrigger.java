@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
-import org.tinylog.Logger;
 
 /**
  * Handles BCS trigger (TR) byte code structures.

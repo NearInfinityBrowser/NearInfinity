@@ -57,11 +57,11 @@ import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 public class StringEditor extends ChildFrame implements SearchClient {
   public static final String TLK_FLAGS = "Flags";

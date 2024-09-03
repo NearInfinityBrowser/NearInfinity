@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Parses Infinity Engine INI files.

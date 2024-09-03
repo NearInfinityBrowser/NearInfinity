@@ -71,7 +71,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.ui.ResourceListModel;
 import org.infinity.util.DataString;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Input dialog for a advanced search filter definition.

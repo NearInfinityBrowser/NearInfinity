@@ -43,8 +43,8 @@ import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * This panel provides controls for customizing various aspects of a CRE resource.

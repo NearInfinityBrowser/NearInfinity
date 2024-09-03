@@ -43,8 +43,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Extends {@link InfinityTextArea} by script-specific features.

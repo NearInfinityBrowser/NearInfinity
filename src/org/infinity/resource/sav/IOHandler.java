@@ -21,9 +21,9 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class IOHandler implements Writeable {
   private final ResourceEntry entry;

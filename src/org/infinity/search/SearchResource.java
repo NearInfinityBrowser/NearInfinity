@@ -95,12 +95,12 @@ import org.infinity.resource.ui.ResourceCellRenderer;
 import org.infinity.resource.ui.ResourceListModel;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 public class SearchResource extends ChildFrame implements ActionListener, PropertyChangeListener, Runnable {
   private static final String[] OPTION_PANELS = { "ARE", "CRE", "EFF", "ITM", "PRO", "SPL", "STO", "VVC" };
@@ -109,7 +109,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
   private static final String PROPERTY_OPTIONS = "NearInfinity.Options.IsEmpty";
 
   private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<>();
-  private final JProgressBar pbProgress = new JProgressBar();;
+  private final JProgressBar pbProgress = new JProgressBar();
 
   private JPanel pFindOptions, pBottomBar;
   private JList<ResourceEntry> listResults;

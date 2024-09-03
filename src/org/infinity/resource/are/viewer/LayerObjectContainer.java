@@ -21,7 +21,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Container;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.Vertex;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Container

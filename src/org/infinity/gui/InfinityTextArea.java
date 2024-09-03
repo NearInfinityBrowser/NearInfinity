@@ -43,8 +43,8 @@ import org.infinity.resource.text.modes.INITokenMaker;
 import org.infinity.resource.text.modes.MenuTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.

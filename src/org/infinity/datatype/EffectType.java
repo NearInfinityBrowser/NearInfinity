@@ -12,7 +12,7 @@ import java.util.List;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.effects.BaseOpcode;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public final class EffectType extends Bitmap implements UpdateListener {
   // EffectType-specific field labels

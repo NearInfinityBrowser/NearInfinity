@@ -52,10 +52,10 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class StringValidationChecker extends AbstractSearcher
     implements Runnable, ActionListener, ListSelectionListener {

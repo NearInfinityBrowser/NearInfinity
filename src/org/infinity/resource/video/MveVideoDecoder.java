@@ -13,8 +13,8 @@ import java.util.Arrays;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.video.MveDecoder.MveInfo;
 import org.infinity.resource.video.MveDecoder.MveSegment;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Decodes a single 8x8 pixel block of video data. (Internally used by MveDecoder)

@@ -20,8 +20,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.IniMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * A static class dedicated to processing Infinity Animation slots.

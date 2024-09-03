@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class MosV2Decoder extends MosDecoder {
   private static final int HEADER_SIZE = 16;  // size of the MOS header

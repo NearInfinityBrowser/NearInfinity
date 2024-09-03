@@ -31,12 +31,12 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect2;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Base class for opcode-handling classes. Derived classes should handle one opcode per class for all game variants.

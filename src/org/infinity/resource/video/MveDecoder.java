@@ -15,8 +15,8 @@ import java.util.Vector;
 import javax.sound.sampled.AudioFormat;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Decodes a MVE video resource.

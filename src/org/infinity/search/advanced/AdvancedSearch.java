@@ -75,10 +75,10 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
 import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
-import org.tinylog.Logger;
 
 public class AdvancedSearch extends ChildFrame implements Runnable {
   /** Indicates how to evaluate filter matches against a resource. */

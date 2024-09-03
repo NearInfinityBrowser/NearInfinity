@@ -33,9 +33,9 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Output filter: split BAM and output each part into a separate file.

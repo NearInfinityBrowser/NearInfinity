@@ -26,9 +26,9 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 public class DebugConsole extends ChildFrame implements ActionListener {
   private final JButton bClearConsole = new JButton("Clear", Icons.ICON_NEW_16.getIcon());

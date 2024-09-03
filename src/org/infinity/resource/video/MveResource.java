@@ -49,6 +49,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.monte.media.AudioFormatKeys;
 import org.monte.media.Format;
@@ -56,7 +57,6 @@ import org.monte.media.FormatKeys;
 import org.monte.media.VideoFormatKeys;
 import org.monte.media.avi.AVIWriter;
 import org.monte.media.math.Rational;
-import org.tinylog.Logger;
 
 /**
  * This resource describes the movies played during the game. Movies can only be played by the engine when they are

@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 
 import org.infinity.resource.Profile;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Backgrounds for the creature animation browser.

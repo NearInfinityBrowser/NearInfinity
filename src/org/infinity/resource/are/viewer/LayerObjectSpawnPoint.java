@@ -15,7 +15,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.SpawnPoint;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Spawn Point

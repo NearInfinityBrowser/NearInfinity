@@ -48,8 +48,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 public class TextListPanel<E> extends JPanel
     implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener {

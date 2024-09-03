@@ -12,7 +12,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * The base class for BAM converter effects filters.

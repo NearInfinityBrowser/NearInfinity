@@ -37,8 +37,8 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Implements a RGB color picker control.

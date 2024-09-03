@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles legacy TIS resources (using palettized tiles).

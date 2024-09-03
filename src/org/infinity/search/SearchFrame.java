@@ -49,8 +49,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
 //  private static final SearchFrame SEARCH_FRAME = null;

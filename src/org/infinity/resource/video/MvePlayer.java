@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public class MvePlayer {
   private final AudioQueue audioQueue;

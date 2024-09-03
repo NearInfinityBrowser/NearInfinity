@@ -68,11 +68,11 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Operation;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener {
   private final JButton bnext = new JButton("Forward", Icons.ICON_FORWARD_16.getIcon());

@@ -20,7 +20,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.swing.BorderFactory;
@@ -64,10 +69,10 @@ import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
-import org.tinylog.Logger;
 
 public final class ViewerUtil {
   /**

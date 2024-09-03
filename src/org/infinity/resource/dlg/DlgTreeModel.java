@@ -35,7 +35,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /** Creates and manages the dialog tree structure. */
 public class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, PropertyChangeListener {

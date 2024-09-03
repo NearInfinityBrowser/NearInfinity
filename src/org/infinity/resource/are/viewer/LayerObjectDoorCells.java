@@ -8,7 +8,12 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.infinity.datatype.IsNumeric;
@@ -20,7 +25,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
 import org.infinity.resource.vertex.ClosedVertexImpeded;
 import org.infinity.resource.vertex.OpenVertexImpeded;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer subtype: ARE/Door blocked cells

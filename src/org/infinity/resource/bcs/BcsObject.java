@@ -7,8 +7,8 @@ package org.infinity.resource.bcs;
 import java.awt.Rectangle;
 
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
-import org.tinylog.Logger;
 
 /**
  * Handles BCS object (OB) byte code structures.

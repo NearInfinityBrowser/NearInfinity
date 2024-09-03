@@ -25,8 +25,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.mus.MusResource;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Performs search of the specified song in the {@link AreResource areas}, {@link BcsResource scripts} and

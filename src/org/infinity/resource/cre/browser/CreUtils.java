@@ -24,8 +24,8 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * Collection of methods for creating and manipulating CRE resources.

@@ -35,9 +35,9 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * These resource contains a description of the types of items and services available for sale in a given store, inn,

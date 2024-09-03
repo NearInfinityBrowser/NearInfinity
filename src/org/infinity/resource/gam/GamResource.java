@@ -44,8 +44,8 @@ import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.QuestsPanel;
 import org.infinity.resource.text.QuestsResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Variables;
-import org.tinylog.Logger;
 
 /**
  * This resource is used to hold game information in save games. The GAM file does not store {@link AreResource area},

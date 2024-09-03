@@ -86,7 +86,6 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";

@@ -61,10 +61,10 @@ import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener {

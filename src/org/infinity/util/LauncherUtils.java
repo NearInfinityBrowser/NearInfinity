@@ -12,8 +12,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 
-import org.tinylog.Logger;
-
 /**
  * A helper class for launching default applications associated with the specified file or URL arguments.
  */

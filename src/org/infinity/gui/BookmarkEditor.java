@@ -52,10 +52,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.infinity.NearInfinity;
 import org.infinity.gui.menu.Bookmark;
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Platform;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Edit or remove bookmarked games.

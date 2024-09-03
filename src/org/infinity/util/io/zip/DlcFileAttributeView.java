@@ -35,14 +35,14 @@
 
 package org.infinity.util.io.zip;
 
-import org.tinylog.Logger;
-
 import java.io.IOException;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.infinity.util.Logger;
 
 /**
  * FileAttributeView implementation for DLC archives in zip format.

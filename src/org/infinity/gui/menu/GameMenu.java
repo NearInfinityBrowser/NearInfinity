@@ -30,11 +30,11 @@ import org.infinity.gui.StandardDialogs;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.Platform;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Handles Game menu items for the {@link BrowserMenuBar}.

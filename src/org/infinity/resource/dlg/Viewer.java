@@ -51,9 +51,9 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
-import org.tinylog.Logger;
 
 public class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
   private static final ButtonPanel.Control CTRL_NEXT_STATE      = ButtonPanel.Control.CUSTOM_1;

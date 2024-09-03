@@ -36,10 +36,10 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.LauncherUtils;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public final class WbmResource implements Resource, Closeable, Referenceable, ActionListener {
   private final ResourceEntry entry;

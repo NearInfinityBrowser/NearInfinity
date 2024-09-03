@@ -17,7 +17,7 @@ import javax.swing.MutableComboBoxModel;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * {@code ComboBoxModel} for the creature animation combo box used in the Creature Animation Browser.

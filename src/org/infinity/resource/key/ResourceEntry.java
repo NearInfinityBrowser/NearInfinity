@@ -32,9 +32,9 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   // list of file extensions not shown in the resource tree

@@ -45,9 +45,9 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public abstract class AbstractCode extends Datatype
     implements Editable, IsTextual, AddRemovable, ActionListener, DocumentListener, ItemListener {

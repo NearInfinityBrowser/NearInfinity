@@ -14,9 +14,9 @@ import javax.swing.ProgressMonitor;
 import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Threading;
-import org.tinylog.Logger;
 
 /**
  * Utility class for performing searching of resources in several threads with ability to cancel search.

@@ -65,9 +65,9 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
-import org.tinylog.Logger;
 
 /**
  * Datatype for {@link GamResource#GAM_BESTIARY Bestiary} field of the {@link GamResource GAM} resource.

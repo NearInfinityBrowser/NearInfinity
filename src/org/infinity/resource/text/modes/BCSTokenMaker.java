@@ -20,7 +20,7 @@ import org.infinity.resource.bcs.Signatures;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * A token maker that turns text into a linked list of {@code Token}s for syntax highlighting Infinity Engine BCS

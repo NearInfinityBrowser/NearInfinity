@@ -47,10 +47,10 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.CharsetDetector;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Handles Option menu items for the {@link BrowserMenuBar}.

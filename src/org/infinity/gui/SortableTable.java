@@ -34,8 +34,8 @@ import javax.swing.table.TableModel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.ArrayUtil;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 public final class SortableTable extends JTable implements MouseListener {
   private static final String WITH_DELIMITERS = "(?<=%1$s)(?!%1$s)|(?<!%1$s)(?=%1$s)";

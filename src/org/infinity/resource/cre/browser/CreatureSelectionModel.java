@@ -21,11 +21,11 @@ import org.infinity.resource.StructureFactory.StructureException;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.ResourceStructure;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * {@code ComboBoxModel} for the creature selection combo box used in the Creature Animation Browser.

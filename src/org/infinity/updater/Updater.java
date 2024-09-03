@@ -29,9 +29,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import org.infinity.NearInfinity;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Provides functions for checking, downloading and updating new versions of Near Infinity.

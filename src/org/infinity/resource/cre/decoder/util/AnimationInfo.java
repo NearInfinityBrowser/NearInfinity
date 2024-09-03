@@ -4,12 +4,17 @@
 
 package org.infinity.resource.cre.decoder.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
 
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Static class containing animation slot and type information.

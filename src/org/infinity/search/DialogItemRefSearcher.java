@@ -19,7 +19,7 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.StateTrigger;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.util.DebugTimer;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public class DialogItemRefSearcher implements Runnable {
   private final DlgResource dlg;

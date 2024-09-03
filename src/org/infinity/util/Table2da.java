@@ -10,7 +10,6 @@ import java.util.List;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.tinylog.Logger;
 
 /**
  * Stores content of a 2DA resource as table.

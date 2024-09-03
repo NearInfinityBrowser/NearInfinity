@@ -23,9 +23,9 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 public final class ResourceTreeModel implements TreeModel {
   private final List<TreeModelListener> treeModelListeners = new ArrayList<>();

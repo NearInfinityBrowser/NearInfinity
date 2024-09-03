@@ -75,11 +75,11 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * This resource describes a "creature". Creatures have several stats (some visible through the game UI) which are

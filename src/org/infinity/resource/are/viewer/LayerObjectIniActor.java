@@ -21,7 +21,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: INI/Actor

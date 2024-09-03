@@ -124,6 +124,7 @@ import org.infinity.util.IconCache;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.LauncherUtils;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Operation;
 import org.infinity.util.Platform;
@@ -133,7 +134,6 @@ import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
   // the current Near Infinity version
@@ -158,6 +158,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public static final String OPTION_GLOBAL_FONT_SIZE  = "GlobalFontSize";
   public static final String APP_UI_SCALE_ENABLED     = "AppUiScaleEnabled";
   public static final String APP_UI_SCALE_FACTOR      = "AppUiScaleFactor";
+  public static final String APP_LOG_LEVEL            = "AppLogLevel";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 

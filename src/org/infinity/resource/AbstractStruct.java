@@ -42,9 +42,9 @@ import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public abstract class AbstractStruct extends AbstractTableModel
     implements StructEntry, Viewable, Closeable, Referenceable, PropertyChangeListener {

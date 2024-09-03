@@ -42,7 +42,7 @@ import org.infinity.gui.LinkButton;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.updater.UpdateInfo.Release;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Shows information about available updates and providing options how to deal with them.

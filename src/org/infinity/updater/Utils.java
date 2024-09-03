@@ -45,8 +45,8 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
 import org.infinity.util.LauncherUtils;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 /**
  * Generic collection of updater-related methods.

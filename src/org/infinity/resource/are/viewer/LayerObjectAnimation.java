@@ -27,8 +27,8 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Background Animation

@@ -19,6 +19,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.LogLevel;
 import org.infinity.gui.menu.OptionsMenuItem;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.gui.menu.ResRefMode;
@@ -284,6 +285,9 @@ public class AppOption {
       "Show State/Response Numbers", true);
 
   // Category: Visual Options
+  /** Menu Options > Visual Options: AppLogLevel (Integer, Default: Level.INFO) */
+  public static final AppOption APP_LOG_LEVEL = new AppOption(NearInfinity.APP_LOG_LEVEL, "Application Log Level",
+      LogLevel.INFO.ordinal());
   /** Menu Options > Visual Options: ShowResRef (Integer, Default: ResRefMode.RefName) */
   public static final AppOption SHOW_RES_REF = new AppOption(OptionsMenuItem.OPTION_SHOWRESREF, "Show ResourceRef As",
       ResRefMode.RefName.ordinal());

@@ -16,9 +16,9 @@ import java.nio.file.StandardOpenOption;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Provides read operations for uncompressed BIFF V1 archives.

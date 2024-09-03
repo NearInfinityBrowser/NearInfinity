@@ -27,7 +27,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * The Creature Browser implements a highly customizable browser and viewer for creature animations.

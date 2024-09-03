@@ -16,7 +16,7 @@ import org.infinity.resource.are.AutomapNotePST;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapSection;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages automap notes layer objects (both PST-specific and generic types).

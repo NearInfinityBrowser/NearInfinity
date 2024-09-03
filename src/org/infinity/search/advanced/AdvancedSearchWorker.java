@@ -24,7 +24,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Worker class for performing a full match against a resource entry.

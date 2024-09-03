@@ -32,7 +32,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public final class TextResourceSearcher extends AbstractSearcher implements Runnable, ActionListener {
   private final ChildFrame inputFrame;

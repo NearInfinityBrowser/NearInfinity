@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.tinylog.Logger;
 
 /**
  * Provides methods for converting Lua table structures into LuaEntry objects. Note: Not all available Lua features are

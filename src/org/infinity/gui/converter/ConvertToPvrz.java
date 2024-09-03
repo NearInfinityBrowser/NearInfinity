@@ -56,11 +56,11 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.Compressor;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class ConvertToPvrz extends ChildFrame implements ActionListener, PropertyChangeListener {
   private static String currentDir = Profile.getGameRoot().toString();

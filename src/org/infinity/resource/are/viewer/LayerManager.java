@@ -10,7 +10,7 @@ import java.util.List;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.wed.WedResource;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages all layer objects of a single ARE map.

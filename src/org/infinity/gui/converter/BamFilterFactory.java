@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public class BamFilterFactory {
   private static final List<FilterInfo> FILTER_INFO_LIST = new ArrayList<>();

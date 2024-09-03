@@ -47,9 +47,9 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * This resource describes a "spell". Spells include mage spells, priest spells, innate abilities, special abilities and

@@ -4,8 +4,6 @@
 
 package org.infinity.util;
 
-import org.tinylog.Logger;
-
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.util.Locale;

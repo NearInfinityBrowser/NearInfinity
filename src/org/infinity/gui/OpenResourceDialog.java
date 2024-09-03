@@ -48,8 +48,8 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DataString;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
-import org.tinylog.Logger;
 
 /**
  * Provides a modal dialog for selecting a single or multiple game resources of one or more given resource types.

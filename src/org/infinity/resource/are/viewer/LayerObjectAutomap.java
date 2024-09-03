@@ -17,8 +17,8 @@ import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.to.TohResource;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * Handles specific layer type: ARE/Automap Note (except for PST)

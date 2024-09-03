@@ -15,8 +15,8 @@ import java.util.Arrays;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class MosV1Decoder extends MosDecoder {
   private static final int BLOCK_DIMENSION = 64; // default block dimension

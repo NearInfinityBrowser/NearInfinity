@@ -61,10 +61,10 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;

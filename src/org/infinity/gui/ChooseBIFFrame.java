@@ -29,7 +29,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.AbstractBIFFReader;
 import org.infinity.resource.key.BIFFEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 final class ChooseBIFFrame extends ChildFrame implements ActionListener {
   private final BIFFEditor editor;

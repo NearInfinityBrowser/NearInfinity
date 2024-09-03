@@ -21,7 +21,6 @@ import javax.swing.UIManager;
 import org.infinity.AppOption;
 import org.infinity.NearInfinity;
 import org.infinity.resource.Profile;
-import org.tinylog.Logger;
 
 /**
  * A general-purpose class containing useful function not fitting elsewhere.

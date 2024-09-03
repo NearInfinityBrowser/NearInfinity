@@ -13,10 +13,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 /**
  * Specialized {@link HashBitmap} that uses a mix of hardcoded entries and custom entries from ITEMTYPE.2DA

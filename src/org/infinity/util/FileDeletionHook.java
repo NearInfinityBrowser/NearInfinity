@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.infinity.util.io.FileEx;
-import org.tinylog.Logger;
 
 /**
  * Attempts to delete all registered files when the JVM terminates.

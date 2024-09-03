@@ -14,7 +14,7 @@ import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.util.LauncherUtils;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Browses for the provided URI on mouse clicks

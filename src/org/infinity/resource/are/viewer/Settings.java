@@ -12,7 +12,7 @@ import java.util.prefs.Preferences;
 
 import org.infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 /**
  * Manages global area viewer settings.

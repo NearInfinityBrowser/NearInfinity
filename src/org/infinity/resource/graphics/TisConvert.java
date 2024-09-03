@@ -55,10 +55,10 @@ import org.infinity.resource.wed.WedResource;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * This utility class provides methods for converting tileset (TIS) resources.

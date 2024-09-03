@@ -22,12 +22,12 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;

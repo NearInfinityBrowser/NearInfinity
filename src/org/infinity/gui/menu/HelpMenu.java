@@ -43,9 +43,9 @@ import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.DataString;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Handles Help menu items for the {@link BrowserMenuBar}.

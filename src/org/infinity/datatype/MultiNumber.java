@@ -31,8 +31,8 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-import org.tinylog.Logger;
 
 /**
  * A Number object consisting of multiple values of a given number of bits.

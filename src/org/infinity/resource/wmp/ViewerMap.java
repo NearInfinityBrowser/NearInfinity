@@ -66,10 +66,10 @@ import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 public class ViewerMap extends JPanel {
   /** Needed to determine map edges to travel from/to. */

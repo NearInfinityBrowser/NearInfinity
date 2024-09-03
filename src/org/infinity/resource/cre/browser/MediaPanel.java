@@ -52,8 +52,8 @@ import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 import ork.sevenstates.apng.APNGSeqWriter;
 

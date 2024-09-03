@@ -51,10 +51,10 @@ import org.infinity.resource.sav.IOHandler;
 import org.infinity.resource.sav.SavResourceEntry;
 import org.infinity.resource.to.TohResource;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
-import org.tinylog.Logger;
 
 /**
  * A struct field that represents reference to string in a talk table file (dialog.tlk or dialogF.tlk).

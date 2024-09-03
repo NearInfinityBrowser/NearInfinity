@@ -39,7 +39,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
+import org.infinity.util.Logger;
 
 public class TtfResource implements Resource, DocumentListener, ActionListener {
   private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;

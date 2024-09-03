@@ -19,7 +19,6 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
-import org.tinylog.Logger;
 
 /**
  * Maintains a list of script names to CRE resource mappings.

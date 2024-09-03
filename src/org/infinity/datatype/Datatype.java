@@ -17,9 +17,9 @@ import javax.swing.event.EventListenerList;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
-import org.tinylog.Logger;
 
 /**
  * Base class for all types of fields. Supplies base properties for fields: its name (not stored in the file), offset in

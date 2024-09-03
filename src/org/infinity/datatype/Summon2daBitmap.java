@@ -9,9 +9,9 @@ import java.util.Locale;
 import java.util.TreeMap;
 
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 /** Specialized HashBitmap type for parsing {@code SMTABLES.2DA} from IWDEE. */
 public class Summon2daBitmap extends HashBitmap {

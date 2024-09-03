@@ -14,9 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
 
+import org.infinity.util.Logger;
 import org.infinity.util.io.zip.DlcFileSystem;
 import org.infinity.util.io.zip.DlcFileSystemProvider;
-import org.tinylog.Logger;
 
 /**
  * Manages available DLCs used by the current game.

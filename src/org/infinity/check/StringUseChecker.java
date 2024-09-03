@@ -55,13 +55,13 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.LuaEntry;
 import org.infinity.util.LuaParser;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 public final class StringUseChecker extends AbstractSearcher
     implements Runnable, ListSelectionListener, SearchClient, ActionListener {

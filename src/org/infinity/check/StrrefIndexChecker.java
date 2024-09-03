@@ -48,11 +48,11 @@ import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener {
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);

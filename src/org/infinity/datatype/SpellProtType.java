@@ -18,9 +18,9 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.tinylog.Logger;
 
 /**
  * Specialized Bitmap type for translating SPLPROT.2DA data into human-readable descriptions.
