@@ -760,7 +760,7 @@ public class BamV1Decoder extends BamDecoder {
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00 && transIndices.size() < 2) {
             transIndices.add(idx);
           }
         }
@@ -773,12 +773,17 @@ public class BamV1Decoder extends BamDecoder {
         }
       }
 
-      // applying transparent indices
-      for (int i : transIndices) {
+      // applying transparent index
+      // use only one transparent color index (prefer magic color "green" over first palette index)
+      if (transIndices.size() > 1 && (currentPalette[transIndices.get(0)] & 0x00ffffff) != 0x0000ff00) {
+        transIndices.remove(0);
+      }
+      final int transIndex = !transIndices.isEmpty() ? transIndices.get(0) : -1;
+      if (transIndex >= 0) {
         if (transparencyEnabled) {
-          currentPalette[i] = 0;
+          currentPalette[transIndex] = 0;
         } else {
-          currentPalette[i] |= 0xff000000;
+          currentPalette[transIndex] |= 0xff000000;
         }
       }
     }
