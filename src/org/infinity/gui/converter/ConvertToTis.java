@@ -24,6 +24,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -580,8 +581,11 @@ public class ConvertToTis extends ChildFrame
           file = FileManager.resolve(tfOutput.getText());
         }
         if (file != null) {
-          if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
-              "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+          if (FileEx.create(file).isDirectory()) {
+            JOptionPane.showMessageDialog(this, "Output file cannot be a directory.", "Error", JOptionPane.ERROR_MESSAGE);
+          } else if (!FileEx.create(file).exists() ||
+              JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+                  JOptionPane.QUESTION_MESSAGE)) {
             file = null;
             workerConvert = new SwingWorker<List<String>, Void>() {
               @Override
@@ -643,8 +647,11 @@ public class ConvertToTis extends ChildFrame
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
-      fc.setCurrentDirectory(FileManager.resolve(fileName).toFile());
-      fc.setSelectedFile(FileManager.resolve(fileName).toFile());
+      final Path path = FileManager.resolve(fileName);
+      fc.setCurrentDirectory(path.toFile());
+      if (!Files.isDirectory(path)) {
+        fc.setSelectedFile(path.toFile());
+      }
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
         currentDir = fc.getSelectedFile().getParent();

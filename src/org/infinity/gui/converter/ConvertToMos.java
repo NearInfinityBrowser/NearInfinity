@@ -541,8 +541,11 @@ public class ConvertToMos extends ChildFrame
           file = FileManager.resolve(tfOutputV2.getText());
         }
         if (file != null) {
-          if (!FileEx.create(file).exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg,
-              "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+          if (FileEx.create(file).isDirectory()) {
+            JOptionPane.showMessageDialog(this, "Output file cannot be a directory.", "Error", JOptionPane.ERROR_MESSAGE);
+          } else if (!FileEx.create(file).exists() ||
+              JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+                  JOptionPane.QUESTION_MESSAGE)) {
             file = null;
             workerConvert = new SwingWorker<List<String>, Void>() {
               @Override
@@ -950,6 +953,10 @@ public class ConvertToMos extends ChildFrame
     FileNameExtensionFilter filter = new FileNameExtensionFilter("MOS files (*.mos)", "mos");
     fc.addChoosableFileFilter(filter);
     fc.setFileFilter(filter);
+    fc.setCurrentDirectory(path.toFile());
+    if (!Files.isDirectory(path)) {
+      fc.setSelectedFile(path.toFile());
+    }
     int ret = fc.showSaveDialog(this);
     if (ret == JFileChooser.APPROVE_OPTION) {
       return fc.getSelectedFile().toString();
