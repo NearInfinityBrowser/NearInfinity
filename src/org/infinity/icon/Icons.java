@@ -4,14 +4,9 @@
 
 package org.infinity.icon;
 
-import java.awt.Image;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.infinity.util.Logger;
+import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Provides {@code ImageIcon} instances of selected graphics files.
@@ -99,7 +94,7 @@ public enum Icons {
   /** Returns the {@code ImageIcon} instance of the enum object. */
   public ImageIcon getIcon() {
     if (icon == null) {
-      icon = getIcon(null, fileName);
+      icon = ColorConvert.loadAppIcon(Icons.class, fileName);
       if (icon == null) {
         throw new NullPointerException("Icon is null");
       }
@@ -110,68 +105,5 @@ public enum Icons {
   /** Returns the name of the graphics file. */
   public String getFileName() {
     return fileName;
-  }
-
-  /**
-   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
-   * returns it as an {@code ImageIcon} instance.
-   *
-   * @param cls      {@code Class} object used to determine the root path within the Java Archive. Specify {@code null}
-   *                 to use the current class as root path for the graphics file.
-   * @param fileName Filename of the graphics file relative to the root path. The following file format are supported:
-   *                 BMP, GIF, JPEG PNG and WEBP.
-   * @return {@code ImageIcon} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
-   */
-  public static ImageIcon getIcon(Class<?> cls, String fileName) {
-    ImageIcon retVal = null;
-
-    if (fileName == null) {
-      return retVal;
-    }
-
-    if (cls == null) {
-      cls = Icons.class;
-    }
-
-    try (InputStream is = cls.getResourceAsStream(fileName)) {
-      if (is != null) {
-        Image image = ImageIO.read(is);
-        retVal = new ImageIcon(image);
-      }
-    } catch (IOException e) {
-      Logger.error(e);
-    }
-
-    return retVal;
-  }
-
-  /**
-   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
-   * returns it as an {@code Image} instance.
-   *
-   * @param cls      {@code Class} object used to to determine the root path within the Java Archive.
-   * @param fileName Filename of the graphics file relative to the root path.
-   * @return {@code Image} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
-   */
-  public static Image getImage(Class<?> cls, String fileName) {
-    Image retVal = null;
-
-    if (fileName == null) {
-      return retVal;
-    }
-
-    if (cls == null) {
-      cls = Icons.class;
-    }
-
-    try (InputStream is = cls.getResourceAsStream(fileName)) {
-      if (is != null) {
-        retVal = ImageIO.read(is);
-      }
-    } catch (IOException e) {
-      Logger.error(e);
-    }
-
-    return retVal;
   }
 }

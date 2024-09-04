@@ -6,7 +6,7 @@ package org.infinity.resource.are.viewer.icon;
 
 import javax.swing.ImageIcon;
 
-import org.infinity.icon.Icons;
+import org.infinity.resource.graphics.ColorConvert;
 
 /** A dummy class used as reference for determining the current package name. */
 public enum ViewerIcons {
@@ -107,7 +107,7 @@ public enum ViewerIcons {
   /** Returns the {@code ImageIcon} instance of the enum object. */
   public ImageIcon getIcon() {
     if (icon == null) {
-      icon = Icons.getIcon(ViewerIcons.class, fileName);
+      icon = ColorConvert.loadAppIcon(ViewerIcons.class, fileName);
       if (icon == null) {
         throw new NullPointerException("Icon is null");
       }

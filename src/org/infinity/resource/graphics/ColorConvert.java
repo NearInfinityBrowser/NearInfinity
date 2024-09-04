@@ -34,6 +34,7 @@ import java.util.PriorityQueue;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.ImageIcon;
 
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
@@ -44,7 +45,7 @@ import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Triple;
 
 /**
- * Contains a set of color-related static methods (little endian order only).
+ * Contains a set of color and graphics-related static methods.
  */
 public class ColorConvert {
   /**
@@ -261,6 +262,56 @@ public class ColorConvert {
       dstImage = new BufferedImage(cm, raster, isAlphaPreMultiplied, table);
     }
     return dstImage;
+  }
+
+  /**
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@link Image} instance.
+   *
+   * @param cls      {@code Class} object used to to determine the root path within the Java archive.
+   * @param fileName Filename of the graphics file relative to the class path.
+   * @return {@link Image} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
+   */
+  public static Image loadAppImage(Class<?> cls, String fileName) {
+    Image retVal = null;
+
+    if (fileName == null) {
+      return retVal;
+    }
+
+    if (cls == null) {
+      cls = ColorConvert.class;
+    }
+
+    try (InputStream is = cls.getResourceAsStream(fileName)) {
+      if (is != null) {
+        retVal = ImageIO.read(is);
+      }
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+
+    return retVal;
+  }
+
+  /**
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@link ImageIcon} instance.
+   *
+   * @param cls      {@code Class} object used to determine the root path within the Java archive.
+   * @param fileName Filename of the graphics file relative to the root path. The following file format are supported:
+   *                 BMP, GIF, JPEG, PNG and WEBP.
+   * @return {@link ImageIcon} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
+   */
+  public static ImageIcon loadAppIcon(Class<?> cls, String fileName) {
+    ImageIcon retVal = null;
+
+    final Image image = loadAppImage(cls, fileName);
+    if (image != null) {
+      retVal = new ImageIcon(image);
+    }
+
+    return retVal;
   }
 
   /**
