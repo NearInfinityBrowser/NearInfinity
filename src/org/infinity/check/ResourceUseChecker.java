@@ -304,6 +304,9 @@ public final class ResourceUseChecker extends AbstractChecker
       for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
         unusedResources.remove(entry.getResourceName());
       }
+      for (final int strref : decompiler.getStringRefsUsed()) {
+        checkSound(strref);
+      }
     }
   }
 
@@ -331,9 +334,22 @@ public final class ResourceUseChecker extends AbstractChecker
    * @param ref Reference to entry in string table that contains sound file name
    */
   private void checkSound(StringRef ref) {
-    final int index = ref.getValue();
-    if (index >= 0) {
-      final String wav = StringTable.getSoundResource(index);
+    if (ref != null) {
+      checkSound(ref.getValue());
+    }
+  }
+
+  /**
+   * If string reference has the associated sound, removes this sound from {@link #unusedResources}, otherwise do
+   * nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to entry in string table that contains sound file name
+   */
+  private void checkSound(int strref) {
+    if (strref >= 0) {
+      final String wav = StringTable.getSoundResource(strref);
       if (!wav.isEmpty()) {
         removeEntries(wav + ".WAV");
       }
