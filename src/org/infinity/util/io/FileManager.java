@@ -16,10 +16,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import org.infinity.util.Logger;
+import org.infinity.util.Platform;
 
 /**
  * Central hub for accessing game-related I/O resources.
@@ -48,8 +48,7 @@ public class FileManager {
 
   /** Returns the default case-sensitivity mode for the current platform. */
   public static boolean getDefaultCaseSensitiveMode() {
-    final String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-    return (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd"));
+    return Platform.IS_UNIX;
   }
 
   /**

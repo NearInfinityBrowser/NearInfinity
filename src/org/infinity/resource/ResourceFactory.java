@@ -85,12 +85,7 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
-import org.infinity.util.CreMapCache;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.IdsMapCache;
-import org.infinity.util.Logger;
-import org.infinity.util.Misc;
-import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.*;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -819,8 +814,7 @@ public final class ResourceFactory {
         // fallback solution
         String userPrefix = System.getProperty("user.home");
         userPath = null;
-        String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-        if (osName.contains("windows")) {
+        if (Platform.IS_WINDOWS) {
           try {
             Process p = Runtime.getRuntime().exec(
                 "reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v personal");
@@ -837,9 +831,9 @@ public final class ResourceFactory {
             Logger.error(t);
             return null;
           }
-        } else if (osName.contains("mac") || osName.contains("darwin")) {
+        } else if (Platform.IS_MACOS) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, "Documents", EE_DIR));
-        } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
+        } else if (Platform.IS_UNIX) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
         if (userPath != null && FileEx.create(userPath).isDirectory()) {

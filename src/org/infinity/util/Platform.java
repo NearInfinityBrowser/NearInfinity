@@ -33,7 +33,7 @@ public class Platform {
 
     private final boolean check;
 
-    private OS(String regex) {
+    OS(String regex) {
       final String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
       this.check = regex != null && osName.matches(regex);
     }
@@ -72,7 +72,7 @@ public class Platform {
     private final int bitness;
     private final boolean check;
 
-    private Arch(int bitness, String regex) {
+    Arch(int bitness, String regex) {
       final String arch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
       this.check = regex != null && arch.matches(regex);
       this.bitness = bitness;
