@@ -16,7 +16,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,10 +29,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.ViewerUtil;
-import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
-import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 
@@ -73,7 +70,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     // does not modify the source image
     return entry;
   }
@@ -395,7 +392,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
 
         // converting segmented BAM structure
         int suffix = suffixStart + segIdx * suffixStep;
-        if (!convertBam(FileManager.resolve(String.format(fmtBamFileName, suffix)), segmentDecoder)) {
+        if (!BamFilterBaseOutput.convertBam(getConverter(), FileManager.resolve(String.format(fmtBamFileName, suffix)),
+            segmentDecoder)) {
           throw new Exception(String.format("Error converting segment %d/%d", segIdx + 1, segmentCount));
         }
 
@@ -457,36 +455,5 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
       retVal = new PseudoBamFrameEntry(dstImage, entry.getCenterX() - rect.x, entry.getCenterY() - rect.y);
     }
     return retVal;
-  }
-
-  // Exports the BAM specified by "decoder" into the filename "outFileName" using global settings
-  private boolean convertBam(Path outFileName, PseudoBamDecoder decoder) throws Exception {
-    if (getConverter() != null && outFileName != null && decoder != null) {
-      if (getConverter().isBamV1Selected()) {
-        // convert to BAM v1
-        decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-            getConverter().getPaletteDialog().getRleIndex());
-        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, getConverter().isBamV1Compressed());
-        try {
-          return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
-              getConverter().getProgressMonitorStage());
-        } catch (Exception e) {
-          Logger.error(e);
-          throw e;
-        }
-      } else {
-        // convert to BAM v2
-        DxtEncoder.DxtType dxtType = getConverter().getDxtType();
-        int pvrzIndex = getConverter().getPvrzIndex();
-        try {
-          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
-              getConverter().getProgressMonitorStage());
-        } catch (Exception e) {
-          Logger.error(e);
-          throw e;
-        }
-      }
-    }
-    return false;
   }
 }

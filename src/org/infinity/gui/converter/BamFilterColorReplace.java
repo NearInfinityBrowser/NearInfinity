@@ -80,7 +80,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }

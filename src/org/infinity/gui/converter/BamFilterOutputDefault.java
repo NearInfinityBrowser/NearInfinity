@@ -7,17 +7,14 @@ package org.infinity.gui.converter;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.nio.file.Path;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import org.infinity.gui.ViewerUtil;
-import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
-import org.infinity.util.Logger;
 
 /**
  * The default BAM output filter.
@@ -43,11 +40,11 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput {
 
   @Override
   public boolean process(PseudoBamDecoder decoder) throws Exception {
-    return applyEffect(decoder);
+    return BamFilterBaseOutput.convertBam(getConverter(), getConverter().getBamOutput(), decoder);
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     // does not modify the source image
     return entry;
   }
@@ -74,37 +71,5 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput {
     panel.add(l, c);
 
     return panel;
-  }
-
-  private boolean applyEffect(PseudoBamDecoder decoder) throws Exception {
-    if (getConverter() != null && decoder != null) {
-      Path outFile = getConverter().getBamOutput();
-
-      if (getConverter().isBamV1Selected()) {
-        // convert to BAM v1
-        decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,
-            getConverter().getPaletteDialog().getRleIndex());
-        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, getConverter().isBamV1Compressed());
-        try {
-          return decoder.exportBamV1(outFile, getConverter().getProgressMonitor(),
-              getConverter().getProgressMonitorStage());
-        } catch (Exception e) {
-          Logger.error(e);
-          throw e;
-        }
-      } else {
-        // convert to BAM v2
-        DxtEncoder.DxtType dxtType = getConverter().getDxtType();
-        int pvrzIndex = getConverter().getPvrzIndex();
-        try {
-          return decoder.exportBamV2(outFile, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
-              getConverter().getProgressMonitorStage());
-        } catch (Exception e) {
-          Logger.error(e);
-          throw e;
-        }
-      }
-    }
-    return false;
   }
 }

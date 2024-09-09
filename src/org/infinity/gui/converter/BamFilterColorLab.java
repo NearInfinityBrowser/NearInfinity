@@ -68,7 +68,7 @@ public class BamFilterColorLab extends BamFilterBaseColor implements ChangeListe
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }

@@ -81,7 +81,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     return applyEffect(entry);
   }
 

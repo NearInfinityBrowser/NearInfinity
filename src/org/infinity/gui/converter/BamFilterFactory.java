@@ -29,6 +29,7 @@ public class BamFilterFactory {
         BamFilterColorSwap.class));
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterColorInvert.getFilterName(), BamFilterColorInvert.getFilterDesc(),
         BamFilterColorInvert.class));
+
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformResize.getFilterName(),
         BamFilterTransformResize.getFilterDesc(), BamFilterTransformResize.class));
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformRotate.getFilterName(),
@@ -39,6 +40,7 @@ public class BamFilterFactory {
         BamFilterTransformTrim.class));
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformCenter.getFilterName(),
         BamFilterTransformCenter.getFilterDesc(), BamFilterTransformCenter.class));
+
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputDefault.getFilterName(), BamFilterOutputDefault.getFilterDesc(),
         BamFilterOutputDefault.class));
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputCombine.getFilterName(), BamFilterOutputCombine.getFilterDesc(),
@@ -49,6 +51,10 @@ public class BamFilterFactory {
         BamFilterOutputImage.class));
     FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputGif.getFilterName(), BamFilterOutputGif.getFilterDesc(),
         BamFilterOutputGif.class));
+    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputOverlay.getFilterName(), BamFilterOutputOverlay.getFilterDesc(),
+        BamFilterOutputOverlay.class));
+
+    FILTER_INFO_LIST.sort((a, b) -> a.getName().compareTo(b.getName()));
   }
 
   /** Returns the number of registered BAM filters. */

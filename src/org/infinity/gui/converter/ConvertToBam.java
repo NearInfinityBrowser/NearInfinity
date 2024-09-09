@@ -2676,7 +2676,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             image = dstImage;
           }
 
-          // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+          // Workaround for BAM V1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
           final boolean forceTransparentGreen = image.getType() != BufferedImage.TYPE_BYTE_INDEXED;
           modelFrames.insert(listIndex + curFrameIdx, image, new Point(), forceTransparentGreen);
           // setting required extra options
@@ -3652,7 +3652,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     int max = ((Integer) model.getMaximum());
     int cur = ((Integer) model.getValue());
     if (max != listFrameEntries.get(BAM_ORIGINAL).size()) {
-      max = listFrameEntries.get(BAM_ORIGINAL).size();
+      max = listFrameEntries.get(BAM_ORIGINAL).size() - 1;
       if (cur >= max) {
         cur = Math.max(max - 1, 0);
       }
@@ -3967,7 +3967,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       for (int i = 0; i < curFilterIdx; i++) {
         if (modelFilters.get(i) != null) {
           BamFilterBase filter = modelFilters.get(i);
-          entry = filter.updatePreview(entry);
+          entry = filter.updatePreview(frameIdx, entry);
         }
       }
       entryFilterPreview.setFrame(entry.getFrame());
@@ -3982,7 +3982,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           entryFilterPreview.getCenterX(), entryFilterPreview.getCenterY());
       BamFilterBase filter = modelFilters.get(curFilterIdx);
       if (filter != null) {
-        entry = filter.updatePreview(entry);
+        entry = filter.updatePreview(frameIdx, entry);
       }
     }
 
@@ -5131,7 +5131,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     /** Loads data from the specified file without user-interaction and optionally without feedback. */
     private boolean loadData(Path inFile, boolean silent) {
       if (inFile != null) {
-        IniMap ini = new IniMap(new FileResourceEntry(inFile));
+        IniMap ini = new IniMap(new FileResourceEntry(inFile), true);
 
         try {
           // checking integrity

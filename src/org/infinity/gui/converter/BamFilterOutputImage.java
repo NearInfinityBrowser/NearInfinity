@@ -120,7 +120,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame) {
     return frame;
   }
 

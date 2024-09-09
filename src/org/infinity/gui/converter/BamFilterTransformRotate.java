@@ -79,7 +79,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     return applyEffect(entry);
   }
 

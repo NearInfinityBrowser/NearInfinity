@@ -102,10 +102,11 @@ public abstract class BamFilterBase {
    * Modifies the specified BufferedImage object to reflect the current settings of the filter.<br>
    * <b>Note:</b> For optimization purposes, prevent creating a new BufferedImage object if possible.
    *
-   * @param frame The PseudoBamFrameEntry object to modify.
+   * @param frameIndex Frame index in the global frame list of the current BAM animation.
+   * @param frame      The PseudoBamFrameEntry object to modify.
    * @return The updated PseudoBamFrameEntry object.
    */
-  public abstract PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame);
+  public abstract PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame);
 
   /**
    * Adds a ChangeListener to the listener list. ChangeListeners will be notified whenever the filter settings change.

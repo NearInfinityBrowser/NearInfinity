@@ -175,7 +175,7 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform implements 
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame) {
     return applyEffect(frame);
   }
 
