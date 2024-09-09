@@ -180,7 +180,6 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
   private JButton bDown;
   private JButton bEdit;
   private JButton bRemove;
-  private ButtonPopupMenu bpmAdd;
   private JMenuItem miAddResource;
   private JMenuItem miAddFile;
 
@@ -384,7 +383,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
     miAddResource.addActionListener(this);
     miAddFile = new JMenuItem("Add BAM file...");
     miAddFile.addActionListener(this);
-    bpmAdd = new ButtonPopupMenu("Add", new JMenuItem[] { miAddResource, miAddFile });
+    final ButtonPopupMenu bpmAdd = new ButtonPopupMenu("Add", new JMenuItem[]{miAddResource, miAddFile});
     bpmAdd.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmAdd.setToolTipText("Add a new game resource or external file to the list.");
 
@@ -486,9 +485,9 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
     final int minIndex = Arrays.stream(table.getSelectedRows()).min().orElse(-1);
     if (minIndex > 0) {
       final int[] indices = table.getSelectedRows();
-      for (int i = 0; i < indices.length; i++) {
-        final Couple<ResourceEntry, OverlayMode> item = model.remove(indices[i]);
-        model.add(indices[i] - 1, item);
+      for (int index : indices) {
+        final Couple<ResourceEntry, OverlayMode> item = model.remove(index);
+        model.add(index - 1, item);
       }
       table.getSelectionModel().clearSelection();
       for (final int index : indices) {
@@ -748,8 +747,8 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
     }
 
     // recreating cycle information
-    for (int i = 0; i < cycleFrameIndices.length; i++) {
-      controlOut.cycleAdd(cycleFrameIndices[i]);
+    for (int[] cycleFrameIndex : cycleFrameIndices) {
+      controlOut.cycleAdd(cycleFrameIndex);
     }
 
     if (getConverter().isBamV1Selected()) {
@@ -915,8 +914,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
       final int g = (((g1 * a1) >> 8) + ((g2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int b = (((b1 * a1) >> 8) + ((b2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int a = (a1 + ((a2 * (256 - a1)) >> 8)) & 0xff;
-      final int argb = (a << 24) | (r << 16) | (g << 8) | b;
-      return argb;
+      return (a << 24) | (r << 16) | (g << 8) | b;
     } else {
       return ((dst & 0xff000000) != 0) ? dst : src;
     }
@@ -957,8 +955,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
       final int g = (((g1 * a1) >> 8) + ((g2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int b = (((b1 * a1) >> 8) + ((b2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int a = (a1 + ((a2 * (256 - a1)) >> 8)) & 0xff;
-      final int argb = (a << 24) | (r << 16) | (g << 8) | b;
-      return argb;
+      return (a << 24) | (r << 16) | (g << 8) | b;
     } else {
       return ((src & 0xff000000) != 0) ? dst : src;
     }
@@ -988,8 +985,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
       final int g = (((g1 * a1) >> 8) + ((g2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int b = (((b1 * a1) >> 8) + ((b2 * a2 * (256 - a1)) >> 16)) & 0xff;
       final int a = (a1 + ((a2 * (256 - a1)) >> 8)) & 0xff;
-      final int argb = (a << 24) | (r << 16) | (g << 8) | b;
-      return argb;
+      return (a << 24) | (r << 16) | (g << 8) | b;
     } else {
       return ((src & 0xff000000) == 0) ? dst : src;
     }
@@ -1302,8 +1298,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
     /** Returns the content of the entry at the specified position in the table model. */
     public Couple<ResourceEntry, OverlayMode> get(int index) {
       final Couple<ResourceEntry, OverlayMode> entry = entries.get(index);
-      final Couple<ResourceEntry, OverlayMode> retVal = Couple.with(entry.getValue0(), entry.getValue1());
-      return retVal;
+      return Couple.with(entry.getValue0(), entry.getValue1());
     }
 
     /** Returns {@code true} if the table model contains no entries. */
@@ -1383,7 +1378,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
 
       final OverlayMode[] items;
       if (mode == null) {
-        items = new OverlayMode[OverlayMode.values().length + ((mode != null) ? 0 : 1)];
+        items = new OverlayMode[OverlayMode.values().length + 1];
         items[0] = null;
         System.arraycopy(OverlayMode.values(), 0, items, 1, OverlayMode.values().length);
       } else {
