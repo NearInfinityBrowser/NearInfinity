@@ -4,58 +4,21 @@
 
 package org.infinity.gui.converter;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.infinity.util.Logger;
+import org.infinity.util.Misc;
+import org.infinity.util.Platform;
 
 public class BamFilterFactory {
-  private static final List<FilterInfo> FILTER_INFO_LIST = new ArrayList<>();
-
-  static {
-    // Registering individual BAM filters
-    FILTER_INFO_LIST.add(
-        new FilterInfo(BamFilterColorBCG.getFilterName(), BamFilterColorBCG.getFilterDesc(), BamFilterColorBCG.class));
-    FILTER_INFO_LIST.add(
-        new FilterInfo(BamFilterColorHSL.getFilterName(), BamFilterColorHSL.getFilterDesc(), BamFilterColorHSL.class));
-    FILTER_INFO_LIST.add(
-        new FilterInfo(BamFilterColorLab.getFilterName(), BamFilterColorLab.getFilterDesc(), BamFilterColorLab.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterColorBalance.getFilterName(), BamFilterColorBalance.getFilterDesc(),
-        BamFilterColorBalance.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterColorReplace.getFilterName(), BamFilterColorReplace.getFilterDesc(),
-        BamFilterColorReplace.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterColorSwap.getFilterName(), BamFilterColorSwap.getFilterDesc(),
-        BamFilterColorSwap.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterColorInvert.getFilterName(), BamFilterColorInvert.getFilterDesc(),
-        BamFilterColorInvert.class));
-
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformResize.getFilterName(),
-        BamFilterTransformResize.getFilterDesc(), BamFilterTransformResize.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformRotate.getFilterName(),
-        BamFilterTransformRotate.getFilterDesc(), BamFilterTransformRotate.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformMirror.getFilterName(),
-        BamFilterTransformMirror.getFilterDesc(), BamFilterTransformMirror.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformTrim.getFilterName(), BamFilterTransformTrim.getFilterDesc(),
-        BamFilterTransformTrim.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterTransformCenter.getFilterName(),
-        BamFilterTransformCenter.getFilterDesc(), BamFilterTransformCenter.class));
-
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputDefault.getFilterName(), BamFilterOutputDefault.getFilterDesc(),
-        BamFilterOutputDefault.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputCombine.getFilterName(), BamFilterOutputCombine.getFilterDesc(),
-        BamFilterOutputCombine.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputSplitted.getFilterName(), BamFilterOutputSplitted.getFilterDesc(),
-        BamFilterOutputSplitted.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputImage.getFilterName(), BamFilterOutputImage.getFilterDesc(),
-        BamFilterOutputImage.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputGif.getFilterName(), BamFilterOutputGif.getFilterDesc(),
-        BamFilterOutputGif.class));
-    FILTER_INFO_LIST.add(new FilterInfo(BamFilterOutputOverlay.getFilterName(), BamFilterOutputOverlay.getFilterDesc(),
-        BamFilterOutputOverlay.class));
-
-    FILTER_INFO_LIST.sort((a, b) -> a.getName().compareTo(b.getName()));
-  }
+  /** List of registered BAM filters. */
+  private static final List<FilterInfo> FILTER_INFO_LIST = new ArrayList<>(scanFilters());
 
   /** Returns the number of registered BAM filters. */
   public static int getFilterInfoSize() {
@@ -139,6 +102,53 @@ public class BamFilterFactory {
     }
 
     return retList;
+  }
+
+  /**
+   * Scans the current application package for available BAM filters and returns them as a sorted list.
+   *
+   * @return List of {@link FilterInfo} instances. Returns an empty list if filters could not be determined.
+   */
+  private static List<FilterInfo> scanFilters() {
+    final List<FilterInfo> retVal = new ArrayList<>();
+
+    try {
+      final List<Path> filterPathList = Misc.getFilesInPackage(BamFilterFactory.class.getPackage().getName());
+      for (final Path filterPath : filterPathList) {
+        // consider only regular Java classes
+        if (!filterPath.getFileName().toString().endsWith(".class")) {
+          continue;
+        }
+
+        final String filterClassName = filterPath.toString().replaceAll("\\.class$", "").replace(Platform.FILE_SEPARATOR, ".");
+        try {
+          final Class<?> cls = Class.forName(filterClassName);
+          if (BamFilterBase.class.isAssignableFrom(cls) && (cls.getModifiers() & Modifier.ABSTRACT) == 0) {
+            @SuppressWarnings("unchecked")
+            final Class<? extends BamFilterBase> filterClass = (Class<BamFilterBase>) cls;
+            try {
+              final Method nameMethod = filterClass.getMethod("getFilterName");
+              final Method descMethod = filterClass.getMethod("getFilterDesc");
+              final String filterName = nameMethod.invoke(null).toString();
+              final String filterDesc = descMethod.invoke(null).toString();
+              retVal.add(new FilterInfo(filterName, filterDesc, filterClass));
+            } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException e) {
+              Logger.warn(e, "Could not load BAM filter: " + filterClass.getSimpleName());
+            }
+          }
+        } catch (ExceptionInInitializerError e) {
+          // should be irrelevant in our case
+          Logger.trace(e);
+        }
+      }
+    } catch (Exception e) {
+      Logger.error(e, "Could not load BAM filters");
+      retVal.clear();
+    }
+
+    retVal.sort((a, b) -> a.getName().compareTo(b.getName()));
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------

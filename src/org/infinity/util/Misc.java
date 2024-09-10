@@ -9,11 +9,26 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 import javax.swing.UIManager;
@@ -674,6 +689,72 @@ public class Misc {
         }
       }
     }
+  }
+
+  /**
+   * Returns a list of relative paths for every file that is found in the specified package of the current Java application.
+   *
+   * @param packageName Fully qualified package name (e.g. {@code org.infinity}).
+   * @return List of files found in the current Java application as {@link Path} instances relative to the application root.
+   */
+  public static List<Path> getFilesInPackage(String packageName) throws Exception {
+    final Package pkg = Package.getPackage(Objects.requireNonNull(packageName));
+    if (pkg == null) {
+      throw new IllegalArgumentException("Package not found: " + packageName);
+    }
+
+    final String pkgPath = pkg.getName().replace('.', '/');
+    final URL pkgUrl = ClassLoader.getSystemClassLoader().getResource(pkgPath);
+    if (pkgUrl == null) {
+      throw new IOException("Resource not found: " + pkgPath);
+    }
+
+    if ("jar".equals(pkgUrl.getProtocol())) {
+      return getFilesInJarPackage(pkg);
+    } else if ("file".equals(pkgUrl.getProtocol())) {
+      return getFilesInDefaultPackage(pkg);
+    } else {
+      throw new IOException("Unsupported resource location: " + pkgUrl);
+    }
+  }
+
+  /** Used internally to return a list of all files in the specified package if the application is a JAR file. */
+  private static List<Path> getFilesInJarPackage(Package pkg) throws Exception {
+    final List<Path> retVal = new ArrayList<>();
+
+    final URI jarLocation = Misc.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+    try (final JarInputStream jis = new JarInputStream(Files.newInputStream(Paths.get(jarLocation), StandardOpenOption.READ))) {
+      final String rootPath = pkg.getName().replace('.', '/') + "/";
+      JarEntry je;
+      while ((je = jis.getNextJarEntry()) != null) {
+        if (je.getName().startsWith(rootPath) && !je.getName().equals(rootPath)) {
+          final Path path = Paths.get(je.getName());
+          retVal.add(path);
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Used internally to return a list of all files in the specified package if the application is invoked by a regular
+   * class file.
+   */
+  private static List<Path> getFilesInDefaultPackage(Package pkg) throws Exception {
+    final List<Path> retVal = new ArrayList<>();
+
+    final String rootPath = pkg.getName().replace('.', '/');
+    try (final BufferedReader reader =
+        new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(rootPath)))) {
+      final List<String> lines = reader.lines().collect(Collectors.toList());
+      for (final String line : lines) {
+        final Path path = Paths.get(rootPath, line);
+        retVal.add(path);
+      }
+    }
+
+    return retVal;
   }
 
   // Contains static functions only
