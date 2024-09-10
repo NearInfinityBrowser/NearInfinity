@@ -1176,7 +1176,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (!refreshOnly) {
       CharsetDetector.clearCache();
     }
-    DlcManager.close();
     IconCache.clearCache();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
@@ -1195,6 +1194,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     Song2daBitmap.resetSonglist();
     SpellProtType.resetTypeTable();
     Summon2daBitmap.resetSummonTable();
+    DlcManager.close();
   }
 
   private static void showProgress(String msg, int max) {
