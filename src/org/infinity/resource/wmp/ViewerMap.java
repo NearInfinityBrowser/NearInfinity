@@ -423,8 +423,10 @@ public class ViewerMap extends JPanel {
               Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir, false);
 
               // checking for random encounters during travels
+              final int randomEncounterProb =
+                  ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue();
               boolean hasRandomEncounters = false;
-              if (((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
+              if (randomEncounterProb > 0) {
                 for (int rnd = 1; rnd < 6; rnd++) {
                   String rndArea = ((IsReference) destLink
                       .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd))).getResourceName();
@@ -449,8 +451,13 @@ public class ViewerMap extends JPanel {
                 g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
 
                 // printing travel time (in hours)
-                String duration = String.format("%d h",
-                    ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
+                final String duration;
+                final int distScale = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4;
+                if (hasRandomEncounters) {
+                  duration = String.format("%d h (%d%%)", distScale, randomEncounterProb);
+                } else {
+                  duration = String.format("%d h", distScale);
+                }
                 LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
                 Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
                 int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 3;
