@@ -130,7 +130,7 @@ public final class StatusBar extends JPanel implements CaretListener, ActionList
    */
   private void updateMemoryProgress() {
     // using non-linear scaling for better resolution in lower memory ranges
-    final Function<Long, Integer> logScaled = value -> (int) Math.pow(Math.log(value / 1024L), 6.0);
+    final Function<Long, Integer> logScaled = value -> (int) Math.pow(Math.log(value / 1024.0), 6.0);
 
     final Runtime rt = Runtime.getRuntime();
 
