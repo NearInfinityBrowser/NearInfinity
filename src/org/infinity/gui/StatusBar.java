@@ -140,7 +140,8 @@ public final class StatusBar extends JPanel implements CaretListener, ActionList
 
     // used memory
     final long usedMemory = rt.totalMemory() - rt.freeMemory();
-    memoryProgress.setValue(logScaled.apply(usedMemory));
+    final int value = Math.min(Math.max(logScaled.apply(usedMemory), 0), memoryProgress.getMaximum());
+    memoryProgress.setValue(value);
 
     final long usedMemoryMB = usedMemory / (1024L * 1024L);
     if (usedMemoryMB >= 1024L) {
