@@ -229,6 +229,11 @@ public class PreferencesDialog extends JDialog {
                       + "Java Runtime, and available memory on the main panel while no game resource is opened "
                       + "in the main panel.",
                   AppOption.SHOW_SYS_INFO),
+              OptionCheckBox.create(AppOption.SHOW_MEM_STATUS.getName(), AppOption.SHOW_MEM_STATUS.getLabel(),
+                  "With this option enabled the current memory usage will be shown in the status bar of the Near Infinity "
+                      + "main window. This value is updated in regular intervals."
+                      + "<p><strong>Note:</strong> Changing this option requires a restart of Near Infinity to be effective.</p>",
+                  AppOption.SHOW_MEM_STATUS),
               OptionCheckBox.create(AppOption.OPEN_BOOKMARKS_PROMPT.getName(), AppOption.OPEN_BOOKMARKS_PROMPT.getLabel(),
                   "With this option enabled a confirmation dialog is shown whenever you try to load a bookmarked game."
                       + "<p><strong>Note:</strong> This option can also be changed in the confirmation dialog of the "

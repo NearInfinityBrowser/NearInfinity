@@ -164,13 +164,13 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWCOLOREDSTRUCTURES     = "ShowColoredStructures";
   public static final String OPTION_SHOWHEXCOLORED            = "ShowHexColored";
   public static final String OPTION_SHOWSYSINFO               = "ShowSysInfo";
+  public static final String OPTION_SHOWMEMSTATUS             = "ShowMemStatus";
   public static final String OPTION_OPENBOOKMARKSPROMPT       = "OpenBookmarksPrompt";
   public static final String OPTION_REMEMBER_CHILDFRAME_RECT  = "RememberChildFrameRect";
 
   public static final String OPTION_AUTOCHECK_BCS             = "AutocheckBCS";
   public static final String OPTION_AUTOGEN_BCS_COMMENTS      = "AutogenBCSComments";
   public static final String OPTION_MORECOMPILERWARNINGS      = "MoreCompilerWarnings";
-//  public static final String OPTION_MONITORFILECHANGES        = "MonitorFileChanges";
 
   public static final String OPTION_TEXT_SHOWCURRENTLINE      = "TextShowCurrentLine";
   public static final String OPTION_TEXT_SHOWLINENUMBERS      = "TextShowLineNumbers";
@@ -506,6 +506,11 @@ public class OptionsMenuItem extends JMenuItem {
   /** Returns whether system information are shown when NI starts up. */
   public boolean showSysInfo() {
     return AppOption.SHOW_SYS_INFO.getBoolValue();
+  }
+
+  /** Returns whether the current memory consumption is shown in NI's status bar. */
+  public boolean showMemStatus() {
+    return AppOption.SHOW_MEM_STATUS.getBoolValue();
   }
 
   /** Returns whether to show a dialog prompt whenever a bookmarked game is opened. */

@@ -132,14 +132,14 @@ public class AppOption {
   /** Menu Options: ShowSysInfo (Boolean, Default: true) */
   public static final AppOption SHOW_SYS_INFO = new AppOption(OptionsMenuItem.OPTION_SHOWSYSINFO,
       "Display System Information at Startup", true);
+  public static final AppOption SHOW_MEM_STATUS = new AppOption(OptionsMenuItem.OPTION_SHOWMEMSTATUS,
+      "Display Memory Usage in Status Bar", true);
   /** Menu Options: OpenBookmarksPrompt (Boolean, Default: true) */
   public static final AppOption OPEN_BOOKMARKS_PROMPT = new AppOption(OptionsMenuItem.OPTION_OPENBOOKMARKSPROMPT,
       "Confirm Opening Bookmarked Gamed", true);
   /** Menu Options: RememberChildFrameRect (Boolean, Default: false) */
   public static final AppOption REMEMBER_CHILD_FRAME_RECT = new AppOption(OptionsMenuItem.OPTION_REMEMBER_CHILDFRAME_RECT,
       "Remember Last Child Frame Size and Position", false);
-//  /** Menu Options: MonitorFileChanges (Boolean, Default: false) */
-//  public static final AppOption MONITOR_FILE_CHANGES = new AppOption(OptionsMenu.OPTION_MONITORFILECHANGES, "Monitor file changes", false);
   /**
    * Menu Options: OptionFixedInternal (Integer, Default: 0).
    * Note: Used internally to fix incorrect default values after the public release.
