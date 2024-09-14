@@ -24,6 +24,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.BOMStringReader;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
@@ -213,6 +214,7 @@ public class Compiler {
           try {
             token = parser.getNextToken();
           } catch (Throwable t) {
+            Logger.trace(t);
           }
           errors.add(new ScriptMessage(e.getMessage(), token));
         } catch (Throwable e) {
@@ -399,7 +401,7 @@ public class Compiler {
       }
 
       // setting strings
-      String[] strings = trigger.setStringParams(node.function, node.strings.toArray(new String[node.strings.size()]));
+      String[] strings = trigger.setStringParams(node.function, node.strings.toArray(new String[0]));
       trigger.t4 = strings[0];
       trigger.t5 = strings[1];
 
@@ -545,7 +547,7 @@ public class Compiler {
         }
 
         // handling strings
-        String[] strings = action.setStringParams(node.function, node.strings.toArray(new String[node.strings.size()]));
+        String[] strings = action.setStringParams(node.function, node.strings.toArray(new String[0]));
         action.a8 = strings[0];
         action.a9 = strings[1];
 
@@ -626,7 +628,7 @@ public class Compiler {
           paramType = Signatures.Function.Parameter.TYPE_ACTION;
         }
 
-        if (paramType != 0 && func != null) {
+        if (func != null) {
           for (int i = 0, cnt = func.getNumParameters(); i < cnt; i++) {
             if (func.getParameter(i).getType() == paramType) {
               retVal = true;
@@ -729,13 +731,11 @@ public class Compiler {
           long value = node.numbers.get(nidx);
           nidx++;
           String[] types = param.getResourceType();
-          if (types.length > 0) {
-            for (String type : types) {
-              if (type.equals("TLK")) {
-                checkStrref(value, node);
-              } else if (type.equals("SPL")) {
-                checkSpellCode(value, node);
-              }
+          for (String type : types) {
+            if (type.equals("TLK")) {
+              checkStrref(value, node);
+            } else if (type.equals("SPL")) {
+              checkSpellCode(value, node);
             }
           }
         }
@@ -817,10 +817,10 @@ public class Compiler {
     ArrayList<String> expected = new ArrayList<>();
     for (int[] element : e.expectedTokenSequences) {
       String symbol = "";
-      for (int j = 0; j < element.length; j++) {
-        String s = TOKEN_SYMBOL_TO_DESC_MAP.get(e.tokenImage[element[j]]);
+      for (int offset : element) {
+        String s = TOKEN_SYMBOL_TO_DESC_MAP.get(e.tokenImage[offset]);
         if (s == null) {
-          s = e.tokenImage[element[j]];
+          s = e.tokenImage[offset];
         }
         symbol += s + ' ';
       }

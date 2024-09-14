@@ -64,7 +64,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }
@@ -78,12 +78,10 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(sliderHue.getValue()).append(';');
-    sb.append(sliderSaturation.getValue()).append(';');
-    sb.append(sliderLightness.getValue()).append(';');
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return String.valueOf(sliderHue.getValue()) + ';' +
+        sliderSaturation.getValue() + ';' +
+        sliderLightness.getValue() + ';' +
+        encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -92,9 +90,9 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.trim().split(";");
-        Integer hValue = Integer.MIN_VALUE;
-        Integer sValue = Integer.MIN_VALUE;
-        Integer lValue = Integer.MIN_VALUE;
+        int hValue = Integer.MIN_VALUE;
+        int sValue = Integer.MIN_VALUE;
+        int lValue = Integer.MIN_VALUE;
         int[] indices = null;
 
         // parsing configuration data
@@ -235,17 +233,17 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     } else if (event.getSource() == sliderHue) {
-      spinnerHue.setValue(Integer.valueOf(sliderHue.getValue()));
+      spinnerHue.setValue(sliderHue.getValue());
       if (!sliderHue.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderSaturation) {
-      spinnerSaturation.setValue(Integer.valueOf(sliderSaturation.getValue()));
+      spinnerSaturation.setValue(sliderSaturation.getValue());
       if (!sliderSaturation.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderLightness) {
-      spinnerLightness.setValue(Integer.valueOf(sliderLightness.getValue()));
+      spinnerLightness.setValue(sliderLightness.getValue());
       if (!sliderLightness.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
@@ -312,7 +310,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor implements ChangeListe
       float lightness = ((Integer) spinnerLightness.getValue()).floatValue() / 100.0f;
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           // convert RGB -> HSL
           float fa = isPremultiplied ? (float) ((buffer[i] >>> 24) & 0xff) : 255.0f;
           float fr = ((buffer[i] >>> 16) & 0xff) / fa;

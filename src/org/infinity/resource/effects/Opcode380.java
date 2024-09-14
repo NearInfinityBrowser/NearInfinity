@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 380.
+ * Implementation of opcode 380.
  */
 public class Opcode380 extends BaseOpcode {
   private static final String EFFECT_EMBALMING_TYPE = "Embalming type";

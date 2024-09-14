@@ -228,14 +228,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
         }
       }
     }
-    ArrayList<String> retVal = new ArrayList<String>() {
-      {
-        for (final String s : fileSet) {
-          add(s);
-        }
-      }
-    };
-    return retVal;
+    return new ArrayList<>(fileSet);
   }
 
   @Override
@@ -302,7 +295,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
           cycleList.add(new SegmentDef(entry, cycleIdx, SegmentDef.SpriteType.AVATAR, behavior));
         }
         SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, false, cycleList);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
 
       // calculating eastern directions
@@ -316,7 +309,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
           cycleList.add(new SegmentDef(entry, cycleIdx, SegmentDef.SpriteType.AVATAR, behavior));
         }
         SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, true, cycleList);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
 
       // Structure:

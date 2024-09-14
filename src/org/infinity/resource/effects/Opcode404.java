@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 404.
+ * Implementation of opcode 404.
  */
 public class Opcode404 extends BaseOpcode {
   private static final String EFFECT_TYPE_TO_OVERRIDE   = "Type to override";

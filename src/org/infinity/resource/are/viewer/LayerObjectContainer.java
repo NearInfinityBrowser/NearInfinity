@@ -21,6 +21,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Container;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Container
@@ -73,7 +74,7 @@ public class LayerObjectContainer extends LayerObject {
       launchPoint.x = ((IsNumeric) container.getAttribute(Container.ARE_CONTAINER_LAUNCH_POINT_X)).getValue();
       launchPoint.y = ((IsNumeric) container.getAttribute(Container.ARE_CONTAINER_LAUNCH_POINT_Y)).getValue();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     final Polygon poly = createPolygon(shapeCoords, 1.0);
     final Rectangle bounds = normalizePolygon(poly);

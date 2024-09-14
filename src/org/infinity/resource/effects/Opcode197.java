@@ -16,7 +16,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMapEntry;
 
 /**
- * Implemention of opcode 197.
+ * Implementation of opcode 197.
  */
 public class Opcode197 extends BaseOpcode {
   private static final String EFFECT_PROJECTILE = "Projectile";
@@ -46,29 +46,5 @@ public class Opcode197 extends BaseOpcode {
     ids.addIdsMapEntry(new IdsMapEntry(0L, "None"));
     list.add(ids);
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

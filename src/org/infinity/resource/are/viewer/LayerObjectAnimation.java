@@ -27,6 +27,7 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 
 /**
@@ -169,7 +170,7 @@ public class LayerObjectAnimation extends LayerObject {
         animation.setStartFrame(skippedFrames);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons
@@ -306,7 +307,7 @@ public class LayerObjectAnimation extends LayerObject {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return new int[0];

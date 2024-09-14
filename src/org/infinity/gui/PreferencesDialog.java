@@ -74,6 +74,7 @@ import javax.swing.tree.TreePath;
 import org.infinity.AppOption;
 import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.LogLevel;
 import org.infinity.gui.menu.OptionsMenuItem;
 import org.infinity.gui.menu.OptionsMenuItem.CharsetInfo;
 import org.infinity.gui.menu.OverrideMode;
@@ -88,6 +89,7 @@ import org.infinity.gui.options.OptionGroup;
 import org.infinity.gui.options.OptionGroupBox;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -227,6 +229,11 @@ public class PreferencesDialog extends JDialog {
                       + "Java Runtime, and available memory on the main panel while no game resource is opened "
                       + "in the main panel.",
                   AppOption.SHOW_SYS_INFO),
+              OptionCheckBox.create(AppOption.SHOW_MEM_STATUS.getName(), AppOption.SHOW_MEM_STATUS.getLabel(),
+                  "With this option enabled the current memory usage will be shown in the status bar of the Near Infinity "
+                      + "main window. This value is updated in regular intervals."
+                      + "<p><strong>Note:</strong> Changing this option requires a restart of Near Infinity to be effective.</p>",
+                  AppOption.SHOW_MEM_STATUS),
               OptionCheckBox.create(AppOption.OPEN_BOOKMARKS_PROMPT.getName(), AppOption.OPEN_BOOKMARKS_PROMPT.getLabel(),
                   "With this option enabled a confirmation dialog is shown whenever you try to load a bookmarked game."
                       + "<p><strong>Note:</strong> This option can also be changed in the confirmation dialog of the "
@@ -472,6 +479,19 @@ public class PreferencesDialog extends JDialog {
       ),
       OptionCategory.create(Category.VISUAL_OPTIONS,
           OptionGroup.createDefault(
+              OptionGroupBox.create(AppOption.APP_LOG_LEVEL.getName(), AppOption.APP_LOG_LEVEL.getLabel(),
+                  "Specify the minimum severity level for log messages to be shown in the debug console."
+                      + "<p><strong>" + LogLevel.TRACE + ":</strong> <em>(Not recommended)</em> Log messages for all "
+                      + "unexpected and many expected results which is only useful for developers.<br/>"
+                      + "<p><strong>" + LogLevel.DEBUG + ":</strong> Log messages for diagnostic purposes which can be "
+                      + "relevant for troubleshooting issues with the application.<br/>"
+                      + "<p><strong>" + LogLevel.INFO + ":</strong> Log helpful information as well as warnings and "
+                      + "errors.<br/>"
+                      + "<p><strong>" + LogLevel.WARN + ":</strong> Log only warnings and errors. Choose this option to "
+                      + "reduce the amount of messages without losing relevant information.<br/>"
+                      + "<p><strong>" + LogLevel.ERROR + ":</strong> Log only error messages.<br/>"
+                      + "<p><strong>" + LogLevel.OFF + ":</strong> This option disables logging completely.<br/>",
+                  LogLevel.INFO.ordinal(), LogLevel.values(), AppOption.APP_LOG_LEVEL),
               OptionGroupBox.create(AppOption.SHOW_RES_REF.getName(), AppOption.SHOW_RES_REF.getLabel(),
                   "Choose how resources should be displayed in resource lists.", ResRefMode.RefName.ordinal(),
                   ResRefMode.values(), AppOption.SHOW_RES_REF),
@@ -1380,7 +1400,7 @@ public class PreferencesDialog extends JDialog {
         gb.getOption().setValue(-size);
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1403,7 +1423,7 @@ public class PreferencesDialog extends JDialog {
       int minFontSize = Arrays.stream(fontSizes).filter(i -> i > 0).min().orElse(0);
       int maxFontSize = Arrays.stream(fontSizes).max().orElse(0);
       String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
-          String.format("Enter font size in percent (%d - %d):", minFontSize, maxFontSize), Integer.valueOf(size));
+          String.format("Enter font size in percent (%d - %d):", minFontSize, maxFontSize), size);
       if (ret == null) {
         selectMatchingGlobalFontSize(gb, size);
         return true;
@@ -1431,7 +1451,7 @@ public class PreferencesDialog extends JDialog {
 
       return true;
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return true;
@@ -1463,7 +1483,7 @@ public class PreferencesDialog extends JDialog {
             label = ((LookAndFeel) o).getName();
           }
         } catch (Exception e) {
-//          e.printStackTrace();
+//          Logger.error(e);
         }
 
         if (label == null) {
@@ -1484,7 +1504,7 @@ public class PreferencesDialog extends JDialog {
         // need to track item index separately in case that a L&F class is not accessible
         curIdx++;
       } catch (Exception e) {
-//        e.printStackTrace();
+//        Logger.error(e);
       }
     }
 
@@ -1504,7 +1524,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<LookAndFeelInfo> item = (DataItem<LookAndFeelInfo>) gb.getItem(gb.getSelectedIndex());
       gb.getOption().setValue(item.getData().getClassName());
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1555,9 +1575,9 @@ public class PreferencesDialog extends JDialog {
         AppOption.TEXT_FONT_SIZE.setValue(font.getSize());
         AppOption.TEXT_FONT_STYLE.setValue(font.getStyle());
       }
-      gb.getOption().setValue(Integer.valueOf(index));
+      gb.getOption().setValue(index);
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1583,7 +1603,7 @@ public class PreferencesDialog extends JDialog {
         }
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return true;
@@ -1642,7 +1662,7 @@ public class PreferencesDialog extends JDialog {
         gb.getOption().setValue(item.getData());
       }
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1652,6 +1672,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<?> item = (DataItem<?>) gb.getItem(gb.getSelectedIndex());
       return item.getData() != null;
     } catch (IndexOutOfBoundsException e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -1704,7 +1725,7 @@ public class PreferencesDialog extends JDialog {
         languageDefinitions = OptionsMenuItem.updateGameLanguages(languageDefinitions, Profile.getGame(), langCode);
         gb.getOption().setValue(languageDefinitions);
       } catch (IndexOutOfBoundsException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -1768,7 +1789,7 @@ public class PreferencesDialog extends JDialog {
       final DataItem<Integer> item = (DataItem<Integer>) gb.getItem(gb.getSelectedIndex());
       gb.getOption().setValue(item.getData());
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1790,8 +1811,7 @@ public class PreferencesDialog extends JDialog {
       int minUiScale = Arrays.stream(scaleFactors).filter(i -> i > 0).min().orElse(0) / 2;
       int maxUiScale = Arrays.stream(scaleFactors).max().orElse(0);
       String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
-          String.format("Enter UI scaling factor in percent (%d - %d):", minUiScale, maxUiScale),
-          Integer.valueOf(factor));
+          String.format("Enter UI scaling factor in percent (%d - %d):", minUiScale, maxUiScale), factor);
       if (ret == null) {
         selectMatchingUiScaleFactor(gb, factor);
         return true;
@@ -1819,7 +1839,7 @@ public class PreferencesDialog extends JDialog {
 
       return true;
     } catch (IndexOutOfBoundsException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }
@@ -1860,11 +1880,9 @@ public class PreferencesDialog extends JDialog {
   private void setUiScaleFactorEnabled(boolean enabled) {
     OptionBase o = optionRoot.findOption(NearInfinity.APP_UI_SCALE_FACTOR);
     if (o instanceof OptionGroupBox) {
-      if (o instanceof OptionGroupBox) {
-        final OptionGroupBox uiScaleFactor = (OptionGroupBox) o;
-        uiScaleFactor.getUiComboBox().setEnabled(enabled);
-        uiScaleFactor.getUiLabel().setEnabled(enabled);
-      }
+      final OptionGroupBox uiScaleFactor = (OptionGroupBox) o;
+      uiScaleFactor.getUiComboBox().setEnabled(enabled);
+      uiScaleFactor.getUiLabel().setEnabled(enabled);
     }
   }
 
@@ -2027,7 +2045,7 @@ public class PreferencesDialog extends JDialog {
       if (fontInfo != null && fontInfo.getData() instanceof Font) {
         final Font oldFont = label.getFont();
         final Font newFont = (Font) fontInfo.getData();
-        label.setFont(Misc.getScaledFont(newFont.deriveFont(oldFont.getSize())));
+        label.setFont(Misc.getScaledFont(newFont.deriveFont(oldFont.getSize2D())));
         label.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
       }
 

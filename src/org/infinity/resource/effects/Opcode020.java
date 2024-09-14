@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 20.
+ * Implementation of opcode 20.
  */
 public class Opcode020 extends BaseOpcode {
   private static final String EFFECT_INVISIBILITY_TYPE = "Invisibility type";

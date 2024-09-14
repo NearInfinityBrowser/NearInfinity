@@ -42,6 +42,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.BIFFWriter;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -121,7 +122,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
         progress.setProgress(2, false);
         JOptionPane.showMessageDialog(editframe, "Error while extracting files from " + bifentry, "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         blocker.setBlocked(false);
         return;
       }
@@ -147,7 +148,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     } catch (Exception e) {
       progress.setProgress(3, false);
       JOptionPane.showMessageDialog(editframe, "Error while saving " + bifentry, "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
       blocker.setBlocked(false);
       return;
     }
@@ -159,7 +160,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
         try {
           Files.delete(file);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -182,7 +183,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     } catch (IOException e) {
       progress.setProgress(6, false);
       JOptionPane.showMessageDialog(editframe, "Error while saving keyfile", "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
     ResourceFactory.getResourceTreeModel().sort();
     blocker.setBlocked(false);

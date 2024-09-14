@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 349.
+ * Implementation of opcode 349.
  */
 public class Opcode349 extends BaseOpcode {
   private static final String EFFECT_DAMAGE_EFFECTS_TO_REFLECT  = "# damage effects to reflect";

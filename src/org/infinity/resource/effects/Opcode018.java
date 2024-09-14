@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 18.
+ * Implementation of opcode 18.
  */
 public class Opcode018 extends BaseOpcode {
   private static final String[] TYPES = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2],

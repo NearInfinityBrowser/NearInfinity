@@ -148,8 +148,8 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
             new Class<?>[] { Integer.class, String.class, String.class },
             new Integer[] { 25, 600, 50 });
         List<Integer> list = stringMap.get(StringTable.Type.MALE);
-        for (int i = 0, size = list.size(); i < size; i++) {
-          table.addTableItem(new StringSoundsItem(list.get(i), StringTable.Type.MALE));
+        for (Integer integer : list) {
+          table.addTableItem(new StringSoundsItem(integer, StringTable.Type.MALE));
         }
 
         // Female string table is presented in a separate tab, if available
@@ -158,8 +158,8 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
               new Class<?>[] { Integer.class, String.class, String.class },
               new Integer[] { 25, 600, 50 });
           list = stringMap.get(StringTable.Type.FEMALE);
-          for (int i = 0, size = list.size(); i < size; i++) {
-            tableFemale.addTableItem(new StringSoundsItem(list.get(i), StringTable.Type.FEMALE));
+          for (Integer integer : list) {
+            tableFemale.addTableItem(new StringSoundsItem(integer, StringTable.Type.FEMALE));
           }
         }
 

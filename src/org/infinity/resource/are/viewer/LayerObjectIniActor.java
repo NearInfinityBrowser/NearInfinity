@@ -21,6 +21,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: INI/Actor
@@ -71,7 +72,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
     try {
       cre = new CreResource(creEntry);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resource", e);
     }
 
@@ -151,12 +152,12 @@ public class LayerObjectIniActor extends LayerObjectActor {
     }
 
     String[] items = IniMapEntry.splitValues(entryPoint.getValue(), IniMapEntry.REGEX_POSITION);
-    if (items == null || creIndex >= items.length) {
+    if (creIndex >= items.length) {
       throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point index (" + creIndex + ")");
     }
 
     int[] pos = IniMapEntry.splitPositionValue(items[creIndex]);
-    if (pos == null || pos.length < 2) {
+    if (pos.length < 2) {
       throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point value #" + creIndex);
     }
 
@@ -179,7 +180,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
           item.setAnimation(sprite);
           item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.function.Consumer;
 
@@ -121,6 +122,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
@@ -310,6 +312,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           retVal = max;
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return retVal;
@@ -332,6 +335,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           retVal = max;
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return retVal;
@@ -339,28 +343,26 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
   /** Returns a list of supported input graphics file formats. */
   public static FileNameExtensionFilter[] getGraphicsFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.gif, *.png, *,jpg, *.jpeg)", "bam", "bmp", "gif",
-            "png", "jpg", "jpeg"),
+    return new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bam, *.bmp, *.gif, *.png, *,jpg, *.jpeg)",
+            "bam", "bmp", "gif", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("GIF files (*.gif)", "gif"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
-    return filters;
   }
 
   /** Returns a list of supported input file formats containing palettes. */
   public static FileNameExtensionFilter[] getPaletteFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.png, *.act, *.pal)", "bam", "bmp", "png",
-            "act", "pal"),
+    return new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.png, *.act, *.pal)",
+            "bam", "bmp", "png", "act", "pal"),
         new FileNameExtensionFilter("Palette from BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("Palette from BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("Palette from PNG files (*.png)", "png"),
         new FileNameExtensionFilter("Adobe Color Table files (*.act)", "act"),
         new FileNameExtensionFilter("Microsoft Palette files (*.pal)", "pal"), };
-    return filters;
   }
 
   /** Returns a extension filter for BAM files. */
@@ -793,7 +795,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         try {
           result = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -2081,7 +2083,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       tfFrameHeight.setText(changedHeight ? "" : Integer.toString(initialHeight));
       tfFrameCenterX.setText(changedCenterX ? "" : Integer.toString(initialX));
       tfFrameCenterY.setText(changedCenterY ? "" : Integer.toString(initialY));
-      cbCompressFrame.setSelected(changedCompression ? false : initialState);
+      cbCompressFrame.setSelected(!changedCompression && initialState);
     } else {
       // no frame selected
       final String zero = "0";
@@ -2232,7 +2234,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       Arrays.sort(indices);
       for (final int index : indices) {
         for (int i = 0; i < modelCycles.getSize(); i++) {
-          PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+          PseudoBamCycleEntry cycle = Objects.requireNonNull(modelCycles.getElementAt(i));
           for (int j = 0; j < cycle.size(); j++) {
             int idx = cycle.get(j);
             if (idx >= index) {
@@ -2252,7 +2254,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       for (int x = indices.length - 1; x >= 0; x--) {
         int index = indices[x];
         for (int i = 0; i < modelCycles.getSize(); i++) {
-          PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+          PseudoBamCycleEntry cycle = Objects.requireNonNull(modelCycles.getElementAt(i));
           int j = 0;
           while (j < cycle.size()) {
             int idx = cycle.get(j);
@@ -2274,7 +2276,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   private void updateCyclesMovedFrames(int index, int shift) {
     if (index >= 0 && shift != 0) {
       for (int i = 0; i < modelCycles.getSize(); i++) {
-        PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+        PseudoBamCycleEntry cycle = Objects.requireNonNull(modelCycles.getElementAt(i));
         for (int j = 0; j < cycle.size(); j++) {
           if (cycle.get(j) == index) {
             cycle.set(j, cycle.get(j) + shift);
@@ -2496,7 +2498,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   public BamDecoder framesAddBam(int listIndex, ResourceEntry entry) {
     if (listIndex >= 0 && entry != null && BamDecoder.isValid(entry)) {
       BamDecoder decoder = BamDecoder.loadBam(entry);
-      BamDecoder.BamControl control = decoder.createControl();
+      BamDecoder.BamControl control = Objects.requireNonNull(decoder).createControl();
       control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
 
       // preparing palette-specific properties
@@ -2569,10 +2571,10 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       } else {
         fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
       }
-      fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(frameIndex));
+      fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, frameIndex);
       fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName() + ":" + frameIndex);
-      fe2.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(isCompressed));
-      fe2.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, Integer.valueOf(rleIndex));
+      fe2.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, isCompressed);
+      fe2.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, rleIndex);
       return listIndex;
     }
     return -1;
@@ -2674,7 +2676,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             image = dstImage;
           }
 
-          // Workaround for BAMV1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
+          // Workaround for BAM V1 transparency, see PseudoBamDecoder.OPTION_BOOL_TRANSPARENTGREENFORCED
           final boolean forceTransparentGreen = image.getType() != BufferedImage.TYPE_BYTE_INDEXED;
           modelFrames.insert(listIndex + curFrameIdx, image, new Point(), forceTransparentGreen);
           // setting required extra options
@@ -2684,7 +2686,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           } else {
             fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
           }
-          fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(frameIdx));
+          fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, frameIdx);
           if (images.length > 1) {
             fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName() + ":" + frameIdx);
           } else {
@@ -2694,7 +2696,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         }
       } catch (Exception e) {
         retVal = false;
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -2803,14 +2805,14 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
 
       // adding entries to frames list
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(validFiles.toArray(new Path[validFiles.size()]), insertIndex);
+        framesAdd(validFiles.toArray(new Path[0]), insertIndex);
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -2914,7 +2916,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   private BitSet framesGetUnusedFrames() {
     BitSet framesUsed = new BitSet(modelFrames.getSize());
     for (int i = 0; i < modelCycles.getSize(); i++) {
-      PseudoBamCycleEntry cycle = modelCycles.getElementAt(i);
+      PseudoBamCycleEntry cycle = Objects.requireNonNull(modelCycles.getElementAt(i));
       for (int j = 0; j < cycle.size(); j++) {
         int idx = cycle.get(j);
         if (idx >= 0) {
@@ -3317,10 +3319,11 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   /** Sets a new frame rate. */
   private void previewSetFrameRate(double fps) {
     try {
-      sPreviewFps.setValue(Double.valueOf(fps));
+      sPreviewFps.setValue(fps);
       currentFps = (Double) sPreviewFps.getValue();
       timer.setDelay((int) (1000.0 / currentFps));
     } catch (IllegalArgumentException e) {
+      Logger.trace(e);
     }
   }
 
@@ -3425,7 +3428,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       try {
         updateFilteredBamDecoder(getBamVersion(), false);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -3649,12 +3652,12 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     int max = ((Integer) model.getMaximum());
     int cur = ((Integer) model.getValue());
     if (max != listFrameEntries.get(BAM_ORIGINAL).size()) {
-      max = listFrameEntries.get(BAM_ORIGINAL).size();
+      max = listFrameEntries.get(BAM_ORIGINAL).size() - 1;
       if (cur >= max) {
         cur = Math.max(max - 1, 0);
       }
-      model.setMaximum(Integer.valueOf(max));
-      model.setValue(Integer.valueOf(cur));
+      model.setMaximum(max);
+      model.setValue(cur);
     }
   }
 
@@ -3765,6 +3768,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         try {
           message = String.format(fmt, selectedCount);
         } catch (IllegalFormatException e) {
+          Logger.trace(e);
         }
       }
 
@@ -3921,7 +3925,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     try {
       updateFilteredBamDecoder(getBamVersion(), false);
       List<BamFilterBaseOutput> outList = createOutputFilterList();
-      if (outList != null && !outList.isEmpty()) {
+      if (!outList.isEmpty()) {
         for (BamFilterBaseOutput element : outList) {
           // processing output filter
           if (!element.process(bamDecoderFinal)) {
@@ -3933,7 +3937,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       }
       result.add("Conversion finished successfully.");
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       result.add(null);
       result.add(String.format("Error while exporting BAM files.\n(%s)", e.getMessage()));
     }
@@ -3963,7 +3967,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       for (int i = 0; i < curFilterIdx; i++) {
         if (modelFilters.get(i) != null) {
           BamFilterBase filter = modelFilters.get(i);
-          entry = filter.updatePreview(entry);
+          entry = filter.updatePreview(frameIdx, entry);
         }
       }
       entryFilterPreview.setFrame(entry.getFrame());
@@ -3978,7 +3982,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           entryFilterPreview.getCenterX(), entryFilterPreview.getCenterY());
       BamFilterBase filter = modelFilters.get(curFilterIdx);
       if (filter != null) {
-        entry = filter.updatePreview(entry);
+        entry = filter.updatePreview(frameIdx, entry);
       }
     }
 
@@ -4009,7 +4013,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             throw e;
           }
         } else if (filter instanceof BamFilterBaseTransform) {
@@ -4028,16 +4032,16 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             throw e;
           }
         } else if (filter instanceof BamFilterBaseOutput) {
           // skipping output filter
         } else {
           if (filter != null) {
-            System.err.println(String.format("Skipping unrecognized filter: %s", filter));
+            Logger.warn("Skipping unrecognized filter: {}", filter);
           } else {
-            System.err.println("Skipping null filter");
+            Logger.warn("Skipping null filter");
           }
         }
       }
@@ -4061,9 +4065,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       if (outFilters.isEmpty()) {
         outFilters.add(BamFilterFactory.createInstance(this, BamFilterOutputDefault.class));
       }
-      for (int i = 0; i < outFilters.size(); i++) {
-        retVal.add(outFilters.get(i));
-      }
+      retVal.addAll(outFilters);
     }
 
     return retVal;
@@ -4105,8 +4107,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         paletteDialog.updateGeneratedPalette();
 
         final int Green = 0x0000ff00;
-        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, Integer.valueOf(paletteDialog.getRleIndex()));
-        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, Boolean.valueOf(isBamV1Compressed()));
+        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, paletteDialog.getRleIndex());
+        bamDecoderFinal.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, isBamV1Compressed());
         // preparing palette
         int[] palette = paletteDialog.getPalette(paletteDialog.getPaletteType());
         int threshold = getUseAlpha() ? -1 : getTransparencyThreshold();
@@ -4143,7 +4145,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
               dstBuf[ofs] = (byte) transIndex;
             } else {
-              Byte colIdx = colorCache.get(Integer.valueOf(c));
+              Byte colIdx = colorCache.get(c);
               if (colIdx != null) {
                 dstBuf[ofs] = colIdx;
               } else {
@@ -4170,8 +4172,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         }
       } else {
         // BAM v2: create truecolored version of each frame
-        for (int i = 0; i < srcListFrames.size(); i++) {
-          PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
+        for (PseudoBamFrameEntry srcEntry : srcListFrames) {
           BufferedImage dstImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           PseudoBamFrameEntry dstEntry = new PseudoBamFrameEntry(dstImage, srcEntry.getCenterX(),
               srcEntry.getCenterY());
@@ -4232,7 +4233,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
             dstBuf[ofs] = (byte) transIndex;
           } else {
-            Byte colIdx = colorCache.get(Integer.valueOf(c));
+            Byte colIdx = colorCache.get(c);
             if (colIdx != null) {
               int ci = colIdx.intValue() & 0xff;
               if (ci >= transIndex) {
@@ -4439,6 +4440,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
           return retVal;
         } catch (Exception e) {
+          Logger.trace(e);
         }
       }
 
@@ -5129,7 +5131,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     /** Loads data from the specified file without user-interaction and optionally without feedback. */
     private boolean loadData(Path inFile, boolean silent) {
       if (inFile != null) {
-        IniMap ini = new IniMap(new FileResourceEntry(inFile));
+        IniMap ini = new IniMap(new FileResourceEntry(inFile), true);
 
         try {
           // checking integrity
@@ -5197,7 +5199,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
 
           if (value.startsWith(BAM_FRAME_PATH_BIFF)) {
-            String resName = value.substring(BAM_FRAME_PATH_BIFF.length(), value.length());
+            String resName = value.substring(BAM_FRAME_PATH_BIFF.length());
             if (!ResourceFactory.resourceExists(resName)) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
@@ -5437,7 +5439,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               int x = Misc.toNumber(numbers[0].trim(), Integer.MIN_VALUE);
               int y = Misc.toNumber(numbers[1].trim(), Integer.MIN_VALUE);
               if (x != Integer.MIN_VALUE && y != Integer.MIN_VALUE) {
-                PseudoBamFrameEntry bfe = bam.modelFrames.getElementAt(listIndex);
+                PseudoBamFrameEntry bfe = Objects.requireNonNull(bam.modelFrames.getElementAt(listIndex));
                 bfe.setCenterX(x);
                 bfe.setCenterY(y);
               }
@@ -5533,7 +5535,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
               maxIndex = Math.max(maxIndex, idx);
             }
           } else if (key.startsWith(KEY_FILTER_CONFIG)) {
-            final Integer idx = Misc.toNumber(key.substring(KEY_FILTER_CONFIG.length()), -1);
+            final int idx = Misc.toNumber(key.substring(KEY_FILTER_CONFIG.length()), -1);
             if (idx >= 0) {
               String param = entry.getValue().trim();
               Config config = filterMap.get(idx);
@@ -5657,7 +5659,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
           retVal = true;
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
           if (!silent) {
             JOptionPane.showMessageDialog(bam, "Error exporting BAM session.", "Error", JOptionPane.ERROR_MESSAGE);
           }

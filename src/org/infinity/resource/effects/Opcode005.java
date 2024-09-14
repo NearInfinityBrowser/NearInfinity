@@ -16,7 +16,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 5.
+ * Implementation of opcode 5.
  */
 public class Opcode005 extends BaseOpcode {
   private static final String EFFECT_CREATURE_TYPE = "Creature type";

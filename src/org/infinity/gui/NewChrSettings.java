@@ -20,8 +20,9 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
 public final class NewChrSettings extends NewAbstractSettings {
+  private final ChrConfig config;
+
   private JTextField tfName;
-  private ChrConfig config;
 
   public NewChrSettings(Window parent) {
     super(parent, "CHR settings");
@@ -100,7 +101,7 @@ public final class NewChrSettings extends NewAbstractSettings {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  public class ChrConfig {
+  public static class ChrConfig {
     private String name; // field at offset 0x08
 
     public ChrConfig() {
@@ -125,14 +126,14 @@ public final class NewChrSettings extends NewAbstractSettings {
   }
 
   // Ensures a size limit on byte level
-  private class FixedDocument extends PlainDocument {
-    private int maxLength;
-    private JTextField textField;
+  private static class FixedDocument extends PlainDocument {
+    private final int maxLength;
+    private final JTextField textField;
 
     FixedDocument(JTextField text, int length) {
       super();
       textField = text;
-      maxLength = length >= 0 ? length : 0;
+      maxLength = Math.max(length, 0);
     }
 
     @Override

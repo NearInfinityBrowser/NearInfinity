@@ -60,6 +60,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -114,6 +115,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           rcImage.setImage(loadImage());
           WindowBlocker.blockWindow(false);
         } catch (Exception e) {
+          Logger.trace(e);
         }
         WindowBlocker.blockWindow(false);
       }
@@ -137,7 +139,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             buffer = Compressor.decompress(buffer);
             ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
                 JOptionPane.ERROR_MESSAGE);
           }
@@ -156,7 +158,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           buffer = Compressor.compress(buffer, "MOSC", "V1  ");
           ResourceFactory.exportResource(entry, buffer, entry.getResourceName(), panel.getTopLevelAncestor());
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
               JOptionPane.ERROR_MESSAGE);
         }
@@ -181,7 +183,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
               JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     } else if (event.getSource() == miPvrzShow) {
       if (lastBlockIndex >= 0) {
@@ -223,7 +225,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             l = null;
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         if (mosData != null) {
           if (mosData.length > 0) {
@@ -439,7 +441,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
       sb.append("</div></html>");
       JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       if (decoder != null) {
         decoder.close();
@@ -497,7 +499,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             decoder = MosDecoder.loadMos(entry);
             mosType = decoder.getType();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -591,7 +593,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0;
           tilePalette[1] = (byte) 255;
           for (int i = 1; i < 256; i++) {
-            tilePalette[(i << 2) + 0] = (byte) (palette[i - 1] & 0xff);
+            tilePalette[(i << 2)]     = (byte) (palette[i - 1] & 0xff);
             tilePalette[(i << 2) + 1] = (byte) ((palette[i - 1] >>> 8) & 0xff);
             tilePalette[(i << 2) + 2] = (byte) ((palette[i - 1] >>> 16) & 0xff);
             tilePalette[(i << 2) + 3] = 0;
@@ -654,7 +656,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
             list.add(buf);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return list;
       }
@@ -704,7 +706,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
           retVal = (curIndex == index);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

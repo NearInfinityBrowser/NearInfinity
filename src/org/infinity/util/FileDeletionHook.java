@@ -35,6 +35,7 @@ public class FileDeletionHook extends Thread {
           try {
             Files.delete(file);
           } catch (Throwable t) {
+            Logger.trace(t);
           }
         }
       }

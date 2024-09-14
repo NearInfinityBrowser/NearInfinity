@@ -42,6 +42,7 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
@@ -227,22 +228,20 @@ public final class ScriptChecker extends AbstractSearcher
 
         final Compiler compiler = new Compiler(decompiler.decompile());
         compiler.compile();
-        synchronized (errorTable) {
+        synchronized (this) {
           for (final ScriptMessage sm : compiler.getErrors()) {
             errorTable.addTableItem(
                 new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.ERROR));
           }
         }
-        synchronized (warningTable) {
+        synchronized (this) {
           for (final ScriptMessage sm : compiler.getWarnings()) {
             warningTable.addTableItem(
                 new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(), ScriptErrorsTableLine.Type.WARNING));
           }
         }
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
       advanceProgress();
     };

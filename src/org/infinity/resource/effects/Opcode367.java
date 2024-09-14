@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 367.
+ * Implementation of opcode 367.
  */
 public class Opcode367 extends BaseOpcode {
   private static final String EFFECT_ENABLED = "Enabled?";

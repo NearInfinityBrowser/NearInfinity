@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 45.
+ * Implementation of opcode 45.
  */
 public class Opcode045 extends BaseOpcode {
   private static final String EFFECT_STUN_TYPE = "Stun type";

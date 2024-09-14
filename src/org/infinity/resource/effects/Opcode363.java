@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 363.
+ * Implementation of opcode 363.
  */
 public class Opcode363 extends BaseOpcode {
   private static final String EFFECT_MODAL_TO_CHECK = "Modal state to check";

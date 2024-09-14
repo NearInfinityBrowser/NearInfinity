@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 
 import com.jcraft.jogg.Packet;
 import com.jcraft.jogg.Page;
@@ -243,7 +244,7 @@ public class OggBuffer extends AudioBuffer {
           }
 
           if (result == -1) { // missing or corrupt data at this page position
-            System.err.println("Corrupt or missing data in bitstream; continuing...");
+            Logger.warn("Corrupt or missing data in bitstream; continuing...");
           } else {
             os.pagein(og); // can safely ignore errors at this point
 
@@ -270,7 +271,7 @@ public class OggBuffer extends AudioBuffer {
 
                 while ((samples = vd.synthesis_pcmout(_pcm, _index)) > 0) {
                   float[][] pcm = _pcm[0];
-                  int bout = (samples < convSize) ? samples : convSize;
+                  int bout = Math.min(samples, convSize);
 
                   // convert floats to 16 bit signed ints (host order) and interleave
                   for (i = 0; i < oggInfo.channels; i++) {

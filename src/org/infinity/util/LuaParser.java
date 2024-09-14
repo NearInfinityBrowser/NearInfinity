@@ -6,7 +6,7 @@ package org.infinity.util;
 
 import java.nio.CharBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +35,7 @@ public class LuaParser {
    * @throws Exception
    */
   public static LuaEntry Parse(ResourceEntry entry, String name, boolean exactMatch) throws Exception {
-    return Parse(Arrays.asList(entry), name, exactMatch);
+    return Parse(Collections.singletonList(entry), name, exactMatch);
   }
 
   /**
@@ -50,7 +50,7 @@ public class LuaParser {
    * @throws Exception
    */
   public static LuaEntry Parse(List<ResourceEntry> entries, String name, boolean exactMatch) throws Exception {
-    if (entries == null || entries.size() == 0) {
+    if (entries == null || entries.isEmpty()) {
       return null;
     }
 
@@ -335,6 +335,7 @@ public class LuaParser {
                   int code = Integer.parseInt(peekBuffer(buffer, 2) + ch, 8);
                   ch = (char) code;
                 } catch (Exception e) {
+                  Logger.trace(e);
                 }
               } else if (ch == 'x') {
                 // hexadecimal value?
@@ -342,6 +343,7 @@ public class LuaParser {
                   int code = Integer.parseInt(peekBuffer(buffer, 2), 16);
                   ch = (char) code;
                 } catch (Exception e) {
+                  Logger.trace(e);
                 }
               }
             }
@@ -372,6 +374,7 @@ public class LuaParser {
     try {
       return buf.subSequence(0, count).toString();
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return "";
   }

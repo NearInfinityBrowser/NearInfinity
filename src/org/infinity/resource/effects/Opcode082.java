@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 82.
+ * Implementation of opcode 82.
  */
 public class Opcode082 extends BaseOpcode {
   private static final String EFFECT_SCRIPT_LEVEL = "Script level";

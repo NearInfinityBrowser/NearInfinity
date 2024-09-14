@@ -38,7 +38,7 @@ public class ResourceStructure implements Cloneable {
   }
 
   /**
-   * Specialized method: value argument interpreted as size for {@link #ID_STRING} and {@link #ID_ARRAY}.
+   * Specialized method: value argument interpreted as size for {@link #ID_STRING} and {@link #ID_BUFFER}.
    */
   public int add(int type, int value) {
     return insert(cursize, type, value);
@@ -70,7 +70,7 @@ public class ResourceStructure implements Cloneable {
   }
 
   /**
-   * Specialized method: value argument interpreted as size for {@link #ID_STRING} and {@link #ID_ARRAY}.
+   * Specialized method: value argument interpreted as size for {@link #ID_STRING} and {@link #ID_BUFFER}.
    */
   public int insert(int offset, int type, int value) {
     switch (type) {
@@ -81,7 +81,6 @@ public class ResourceStructure implements Cloneable {
       case ID_DWORD:
         return insert(offset, type, type & 0xf, value);
       case ID_STRING:
-        return insert(offset, type, value, null);
       case ID_BUFFER:
         return insert(offset, type, value, null);
       default:
@@ -266,7 +265,7 @@ public class ResourceStructure implements Cloneable {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  public final class Item implements Cloneable {
+  public static class Item implements Cloneable {
     private final int type;
     private final int size;
     private final Object value;
@@ -320,7 +319,7 @@ public class ResourceStructure implements Cloneable {
       this.type = type;
       this.size = (type == ID_BYTE || type == ID_WORD || type == ID_DWORD) ? type & 0xf : size;
       if (type == ID_RESREF || type == ID_STRING) {
-        this.value = (value == null || !(value instanceof String)) ? "" : value;
+        this.value = (!(value instanceof String)) ? "" : value;
       } else if (type == ID_BUFFER) {
         if (value instanceof byte[]) {
           this.value = StreamUtils.getByteBuffer((byte[]) value);
@@ -361,7 +360,7 @@ public class ResourceStructure implements Cloneable {
         case ID_STRING:
           if (value instanceof String) {
             byte[] b = ((String) value).getBytes();
-            buf.put(Arrays.copyOf(b, b.length <= size ? b.length : size));
+            buf.put(Arrays.copyOf(b, Math.min(b.length, size)));
           }
           break;
         case ID_BUFFER:

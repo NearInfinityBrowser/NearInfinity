@@ -198,7 +198,7 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder {
         ResourceEntry entryE = entry;
         int cycle = cycleOfs;
         int cycleE = cycleOfs + 1;
-        valid &= SpriteUtils.bamCyclesExist(entry, cycle, SeqDef.DIR_FULL_W.length);
+        valid = SpriteUtils.bamCyclesExist(entry, cycle, SeqDef.DIR_FULL_W.length);
         if (isExtendedDirection()) {
           entryE = ResourceFactory.getResourceEntry(resref + suffix + i + "E.BAM");
           cycleE = cycle + SeqDef.DIR_FULL_W.length;
@@ -212,7 +212,7 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder {
     if (!cycleList.isEmpty() && valid) {
       retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, cycleList);
       SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, !isExtendedDirection(), cycleListE);
-      retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+      retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
     }
 
     return retVal;

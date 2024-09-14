@@ -31,7 +31,7 @@ public class IniMapEntry {
   }
 
   public boolean hasKey() {
-    return key != null;
+    return !key.isEmpty();
   }
 
   public String getKey() {
@@ -39,7 +39,7 @@ public class IniMapEntry {
   }
 
   public boolean hasValue() {
-    return value != null;
+    return !value.isEmpty();
   }
 
   public String getValue() {
@@ -47,23 +47,23 @@ public class IniMapEntry {
   }
 
   public Integer getIntValue() {
-    return value == null ? null : Integer.valueOf(value);
+    return hasValue() ? Integer.valueOf(value) : null;
   }
 
   public int getIntValue(int defValue) {
-    return value == null ? defValue : Integer.valueOf(value);
+    return hasValue() ? Integer.parseInt(value) : defValue;
   }
 
   public Double getDoubleValue() {
-    return value == null ? null : Double.valueOf(value);
+    return hasValue() ? Double.valueOf(value) : null;
   }
 
   public double getDoubleValue(double defValue) {
-    return value == null ? defValue : Double.valueOf(value);
+    return hasValue() ? Double.parseDouble(value) : defValue;
   }
 
   public StringRef getStringRefValue() {
-    return value == null ? null : new StringRef(key, Integer.valueOf(value));
+    return hasValue() ? new StringRef(key, Integer.parseInt(value)) : null;
   }
 
   public int getLine() {
@@ -108,7 +108,7 @@ public class IniMapEntry {
           results.add(value.substring(matcher.start(), matcher.end()));
         }
       } catch (PatternSyntaxException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       retVal = new String[results.size()];
       for (int i = 0; i < results.size(); i++) {
@@ -138,7 +138,7 @@ public class IniMapEntry {
         try {
           retVal[i] = Integer.parseInt(results.get(i));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -165,7 +165,7 @@ public class IniMapEntry {
         try {
           retVal[i] = Integer.parseInt(results.get(i));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

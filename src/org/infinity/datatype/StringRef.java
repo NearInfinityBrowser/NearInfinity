@@ -51,6 +51,7 @@ import org.infinity.resource.sav.IOHandler;
 import org.infinity.resource.sav.SavResourceEntry;
 import org.infinity.resource.to.TohResource;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
@@ -202,7 +203,7 @@ public final class StringRef extends Datatype
               JTextField edit = (JTextField) e.getSource();
               // Invoke later to circumvent content validation (may not work correctly on every platform)
               if (e.getClickCount() == 2) {
-                SwingUtilities.invokeLater(() -> edit.selectAll());
+                SwingUtilities.invokeLater(edit::selectAll);
               } else {
                 SwingUtilities.invokeLater(() -> edit.setCaretPosition(edit.viewToModel(e.getPoint())));
               }
@@ -474,7 +475,7 @@ public final class StringRef extends Datatype
               }
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else {
           // load TOH/TOT directly

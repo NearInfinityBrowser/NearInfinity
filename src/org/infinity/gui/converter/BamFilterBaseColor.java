@@ -117,7 +117,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase {
      */
     public void addChangeListener(ChangeListener l) {
       if (l != null) {
-        if (listChangeListeners.indexOf(l) < 0) {
+        if (!listChangeListeners.contains(l)) {
           listChangeListeners.add(l);
         }
       }

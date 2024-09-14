@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
@@ -151,7 +150,7 @@ public class SeqDef implements Cloneable {
         }
       }
     }
-    return resources.toArray(new ResourceEntry[resources.size()]);
+    return resources.toArray(new ResourceEntry[0]);
   }
 
   /**
@@ -159,7 +158,7 @@ public class SeqDef implements Cloneable {
    * resource. Behavior is assumed to be {@link SegmentDef.Behavior#REPEAT}. Composite object is initialized with
    * {@link AlphaComposite#SrcOver}.
    *
-   * @param seq         the animation {@link SpriteDecoder.Sequence}.
+   * @param seq         the animation {@link Sequence}.
    * @param directions  List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored    indicates whether cycle indices are calculated in reversed direction
    * @param bamResource the BAM resource used for all cycle definitions.
@@ -180,7 +179,7 @@ public class SeqDef implements Cloneable {
    * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM
    * resource. Composite object is initialized with {@link AlphaComposite#SrcOver}.
    *
-   * @param seq         the animation {@link SpriteDecoder.Sequence}.
+   * @param seq         the animation {@link Sequence}.
    * @param directions  List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored    indicates whether cycle indices are calculated in reversed direction
    * @param bamResource the BAM resource used for all cycle definitions.
@@ -202,7 +201,7 @@ public class SeqDef implements Cloneable {
    * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM
    * resource.
    *
-   * @param seq         the animation {@link SpriteDecoder.Sequence}.
+   * @param seq         the animation {@link Sequence}.
    * @param directions  List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored    indicates whether cycle indices are calculated in reversed direction
    * @param bamResource the BAM resource used for all cycle definitions.
@@ -224,7 +223,7 @@ public class SeqDef implements Cloneable {
   /**
    * Convenience method: Creates a fully defined sequence for all directions and their associated segment definitions.
    *
-   * @param seq        the animation {@link SpriteDecoder.Sequence}.
+   * @param seq        the animation {@link Sequence}.
    * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored   indicates whether cycle indices are calculated in reversed direction
    * @param cycleInfo  collection of {@link SegmentDef} instances that are to be associated with the directions.

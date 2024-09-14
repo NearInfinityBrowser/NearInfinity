@@ -16,7 +16,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,14 +50,14 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
+import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.FileWatcher;
-import org.infinity.util.io.FileWatcher.FileWatchEvent;
 
 /**
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
@@ -66,7 +65,7 @@ import org.infinity.util.io.FileWatcher.FileWatchEvent;
  * Properties can be accessed by unique identifiers. The returned property can be of any type defined by the enum
  * {@link Profile.Type} or {@code null}.
  */
-public final class Profile implements FileWatcher.FileWatchListener {
+public final class Profile {
   /** Supported data types for properties. */
   public enum Type {
     /** Property data is of type {@link Boolean}. */
@@ -643,7 +642,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       try {
         return Enum.valueOf(Game.class, gameName);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unknown game type \"" + gameName + "\" specified. Falling back to \"Unknown\".");
+        Logger.warn("Unknown game type \"{}\" specified. Falling back to \"Unknown\".", gameName);
       }
     }
     return Game.Unknown;
@@ -681,11 +680,12 @@ public final class Profile implements FileWatcher.FileWatchListener {
   public static boolean openGame(Path keyFile, String desc, Game forcedGame) {
     try {
       closeGame();
+      final DebugTimer timer = new DebugTimer();
       instance = new Profile(keyFile, desc, forcedGame);
-      FileWatcher.getInstance().addFileWatchListener(instance);
+      Logger.info(timer.getTimerFormatted("Initializing game resources"));
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     closeGame();
     return false;
@@ -1281,7 +1281,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       game = getGame();
     }
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
 
     EnumMap<Platform.OS, List<String>> osMap = DEFAULT_GAME_BINARIES.get(game);
@@ -1305,7 +1305,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       game = getGame();
     }
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
 
     List<String> listNames = getGameBinaries(game, os);
@@ -1395,6 +1395,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       try {
         game = Game.values()[list.getSelectedIndex()];
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
 
@@ -1418,8 +1419,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     PROPERTIES.clear();
     addEntry(Key.GET_GAME_TYPE_PREVIOUS, Type.OBJECT, oldGame);
     initStaticProperties();
-    FileWatcher.getInstance().removeFileWatchListener(instance);
-    FileWatcher.getInstance().reset();
     instance = null;
   }
 
@@ -1715,7 +1714,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -1737,7 +1736,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       addEntry(Key.GET_GAME_DESC, Type.STRING, desc);
     }
 
-    addEntry(Key.IS_FORCED_GAME, Type.BOOLEAN, Boolean.valueOf(forcedGame != null));
+    addEntry(Key.IS_FORCED_GAME, Type.BOOLEAN, forcedGame != null);
     if (forcedGame != null) {
       addEntry(Key.GET_GAME_TYPE, Type.OBJECT, forcedGame);
     }
@@ -1956,7 +1955,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
     // initializing list of folders containing BIFF archives
     List<Path> biffDirs = ResourceFactory.getBIFFDirs();
-    if (biffDirs != null && !biffDirs.isEmpty()) {
+    if (!biffDirs.isEmpty()) {
       addEntry(Key.GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
     }
 
@@ -2045,8 +2044,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
     addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, dlcRoots);
 
     // preparing available game root paths
-    List<Path> roots = new ArrayList<>();
-    roots.addAll(dlcRoots);
+    List<Path> roots = new ArrayList<>(dlcRoots);
     roots.add(gameRoot);
 
     // process each root separately
@@ -2074,10 +2072,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
       listRoots.add(root);
     });
 
-    listRoots.forEach(path -> {
-      FileWatcher.getInstance().register(path, false);
-    });
-
     addEntry(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE, Type.PATH, listRoots);
   }
 
@@ -2097,9 +2091,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
       Collections.sort(list);
       pathList.addAll(list);
     });
-
-    // Note: disabled because of issues on Windows systems
-    // pathList.forEach((path) -> { FileWatcher.getInstance().register(path, true); });
 
     if (getProperty(Key.GET_GAME_EXTRA_FOLDERS) != null) {
       updateProperty(Key.GET_GAME_EXTRA_FOLDERS, pathList);
@@ -2128,13 +2119,14 @@ public final class Profile implements FileWatcher.FileWatchListener {
         try {
           Files.createDirectory(FileManager.query(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)));
         } catch (Throwable t) {
+          Logger.trace(t);
         }
       }
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
       gameRoots.add(homeRoot);
-      dlcRoots.forEach(path -> gameRoots.add(path));
+      gameRoots.addAll(dlcRoots);
       gameRoots.add(gameRoot);
 
       // registering override paths
@@ -2219,10 +2211,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
         list.add(path);
       }
     }
-
-    list.forEach(path -> {
-      FileWatcher.getInstance().register(path, false);
-    });
 
     addEntry(Key.GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);
   }
@@ -2436,13 +2424,13 @@ public final class Profile implements FileWatcher.FileWatchListener {
       Path exe = FileManager.queryExisting(getGameRoot(), "bgmain.exe");
       if (exe != null) {
         File exeFile = exe.toFile();
-        if (exeFile != null && exeFile.length() == 7839790L) {
+        if (exeFile.length() == 7839790L) {
           try (RandomAccessFile raf = new RandomAccessFile(exeFile, "r")) {
             // checking key signatures
             final int[] sigCheckV1 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x004141de, 0xf9 };
             final int[] sigCheckV2 = { 0x3db6d84, 0x34004c48, 0x54464958, 0x0041412d, 0xf9 };
-            long ofs[] = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
-            int sig[] = new int[ofs.length + 1];
+            long[] ofs = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
+            int[] sig = new int[ofs.length + 1];
             for (int i = 0; i < ofs.length; i++) {
               // reading int signatures
               raf.seek(ofs[i]);
@@ -2463,16 +2451,17 @@ public final class Profile implements FileWatcher.FileWatchListener {
             isIAv1 = Arrays.equals(sig, sigCheckV1);
             isIAv2 = Arrays.equals(sig, sigCheckV2);
           } catch (IOException e) {
+            Logger.trace(e);
           }
         }
       }
     }
     if (isIAv1) {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(1)); // v5 or earlier
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 1); // v5 or earlier
     } else if (isIAv2) {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(2)); // v6 or later
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 2); // v6 or later
     } else {
-      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(0)); // not installed
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, 0); // not installed
     }
 
     // Add campaign-specific extra folders
@@ -2572,7 +2561,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
       gameFolders.add(DataString.with("zip", rootDir.resolve("dlc")));
       gameFolders.add(DataString.with("zip", rootDir));
     }
-    if (homeDir != null && FileEx.create(homeDir).isDirectory()) {
+    if (FileEx.create(homeDir).isDirectory()) {
       gameFolders.add(DataString.with("zip", homeDir));
     }
 
@@ -2589,11 +2578,11 @@ public final class Profile implements FileWatcher.FileWatchListener {
                 list.add(dlcRoot);
               }
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         // DLCs of the same root are sorted alphabetically (in reverse order)
         if (!list.isEmpty()) {
@@ -2651,43 +2640,6 @@ public final class Profile implements FileWatcher.FileWatchListener {
     }
   }
 
-  // --------------------- Begin Interface FileWatchListener ---------------------
-
-  @Override
-  public void fileChanged(FileWatchEvent e) {
-    // System.out.println("Profile.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
-    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      Path path = e.getPath();
-
-      if (FileEx.create(path).isDirectory()) {
-        // Note: skipping extra folders because of issues on Windows systems
-        // List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
-        // if (FileManager.containsPath(path, extraDirs)) {
-        // FileWatcher.getInstance().register(path, true);
-        // return;
-        // }
-
-        // new override folders must be initialized first
-        initOverrides();
-
-        // checking if path is an override folder
-        if (FileManager.isSamePath(path, getOverrideFolders(true))) {
-          FileWatcher.getInstance().register(path, false);
-          return;
-        }
-      }
-    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
-      Path path = e.getPath();
-
-      FileWatcher.getInstance().unregister(path, true);
-      if (FileManager.isSamePath(path, getOverrideFolders(true))) {
-        initOverrides();
-      }
-    }
-  }
-
-  // --------------------- End Interface FileWatchListener ---------------------
-
   // -------------------------- INNER CLASSES --------------------------
 
   // Internal definition of a property entry
@@ -2735,7 +2687,7 @@ public final class Profile implements FileWatcher.FileWatchListener {
 
     @Override
     public String toString() {
-      return String.format("%d:[%s] = %s", key, type, data);
+      return String.format("%s:[%s] = %s", key, type, data);
     }
   }
 }

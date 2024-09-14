@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 111.
+ * Implementation of opcode 111.
  */
 public class Opcode111 extends BaseOpcode {
   private static final String EFFECT_NUM_TO_CREATE = "# to create";

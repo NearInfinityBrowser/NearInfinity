@@ -199,17 +199,15 @@ public final class TextEdit extends Datatype implements Editable, IsTextual {
   public ByteBuffer toBuffer() {
     if (text != null) {
       byte[] buf = eolConvert(text).getBytes();
-      if (buf != null) {
-        int imax = Math.min(buf.length, buffer.limit());
-        buffer.position(0);
-        buffer.put(buf, 0, imax);
-        while (buffer.remaining() > 0) {
-          buffer.put((byte) 0);
-        }
-        if (terminateString) {
-          buffer.position(buffer.position() - 1);
-          buffer.put((byte) 0);
-        }
+      int imax = Math.min(buf.length, buffer.limit());
+      buffer.position(0);
+      buffer.put(buf, 0, imax);
+      while (buffer.remaining() > 0) {
+        buffer.put((byte) 0);
+      }
+      if (terminateString) {
+        buffer.position(buffer.position() - 1);
+        buffer.put((byte) 0);
       }
       buffer.position(0);
     }
@@ -256,7 +254,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual {
   }
 
   private String eolConvert(String s) {
-    if (s != null && s.length() > 0) {
+    if (s != null && !s.isEmpty()) {
       return s.replaceAll("(\r\n|\n)", EOL.get(eolType));
     } else {
       return s;
@@ -264,7 +262,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual {
   }
 
   private String eolConvert(String s, String eol) {
-    if (s != null && s.length() > 0 && eol != null && eol.length() > 0) {
+    if (s != null && !s.isEmpty() && eol != null && !eol.isEmpty()) {
       return s.replaceAll("(\r\n|\n)", eol);
     } else {
       return s;
@@ -283,13 +281,13 @@ public final class TextEdit extends Datatype implements Editable, IsTextual {
 
   // Ensures a size limit on byte level
   private class FixedDocument extends RSyntaxDocument {
-    private int maxLength;
-    private RTextArea textArea;
+    private final int maxLength;
+    private final RTextArea textArea;
 
     FixedDocument(RTextArea text, int length) {
       super(null);
       textArea = text;
-      maxLength = length >= 0 ? length : 0;
+      maxLength = Math.max(length, 0);
     }
 
     @Override

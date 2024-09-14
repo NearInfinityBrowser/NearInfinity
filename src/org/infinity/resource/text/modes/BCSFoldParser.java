@@ -15,6 +15,7 @@ import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rsyntaxtextarea.folding.Fold;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldType;
+import org.infinity.util.Logger;
 
 /**
  * A fold parser for BCS scripts. It supports folding of multiline comments and IF/END blocks.
@@ -84,7 +85,7 @@ public class BCSFoldParser implements FoldParser {
         }
       }
     } catch (BadLocationException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return folds;

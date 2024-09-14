@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 159.
+ * Implementation of opcode 159.
  */
 public class Opcode159 extends BaseOpcode {
   private static final String EFFECT_NUM_IMAGES = "# images";

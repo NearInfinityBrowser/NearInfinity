@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 131.
+ * Implementation of opcode 131.
  */
 public class Opcode131 extends BaseOpcode {
   private static final String EFFECT_PRAYER_TYPE = "Prayer type";

@@ -68,7 +68,6 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Editable;
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
@@ -82,6 +81,8 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnknownBinary;
 import org.infinity.datatype.UnknownDecimal;
+import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.datatype.UnsignHexNumber;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.ViewMode;
 import org.infinity.icon.Icons;
@@ -105,6 +106,7 @@ import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.search.advanced.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
@@ -129,6 +131,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOBIN = "ToBin";
   public static final String CMD_TODEC = "ToDec";
   public static final String CMD_TOINT = "ToInt";
+  public static final String CMD_TOUINT = "ToUint";
   public static final String CMD_TOHEXINT = "ToHexInt";
   public static final String CMD_TOFLAGS = "ToFlags";
   public static final String CMD_TORESLIST = "ToResList";
@@ -163,7 +166,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToString = createMenuItem(CMD_TOSTRING, "Edit as string", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary data", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal data", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as signed number", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miToUint = createMenuItem(CMD_TOUINT, "Edit as unsigned number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hexadecimal number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.ICON_REFRESH_16.getIcon(), this);
@@ -288,6 +292,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
     popupmenu.add(miToInt);
+    popupmenu.add(miToUint);
     popupmenu.add(miToHexInt);
     popupmenu.add(miToFlags);
     popupmenu.add(miToResref);
@@ -312,6 +317,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
     miToInt.setEnabled(false);
+    miToUint.setEnabled(false);
     miToHexInt.setEnabled(false);
     miToFlags.setEnabled(false);
     miToResref.setEnabled(false);
@@ -376,7 +382,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           bRemove.addActionListener(this);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -386,7 +392,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miFindAttribute = new JMenuItem("selected attribute");
       miFindAttribute.setEnabled(false);
       miFindReferences = new JMenuItem("references to this file");
-      miFindReferences.setEnabled(struct instanceof Resource && struct.getParent() == null);
+      miFindReferences.setEnabled(struct.getParent() == null);
       miFindStateReferences = new JMenuItem("references to this state");
       miFindStateReferences.setEnabled(false);
       miFindRefToItem = new JMenuItem("references to selected item in this file");
@@ -523,7 +529,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
               try {
                 struct.removeDatatype((AddRemovable) entry, true);
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }
@@ -547,7 +553,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           try {
             pj.print();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -600,6 +606,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(min, miToDec);
     } else if (CMD_TOINT.equals(cmd)) {
       convertAttribute(min, miToInt);
+    } else if (CMD_TOUINT.equals(cmd)) {
+      convertAttribute(min, miToUint);
     } else if (CMD_TOHEXINT.equals(cmd)) {
       convertAttribute(min, miToHexInt);
     } else if (CMD_TOFLAGS.equals(cmd)) {
@@ -660,14 +668,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       AddRemovable toadd = (AddRemovable) item.getClientProperty("prototype");
       try {
         toadd = ((HasChildStructs) struct).confirmAddEntry(toadd);
-        if (toadd != null) {
-          toadd = (AddRemovable) toadd.clone();
-        }
-        int index = struct.addDatatype(toadd);
-        table.getSelectionModel().setSelectionInterval(index, index);
-        table.scrollRectToVisible(table.getCellRect(index, 1, true));
       } catch (Exception e) {
-        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      if (toadd != null) {
+        try {
+          toadd = (AddRemovable) toadd.clone();
+          int index = struct.addDatatype(toadd);
+          table.getSelectionModel().setSelectionInterval(index, index);
+          table.scrollRectToVisible(table.getCellRect(index, 1, true));
+        } catch (Exception e) {
+          Logger.error(e);
+        }
       }
     } else if (src == buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU)) {
       final JMenuItem item = ((ButtonPopupMenu) src).getSelectedItem();
@@ -716,6 +729,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToInt.setEnabled(false);
+      miToUint.setEnabled(false);
       miToHexInt.setEnabled(false);
       miToFlags.setEnabled(false);
       miToResref.setEnabled(false);
@@ -758,31 +772,32 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         miFindStateReferences.setEnabled(selected instanceof State);
       }
       final boolean isDataType = (selected instanceof Datatype);
-      final boolean isReadable = (selected instanceof Readable);
-      miToHex.setEnabled(isDataType && isReadable
+      miToHex.setEnabled(isDataType
           && !(selected instanceof Unknown || selected instanceof SectionCount || selected instanceof AbstractCode));
       if (!miToHex.isEnabled() && (selected instanceof UnknownBinary || selected instanceof UnknownDecimal)) {
         miToHex.setEnabled(true);
       }
-      miToBin.setEnabled(isDataType && isReadable && !(selected instanceof UnknownBinary
+      miToBin.setEnabled(isDataType && !(selected instanceof UnknownBinary
           || selected instanceof SectionCount || selected instanceof AbstractCode));
-      miToDec.setEnabled(isDataType && isReadable && !(selected instanceof UnknownDecimal
+      miToDec.setEnabled(isDataType && !(selected instanceof UnknownDecimal
           || selected instanceof SectionCount || selected instanceof AbstractCode));
       miToInt.setEnabled(
-          isDataType && isReadable && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
+          isDataType && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
               || selected instanceof SectionOffset || selected instanceof AbstractCode));
-      miToHexInt.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
-          && !(selected instanceof HexNumber || selected instanceof SectionCount || selected instanceof SectionOffset
-              || selected instanceof AbstractCode));
-      miToFlags.setEnabled(isDataType && isReadable && ((Datatype) selected).getSize() <= 4
+      miToUint.setEnabled(
+          isDataType && ((Datatype) selected).getSize() <= 4 && !(selected instanceof SectionCount
+              || selected instanceof SectionOffset || selected instanceof AbstractCode));
+      miToHexInt.setEnabled(isDataType && ((Datatype) selected).getSize() <= 4
+          && !(selected instanceof UnsignHexNumber || selected instanceof SectionCount ||
+              selected instanceof SectionOffset || selected instanceof AbstractCode));
+      miToFlags.setEnabled(isDataType && ((Datatype) selected).getSize() <= 4
           && !(selected instanceof Flag || selected instanceof SectionCount || selected instanceof SectionOffset
               || selected instanceof AbstractCode));
       miToResref.setEnabled(
-          isDataType && isReadable && selected instanceof IsTextual && ((Datatype) selected).getSize() == 8);
-      miToString.setEnabled(isDataType && isReadable
-          && (selected instanceof Unknown || selected instanceof ResourceRef || selected instanceof TextBitmap)
-          && !(selected instanceof AbstractCode));
-      miReset.setEnabled(isDataType && isReadable && getCachedStructEntry(((Datatype) selected).getOffset()) != null
+          isDataType && selected instanceof IsTextual && ((Datatype) selected).getSize() == 8);
+      miToString.setEnabled(isDataType && (selected instanceof Unknown || selected instanceof ResourceRef
+          || selected instanceof TextBitmap));
+      miReset.setEnabled(isDataType && getCachedStructEntry(((Datatype) selected).getOffset()) != null
           && !(selected instanceof AbstractCode));
       miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset || selected instanceof SectionCount);
@@ -961,7 +976,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           try {
             ((Closeable) c).close();
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -1186,8 +1201,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new UnknownDecimal(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToInt) {
         newentry = new DecNumber(bb, 0, entry.getSize(), entry.getName());
+      } else if (menuitem == miToUint) {
+        newentry = new UnsignDecNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToHexInt) {
-        newentry = new HexNumber(bb, 0, entry.getSize(), entry.getName());
+        newentry = new UnsignHexNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToFlags) {
         newentry = new Flag(bb, 0, entry.getSize(), entry.getName(), null);
       } else if (CMD_TORESLIST.equals(menuitem.getActionCommand())) {
@@ -1209,7 +1226,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       table.getSelectionModel().removeSelectionInterval(index, index);
       table.getSelectionModel().addSelectionInterval(index, index);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1258,24 +1275,24 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   /** Caches the given StructEntry object. */
   private void setCachedStructEntry(StructEntry struct) {
     if (struct != null) {
-      if (!entryMap.containsKey(Integer.valueOf(struct.getOffset()))) {
+      if (!entryMap.containsKey(struct.getOffset())) {
         entryMap.put(struct.getOffset(), struct);
       }
     }
   }
 
   private StructEntry getCachedStructEntry(int offset) {
-    return entryMap.get(Integer.valueOf(offset));
+    return entryMap.get(offset);
   }
 
   /** Removes the StructEntry object at the given offset and returns it. */
   private StructEntry removeCachedStructEntry(int offset) {
-    return entryMap.remove(Integer.valueOf(offset));
+    return entryMap.remove(offset);
   }
 
   /** Indicates whether the given StructEntry object is equal to the cached object. */
   private boolean isCachedStructEntry(int offset) {
-    return entryMap.containsKey(Integer.valueOf(offset));
+    return entryMap.containsKey(offset);
   }
 
   /** Recycles existing ViewFrame constructs if possible. */
@@ -1437,7 +1454,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     while (root.getParent() != null) {
       root = root.getParent();
     }
-    if (root == null || root.getResourceEntry() == null) {
+    if (root.getResourceEntry() == null) {
       return;
     }
 
@@ -1582,7 +1599,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     /** Removes the last charcater from the search string. */
     private void removeKeyChar() {
       synchronized (timer) {
-        if (currentKey.length() > 0) {
+        if (!currentKey.isEmpty()) {
           currentKey = currentKey.substring(0, currentKey.length() - 1);
         }
       }

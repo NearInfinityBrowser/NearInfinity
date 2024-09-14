@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -55,6 +54,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sto.ItemSale11;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
@@ -326,15 +326,15 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       List<Corruption> list = getWedCorruption(entry, struct);
       synchronized (table) {
-        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
-          table.addTableItem(iter.next());
+        for (Corruption corruption : list) {
+          table.addTableItem(corruption);
         }
       }
     } else if (entry.getExtension().equalsIgnoreCase("STO")) {
       List<Corruption> list = getStoCorruption(entry, struct);
       synchronized (table) {
-        for (Iterator<Corruption> iter = list.iterator(); iter.hasNext();) {
-            table.addTableItem(iter.next());
+        for (Corruption corruption : list) {
+          table.addTableItem(corruption);
         }
       }
     }
@@ -385,7 +385,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         if (overlay == null) {
           continue;
         }
-        int width = ((IsNumeric) overlay.getAttribute(ovlOfs + 0, false)).getValue();
+        int width = ((IsNumeric) overlay.getAttribute(ovlOfs, false)).getValue();
         int height = ((IsNumeric) overlay.getAttribute(ovlOfs + 2, false)).getValue();
         String tisName = ((IsReference) overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
         int tileStartOfs = ((IsNumeric) overlay.getAttribute(ovlOfs + 16, false)).getValue();
@@ -397,7 +397,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         // checking Overlay fields
         boolean skip = false;
         if (width <= 0) {
-          list.add(new Corruption(entry, ovlOfs + 0, String.format("Overlay %d: Tileset width is <= 0", ovlIdx)));
+          list.add(new Corruption(entry, ovlOfs, String.format("Overlay %d: Tileset width is <= 0", ovlIdx)));
           skip = true;
         }
         if (height <= 0) {
@@ -447,20 +447,20 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         }
         // checking indices
         for (int i = 0; i < numTiles; i++) {
-          Tilemap tile = mapTiles.get(Integer.valueOf(i));
+          Tilemap tile = mapTiles.get(i);
           if (tile != null) {
             int tileOfs = tile.getOffset();
             int tileIdx = (tileOfs - tileStartOfs) / tileSize;
-            int tileIdxPri = ((IsNumeric) tile.getAttribute(tileOfs + 0, false)).getValue();
+            int tileIdxPri = ((IsNumeric) tile.getAttribute(tileOfs, false)).getValue();
             int tileCountPri = ((IsNumeric) tile.getAttribute(tileOfs + 2, false)).getValue();
             int tileIdxSec = ((IsNumeric) tile.getAttribute(tileOfs + 4, false)).getValue();
             IsNumeric tileFlag = (IsNumeric) tile.getAttribute(tileOfs + 6, false);
             int tileFlagValue = tileFlag.getValue();
             for (int j = tileIdxPri, count = tileIdxPri + tileCountPri; j < count; j++) {
-              Integer tileLookupIndex = mapIndices.get(Integer.valueOf(j));
+              Integer tileLookupIndex = mapIndices.get(j);
               if (tileLookupIndex != null) {
                 if (tileLookupIndex >= tisInfo[0]) {
-                  list.add(new Corruption(entry, tileOfs + 0,
+                  list.add(new Corruption(entry, tileOfs,
                       String.format("Overlay %d/Tilemap %d: Primary tile index %d " + "out of range [0..%d]", ovlIdx,
                           tileIdx, j, tisInfo[0] - 1)));
                 }
@@ -498,7 +498,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         try {
           ((AbstractStruct) res).getViewer().selectEntry(offset);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     } else {
@@ -512,7 +512,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
           try {
             ((AbstractStruct) res).getViewer().selectEntry(offset);
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else {
@@ -522,7 +522,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
             try {
               ((AbstractStruct) viewable).getViewer().selectEntry(offset);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         });
@@ -594,7 +594,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
     /** Returns whether the signatures matches the signature of the current structure definition. */
     public boolean isSignature(String sig) {
-      return (sig != null) ? signature.equals(sig) : false;
+      return signature.equals(sig);
     }
 
     /** Returns whether the specified version is supported by the current structure definition. */

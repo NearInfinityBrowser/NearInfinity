@@ -9,5 +9,5 @@ package org.infinity.resource.dlg;
  *
  * @author Mingun
  */
-interface BrokenReference {
+public interface BrokenReference {
 }

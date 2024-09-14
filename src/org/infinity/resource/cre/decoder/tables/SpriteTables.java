@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 
 /**
@@ -63,18 +65,18 @@ public class SpriteTables {
   private static final EnumMap<Profile.Game, List<String>> TABLE_MAPS = new EnumMap<>(Profile.Game.class);
 
   static {
-    TABLE_MAPS.put(Profile.Game.BG1, Arrays.asList("avatars-bg1.2da"));
+    TABLE_MAPS.put(Profile.Game.BG1, Collections.singletonList("avatars-bg1.2da"));
     TABLE_MAPS.put(Profile.Game.BG1TotSC, TABLE_MAPS.get(Profile.Game.BG1));
 
-    TABLE_MAPS.put(Profile.Game.IWD, Arrays.asList("avatars-iwd.2da"));
+    TABLE_MAPS.put(Profile.Game.IWD, Collections.singletonList("avatars-iwd.2da"));
     TABLE_MAPS.put(Profile.Game.IWDHoW, Arrays.asList("avatars-iwdhow.2da", "avatars-iwd.2da"));
     TABLE_MAPS.put(Profile.Game.IWDHowTotLM, TABLE_MAPS.get(Profile.Game.IWDHoW));
 
-    TABLE_MAPS.put(Profile.Game.IWD2, Arrays.asList("avatars-iwd2.2da"));
+    TABLE_MAPS.put(Profile.Game.IWD2, Collections.singletonList("avatars-iwd2.2da"));
 
-    TABLE_MAPS.put(Profile.Game.PST, Arrays.asList("avatars-pst.2da"));
+    TABLE_MAPS.put(Profile.Game.PST, Collections.singletonList("avatars-pst.2da"));
 
-    TABLE_MAPS.put(Profile.Game.BG2SoA, Arrays.asList("avatars-bg2soa.2da"));
+    TABLE_MAPS.put(Profile.Game.BG2SoA, Collections.singletonList("avatars-bg2soa.2da"));
     TABLE_MAPS.put(Profile.Game.BG2ToB, Arrays.asList("avatars-bg2tob.2da", "avatars-bg2soa.2da"));
     TABLE_MAPS.put(Profile.Game.Tutu, TABLE_MAPS.get(Profile.Game.BG2ToB));
     TABLE_MAPS.put(Profile.Game.BGT, TABLE_MAPS.get(Profile.Game.BG2ToB));
@@ -88,7 +90,7 @@ public class SpriteTables {
 
     TABLE_MAPS.put(Profile.Game.IWDEE, Arrays.asList("avatars-iwdee.2da", "avatars-bgee.2da", "avatars-bg2ee.2da"));
 
-    TABLE_MAPS.put(Profile.Game.PSTEE, Arrays.asList("avatars-pstee.2da"));
+    TABLE_MAPS.put(Profile.Game.PSTEE, Collections.singletonList("avatars-pstee.2da"));
 
   }
 
@@ -113,12 +115,11 @@ public class SpriteTables {
    *         could be determined.
    */
   public static List<IniMap> createIniMaps(Profile.Game game, int animationId) {
-    List<IniMap> retVal = new ArrayList<>();
     if (game == null) {
       game = Profile.getGame();
     }
 
-    retVal.addAll(processInfinityAnimations(animationId));
+    List<IniMap> retVal = new ArrayList<>(processInfinityAnimations(animationId));
 
     if (retVal.isEmpty()) {
       List<String> tableNames = findTables(game);
@@ -126,12 +127,10 @@ public class SpriteTables {
         ResourceEntry tableEntry = getTableResource(tableName);
         if (tableEntry != null) {
           Table2da table = new Table2da(tableEntry);
-          if (table != null) {
-            List<IniMap> inis = processTable(game, table, animationId);
-            if (inis != null && !inis.isEmpty()) {
-              retVal.addAll(inis);
-              break;
-            }
+          List<IniMap> inis = processTable(game, table, animationId);
+          if (inis != null && !inis.isEmpty()) {
+            retVal.addAll(inis);
+            break;
           }
         }
       }
@@ -206,12 +205,12 @@ public class SpriteTables {
         }
       } catch (InvocationTargetException ite) {
         if (ite.getCause() != null) {
-          ite.getCause().printStackTrace();
+          Logger.error(ite.getCause());
         } else {
-          ite.printStackTrace();
+          Logger.error(ite);
         }
       } catch (NoSuchMethodException | IllegalAccessException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -291,6 +290,7 @@ public class SpriteTables {
         retVal = defValue;
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return retVal;
   }
@@ -306,6 +306,7 @@ public class SpriteTables {
         retVal = Integer.parseInt(s);
       }
     } catch (NullPointerException | ArrayIndexOutOfBoundsException | NumberFormatException e) {
+      Logger.trace(e);
     }
     return retVal;
   }
@@ -377,6 +378,7 @@ public class SpriteTables {
         entry = new BufferedResourceEntry(ByteBuffer.wrap(bos.toByteArray()), fileName);
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return entry;
   }

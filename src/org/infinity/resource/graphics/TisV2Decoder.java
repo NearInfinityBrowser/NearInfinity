@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 
 /**
  * Handles new PVRZ-based TIS resources.
@@ -156,14 +157,14 @@ public class TisV2Decoder extends TisDecoder {
         tisBuffer = getResourceEntry().getResourceBuffer();
 
         String name = getResourceEntry().getResourceRef();
-        pvrzNameBase = getResourceEntry().getResourceName().substring(0, 1)
+        pvrzNameBase = getResourceEntry().getResourceName().charAt(0)
             + getResourceEntry().getResourceName().substring(2, name.length());
 
         setType(Type.PVRZ);
 
         workingCanvas = new BufferedImage(TILE_DIMENSION, TILE_DIMENSION, BufferedImage.TYPE_INT_ARGB);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -178,7 +179,7 @@ public class TisV2Decoder extends TisDecoder {
         return PvrDecoder.loadPvr(entry);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -245,16 +246,13 @@ public class TisV2Decoder extends TisDecoder {
               g = null;
             }
           } else {
-            if (decoder != null) {
-              // drawing new content
-              decoder.decode(workingCanvas, x, y, TILE_DIMENSION, TILE_DIMENSION);
-              decoder = null;
-            }
+            // drawing new content
+            decoder.decode(workingCanvas, x, y, TILE_DIMENSION, TILE_DIMENSION);
+            decoder = null;
           }
           return true;
         } catch (Exception e) {
-          e.printStackTrace();
-          decoder = null;
+          Logger.error(e);
         }
       }
     }

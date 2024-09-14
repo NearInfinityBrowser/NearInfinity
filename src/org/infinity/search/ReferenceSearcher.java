@@ -34,6 +34,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.other.EffResource;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.util.Logger;
 
 public final class ReferenceSearcher extends AbstractReferenceSearcher {
   /** Optional alternate name to search for. */
@@ -57,7 +58,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -127,8 +128,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
             }
           }
         } catch (Exception e) {
-          System.out.println("Exception in " + dialog.getName() + " - " + sourceCode.getName());
-          e.printStackTrace();
+          Logger.error(e, "Exception in {} - {}", dialog.getName(), sourceCode.getName());
         }
       } else if (o instanceof AbstractStruct) {
         searchDialog(entry, (AbstractStruct) o);
@@ -193,7 +193,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -234,6 +234,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
       try {
         index = Integer.parseInt(matcher.group(1));
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
       if (index >= 0 && index <= 99999) {
         if (bam.containsPvrzReference(index)) {
@@ -251,6 +252,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
       try {
         index = Integer.parseInt(matcher.group(1));
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
       if (index >= 0 && index <= 99999) {
         if (mos.containsPvrzReference(index)) {
@@ -284,6 +286,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
         try {
           index = Integer.parseInt(page);
         } catch (NumberFormatException e) {
+          Logger.trace(e);
         }
         if (pTis.matcher(entry.getResourceName()).find() && index >= 0 && index <= 99) {
           if (tis.containsPvrzReference(index)) {
@@ -312,7 +315,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 }

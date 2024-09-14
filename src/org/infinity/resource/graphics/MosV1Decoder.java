@@ -15,6 +15,7 @@ import java.util.Arrays;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 public class MosV1Decoder extends MosDecoder {
@@ -68,7 +69,7 @@ public class MosV1Decoder extends MosDecoder {
         retVal = new MosDecoder.MosInfo(compressed, width, height, columns, rows, blockSize);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -137,7 +138,7 @@ public class MosV1Decoder extends MosDecoder {
     if (isValidBlock(blockIdx) && buffer != null) {
       int ofs = getPaletteOffset(blockIdx);
       if (ofs > 0) {
-        int maxSize = (buffer.length < 256) ? buffer.length : 256;
+        int maxSize = Math.min(buffer.length, 256);
         boolean transSet = false;
         for (int i = 0; i < maxSize; i++, ofs += 4) {
           int color = 0xff000000 | mosBuffer.getInt(ofs);
@@ -185,7 +186,7 @@ public class MosV1Decoder extends MosDecoder {
       int ofs = getBlockOffset(blockIdx);
       if (ofs > 0) {
         int size = getBlockWidth(blockIdx) * getBlockHeight(blockIdx);
-        int maxSize = (buffer.length < size) ? buffer.length : size;
+        int maxSize = Math.min(buffer.length, size);
         mosBuffer.position(ofs);
         mosBuffer.get(buffer, 0, maxSize);
         return true;
@@ -357,7 +358,7 @@ public class MosV1Decoder extends MosDecoder {
       BufferedImage image = ColorConvert.toBufferedImage(getBlock(blockIdx), true);
       if (image != null) {
         int[] src = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        int maxSize = (buffer.length < src.length) ? buffer.length : src.length;
+        int maxSize = Math.min(buffer.length, src.length);
         System.arraycopy(src, 0, buffer, 0, maxSize);
         image.flush();
         image = null;
@@ -418,7 +419,7 @@ public class MosV1Decoder extends MosDecoder {
         workingPalette = new int[256];
         workingCanvas = new BufferedImage(BLOCK_DIMENSION, BLOCK_DIMENSION, BufferedImage.TYPE_INT_ARGB);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }

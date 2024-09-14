@@ -51,10 +51,11 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
+public class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener {
   private static final ButtonPanel.Control CTRL_NEXT_STATE      = ButtonPanel.Control.CUSTOM_1;
   private static final ButtonPanel.Control CTRL_PREV_STATE      = ButtonPanel.Control.CUSTOM_2;
   private static final ButtonPanel.Control CTRL_NEXT_TRANS      = ButtonPanel.Control.CUSTOM_3;
@@ -130,7 +131,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private DlgResource undoDlg;
   private boolean alive = true;
 
-  Viewer(DlgResource dlg) {
+  public Viewer(DlgResource dlg) {
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
 
@@ -406,7 +407,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       showState(stateNrToShow);
       showTransition(transNrToShow);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -448,7 +449,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (!isValid) {
       if (nr >= 0) {
         // Print warning about not correct resource
-        System.err.println(dlg.getName() + ": state " + nr + " is not exist");
+        Logger.warn("{}: state {} does not exist", dlg.getName(), nr);
       }
       stateTextPanel.clearDisplay();
       stateTriggerPanel.clearDisplay();
@@ -500,10 +501,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (nr >= 0 && currentState != null) {
         // Print warning about not correct resource
         if (isValid) {
-          System.err.println(
-              dlg.getName() + ": transition " + nr + " is not transition from state " + currentState.getNumber());
+          Logger.warn("{}: transition {} is not transition from state {}", dlg.getName(), nr, currentState.getNumber());
         } else if (isBroken) {
-          System.err.println(dlg.getName() + ": transition " + nr + " is not exist");
+          Logger.warn("{}: transition {} does not exist", dlg.getName(), nr);
         }
       }
       transTextPanel.clearDisplay();

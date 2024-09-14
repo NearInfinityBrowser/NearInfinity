@@ -19,9 +19,11 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -45,7 +47,7 @@ public class StreamUtils {
           retVal = retVal.substring(0, pos);
         }
       }
-      if (newExt.length() > 0 && newExt.charAt(0) != '.') {
+      if (!newExt.isEmpty() && newExt.charAt(0) != '.') {
         retVal += ".";
       }
       retVal += newExt;
@@ -64,7 +66,7 @@ public class StreamUtils {
       int pos = name.lastIndexOf('.');
       if (pos > 0) {
         // no need to replace if extensions are equal
-        if (newExt.length() > 0 && newExt.charAt(0) == '.') {
+        if (!newExt.isEmpty() && newExt.charAt(0) == '.') {
           if (name.substring(pos).equalsIgnoreCase(newExt)) {
             return retVal;
           }
@@ -75,7 +77,7 @@ public class StreamUtils {
         }
         name = name.substring(0, pos);
       }
-      if (newExt.length() > 0 && newExt.charAt(0) != '.') {
+      if (!newExt.isEmpty() && newExt.charAt(0) != '.') {
         name += ".";
       }
       name += newExt;
@@ -115,14 +117,10 @@ public class StreamUtils {
       p = temp.lastIndexOf('.');
       if (p > 0) { // p == 0 ? extension is file base
         retVal[1] = temp.substring(0, p);
-        if (p < temp.length()) {
-          temp = temp.substring(p);
-        } else {
-          temp = "";
-        }
+        temp = temp.substring(p);
       }
       // determining file extension
-      if (temp.length() > 0) {
+      if (!temp.isEmpty()) {
         retVal[2] = temp;
       }
     }
@@ -215,7 +213,7 @@ public class StreamUtils {
       bufTmp.limit(bufTmp.position() + maxLength);
       dst.put(bufTmp);
     } catch (Throwable t) {
-      t.printStackTrace();
+      Logger.error(t);
     } finally {
       src.position(srcPos);
       dst.position(dstPos);
@@ -738,7 +736,7 @@ public class StreamUtils {
     byte[] stringBytes = s.getBytes(charset);
     writeBytes(os, stringBytes);
     if (length > stringBytes.length) {
-      byte buffer[] = new byte[length - stringBytes.length];
+      byte[] buffer = new byte[length - stringBytes.length];
       writeBytes(os, buffer);
     }
     return Math.max(length, stringBytes.length);
@@ -750,6 +748,7 @@ public class StreamUtils {
     try {
       retVal = buffer.array();
     } catch (Throwable t) {
+      Logger.trace(t);
     }
     if (retVal == null || retVal.length != buffer.limit()) {
       retVal = new byte[buffer.limit()];
@@ -772,20 +771,23 @@ public class StreamUtils {
   public static void createZip(Path sourceDir, Path zipFile, boolean includeFolder) throws IOException {
     try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile))) {
       Path baseDir = includeFolder ? sourceDir.getParent() : sourceDir;
-      Files.walk(sourceDir).filter(path -> !FileEx.create(path).isDirectory()).forEach(path -> {
-        ZipEntry ze = new ZipEntry(baseDir.relativize(path).toString());
-        try {
-          ze.setLastModifiedTime(Files.getLastModifiedTime(path));
-        } catch (IOException e) {
-        }
-        try {
-          zos.putNextEntry(ze);
-          Files.copy(path, zos);
-          zos.closeEntry();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      });
+      try (final Stream<Path> stream = Files.walk(sourceDir)) {
+        stream.filter(path -> !FileEx.create(path).isDirectory()).forEach(path -> {
+          ZipEntry ze = new ZipEntry(baseDir.relativize(path).toString());
+          try {
+            ze.setLastModifiedTime(Files.getLastModifiedTime(path));
+          } catch (IOException e) {
+            Logger.trace(e);
+          }
+          try {
+            zos.putNextEntry(ze);
+            Files.copy(path, zos);
+            zos.closeEntry();
+          } catch (IOException e) {
+            Logger.error(e);
+          }
+        });
+      }
     }
   }
 }

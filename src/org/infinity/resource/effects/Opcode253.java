@@ -20,7 +20,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AutomapNote;
 
 /**
- * Implemention of opcode 253.
+ * Implementation of opcode 253.
  */
 public class Opcode253 extends BaseOpcode {
   private static final String EFFECT_AC_VALUE = "AC value";
@@ -56,12 +56,6 @@ public class Opcode253 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsBG2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
@@ -87,17 +81,5 @@ public class Opcode253 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AC_VALUE));
     list.add(new Flag(buffer, offset + 4, 4, EFFECT_BONUS_TO, WEAPON_TYPES_IWD));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

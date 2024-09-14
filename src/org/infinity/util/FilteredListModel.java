@@ -84,7 +84,7 @@ public class FilteredListModel<E> extends AbstractListModel<E> {
 
   /** Returns an array of all the change listeners registered to this instance. */
   public ChangeListener[] getFilterChangeListeners() {
-    return listeners.toArray(new ChangeListener[listeners.size()]);
+    return listeners.toArray(new ChangeListener[0]);
   }
 
   /** Removes all instances of the specified ChangeListener from the listener list. */
@@ -579,7 +579,7 @@ public class FilteredListModel<E> extends AbstractListModel<E> {
           int idx = Math.max(-1, fidx) + 1;
           filteredList.add(idx, item);
           helper.updateEvent(ListDataEventHelper.EVENT_ADD, idx);
-        } else if (fidx >= 0 && item.equals(getElementAt(fidx))) {
+        } else if (item.equals(getElementAt(fidx))) {
           helper.updateEvent(ListDataEventHelper.EVENT_NONE, -1);
           fidx--;
         }

@@ -21,6 +21,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
@@ -147,7 +148,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     boolean retVal = FILTER_EQUIPPABLE.test(info);
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
-      retVal &= (info.getAbility(0).getLocation() == 1); // weapon slot
+      retVal = (info.getAbility(0).getLocation() == 1); // weapon slot
       retVal &= (info.getAbility(0).getLauncher() == 0); // no launcher required
     }
     return retVal;
@@ -161,7 +162,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
       int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2; // two-handed, fake two-handed
-      retVal &= (info.getFlags() & mask) != 0;
+      retVal = (info.getFlags() & mask) != 0;
     }
     return retVal;
   };
@@ -188,7 +189,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     boolean retVal = FILTER_WEAPON_MELEE.test(info);
     if (retVal) {
       int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2;
-      retVal &= (info.getFlags() & mask) != 0;
+      retVal = (info.getFlags() & mask) != 0;
     }
     return retVal;
   };
@@ -216,7 +217,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
       AbilityEntry ai = info.getAbility(0);
-      retVal &= (ai.getLauncher() == 0);
+      retVal = (ai.getLauncher() == 0);
       retVal &= (ai.getAbilityType() == 2) || (ai.getAbilityType() == 4);
     }
     return retVal;
@@ -231,7 +232,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
       AbilityEntry ai = info.getAbility(0);
-      retVal &= (ai.getLauncher() == 0);
+      retVal = (ai.getLauncher() == 0);
       retVal &= (ai.getAbilityType() == 4);
     }
     return retVal;
@@ -373,7 +374,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
   /**
    * Removes the specified ITM {@code ResourceEntry} instances from the cache.
    *
-   * @param entries Sequence of ITM {@codee ResourceEntry} instances to remove from the cache.
+   * @param entries Sequence of ITM {@code ResourceEntry} instances to remove from the cache.
    * @return Number of successfully removed entries.
    */
   public static int removeFromCache(ResourceEntry... entries) {
@@ -411,6 +412,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
           retVal.add(ii);
         }
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
 
@@ -430,7 +432,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
     if (retVal) {
       for (final ItemPredicate p : pred) {
         if (p != null) {
-          retVal &= p.test(info);
+          retVal = p.test(info);
         }
         if (!retVal) {
           break;
@@ -445,18 +447,20 @@ public class ItemInfo implements Comparable<ItemInfo> {
    * {@code false} if info is {@code null}. Returns {@code true} if no predicate is specified.
    */
   public static boolean testAny(ItemInfo info, ItemPredicate... pred) {
-    boolean retVal = (info != null);
-    if (retVal && pred.length > 0) {
-      for (final ItemPredicate p : pred) {
-        if (p != null) {
-          retVal |= p.test(info);
-        }
-        if (retVal) {
-          break;
+    if (info == null) {
+      return false;
+    }
+    if (pred.length == 0) {
+      return true;
+    }
+    for (final ItemPredicate p : pred) {
+      if (p != null) {
+        if (p.test(info)) {
+          return true;
         }
       }
     }
-    return retVal;
+    return false;
   }
 
   /**
@@ -480,7 +484,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
         Misc.requireCondition(is.skip(0x14) == 0x14, "Could not advance in data stream");
         return StreamUtils.readShort(is);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return -1;

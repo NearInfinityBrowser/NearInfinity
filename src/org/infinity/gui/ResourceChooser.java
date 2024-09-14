@@ -322,7 +322,7 @@ public class ResourceChooser extends JComponent implements ActionListener {
   private class DialogOkAction extends AbstractAction implements ListSelectionListener {
     public static final String ACTION_NAME = "OK";
 
-    private JDialog dialog;
+    private final JDialog dialog;
 
     public DialogOkAction(JDialog dialog) {
       this.dialog = dialog;
@@ -348,7 +348,7 @@ public class ResourceChooser extends JComponent implements ActionListener {
   private class DialogCancelAction extends AbstractAction {
     public static final String ACTION_NAME = "Cancel";
 
-    private JDialog dialog;
+    private final JDialog dialog;
 
     public DialogCancelAction(JDialog dialog) {
       this.dialog = dialog;

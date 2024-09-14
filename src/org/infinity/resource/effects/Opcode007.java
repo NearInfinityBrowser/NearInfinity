@@ -13,7 +13,7 @@ import org.infinity.datatype.HashBitmap;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 7.
+ * Implementation of opcode 7.
  */
 public class Opcode007 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

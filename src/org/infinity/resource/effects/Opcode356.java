@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 356.
+ * Implementation of opcode 356.
  */
 public class Opcode356 extends BaseOpcode {
   private static final String[] MODES = { "Pause actions", "Unpause actions" };

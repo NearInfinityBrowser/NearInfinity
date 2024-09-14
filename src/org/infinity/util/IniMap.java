@@ -202,7 +202,7 @@ public class IniMap implements Iterable<IniMapSection> {
       value = line.substring(start, pos).trim();
     }
 
-    if (key != null || value != null) {
+    if (key != null) {
       return new IniMapEntry(key, value, lineNr);
     } else {
       return null;
@@ -215,7 +215,7 @@ public class IniMap implements Iterable<IniMapSection> {
         final ByteBuffer bb = entry.getResourceBuffer();
         return StreamUtils.readString(bb, bb.limit(), Misc.CHARSET_DEFAULT);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;

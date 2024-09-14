@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 62.
+ * Implementation of opcode 62.
  */
 public class Opcode062 extends BaseOpcode {
   private static final String EFFECT_NUM_SPELLS_TO_ADD  = "# spells to add";

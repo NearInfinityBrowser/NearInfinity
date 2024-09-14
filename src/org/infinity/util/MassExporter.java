@@ -301,7 +301,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       try {
         pattern = getPattern();
       } catch (IllegalArgumentException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(this, e.getMessage(), "Pattern syntax error", JOptionPane.ERROR_MESSAGE);
         if (e instanceof PatternSyntaxException) {
           final int index = ((PatternSyntaxException)e).getIndex();
@@ -319,7 +319,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         Files.createDirectories(outputPath);
       } catch (IOException e) {
         JOptionPane.showMessageDialog(this, "Unable to create target directory.", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
       setVisible(false);
@@ -330,7 +330,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION) {
         tfDirectory.setText(fc.getSelectedFile().toString());
       }
-      bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && tfDirectory.getText().length() > 0);
+      bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
     }
   }
 
@@ -340,7 +340,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && tfDirectory.getText().length() > 0);
+    bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -413,7 +413,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         progress.setMillisToPopup(0);
         progress.setProgress(0);
         progress.setNote(String.format(FMT_PROGRESS, 0, getResourceCount()));
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         for (int i = 0, count = getResourceCount(); i < count; i++) {
           threadPool.submit(new Worker(selectedFiles.get(i)));
           if (progress.isCanceled()) {
@@ -438,9 +438,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           try {
             threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
       } catch (Exception e) {
+        Logger.trace(e);
       }
 
       if (isCancelled) {
@@ -458,7 +460,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       selectedFiles = null;
     }
-    Debugging.timerShow("Mass export completed", Debugging.TimeFormat.MILLISECONDS);
+    Logger.info(DebugTimer.getInstance().getTimerFormatted("Mass export completed"));
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -467,11 +469,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
    * Returns an array with all resource types available for the current game.
    */
   private static String[] getAvailableResourceTypes() {
-    List<String> types = Arrays.asList(Profile.getAvailableResourceTypes())
-        .stream()
+    return Arrays
+        .stream(Profile.getAvailableResourceTypes())
         .filter(s -> !TYPES_BLACKLIST.contains(s))
-        .collect(Collectors.toList());
-    return types.toArray(new String[types.size()]);
+        .toArray(String[]::new);
   }
 
   private int getResourceCount() {
@@ -569,7 +570,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   private void decompressWav(ResourceEntry entry, Path output) throws Exception {
     ByteBuffer buffer = StreamUtils.getByteBuffer(AudioFactory.convertAudio(entry));
-    if (buffer != null && buffer.limit() > 0) {
+    if (buffer.limit() > 0) {
       // Keep trying. File may be in use by another thread.
       try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
         StreamUtils.writeBytes(os, buffer);
@@ -679,13 +680,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         Files.createDirectory(path);
       } catch (IOException e) {
         String msg = String.format("Error creating folder \"%s\". Skipping file \"%s\".", fileBase, fileName);
-        System.err.println(msg);
+        Logger.warn(msg);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
     } else if (!FileEx.create(path).isDirectory()) {
       String msg = String.format("Folder \"%s\" can not be created. Skipping file \"%s\".", fileBase, fileName);
-      System.err.println(msg);
+      Logger.warn(msg);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
@@ -715,7 +716,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   private void exportResource(ResourceEntry entry, Path output) throws Exception {
     if (entry != null && output != null) {
-      System.err.println("Converting " + entry.toString());
+      Logger.info("Converting {}", entry.toString());
       int[] info = entry.getResourceInfo();
       int size = info[0];
       if (info.length > 1) {
@@ -812,8 +813,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         exportResource(entry, output);
       }
     } catch (Exception e) {
-      System.err.println("Error in resource: " + entry.toString());
-      e.printStackTrace();
+      Logger.error(e, "Error in resource: {}", entry);
+
     }
   }
 
@@ -914,13 +915,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         try {
           os = StreamUtils.getOutputStream(output, true);
         } catch (FileNotFoundException fnfe) {
-          os = null;
           if (--numAttempts == 0) {
             throw fnfe;
           }
           try {
             Thread.sleep(delayAttempts);
           } catch (InterruptedException ie) {
+            Logger.trace(ie);
           }
         }
       }

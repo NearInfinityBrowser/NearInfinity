@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 353.
+ * Implementation of opcode 353.
  */
 public class Opcode353 extends BaseOpcode {
   private static final String EFFECT_METHOD = "Method";

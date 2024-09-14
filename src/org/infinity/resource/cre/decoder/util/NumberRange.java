@@ -43,7 +43,7 @@ public class NumberRange {
   /** Returns whether the range covers the specified value. */
   public boolean contains(int value) {
     return ranges.stream().anyMatch(
-        c -> (value >= c.getValue0().intValue() && value <= (c.getValue0().intValue() + c.getValue1().intValue())));
+        c -> (value >= c.getValue0() && value <= (c.getValue0() + c.getValue1())));
   }
 
   private void init(int base, int range, int subBase, int subRange, int subPos) {

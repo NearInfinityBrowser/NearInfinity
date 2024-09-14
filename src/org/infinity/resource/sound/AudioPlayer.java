@@ -13,6 +13,8 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.infinity.util.Logger;
+
 public class AudioPlayer {
   private final byte[] buffer = new byte[8196];
 
@@ -133,11 +135,13 @@ public class AudioPlayer {
       try {
         Thread.sleep(50L);
       } catch (InterruptedException e) {
+        Logger.trace(e);
       }
     }
     try {
       Thread.sleep(150L);
     } catch (InterruptedException e) {
+      Logger.trace(e);
     }
     setStopped(true);
     if (dataLine != null && dataLine.isOpen()) {

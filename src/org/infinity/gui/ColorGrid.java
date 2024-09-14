@@ -108,7 +108,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
    */
   public void addActionListener(ActionListener l) {
     if (l != null) {
-      if (listActionListeners.indexOf(l) < 0) {
+      if (!listActionListeners.contains(l)) {
         listActionListeners.add(l);
       }
     }
@@ -139,7 +139,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
    */
   public void addMouseOverListener(MouseOverListener l) {
     if (l != null) {
-      if (listMouseOverListeners.indexOf(l) < 0) {
+      if (!listMouseOverListeners.contains(l)) {
         listMouseOverListeners.add(l);
       }
     }
@@ -170,7 +170,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
    */
   public void addChangeListener(ChangeListener l) {
     if (l != null) {
-      if (listChangeListeners.indexOf(l) < 0) {
+      if (!listChangeListeners.contains(l)) {
         listChangeListeners.add(l);
       }
     }
@@ -442,7 +442,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   /** Returns whether the specified color entry index is currently selected. */
   public boolean isSelectedIndex(int index) {
     if (index >= 0 && index < getColorCount()) {
-      int idx = listSelection.indexOf(Integer.valueOf(index));
+      int idx = listSelection.indexOf(index);
       return (idx >= 0);
     }
     return false;
@@ -491,7 +491,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     if (indices != null) {
       for (int index : indices) {
         if (index >= 0 && index < getColorCount()) {
-          int idx = listSelection.indexOf(Integer.valueOf(index));
+          int idx = listSelection.indexOf(index);
           if (idx < 0) {
             listSelection.add(index);
           }
@@ -522,7 +522,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
       if (indices != null) {
         for (int index : indices) {
           if (index >= 0 && index < getColorCount()) {
-            int idx = listSelection.indexOf(Integer.valueOf(index));
+            int idx = listSelection.indexOf(index);
             if (idx < 0) {
               listSelection.add(index);
             }
@@ -547,7 +547,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     if (indices != null) {
       for (int index : indices) {
         if (index >= 0 && index < getColorCount()) {
-          int idx = listSelection.indexOf(Integer.valueOf(index));
+          int idx = listSelection.indexOf(index);
           if (idx >= 0) {
             listSelection.remove(idx);
           }
@@ -609,8 +609,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     BufferedImage buf = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
     int[] raster = ((DataBufferInt) buf.getRaster().getDataBuffer()).getData();
     System.arraycopy(checker, 0, raster, 0, checker.length);
-    TexturePaint tp = new TexturePaint(buf, new Rectangle(0, 0, 8, 8));
-    return tp;
+    return new TexturePaint(buf, new Rectangle(0, 0, 8, 8));
   }
 
   // First-time initializations
@@ -908,8 +907,8 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   }
 
   /** MouseOverEvent is used to notify listeners that the mouse has been placed over a specific color entry. */
-  public class MouseOverEvent extends EventObject {
-    private int index;
+  public static class MouseOverEvent extends EventObject {
+    private final int index;
 
     /**
      * Constructs a MouseOverEvent.

@@ -116,7 +116,7 @@ public class MonsterLayeredDecoder extends SpriteDecoder {
     final String w1 = !getWeapon1Overlay().isEmpty() ? getWeapon1Overlay().substring(0, 1) : "";
     final String w2 = !getWeapon2Overlay().isEmpty() ? getWeapon2Overlay().substring(0, 1) : "";
     final String[] suffix = { "G1", "G1E", "G2", "G2E" };
-    ArrayList<String> retVal = new ArrayList<String>() {
+    return new ArrayList<String>() {
       {
         for (final String s : suffix) {
           add(resref + s + ".BAM");
@@ -133,7 +133,6 @@ public class MonsterLayeredDecoder extends SpriteDecoder {
         }
       }
     };
-    return retVal;
   }
 
   @Override
@@ -211,9 +210,9 @@ public class MonsterLayeredDecoder extends SpriteDecoder {
           && SpriteUtils.bamCyclesExist(entryE, cycleE, SeqDef.DIR_REDUCED_E.length)) {
         SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, cycle, resEntry.getValue1(),
             behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE, cycleE, resEntry.getValue1(), behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
     }
 

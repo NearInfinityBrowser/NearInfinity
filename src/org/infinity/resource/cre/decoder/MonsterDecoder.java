@@ -249,9 +249,7 @@ public class MonsterDecoder extends SpriteDecoder {
     }
 
     // generating file list
-    ArrayList<String> retVal = new ArrayList<>(Arrays.asList(files.toArray(new String[files.size()])));
-
-    return retVal;
+    return new ArrayList<>(Arrays.asList(files.toArray(new String[0])));
   }
 
   @Override
@@ -329,18 +327,18 @@ public class MonsterDecoder extends SpriteDecoder {
       SegmentDef.SpriteType type = creInfo.getValue1();
       if (SpriteUtils.bamCyclesExist(entry, ofs, SeqDef.DIR_FULL_W.length)) {
         SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, ofs, type, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, ofs + 1, type, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
         for (final Direction dir : SeqDef.DIR_FULL_W) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, false, entry, 0, type, behavior);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         }
         for (final Direction dir : SeqDef.DIR_FULL_E) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, true, entry, 0, type, behavior);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         }
       }
     }

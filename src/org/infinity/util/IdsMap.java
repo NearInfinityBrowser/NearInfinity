@@ -34,7 +34,7 @@ public class IdsMap {
         parse2DA();
       }
 //    } catch (Exception e) {
-//      e.printStackTrace();
+//      Logger.error(e);
 //    }
   }
 
@@ -64,7 +64,7 @@ public class IdsMap {
 
   /** Returns the entry structure defined by the specified IDS value, or {@code null} otherwise. */
   public IdsMapEntry get(long value) {
-    return idsMap.get(Long.valueOf(normalizedKey(value)));
+    return idsMap.get(normalizedKey(value));
   }
 
   /**

@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 383.
+ * Implementation of opcode 383.
  */
 public class Opcode383 extends BaseOpcode {
   private static final String EFFECT_DIRECTION    = "Direction";

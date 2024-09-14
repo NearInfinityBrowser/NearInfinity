@@ -10,8 +10,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -50,6 +47,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.CharsetDetector;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.tuples.Couple;
@@ -57,7 +55,7 @@ import org.infinity.util.tuples.Couple;
 /**
  * Handles Option menu items for the {@link BrowserMenuBar}.
  */
-public class OptionsMenuItem extends JMenuItem implements ActionListener {
+public class OptionsMenuItem extends JMenuItem {
   /** Alignment types available for 2DA resources. */
   public enum AutoAlign2da {
     /** Do not align columns. */
@@ -166,13 +164,13 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   public static final String OPTION_SHOWCOLOREDSTRUCTURES     = "ShowColoredStructures";
   public static final String OPTION_SHOWHEXCOLORED            = "ShowHexColored";
   public static final String OPTION_SHOWSYSINFO               = "ShowSysInfo";
+  public static final String OPTION_SHOWMEMSTATUS             = "ShowMemStatus";
   public static final String OPTION_OPENBOOKMARKSPROMPT       = "OpenBookmarksPrompt";
   public static final String OPTION_REMEMBER_CHILDFRAME_RECT  = "RememberChildFrameRect";
 
   public static final String OPTION_AUTOCHECK_BCS             = "AutocheckBCS";
   public static final String OPTION_AUTOGEN_BCS_COMMENTS      = "AutogenBCSComments";
   public static final String OPTION_MORECOMPILERWARNINGS      = "MoreCompilerWarnings";
-//  public static final String OPTION_MONITORFILECHANGES        = "MonitorFileChanges";
 
   public static final String OPTION_TEXT_SHOWCURRENTLINE      = "TextShowCurrentLine";
   public static final String OPTION_TEXT_SHOWLINENUMBERS      = "TextShowLineNumbers";
@@ -335,34 +333,32 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     List<Couple<String, String>> list = new ArrayList<>();
     if (definition != null && !definition.isEmpty()) {
       String[] entries = definition.split(";");
-      if (entries != null) {
-        for (final String entry : entries) {
-          String[] elements = entry.split("=");
-          if (elements != null && elements.length == 2) {
-            Profile.Game game = Profile.gameFromString(elements[0]);
-            if (game != Profile.Game.Unknown) {
-              String lang = elements[1].trim();
-              Couple<String, String> pair = null;
-              if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
-                pair = Couple.with(game.toString(), LANGUAGE_AUTODETECT);
-              } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                pair = Couple.with(game.toString(), lang);
-              }
+      for (final String entry : entries) {
+        String[] elements = entry.split("=");
+        if (elements.length == 2) {
+          Profile.Game game = Profile.gameFromString(elements[0]);
+          if (game != Profile.Game.Unknown) {
+            String lang = elements[1].trim();
+            Couple<String, String> pair = null;
+            if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
+              pair = Couple.with(game.toString(), LANGUAGE_AUTODETECT);
+            } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
+              pair = Couple.with(game.toString(), lang);
+            }
 
-              // check if game/language pair is already in the list
-              if (pair != null) {
-                for (final Couple<String, String> curPair : list) {
-                  if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
-                    curPair.setValue1(pair.getValue1());
-                    pair = null;
-                    break;
-                  }
+            // check if game/language pair is already in the list
+            if (pair != null) {
+              for (final Couple<String, String> curPair : list) {
+                if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
+                  curPair.setValue1(pair.getValue1());
+                  pair = null;
+                  break;
                 }
               }
+            }
 
-              if (pair != null) {
-                list.add(pair);
-              }
+            if (pair != null) {
+              list.add(pair);
             }
           }
         }
@@ -510,6 +506,11 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
   /** Returns whether system information are shown when NI starts up. */
   public boolean showSysInfo() {
     return AppOption.SHOW_SYS_INFO.getBoolValue();
+  }
+
+  /** Returns whether the current memory consumption is shown in NI's status bar. */
+  public boolean showMemStatus() {
+    return AppOption.SHOW_MEM_STATUS.getBoolValue();
   }
 
   /** Returns whether to show a dialog prompt whenever a bookmarked game is opened. */
@@ -809,6 +810,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
         info = new LookAndFeelInfo(AppOption.LOOK_AND_FEEL_CLASS.getName(), value);
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
 
     if (info == null) {
@@ -864,16 +866,6 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     return lang.equalsIgnoreCase(LANGUAGE_AUTODETECT) ? "" : lang;
   }
 
-  /**
-   * Returns whether file changes in override folders are tracked at real time and reflected in the resource tree.
-   *
-   * (not yet implemented)
-   */
-  public boolean getMonitorFileChanges() {
-//      return optionMonitorFileChanges.isSelected();
-    return false;
-  }
-
   /** Returns defValue if masked bit is clear or value if masked bit is already set. */
   public boolean fixOption(int mask, boolean defValue, boolean value) {
     boolean retVal = value;
@@ -884,17 +876,6 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
       AppOption.OPTION_FIXED_INTERNAL.setInitialValue(fixedInternal);
     }
     return retVal;
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    // if (event.getSource() == optionMonitorFileChanges) {
-    //   if (optionMonitorFileChanges.isSelected()) {
-    //     FileWatcher.getInstance().start();
-    //   } else {
-    //     FileWatcher.getInstance().stop();
-    //   }
-    // }
   }
 
   /** Attempts to switch the game language in Enhanced Edition games. */
@@ -982,6 +963,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
                 lfName = ((LookAndFeel) o).getName();
               }
             } catch (Exception e) {
+              Logger.trace(e);
             }
             final LookAndFeelInfo info = new LookAndFeelInfo(lfName, className);
             NearInfinity.getInstance().updateLookAndFeel(info, false);
@@ -989,7 +971,7 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
             refresh = true;
             restart = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else if (option.equals(AppOption.TEXT_FONT)) {
           int idx = option.getIntValue();
@@ -1034,56 +1016,52 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
       message = "Settings have been applied to Near Infinity.";
     }
 
-    if (sb.length() > 0 || message != null) {
-      // constructing dialog content pane
-      JPanel panel = new JPanel(new BorderLayout(8, 8));
+    // constructing dialog content pane
+    JPanel panel = new JPanel(new BorderLayout(8, 8));
 
-      if (sb.length() > 0) {
-        // constructing list of modified options
-        JLabel modifiedLabel = new JLabel(String.format("Modified settings (%d):", messages.size()), SwingConstants.LEADING);
-        panel.add(modifiedLabel, BorderLayout.NORTH);
+    if (sb.length() > 0) {
+      // constructing list of modified options
+      JLabel modifiedLabel = new JLabel(String.format("Modified settings (%d):", messages.size()), SwingConstants.LEADING);
+      panel.add(modifiedLabel, BorderLayout.NORTH);
 
-        // list of modified options
-        JTextArea textArea = new JTextArea(sb.toString());
+      // list of modified options
+      JTextArea textArea = new JTextArea(sb.toString());
 //        textArea.setBackground(panel.getBackground());
-        textArea.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
-        textArea.setFont(UIManager.getDefaults().getFont("Label.font"));
-        textArea.setEditable(false);
-        textArea.setFocusable(false);
-        textArea.setBorder(BorderFactory.createEmptyBorder());
+      textArea.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
+      textArea.setFont(UIManager.getDefaults().getFont("Label.font"));
+      textArea.setEditable(false);
+      textArea.setFocusable(false);
+      textArea.setBorder(BorderFactory.createEmptyBorder());
 
-        JScrollPane scroller = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroller.setBorder(BorderFactory.createEmptyBorder());
+      JScrollPane scroller = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      scroller.setBorder(BorderFactory.createEmptyBorder());
 
-        panel.add(scroller, BorderLayout.CENTER);
+      panel.add(scroller, BorderLayout.CENTER);
 
-        // limiting number of visible lines
-        final FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
-        int height = Math.min(15, messages.size()) * fm.getHeight() + fm.getHeight() / 2;
-        final Dimension dim = scroller.getPreferredSize();
-        dim.width += UIManager.getInt("ScrollBar.width"); // prevents cut off text
-        dim.height = height;
-        scroller.setPreferredSize(dim);
-      }
-
-      if (message != null) {
-        JTextPane msgPane = new JTextPane();
-        StyledDocument style = msgPane.getStyledDocument();
-        SimpleAttributeSet align = new SimpleAttributeSet();
-        StyleConstants.setAlignment(align, StyleConstants.ALIGN_LEFT);
-        style.setParagraphAttributes(0, style.getLength(), align, false);
-        msgPane.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
-        msgPane.setFont(UIManager.getDefaults().getFont("Label.font"));
-        msgPane.setEditable(false);
-        msgPane.setFocusable(false);
-        msgPane.setBorder(BorderFactory.createEmptyBorder());
-        msgPane.setText(message);
-        panel.add(msgPane, BorderLayout.SOUTH);
-      }
-
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "Settings changed", JOptionPane.INFORMATION_MESSAGE);
+      // limiting number of visible lines
+      final FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+      int height = Math.min(15, messages.size()) * fm.getHeight() + fm.getHeight() / 2;
+      final Dimension dim = scroller.getPreferredSize();
+      dim.width += UIManager.getInt("ScrollBar.width"); // prevents cut off text
+      dim.height = height;
+      scroller.setPreferredSize(dim);
     }
+
+    JTextPane msgPane = new JTextPane();
+    StyledDocument style = msgPane.getStyledDocument();
+    SimpleAttributeSet align = new SimpleAttributeSet();
+    StyleConstants.setAlignment(align, StyleConstants.ALIGN_LEFT);
+    style.setParagraphAttributes(0, style.getLength(), align, false);
+    msgPane.setBackground(Misc.getDefaultColor("Label.background", Color.GRAY));
+    msgPane.setFont(UIManager.getDefaults().getFont("Label.font"));
+    msgPane.setEditable(false);
+    msgPane.setFocusable(false);
+    msgPane.setBorder(BorderFactory.createEmptyBorder());
+    msgPane.setText(message);
+    panel.add(msgPane, BorderLayout.SOUTH);
+
+    JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "Settings changed", JOptionPane.INFORMATION_MESSAGE);
   }
 
   // -------------------------- INNER CLASSES --------------------------
@@ -1186,9 +1164,9 @@ public class OptionsMenuItem extends JMenuItem implements ActionListener {
     private void init() {
       StringBuilder sb = new StringBuilder();
       Charset cs = Charset.forName(getId());
-      if (cs != null && !cs.aliases().isEmpty()) {
+      if (!cs.aliases().isEmpty()) {
         sb.append("Charset aliases: ")
-        .append(cs.aliases().stream().collect(Collectors.joining(", ")));
+        .append(String.join(", ", cs.aliases()));
       }
       desc = sb.toString();
     }

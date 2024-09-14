@@ -31,6 +31,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect2;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -546,8 +547,8 @@ public class BaseOpcode {
     ATTACKS_EE_MAP.put(10L, "4.5 attacks per round");
   }
 
-  private int id;
-  private String name;
+  private final int id;
+  private final String name;
 
   /** One-time initialization of opcode classes. */
   public static void initOpcodes() {
@@ -604,7 +605,7 @@ public class BaseOpcode {
         names.add(opcode.getName());
       }
 
-      effectNames = names.toArray(new String[names.size()]);
+      effectNames = names.toArray(new String[0]);
     }
     return effectNames;
   }
@@ -636,6 +637,7 @@ public class BaseOpcode {
               int index = Integer.parseInt(table.get(row, 0));
               maxIndex = Math.max(maxIndex, index);
             } catch (NumberFormatException nfe) {
+              Logger.trace(nfe);
             }
           }
 
@@ -650,12 +652,12 @@ public class BaseOpcode {
                   portraitIconNames[index] = StringTable.getStringRef(strref);
                 }
               } catch (NumberFormatException nfe) {
-                nfe.printStackTrace();
+                Logger.error(nfe);
               }
             }
           }
         } catch (NullPointerException npe) {
-          npe.printStackTrace();
+          Logger.error(npe);
         }
       }
 
@@ -853,7 +855,7 @@ public class BaseOpcode {
   {
     StructEntry retVal = null;
     final EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-    if (map != null && map.containsKey(id)) {
+    if (map.containsKey(id)) {
       retVal = getEntryByIndex(struct, map.get(id));
     }
     return retVal;
@@ -888,7 +890,7 @@ public class BaseOpcode {
     try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
       entry.write(bbos);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return null;
     }
     return bb;
@@ -906,14 +908,14 @@ public class BaseOpcode {
     if (struct != null) {
       try {
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-        if (map != null && map.containsKey(id)) {
+        if (map.containsKey(id)) {
           int idx = map.get(id);
           if (idx >= 0 && idx < struct.getFields().size()) {
             return getEntryData(struct.getFields().get(idx));
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -931,8 +933,7 @@ public class BaseOpcode {
       StructEntry newEntry) throws Exception
   {
     EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
-    if (struct != null && newEntry != null &&
-        map != null && map.containsKey(index) && map.containsKey(offset)) {
+    if (newEntry != null && map.containsKey(index) && map.containsKey(offset)) {
       int idx = map.get(index);
       int ofs = map.get(offset);
       final List<StructEntry> list = struct.getFields();
@@ -1018,15 +1019,13 @@ public class BaseOpcode {
       for (final Class<? extends BaseOpcode> cls : OPCODE_CLASSES) {
         try {
           Constructor<? extends BaseOpcode> ctor = cls.getConstructor();
-          if (ctor != null) {
-            BaseOpcode opcode = ctor.newInstance();
-            if (opcode.isAvailable()) {
-              opcodeList.put(opcode.getId(), opcode);
-            }
+          BaseOpcode opcode = ctor.newInstance();
+          if (opcode.isAvailable()) {
+            opcodeList.put(opcode.getId(), opcode);
           }
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException
             | InstantiationException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1074,7 +1073,7 @@ public class BaseOpcode {
   protected int makeEffectStruct(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) throws Exception {
     if (buffer != null && offset >= 0 && list != null) {
-      buffer.position();
+      buffer.position(offset);
       int param1 = buffer.getInt();
       int param2 = buffer.getInt();
 

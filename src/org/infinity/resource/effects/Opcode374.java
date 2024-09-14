@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 374.
+ * Implementation of opcode 374.
  */
 public class Opcode374 extends BaseOpcode {
   private static final String EFFECT_FX = "Effect";

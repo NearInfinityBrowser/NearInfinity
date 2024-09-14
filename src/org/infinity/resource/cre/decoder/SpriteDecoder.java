@@ -58,6 +58,7 @@ import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
 
@@ -221,7 +222,6 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
    *
    * @param type        the animation type
    * @param animationId specific animation id
-   * @param sectionName INI section name for animation-specific data
    * @param ini         the INI file with creature animation attributes
    * @throws Exception
    */
@@ -279,7 +279,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
   /**
    * Returns the data associated with the specified attribute name.
    *
-   * @param key the attribute name.
+   * @param att the attribute object.
    * @return attribute data in the type inferred from the method call. Returns {@code null} if data is not available for
    *         the inferred type.
    */
@@ -295,7 +295,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       try {
         retVal = (T) data;
       } catch (ClassCastException e) {
-        // e.printStackTrace();
+        // Logger.error(e);
       }
     }
     return retVal;
@@ -304,7 +304,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
   /**
    * Stores the attribute key and value along with the autodetected data type.
    *
-   * @param key   the attribute name.
+   * @param att   the attribute object.
    * @param value the value in one of the data types covered by {@link DecoderAttribute.DataType}.
    */
   protected void setAttribute(DecoderAttribute att, Object value) {
@@ -343,7 +343,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
 
   /** Recreates the creature animation based on the current creature resource. */
   public void reset() throws Exception {
-    Direction[] directions = getDirectionMap().keySet().toArray(new Direction[getDirectionMap().keySet().size()]);
+    Direction[] directions = getDirectionMap().keySet().toArray(new Direction[0]);
     discard();
     // recreating current sequence
     if (getCurrentSequence() != Sequence.NONE) {
@@ -392,7 +392,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       } catch (NullPointerException e) {
         retVal = (seq != Sequence.NONE);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         retVal = (seq != Sequence.NONE);
       }
     }
@@ -841,7 +841,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       try {
         reset();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -892,7 +892,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
    */
   @Override
   public Composite getComposite() {
-    int blending = ((isBrightest() ? 1 : 0) << 0) | ((isMultiplyBlend() ? 1 : 0) << 1);
+    int blending = ((isBrightest() ? 1 : 0)) | ((isMultiplyBlend() ? 1 : 0) << 1);
     switch (blending) {
       case 1: // brightest
         return BlendingComposite.Brightest;
@@ -951,8 +951,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     setNewPalette(s);
 
     // getting first available "resref" definition
-    for (Iterator<IniMapSection> iter = getAnimationInfo().iterator(); iter.hasNext();) {
-      section = iter.next();
+    for (IniMapSection iniMapEntries : getAnimationInfo()) {
+      section = iniMapEntries;
       s = section.getAsString("resref", "");
       if (!s.isEmpty()) {
         setAnimationResref(s);
@@ -1001,14 +1001,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
   /**
    * Assigns a cycle index to the specified BAM sequence and direction.
    *
-   * @param seq        the sequence type for identification purposes.
    * @param dir        the direction type
    * @param cycleIndex the cycle index associated with the specified sequence and direction.
    * @return The previous BAM cycle index if available. -1 otherwise.
    */
   protected int addDirection(Direction dir, int cycleIndex) {
     int retVal = -1;
-    dir = Objects.requireNonNull(dir, "Creature direction required");
+    Objects.requireNonNull(dir, "Creature direction required");
     Integer value = directionMap.get(dir);
     if (value != null) {
       retVal = value;
@@ -1110,7 +1109,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     PseudoBamControl dstCtrl = createControl();
     BamV1Control srcCtrl = null;
     ResourceEntry entry = null;
-    definition = Objects.requireNonNull(definition, "Sequence definition cannot be null");
+    Objects.requireNonNull(definition, "Sequence definition cannot be null");
 
     if (directions == null) {
       directions = Arrays.asList(Direction.values());
@@ -1176,7 +1175,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
           sd.advance();
         }
 
-        int frameIndex = createFrame(frameInfo.toArray(new FrameInfo[frameInfo.size()]), beforeSrcFrame, afterSrcFrame);
+        int frameIndex = createFrame(frameInfo.toArray(new FrameInfo[0]), beforeSrcFrame, afterSrcFrame);
         if (afterDstFrame != null) {
           afterDstFrame.accept(dd, frameIndex);
         }
@@ -1402,7 +1401,6 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
    *
    * @param g          the {@code Graphics2D} instance of the image.
    * @param center     center position of the circle.
-   * @param color      the circle color. Specify {@code null} to use global defaults.
    * @param strokeSize the thickness of the selection circle.
    */
   protected void drawSelectionCircle(Graphics2D g, Point center, float strokeSize) {
@@ -1490,7 +1488,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     try {
       retVal = SpriteUtils.getColorGradient(colorIndex, allowRandom);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

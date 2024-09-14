@@ -16,7 +16,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 140.
+ * Implementation of opcode 140.
  */
 public class Opcode140 extends BaseOpcode {
   private static final String EFFECT_GLOW = "Glow";

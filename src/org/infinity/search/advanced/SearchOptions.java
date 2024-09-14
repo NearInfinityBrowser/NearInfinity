@@ -198,7 +198,7 @@ public class SearchOptions implements Cloneable {
   public void setSearchOffset(FieldMode mode, int offset) {
     if (mode == FieldMode.BY_RELATIVE_OFFSET || mode == FieldMode.BY_ABSOLUTE_OFFSET) {
       searchType = mode;
-      searchOffset = (offset >= 0) ? offset : 0;
+      searchOffset = Math.max(offset, 0);
     }
   }
 
@@ -255,8 +255,8 @@ public class SearchOptions implements Cloneable {
   /** Sets lower and upper bound of numeric value, and value type to "Number". */
   public void setValueNumber(int valueMin, int valueMax) {
     valueType = ValueType.NUMBER;
-    valueNumberMin = (valueMin < valueMax) ? valueMin : valueMax;
-    valueNumberMax = (valueMax > valueMin) ? valueMax : valueMin;
+    valueNumberMin = Math.min(valueMin, valueMax);
+    valueNumberMax = Math.max(valueMax, valueMin);
   }
 
   /** Returns resource type (only if value type is "Resource"). */
@@ -483,22 +483,22 @@ public class SearchOptions implements Cloneable {
     structure.clear();
     if (so != null)
       structure.addAll(so.structure);
-    structureRecursive = (so != null) ? so.structureRecursive : false;
-    structureRegex = (so != null) ? so.structureRegex : false;
-    structureGroup = (so != null) ? so.structureGroup : true;
+    structureRecursive = so != null && so.structureRecursive;
+    structureRegex = so != null && so.structureRegex;
+    structureGroup = so == null || so.structureGroup;
     searchType = (so != null) ? so.searchType : FieldMode.BY_NAME;
     searchName = (so != null) ? so.searchName : "";
-    searchNameCase = (so != null) ? so.searchNameCase : false;
-    searchNameRegex = (so != null) ? so.searchNameRegex : false;
+    searchNameCase = so != null && so.searchNameCase;
+    searchNameRegex = so != null && so.searchNameRegex;
     searchOffset = (so != null) ? so.searchOffset : 0;
     valueType = (so != null) ? so.valueType : ValueType.TEXT;
     valueText = (so != null) ? so.valueText : "";
-    valueTextCase = (so != null) ? so.valueTextCase : false;
-    valueTextRegex = (so != null) ? so.valueTextRegex : false;
+    valueTextCase = so != null && so.valueTextCase;
+    valueTextRegex = so != null && so.valueTextRegex;
     valueNumberMin = (so != null) ? so.valueNumberMin : 0;
     valueNumberMax = (so != null) ? so.valueNumberMax : 32767;
     valueResourceType = (so != null) ? so.valueResourceType : "";
     bitFieldMode = (so != null) ? so.bitFieldMode : BitFieldMode.AND;
-    invertMatch = (so != null) ? so.invertMatch : false;
+    invertMatch = so != null && so.invertMatch;
   }
 }

@@ -34,7 +34,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener 
   public static final String RESOURCE_NAME = "quests.ini";
 
   /**
-   * Flag, that indicates, that {@link #quests is not synchronized with current {@link #getText() resource text} and
+   * Flag, that indicates, that {@code quests.ini} is not synchronized with current {@link #getText() resource text} and
    * reloading is required.
    */
   private boolean dirty = false;

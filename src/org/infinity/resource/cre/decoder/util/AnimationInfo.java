@@ -6,11 +6,13 @@ package org.infinity.resource.cre.decoder.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
 
@@ -36,20 +38,20 @@ public class AnimationInfo {
   private static final EnumSet<Profile.Game> TYPE_GAME_ALL      = EnumSet.complementOf(EnumSet.of(Profile.Game.Unknown, Profile.Game.PST));
 
   // Predefined slot ranges for specific animation types
-  private static final List<NumberRange> RANGE_EFFECT                 = Arrays.asList(new NumberRange(0, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_QUADRANT       = Arrays.asList(new NumberRange(0x1000, 0x1ff));
+  private static final List<NumberRange> RANGE_EFFECT                 = Collections.singletonList(new NumberRange(0, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_QUADRANT       = Collections.singletonList(new NumberRange(0x1000, 0x1ff));
   private static final List<NumberRange> RANGE_MONSTER_MULTI          = Arrays.asList(new NumberRange(0x1200, 0xff),
       new NumberRange(0x1400, 0xbff));
-  private static final List<NumberRange> RANGE_MONSTER_MULTI_NEW      = Arrays.asList(new NumberRange(0x1300, 0xff));
-  private static final List<NumberRange> RANGE_MONSTER_LAYERED        = Arrays.asList(new NumberRange(0x8000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_LAYERED_SPELL  = Arrays.asList(new NumberRange(0x2000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_ANKHEG         = Arrays.asList(new NumberRange(0x3000, 0xfff));
-  private static final List<NumberRange> RANGE_TOWN_STATIC            = Arrays.asList(new NumberRange(0x4000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_MULTI_NEW      = Collections.singletonList(new NumberRange(0x1300, 0xff));
+  private static final List<NumberRange> RANGE_MONSTER_LAYERED        = Collections.singletonList(new NumberRange(0x8000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_LAYERED_SPELL  = Collections.singletonList(new NumberRange(0x2000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_ANKHEG         = Collections.singletonList(new NumberRange(0x3000, 0xfff));
+  private static final List<NumberRange> RANGE_TOWN_STATIC            = Collections.singletonList(new NumberRange(0x4000, 0xfff));
   private static final List<NumberRange> RANGE_CHARACTER              = Arrays.asList(new NumberRange(0x5000, 0x3ff),
       new NumberRange(0x5500, 0xff),
       new NumberRange(0x6000, 0x3ff),
       new NumberRange(0x6500, 0xff));
-  private static final List<NumberRange> RANGE_CHARACTER_IA           = Arrays.asList(new NumberRange(0x6600, 0x4ff));
+  private static final List<NumberRange> RANGE_CHARACTER_IA           = Collections.singletonList(new NumberRange(0x6600, 0x4ff));
   private static final List<NumberRange> RANGE_CHARACTER_OLD          = Arrays.asList(new NumberRange(0x5400, 0xff),
       new NumberRange(0x5600, 0x9ff),
       new NumberRange(0x6400, 0xff),
@@ -65,7 +67,7 @@ public class AnimationInfo {
       new NumberRange(0x7002, 0xd, 0xc0, 0x0f, 4),
       new NumberRange(0x7002, 0xd, 0xe0, 0x0f, 4),
       new NumberRange(0x7000, 0xf, 0xf0, 0x0f, 4));
-  private static final List<NumberRange> RANGE_MONSTER_IA             = Arrays.asList(new NumberRange(0x5b00, 0x4ff));
+  private static final List<NumberRange> RANGE_MONSTER_IA             = Collections.singletonList(new NumberRange(0x5b00, 0x4ff));
   private static final List<NumberRange> RANGE_MONSTER_OLD            = Arrays.asList(new NumberRange(0x7000, 0x1, 0x00, 0x1f, 4),
       new NumberRange(0x7000, 0x3, 0x20, 0x0f, 4),
       new NumberRange(0x7000, 0x2, 0x40, 0x0f, 4),
@@ -78,24 +80,24 @@ public class AnimationInfo {
       new NumberRange(0x7000, 0x1, 0xc0, 0x0f, 4),
       new NumberRange(0x7000, 0xf, 0xd0, 0x0f, 4),
       new NumberRange(0x7000, 0x1, 0xe0, 0x0f, 4));
-  private static final List<NumberRange> RANGE_MONSTER_OLD_IA         = Arrays.asList(new NumberRange(0x547a, 0x479));
-  private static final List<NumberRange> RANGE_MONSTER_LARGE          = Arrays.asList(new NumberRange(0x9000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_LARGE_16       = Arrays.asList(new NumberRange(0xa000, 0xfff));
-  private static final List<NumberRange> RANGE_AMBIENT_STATIC         = Arrays.asList(new NumberRange(0xb000, 0xfff));
-  private static final List<NumberRange> RANGE_AMBIENT                = Arrays.asList(new NumberRange(0xc000, 0xfff));
-  private static final List<NumberRange> RANGE_FLYING                 = Arrays.asList(new NumberRange(0xd000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_ICEWIND        = Arrays.asList(new NumberRange(0xe000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_ICEWIND_EX     = Arrays.asList(new NumberRange(0xe000, 0x1fff));
-  private static final List<NumberRange> RANGE_MONSTER_ICEWIND_IA     = Arrays.asList(new NumberRange(0x5000, 0x478));
-  private static final List<NumberRange> RANGE_MONSTER_PLANESCAPE     = Arrays.asList(new NumberRange(0xf000, 0xfff));
-  private static final List<NumberRange> RANGE_MONSTER_PLANESCAPE_EX  = Arrays.asList(new NumberRange(0x0000, 0xffff));
+  private static final List<NumberRange> RANGE_MONSTER_OLD_IA         = Collections.singletonList(new NumberRange(0x547a, 0x479));
+  private static final List<NumberRange> RANGE_MONSTER_LARGE          = Collections.singletonList(new NumberRange(0x9000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_LARGE_16       = Collections.singletonList(new NumberRange(0xa000, 0xfff));
+  private static final List<NumberRange> RANGE_AMBIENT_STATIC         = Collections.singletonList(new NumberRange(0xb000, 0xfff));
+  private static final List<NumberRange> RANGE_AMBIENT                = Collections.singletonList(new NumberRange(0xc000, 0xfff));
+  private static final List<NumberRange> RANGE_FLYING                 = Collections.singletonList(new NumberRange(0xd000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_ICEWIND        = Collections.singletonList(new NumberRange(0xe000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_ICEWIND_EX     = Collections.singletonList(new NumberRange(0xe000, 0x1fff));
+  private static final List<NumberRange> RANGE_MONSTER_ICEWIND_IA     = Collections.singletonList(new NumberRange(0x5000, 0x478));
+  private static final List<NumberRange> RANGE_MONSTER_PLANESCAPE     = Collections.singletonList(new NumberRange(0xf000, 0xfff));
+  private static final List<NumberRange> RANGE_MONSTER_PLANESCAPE_EX  = Collections.singletonList(new NumberRange(0x0000, 0xffff));
 
   public enum Type {
     /** Animation type: 0000 */
-    EFFECT(0x0000, "effect", Arrays.asList(
+    EFFECT(0x0000, "effect", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_EFFECT))),                   // type=0
     /** Animation type: 1000 (slots [1000..11ff]) */
-    MONSTER_QUADRANT(0x1000, "monster_quadrant", Arrays.asList(
+    MONSTER_QUADRANT(0x1000, "monster_quadrant", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_QUADRANT))),         // type=1
     /** Animation type: 1000 (slots [1200..12ff], [1400..1fff] */
     MONSTER_MULTI(0x1000, "monster_multi", Arrays.asList(
@@ -107,16 +109,16 @@ public class AnimationInfo {
         Couple.with(TYPE_GAME_EE, RANGE_MONSTER_MULTI_NEW),
         Couple.with(TYPE_GAME_BG2_TOB, RANGE_MONSTER_MULTI_NEW))),    // type=3
     /** Animation type: 8000 */
-    MONSTER_LAYERED(0x8000, "monster_layered", Arrays.asList(
+    MONSTER_LAYERED(0x8000, "monster_layered", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LAYERED))),          // type=4
     /** Animation type: 2000 */
-    MONSTER_LAYERED_SPELL(0x2000, "monster_layered_spell", Arrays.asList(
+    MONSTER_LAYERED_SPELL(0x2000, "monster_layered_spell", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LAYERED_SPELL))),    // type=5
     /** Animation type: 3000 */
-    MONSTER_ANKHEG(0x3000, "monster_ankheg", Arrays.asList(
+    MONSTER_ANKHEG(0x3000, "monster_ankheg", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_ANKHEG))),           // type=6
     /** Animation type: 4000 */
-    TOWN_STATIC(0x4000, "town_static", Arrays.asList(
+    TOWN_STATIC(0x4000, "town_static", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_TOWN_STATIC))),              // type=7
     /** Animation types: 5000, 6000 (slots [5000..53ff], [5500..55ff], [6000..63ff], [6500..65ff]) */
     CHARACTER(new int[] {0x5000, 0x6000}, "character", Arrays.asList(
@@ -139,23 +141,23 @@ public class AnimationInfo {
         Couple.with(TYPE_GAME_IWD2, RANGE_MONSTER)),
         RANGE_MONSTER_IA),                                            // type=10
     /** Animation type: 7000 (many subranges) */
-    MONSTER_OLD(0x7000, "monster_old", Arrays.asList(
+    MONSTER_OLD(0x7000, "monster_old", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_OLD)),
         RANGE_MONSTER_OLD_IA),                                        // type=11
     /** Animation type: 9000 */
-    MONSTER_LARGE(0x9000, "monster_large", Arrays.asList(
+    MONSTER_LARGE(0x9000, "monster_large", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LARGE))),            // type=12
     /** Animation type: A000 */
-    MONSTER_LARGE_16(0xa000, "monster_large16", Arrays.asList(
+    MONSTER_LARGE_16(0xa000, "monster_large16", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LARGE_16))),         // type=13
     /** Animation type: B000 */
-    AMBIENT_STATIC(0xb000, "ambient_static", Arrays.asList(
+    AMBIENT_STATIC(0xb000, "ambient_static", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_AMBIENT_STATIC))),           // type=14
     /** Animation type: C000 */
-    AMBIENT(0xc000, "ambient", Arrays.asList(
+    AMBIENT(0xc000, "ambient", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_AMBIENT))),                  // type=15
     /** Animation type: D000 */
-    FLYING(0xd000, "flying", Arrays.asList(
+    FLYING(0xd000, "flying", Collections.singletonList(
         Couple.with(TYPE_GAME_ALL, RANGE_FLYING))),                   // type=16
     /** Animation type: E000 (for non-EE: also slots [f000..ffff]) */
     MONSTER_ICEWIND(0xe000, "monster_icewind", Arrays.asList(
@@ -174,7 +176,7 @@ public class AnimationInfo {
     PLACEHOLDER(new int[] {0x0000, 0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000, 0x7000,
         0x8000, 0x9000, 0xa000, 0xb000, 0xc000, 0xd000, 0xe000, 0xf000},
         "placeholder",
-        Arrays.asList(Couple.with(TYPE_GAME_ALL, Arrays.asList(new NumberRange(0x0000, 0xffff)))),
+        Collections.singletonList(Couple.with(TYPE_GAME_ALL, Collections.singletonList(new NumberRange(0x0000, 0xffff)))),
         null);
 
     private final EnumMap<Profile.Game, List<NumberRange>> rangeMap = new EnumMap<>(Profile.Game.class);
@@ -216,7 +218,7 @@ public class AnimationInfo {
     }
 
     /**
-     * @param type        list of slot base ranges
+     * @param types       list of slot base ranges
      * @param sectionName INI section name
      * @param entries     list of games and their associated slot ranges.
      * @throws IllegalArgumentException
@@ -231,6 +233,7 @@ public class AnimationInfo {
       } catch (IllegalArgumentException iae) {
         throw iae;
       } catch (Exception e) {
+        Logger.trace(e);
       }
       this.animationTypes = types;
       this.sectionName = sectionName;
@@ -238,7 +241,7 @@ public class AnimationInfo {
         EnumSet<Profile.Game> games = entry.getValue0();
         List<NumberRange> ranges = entry.getValue1();
         for (final Profile.Game game : games) {
-          if (ranges.size() > 0) {
+          if (!ranges.isEmpty()) {
             List<NumberRange> list = this.rangeMap.get(game);
             if (list != null) {
               list.addAll(ranges);

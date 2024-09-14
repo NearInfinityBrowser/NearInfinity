@@ -60,6 +60,7 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -242,7 +243,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
         line = br.readLine();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return null;
     }
     Compiler compiler = new Compiler(source.toString());
@@ -269,7 +270,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
       try (BufferedWriter bw = Files.newBufferedWriter(output)) {
         bw.write(compiled);
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         return null;
       }
     }
@@ -285,7 +286,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
         line = br.readLine();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     String filename = file.getFileName().toString();
@@ -302,7 +303,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
       bw.write(decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
       bw.newLine();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
     return true;
@@ -322,7 +323,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
               files.add(p.toFile());
             }
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BAF")) {
           SortedSet<ScriptMessage> errors = compileFile(file);
@@ -352,7 +353,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
               files.add(p.toFile());
             }
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BCS")
             || file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BS")) {
@@ -407,7 +408,7 @@ public class BcsDropFrame extends ChildFrame implements ActionListener, ListSele
         event.acceptDrop(DnDConstants.ACTION_COPY);
         files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         event.dropComplete(false);
         return;
       }

@@ -3,5 +3,6 @@ jar/NearInfinity.jar
 *.class
 /bin
 /build
+/.idea
 /.settings
 .vscode/launch.json

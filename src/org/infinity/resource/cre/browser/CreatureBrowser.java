@@ -27,6 +27,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.util.Logger;
 
 /**
  * The Creature Browser implements a highly customizable browser and viewer for creature animations.
@@ -199,7 +200,7 @@ public class CreatureBrowser extends ChildFrame {
   /** A generic catch-all operation that can be used to evaluate exceptions thrown in a background task. */
   private void postTaskDefault(Object o, Exception e) {
     if (e != null) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
@@ -223,28 +224,26 @@ public class CreatureBrowser extends ChildFrame {
     if (worker == null && taskInfo != null) {
       worker = new SwingWorker<TaskInfo, Void>() {
         @Override
-        protected TaskInfo doInBackground() throws Exception {
-          TaskInfo retVal = taskInfo;
+        protected TaskInfo doInBackground() {
           WindowBlocker blocker = null;
           try {
-            if (retVal.blockWindow) {
+            if (taskInfo.blockWindow) {
               blocker = new WindowBlocker(CreatureBrowser.this);
               blocker.setBlocked(true);
             }
-            retVal.result = retVal.action.get();
+            taskInfo.result = taskInfo.action.get();
           } catch (Exception e) {
-            if (retVal.postAction != null) {
-              retVal.exception = e;
+            if (taskInfo.postAction != null) {
+              taskInfo.exception = e;
             } else {
-              e.printStackTrace();
+              Logger.error(e);
             }
           } finally {
             if (blocker != null) {
               blocker.setBlocked(false);
-              blocker = null;
             }
           }
-          return retVal;
+          return taskInfo;
         }
       };
       worker.addPropertyChangeListener(listeners);
@@ -268,6 +267,7 @@ public class CreatureBrowser extends ChildFrame {
           try {
             retVal = worker.get();
           } catch (ExecutionException | InterruptedException e) {
+            Logger.trace(e);
           }
           if (retVal != null) {
             if (retVal.postAction != null) {

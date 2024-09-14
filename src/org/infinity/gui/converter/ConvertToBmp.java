@@ -54,6 +54,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -81,12 +82,11 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
 
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getGraphicsFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
+    return new FileNameExtensionFilter[] {
         new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)", "bmp", "png", "jpg", "jpeg"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg") };
-    return filters;
   }
 
   // returns a selection of files
@@ -221,7 +221,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -443,13 +443,13 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
   private boolean isValidInput(Path file) {
     boolean result = false;
     if (file != null) {
-      try (ImageInputStream iis = ImageIO.createImageInputStream(file.toFile())) {
+      try (final ImageInputStream iis = ImageIO.createImageInputStream(file.toFile())) {
         final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
         if (readers.hasNext()) {
           result = true;
         }
-        iis.close();
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return result;
@@ -522,7 +522,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
       } catch (IOException e) {
         JOptionPane.showMessageDialog(this, "Unable to read files from the specified folder.", "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
       listInputFiles.setSelectedIndex(idx - 1);
@@ -549,7 +549,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
 
   private void inputRemove() {
     int curIdx = Integer.MAX_VALUE;
-    int indices[] = listInputFiles.getSelectedIndices();
+    int[] indices = listInputFiles.getSelectedIndices();
     if (indices != null && indices.length > 0) {
       for (int i = indices.length - 1; i >= 0; i--) {
         modelInputFiles.remove(indices[i]);
@@ -634,7 +634,6 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
           img = ImageIO.read(inFile.toFile());
         } catch (Exception e) {
           failed++;
-          img = null;
         }
 
         // 2. write BMP output
@@ -753,7 +752,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
             if (!hasAlpha && (pixels[idx] >>> 24) < transThreshold) {
               pixels[idx] = 0x00ff00; // transparent pixels are translated into RGB(0, 255, 0)
             }
-            row[i + 0] = (byte) (pixels[idx] & 0xff);
+            row[i]     = (byte) (pixels[idx] & 0xff);
             row[i + 1] = (byte) ((pixels[idx] >>> 8) & 0xff);
             row[i + 2] = (byte) ((pixels[idx] >>> 16) & 0xff);
             if (hasAlpha) {
@@ -768,7 +767,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
         }
         return true;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;

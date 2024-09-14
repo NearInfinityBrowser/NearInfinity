@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 65.
+ * Implementation of opcode 65.
  */
 public class Opcode065 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

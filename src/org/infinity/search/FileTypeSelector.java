@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -123,17 +124,20 @@ public class FileTypeSelector extends JPanel implements ActionListener {
   }
 
   /**
+   * Returns a list of available file type {@link JCheckBox} instances.
+   */
+  public List<JCheckBox> getFileTypes() {
+    return Collections.unmodifiableList(Arrays.asList(boxes));
+  }
+
+  /**
    * Gets all selected resource pointers.
    *
    * @param key Key for store last selected values
    * @return List with selected values. Never {@code null}
    */
   public List<ResourceEntry> getResources(String key) {
-    boolean[] selection = LAST_SELECTION.get(key);
-    if (selection == null) {
-      selection = new boolean[filetypes.length];
-      LAST_SELECTION.put(key, selection);
-    }
+    final boolean[] selection = LAST_SELECTION.computeIfAbsent(key, k -> new boolean[filetypes.length]);
 
     final List<ResourceEntry> result = new ArrayList<>();
     for (int i = 0; i < filetypes.length; ++i) {

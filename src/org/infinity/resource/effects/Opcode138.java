@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 138.
+ * Implementation of opcode 138.
  */
 public class Opcode138 extends BaseOpcode {
   private static final String EFFECT_SEQUENCE = "Sequence";

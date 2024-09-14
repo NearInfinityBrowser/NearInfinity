@@ -114,13 +114,13 @@ public class Bookmark implements Cloneable {
 
   /** Returns a list of available paths to executables for the current platform. */
   public List<String> getBinaryPaths() {
-    return getBinaryPaths(Platform.getPlatform());
+    return getBinaryPaths(Platform.OS.getCurrentOS());
   }
 
   /** Returns a list of available paths to executables for the given platform. */
   public List<String> getBinaryPaths(Platform.OS os) {
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
     return Collections.unmodifiableList(binPaths.getOrDefault(os, new ArrayList<String>(1)));
   }
@@ -130,7 +130,7 @@ public class Bookmark implements Cloneable {
    */
   public List<String> setBinaryPaths(Platform.OS os, List<String> pathList) {
     if (os == null) {
-      os = Platform.getPlatform();
+      os = Platform.OS.getCurrentOS();
     }
     List<String> retVal = binPaths.get(os);
 
@@ -268,7 +268,7 @@ public class Bookmark implements Cloneable {
 
   /** Returns the Preferences key for a specific BookmarkBinPath for the current platform. */
   public static String getBinaryPathKey(int idx) {
-    return getBinaryPathKey(Platform.getPlatform(), idx);
+    return getBinaryPathKey(Platform.OS.getCurrentOS(), idx);
   }
 
   /** Returns the Preferences key for a specific BookmarkBinPath for the given platform. */

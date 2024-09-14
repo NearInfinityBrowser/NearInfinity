@@ -55,6 +55,7 @@ import org.infinity.search.AbstractSearcher;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.LuaEntry;
 import org.infinity.util.LuaParser;
 import org.infinity.util.Misc;
@@ -375,9 +376,7 @@ public final class StringUseChecker extends AbstractSearcher
 
           checkCode(compiler.getCode(), type);
         } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
+          Logger.error(e);
         }
       }
     }
@@ -387,9 +386,7 @@ public final class StringUseChecker extends AbstractSearcher
     try {
       checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
-      synchronized (System.err) {
-        e.printStackTrace();
-      }
+      Logger.error(e);
     }
   }
 
@@ -516,7 +513,7 @@ public final class StringUseChecker extends AbstractSearcher
     if (strref >= 0 && strref < Integer.MAX_VALUE) {
       final int index = StringTable.getTranslatedIndex((int)strref);
       if (index >= 0 && index < strUsed.length && !strUsed[index]) {
-        synchronized (strUsed) {
+        synchronized (this) {
           strUsed[index] = true;
         }
       }
@@ -550,7 +547,7 @@ public final class StringUseChecker extends AbstractSearcher
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -572,6 +569,7 @@ public final class StringUseChecker extends AbstractSearcher
         }
         retVal = Long.parseLong(s, radix);
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
 

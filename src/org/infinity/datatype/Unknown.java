@@ -96,8 +96,7 @@ public class Unknown extends Datatype implements Editable, IsBinary {
       panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
       return panel;
     } else {
-      JPanel panel = new JPanel();
-      return panel;
+      return new JPanel();
     }
   }
 

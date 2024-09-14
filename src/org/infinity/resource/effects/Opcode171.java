@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 171.
+ * Implementation of opcode 171.
  */
 public class Opcode171 extends BaseOpcode {
   private static final String RES_TYPE = "SPL";

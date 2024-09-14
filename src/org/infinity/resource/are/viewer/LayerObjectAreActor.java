@@ -23,6 +23,7 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Actor
@@ -79,7 +80,7 @@ public class LayerObjectAreActor extends LayerObjectActor {
         ea = ((IsNumeric) cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     this.cre = cre;
@@ -142,7 +143,7 @@ public class LayerObjectAreActor extends LayerObjectActor {
             item.setAnimation(sprite);
             item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }

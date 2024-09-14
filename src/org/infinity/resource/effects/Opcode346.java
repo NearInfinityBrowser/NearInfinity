@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 346.
+ * Implementation of opcode 346.
  */
 public class Opcode346 extends BaseOpcode {
   private static final String EFFECT_SCHOOL_OF_MAGIC = "School of magic";

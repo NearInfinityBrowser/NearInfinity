@@ -131,7 +131,7 @@ public class DecoderAttributesTableModel extends AbstractTableModel {
           attributes.put(Misc.prettifySymbol(key), value);
         }
       }
-      keys = attributes.keySet().toArray(new String[attributes.keySet().size()]);
+      keys = attributes.keySet().toArray(new String[0]);
       fireTableRowsInserted(0, keys.length - 1);
     }
   }

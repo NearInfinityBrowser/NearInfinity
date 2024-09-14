@@ -267,7 +267,7 @@ public class DlcFileSystemProvider extends FileSystemProvider {
   }
 
   // Checks that the given file is a UnixPath
-  protected static final DlcPath toDlcPath(Path path) {
+  protected static DlcPath toDlcPath(Path path) {
     if (path == null) {
       throw new NullPointerException();
     }

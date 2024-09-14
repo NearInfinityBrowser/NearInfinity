@@ -107,7 +107,7 @@ public class BIFReader extends AbstractBIFFReader {
       int remaining = entry.offset;
       while (remaining > 0) {
         long n = iis.skip(entry.offset);
-        remaining -= n;
+        remaining -= (int) n;
       }
       StreamUtils.readBytes(iis, buffer);
     } finally {
@@ -140,7 +140,7 @@ public class BIFReader extends AbstractBIFFReader {
       int remaining = entryOfs - curOfs;
       while (remaining > 0) {
         long n = iis.skip(entryOfs - curOfs);
-        remaining -= n;
+        remaining -= (int) n;
       }
 
       // reading file entries

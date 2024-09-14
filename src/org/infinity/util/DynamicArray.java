@@ -119,7 +119,7 @@ public class DynamicArray {
   public static short getShort(byte[] buffer, int offset) {
     if (buffer != null && offset >= 0 && offset + 1 < buffer.length) {
       short v = (short) (buffer[offset] & 0xff);
-      v |= (buffer[offset + 1] & 0xff) << 8;
+      v |= (short) ((buffer[offset + 1] & 0xff) << 8);
       return v;
     } else {
       return 0;
@@ -738,10 +738,10 @@ public class DynamicArray {
 
     short v = 0;
     if (ofs < buffer.length) {
-      v |= buffer[ofs++] & 0xff;
+      v |= (short) (buffer[ofs++] & 0xff);
     }
     if (ofs < buffer.length) {
-      v |= (buffer[ofs++] & 0xff) << 8;
+      v |= (short) ((buffer[ofs++] & 0xff) << 8);
     }
 
     return fixShortOrder(v);

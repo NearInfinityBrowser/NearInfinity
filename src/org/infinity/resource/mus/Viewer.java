@@ -30,6 +30,7 @@ import javax.swing.UIManager;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
@@ -119,7 +120,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       }
     } catch (Exception e) {
       JOptionPane.showMessageDialog(this, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
     player.stopPlay();
     setPlayButtonState(false);
@@ -163,7 +164,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
       String dir = getNextToken(tokenizer, true);
       listModel.clear();
       entryList.clear();
-      int count = Integer.valueOf(getNextToken(tokenizer, true));
+      int count = Integer.parseInt(getNextToken(tokenizer, true));
       for (int i = 0; i < count; i++) {
         if (isClosed()) {
           return false;
@@ -182,7 +183,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener {
         try {
           entry.init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(getTopLevelAncestor(),
               "Error loading " + entry.toString() + '\n' + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }

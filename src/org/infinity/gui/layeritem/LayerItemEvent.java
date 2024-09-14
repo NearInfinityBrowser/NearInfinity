@@ -10,7 +10,7 @@ import java.util.EventObject;
  * Used in AbstractLayerItem and subclasses.
  */
 public class LayerItemEvent extends EventObject {
-  private String actionCommand;
+  private final String actionCommand;
 
   public LayerItemEvent(Object source, String cmd) {
     super(source);

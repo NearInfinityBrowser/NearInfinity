@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 103.
+ * Implementation of opcode 103.
  */
 public class Opcode103 extends BaseOpcode {
   private static final String EFFECT_NAME = "Name";

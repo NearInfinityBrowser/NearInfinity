@@ -19,7 +19,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 328.
+ * Implementation of opcode 328.
  */
 public class Opcode328 extends BaseOpcode {
   private static final String EFFECT_STATE = "State";
@@ -80,7 +80,7 @@ public class Opcode328 extends BaseOpcode {
     if (Profile.isEnhancedEdition()) {
       final Bitmap bmp = new Bitmap(buffer, offset, 4, EFFECT_MODE, MODES_EE);
       list.add(bmp);
-      if (parent != null && parent instanceof UpdateListener) {
+      if (parent instanceof UpdateListener) {
         bmp.addUpdateListener((UpdateListener)parent);
       }
       return offset + 4;

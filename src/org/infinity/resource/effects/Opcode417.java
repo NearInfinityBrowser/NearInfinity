@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 417.
+ * Implementation of opcode 417.
  */
 public class Opcode417 extends BaseOpcode {
   private static final String EFFECT_RADIUS           = "Radius";

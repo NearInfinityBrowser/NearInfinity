@@ -7,7 +7,6 @@ package org.infinity.updater;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +22,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
@@ -78,11 +78,7 @@ public class UpdateInfo {
    * @return {@code true} if the string conforms to the update.xml specification, {@code false} otherwise.
    */
   public static boolean isValidXml(String s, String systemId) {
-    try {
-      return isValidXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8.name())), systemId);
-    } catch (UnsupportedEncodingException e) {
-    }
-    return false;
+    return isValidXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), systemId);
   }
 
   /**
@@ -95,6 +91,7 @@ public class UpdateInfo {
     try (InputStream is = StreamUtils.getInputStream(f)) {
       return isValidXml(is, f.getParent().toAbsolutePath().toString());
     } catch (IOException e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -114,6 +111,7 @@ public class UpdateInfo {
       Document doc = dBuilder.parse(is, systemId);
       return NODE_UPDATE.equals(doc.getDocumentElement().getNodeName());
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -146,7 +144,7 @@ public class UpdateInfo {
    * @param systemId Base path for relative URIs (required for Doctype reference).
    */
   public UpdateInfo(String s, String systemId) throws Exception {
-    parseXml(new ByteArrayInputStream(s.getBytes("UTF-8")), systemId);
+    parseXml(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)), systemId);
   }
 
   /**
@@ -570,7 +568,7 @@ public class UpdateInfo {
             reactions = new Reactions(root.getJSONObject(key));
             break;
           default:
-            System.out.printf("Release parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Release parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -722,7 +720,7 @@ public class UpdateInfo {
             siteAdmin = root.getBoolean(key);
             break;
           default:
-            System.out.printf("User parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("User parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -870,7 +868,7 @@ public class UpdateInfo {
             browserDownloadUrl = new URL(root.getString(key));
             break;
           default:
-            System.out.printf("Asset parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Asset parser: Skipping unknown key \"{}\"", key);
         }
       }
 
@@ -972,7 +970,7 @@ public class UpdateInfo {
             eyes = root.getInt(key);
             break;
           default:
-            System.out.printf("Reactions parser: Skipping unknown key \"%s\"\n", key);
+            Logger.info("Reactions parser: Skipping unknown key \"{}\"", key);
         }
       }
 

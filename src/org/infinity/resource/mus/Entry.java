@@ -67,8 +67,7 @@ public class Entry {
     if (name != null) {
       Path key = getCacheKey(path, name);
       if (BufferCache.containsKey(key)) {
-        AudioBuffer ab = BufferCache.get(key);
-        return ab;
+        return BufferCache.get(key);
       }
     }
     return null;

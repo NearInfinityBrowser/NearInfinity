@@ -7,6 +7,7 @@ package org.infinity.resource.bcs;
 import java.awt.Rectangle;
 
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
 
 /**
@@ -77,7 +78,7 @@ public class BcsObject extends BcsStructureBase {
   public boolean isEmptyTarget() {
     boolean empty = true;
     for (long l : target) {
-      empty &= (l == 0L);
+      empty = (l == 0L);
       if (!empty) {
         break;
       }
@@ -89,7 +90,7 @@ public class BcsObject extends BcsStructureBase {
   public boolean isEmptyIdentifier() {
     boolean empty = true;
     for (long l : identifier) {
-      empty &= (l == 0L);
+      empty = (l == 0L);
       if (!empty) {
         break;
       }
@@ -222,6 +223,7 @@ public class BcsObject extends BcsStructureBase {
               num[cntNums++] = n;
             }
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'S':
@@ -229,6 +231,7 @@ public class BcsObject extends BcsStructureBase {
             name = parseString(sbs);
             posName = cnt;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'P':
@@ -240,6 +243,7 @@ public class BcsObject extends BcsStructureBase {
             region.height = r.height;
             posRect = cnt;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         default:

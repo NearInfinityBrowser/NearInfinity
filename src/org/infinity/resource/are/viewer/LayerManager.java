@@ -10,6 +10,7 @@ import java.util.List;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.wed.WedResource;
+import org.infinity.util.Logger;
 
 /**
  * Manages all layer objects of a single ARE map.
@@ -253,7 +254,7 @@ public final class LayerManager {
    */
   public boolean isScheduled(LayerObject obj) {
     if (obj != null) {
-      return !isScheduleEnabled() || (isScheduleEnabled() && obj.isScheduled(getSchedule()));
+      return !isScheduleEnabled() || obj.isScheduled(getSchedule());
     }
     return false;
   }
@@ -601,7 +602,7 @@ public final class LayerManager {
             loadLayer(layer, forced || wedChanged);
             break;
           default:
-            System.err.println(String.format("Unsupported layer type: %s", layer.toString()));
+            Logger.warn("Unsupported layer type: {}", layer);
         }
       }
     }
@@ -753,7 +754,7 @@ public final class LayerManager {
           break;
         }
         default:
-          System.err.println(String.format("Unsupported layer type: %s", layer.toString()));
+          Logger.warn("Unsupported layer type: {}", layer);
       }
     }
     return retVal;

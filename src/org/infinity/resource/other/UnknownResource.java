@@ -44,6 +44,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -78,7 +79,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     this.entry = entry;
     int[] data = this.entry.getResourceInfo();
     if (data != null && data.length > 0) {
-      entrySize = (data.length == 1) ? data[0] : (data[0] * data[1]);
+      entrySize = (data.length == 1) ? data[0] : ((long) data[0] * data[1]);
     } else {
       entrySize = 0L;
     }
@@ -337,7 +338,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
               hexViewer.setCurrentOffset(0L);
               panelRaw.add(hexViewer, BorderLayout.CENTER);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             } finally {
               WindowBlocker.blockWindow(false);
             }
@@ -407,7 +408,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
             editor.discardAllEdits(); // don't undo loading operation
             success = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (success) {
             setEditorActive(true);

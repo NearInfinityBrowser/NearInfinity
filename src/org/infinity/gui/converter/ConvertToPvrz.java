@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -55,6 +56,7 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.Compressor;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -83,14 +85,13 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   // Returns a list of supported graphics file formats
   private static FileNameExtensionFilter[] getInputFilters() {
-    FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg, *.pvr)", "bam", "bmp", "png", "jpg",
-            "jpeg", "pvr"),
+    return new FileNameExtensionFilter[] {
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg, *.pvr)",
+            "bam", "bmp", "png", "jpg", "jpeg", "pvr"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
         new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg"),
         new FileNameExtensionFilter("PVR files (*.pvr)", "pvr") };
-    return filters;
   }
 
   /**
@@ -210,7 +211,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         if (dir != null && dir.isDirectory()) {
           currentDir = dir.toString();
           FileNameExtensionFilter[] filters = getInputFilters();
-          File[] fileList = dir.listFiles();
+          File[] fileList = Objects.requireNonNull(dir.listFiles());
           for (final File file : fileList) {
             for (final FileNameExtensionFilter filter : filters) {
               if (file != null && file.isFile() && filter.accept(file)) {
@@ -276,7 +277,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         try {
           sl = workerConvert.get();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         workerConvert = null;
 
@@ -473,7 +474,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     boolean result = (inFile != null && FileEx.create(inFile).isFile());
     if (result) {
       Dimension d = ColorConvert.getImageDimension(inFile);
-      if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
+      if (d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
         result = false;
       }
     }
@@ -613,7 +614,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           } catch (IOException e) {
             bb = null;
             errors++;
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (bb != null) {
             byte[] buffer = bb.array();
@@ -622,7 +623,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
               os.write(output);
             } catch (Exception e) {
               errors++;
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         } else if (isGraphics) {
@@ -631,6 +632,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           try {
             srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
           } catch (Exception e) {
+            Logger.trace(e);
           }
           if (srcImg == null) {
             skippedFiles++;
@@ -744,7 +746,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
             os.write(pvrz);
           } catch (Exception e) {
             errors++;
-            e.printStackTrace();
+            Logger.error(e);
           }
 
           // cleaning up

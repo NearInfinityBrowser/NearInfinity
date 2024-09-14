@@ -13,7 +13,8 @@ import javax.swing.ProgressMonitor;
 
 import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Threading;
 
@@ -93,7 +94,7 @@ public abstract class AbstractSearcher {
 
       boolean isCancelled = false;
       try (final Threading threadPool = new Threading()) {
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         int i = 0;
         for (final ResourceEntry entry : entries) {
           if (progress.isCanceled()) {
@@ -109,6 +110,15 @@ public abstract class AbstractSearcher {
             if (!lastExt.equalsIgnoreCase(ext)) {
               lastExt = ext;
               updateProgressNote();
+            }
+          }
+
+          // XXX: workaround for keeping progress dialog note in sync with actual progress
+          while (threadPool.hasQueuedSubmissions()) {
+            try {
+              Thread.sleep(0);
+            } catch (InterruptedException e) {
+              Logger.trace(e);
             }
           }
 
@@ -131,13 +141,14 @@ public abstract class AbstractSearcher {
           try {
             threadPool.awaitTermination(10L, TimeUnit.MILLISECONDS);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
       } catch (Exception e) {
-        // ignored
+        Logger.trace(e);
       }
 
-      Debugging.timerShow(operation + " completed", Debugging.TimeFormat.MILLISECONDS);
+      Logger.info(DebugTimer.getInstance().getTimerFormatted(operation + " completed"));
 
       if (isCancelled) {
         JOptionPane.showMessageDialog(parent, operation + " cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);

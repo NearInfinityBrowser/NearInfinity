@@ -5,6 +5,8 @@
   <property name="src.path" location="src"/>
   <property name="lib.path.rel" value="lib"/>
   <property name="lib.path.abs" location="${lib.path.rel}"/>
+  <property name="tinylog-api.file" value="${lib.path.rel}/tinylog/tinylog-api-2.7.0.jar"/>
+  <property name="tinylog-impl.file" value="${lib.path.rel}/tinylog/tinylog-impl-2.7.0.jar"/>
   <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
   <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
   <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
@@ -31,15 +33,28 @@
            deprecation="false"
            debug="false"
            debuglevel="lines,vars,source"
-           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}:${apng_writer.file}:${json.file}:${commonmark.file}:${flatlaf.file}:${flatlafthemes.file}">
+           classpath="${classpath}:${tinylog-api.file}:${tinylog-impl.file}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}:${apng_writer.file}:${json.file}:${commonmark.file}:${flatlaf.file}:${flatlafthemes.file}">
       <!-- Various debugging options: -->
-      <!-- <compilerarg value="-Xlint:cast"/> -->
-      <!-- <compilerarg value="-Xlint:deprecation"/> -->
-      <!-- <compilerarg value="-Xlint:empty"/> -->
-      <!-- <compilerarg value="-Xlint:finally"/> -->
-      <!-- <compilerarg value="-Xlint:overrides"/> -->
-      <!-- <compilerarg value="-Xlint:path"/> -->
+      <compilerarg value="-Xlint:cast"/>
+      <compilerarg value="-Xlint:classfile"/>
+      <compilerarg value="-Xlint:deprecation"/>
+      <compilerarg value="-Xlint:divzero"/>
+      <compilerarg value="-Xlint:empty"/>
+      <!-- <compilerarg value="-Xlint:fallthrough"/> -->
+      <compilerarg value="-Xlint:finally"/>
+      <compilerarg value="-Xlint:options"/>
+      <compilerarg value="-Xlint:overloads"/>
+      <compilerarg value="-Xlint:overrides"/>
+      <compilerarg value="-Xlint:path"/>
+      <compilerarg value="-Xlint:processing"/>
+      <!-- <compilerarg value="-Xlint:rawtypes"/> -->
+      <compilerarg value="-Xlint:static"/>
+      <!-- <compilerarg value="-Xlint:try"/> -->
       <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:varargs"/>
+
+      <!-- Enable all debugging options at once -->
+      <!-- <compilerarg value="-Xlint:all"/> -->
     </javac>
 
     <copy todir="${build.path}">
@@ -50,6 +65,8 @@
          basedir="${build.path}"
          includes="**/*"
          level="9">
+      <zipgroupfileset dir="." includes="${tinylog-api.file}"/>
+      <zipgroupfileset dir="." includes="${tinylog-impl.file}"/>
       <zipgroupfileset dir="." includes="${jorbis.file}"/>
       <zipgroupfileset dir="." includes="${rsyntaxtextarea.file}"/>
       <zipgroupfileset dir="." includes="${jhexview.file}"/>

@@ -31,7 +31,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
   /**
    * Creates a new tuple from the array. The array must contain at least 2 elements.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param arr The array to be used as source for the tuple.
    * @return A new tuple instance.
    */
@@ -48,7 +48,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
   /**
    * Creates a new tuple from the collection. The collection must contain at least 2 elements.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param col the collection to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -68,7 +68,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
   /**
    * Creates a new tuple from the {@code Iterable} object.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -79,7 +79,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
   /**
    * Creates a new tuple from the {@code Iterable} object, starting the specified index.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @param index    start index in {@code Iterable} object.
    * @return A new tuple instance.

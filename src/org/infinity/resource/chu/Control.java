@@ -25,7 +25,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
-final class Control extends AbstractStruct { // implements AddRemovable
+final public class Control extends AbstractStruct { // implements AddRemovable
   // CHU/Control-specific field labels
   public static final String CHU_CONTROL                                = "Control";
   public static final String CHU_CONTROL_OFFSET                         = "Offset";

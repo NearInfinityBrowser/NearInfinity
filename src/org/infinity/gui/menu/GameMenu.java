@@ -30,6 +30,7 @@ import org.infinity.gui.StandardDialogs;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.Platform;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -316,7 +317,7 @@ public class GameMenu extends JMenu implements BrowserSubMenu, ActionListener {
           try {
             isEqual = keyFile.equals(Profile.getChitinKey().toAbsolutePath());
           } catch (IOError e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           if (!isEqual) {
             int confirm = JOptionPane.YES_OPTION;

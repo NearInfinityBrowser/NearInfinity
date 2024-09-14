@@ -16,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
 
@@ -72,6 +73,7 @@ public class BIFFReader extends AbstractBIFFReader {
     try {
       return (int) Files.size(getFile());
     } catch (IOException e) {
+      Logger.trace(e);
     }
     return -1;
   }

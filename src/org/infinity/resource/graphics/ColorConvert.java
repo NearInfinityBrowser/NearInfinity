@@ -34,16 +34,18 @@ import java.util.PriorityQueue;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.ImageIcon;
 
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Triple;
 
 /**
- * Contains a set of color-related static methods (little endian order only).
+ * Contains a set of color and graphics-related static methods.
  */
 public class ColorConvert {
   /**
@@ -260,6 +262,56 @@ public class ColorConvert {
       dstImage = new BufferedImage(cm, raster, isAlphaPreMultiplied, table);
     }
     return dstImage;
+  }
+
+  /**
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@link Image} instance.
+   *
+   * @param cls      {@code Class} object used to to determine the root path within the Java archive.
+   * @param fileName Filename of the graphics file relative to the class path.
+   * @return {@link Image} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
+   */
+  public static Image loadAppImage(Class<?> cls, String fileName) {
+    Image retVal = null;
+
+    if (fileName == null) {
+      return retVal;
+    }
+
+    if (cls == null) {
+      cls = ColorConvert.class;
+    }
+
+    try (InputStream is = cls.getResourceAsStream(fileName)) {
+      if (is != null) {
+        retVal = ImageIO.read(is);
+      }
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+
+    return retVal;
+  }
+
+  /**
+   * A static method that loads a graphics file from the folder relative to the specified {@code Class} object and
+   * returns it as an {@link ImageIcon} instance.
+   *
+   * @param cls      {@code Class} object used to determine the root path within the Java archive.
+   * @param fileName Filename of the graphics file relative to the root path. The following file format are supported:
+   *                 BMP, GIF, JPEG, PNG and WEBP.
+   * @return {@link ImageIcon} instance of the graphics file. Returns {@code null} if graphics file could not be loaded.
+   */
+  public static ImageIcon loadAppIcon(Class<?> cls, String fileName) {
+    ImageIcon retVal = null;
+
+    final Image image = loadAppImage(cls, fileName);
+    if (image != null) {
+      retVal = new ImageIcon(image);
+    }
+
+    return retVal;
   }
 
   /**
@@ -806,7 +858,7 @@ public class ColorConvert {
           throw new Exception("Invalid BMP resource: " + entry.getResourceName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read BMP resource: " + entry.getResourceName());
       }
     } else {
@@ -840,7 +892,7 @@ public class ColorConvert {
           throw new Exception("Error loading palette from PNG file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read PNG file " + file.getFileName());
       }
     } else {
@@ -893,7 +945,7 @@ public class ColorConvert {
           throw new Exception("Invalid Windows palette file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read Windows palette file " + file.getFileName());
       }
     } else {
@@ -935,7 +987,7 @@ public class ColorConvert {
           throw new Exception("Invalid Adobe Photoshop palette file " + file.getFileName());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read Adobe Photoshop palette file " + file.getFileName());
       }
     } else {
@@ -987,7 +1039,7 @@ public class ColorConvert {
           throw new Exception("Unsupport file type.");
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unable to read BAM resource: " + entry.getResourceName());
       }
     } else {
@@ -1217,7 +1269,7 @@ public class ColorConvert {
       a = rgba[3] * rgba[3] * 0.5;
       dist[i] = Math.sqrt(b + g + r + a);
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by saturation.
@@ -1226,11 +1278,11 @@ public class ColorConvert {
     double[] dist = new double[colors.length];
     for (int i = 0; i < colors.length; i++) {
       double[] rgba = getNormalizedColor(colors[i]);
-      double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+      double cmin = Math.min(rgba[0], rgba[1]);
       if (rgba[2] < cmin) {
         cmin = rgba[2];
       }
-      double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+      double cmax = Math.max(rgba[0], rgba[1]);
       if (rgba[2] > cmax) {
         cmax = rgba[2];
       }
@@ -1244,7 +1296,7 @@ public class ColorConvert {
       }
       dist[i] = s;
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by hue.
@@ -1253,11 +1305,11 @@ public class ColorConvert {
     double[] dist = new double[colors.length];
     for (int i = 0; i < colors.length; i++) {
       double[] rgba = getNormalizedColor(colors[i]);
-      double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+      double cmin = Math.min(rgba[0], rgba[1]);
       if (rgba[2] < cmin) {
         cmin = rgba[2];
       }
-      double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+      double cmax = Math.max(rgba[0], rgba[1]);
       if (rgba[2] > cmax) {
         cmax = rgba[2];
       }
@@ -1286,7 +1338,7 @@ public class ColorConvert {
       }
       dist[i] = h;
     }
-    return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    return Double.compare(dist[0], dist[1]);
   };
 
   // Compare colors by red amount.
@@ -1321,13 +1373,7 @@ public class ColorConvert {
   private static final Comparator<Integer> COMPARE_BY_LAB_L = (c1, c2) -> {
     Triple<Double, Double, Double> dist1 = convertRGBtoLab(c1);
     Triple<Double, Double, Double> dist2 = convertRGBtoLab(c2);
-    if (dist1.getValue0() < dist2.getValue0()) {
-      return -1;
-    } else if (dist1.getValue0() > dist2.getValue0()) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return dist1.getValue0().compareTo(dist2.getValue0());
     // int dist1 = (c1 >>> 24) & 0xff;
     // int dist2 = (c2 >>> 24) & 0xff;
     // return dist1 - dist2;

@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 318.
+ * Implementation of opcode 318.
  */
 public class Opcode318 extends BaseOpcode {
   private static final String EFFECT_STAT_OPCODE  = "Stat opcode";

@@ -24,8 +24,8 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractJFlexCTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
-
 
 /**
  * Scanner for the GLSL programming language (based on scanner for C).
@@ -3805,7 +3805,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
       yybegin(state);
       return yylex();
     } catch (IOException ioe) {
-      ioe.printStackTrace();
+      Logger.error(ioe);
       return new TokenImpl();
     }
 

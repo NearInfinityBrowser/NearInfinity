@@ -22,10 +22,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -62,7 +59,7 @@ import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.util.StringTable;
 
-final class Viewer extends JPanel
+final public class Viewer extends JPanel
     implements ActionListener, TableModelListener, ListSelectionListener, ChangeListener, MouseListener {
   /** Supported control types. */
   public enum ControlType {
@@ -154,12 +151,12 @@ final class Viewer extends JPanel
     if (e.getSource() == cbOutlineControls) {
       // updating main display
       Panel p = getSelectedPanel();
-      p.repaint();
+      Objects.requireNonNull(p).repaint();
       rcMain.repaint();
     } else if (e.getSource() == cbTransparentPanel) {
       // updating main display
       Panel p = getSelectedPanel();
-      p.repaint();
+      Objects.requireNonNull(p).repaint();
       rcMain.repaint();
     }
   }
@@ -173,7 +170,7 @@ final class Viewer extends JPanel
     if (e.getSource() == getResource()) {
       // updating viewer elements
       Panel p = getSelectedPanel();
-      p.reset();
+      Objects.requireNonNull(p).reset();
       setPreview(p.getImage());
     }
   }
@@ -203,7 +200,7 @@ final class Viewer extends JPanel
 
         // updating selected control in main window
         Panel p = getSelectedPanel();
-        p.repaint();
+        Objects.requireNonNull(p).repaint();
         rcMain.repaint();
       }
     }
@@ -223,7 +220,7 @@ final class Viewer extends JPanel
         c.updateState();
         c.updateImage();
       }
-      p.repaint();
+      Objects.requireNonNull(p).repaint();
       rcMain.repaint();
     }
   }
@@ -291,22 +288,12 @@ final class Viewer extends JPanel
 
   /** Returns the currently active panel. */
   Panel getSelectedPanel() {
-    Object o = panelsModel.getElementAt(panelsList.getSelectedIndex());
-    if (o instanceof Panel) {
-      return (Panel) o;
-    } else {
-      return null;
-    }
+    return panelsModel.getElementAt(panelsList.getSelectedIndex());
   }
 
   /** Returns the currently active control. */
   BaseControl getSelectedControl() {
-    Object o = controlsModel.getElementAt(controlsList.getSelectedIndex());
-    if (o instanceof BaseControl) {
-      return (BaseControl) o;
-    } else {
-      return null;
-    }
+    return controlsModel.getElementAt(controlsList.getSelectedIndex());
   }
 
   /** Returns the current properties panel instance. */
@@ -421,7 +408,7 @@ final class Viewer extends JPanel
   // ----------------------------- INNER CLASSES -----------------------------
 
   // Data model for the panels list
-  private class ListPanelsModel extends AbstractListModel<Panel> {
+  private static class ListPanelsModel extends AbstractListModel<Panel> {
     private final List<Panel> listPanels = new ArrayList<>();
     private final Viewer viewer;
 
@@ -462,7 +449,7 @@ final class Viewer extends JPanel
   }
 
   // Data model for the controls list
-  private class ListControlsModel extends AbstractListModel<BaseControl> {
+  private static class ListControlsModel extends AbstractListModel<BaseControl> {
     private final List<BaseControl> listControls = new ArrayList<>();
     private final Viewer viewer;
 
@@ -582,7 +569,7 @@ final class Viewer extends JPanel
 
     public void addChangeListener(ChangeListener l) {
       if (l != null) {
-        if (listeners.indexOf(l) < 0) {
+        if (!listeners.contains(l)) {
           listeners.add(l);
         }
       }
@@ -1024,11 +1011,11 @@ final class Viewer extends JPanel
   }
 
   // Common base for control specific classes
-  private static abstract class BaseControl {
+  public static abstract class BaseControl {
     private final Viewer viewer;
     private final Control control;
+    private final Color outlinedColor;
 
-    private Color outlinedColor;
     private boolean visible;
 
     protected BaseControl(Viewer viewer, Control control, ControlType type) {
@@ -1127,12 +1114,10 @@ final class Viewer extends JPanel
     @Override
     public String toString() {
       if (getResource() != null) {
-        StringBuilder sb = new StringBuilder("ID: ");
-        sb.append(getResource().getControlId());
-        sb.append(" (Type: ");
-        sb.append(getControlType(getResource().getControlType()).name());
-        sb.append(")");
-        return sb.toString();
+        return "ID: " + getResource().getControlId() +
+            " (Type: " +
+            getControlType(getResource().getControlType()).name() +
+            ")";
       } else {
         return "(none)";
       }
@@ -1276,7 +1261,7 @@ final class Viewer extends JPanel
           int intensity = palette[1] & 0xff;
           for (int i = 1; i < 255 && isAlpha; i++, intensity--) {
             int alpha = intensity | (intensity << 8) | (intensity << 16);
-            isAlpha &= (palette[i] & 0xffffff) == alpha;
+            isAlpha = (palette[i] & 0xffffff) == alpha;
           }
 
           if (isAlpha) {
@@ -1842,43 +1827,41 @@ final class Viewer extends JPanel
             if (isVisible()) {
               String text = StringTable
                   .getStringRef(((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
-              if (text != null) {
-                String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT))
-                    .getResourceName();
-                resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
-                BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
-                if (bam != null) {
-                  Flag flags = (Flag) getResource().getAttribute(Control.CHU_CONTROL_LBL_FLAGS);
-                  Color col = null;
-                  if (flags.isFlagSet(0)) {
-                    col = new Color(
-                        ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_LBL_COLOR_1)).getValue());
+              String resName = ((IsReference) getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT))
+                  .getResourceName();
+              resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
+              BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
+              if (bam != null) {
+                Flag flags = (Flag) getResource().getAttribute(Control.CHU_CONTROL_LBL_FLAGS);
+                Color col = null;
+                if (flags.isFlagSet(0)) {
+                  col = new Color(
+                      ((IsNumeric) getResource().getAttribute(Control.CHU_CONTROL_LBL_COLOR_1)).getValue());
+                }
+                Image textImage = drawText(text, bam, col, flags.isFlagSet(1));
+                if (textImage != null) {
+                  // calculating text alignment
+                  int srcWidth = textImage.getWidth(null);
+                  int srcHeight = textImage.getHeight(null);
+                  int dstWidth = image.getWidth();
+                  int dstHeight = image.getHeight();
+                  int x = 0, y = 0;
+                  if (flags.isFlagSet(3)) { // left
+                    x = 0;
+                  } else if (flags.isFlagSet(4)) { // right
+                    x = dstWidth - srcWidth;
+                  } else { // hcenter
+                    x = (dstWidth - srcWidth) / 2;
                   }
-                  Image textImage = drawText(text, bam, col, flags.isFlagSet(1));
-                  if (textImage != null) {
-                    // calculating text alignment
-                    int srcWidth = textImage.getWidth(null);
-                    int srcHeight = textImage.getHeight(null);
-                    int dstWidth = image.getWidth();
-                    int dstHeight = image.getHeight();
-                    int x = 0, y = 0;
-                    if (flags.isFlagSet(3)) { // left
-                      x = 0;
-                    } else if (flags.isFlagSet(4)) { // right
-                      x = dstWidth - srcWidth;
-                    } else { // hcenter
-                      x = (dstWidth - srcWidth) / 2;
-                    }
-                    if (flags.isFlagSet(5)) { // top
-                      y = 0;
-                    } else if (flags.isFlagSet(7)) { // bottom
-                      y = dstHeight - srcHeight;
-                    } else { // vcenter
-                      y = (dstHeight - srcHeight) / 2;
-                    }
-                    // drawing text
-                    g.drawImage(textImage, x, y, srcWidth, srcHeight, null);
+                  if (flags.isFlagSet(5)) { // top
+                    y = 0;
+                  } else if (flags.isFlagSet(7)) { // bottom
+                    y = dstHeight - srcHeight;
+                  } else { // vcenter
+                    y = (dstHeight - srcHeight) / 2;
                   }
+                  // drawing text
+                  g.drawImage(textImage, x, y, srcWidth, srcHeight, null);
                 }
               }
             }

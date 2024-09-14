@@ -34,6 +34,7 @@ import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.graphics.BamResource;
+import org.infinity.util.Logger;
 
 public class ChildFrame extends JFrame {
   private static final List<ChildFrame> WINDOWS = new ArrayList<>();
@@ -190,7 +191,7 @@ public class ChildFrame extends JFrame {
               return;
             }
           } catch (Exception e2) {
-            e2.printStackTrace();
+            Logger.error(e2);
             return;
           }
           WINDOWS.remove(ChildFrame.this);
@@ -338,7 +339,7 @@ public class ChildFrame extends JFrame {
         }
         frame.dispose();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

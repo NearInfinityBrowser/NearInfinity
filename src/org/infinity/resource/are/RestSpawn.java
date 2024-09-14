@@ -13,9 +13,11 @@ import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.util.io.StreamUtils;
 
-public final class RestSpawn extends AbstractStruct {
+public final class RestSpawn extends AbstractStruct implements AddRemovable {
   // ARE/Rest Encounters-specific field labels
   public static final String ARE_RESTSPAWN                        = "Rest encounters";
   public static final String ARE_RESTSPAWN_NAME                   = "Name";
@@ -34,8 +36,17 @@ public final class RestSpawn extends AbstractStruct {
   public static final String ARE_RESTSPAWN_PROBABILITY_DAY_HOUR   = "Hourly probability (day)";
   public static final String ARE_RESTSPAWN_PROBABILITY_NIGHT_HOUR = "Hourly probability (night)";
 
+  public RestSpawn() throws Exception {
+    super(null, ARE_RESTSPAWN, StreamUtils.getByteBuffer(228), 0);
+  }
+
   RestSpawn(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception {
     super(superStruct, ARE_RESTSPAWN, buffer, offset);
+  }
+
+  @Override
+  public boolean canRemove() {
+    return false;
   }
 
   @Override

@@ -50,7 +50,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private final Preferences prefsGui;
   private final Preferences prefsProfiles;
 
-  /** Returns {@true} if this class has been instantiated. */
+  /** Returns {@code true} if this class has been instantiated. */
   public static boolean isInstantiated() {
     return (menuBar != null);
   }

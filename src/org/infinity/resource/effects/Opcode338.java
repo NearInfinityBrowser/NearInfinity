@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 338.
+ * Implementation of opcode 338.
  */
 public class Opcode338 extends BaseOpcode {
   private static final String EFFECT_MESSAGE = "Message";

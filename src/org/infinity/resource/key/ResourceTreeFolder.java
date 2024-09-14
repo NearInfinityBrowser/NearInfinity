@@ -163,7 +163,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder> 
     public boolean containsAll(Collection<?> c) {
       boolean bRet = true;
       for (final Object o : c) {
-        bRet &= contains(o);
+        bRet = contains(o);
         if (!bRet) {
           break;
         }

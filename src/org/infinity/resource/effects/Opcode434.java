@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 434.
+ * Implementation of opcode 434.
  */
 public class Opcode434 extends BaseOpcode {
   private static final String EFFECT_INTERVAL = "Interval";

@@ -18,7 +18,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 342.
+ * Implementation of opcode 342.
  */
 public class Opcode342 extends BaseOpcode {
   private static final String EFFECT_FIELD    = "Field";
@@ -55,7 +55,7 @@ public class Opcode342 extends BaseOpcode {
         list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     }
     list.add(bmp);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       bmp.addUpdateListener((UpdateListener)parent);
     }
     return null;

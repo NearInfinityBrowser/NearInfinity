@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 436.
+ * Implementation of opcode 436.
  */
 public class Opcode436 extends BaseOpcode {
   private static final String EFFECT_ENCHANTMENT_TO_OVERCOME = "Enchantment to overcome";

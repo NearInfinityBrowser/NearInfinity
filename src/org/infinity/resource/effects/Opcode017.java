@@ -14,7 +14,7 @@ import org.infinity.datatype.Flag;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 17.
+ * Implementation of opcode 17.
  */
 public class Opcode017 extends BaseOpcode {
   private static final String EFFECTS_HEAL_FLAGS = "Heal flags";

@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 406.
+ * Implementation of opcode 406.
  */
 public class Opcode406 extends BaseOpcode {
   private static final String EFFECT_SHIELD_TYPE = "Shield type";

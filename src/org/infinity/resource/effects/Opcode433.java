@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 433.
+ * Implementation of opcode 433.
  */
 public class Opcode433 extends BaseOpcode {
   private static final String EFFECT_BLINK_TYPE = "Blink type";

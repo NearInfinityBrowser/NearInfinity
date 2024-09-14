@@ -20,6 +20,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.IniMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -57,7 +58,7 @@ public class InfinityTables {
       IdsMap table = new IdsMap(entry);
       retVal.addAll(processTable(table, animationId));
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -95,9 +96,9 @@ public class InfinityTables {
       }
     } catch (InvocationTargetException ite) {
       if (ite.getCause() != null) {
-        ite.getCause().printStackTrace();
+        Logger.error(ite.getCause());
       } else {
-        ite.printStackTrace();
+        Logger.error(ite);
       }
     } catch (Exception e) {
       return retVal;
@@ -113,7 +114,7 @@ public class InfinityTables {
     Misc.requireCondition(items.length > 5, "Infinity Animations table entry: too few entries");
 
     String prefix = items[0].trim();
-    Misc.requireCondition(prefix.length() > 0, "Animation prefix not available");
+    Misc.requireCondition(!prefix.isEmpty(), "Animation prefix not available");
 
     int space = Misc.toNumber(SpriteTables.valueToString(items, 3, "3"), 16, 3);
     Misc.requireCondition(space > 0, "Invalid personal space: " + space);
@@ -171,7 +172,7 @@ public class InfinityTables {
     int split = -1;
     String height = "";
     String heightShield = "";
-    switch (animType) {
+    switch (Objects.requireNonNull(animType)) {
       case MONSTER_MULTI:
       case MONSTER_MULTI_NEW:
         split = 1;
@@ -219,9 +220,7 @@ public class InfinityTables {
     retVal[SpriteTables.COLUMN_ELLIPSE] = Integer.toString(ellipse);
     retVal[SpriteTables.COLUMN_SPACE] = Integer.toString(space);
     retVal[SpriteTables.COLUMN_BLENDING] = "0";
-    if (clown >= 0) {
-      retVal[SpriteTables.COLUMN_CLOWN] = Integer.toString(clown);
-    }
+    retVal[SpriteTables.COLUMN_CLOWN] = Integer.toString(clown);
     if (split >= 0) {
       retVal[SpriteTables.COLUMN_SPLIT] = Integer.toString(split);
     }

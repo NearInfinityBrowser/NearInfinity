@@ -22,6 +22,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.Ambient;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Ambient Sound and Ambient Sound Range
@@ -71,7 +72,7 @@ public class LayerObjectAmbient extends LayerObject {
 
       msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons

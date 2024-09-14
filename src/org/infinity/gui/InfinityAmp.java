@@ -37,6 +37,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.mus.Entry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
@@ -155,7 +156,7 @@ public final class InfinityAmp extends ChildFrame
       keepPlaying = false;
       player.stopPlay();
     } else if (event.getSource() == bAdd) {
-      int indices[] = allMusList.getSelectedIndices();
+      int[] indices = allMusList.getSelectedIndices();
       for (final int index : indices) {
         selectedMusModel.addElement(allMusModel.get(index));
       }
@@ -167,7 +168,7 @@ public final class InfinityAmp extends ChildFrame
       if (index >= 0) {
         selectedMusList.addSelectionInterval(index, index);
       }
-      bPlay.setEnabled(selectedMusModel.size() > 0);
+      bPlay.setEnabled(!selectedMusModel.isEmpty());
     } else if (event.getSource() == bUp) {
       int index = selectedMusList.getSelectedIndex();
       ResourceEntry o = selectedMusModel.remove(index);
@@ -284,7 +285,7 @@ public final class InfinityAmp extends ChildFrame
     } catch (Exception e) {
       JOptionPane.showMessageDialog(this, "Error accessing " + musEntry + '\n' + e.getMessage(), "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 }

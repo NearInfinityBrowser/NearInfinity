@@ -53,7 +53,7 @@ public class BamFilterColorInvert extends BamFilterBaseColor implements ChangeLi
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }
@@ -67,9 +67,7 @@ public class BamFilterColorInvert extends BamFilterBaseColor implements ChangeLi
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -180,7 +178,7 @@ public class BamFilterColorInvert extends BamFilterBaseColor implements ChangeLi
       }
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           buffer[i] = (buffer[i] & 0xff000000) | (~buffer[i] & 0x00ffffff);
         }
       }

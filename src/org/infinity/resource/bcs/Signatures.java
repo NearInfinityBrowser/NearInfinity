@@ -24,7 +24,7 @@ import org.infinity.util.io.StreamUtils;
  * Manages action and trigger function signatures.
  */
 public class Signatures {
-  private static HashMap<String, Signatures> instances = new HashMap<>();
+  private static final HashMap<String, Signatures> INSTANCES = new HashMap<>();
 
   private final TreeMap<Integer, HashSet<Function>> functions;
   private final HashMap<String, Function> functionsByName;
@@ -57,7 +57,7 @@ public class Signatures {
    * Returns the set of functions associated with the specified identifier. Returns {@code null} if not available.
    */
   public Function[] getFunction(int id) {
-    HashSet<Function> set = functions.get(Integer.valueOf(id));
+    HashSet<Function> set = functions.get(id);
     if (set != null) {
       Function[] retVal = new Function[set.size()];
       int idx = 0;
@@ -101,7 +101,7 @@ public class Signatures {
    * Removes all function signatures from cache.
    */
   public static void clearCache() {
-    instances.clear();
+    INSTANCES.clear();
   }
 
   /** Convenience method for getting trigger signatures. */
@@ -126,7 +126,7 @@ public class Signatures {
     Signatures retVal = null;
 
     resource = normalizedName(resource);
-    retVal = instances.get(resource);
+    retVal = INSTANCES.get(resource);
     if (retVal == null) {
       ResourceEntry entry = ResourceFactory.getResourceEntry(resource);
       if (entry == null) {
@@ -143,7 +143,7 @@ public class Signatures {
         for (String line : lines) {
           Function f = Function.parse(line, isTrigger);
           if (f != null) {
-            HashSet<Function> set = retVal.functions.get(Integer.valueOf(f.getId()));
+            HashSet<Function> set = retVal.functions.get(f.getId());
             if (set == null) {
               set = new HashSet<>(8);
             }
@@ -163,7 +163,7 @@ public class Signatures {
       for (final String line : hardcoded) {
         Function f = Function.parse(line, isTrigger);
         if (f != null) {
-          HashSet<Function> set = retVal.functions.get(Integer.valueOf(f.getId()));
+          HashSet<Function> set = retVal.functions.get(f.getId());
           if (set == null) {
             set = new HashSet<>(8);
           }
@@ -173,7 +173,7 @@ public class Signatures {
         }
       }
 
-      instances.put(resource, retVal);
+      INSTANCES.put(resource, retVal);
     }
     return retVal;
   }
@@ -212,10 +212,10 @@ public class Signatures {
     public static final String ACTION_OVERRIDE_NAME = "ActionOverride";
 
     private final FunctionType type; // function type
+    private final ArrayList<Parameter> param; // list of parameter definitions
 
     private int id; // function identifier
     private String name; // function name (without parentheses and parameters)
-    private ArrayList<Parameter> param; // list of parameter definitions
 
     public Function(int id, String name, FunctionType type) {
       setId(id);
@@ -447,11 +447,9 @@ public class Signatures {
 
       if (success) {
         List<Parameter> paramList = Parameter.parse(params, id, funcType);
-        if (paramList != null) {
-          retVal = new Function(id, name, funcType);
-          for (Parameter p : paramList) {
-            retVal.addParameter(p);
-          }
+        retVal = new Function(id, name, funcType);
+        for (Parameter p : paramList) {
+          retVal.addParameter(p);
         }
       }
 
@@ -541,7 +539,7 @@ public class Signatures {
 
       /** Sets parameter name (without trailing asterisk '*'). */
       public void setName(String name) {
-        if (name == null || name.length() == 0) {
+        if (name == null || name.isEmpty()) {
           this.name = "";
         } else {
           int idx = name.indexOf('*');
@@ -556,7 +554,7 @@ public class Signatures {
 
       /** Sets lowercased IDS reference. */
       public void setIdsRef(String idsRef) {
-        if (idsRef == null || idsRef.length() == 0) {
+        if (idsRef == null || idsRef.isEmpty()) {
           this.idsRef = "";
         } else {
           this.idsRef = idsRef.toLowerCase(Locale.ENGLISH);
@@ -694,12 +692,12 @@ public class Signatures {
               }
             }
             s = m.group(2);
-            if (s.length() > 0) {
+            if (!s.isEmpty()) {
               name = s.replace(" ", "");
             }
             if (m.groupCount() > 2) {
               s = m.group(3);
-              if (s.length() > 0) {
+              if (!s.isEmpty()) {
                 idsRef = s;
               }
             }

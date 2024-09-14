@@ -429,7 +429,7 @@ public class ButtonPanel extends JPanel {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  private class Entry {
+  private static class Entry {
     private final JComponent component;
     private final Control type;
 

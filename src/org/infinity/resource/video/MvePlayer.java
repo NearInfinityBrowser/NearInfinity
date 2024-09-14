@@ -8,13 +8,16 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 
+import org.infinity.util.Logger;
+
 public class MvePlayer {
+  private final AudioQueue audioQueue;
+
   private boolean playing;
   private boolean paused;
   private boolean stopped;
   private long startTime;
   private long delayTime;
-  private AudioQueue audioQueue;
   private SourceDataLine dataLine;
 
   public MvePlayer() {
@@ -99,6 +102,7 @@ public class MvePlayer {
           try {
             Thread.sleep(1);
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
         dataLine.start();
@@ -138,11 +142,13 @@ public class MvePlayer {
       try {
         Thread.sleep(50L);
       } catch (InterruptedException e) {
+        Logger.trace(e);
       }
     }
     try {
       Thread.sleep(100L);
     } catch (InterruptedException e) {
+      Logger.trace(e);
     }
   }
 
@@ -218,12 +224,18 @@ public class MvePlayer {
         try {
           Thread.sleep(1);
         } catch (InterruptedException e) {
+          Logger.trace(e);
         }
       }
     }
     if (timeRemaining() <= 2000000L) {
       while (timeRemaining() > remaining) {
         // waste remaining nanoseconds
+        try {
+          Thread.sleep(0);
+        } catch (InterruptedException e) {
+          Logger.trace(e);
+        }
       }
     }
   }
@@ -243,7 +255,7 @@ public class MvePlayer {
       try {
         dataLine = AudioSystem.getSourceDataLine(audioFormat);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         throw new Exception("Unsupported audio format");
       }
       dataLine.open(audioFormat, 16384);

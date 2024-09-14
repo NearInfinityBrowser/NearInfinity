@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -15,12 +16,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
-import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -47,6 +48,7 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
@@ -110,24 +112,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   public static final String ITM_DIALOG                 = "Dialogue";
   public static final String ITM_SPEAKER_NAME           = "Speaker name";
   public static final String ITM_WEAPON_COLOR           = "Weapon color";
-
-  public static final String[] CATEGORIES_ARRAY = { "Miscellaneous", "Amulets and necklaces", "Armor",
-      "Belts and girdles", "Boots", "Arrows", "Bracers and gauntlets", "Headgear", "Keys", "Potions", "Rings",
-      "Scrolls", "Shields", "Food", "Bullets", "Bows", "Daggers", "Maces", "Slings", "Small swords", "Large swords",
-      "Hammers", "Morning stars", "Flails", "Darts", "Axes", "Quarterstaves", "Crossbows", "Hand-to-hand weapons",
-      "Spears", "Halberds", "Bolts", "Cloaks and robes", "Gold pieces", "Gems", "Wands", "Containers", "Books",
-      "Familiars", "Tattoos", "Lenses", "Bucklers", "Candles", "Child bodies", "Clubs", "Female bodies", "Keys (old)",
-      "Large shields", "Male bodies", "Medium shields", "Notes", "Rods", "Skulls", "Small shields", "Spider bodies",
-      "Telescopes", "Bottles", "Greatswords", "Bags", "Furs and pelts", "Leather armor", "Studded leather",
-      "Chain mail", "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes", "Scale mail", "Bastard swords",
-      "Scarves", "Rations", "Hats", "Gloves", "Eyeballs", "Earrings", "Teeth", "Bracelets" };
-
-  public static final String[] CATEGORIES11_ARRAY = { "Miscellaneous", "Amulets and necklaces", "Armor",
-      "Belts and girdles", "Boots", "Arrows", "Bracers and gauntlets", "Headgear", "Keys", "Potions", "Rings",
-      "Scrolls", "Shields", "Spells", "Bullets", "Bows", "Daggers", "Maces", "Slings", "Small swords", "Large swords",
-      "Hammers", "Morning stars", "Flails", "Darts", "Axes", "Quarterstaves", "Crossbows", "Hand-to-hand weapons",
-      "Greatswords", "Halberds", "Bolts", "Cloaks and robes", "Copper commons", "Gems", "Wands", "Eyeballs",
-      "Bracelets", "Earrings", "Tattoos", "Lenses", "Teeth" };
 
   public static final String[] FLAGS_ARRAY = { "None", "Critical item", "Two-handed", "Droppable", "Displayable",
       "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed", "Conversable",
@@ -352,10 +336,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
       if (Profile.getGame() == Profile.Game.PSTEE) {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, FLAGS_PSTEE_ARRAY));
-        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES_ARRAY));
+        addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       } else {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, FLAGS11_ARRAY));
-        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES11_ARRAY));
+        addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       }
       addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, USABILITY11_ARRAY));
       addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, Profile.getEquippedAppearanceMap()));
@@ -363,7 +347,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
       addField(
           new Flag(buffer, 24, 4, ITM_FLAGS, IdsMapCache.getUpdatedIdsFlags(FLAGS_ARRAY, "ITEMFLAG.IDS", 4, false, false)));
-      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, CATEGORIES_ARRAY));
+      addField(new ItemTypeBitmap(buffer, 28, 2, ITM_CATEGORY));
       if (isV20) {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, USABILITY20_ARRAY));
       } else {
@@ -433,7 +417,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     }
 
     offset = abilOffset.getValue();
-    Ability abilities[] = new Ability[abilCount.getValue()];
+    Ability[] abilities = new Ability[abilCount.getValue()];
     for (int i = 0; i < abilities.length; i++) {
       abilities[i] = new Ability(this, buffer, offset, i);
       offset = abilities[i].getEndOffset();
@@ -508,6 +492,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
                 try {
                   desc = StringTable.getStringRef(strref);
                 } catch (IndexOutOfBoundsException e) {
+                  Logger.trace(e);
                 }
               }
               if (desc == null || desc.isEmpty()) {
@@ -583,14 +568,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           key = SearchOptions.ITM_Name;
           o = searchOptions.getOption(key);
           StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
-          retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
+          retVal = SearchOptions.Utils.matchString(struct, o, false, false);
         }
 
         if (retVal) {
           key = SearchOptions.ITM_Appearance;
           o = searchOptions.getOption(key);
           StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
-          retVal &= SearchOptions.Utils.matchString(struct, o, true, true);
+          retVal = SearchOptions.Utils.matchString(struct, o, true, true);
         }
 
         String[] keyList = new String[] { SearchOptions.ITM_Flags, SearchOptions.ITM_Unusable,
@@ -601,7 +586,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -616,7 +601,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = itm.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            retVal = SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
           }
@@ -633,13 +618,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
               if (!found) {
                 if (effect != null) {
                   StructEntry struct = effect.getAttribute(SearchOptions.getResourceName(key), false);
-                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                  found = SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
                 break;
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -664,9 +649,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           final int abilityOptions = keyList.length; // number of supported spell ability options
           boolean[][] abilityMatches = new boolean[abilities.length][abilityOptions];
           for (int i = 0; i < abilities.length; i++) {
-            for (int j = 0; j < abilityMatches[i].length; j++) {
-              abilityMatches[i][j] = false;
-            }
+            Arrays.fill(abilityMatches[i], false);
           }
 
           for (int i = 0; i < abilities.length; i++) {
@@ -700,9 +683,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
 
           // evaluating collected results
           boolean[] foundSingle = new boolean[abilityMatches.length]; // for single ability option
-          for (int i = 0; i < foundSingle.length; i++) {
-            foundSingle[i] = false;
-          }
           boolean[] foundMulti = new boolean[abilityOptions]; // for multiple abilities option
           for (int i = 0; i < foundMulti.length; i++) {
             foundMulti[i] = (abilityOption.getOption(keyList[i]) == null);
@@ -730,18 +710,18 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           }
           resultMulti |= !hasAbilityOptions;
 
-          Boolean isAbilitySingle;
+          boolean isAbilitySingle;
           o = abilityOption.getOption(SearchOptions.ITM_Ability_MatchSingle);
-          if (o != null && o instanceof Boolean) {
+          if (o instanceof Boolean) {
             isAbilitySingle = (Boolean) o;
           } else {
             isAbilitySingle = false;
           }
 
           if (isAbilitySingle) {
-            retVal &= resultSingle;
+            retVal = resultSingle;
           } else {
-            retVal &= resultMulti;
+            retVal = resultMulti;
           }
         }
 
@@ -751,7 +731,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(itm, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(itm, o);
           } else {
             break;
           }
@@ -759,6 +739,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

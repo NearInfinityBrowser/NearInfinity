@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 170.
+ * Implementation of opcode 170.
  */
 public class Opcode170 extends BaseOpcode {
   private static final String EFFECT_ANIMATION = "Animation";

@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 148.
+ * Implementation of opcode 148.
  */
 public class Opcode148 extends BaseOpcode {
   private static final String EFFECT_CAST_AT_LEVEL = "Cast at level";

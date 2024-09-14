@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 343.
+ * Implementation of opcode 343.
  */
 public class Opcode343 extends BaseOpcode {
   private static final String[] MODES = { "Swap if caster HP > target HP", "Always swap" };

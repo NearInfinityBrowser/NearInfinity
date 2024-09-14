@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 432.
+ * Implementation of opcode 432.
  */
 public class Opcode432 extends BaseOpcode {
   private static final String EFFECT_HP_AMOUNT = "HP amount";

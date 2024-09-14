@@ -66,6 +66,7 @@ import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
@@ -192,7 +193,7 @@ public class ViewerMap extends JPanel {
         pInfo.add(lInfoPos);
         add(pInfo, BorderLayout.SOUTH);
       } catch (Throwable t) {
-        t.printStackTrace();
+        Logger.error(t);
       }
 
       // applying preselected overlays
@@ -291,7 +292,7 @@ public class ViewerMap extends JPanel {
                 strref = ((IsNumeric) area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
               }
               String mapName = (strref >= 0) ? StringTable.getStringRef(strref) : null;
-              if (mapName != null && mapName.trim().length() == 0) {
+              if (mapName != null && mapName.trim().isEmpty()) {
                 mapName = null;
               }
 
@@ -401,9 +402,7 @@ public class ViewerMap extends JPanel {
               if (destArea != null) {
                 found = areaIndicesList
                     .stream()
-                    .filter(idx -> curAreaIndex != idx && destArea.equals(getAreaEntry(idx, true)))
-                    .findAny()
-                    .isPresent();
+                    .anyMatch(idx -> curAreaIndex != idx && destArea.equals(getAreaEntry(idx, true)));
               }
               if (!found) {
                 destLink = null;
@@ -424,8 +423,10 @@ public class ViewerMap extends JPanel {
               Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir, false);
 
               // checking for random encounters during travels
+              final int randomEncounterProb =
+                  ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue();
               boolean hasRandomEncounters = false;
-              if (((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_PROBABILITY)).getValue() > 0) {
+              if (randomEncounterProb > 0) {
                 for (int rnd = 1; rnd < 6; rnd++) {
                   String rndArea = ((IsReference) destLink
                       .getAttribute(String.format(AreaLink.WMP_LINK_RANDOM_ENCOUNTER_AREA_FMT, rnd))).getResourceName();
@@ -450,8 +451,13 @@ public class ViewerMap extends JPanel {
                 g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
 
                 // printing travel time (in hours)
-                String duration = String.format("%d h",
-                    ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
+                final String duration;
+                final int distScale = ((IsNumeric) destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4;
+                if (hasRandomEncounters) {
+                  duration = String.format("%d h (%d%%)", distScale, randomEncounterProb);
+                } else {
+                  duration = String.format("%d h", distScale);
+                }
                 LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
                 Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
                 int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 3;
@@ -673,7 +679,7 @@ public class ViewerMap extends JPanel {
         dstImage.flush();
         dstImage = null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         showDot((AreaEntry) listPanel.getList().getSelectedValue(), false);
         WindowBlocker.blockWindow(wnd, false);

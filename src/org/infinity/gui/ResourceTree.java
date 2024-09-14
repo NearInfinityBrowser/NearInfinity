@@ -68,6 +68,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Operation;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -302,7 +303,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     } catch (IOException e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error renaming file \"" + filename + "\"!", "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
       return;
     }
     // ResourceFactory.getResourceTreeModel().resourceEntryChanged(entry);
@@ -323,7 +324,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         try {
           Files.delete(bakFile);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       try {
@@ -331,10 +332,10 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       } catch (IOException e) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Error deleting file \"" + entry.getResourceName() + "\"!", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
     } else if (entry instanceof BIFFResourceEntry) {
-      String options[] = { "Delete", "Cancel" };
+      String[] options = { "Delete", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(),
           "Are you sure you want to delete the " + "override file " + entry + '?', "Delete file",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
@@ -346,7 +347,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         try {
           Files.delete(bakFile);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       try {
@@ -354,7 +355,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       } catch (IOException e) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Error deleting file \"" + entry.getResourceName() + "\"!", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -376,8 +377,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           // .bak available -> restore .bak version
           Path curFile = getCurrentFile(entry);
           Path tmpFile = getTempFile(curFile);
-          if (curFile != null && FileEx.create(curFile).isFile() && bakFile != null
-              && FileEx.create(bakFile).isFile()) {
+          if (curFile != null && FileEx.create(curFile).isFile() && FileEx.create(bakFile).isFile()) {
             try {
               Files.move(curFile, tmpFile);
               try {
@@ -385,7 +385,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                 try {
                   Files.delete(tmpFile);
                 } catch (IOException e) {
-                  e.printStackTrace();
+                  Logger.error(e);
                 }
                 JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Backup has been restored successfully.",
                     "Restore backup", JOptionPane.INFORMATION_MESSAGE);
@@ -401,11 +401,11 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                         + String.format("Please manually rename the file \"%s\" into \"%s\", located in \n + \"%s\"",
                             tmpName, curName, path),
                     "Critical Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
+                Logger.error(e);
                 return;
               }
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
           JOptionPane.showMessageDialog(NearInfinity.getInstance(),
@@ -420,7 +420,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           } catch (IOException e) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                 "Error removing file \"" + entry + "\" from override folder!", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -442,7 +442,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Zip file created.", "Information",
               JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
           wb.setBlocked(false);
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error while creating zip file.", "Error",
               JOptionPane.ERROR_MESSAGE);
@@ -540,10 +540,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     public TreeExpandListener(JTree tree) {
       this.tree = Objects.requireNonNull(tree);
       this.expanding = false;
-      if (this.tree != null) {
-        this.tree.addTreeWillExpandListener(this);
-        this.tree.addTreeExpansionListener(this);
-      }
+      this.tree.addTreeWillExpandListener(this);
+      this.tree.addTreeExpansionListener(this);
     }
 
     @Override
@@ -727,13 +725,13 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
             new ViewFrame(NearInfinity.getInstance(), res);
           }
         } catch (NullPointerException e) {
-          System.err.println("Does not exist in BIFF: " + node);
+          Logger.warn("Does not exist in BIFF: {}", node);
           JOptionPane.showMessageDialog(NearInfinity.getInstance(),
               "Does not exist in BIFF: " + node, "Error", JOptionPane.ERROR_MESSAGE);
         }
       } else if (event.getSource() == miReference && node != null) {
         Resource res = ResourceFactory.getResource(node);
-        if (res != null && res instanceof Referenceable) {
+        if (res instanceof Referenceable) {
           if (((Referenceable) res).isReferenceable()) {
             ((Referenceable) res).searchReferences(NearInfinity.getInstance());
           } else {

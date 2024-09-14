@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 350.
+ * Implementation of opcode 350.
  */
 public class Opcode350 extends BaseOpcode {
   private static final String EFFECT_ENABLED = "Enabled?";

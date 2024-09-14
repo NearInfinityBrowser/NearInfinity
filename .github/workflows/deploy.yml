@@ -57,20 +57,28 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up JDK (windows)
+        if: startsWith(matrix.os, 'windows-')
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
 
+      - name: Set up JDK (macos)
+        if: startsWith(matrix.os, 'macos-')
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'oracle'
+
       - name: Echo JAVA_HOME (windows)
-        if: (matrix.os == 'windows-latest')
+        if: startsWith(matrix.os, 'windows-')
         run: |
           echo $env:JAVA_HOME
           java -version
 
       - name: Echo JAVA_HOME (macos)
-        if: (matrix.os != 'windows-latest')
+        if: startsWith(matrix.os, 'macos-')
         run: |
           echo $JAVA_HOME
           java -version
@@ -90,7 +98,7 @@ jobs:
 
       # Building
       - name: Build portable archive and installer (windows)
-        if: (matrix.os == 'windows-latest')
+        if: startsWith(matrix.os, 'windows-')
         run: |
           move assets\redistributable\windows\package .
           move assets\redistributable\windows\build-image.cmd .
@@ -108,7 +116,7 @@ jobs:
 
       # Validation
       - name: List built files (windows)
-        if: (matrix.os == 'windows-latest')
+        if: startsWith(matrix.os, 'windows-')
         run: dir
 
       - name: List built files (macos)
@@ -117,20 +125,20 @@ jobs:
 
       # Uploading
       - name: Upload portable artifact (windows)
-        if: (matrix.os == 'windows-latest')
+        if: startsWith(matrix.os, 'windows-')
         uses: actions/upload-artifact@v4
         with:
           name: portable-windows
           path: NearInfinity-*.zip
 
       - name: Upload exe artifact (windows)
-        if: (matrix.os == 'windows-latest')
+        if: startsWith(matrix.os, 'windows-')
         uses: actions/upload-artifact@v4
         with:
           name: installer-windows
           path: NearInfinity-*.exe
 
-      - name: Upload pkg artifact (macos)
+      - name: Upload pkg artifact (macos-x86_64)
         if: (matrix.os == 'macos-13')
         uses: actions/upload-artifact@v4
         with:

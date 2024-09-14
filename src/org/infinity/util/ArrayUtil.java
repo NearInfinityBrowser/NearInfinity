@@ -4,6 +4,7 @@
 
 package org.infinity.util;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
@@ -13,26 +14,68 @@ public final class ArrayUtil {
    * Merges two or more byte arrays into one.
    *
    * @param first  The first array to be placed into the new array.
-   * @param second The second array, needed to ensure a minimum parameter count of 2.
    * @param more   More byte arrays to merge.
    * @return A new byte array containing the data of every specified array.
    */
-  public static byte[] mergeArrays(byte[] first, byte[] second, byte[]... more) {
-    int totalLength = first.length + second.length;
-    for (byte[] ar : more) {
-      totalLength += ar.length;
+  public static byte[] mergeArrays(byte[] first, byte[]... more) {
+    int totalLength = Objects.requireNonNull(first).length;
+    for (final byte[] ar : more) {
+      totalLength += Objects.requireNonNull(ar).length;
     }
 
-    byte[] res = Arrays.copyOf(first, totalLength);
+    final byte[] res = Arrays.copyOf(first, totalLength);
     int offset = first.length;
-    System.arraycopy(second, 0, res, offset, second.length);
-    offset += second.length;
-    for (byte[] ar : more) {
+    for (final byte[] ar : more) {
       System.arraycopy(ar, 0, res, offset, ar.length);
       offset += ar.length;
     }
 
     return res;
+  }
+
+  /**
+   * Merges one or more arrays into a single array.
+   *
+   * @param first The first array to be placed into the new array.
+   * @param more  More arrays to merge.
+   * @param <T>   The array type.
+   * @return A new array containing the data of every specified array.
+   * @throws IllegalArgumentException if any of the arguments is not an array or if not all specified arrays are of
+   *                                  the the same component type.
+   */
+  @SafeVarargs
+  public static <T> T mergeArrays(T first, T... more) {
+    if (!first.getClass().isArray()) {
+      throw new IllegalArgumentException("Argument is not an array");
+    }
+    final Class<?> compTypeFirst = first.getClass().getComponentType();
+
+    int totalSize = Array.getLength(first);
+    for (final T item : more) {
+      if (!Objects.requireNonNull(item).getClass().isArray()) {
+        throw new IllegalArgumentException("Argument is not an array");
+      }
+
+      final Class<?> compType = item.getClass().getComponentType();
+      if (!compTypeFirst.equals(compType)) {
+        throw new IllegalArgumentException("Arrays have different type");
+      }
+
+      totalSize += Array.getLength(item);
+    }
+
+    @SuppressWarnings("unchecked")
+    final T retVal = (T) Array.newInstance(compTypeFirst, totalSize);
+
+    int ofs = Array.getLength(first);
+    System.arraycopy(first, 0, retVal, 0, ofs);
+    for (final T item : more) {
+      final int size = Array.getLength(item);
+      System.arraycopy(item, 0, retVal, ofs, size);
+      ofs += size;
+    }
+
+    return retVal;
   }
 
   /**
@@ -45,12 +88,32 @@ public final class ArrayUtil {
   public static <T> int indexOf(T[] array, T obj) {
     if (array != null && array.length > 0) {
       for (int i = 0; i < array.length; i++) {
-        if (array[i] == obj) {
+        if (obj == null && array[i] == null) {
+          return i;
+        } else if (obj != null && obj.equals(array[i])) {
           return i;
         }
       }
     }
     return -1;
+  }
+
+  /**
+   * Reimplementation of {@code Arrays.compare} from Java 9, because minimum supported version now is Java 8.
+   *
+   * @param a   the first array to compare
+   * @param b   the second array to compare
+   * @param <T> the type of array elements which must support the {@link Comparable} interface.
+   *
+   * @return the value {@code 0} if the first and second array are equal and contain the same elements in the same
+   *         order; a value less than {@code 0} if the first array is lexicographically less than the second array; and
+   *         a value greater than {@code 0} if the first array is lexicographically greater than the second array
+   *
+   * @throws NullPointerException if the comparator is {@code null}
+   */
+  // TODO: Replace with Arrays.compare when minimum supported version raised to Java 9+
+  public static <T extends Comparable<? super T>> int compare(T[] a, T[] b) {
+    return compare(a, b, Comparator.naturalOrder());
   }
 
   /**
@@ -67,8 +130,8 @@ public final class ArrayUtil {
    *
    * @throws NullPointerException if the comparator is {@code null}
    */
+  // TODO: Replace with Arrays.compare when minimum supported version raised to Java 9+
   public static <T> int compare(T[] a, T[] b, Comparator<? super T> cmp) {
-    // TODO: Replace with Arrays.compare when minimum supported version raised to Java 9
     Objects.requireNonNull(cmp);
     if (a == b) {
       return 0;

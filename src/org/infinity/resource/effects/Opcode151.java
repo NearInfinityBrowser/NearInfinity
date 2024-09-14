@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 151.
+ * Implementation of opcode 151.
  */
 public class Opcode151 extends BaseOpcode {
   private static final String EFFECT_REPLACEMENT_METHOD = "Replacement method";

@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 340.
+ * Implementation of opcode 340.
  */
 public class Opcode340 extends BaseOpcode {
   private static final String RES_TYPE = "SPL";

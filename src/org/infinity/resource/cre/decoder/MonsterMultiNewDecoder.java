@@ -155,7 +155,7 @@ public class MonsterMultiNewDecoder extends QuadrantsBaseDecoder {
   @Override
   public List<String> getAnimationFiles(boolean essential) {
     String resref = getAnimationResref();
-    ArrayList<String> retVal = new ArrayList<String>() {
+    return new ArrayList<String>() {
       {
         for (final HashMap.Entry<Sequence, Couple<String, Integer>> entry : getSuffixMap().entrySet()) {
           String suffixBase = SegmentDef.fixBehaviorSuffix(entry.getValue().getValue0());
@@ -166,7 +166,6 @@ public class MonsterMultiNewDecoder extends QuadrantsBaseDecoder {
         }
       }
     };
-    return retVal;
   }
 
   @Override
@@ -207,14 +206,14 @@ public class MonsterMultiNewDecoder extends QuadrantsBaseDecoder {
         ResourceEntry entry = ResourceFactory.getResourceEntry(resref + suffix + ".BAM");
         cycleList.add(new SegmentDef(entry, cycleOfs, null, behavior));
         cycleListE.add(new SegmentDef(entry, cycleOfs + 1, null, behavior));
-        valid &= SpriteUtils.bamCyclesExist(entry, cycleOfs, SeqDef.DIR_FULL_W.length);
+        valid = SpriteUtils.bamCyclesExist(entry, cycleOfs, SeqDef.DIR_FULL_W.length);
       }
     }
 
     if (!cycleList.isEmpty() && valid) {
       retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, cycleList);
       SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, cycleListE);
-      retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+      retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
     }
 
     return retVal;

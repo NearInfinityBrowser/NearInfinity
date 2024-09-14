@@ -61,6 +61,7 @@ import javax.swing.text.PlainDocument;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.KitIdsBitmap;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ProRef;
@@ -92,8 +93,9 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.ui.ResourceCellRenderer;
 import org.infinity.resource.ui.ResourceListModel;
-import org.infinity.util.Debugging;
+import org.infinity.util.DebugTimer;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.Threading;
@@ -107,6 +109,8 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
   private static final String PROPERTY_OPTIONS = "NearInfinity.Options.IsEmpty";
 
   private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<>();
+  private final JProgressBar pbProgress = new JProgressBar();
+
   private JPanel pFindOptions, pBottomBar;
   private JList<ResourceEntry> listResults;
   private JLabel lResults;
@@ -118,7 +122,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
   private JToggleButton bShowHideOptions;
   private CardLayout clOptions;
   private CardLayout clBottomBar;
-  private JProgressBar pbProgress;
 
   public SearchResource() {
     super("Extended search (deprecated)");
@@ -128,7 +131,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         try {
           init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return null;
       }
@@ -162,7 +165,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       }
     } else if (event.getSource() == bInsertRef) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
-      if (viewable == null || !(viewable instanceof BcsResource)) {
+      if (!(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
@@ -222,7 +225,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
 
       // executing search
       try {
-        Debugging.timerReset();
+        DebugTimer.getInstance().timerReset();
         OptionsBasePanel panel = mapOptionsPanel.get(type);
         if (panel != null) {
           SearchOptions so = panel.getOptions();
@@ -238,10 +241,10 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
             try {
               threadPool.awaitTermination(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           } catch (Exception e) {
-            // ignored
+            Logger.trace(e);
           }
 
           // preparing results for output
@@ -261,7 +264,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           }
         }
       } finally {
-        Debugging.timerShow("Extended Search", Debugging.TimeFormat.MILLISECONDS);
+        Logger.info(DebugTimer.getInstance().getTimerFormatted("Extended Search"));
         blocker.setBlocked(false);
         bSearch.setEnabled(true);
         clBottomBar.show(pBottomBar, "buttons");
@@ -412,7 +415,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           if (event.getClickCount() == 2) {
             Rectangle cellRect = listResults.getCellBounds(listResults.getSelectedIndex(),
                 listResults.getSelectedIndex());
-            if (cellRect != null && event.getPoint() != null) {
+            if (cellRect != null) {
               if (cellRect.contains(event.getPoint())) {
                 actionPerformed(new ActionEvent(bOpen, 0, null));
               }
@@ -468,7 +471,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       pBottomButtons.add(new JPanel(), c);
 
       JPanel pBottomProgress = new JPanel(new GridBagLayout());
-      pbProgress = new JProgressBar();
       c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
           new Insets(0, 0, 0, 0), 0, 0);
       pBottomProgress.add(pbProgress, c);
@@ -2030,17 +2032,17 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
       String[] sCat;
       if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
         sFlags = ItmResource.FLAGS11_ARRAY;
-        sCat = ItmResource.CATEGORIES11_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES11_ARRAY;
       } else if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sFlags = ItmResource.FLAGS_ARRAY;
-        sCat = ItmResource.CATEGORIES_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES_ARRAY;
       } else {
         if (Profile.getGame() == Profile.Game.PSTEE) {
           sFlags = ItmResource.FLAGS_PSTEE_ARRAY;
         } else {
           sFlags = ItmResource.FLAGS_ARRAY;
         }
-        sCat = ItmResource.CATEGORIES_ARRAY;
+        sCat = ItemTypeBitmap.CATEGORIES_ARRAY;
       }
 
       pFlags = new FlagsPanel(4, sFlags);
@@ -4752,7 +4754,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           col = 4;
           row = 0;
         }
-        c = ViewerUtil.setGBC(c, col + 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
             GridBagConstraints.HORIZONTAL, new Insets((row == 0) ? 0 : 4, (col == 0) ? 0 : 16, 0, 0), 0, 0);
         panel.add(cbStats[i], c);
         c = ViewerUtil.setGBC(c, col + 1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -5425,8 +5427,9 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         cbLabel[i] = new JCheckBox(String.format("Category %d:", i + 1));
         cbLabel[i].addActionListener(this);
 
-        String[] cat = ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.CATEGORIES11_ARRAY
-            : ItmResource.CATEGORIES_ARRAY;
+        String[] cat = ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11))
+            ? ItemTypeBitmap.CATEGORIES11_ARRAY
+            : ItemTypeBitmap.CATEGORIES_ARRAY;
         cbCategory[i] = new AutoComboBox<>(IndexedString.createArray(cat, 0, 0));
       }
 
@@ -5684,7 +5687,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
 
     public static JComboBox<IdsMapEntry> getIdsMapEntryList(IdsBitmap ids) {
       final SortedMap<Long, IdsMapEntry> map = ids.getBitmap();
-      final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
+      final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[0]);
       Arrays.sort(list);
       return defaultWidth(new AutoComboBox<>(list), 160);
     }
@@ -5779,7 +5782,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
               setSelectedItem(item);
             }
           } catch (BadLocationException ble) {
-            ble.printStackTrace();
+            Logger.error(ble);
           }
         }
 
@@ -5796,10 +5799,6 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         @Override
         public void focusGained(FocusEvent e) {
           highlightCompletedText(0);
-        }
-
-        @Override
-        public void focusLost(FocusEvent e) {
         }
       };
 
@@ -5896,9 +5895,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
           id = curItem.toString().toUpperCase(Locale.ENGLISH);
         }
 
-        if (name.startsWith(pattern) || id.startsWith(pattern)) {
-          return true;
-        }
+        return name.startsWith(pattern) || id.startsWith(pattern);
       }
       return false;
     }
@@ -5910,7 +5907,7 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
         super.remove(0, getLength());
         super.insertString(0, text, null);
       } catch (BadLocationException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

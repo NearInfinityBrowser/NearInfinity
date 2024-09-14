@@ -14,9 +14,10 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.AutomapNotePST;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
+import org.infinity.util.Logger;
 
 /**
- * Handles specific layer type: ARE/Automap Note (PST-specific)
+ * Handles specific layer type: ARE/Automap Note (PST-specific, user-defined)
  */
 public class LayerObjectAutomapPST extends LayerObject {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_AUTOMAP_1.getIcon().getImage(),
@@ -42,7 +43,7 @@ public class LayerObjectAutomapPST extends LayerObject {
       location.y = (int) (y.getValue() * MAP_SCALE);
       msg = note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT).toString();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons

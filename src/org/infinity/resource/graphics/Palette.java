@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.util.io.StreamUtils;
 
-final class Palette {
+public class Palette {
   private final ByteBuffer colors;
 
   public static int getColor(ByteBuffer buffer, int offset, int index) {
@@ -29,12 +29,11 @@ final class Palette {
   public short[] getColorBytes(int index) {
     index = Math.max(0, Math.min(255, index));
     int offset = index * 4;
-    short[] shorts = {
+    return new short[]{
         (short) (colors.get(offset) & 0xff),
         (short) (colors.get(offset + 1) & 0xff),
         (short) (colors.get(offset + 2) & 0xff),
         (short) (colors.get(offset + 3) & 0xff)
     };
-    return shorts;
   }
 }

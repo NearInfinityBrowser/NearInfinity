@@ -61,7 +61,7 @@ public class BamFilterOutputCombine extends BamFilterBaseOutput {
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame) {
     // does not modify the source image
     return frame;
   }

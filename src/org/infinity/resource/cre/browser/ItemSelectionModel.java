@@ -96,9 +96,7 @@ public class ItemSelectionModel extends AbstractListModel<ItemInfo> implements C
       int oldSize = itemList.size();
       itemList.clear();
       selectedItem = null;
-      if (oldSize > 0) {
-        fireIntervalRemoved(this, 0, oldSize - 1);
-      }
+      fireIntervalRemoved(this, 0, oldSize - 1);
     } else {
       selectedItem = null;
     }

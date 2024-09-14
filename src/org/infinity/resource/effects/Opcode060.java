@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 60.
+ * Implementation of opcode 60.
  */
 public class Opcode060 extends BaseOpcode {
   private static final String EFFECT_FAILURE_TYPE = "Failure type";

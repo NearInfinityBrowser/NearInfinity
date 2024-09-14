@@ -48,6 +48,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DataString;
+import org.infinity.util.Logger;
 import org.infinity.util.SimpleListModel;
 
 /**
@@ -134,6 +135,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
         setSearchLock(true);
         updateListSelection(searchDoc.getText(0, searchDoc.getLength()));
       } catch (BadLocationException ble) {
+        Logger.trace(ble);
       } finally {
         setSearchLock(false);
       }
@@ -147,6 +149,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
         setSearchLock(true);
         updateListSelection(searchDoc.getText(0, searchDoc.getLength()));
       } catch (BadLocationException ble) {
+        Logger.trace(ble);
       } finally {
         setSearchLock(false);
       }
@@ -160,6 +163,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
         setSearchLock(true);
         updateListSelection(searchDoc.getText(0, searchDoc.getLength()));
       } catch (BadLocationException ble) {
+        Logger.trace(ble);
       } finally {
         setSearchLock(false);
       }
@@ -239,7 +243,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
     setVisible(false);
     List<ResourceEntry> entries = list.getSelectedValuesList();
     if (entries != null) {
-      result = entries.toArray(new ResourceEntry[entries.size()]);
+      result = entries.toArray(new ResourceEntry[0]);
     } else {
       result = new ResourceEntry[0];
     }
@@ -290,7 +294,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
     listModel.clear();
     if (entries != null) {
       listModel.addAll(entries);
-      if (listModel.size() > 0) {
+      if (!listModel.isEmpty()) {
         list.setSelectedIndex(0);
         list.ensureIndexIsVisible(0);
         list.requestFocusInWindow();
@@ -347,11 +351,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
       String entry = (entries.length > 0) ? entries[0] : "";
       int idx = getClosestIndex(entry);
       list.setSelectedIndex(idx);
-      if (idx >= 0) {
-        list.ensureIndexIsVisible(idx);
-      } else {
-        list.ensureIndexIsVisible(0);
-      }
+      list.ensureIndexIsVisible(Math.max(idx, 0));
     }
   }
 

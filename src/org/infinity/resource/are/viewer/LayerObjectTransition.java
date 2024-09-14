@@ -13,6 +13,7 @@ import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Map transition
@@ -46,7 +47,7 @@ public class LayerObjectTransition extends LayerObject {
         msg = String.format("Transition to %s", ref);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     item = new ShapedLayerItem(destination, msg, null);

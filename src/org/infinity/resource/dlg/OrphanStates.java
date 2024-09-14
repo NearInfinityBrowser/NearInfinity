@@ -20,7 +20,7 @@ import javax.swing.tree.TreeNode;
  *
  * @author Mingun
  */
-final class OrphanStates extends StateOwnerItem implements Iterable<StateItem> {
+public class OrphanStates extends StateOwnerItem implements Iterable<StateItem> {
   private final DlgTreeModel parent;
 
   protected final List<StateItem> states = new ArrayList<>();
@@ -51,7 +51,10 @@ final class OrphanStates extends StateOwnerItem implements Iterable<StateItem> {
 
   @Override
   public int getIndex(TreeNode node) {
-    return states.indexOf(node);
+    if (node instanceof StateItem) {
+      return states.indexOf(node);
+    }
+    return -1;
   }
 
   @Override
@@ -96,7 +99,10 @@ final class OrphanStates extends StateOwnerItem implements Iterable<StateItem> {
 
   @Override
   public boolean removeChild(ItemBase child) {
-    return states.remove(child);
+    if (child instanceof StateItem) {
+      return states.remove(child);
+    }
+    return false;
   }
 
   @Override

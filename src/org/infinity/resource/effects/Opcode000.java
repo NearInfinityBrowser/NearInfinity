@@ -14,7 +14,7 @@ import org.infinity.datatype.Flag;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 0.
+ * Implementation of opcode 0.
  */
 public class Opcode000 extends BaseOpcode {
   private static final String EFFECT_AC_VALUE = "AC value";

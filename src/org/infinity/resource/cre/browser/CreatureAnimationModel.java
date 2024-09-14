@@ -17,6 +17,7 @@ import javax.swing.MutableComboBoxModel;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 
 /**
  * {@code ComboBoxModel} for the creature animation combo box used in the Creature Animation Browser.
@@ -86,9 +87,7 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
       int oldSize = animationList.size();
       animationList.clear();
       selectedItem = null;
-      if (oldSize > 0) {
-        fireIntervalRemoved(this, 0, oldSize - 1);
-      }
+      fireIntervalRemoved(this, 0, oldSize - 1);
     } else {
       selectedItem = null;
     }
@@ -203,6 +202,7 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
 
         retVal = Integer.parseInt(s, base) * factor;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return retVal;

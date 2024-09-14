@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 22.
+ * Implementation of opcode 22.
  */
 public class Opcode022 extends BaseOpcode {
   private static final String[] TYPE_TOBEX = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Instantaneous" };

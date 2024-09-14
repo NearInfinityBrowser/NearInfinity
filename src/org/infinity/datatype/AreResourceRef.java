@@ -47,8 +47,8 @@ public final class AreResourceRef extends ResourceRef {
     }
 //     ResourceEntry entry = ResourceFactory.getInstance().getResourceEntry(getResourceName());
 //     if (!isLegalEntry(entry)) {
-//       System.out.println("Illegal: " + entry + " from " + entry.getActualFile());
-//       System.out.println("In: " + are.getResourceEntry() + " from " + are.getResourceEntry().getActualFile());
+//       Logger.info("Illegal: {} from {}", entry, entry.getActualFile());
+//       Logger.info("In: {} from {}", are.getResourceEntry(), are.getResourceEntry().getActualFile());
 //     }
   }
 

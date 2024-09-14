@@ -20,7 +20,6 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -86,22 +85,15 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
-import org.infinity.util.CreMapCache;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.IdsMapCache;
-import org.infinity.util.Misc;
-import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.*;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.FileWatcher;
-import org.infinity.util.io.FileWatcher.FileWatchEvent;
-import org.infinity.util.io.FileWatcher.FileWatchListener;
 import org.infinity.util.io.StreamUtils;
 
 /**
  * Handles game-specific resource access.
  */
-public final class ResourceFactory implements FileWatchListener {
+public final class ResourceFactory {
   /**
    * Name of tree node that contains important game files that not stored in the BIF archives or override folders.
    */
@@ -112,7 +104,6 @@ public final class ResourceFactory implements FileWatchListener {
   private JFileChooser fc;
   private Keyfile keyfile;
   private ResourceTreeModel treeModel;
-  private Path pendingSelection;
 
   public static Keyfile getKeyfile() {
     if (getInstance() != null) {
@@ -252,9 +243,7 @@ public final class ResourceFactory implements FileWatchListener {
       Class<? extends Resource> cls = getResourceType(entry, forcedExtension);
       if (cls != null) {
         Constructor<? extends Resource> con = cls.getConstructor(ResourceEntry.class);
-        if (con != null) {
-          res = con.newInstance(entry);
-        }
+        res = con.newInstance(entry);
       }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
@@ -264,8 +253,7 @@ public final class ResourceFactory implements FileWatchListener {
         final String msg = String.format("Error reading %s @ %s - %s", entry, entry.getActualPath(), e);
         NearInfinity.getInstance().getStatusBar().setMessage(msg);
       }
-      System.err.println("Error reading " + entry);
-      e.printStackTrace();
+      Logger.error(e, "Error reading {}", entry);
     }
     return res;
   }
@@ -319,7 +307,7 @@ public final class ResourceFactory implements FileWatchListener {
         // forward exception to caller
         throw e;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -412,7 +400,7 @@ public final class ResourceFactory implements FileWatchListener {
                 cls = getResourceType(entry, "WBM");
               } else if (data.length > 6 && data[3] == 0 && data[4] == 0x78) { // just guessing...
                 cls = getResourceType(entry, "PVRZ");
-              } else if (data.length > 4 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
+              } else if ((data[0] & 0xff) == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
                 cls = getResourceType(entry, "PNG");
               } else if (DynamicArray.getInt(data, 0) == 0x00000100) { // wild guess...
                 cls = getResourceType(entry, "TTF");
@@ -423,7 +411,7 @@ public final class ResourceFactory implements FileWatchListener {
           throw new Exception(entry.getResourceName() + ": Unable to determine resource type");
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return cls;
@@ -434,7 +422,7 @@ public final class ResourceFactory implements FileWatchListener {
       try {
         getInstance().exportResourceInternal(entry, parent, null);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -445,7 +433,7 @@ public final class ResourceFactory implements FileWatchListener {
       try {
         getInstance().exportResourceInternal(entry, buffer, filename, parent, null);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(parent, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -533,11 +521,9 @@ public final class ResourceFactory implements FileWatchListener {
       // checking default override folder list
       if (entry == null) {
         List<Path> extraFolders = Profile.getOverrideFolders(searchExtraDirs);
-        if (extraFolders != null) {
-          Path file = FileManager.query(extraFolders, resourceName);
-          if (file != null && FileEx.create(file).isFile()) {
-            entry = new FileResourceEntry(file);
-          }
+        Path file = FileManager.query(extraFolders, resourceName);
+        if (file != null && FileEx.create(file).isFile()) {
+          entry = new FileResourceEntry(file);
         }
       }
 
@@ -709,7 +695,7 @@ public final class ResourceFactory implements FileWatchListener {
 
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource. If user accepts saving then
-   * resource will be saved if it implements {@link Writable}
+   * resource will be saved if it implements {@link Writeable}
    *
    * @param resource Resource that must be saved
    * @param entry    Entry that represents resource. Must not be {@code null}
@@ -731,7 +717,7 @@ public final class ResourceFactory implements FileWatchListener {
 
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource. If user accepts saving then
-   * resource will be saved if it implements {@link Writable}
+   * resource will be saved if it implements {@link Writeable}
    *
    * @param resource Resource that must be saved
    * @param output   Path of the saved resource. If {@code null} method do nothing
@@ -743,7 +729,7 @@ public final class ResourceFactory implements FileWatchListener {
    */
   public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
     if (output != null) {
-      final String options[] = { "Save changes", "Discard changes", "Cancel" };
+      final String[] options = { "Save changes", "Discard changes", "Cancel" };
       final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?', "Resource changed",
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == JOptionPane.YES_OPTION) {
@@ -769,9 +755,9 @@ public final class ResourceFactory implements FileWatchListener {
                 && entry.getFileName().toString().matches("[a-z]{2}_[A-Z]{2}")
                 && FileEx.create(FileManager.query(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME)))
                     .isFile()))) {
-          dstream.forEach(path -> list.add(path));
+          dstream.forEach(list::add);
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -807,7 +793,7 @@ public final class ResourceFactory implements FileWatchListener {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Error parsing " + iniFile.getFileName() + ". Using language defaults.", "Error",
             JOptionPane.ERROR_MESSAGE);
@@ -828,8 +814,7 @@ public final class ResourceFactory implements FileWatchListener {
         // fallback solution
         String userPrefix = System.getProperty("user.home");
         userPath = null;
-        String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-        if (osName.contains("windows")) {
+        if (Platform.IS_WINDOWS) {
           try {
             Process p = Runtime.getRuntime().exec(
                 "reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v personal");
@@ -843,15 +828,15 @@ public final class ResourceFactory implements FileWatchListener {
             userPrefix = splitted[splitted.length - 1];
             userPath = FileManager.resolve(userPrefix, EE_DIR);
           } catch (Throwable t) {
-            t.printStackTrace();
+            Logger.error(t);
             return null;
           }
-        } else if (osName.contains("mac") || osName.contains("darwin")) {
+        } else if (Platform.IS_MACOS) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, "Documents", EE_DIR));
-        } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
+        } else if (Platform.IS_UNIX) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
-        if (allowMissing || (userPath != null && FileEx.create(userPath).isDirectory())) {
+        if (userPath != null && FileEx.create(userPath).isDirectory()) {
           return userPath;
         }
       }
@@ -871,7 +856,7 @@ public final class ResourceFactory implements FileWatchListener {
       }
       List<Path> dlcList = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
       if (dlcList != null) {
-        dlcList.forEach(path -> dirList.add(path));
+        dirList.addAll(dlcList);
       }
       dirList.add(Profile.getGameRoot());
     } else {
@@ -913,7 +898,7 @@ public final class ResourceFactory implements FileWatchListener {
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
           dirList.clear();
         }
       }
@@ -1002,16 +987,14 @@ public final class ResourceFactory implements FileWatchListener {
       }
 
       loadResourcesInternal();
-      FileWatcher.getInstance().addFileWatchListener(this);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
   /** Cleans up resources. */
   private void close() {
-    FileWatcher.getInstance().removeFileWatchListener(this);
     // nothing to do yet...
   }
 
@@ -1064,7 +1047,7 @@ public final class ResourceFactory implements FileWatchListener {
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       path = fc.getSelectedFile().toPath();
       if (!forceOverwrite && FileEx.create(path).exists()) {
-        final String options[] = { "Overwrite", "Cancel" };
+        final String[] options = { "Overwrite", "Cancel" };
         if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
           path = null;
@@ -1085,9 +1068,6 @@ public final class ResourceFactory implements FileWatchListener {
     // exporting resource
     if (output != null) {
       try {
-        if (output.getFileName().toString().equalsIgnoreCase(entry.getResourceName())) {
-          setPendingSelection(output);
-        }
         try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
           StreamUtils.writeBytes(os, buffer);
         }
@@ -1096,7 +1076,6 @@ public final class ResourceFactory implements FileWatchListener {
               JOptionPane.INFORMATION_MESSAGE);
         }
       } catch (IOException e) {
-        setPendingSelection(null);
         throw new Exception("Error while exporting " + entry);
       }
     }
@@ -1298,25 +1277,6 @@ public final class ResourceFactory implements FileWatchListener {
     }
   }
 
-  private boolean isPendingSelection(Path path, boolean autoRemove) {
-    boolean retVal = (pendingSelection == path);
-
-    if (pendingSelection != null && path != null) {
-      retVal = path.equals(pendingSelection);
-      if (retVal && autoRemove) {
-        pendingSelection = null;
-      }
-    }
-
-    return retVal;
-  }
-
-  private void setPendingSelection(Path path) {
-    if (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().getMonitorFileChanges()) {
-      pendingSelection = path;
-    }
-  }
-
   private void loadResourcesInternal() throws Exception {
     treeModel = new ResourceTreeModel();
 
@@ -1365,8 +1325,6 @@ public final class ResourceFactory implements FileWatchListener {
   /**
    * Registers in the resourse tree all special game resources that are not stored in the override folders or BIF
    * archives
-   *
-   * @param folderName Folder in the resource tree under which register files
    */
   private void loadSpecialResources() {
     final List<Path> roots = Profile.getRootFolders();
@@ -1538,7 +1496,7 @@ public final class ResourceFactory implements FileWatchListener {
     }
 
     if (FileEx.create(outFile).exists()) {
-      String options[] = { "Overwrite", "Cancel" };
+      String[] options = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
           "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
           options[0]) != 0) {
@@ -1553,13 +1511,12 @@ public final class ResourceFactory implements FileWatchListener {
       } catch (IOException e) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Could not create " + outPath + ".", "Error",
             JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
         return;
       }
     }
 
     try {
-      setPendingSelection(outFile);
       ByteBuffer bb = entry.getResourceBuffer();
       try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
         WritableByteChannel wbc = Channels.newChannel(os);
@@ -1578,7 +1535,7 @@ public final class ResourceFactory implements FileWatchListener {
     } catch (Exception e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error while copying " + entry, "Error",
           JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 
@@ -1617,7 +1574,7 @@ public final class ResourceFactory implements FileWatchListener {
           } catch (IOException e) {
             JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         }
@@ -1628,13 +1585,13 @@ public final class ResourceFactory implements FileWatchListener {
         // extra step for saving resources from a read-only medium (such as DLCs)
         if (!FileManager.isDefaultFileSystem(outPath)) {
           outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
-          if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
+          if (!FileEx.create(outPath.getParent()).exists()) {
             try {
               Files.createDirectories(outPath.getParent());
             } catch (IOException e) {
               JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
                   JOptionPane.ERROR_MESSAGE);
-              e.printStackTrace();
+              Logger.error(e);
               return false;
             }
           }
@@ -1644,7 +1601,7 @@ public final class ResourceFactory implements FileWatchListener {
 
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
-      String options[] = { "Overwrite", "Cancel" };
+      String[] options = { "Overwrite", "Cancel" };
       if (JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
         if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
@@ -1657,7 +1614,7 @@ public final class ResourceFactory implements FileWatchListener {
               Files.move(outPath, bakPath);
             }
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else {
@@ -1669,7 +1626,7 @@ public final class ResourceFactory implements FileWatchListener {
       ((Writeable) resource).write(os);
     } catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Error while saving " + entry, "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
+      Logger.error(e);
       return false;
     }
 
@@ -1694,18 +1651,4 @@ public final class ResourceFactory implements FileWatchListener {
     }
     return true;
   }
-
-  // --------------------- Begin Interface FileWatchListener ---------------------
-
-  @Override
-  public void fileChanged(FileWatchEvent e) {
-    // System.out.println("ResourceFactory.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
-    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      registerResourceInternal(e.getPath(), isPendingSelection(e.getPath(), true));
-    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
-      unregisterResourceInternal(e.getPath());
-    }
-  }
-
-  // --------------------- End Interface FileWatchListener ---------------------
 }

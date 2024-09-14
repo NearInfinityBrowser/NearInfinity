@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 429.
+ * Implementation of opcode 429.
  */
 public class Opcode429 extends BaseOpcode {
   private static final String RES_TYPE_IWD2 = "SPL";

@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 105.
+ * Implementation of opcode 105.
  */
 public class Opcode105 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

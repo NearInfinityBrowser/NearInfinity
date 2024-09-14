@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
@@ -348,7 +349,7 @@ public class Keyfile {
   // try {
   // Files.deleteIfExists(file);
   // } catch (IOException e) {
-  // e.printStackTrace();
+  // Logger.error(e);
   // }
   // }
   // });
@@ -368,7 +369,7 @@ public class Keyfile {
   //
   // return true;
   // } catch (IOException e) {
-  // e.printStackTrace();
+  // Logger.error(e);
   // }
   //
   // return false;
@@ -380,12 +381,12 @@ public class Keyfile {
       biffList.addAll(list);
     }
     Collections.sort(biffList);
-    return biffList.toArray(new BIFFEntry[biffList.size()]);
+    return biffList.toArray(new BIFFEntry[0]);
   }
 
   public BIFFEntry getBIFFEntry(Path keyFile, int index) {
     List<BIFFEntry> biffs = getBIFFList(keyFile, false);
-    if (biffs != null && biffs.size() > 0) {
+    if (biffs != null && !biffs.isEmpty()) {
       return biffs.get(index);
     }
     return null;
@@ -455,7 +456,7 @@ public class Keyfile {
             try {
               AbstractBIFFReader.open(biffPath);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

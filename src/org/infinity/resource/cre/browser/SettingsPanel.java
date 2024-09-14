@@ -480,7 +480,7 @@ public class SettingsPanel extends JPanel {
 
     JLabel l3 = new JLabel("Background:");
     List<Backgrounds.BackgroundInfo> bgList = getBackgrounds(Profile.getGame());
-    cbBackground = new JComboBox<>(bgList.toArray(new Backgrounds.BackgroundInfo[bgList.size()]));
+    cbBackground = new JComboBox<>(bgList.toArray(new BackgroundInfo[0]));
     cbBackground.setPrototypeDisplayValue(BACKGROUND_LIST.get(1));
     cbBackground.setSelectedIndex(indexBackground);
     cbBackground.addActionListener(listeners);

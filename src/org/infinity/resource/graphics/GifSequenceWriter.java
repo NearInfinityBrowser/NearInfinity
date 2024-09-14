@@ -78,7 +78,7 @@ public class GifSequenceWriter implements AutoCloseable {
 
     int loop = loopContinuously ? 0 : 1;
 
-    child.setUserObject(new byte[] { 0x1, (byte) (loop & 0xFF), (byte) ((loop >> 8) & 0xFF) });
+    child.setUserObject(new byte[] { 0x1, (byte) (loop & 0xff), (byte) ((loop >> 8) & 0xff) });
     appEntensionsNode.appendChild(child);
 
     imageMetaData.setFromTree(metaFormatName, root);

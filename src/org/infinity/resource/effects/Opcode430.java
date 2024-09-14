@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 430.
+ * Implementation of opcode 430.
  */
 public class Opcode430 extends BaseOpcode {
   private static final String EFFECT_PROJECTILE = "Projectile";

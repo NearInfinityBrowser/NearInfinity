@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 330.
+ * Implementation of opcode 330.
  */
 public class Opcode330 extends BaseOpcode {
   private static final String EFFECT_DISPLAY_TYPE = "Display type";

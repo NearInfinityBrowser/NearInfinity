@@ -190,7 +190,7 @@ public class CharsetDetector {
           }
           ch.close();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -269,8 +269,8 @@ public class CharsetDetector {
 
     /** Returns whether the specified string is excluded from the encoding process. */
     public boolean isExcluded(int strref) {
-      for (int i = 0; i < excluded.length; i++) {
-        if (excluded[i] == strref) {
+      for (int offset : excluded) {
+        if (offset == strref) {
           return true;
         }
       }

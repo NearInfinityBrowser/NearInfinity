@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 400.
+ * Implementation of opcode 400.
  */
 public class Opcode400 extends BaseOpcode {
   private static final String EFFECT_SCRIPT_LEVEL = "Script level";

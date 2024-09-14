@@ -42,6 +42,7 @@ import org.infinity.gui.LinkButton;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.updater.UpdateInfo.Release;
+import org.infinity.util.Logger;
 
 /**
  * Shows information about available updates and providing options how to deal with them.
@@ -150,6 +151,7 @@ public class UpdateCheck extends JDialog {
       try {
         fileSize = (int) getUpdateInfo().getRelease().getDefaultAsset().size;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     } finally {
       WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
@@ -335,8 +337,8 @@ public class UpdateCheck extends JDialog {
     final Release release = getUpdateInfo().getRelease();
     final String[] lines = release.body.split("\r?\n");
 
-    for (int i = 0; i < lines.length; i++) {
-      final String line = lines[i].toLowerCase();
+    for (String s : lines) {
+      final String line = s.toLowerCase();
       if (line.contains("changelog:") || line.contains("changes:")) {
         retVal = true;
         break;

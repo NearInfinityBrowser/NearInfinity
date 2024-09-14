@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 3.
+ * Implementation of opcode 3.
  */
 public class Opcode003 extends BaseOpcode {
   private static final String EFFECT_BERSERK_TYPE = "Berserk type";

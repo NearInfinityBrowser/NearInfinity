@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -49,6 +50,7 @@ import org.infinity.resource.wmp.AreaEntry;
 import org.infinity.resource.wmp.WmpResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.LuaEntry;
 import org.infinity.util.LuaParser;
 import org.infinity.util.StringTable;
@@ -212,7 +214,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           LuaEntry entries = LuaParser.Parse(luaFiles, "cheatAreas\\w*", false);
           mapNames = createMapNamesFromLua(entries);
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       } else if (ResourceFactory.resourceExists("MAPNAME.2DA")) {
         // PST map names
@@ -265,8 +267,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           int strref = Integer.parseInt(table.get(row, 1));
           desc = StringTable.getStringRef(strref);
         } catch (NumberFormatException e) {
+          Logger.warn(e);
         }
-        if (resref != table.getDefaultValue() && desc != null) {
+        if (!Objects.equals(resref, table.getDefaultValue()) && desc != null) {
           retVal.put(resref.toUpperCase(), desc);
         }
       }
@@ -305,7 +308,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
                 }
                 if (StringTable.isValidStringRef(strref)) {
                   String name = StringTable.getStringRef(strref);
-                  if (name != null && !name.isEmpty()) {
+                  if (!name.isEmpty()) {
                     retVal.put(resref, name);
                   }
                 }
@@ -402,19 +405,33 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
   public AddRemovable[] getPrototypes() throws Exception {
     if (Profile.getEngine() == Profile.Engine.PST) {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
-          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNotePST() };
+          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNotePST(),
+          new Song(), new RestSpawn() };
     } else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
           new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new AutomapNote(),
-          new ProTrap() };
+          new ProTrap(), new Song(), new RestSpawn() };
     } else {
       return new AddRemovable[] { new Actor(), new ITEPoint(), new SpawnPoint(), new Entrance(), new Container(),
-          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject() };
+          new Ambient(), new Variable(), new Door(), new Animation(), new TiledObject(), new Song(), new RestSpawn() };
     }
   }
 
   @Override
   public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception {
+    if (entry instanceof Song) {
+      // only one instance allowed
+      final IsNumeric songOffset = (IsNumeric) getAttribute(ARE_OFFSET_SONGS);
+      if (songOffset != null && songOffset.getValue() > 0 && getAttribute(songOffset.getValue(), Song.class) != null) {
+        throw new Exception(Song.ARE_SONGS + " entry already exists.");
+      }
+    } else if (entry instanceof RestSpawn) {
+      // only one instance allowed
+      final IsNumeric restOffset = (IsNumeric) getAttribute(ARE_OFFSET_REST_ENCOUNTERS);
+      if (restOffset != null && restOffset.getValue() > 0 && getAttribute(restOffset.getValue(), RestSpawn.class) != null) {
+        throw new Exception(RestSpawn.ARE_RESTSPAWN + " entry already exists.");
+      }
+    }
     return entry;
   }
 
@@ -995,7 +1012,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -1005,7 +1022,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           key = SearchOptions.ARE_AreaScript;
           o = searchOptions.getOption(key);
           StructEntry struct = are.getAttribute(SearchOptions.getResourceName(key), false);
-          retVal &= SearchOptions.Utils.matchResourceRef(struct, o, false);
+          retVal = SearchOptions.Utils.matchResourceRef(struct, o, false);
         }
 
         if (retVal) {
@@ -1018,7 +1035,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
           }
-          retVal &= found || (o == null);
+          retVal = found || (o == null);
         }
 
         if (retVal) {
@@ -1031,18 +1048,18 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
           }
-          retVal &= found || (o == null);
+          retVal = found || o == null;
         }
 
         if (retVal) {
           key = SearchOptions.ARE_Container_Item_Item;
           o = searchOptions.getOption(key);
           boolean found = false;
-          for (Item[] item : items) {
-            for (int idx2 = 0; idx2 < item.length; idx2++) {
-              if (item[idx2] != null) {
-                StructEntry struct = item[idx2].getAttribute(SearchOptions.getResourceName(key), false);
-                found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+          for (final Item[] item : items) {
+            for (final Item value : item) {
+              if (value != null) {
+                StructEntry struct = value.getAttribute(SearchOptions.getResourceName(key), false);
+                found = SearchOptions.Utils.matchResourceRef(struct, o, false);
               }
               if (found) {
                 break;
@@ -1052,7 +1069,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
               break;
             }
           }
-          retVal &= found || (o == null);
+          retVal = found || (o == null);
         }
 
         keyList = new String[] { SearchOptions.ARE_Custom1, SearchOptions.ARE_Custom2, SearchOptions.ARE_Custom3,
@@ -1061,7 +1078,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(are, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(are, o);
           } else {
             break;
           }
@@ -1069,6 +1086,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
 
         return retVal;
       } catch (Exception e) {
+        Logger.warn(e);
       }
     }
     return false;
