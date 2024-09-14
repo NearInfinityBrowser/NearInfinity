@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 108.
+ * Implementation of opcode 108.
  */
 public class Opcode108 extends BaseOpcode {
   private static final String[] INC_TYPES_EE = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Increment (party)",

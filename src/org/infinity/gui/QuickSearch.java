@@ -12,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.SortedSet;
@@ -39,6 +38,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.Logger;
 import org.infinity.util.MapTree;
 import org.infinity.util.Misc;
 
@@ -171,7 +171,7 @@ public class QuickSearch extends JPanel implements Runnable {
 
     cbSearch = new WideComboBox<>();
     cbSearch.setRenderer(new QuickListCellRenderer());
-    cbSearch.setFormatter(item -> QuickListCellRenderer.getFormattedValue(item));
+    cbSearch.setFormatter(QuickListCellRenderer::getFormattedValue);
     cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW")); // space for at least 8.4 characters
     cbSearch.setEditable(true);
     tcEdit = (JTextComponent) cbSearch.getEditor().getEditorComponent();
@@ -269,9 +269,7 @@ public class QuickSearch extends JPanel implements Runnable {
     ResourceTreeModel model = tree.getModel();
     if (model != null) {
       SortedSet<ResourceEntry> entries = generateResourceList(model.getRoot(), null);
-      if (entries != null) {
-        list.addAll(entries);
-      }
+      list.addAll(entries);
     }
   }
 
@@ -390,10 +388,10 @@ public class QuickSearch extends JPanel implements Runnable {
 
             cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
             cbModel.removeAllElements();
-            if (!keyword.isEmpty() && node != null && node.getValue() != null) {
+            if (!keyword.isEmpty() && node.getValue() != null) {
               List<ResourceEntry> list = node.getValue();
-              for (Iterator<ResourceEntry> iter = list.iterator(); iter.hasNext();) {
-                cbModel.addElement(iter.next());
+              for (ResourceEntry resourceEntry : list) {
+                cbModel.addElement(resourceEntry);
               }
             }
 
@@ -423,6 +421,7 @@ public class QuickSearch extends JPanel implements Runnable {
           try {
             monitor.wait();
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
       }

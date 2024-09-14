@@ -9,10 +9,26 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 import javax.swing.UIManager;
@@ -29,13 +45,13 @@ public class Misc {
   public static final Charset CHARSET_DEFAULT = Charset.forName("windows-1252");
 
   /** The UTF-8 charset. */
-  public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
+  public static final Charset CHARSET_UTF8 = StandardCharsets.UTF_8;
 
   /** The US-ASCII charset. */
-  public static final Charset CHARSET_ASCII = Charset.forName("US-ASCII");
+  public static final Charset CHARSET_ASCII = StandardCharsets.US_ASCII;
 
   /** Returns the line separator string which is used by the current operating system. */
-  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  public static final String LINE_SEPARATOR = System.lineSeparator();
 
   /** Can be used to slightly expand dialog message strings to force a bigger initial dialog width. */
   public static final String MSG_EXPAND_SMALL = "        \t";
@@ -170,11 +186,11 @@ public class Misc {
     Charset retVal = null;
     if (data != null) {
       if (data.length >= 3 && data[0] == -17 && data[1] == -69 && data[2] == -65) { // UTF-8 BOM (0xef, 0xbb, 0xbf)
-        retVal = Charset.forName("utf-8");
+        retVal = StandardCharsets.UTF_8;
       } else if (data.length >= 2 && data[0] == -2 && data[1] == -1) { // UTF-16 BOM (0xfeff) in big-endian order
-        retVal = Charset.forName("utf-16be");
+        retVal = StandardCharsets.UTF_16BE;
       } else if (data.length >= 2 && data[0] == -1 && data[1] == -2) { // UTF-16 BOM (0xfeff) in little-endian order
-        retVal = Charset.forName("utf-16le");
+        retVal = StandardCharsets.UTF_16LE;
       }
     }
 
@@ -194,6 +210,7 @@ public class Misc {
       try {
         return Integer.parseInt(value);
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return defValue;
@@ -208,30 +225,31 @@ public class Misc {
       try {
         return Integer.parseInt(value, radix);
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
     }
     return defValue;
   }
 
   /** Swaps byte order of the specified short value. */
-  public static final short swap16(short v) {
+  public static short swap16(short v) {
     return (short) (((v & 0xff) << 8) | ((v >> 8) & 0xff));
   }
 
   /** Swaps byte order of the specified int value. */
-  public static final int swap32(int v) {
+  public static int swap32(int v) {
     return ((v << 24) & 0xff000000) | ((v << 8) & 0x00ff0000) | ((v >> 8) & 0x0000ff00) | ((v >> 24) & 0x000000ff);
   }
 
   /** Swaps byte order of the specified long value. */
-  public static final long swap64(long v) {
+  public static long swap64(long v) {
     return ((v << 56) & 0xff00000000000000L) | ((v << 40) & 0x00ff000000000000L) | ((v << 24) & 0x0000ff0000000000L)
         | ((v << 8) & 0x000000ff00000000L) | ((v >> 8) & 0x00000000ff000000L) | ((v >> 24) & 0x0000000000ff0000L)
         | ((v >> 40) & 0x000000000000ff00L) | ((v >> 56) & 0x00000000000000ffL);
   }
 
   /** Swaps byte order of every short value in the specified array. */
-  public static final void swap(short[] array) {
+  public static void swap(short[] array) {
     if (array != null) {
       for (int i = 0, cnt = array.length; i < cnt; i++) {
         array[i] = swap16(array[i]);
@@ -240,7 +258,7 @@ public class Misc {
   }
 
   /** Swaps byte order of every int value in the specified array. */
-  public static final void swap(int[] array) {
+  public static void swap(int[] array) {
     if (array != null) {
       for (int i = 0, cnt = array.length; i < cnt; i++) {
         array[i] = swap32(array[i]);
@@ -249,7 +267,7 @@ public class Misc {
   }
 
   /** Swaps byte order of every long value in the specified array. */
-  public static final void swap(long[] array) {
+  public static void swap(long[] array) {
     if (array != null) {
       for (int i = 0, cnt = array.length; i < cnt; i++) {
         array[i] = swap64(array[i]);
@@ -258,18 +276,18 @@ public class Misc {
   }
 
   /** Converts a short value into a byte array (little-endian). */
-  public static final byte[] shortToArray(short value) {
+  public static byte[] shortToArray(short value) {
     return new byte[] { (byte) (value & 0xff), (byte) ((value >> 8) & 0xff) };
   }
 
   /** Converts an int value into a byte array (little-endian). */
-  public static final byte[] intToArray(int value) {
+  public static byte[] intToArray(int value) {
     return new byte[] { (byte) (value & 0xff), (byte) ((value >> 8) & 0xff), (byte) ((value >> 16) & 0xff),
         (byte) ((value >> 24) & 0xff) };
   }
 
   /** Converts a long value into a byte array (little-endian). */
-  public static final byte[] longToArray(long value) {
+  public static byte[] longToArray(long value) {
     return new byte[] { (byte) (value & 0xffL), (byte) ((value >> 8) & 0xffL), (byte) ((value >> 16) & 0xffL),
         (byte) ((value >> 24) & 0xffL), (byte) ((value >> 32) & 0xffL), (byte) ((value >> 40) & 0xffL),
         (byte) ((value >> 48) & 0xffL), (byte) ((value >> 56) & 0xffL) };
@@ -282,7 +300,7 @@ public class Misc {
    * @param bits  Size of {@code value} in bits.
    * @return A sign-extended version of {@code value}.
    */
-  public static final int signExtend(int value, int bits) {
+  public static int signExtend(int value, int bits) {
     return (value << (32 - bits)) >> (32 - bits);
   }
 
@@ -293,7 +311,7 @@ public class Misc {
    * @param bits  Size of {@code value} in bits.
    * @return A sign-extended version of {@code value}.
    */
-  public static final long signExtend(long value, int bits) {
+  public static long signExtend(long value, int bits) {
     return (value << (64 - bits)) >> (64 - bits);
   }
 
@@ -591,6 +609,21 @@ public class Misc {
   }
 
   /**
+   * Returns {@code obj} if non-null, otherwise return {@code def}.
+   * @param <T> Type of the return value.
+   * @param obj The value to return if non-null.
+   * @param def A default value
+   * @return Returns {@code obj} if non-null, otherwise {@code def} is returned.
+   */
+  public static <T> T orDefault(T obj, T def) {
+    if (obj != null) {
+      return obj;
+    } else {
+      return def;
+    }
+  }
+
+  /**
    * This method throws a general {@link Exception} without message if the specified condition isn't met.
    *
    * @param cond the condition to meet.
@@ -656,6 +689,72 @@ public class Misc {
         }
       }
     }
+  }
+
+  /**
+   * Returns a list of relative paths for every file that is found in the specified package of the current Java application.
+   *
+   * @param packageName Fully qualified package name (e.g. {@code org.infinity}).
+   * @return List of files found in the current Java application as {@link Path} instances relative to the application root.
+   */
+  public static List<Path> getFilesInPackage(String packageName) throws Exception {
+    final Package pkg = Package.getPackage(Objects.requireNonNull(packageName));
+    if (pkg == null) {
+      throw new IllegalArgumentException("Package not found: " + packageName);
+    }
+
+    final String pkgPath = pkg.getName().replace('.', '/');
+    final URL pkgUrl = ClassLoader.getSystemClassLoader().getResource(pkgPath);
+    if (pkgUrl == null) {
+      throw new IOException("Resource not found: " + pkgPath);
+    }
+
+    if ("jar".equals(pkgUrl.getProtocol())) {
+      return getFilesInJarPackage(pkg);
+    } else if ("file".equals(pkgUrl.getProtocol())) {
+      return getFilesInDefaultPackage(pkg);
+    } else {
+      throw new IOException("Unsupported resource location: " + pkgUrl);
+    }
+  }
+
+  /** Used internally to return a list of all files in the specified package if the application is a JAR file. */
+  private static List<Path> getFilesInJarPackage(Package pkg) throws Exception {
+    final List<Path> retVal = new ArrayList<>();
+
+    final URI jarLocation = Misc.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+    try (final JarInputStream jis = new JarInputStream(Files.newInputStream(Paths.get(jarLocation), StandardOpenOption.READ))) {
+      final String rootPath = pkg.getName().replace('.', '/') + "/";
+      JarEntry je;
+      while ((je = jis.getNextJarEntry()) != null) {
+        if (je.getName().startsWith(rootPath) && !je.getName().equals(rootPath)) {
+          final Path path = Paths.get(je.getName());
+          retVal.add(path);
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Used internally to return a list of all files in the specified package if the application is invoked by a regular
+   * class file.
+   */
+  private static List<Path> getFilesInDefaultPackage(Package pkg) throws Exception {
+    final List<Path> retVal = new ArrayList<>();
+
+    final String rootPath = pkg.getName().replace('.', '/');
+    try (final BufferedReader reader =
+        new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(rootPath)))) {
+      final List<String> lines = reader.lines().collect(Collectors.toList());
+      for (final String line : lines) {
+        final Path path = Paths.get(rootPath, line);
+        retVal.add(path);
+      }
+    }
+
+    return retVal;
   }
 
   // Contains static functions only

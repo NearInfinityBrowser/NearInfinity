@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 236.
+ * Implementation of opcode 236.
  */
 public class Opcode236 extends BaseOpcode {
   private static final String EFFECT_IMAGE_TYPE = "Image type";
@@ -50,12 +50,6 @@ public class Opcode236 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AMOUNT));
@@ -69,11 +63,5 @@ public class Opcode236 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

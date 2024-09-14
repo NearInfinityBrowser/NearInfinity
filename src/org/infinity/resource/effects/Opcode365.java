@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 365.
+ * Implementation of opcode 365.
  */
 public class Opcode365 extends BaseOpcode {
   private static final String EFFECT_DISABLE_DIALOG       = "Disable dialogue?";

@@ -23,7 +23,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
 /** Meta class for identifying dialogue node. */
-final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
+public class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
   private static final ImageIcon ICON = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
 
   private final DlgTreeModel parent;
@@ -70,7 +70,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
       }
     }
     // Sort by weight or natural order
-    Collections.sort(states, new StateComparator());
+    states.sort(new StateComparator());
   }
 
   @Override
@@ -95,7 +95,10 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
 
   @Override
   public boolean removeChild(ItemBase child) {
-    return states.remove(child);
+    if (child instanceof StateItem) {
+      return states.remove(child);
+    }
+    return false;
   }
 
   @Override
@@ -120,7 +123,10 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
 
   @Override
   public int getIndex(TreeNode node) {
-    return states.indexOf(node);
+    if (node instanceof StateItem) {
+      return states.indexOf(node);
+    }
+    return -1;
   }
 
   @Override
@@ -194,7 +200,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
         if (idx1 < 0) {
           return (idx1 == idx2) ? 0 : 1;
         } else if (idx2 < 0) {
-          return (idx1 == idx2) ? 0 : -1;
+          return -1;
         } else {
           return idx1 - idx2;
         }

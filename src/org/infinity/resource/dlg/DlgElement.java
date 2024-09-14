@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Mingun
  */
-final class DlgElement {
+public class DlgElement {
   /**
    * All GUI items, that represent dialogue entry in the tree. Used for update tree when entry changes.
    */
@@ -29,6 +29,9 @@ final class DlgElement {
    * nodes will be chosen as new main item.
    */
   ItemBase main;
+
+  public DlgElement() {
+  }
 
   public void add(ItemBase item) {
     all.add(item);

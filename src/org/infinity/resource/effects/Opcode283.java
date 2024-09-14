@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 283.
+ * Implementation of opcode 283.
  */
 public class Opcode283 extends BaseOpcode {
   private static final String EFFECT_DISPLAY_TYPE = "Display type";
@@ -52,12 +52,6 @@ public class Opcode283 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
@@ -69,11 +63,5 @@ public class Opcode283 extends BaseOpcode {
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     return makeEffectParamsIWD(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

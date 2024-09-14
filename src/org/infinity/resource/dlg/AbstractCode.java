@@ -45,6 +45,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -69,12 +70,12 @@ public abstract class AbstractCode extends Datatype
   private SortedSet<ScriptMessage> warnings;
   private String text;
 
-  AbstractCode(String name) {
+  protected AbstractCode(String name) {
     this(StreamUtils.getByteBuffer(8), 0, name);
     this.text = "";
   }
 
-  AbstractCode(ByteBuffer buffer, int offset, String name) {
+  protected AbstractCode(ByteBuffer buffer, int offset, String name) {
     super(offset, 8, name);
     read(buffer, offset);
     this.text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue()) : "";
@@ -94,8 +95,8 @@ public abstract class AbstractCode extends Datatype
       errors = compiler.getErrors();
       warnings = compiler.getWarnings();
       textArea.clearGutterIcons();
-      if (errors.size() > 0) {
-        JMenuItem errorItems[] = new JMenuItem[errors.size()];
+      if (!errors.isEmpty()) {
+        JMenuItem[] errorItems = new JMenuItem[errors.size()];
         int count = 0;
         for (final ScriptMessage sm : errors) {
           textArea.setLineError(sm.getLine(), sm.getMessage(), false);
@@ -103,8 +104,8 @@ public abstract class AbstractCode extends Datatype
         }
         bpmErrors.setMenuItems(errorItems, false);
       }
-      if (warnings.size() > 0) {
-        JMenuItem warningItems[] = new JMenuItem[warnings.size()];
+      if (!warnings.isEmpty()) {
+        JMenuItem[] warningItems = new JMenuItem[warnings.size()];
         int count = 0;
         for (final ScriptMessage sm : warnings) {
           textArea.setLineWarning(sm.getLine(), sm.getMessage(), false);
@@ -112,8 +113,8 @@ public abstract class AbstractCode extends Datatype
         }
         bpmWarnings.setMenuItems(warningItems, false);
       }
-      bpmErrors.setEnabled(errors.size() > 0);
-      bpmWarnings.setEnabled(warnings.size() > 0);
+      bpmErrors.setEnabled(!errors.isEmpty());
+      bpmWarnings.setEnabled(!warnings.isEmpty());
       bpmErrors.setText("Errors (" + errors.size() + ")...");
       bpmWarnings.setText("Warnings (" + warnings.size() + ")...");
       bCheck.setEnabled(false);
@@ -226,7 +227,7 @@ public abstract class AbstractCode extends Datatype
       bCheck.doClick();
     }
     if (!errors.isEmpty()) {
-      String options[] = { "Update", "Cancel" };
+      String[] options = { "Update", "Cancel" };
       if (JOptionPane.showOptionDialog(textArea.getTopLevelAncestor(), "Errors exist. Update anyway?", "Update value",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
           options[0]) != JOptionPane.YES_OPTION) {
@@ -325,7 +326,7 @@ public abstract class AbstractCode extends Datatype
       ts.setOffset(off.getValue());
       flatList.add(ts);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

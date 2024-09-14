@@ -23,6 +23,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 
@@ -111,7 +112,7 @@ public final class ResourceTreeModel implements TreeModel {
         parentFolder.sortChildren(true);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return;
     }
   }
@@ -182,7 +183,7 @@ public final class ResourceTreeModel implements TreeModel {
       }
       ResourceTreeFolder folder = getFolder(parent, folderName);
       if (folder == null) {
-        if (folderName.length() > 0) {
+        if (!folderName.isEmpty()) {
           folderName = Character.toUpperCase(folderName.charAt(0)) + folderName.substring(1);
         }
         folder = new ResourceTreeFolder(parent, folderName);

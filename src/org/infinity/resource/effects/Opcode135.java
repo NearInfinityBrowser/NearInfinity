@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 135.
+ * Implementation of opcode 135.
  */
 public class Opcode135 extends BaseOpcode {
   private static final String EFFECT_POLYMORPH_TYPE = "Polymorph type";

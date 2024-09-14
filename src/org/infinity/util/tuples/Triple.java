@@ -20,10 +20,12 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
   /**
    * Creates a new tuple instance with the specified elements.
    *
-   * @param <A>    the tuple element type.
+   * @param <A>    the first tuple element type.
+   * @param <B>    the second tuple element type.
+   * @param <C>    the third tuple element type.
    * @param value0 The first element to store in the tuple.
-   * @param value2 The second element to store in the tuple.
-   * @param value3 The third element to store in the tuple.
+   * @param value1 The second element to store in the tuple.
+   * @param value2 The third element to store in the tuple.
    * @return A new tuple instance.
    */
   public static <A, B, C> Triple<A, B, C> with(A value0, B value1, C value2) {
@@ -33,7 +35,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
   /**
    * Creates a new tuple from the array. The array must contain at least 3 elements.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param arr The array to be used as source for the tuple.
    * @return A new tuple instance.
    */
@@ -50,7 +52,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
   /**
    * Creates a new tuple from the collection. The collection must contain at least 3 elements.
    *
-   * @param <A> the tuple element type.
+   * @param <T> the tuple element type.
    * @param col the collection to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -71,7 +73,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
   /**
    * Creates a new tuple from the {@code Iterable} object.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @return a new tuple instance.
    */
@@ -82,7 +84,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
   /**
    * Creates a new tuple from the {@code Iterable} object, starting the specified index.
    *
-   * @param <A>      the tuple element type.
+   * @param <T>      the tuple element type.
    * @param iterator the {@code Iterable} object to be used as source for the tuple.
    * @param index    start index in {@code Iterable} object.
    * @return A new tuple instance.

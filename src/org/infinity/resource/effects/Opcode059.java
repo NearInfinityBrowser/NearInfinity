@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 59.
+ * Implementation of opcode 59.
  */
 public class Opcode059 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

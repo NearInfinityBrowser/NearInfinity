@@ -20,7 +20,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -285,7 +284,7 @@ public final class GameProperties extends ChildFrame implements ActionListener {
       }
     }
 
-    Collections.sort(listTypes, (o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
+    listTypes.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
 
     // setting preferred size to fit all entries
     int itemsPerRow = pFixed.getPreferredSize().width / (maxWidth + flow.getHgap());
@@ -355,7 +354,7 @@ public final class GameProperties extends ChildFrame implements ActionListener {
   // Returns the name of the language specified by the given language code
   private static String getLanguageName(String langCode) {
     if (langCode != null && langCode.matches("[a-z]{2}_[A-Z]{2}")) {
-      String lang[] = langCode.split("_");
+      String[] lang = langCode.split("_");
       if (lang.length >= 2) {
         String name = (new Locale(lang[0], lang[1])).getDisplayLanguage();
         if (name != null && !name.isEmpty()) {

@@ -21,6 +21,7 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
@@ -73,13 +74,13 @@ public final class IOHandler implements Writeable {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       try {
         Files.delete(tempFolder);
       } catch (IOException e) {
         FileDeletionHook.getInstance().registerFile(tempFolder);
-        e.printStackTrace();
+        Logger.error(e);
       }
       tempFolder = null;
     }

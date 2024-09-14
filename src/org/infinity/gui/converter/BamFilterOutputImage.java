@@ -31,6 +31,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -64,11 +65,9 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cbImageType.getSelectedIndex()).append(';');
-    sb.append(spinnerDigits.getValue()).append(';');
-    sb.append(cbTransparent.isSelected());
-    return sb.toString();
+    return String.valueOf(cbImageType.getSelectedIndex()) + ';' +
+        spinnerDigits.getValue() + ';' +
+        cbTransparent.isSelected();
   }
 
   @Override
@@ -77,8 +76,8 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.split(";");
-        Integer type = Integer.MIN_VALUE;
-        Integer digits = Integer.MIN_VALUE;
+        int type = Integer.MIN_VALUE;
+        int digits = Integer.MIN_VALUE;
         boolean t = true;
 
         if (params.length > 0) {
@@ -121,7 +120,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame) {
     return frame;
   }
 
@@ -245,7 +244,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
             throw new IOException();
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          Logger.error(e);
           throw new Exception("Could not export frame " + frameIdx);
         }
         image.flush();

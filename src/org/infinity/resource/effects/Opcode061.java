@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 61.
+ * Implementation of opcode 61.
  */
 public class Opcode061 extends BaseOpcode {
   private static final String EFFECT_FADE_SPEED = "Fade speed";

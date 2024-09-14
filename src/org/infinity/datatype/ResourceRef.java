@@ -44,6 +44,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.SoundResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -162,7 +163,7 @@ public class ResourceRef extends Datatype
       }
     }
     addExtraEntries(values);
-    Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
+    values.sort(IGNORE_CASE_EXT_COMPARATOR);
     boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
         Arrays.stream(types).anyMatch(s -> ICON_EXTENSIONS.contains(s.toUpperCase()));
     list = new TextListPanel<>(values, false, showIcons);
@@ -429,7 +430,7 @@ public class ResourceRef extends Datatype
       try {
         ((Closeable) resource).close();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

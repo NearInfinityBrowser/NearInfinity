@@ -12,7 +12,7 @@ import org.infinity.datatype.IdsTargetType;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 55.
+ * Implementation of opcode 55.
  */
 public class Opcode055 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

@@ -78,9 +78,7 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.split(";");
-        Integer fps = Integer.MIN_VALUE;
-        boolean loop = true;
-
+        int fps = Integer.MIN_VALUE;
         if (params.length > 0) {
           int min = ((Number) ((SpinnerNumberModel) spinnerFPS.getModel()).getMinimum()).intValue();
           int max = ((Number) ((SpinnerNumberModel) spinnerFPS.getModel()).getMaximum()).intValue();
@@ -90,6 +88,7 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
           }
         }
 
+        boolean loop = true;
         if (params.length > 1) {
           if (params[1].equalsIgnoreCase("true")) {
             loop = true;
@@ -111,7 +110,7 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry frame) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry frame) {
     return frame;
   }
 
@@ -172,11 +171,11 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
       boolean canvasCheck = true;
       Dimension dim = new Dimension(decoder.getFrameInfo(0).getWidth(), decoder.getFrameInfo(0).getHeight());
       for (int idx = 0; idx < decoder.frameCount(); idx++) {
-        canvasCheck &= (decoder.getFrameInfo(idx).getWidth() == dim.width);
+        canvasCheck = (decoder.getFrameInfo(idx).getWidth() == dim.width);
         if (!canvasCheck) {
           break;
         }
-        canvasCheck &= (decoder.getFrameInfo(idx).getHeight() == dim.height);
+        canvasCheck = (decoder.getFrameInfo(idx).getHeight() == dim.height);
         if (!canvasCheck) {
           break;
         }

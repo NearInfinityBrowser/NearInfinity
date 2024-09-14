@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 348.
+ * Implementation of opcode 348.
  */
 public class Opcode348 extends BaseOpcode {
   private static final String EFFECT_BASE_AMOUNT      = "Base amount";

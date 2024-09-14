@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 68.
+ * Implementation of opcode 68.
  */
 public class Opcode068 extends BaseOpcode {
   private static final String EFFECT_DISPLAY_TEXT = "Display text?";

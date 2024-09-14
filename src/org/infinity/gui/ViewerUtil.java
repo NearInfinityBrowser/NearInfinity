@@ -22,10 +22,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.swing.BorderFactory;
@@ -69,6 +69,7 @@ import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
@@ -191,31 +192,32 @@ public final class ViewerUtil {
   }
 
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr) {
-    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        BamControl ctrl = decoder.createControl();
-        JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        final BamControl ctrl = Objects.requireNonNull(decoder).createControl();
+        final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         frameNr = Math.min(frameNr, decoder.frameCount() - 1);
         label.setIcon(new ImageIcon(decoder.frameGet(ctrl, frameNr)));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
   }
 
   public static JLabel makeBamPanel(ResourceRef iconRef, int animNr, int frameNr) {
-    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
       try {
-        BamDecoder decoder = BamDecoder.loadBam(iconEntry);
-        BamControl ctrl = decoder.createControl();
-        JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        assert decoder != null;
+        final BamControl ctrl = decoder.createControl();
+        final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
         int frameIdx = -1;
         for (int curAnimIdx = animNr; curAnimIdx >= 0 && frameIdx < 0; curAnimIdx--) {
           for (int curFrameIdx = frameNr; curFrameIdx >= 0 && frameIdx < 0; curFrameIdx--) {
@@ -227,7 +229,39 @@ public final class ViewerUtil {
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         return label;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
+      }
+    }
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+  }
+
+  // Creates a panel with the biggest graphics (by area) available in the specified BAM resource
+  public static JLabel makeMaxBamPanel(ResourceRef iconRef) {
+    ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    if (iconEntry != null) {
+      try {
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        int numFrames = Objects.requireNonNull(decoder).frameCount();
+        int maxSize = -1;
+        int frameIdx = -1;
+        for (int idx = 0; idx < numFrames; idx++) {
+          final BamDecoder.FrameEntry frameInfo = decoder.getFrameInfo(idx);
+          int curSize = frameInfo.getWidth() * frameInfo.getHeight();
+          if (curSize > maxSize) {
+            maxSize = curSize;
+            frameIdx = idx;
+          }
+        }
+        if (frameIdx >= 0) {
+          final BamControl control = decoder.createControl();
+          final JLabel label = new JLabel(iconRef.getName(), SwingConstants.CENTER);
+          label.setIcon(new ImageIcon(decoder.frameGet(control, frameIdx)));
+          label.setVerticalTextPosition(SwingConstants.BOTTOM);
+          label.setHorizontalTextPosition(SwingConstants.CENTER);
+          return label;
+        }
+      } catch (Exception e) {
+        Logger.error(e);
       }
     }
     return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
@@ -585,7 +619,7 @@ public final class ViewerUtil {
             templist.add((AbstractStruct) o);
           }
         }
-        Collections.sort(templist, new StructListComparator(attrEntry));
+        templist.sort(new StructListComparator(attrEntry));
         for (AbstractStruct s : templist) {
           listModel.addElement(s);
         }
@@ -717,7 +751,7 @@ public final class ViewerUtil {
           return resRef.getSearchName() + " (" + resRef.getResourceName() + ')';
         } else if (entry == null || entry.toString().trim().isEmpty()) {
           return value.toString();
-        } else if (entry != null) {
+        } else {
           return entry.toString();
         }
       } else if (value != null) {

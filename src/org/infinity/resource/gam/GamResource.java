@@ -44,6 +44,7 @@ import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.QuestsPanel;
 import org.infinity.resource.text.QuestsResource;
+import org.infinity.util.Logger;
 import org.infinity.util.Variables;
 
 /**
@@ -192,7 +193,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
           try {
             return new QuestsPanel(new QuestsResource().readQuests(), globalVars);
           } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.error(ex);
             final StringWriter w = new StringWriter();
             ex.printStackTrace(new PrintWriter(w));
             return new JTextArea(w.toString());
@@ -449,7 +450,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    if (offIWD2 != null && numIWD2 != null) { // Icewind2
+    if (numIWD2 != null) { // Icewind2
       // a leftover from BG2 Familiar Info structure?
       if (numIWD2.getValue() > 0) {
         offset = offIWD2.getValue();
@@ -470,7 +471,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    if (numIWD != null && offIWD != null) { // Icewind
+    if (numIWD != null) { // Icewind
       // a leftover from BG2 Familiar Info structure?
       if (numIWD.getValue() > 0) {
         offset = offIWD.getValue();
@@ -488,7 +489,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    if (offLocation != null && numLocation != null) { // BG2?
+    if (offLocation != null) { // BG2?
       offset = offLocation.getValue();
       if (offset > 0) {
         for (int i = 0; i < numLocation.getValue(); i++) {
@@ -499,7 +500,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
 
-    if (offPocket != null && numPocket != null) { // BG2
+    if (offPocket != null) { // BG2
       offset = offPocket.getValue();
       if (offset > 0) {
         for (int i = 0; i < numPocket.getValue(); i++) {

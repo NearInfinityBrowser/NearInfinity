@@ -19,6 +19,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.LogLevel;
 import org.infinity.gui.menu.OptionsMenuItem;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.gui.menu.ResRefMode;
@@ -78,7 +79,7 @@ public class AppOption {
     if (lang == null || ((String) lang).isEmpty()) {
       lang = Arrays
           .stream(Profile.Game.values())
-          .filter(g -> Profile.isEnhancedEdition(g))
+          .filter(Profile::isEnhancedEdition)
           .map(g -> g.toString() + "=" + OptionsMenuItem.getDefaultGameLanguage())
           .collect(Collectors.joining(";"));
     }
@@ -131,14 +132,14 @@ public class AppOption {
   /** Menu Options: ShowSysInfo (Boolean, Default: true) */
   public static final AppOption SHOW_SYS_INFO = new AppOption(OptionsMenuItem.OPTION_SHOWSYSINFO,
       "Display System Information at Startup", true);
+  public static final AppOption SHOW_MEM_STATUS = new AppOption(OptionsMenuItem.OPTION_SHOWMEMSTATUS,
+      "Display Memory Usage in Status Bar", true);
   /** Menu Options: OpenBookmarksPrompt (Boolean, Default: true) */
   public static final AppOption OPEN_BOOKMARKS_PROMPT = new AppOption(OptionsMenuItem.OPTION_OPENBOOKMARKSPROMPT,
       "Confirm Opening Bookmarked Gamed", true);
   /** Menu Options: RememberChildFrameRect (Boolean, Default: false) */
   public static final AppOption REMEMBER_CHILD_FRAME_RECT = new AppOption(OptionsMenuItem.OPTION_REMEMBER_CHILDFRAME_RECT,
       "Remember Last Child Frame Size and Position", false);
-//  /** Menu Options: MonitorFileChanges (Boolean, Default: false) */
-//  public static final AppOption MONITOR_FILE_CHANGES = new AppOption(OptionsMenu.OPTION_MONITORFILECHANGES, "Monitor file changes", false);
   /**
    * Menu Options: OptionFixedInternal (Integer, Default: 0).
    * Note: Used internally to fix incorrect default values after the public release.
@@ -284,6 +285,9 @@ public class AppOption {
       "Show State/Response Numbers", true);
 
   // Category: Visual Options
+  /** Menu Options > Visual Options: AppLogLevel (Integer, Default: Level.INFO) */
+  public static final AppOption APP_LOG_LEVEL = new AppOption(NearInfinity.APP_LOG_LEVEL, "Application Log Level",
+      LogLevel.INFO.ordinal());
   /** Menu Options > Visual Options: ShowResRef (Integer, Default: ResRefMode.RefName) */
   public static final AppOption SHOW_RES_REF = new AppOption(OptionsMenuItem.OPTION_SHOWRESREF, "Show ResourceRef As",
       ResRefMode.RefName.ordinal());
@@ -401,12 +405,12 @@ public class AppOption {
    * @return {@code true} if one or more options have been modified, {@code false} otherwise.
    */
   public static boolean isAnyModified() {
-    return AppOption.getInstances().stream().anyMatch(o -> o.isModified());
+    return AppOption.getInstances().stream().anyMatch(AppOption::isModified);
   }
 
   /** Returns a set of all {@code AppOption} that have been modified. */
   public static List<AppOption> getModifiedOptions() {
-    return AppOption.getInstances().stream().filter(o -> o.isModified()).collect(Collectors.toList());
+    return AppOption.getInstances().stream().filter(AppOption::isModified).collect(Collectors.toList());
   }
 
   /**
@@ -424,7 +428,7 @@ public class AppOption {
 
   /** Discards any changes made to the options and resets them to their initial values. */
   public static void revertAll() {
-    AppOption.getInstances().stream().forEach(o -> o.revert());
+    AppOption.getInstances().stream().forEach(AppOption::revert);
   }
 
   /** Writes all options of this enum back to the persistent Preferences storage. */
@@ -442,7 +446,7 @@ public class AppOption {
     if (collection == null) {
       collection = AppOption.getInstances();
     }
-    collection.stream().forEach(o -> o.storeValue());
+    collection.stream().forEach(AppOption::storeValue);
   }
 
   // /** Used internally to allow only supported types for the generic argument. */
@@ -458,7 +462,7 @@ public class AppOption {
       return classType;
     } else {
       // fail
-      final String t = (classType != null) ? classType.getSimpleName() : "(null)";
+      final String t = classType.getSimpleName();
       throw new ClassCastException("Unsupported value type: " + t);
     }
   }
@@ -466,7 +470,7 @@ public class AppOption {
   /** Returns a {@link Preferences} instance for the specified node. */
   private static Preferences getPrefs(String prefsNode) {
     if (prefsNode != null) {
-      return PREFERENCES.computeIfAbsent(prefsNode, s -> Misc.getPrefs(s));
+      return PREFERENCES.computeIfAbsent(prefsNode, Misc::getPrefs);
     } else {
       return null;
     }
@@ -645,7 +649,7 @@ public class AppOption {
   }
 
   /**
-   * Returns the initial value of the option as set by {@link #setInitialValue(Object)} or {@link #loadValue(Preferences)}.
+   * Returns the initial value of the option as set by {@link #setInitialValue(Object)} or {@link #loadValue()}.
    */
   public Object getInitialValue() {
     return initialValue;
@@ -754,7 +758,7 @@ public class AppOption {
   }
 
   /**
-   * Reverts to the initial value as set by {@link #setInitialValue(Object)} or {@link #loadValue(Preferences)}.
+   * Reverts to the initial value as set by {@link #setInitialValue(Object)} or {@link #loadValue()}.
    */
   public void revert() {
     this.value = this.initialValue;
@@ -883,8 +887,8 @@ public class AppOption {
   /** Used internally to ensure that the specified value is of the same type as {@link #getDefault()}. */
   private Object validate(Object value) throws ClassCastException {
     value = validator.apply(value);
-    if ((value == null && validateType(valueType) == valueType) ||
-        (value != null && valueType.isAssignableFrom(validateType(value.getClass())))) {
+    if (value == null && Objects.equals(validateType(valueType), valueType) ||
+        valueType.isAssignableFrom(validateType(value.getClass()))) {
       // pass
       return value;
     }

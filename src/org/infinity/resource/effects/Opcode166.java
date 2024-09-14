@@ -14,7 +14,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 166.
+ * Implementation of opcode 166.
  */
 public class Opcode166 extends BaseOpcode {
   private static final String[] INC_TYPES_GENERIC = Arrays.copyOf(INC_TYPES, 2);

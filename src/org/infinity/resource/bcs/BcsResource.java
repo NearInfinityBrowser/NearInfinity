@@ -59,6 +59,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.IdsMap;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
@@ -307,6 +308,8 @@ public final class BcsResource
   private final ButtonPanel bpDecompile = new ButtonPanel();
   private final ButtonPanel bpCompiled = new ButtonPanel();
 
+  private final String text;
+
   private JMenuItem iFindAll;
   private JMenuItem iFindThis;
   private JMenuItem iFindUsage;
@@ -316,7 +319,6 @@ public final class BcsResource
   private JTabbedPane tabbedPane;
   private InfinityTextArea codeText;
   private ScriptTextArea sourceText;
-  private String text;
   private boolean sourceChanged = false;
   private boolean codeChanged = false;
 
@@ -352,7 +354,7 @@ public final class BcsResource
   @Override
   public void close() throws Exception {
     if (sourceChanged) {
-      String options[] = { "Compile & save", "Discard changes", "Cancel" };
+      String[] options = { "Compile & save", "Discard changes", "Cancel" };
       int result = JOptionPane.showOptionDialog(panel, "Script contains uncompiled changes", "Uncompiled changes",
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == JOptionPane.YES_OPTION) {
@@ -487,7 +489,7 @@ public final class BcsResource
           } catch (IOException e) {
             JOptionPane.showMessageDialog(panel, "Error exporting " + chooser.getSelectedFile().toString(), "Error",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else if (bpmExport.getSelectedItem() == iExportScript) {
@@ -529,7 +531,7 @@ public final class BcsResource
     try {
       return decompiler.getSource();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       return "// Error: " + e.getMessage();
     }
   }
@@ -550,6 +552,7 @@ public final class BcsResource
       }
       highlightText(startOfs, endOfs);
     } catch (BadLocationException ble) {
+      Logger.warn(ble);
     }
   }
 
@@ -560,6 +563,7 @@ public final class BcsResource
       sourceText.moveCaretPosition(endOfs - 1);
       sourceText.getCaret().setSelectionVisible(true);
     } catch (IllegalArgumentException e) {
+      Logger.warn(e);
     }
   }
 
@@ -697,16 +701,16 @@ public final class BcsResource
     bDecompile.setEnabled(false);
     sourceChanged = false;
     codeChanged = true;
-    iExportScript.setEnabled(compiler.getErrors().size() == 0);
+    iExportScript.setEnabled(compiler.getErrors().isEmpty());
     SortedSet<ScriptMessage> errorMap = compiler.getErrors();
     SortedSet<ScriptMessage> warningMap = compiler.getWarnings();
     sourceText.clearGutterIcons();
     bpmErrors.setText("Errors (" + errorMap.size() + ")...");
     bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
-    if (errorMap.size() == 0) {
+    if (errorMap.isEmpty()) {
       bpmErrors.setEnabled(false);
     } else {
-      JMenuItem errorItems[] = new JMenuItem[errorMap.size()];
+      JMenuItem[] errorItems = new JMenuItem[errorMap.size()];
       int counter = 0;
       for (final ScriptMessage sm : errorMap) {
         sourceText.setLineError(sm.getLine(), sm.getMessage(), false);
@@ -715,10 +719,10 @@ public final class BcsResource
       bpmErrors.setMenuItems(errorItems, false);
       bpmErrors.setEnabled(true);
     }
-    if (warningMap.size() == 0) {
+    if (warningMap.isEmpty()) {
       bpmWarnings.setEnabled(false);
     } else {
-      JMenuItem warningItems[] = new JMenuItem[warningMap.size()];
+      JMenuItem[] warningItems = new JMenuItem[warningMap.size()];
       int counter = 0;
       for (final ScriptMessage sm : warningMap) {
         sourceText.setLineWarning(sm.getLine(), sm.getMessage(), false);
@@ -739,12 +743,12 @@ public final class BcsResource
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       sourceText.setText("/*\nError: " + e.getMessage() + "\n*/");
     }
     sourceText.setCaretPosition(0);
     Set<ResourceEntry> uses = decompiler.getResourcesUsed();
-    JMenuItem usesItems[] = new JMenuItem[uses.size()];
+    JMenuItem[] usesItems = new JMenuItem[uses.size()];
     int usesIndex = 0;
     for (final ResourceEntry usesEntry : uses) {
       if (usesEntry.getSearchString() != null) {
@@ -766,7 +770,7 @@ public final class BcsResource
     final JButton bSaveAs = (JButton) buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS);
     final ButtonPopupMenu bpmErrors = (ButtonPopupMenu) bpDecompile.getControlByType(CTRL_ERRORS);
     if (bpmErrors.isEnabled()) {
-      String options[] = { "Save", "Cancel" };
+      String[] options = { "Save", "Cancel" };
       int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result != 0) {

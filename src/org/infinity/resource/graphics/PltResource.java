@@ -61,6 +61,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
@@ -286,7 +287,7 @@ public class PltResource
           throw new UnsupportedOperationException("PNG writing is not supported");
         }
       } catch (Exception ioe) {
-        ioe.printStackTrace();
+        Logger.error(ioe);
         JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(), "Error while exporting " + entry, "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -341,7 +342,7 @@ public class PltResource
               hexViewer.setCurrentOffset(0L);
               panelRaw.add(hexViewer, BorderLayout.CENTER);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             } finally {
               WindowBlocker.blockWindow(false);
             }
@@ -672,9 +673,10 @@ public class PltResource
                 try {
                   int v = Integer.parseInt(s);
                   if (v >= numItems) {
-                    randomIndices.add(Integer.valueOf(v));
+                    randomIndices.add(v);
                   }
                 } catch (NumberFormatException nfe) {
+                  Logger.trace(nfe);
                 }
               }
             }
@@ -706,8 +708,9 @@ public class PltResource
               try {
                 v = Integer.parseInt(s);
               } catch (NumberFormatException nfe) {
+                Logger.trace(nfe);
               }
-              if (randomIndices.contains(Integer.valueOf(v))) {
+              if (randomIndices.contains(v)) {
                 int index = v;
                 ColorItem[] randItems = new ColorItem[numRows - 1];
                 for (int row = 1; row < numRows; ++row) {
@@ -716,6 +719,7 @@ public class PltResource
                   try {
                     v = Integer.parseInt(s);
                   } catch (NumberFormatException nfe) {
+                    Logger.trace(nfe);
                   }
                   if (v < 0 || v >= numItems)
                     v = 0;
@@ -727,7 +731,7 @@ public class PltResource
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
       if (items == null) {
@@ -788,7 +792,7 @@ public class PltResource
         g2.drawString(msg, x, y);
       } else {
         // fixed color range
-        int[] indices = iconIndexMap.get(Integer.valueOf(item.getIndex()));
+        int[] indices = iconIndexMap.get(item.getIndex());
         if (indices == null) {
           indices = new int[ICON_WIDTH * ICON_HEIGHT];
           int maxDist = (ICON_WIDTH - 1) / 2;
@@ -809,7 +813,7 @@ public class PltResource
               indices[y * ICON_WIDTH + x] = index;
             }
           }
-          iconIndexMap.put(Integer.valueOf(item.getIndex()), indices);
+          iconIndexMap.put(item.getIndex(), indices);
         }
 
         int[] buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();

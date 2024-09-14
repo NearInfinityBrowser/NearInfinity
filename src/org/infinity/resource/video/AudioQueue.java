@@ -4,8 +4,12 @@
 
 package org.infinity.resource.video;
 
+
+
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import org.infinity.util.Logger;
 
 /**
  * Represents a container for audio chunks returned by the MveDecoder.
@@ -75,6 +79,7 @@ public class AudioQueue {
       try {
         Thread.sleep(5);
       } catch (InterruptedException e) {
+        Logger.trace(e);
       }
     }
     synchronized (deque) {
@@ -116,6 +121,7 @@ public class AudioQueue {
         deque.addLast(new AudioBlock(index, data));
         return true;
       } catch (Throwable t) {
+        Logger.trace(t);
       }
     }
     return false;
@@ -123,7 +129,7 @@ public class AudioQueue {
 
   // ----------------------------- INNER CLASSES -----------------------------
 
-  private class AudioBlock {
+  private static class AudioBlock {
     public final int index; // sequential number, can be used to sort audio blocks
     public final byte[] data; // uncompressed audio data in the globally specified audio format
 

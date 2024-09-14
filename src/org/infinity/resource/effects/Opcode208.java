@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 208.
+ * Implementation of opcode 208.
  */
 public class Opcode208 extends BaseOpcode {
   private static final String EFFECT_HP_AMOUNT = "HP amount";
@@ -41,12 +41,6 @@ public class Opcode208 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_HP_AMOUNT));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

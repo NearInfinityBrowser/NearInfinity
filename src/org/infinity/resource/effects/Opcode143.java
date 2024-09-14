@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 143.
+ * Implementation of opcode 143.
  */
 public class Opcode143 extends BaseOpcode {
   private static final String EFFECT_SLOT = "Slot";

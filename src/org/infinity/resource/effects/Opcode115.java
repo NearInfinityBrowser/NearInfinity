@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 115.
+ * Implementation of opcode 115.
  */
 public class Opcode115 extends BaseOpcode {
   private static final String EFFECT_ALIGNMENT_MASK = "Alignment mask";

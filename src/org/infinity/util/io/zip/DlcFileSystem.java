@@ -60,6 +60,8 @@ public class DlcFileSystem extends FileSystem {
   private static final Set<String> SUPPORTED_FILE_ATTRIBUTE_VIEWS = Collections
       .unmodifiableSet(new HashSet<>(Arrays.asList(DlcFileAttributeView.VIEW_BASIC, DlcFileAttributeView.VIEW_ZIP)));
 
+  final static DirectoryStream.Filter<Path> DEFAULT_DIRECTORY_STREAM_FILTER = path -> true;
+
   private static final String GLOB_SYNTAX = "glob";
   private static final String REGEX_SYNTAX = "regex";
 
@@ -168,7 +170,7 @@ public class DlcFileSystem extends FileSystem {
       StringBuilder sb = new StringBuilder();
       sb.append(first);
       for (String segment : more) {
-        if (segment.length() > 0) {
+        if (!segment.isEmpty()) {
           if (sb.length() > 0) {
             sb.append('/');
           }
@@ -183,7 +185,7 @@ public class DlcFileSystem extends FileSystem {
   @Override
   public PathMatcher getPathMatcher(String syntaxAndPattern) {
     int pos = syntaxAndPattern.indexOf(':');
-    if (pos <= 0 || pos == syntaxAndPattern.length()) {
+    if (pos <= 0) {
       throw new IllegalArgumentException();
     }
     String syntax = syntaxAndPattern.substring(0, pos);
@@ -288,10 +290,14 @@ public class DlcFileSystem extends FileSystem {
         throw new NotDirectoryException(getString(path));
       }
 
-      List<ZipNode> children = folder.getChildren();
-      List<Path> pathList = new ArrayList<>();
-      for (final ZipNode child : children) {
-        pathList.add(toDlcPath(child.getPath()));
+      final List<ZipNode> children = folder.getChildren();
+      final List<Path> pathList = new ArrayList<>(children.size());
+      final DirectoryStream.Filter<? super Path> pathFilter = (filter != null) ? filter : DEFAULT_DIRECTORY_STREAM_FILTER;
+      for (final ZipNode node : children) {
+        final Path p = toDlcPath(node.getPath());
+        if (pathFilter.accept(p)) {
+          pathList.add(p);
+        }
       }
       return Collections.unmodifiableList(pathList).iterator();
     } finally {
@@ -610,7 +616,7 @@ public class DlcFileSystem extends FileSystem {
         }
 
         private void checkOpen() throws IOException {
-          if (fch == null || !fch.isOpen()) {
+          if (!fch.isOpen()) {
             throw new IOException("Channel not open");
           }
         }

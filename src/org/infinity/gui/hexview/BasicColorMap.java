@@ -188,8 +188,7 @@ public class BasicColorMap implements IColormap {
     for (final StructEntry curEntry : getStruct().getFlatFields()) {
       List<StructEntry> chain = curEntry.getStructChain();
       boolean found = false;
-      for (int i = 0; !found && i < chain.size(); i++) {
-        final StructEntry e = chain.get(i);
+      for (final StructEntry e : chain) {
         Iterator<Map.Entry<Coloring, Structure>> iter = typeMap.entrySet().iterator();
         while (!found && iter.hasNext()) {
           Map.Entry<Coloring, Structure> entry = iter.next();
@@ -213,7 +212,6 @@ public class BasicColorMap implements IColormap {
         }
       }
       chain.clear();
-      chain = null;
     }
 
     combineColoredBlocks();
@@ -287,7 +285,7 @@ public class BasicColorMap implements IColormap {
 
   // Returns the cached color for a specific offset.
   private Color getCachedColor(long offset) {
-    if (cachedColor.getKey() != Long.valueOf(offset)) {
+    if (!Objects.equals(cachedColor.getKey(), offset)) {
       cachedColor.setKey(offset);
       ColoredBlock cb = findColoredBlock((int) offset);
       if (cb != null) {
@@ -467,10 +465,10 @@ public class BasicColorMap implements IColormap {
   }
 
   private static class ColoredBlock implements Comparable<ColoredBlock>, Comparator<ColoredBlock> {
-    private int offset;
-    private int size;
-    private int index;
-    private Coloring color;
+    private final int offset;
+    private final int size;
+    private final int index;
+    private final Coloring color;
 
     /** Returns a dummy block that can be used as key for search operations. */
     public static ColoredBlock getSearchBlock(int offset) {

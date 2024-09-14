@@ -93,6 +93,15 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   }
 
   /**
+   * Returns the widget that handles file type selection.
+   *
+   * @return {@link FileTypeSelector} instance.
+   */
+  protected FileTypeSelector getSelector() {
+    return selector;
+  }
+
+  /**
    * Returns a list of resources for checking.
    *
    * @return List of resources of the selected types.

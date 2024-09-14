@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 145.
+ * Implementation of opcode 145.
  */
 public class Opcode145 extends BaseOpcode {
   private static final String EFFECT_SPELL_CLASS      = "Spell class";

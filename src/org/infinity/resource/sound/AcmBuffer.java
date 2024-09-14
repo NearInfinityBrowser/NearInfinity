@@ -148,7 +148,7 @@ public class AcmBuffer extends AudioBuffer {
       unpacker.getOneBlock(blockI);
       decoder.decode(blockI, subBlocks);
       valuesI = blockI.clone();
-      samplesReady = (blockSize > samplesLeft) ? samplesLeft : blockSize;
+      samplesReady = Math.min(blockSize, samplesLeft);
       samplesLeft -= samplesReady;
     }
 

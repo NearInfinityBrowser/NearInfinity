@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 141.
+ * Implementation of opcode 141.
  */
 public class Opcode141 extends BaseOpcode {
   private static final String EFFECT_TARGET = "Target";

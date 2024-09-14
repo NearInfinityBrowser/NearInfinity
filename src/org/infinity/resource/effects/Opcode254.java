@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 254.
+ * Implementation of opcode 254.
  */
 public class Opcode254 extends BaseOpcode {
   private static final String EFFECT_DISPEL_TYPE = "Dispel type";
@@ -52,12 +52,6 @@ public class Opcode254 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -69,11 +63,5 @@ public class Opcode254 extends BaseOpcode {
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     return makeEffectParamsIWD(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

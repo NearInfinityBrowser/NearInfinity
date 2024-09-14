@@ -63,7 +63,7 @@ public class MveAudioDecoder {
    * @throws Exception On error.
    */
   public boolean processAudio(MveSegment segment) throws Exception {
-    if (info == null || segment == null) {
+    if (segment == null) {
       throw new NullPointerException();
     }
 

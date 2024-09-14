@@ -51,7 +51,7 @@ public class LauncherUtils {
    * specified URI, the application registered for handling URIs of the specified type is invoked. The applicationis
    * determined from the protocol and path of the URI, asdefined by the URI class.
    *
-   * @param url the {@link URI} to be displayed in the user's default browser.
+   * @param uri the {@link URI} to be displayed in the user's default browser.
    * @throws URISyntaxException if the specified URL is not formatted strictly according to RFC2396 and cannot be
    *                            converted to a URI.
    * @throws IOException        if the user default browser is not found, or it fails to be launched, or the default
@@ -122,7 +122,6 @@ public class LauncherUtils {
    *
    * @param arg File path or URL as string.
    * @return {@code true} if {code xdg-open} was called, {@code false} otherwise.
-   * @throws IOException if the process could not be executed.
    */
   private static boolean xdgOpen(String arg) {
     boolean retVal = false;
@@ -140,7 +139,7 @@ public class LauncherUtils {
         p.waitFor();
         retVal = true;
       } catch (IOException | InterruptedException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

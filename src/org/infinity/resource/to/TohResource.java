@@ -24,6 +24,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 
 /**
@@ -138,13 +139,13 @@ public final class TohResource extends AbstractStruct implements Resource {
     try {
       toh = (tohEntry != null) ? new TohResource(tohEntry) : null;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     if (!Profile.isEnhancedEdition()) {
       try {
         tot = (totEntry != null) ? new TotResource(totEntry, toh) : null;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return getOverrideString(toh, tot, strref);

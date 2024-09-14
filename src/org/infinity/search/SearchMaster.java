@@ -31,6 +31,7 @@ import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
+import org.infinity.util.Logger;
 
 public final class SearchMaster extends JPanel implements Runnable, ActionListener {
   private final JButton bnext = new JButton("Find Next", Icons.ICON_FIND_AGAIN_16.getIcon());
@@ -209,11 +210,12 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
           try {
             slave.wait();
           } catch (InterruptedException e) {
+            Logger.trace(e);
           }
         }
         blocker.setBlocked(true);
         bnext.setEnabled(false);
-        if (tfinput.getText().equals("")) {
+        if (tfinput.getText().isEmpty()) {
           term = null;
           break;
         }

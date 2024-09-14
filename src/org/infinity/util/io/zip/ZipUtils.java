@@ -50,7 +50,7 @@ class ZipUtils {
 
   static {
     Calendar calBase = Calendar.getInstance();
-    calBase.set(1970, 0, 1, 0, 0, 0);
+    calBase.set(1970, Calendar.JANUARY, 1, 0, 0, 0);
     TIME_BASE = calBase.getTimeInMillis();
   }
 
@@ -135,7 +135,7 @@ class ZipUtils {
     if (year < 1980) {
       return (1 << 21) | (1 << 16);
     }
-    return ((year - 1980) << 25) | ((cal.get(Calendar.MONTH) + 1) << 21) | (cal.get(Calendar.DAY_OF_MONTH) << 16)
+    return ((long) (year - 1980) << 25) | ((cal.get(Calendar.MONTH) + 1) << 21) | (cal.get(Calendar.DAY_OF_MONTH) << 16)
         | (cal.get(Calendar.HOUR_OF_DAY) << 11) | (cal.get(Calendar.MINUTE) << 5) | (cal.get(Calendar.SECOND) >> 1);
     // Date d = new Date(time);
     // int year = d.getYear() + 1900;
@@ -149,19 +149,19 @@ class ZipUtils {
   // used to adjust values between Windows and java epoch
   private static final long WINDOWS_EPOCH_IN_MICROSECONDS = -11644473600000000L;
 
-  public static final long winToJavaTime(long wtime) {
+  public static long winToJavaTime(long wtime) {
     return TimeUnit.MILLISECONDS.convert(wtime / 10 + WINDOWS_EPOCH_IN_MICROSECONDS, TimeUnit.MICROSECONDS);
   }
 
-  public static final long javaToWinTime(long time) {
+  public static long javaToWinTime(long time) {
     return (TimeUnit.MICROSECONDS.convert(time, TimeUnit.MILLISECONDS) - WINDOWS_EPOCH_IN_MICROSECONDS) * 10;
   }
 
-  public static final long unixToJavaTime(long utime) {
+  public static long unixToJavaTime(long utime) {
     return TimeUnit.MILLISECONDS.convert(utime, TimeUnit.SECONDS);
   }
 
-  public static final long javaToUnixTime(long time) {
+  public static long javaToUnixTime(long time) {
     return TimeUnit.SECONDS.convert(time, TimeUnit.MILLISECONDS);
   }
 
@@ -176,7 +176,7 @@ class ZipUtils {
     return globMetaChars.indexOf(c) != -1;
   }
 
-  private static char EOL = 0; // TBD
+  private static final char EOL = 0; // TBD
 
   private static char next(String glob, int i) {
     if (i < glob.length()) {

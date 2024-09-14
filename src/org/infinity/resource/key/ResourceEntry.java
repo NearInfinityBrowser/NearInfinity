@@ -32,6 +32,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
@@ -88,7 +89,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
           return new int[] { (int) ch.size() };
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -175,29 +176,37 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   public String getSearchString() {
     if (searchString == null) {
       try {
-        String extension = getExtension().toUpperCase();
-        if (extension.equals("CRE") || extension.equals("CHR")) {
-          try (InputStream is = getResourceDataAsStream()) {
-            searchString = CreResource.getSearchString(is);
-          }
-        } else if (extension.equals("ITM")) {
-          try (InputStream is = getResourceDataAsStream()) {
-            searchString = ItmResource.getSearchString(is);
-          }
-        } else if (extension.equals("SPL")) {
-          try (InputStream is = getResourceDataAsStream()) {
-            searchString = SplResource.getSearchString(is);
-          }
-        } else if (extension.equals("STO")) {
-          try (InputStream is = getResourceDataAsStream()) {
-            searchString = StoResource.getSearchString(is);
-          }
-        } else if (extension.equals("ARE")) {
-          searchString = AreResource.getSearchString(this);
-        } else if (extension.equals("PRO")) {
-          searchString = ProResource.getSearchString(this);
-        } else if (extension.equals("INI")) {
-          searchString = PlainTextResource.getSearchString(this);
+        switch (getExtension().toUpperCase()) {
+          case "CRE":
+          case "CHR":
+            try (InputStream is = getResourceDataAsStream()) {
+              searchString = CreResource.getSearchString(is);
+            }
+            break;
+          case "ITM":
+            try (InputStream is = getResourceDataAsStream()) {
+              searchString = ItmResource.getSearchString(is);
+            }
+            break;
+          case "SPL":
+            try (InputStream is = getResourceDataAsStream()) {
+              searchString = SplResource.getSearchString(is);
+            }
+            break;
+          case "STO":
+            try (InputStream is = getResourceDataAsStream()) {
+              searchString = StoResource.getSearchString(is);
+            }
+            break;
+          case "ARE":
+            searchString = AreResource.getSearchString(this);
+            break;
+          case "PRO":
+            searchString = ProResource.getSearchString(this);
+            break;
+          case "INI":
+            searchString = PlainTextResource.getSearchString(this);
+            break;
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
@@ -205,7 +214,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
               JOptionPane.ERROR_MESSAGE);
         }
         searchString = "Error";
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return searchString;
@@ -249,10 +258,10 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
     // 2. NOT Resource type part of skippedExtensions
     // 3. Filename length is valid
     int resLen = getResourceRef().length();
-    boolean bRet = (BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().showUnknownResourceTypes())
-        || Profile.isResourceTypeSupported(getExtension())
-            && !SKIPPED_EXTENSIONS.contains(getExtension().toUpperCase(Locale.ENGLISH)) && (resLen >= 0 && resLen <= 8);
-    return bRet;
+    return BrowserMenuBar.isInstantiated() && BrowserMenuBar.getInstance().getOptions().showUnknownResourceTypes() ||
+        Profile.isResourceTypeSupported(getExtension()) &&
+            !SKIPPED_EXTENSIONS.contains(getExtension().toUpperCase(Locale.ENGLISH)) &&
+            resLen <= 8;
   }
 
   protected abstract Path getActualPath(boolean ignoreOverride);

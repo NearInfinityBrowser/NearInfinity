@@ -55,7 +55,7 @@ public class ToolTipTableCellRenderer extends DefaultTableCellRenderer {
         if (delta == -1) {
           delta = string.length();
         }
-        sb.append(string.substring(index, Math.min(delta, string.length())));
+        sb.append(string, index, Math.min(delta, string.length()));
         index = delta;
       }
       sb.append("</html>");

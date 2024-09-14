@@ -22,6 +22,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.Logger;
 
 /**
  * This resource describes an effect (opcode) and its parameters. The resource of version 1 is only ever found embedded
@@ -119,7 +120,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
             } else {
               struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
-            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            retVal = SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
           }
@@ -129,7 +130,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
           key = SearchOptions.EFF_SaveType;
           o = searchOptions.getOption(key);
           StructEntry struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
-          retVal &= SearchOptions.Utils.matchFlags(struct, o);
+          retVal = SearchOptions.Utils.matchFlags(struct, o);
         }
 
         keyList = new String[] { SearchOptions.EFF_Resource1, SearchOptions.EFF_Resource2,
@@ -145,7 +146,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
             } else {
               struct = eff.getAttribute(SearchOptions.getResourceName(key), false);
             }
-            retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
+            retVal = SearchOptions.Utils.matchString(struct, o, false, false);
           } else {
             break;
           }
@@ -157,7 +158,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(eff, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(eff, o);
           } else {
             break;
           }
@@ -165,6 +166,7 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

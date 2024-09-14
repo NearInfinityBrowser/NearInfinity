@@ -33,6 +33,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 
 /**
  * Manages actor layer objects.
@@ -83,7 +84,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
               setListeners(obj);
               objectList.add(obj);
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }
@@ -112,16 +113,16 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
         if (res instanceof GamResource) {
           GamResource gamRes = (GamResource) res;
           List<StructEntry> npcList = gamRes.getFields(PartyNPC.class);
-          for (int i = 0, cnt = npcList.size(); i < cnt; i++) {
-            PartyNPC npc = (PartyNPC) npcList.get(i);
-            String area = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
+          for (final StructEntry structEntry : npcList) {
+            final PartyNPC npc = (PartyNPC) structEntry;
+            final String area = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
             if (areEntry.getResourceRef().equalsIgnoreCase(area)) {
               try {
-                LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
+                final LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
                 setListeners(loa);
                 objectList.add(loa);
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }
@@ -191,7 +192,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
             progress.setProgress(i + 1);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         } finally {
           progress.close();
           if (blocker != null) {

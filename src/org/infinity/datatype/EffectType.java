@@ -12,6 +12,7 @@ import java.util.List;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.effects.BaseOpcode;
+import org.infinity.util.Logger;
 
 public final class EffectType extends Bitmap implements UpdateListener {
   // EffectType-specific field labels
@@ -42,7 +43,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
       struct.addFields(this, list);
       return true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }
@@ -56,7 +57,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
     try {
       return BaseOpcode.updateOpcode(event.getStructure());
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }
@@ -80,7 +81,7 @@ public final class EffectType extends Bitmap implements UpdateListener {
     try {
       off = BaseOpcode.makeEffectStruct(getValue(), this, buffer, off, list, isV1);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     attrLength = off - attrLength;
     return off;

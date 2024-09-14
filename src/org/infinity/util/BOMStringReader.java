@@ -37,6 +37,7 @@ public class BOMStringReader extends StringReader {
           reset();
         }
       } catch (IOException e) {
+        Logger.trace(e);
       }
     }
   }

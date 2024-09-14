@@ -22,7 +22,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 232.
+ * Implementation of opcode 232.
  */
 public class Opcode232 extends BaseOpcode {
   private static final String EFFECT_TARGET     = "Target";
@@ -94,12 +94,6 @@ public class Opcode232 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsBG2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     if (isTobEx()) {
@@ -118,7 +112,7 @@ public class Opcode232 extends BaseOpcode {
     list.add(new Bitmap(buffer, offset, 4, EFFECT_TARGET, TARGETS));
     Bitmap item = new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS_EE);
     list.add(item);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       item.addUpdateListener((UpdateListener)parent);
     }
     return RES_TYPE;
@@ -139,12 +133,6 @@ public class Opcode232 extends BaseOpcode {
     list.add(new ColorPicker(buffer, offset, EFFECT_COLOR));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

@@ -43,6 +43,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -73,8 +74,8 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   // Special popup menu for interactive resource references
   private final ScriptPopupMenu menu = new ScriptPopupMenu();
 
-  private Signatures triggers;
-  private Signatures actions;
+  private final Signatures triggers;
+  private final Signatures actions;
 
   /**
    * Constructs a new script text area with BCS language settings.
@@ -150,9 +151,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
         SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(offsetMin, offsetMax);
 
         // processing interactive tokens of visible area
-        Iterator<Integer> iter = map.keySet().iterator();
-        while (iter.hasNext()) {
-          Integer key = iter.next();
+        for (Integer key : map.keySet()) {
           InteractiveToken itoken = map.get(key);
 
           if (itoken.isLink() && !itoken.isSilent()) {
@@ -174,6 +173,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
               g2d.setStroke(oldStroke);
               g2d.setColor(oldColor);
             } catch (BadLocationException ble) {
+              Logger.trace(ble);
             }
           }
         }
@@ -194,10 +194,8 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
       int ofsMin = getLineStartOffset(line);
       int ofsMax = getLineEndOffset(line);
       SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(ofsMin, ofsMax);
-      Iterator<InteractiveToken> iter = map.values().iterator();
 
-      while (iter.hasNext()) {
-        InteractiveToken itoken = iter.next();
+      for (InteractiveToken itoken : map.values()) {
         if (itoken.isTooltip()) {
           if (offset >= itoken.position && offset < itoken.position + itoken.length) {
             retVal = itoken.tooltip;
@@ -206,6 +204,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
         }
       }
     } catch (BadLocationException ble) {
+      Logger.trace(ble);
     } finally {
       tokenMapLock.unlock();
     }
@@ -325,9 +324,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
         SortedMap<Integer, InteractiveToken> map = tokenMap.subMap(minOffset, maxOffset);
 
-        Iterator<InteractiveToken> iter = map.values().iterator();
-        while (iter.hasNext()) {
-          InteractiveToken token = iter.next();
+        for (InteractiveToken token : map.values()) {
           // generate list of resource links
           menu.clearResEntries();
           if (token.isLink()) {
@@ -341,6 +338,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           }
         }
       } catch (BadLocationException ble) {
+        Logger.trace(ble);
       } finally {
         tokenMapLock.unlock();
       }
@@ -370,6 +368,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
               iter.remove();
             }
           } catch (BadLocationException ble) {
+            Logger.trace(ble);
           }
         }
 
@@ -382,6 +381,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
             iter.remove();
           }
         } catch (BadLocationException ble) {
+          Logger.trace(ble);
         }
       }
 
@@ -424,6 +424,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           }
         }
       } catch (BadLocationException ble) {
+        Logger.trace(ble);
       }
     } finally {
       tokenMapLock.unlock();
@@ -482,7 +483,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
           if (value != null) {
             retVal = new InteractiveToken(token.getOffset(), token.length(),
-                idsRef + ": " + value.longValue() + " (0x" + Long.toHexString(value) + ")",
+                idsRef + ": " + value + " (0x" + Long.toHexString(value) + ")",
                 ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
           }
         }
@@ -503,7 +504,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
         String delim = "\"~%";
         int v1 = delim.indexOf(value.charAt(0));
         int v2 = delim.indexOf(value.charAt(value.length() - 1));
-        if (v1 > -1 && v2 > -1 && v1 == v2) {
+        if (v2 > -1 && v1 == v2) {
           value = value.substring(1, value.length() - 1);
         }
       }
@@ -542,6 +543,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
                 resList.add(ResourceFactory.getResourceEntry(resRef));
               }
             } catch (NumberFormatException e) {
+              Logger.trace(e);
             }
             if (res != null) {
               if (i > 0) {

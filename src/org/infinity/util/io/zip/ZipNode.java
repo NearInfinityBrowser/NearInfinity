@@ -27,10 +27,10 @@ public class ZipNode {
 
   private final List<ZipNode> children = new ArrayList<>();
 
-  private ZipCentralHeader header; // only available for non-root nodes
-  private ZipCentralEndHeader endHeader; // only available for root node
-  private byte[] name; // last segment of filename from header structure
-  private ZipNode parent;
+  private final ZipCentralHeader header; // only available for non-root nodes
+  private final ZipCentralEndHeader endHeader; // only available for root node
+  private final byte[] name; // last segment of filename from header structure
+  private final ZipNode parent;
 
   /**
    * Returns the root of a fully initialized zip file tree based on data retrieved from the specified file.
@@ -191,10 +191,10 @@ public class ZipNode {
   @Override
   public int hashCode() {
     int hash = 7;
-    hash = 31 * hash + ((children == null) ? 0 : children.hashCode());
+    hash = 31 * hash + children.hashCode();
     hash = 31 * hash + ((header == null) ? 0 : header.hashCode());
     hash = 31 * hash + ((endHeader == null) ? 0 : endHeader.hashCode());
-    hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+    hash = 31 * hash + ((name == null) ? 0 : Arrays.hashCode(name));
     return hash;
   }
 

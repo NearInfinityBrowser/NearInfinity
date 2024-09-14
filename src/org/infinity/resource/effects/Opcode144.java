@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 144.
+ * Implementation of opcode 144.
  */
 public class Opcode144 extends BaseOpcode {
   private static final String EFFECT_BUTTON = "Button";

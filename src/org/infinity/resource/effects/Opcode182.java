@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 182.
+ * Implementation of opcode 182.
  */
 public class Opcode182 extends BaseOpcode {
   private static final String RES_TYPE = "ITM";

@@ -7,17 +7,16 @@ package org.infinity.resource.effects;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.itm.ItmResource;
 
 /**
- * Implemention of opcode 183.
+ * Implementation of opcode 183.
  */
 public class Opcode183 extends BaseOpcode {
   private static final String EFFECT_ITEM_TYPE = "Item type";
@@ -41,7 +40,7 @@ public class Opcode183 extends BaseOpcode {
   protected String makeEffectParamsGeneric(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE, ItmResource.CATEGORIES_ARRAY));
+    list.add(new ItemTypeBitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE));
     return RES_TYPE;
   }
 
@@ -49,13 +48,7 @@ public class Opcode183 extends BaseOpcode {
   protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE, ItmResource.CATEGORIES_ARRAY));
+    list.add(new ItemTypeBitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE));
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

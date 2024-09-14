@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 72.
+ * Implementation of opcode 72.
  */
 public class Opcode072 extends BaseOpcode {
   private static final String[] IDS_TYPES = { "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "SPECIFIC.IDS",

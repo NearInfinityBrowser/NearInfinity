@@ -69,6 +69,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.infinity.util.Logger;
+
 /**
  * Path implementation for DLC archives in zip format.
  */
@@ -207,6 +209,7 @@ public class DlcPath implements Path {
       olast--;
       return (o.path.length == this.path.length) || (o.path[olast] == '/') || (this.path[olast + 1] == '/');
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -241,6 +244,7 @@ public class DlcPath implements Path {
       }
       return (o.path[olast + 1] == '/') || (last == -1) || (this.path[last] == '/');
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -432,15 +436,12 @@ public class DlcPath implements Path {
     final DlcPath o = checkPath(other);
     int len1 = this.path.length;
     int len2 = o.path.length;
-
     int n = Math.min(len1, len2);
-    byte v1[] = this.path;
-    byte v2[] = o.path;
 
     int k = 0;
     while (k < n) {
-      int c1 = v1[k] & 0xff;
-      int c2 = v2[k] & 0xff;
+      int c1 = this.path[k] & 0xff;
+      int c2 = o.path[k] & 0xff;
       if (c1 != c2) {
         return c1 - c2;
       }
@@ -465,7 +466,7 @@ public class DlcPath implements Path {
 
   @Override
   public boolean equals(Object obj) {
-    return (obj != null) && (obj instanceof DlcPath) && (this.dfs == ((DlcPath) obj).dfs)
+    return (obj instanceof DlcPath) && (this.dfs == ((DlcPath) obj).dfs)
         && (compareTo((Path) obj) == 0);
   }
 
@@ -624,9 +625,6 @@ public class DlcPath implements Path {
 
   // Remove DotSlash(./) and resolve DotDot (..) components
   private byte[] getResolved() {
-    if (path.length == 0) {
-      return path;
-    }
     for (byte c : path) {
       if (c == (byte) '.') {
         return resolve0();
@@ -692,11 +690,9 @@ public class DlcPath implements Path {
   }
 
   protected InputStream newInputStream(OpenOption... options) throws IOException {
-    if (options.length > 0) {
-      for (OpenOption opt : options) {
-        if (opt != StandardOpenOption.READ) {
-          throw new UnsupportedOperationException("'" + opt + "' not allowed");
-        }
+    for (OpenOption opt : options) {
+      if (opt != StandardOpenOption.READ) {
+        throw new UnsupportedOperationException("'" + opt + "' not allowed");
       }
     }
     return dfs.newInputStream(getResolvedPath());

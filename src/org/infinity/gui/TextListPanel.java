@@ -15,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,6 +48,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.IconCache;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 public class TextListPanel<E> extends JPanel
@@ -180,6 +180,7 @@ public class TextListPanel<E> extends JPanel
       try {
         item = listmodel.get(idx);
       } catch (Exception ex) {
+        Logger.trace(ex);
       }
       if (item == null || !item.toString().equals(tfield.getText())) {
         selectClosest(tfield.getText());
@@ -246,7 +247,7 @@ public class TextListPanel<E> extends JPanel
 
   public void setValues(List<? extends E> values) {
     if (this.sortValues) {
-      Collections.sort(values, Misc.getIgnoreCaseComparator());
+      values.sort(Misc.getIgnoreCaseComparator());
     }
     listmodel.baseClear();
     listmodel.baseAddAll(values);
@@ -292,7 +293,7 @@ public class TextListPanel<E> extends JPanel
       double w1 = fm.getStringBounds(e1.toString(), g).getWidth();
       double w2 = fm.getStringBounds(e2.toString(), g).getWidth();
       return (int) (w1 - w2);
-    }).get();
+    }).orElse(null);
     if (item != null) {
       int cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
       cw += c.getInsets().left;

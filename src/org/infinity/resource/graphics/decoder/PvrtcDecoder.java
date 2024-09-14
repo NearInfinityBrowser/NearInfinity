@@ -564,27 +564,27 @@ public class PvrtcDecoder implements Decodable {
       for (int x = 0; x < (wordWidth >>> 1); x++) {
         // map p
         int outOfs = (((indices[IDX_P + 1] * wordHeight) + y + (wordHeight >>> 1)) * width
-            + indices[IDX_P + 0] * wordWidth + x + (wordWidth >>> 1));
+            + indices[IDX_P] * wordWidth + x + (wordWidth >>> 1));
         int inOfs = y * wordWidth + x;
         outBuffer[outOfs] = (inData[inOfs][CH_A] << 24) | (inData[inOfs][CH_R] << 16) | (inData[inOfs][CH_G] << 8)
             | inData[inOfs][CH_B];
 
         // map q
         outOfs = (((indices[IDX_Q + 1] * wordHeight) + y + (wordHeight >>> 1)) * width
-            + indices[IDX_Q + 0] * wordWidth + x);
+            + indices[IDX_Q] * wordWidth + x);
         inOfs = y * wordWidth + x + (wordWidth >>> 1);
         outBuffer[outOfs] = (inData[inOfs][CH_A] << 24) | (inData[inOfs][CH_R] << 16) | (inData[inOfs][CH_G] << 8)
             | inData[inOfs][CH_B];
 
         // map r
-        outOfs = (((indices[IDX_R + 1] * wordHeight) + y) * width + indices[IDX_R + 0] * wordWidth + x
+        outOfs = (((indices[IDX_R + 1] * wordHeight) + y) * width + indices[IDX_R] * wordWidth + x
             + (wordWidth >>> 1));
         inOfs = (y + (wordHeight >>> 1)) * wordWidth + x;
         outBuffer[outOfs] = (inData[inOfs][CH_A] << 24) | (inData[inOfs][CH_R] << 16) | (inData[inOfs][CH_G] << 8)
             | inData[inOfs][CH_B];
 
         // map s
-        outOfs = (((indices[IDX_S + 1] * wordHeight) + y) * width + indices[IDX_S + 0] * wordWidth + x);
+        outOfs = (((indices[IDX_S + 1] * wordHeight) + y) * width + indices[IDX_S] * wordWidth + x);
         inOfs = (y + (wordHeight >>> 1)) * wordWidth + x + (wordWidth >>> 1);
         outBuffer[outOfs] = (inData[inOfs][CH_A] << 24) | (inData[inOfs][CH_R] << 16) | (inData[inOfs][CH_G] << 8)
             | inData[inOfs][CH_B];

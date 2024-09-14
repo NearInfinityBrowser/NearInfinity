@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 345.
+ * Implementation of opcode 345.
  */
 public class Opcode345 extends BaseOpcode {
   private static final String EFFECT_ENCHANTMENT = "Enchantment";

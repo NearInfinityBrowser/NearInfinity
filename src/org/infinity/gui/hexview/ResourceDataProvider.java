@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -36,7 +37,7 @@ public class ResourceDataProvider implements IDataProvider {
 
   @Override
   public void addListener(IDataChangedListener listener) {
-    if (listener != null && listeners.indexOf(listener) < 0) {
+    if (listener != null && !listeners.contains(listener)) {
       listeners.add(listener);
     }
   }
@@ -60,7 +61,7 @@ public class ResourceDataProvider implements IDataProvider {
         }
         return retVal;
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return null;
@@ -76,7 +77,7 @@ public class ResourceDataProvider implements IDataProvider {
           size = (int) resSize;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return size;
@@ -139,11 +140,11 @@ public class ResourceDataProvider implements IDataProvider {
   }
 
   private boolean isModifiedData(int offset) {
-    return modifiedMap.containsKey(Integer.valueOf(offset));
+    return modifiedMap.containsKey(offset);
   }
 
   private byte getModifiedData(int offset) {
-    Byte b = modifiedMap.get(Integer.valueOf(offset));
+    Byte b = modifiedMap.get(offset);
     if (b != null) {
       return b;
     } else {

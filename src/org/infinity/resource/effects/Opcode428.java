@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 428.
+ * Implementation of opcode 428.
  */
 public class Opcode428 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

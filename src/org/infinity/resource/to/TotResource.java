@@ -17,6 +17,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
+import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
 
@@ -60,7 +61,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         });
 
         // handling unmapped region of data
-        if (tohEntries.size() > 0 && tohEntries.get(0).getOffset() > 0) {
+        if (!tohEntries.isEmpty() && tohEntries.get(0).getOffset() > 0) {
           final StrRefEntry entry = (StrRefEntry) tohEntries.get(0);
           final int size = ((IsNumeric) entry.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
           if (size > 0) {
@@ -128,7 +129,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         int ofsNext = ((IsNumeric) entry.getAttribute(StringEntry.TOT_STRING_OFFSET_NEXT_ENTRY)).getValue();
         retVal = (ofsPrev == -1 && ofsNext == -1) || (ofsPrev != ofsNext);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -156,7 +157,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         try {
           toh = new TohResource(new FileResourceEntry(tohPath));
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }

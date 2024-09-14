@@ -224,7 +224,7 @@ public class CharacterOldDecoder extends CharacterBaseDecoder {
           }
         }
       }
-      retVal = new ArrayList<>(Arrays.asList(files.toArray(new String[files.size()])));
+      retVal = new ArrayList<>(Arrays.asList(files.toArray(new String[0])));
     } else {
       // collecting suffixes
       HashSet<String> actionSet = new HashSet<>();
@@ -390,10 +390,10 @@ public class CharacterOldDecoder extends CharacterBaseDecoder {
           if (SpriteUtils.bamCyclesExist(entry, cycleIdx, SeqDef.DIR_REDUCED_W.length) && SpriteUtils
               .bamCyclesExist(entryE, cycleIdx + SeqDef.DIR_REDUCED_W.length, SeqDef.DIR_REDUCED_E.length)) {
             SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, cycleIdx, spriteType, behavior);
-            retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+            retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
             tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE,
                 cycleIdx + SeqDef.DIR_REDUCED_W.length, spriteType, behavior);
-            retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+            retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
           }
         }
       }

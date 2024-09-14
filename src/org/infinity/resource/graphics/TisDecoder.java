@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -55,7 +56,7 @@ public abstract class TisDecoder {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -84,7 +85,7 @@ public abstract class TisDecoder {
           retVal = new TisInfo(numTiles, tileSize, tileDim);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 

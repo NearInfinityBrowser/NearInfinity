@@ -49,6 +49,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.monte.media.AudioFormatKeys;
 import org.monte.media.Format;
@@ -74,12 +75,12 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private static boolean isZoom = true;
   private static boolean isFilter = true;
 
-  private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final ResourceEntry entry;
+  private final MvePlayer player;
 
   private MveDecoder decoder;
   private ImageRenderer renderer;
-  private MvePlayer player;
   private JMenuItem miExport;
   private JMenuItem miExportAvi;
   private JPanel panel;
@@ -97,7 +98,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       }
     } catch (Exception e) {
       decoder = null;
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error opening " + entry, "Error",
           JOptionPane.ERROR_MESSAGE);
     }
@@ -207,7 +208,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       try {
         decoder.open(entry);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(panel, "Error starting video playback", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
@@ -221,7 +222,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       player.play(renderer, decoder);
     } catch (Exception e) {
       player.stopPlay();
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
     }
     decoder.close();
@@ -449,15 +450,13 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
           frameIdx++;
 
           if (!silent && pm.isCanceled()) {
-            if (writer != null) {
-              writer.close();
-              writer = null;
-            }
+            writer.close();
+            writer = null;
             if (FileEx.create(outFile).isFile()) {
               try {
                 Files.delete(outFile);
               } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
             JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.", "Information",
@@ -489,7 +488,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       }
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     if (!silent) {
       JOptionPane.showMessageDialog(parent, "Error while exporting " + inEntry + " as AVI file.", "Error",

@@ -9,13 +9,13 @@ import java.util.List;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
+import org.infinity.datatype.ItemTypeBitmap;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.itm.ItmResource;
 
 /**
- * Implemention of opcode 181.
+ * Implementation of opcode 181.
  */
 public class Opcode181 extends BaseOpcode {
   private static final String EFFECT_DESC_NOTE    = "Description note";
@@ -41,22 +41,16 @@ public class Opcode181 extends BaseOpcode {
   protected String makeEffectParamsGeneric(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new StringRef(buffer, offset, EFFECT_DESC_NOTE));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE, ItmResource.CATEGORIES_ARRAY));
+    list.add(new ItemTypeBitmap(buffer, offset + 4, 4, EFFECT_ITEM_TYPE));
     return null;
   }
 
   @Override
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    list.add(new Bitmap(buffer, offset, 4, EFFECT_ITEM_TYPE, ItmResource.CATEGORIES_ARRAY));
+    list.add(new ItemTypeBitmap(buffer, offset, 4, EFFECT_ITEM_TYPE));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_RESTRICTION, RESTRICTION_TYPES_EE));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

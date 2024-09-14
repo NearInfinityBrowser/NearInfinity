@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 57.
+ * Implementation of opcode 57.
  */
 public class Opcode057 extends BaseOpcode {
   private static final String EFFECT_ALIGNMENT = "Alignment";

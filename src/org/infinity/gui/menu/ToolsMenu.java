@@ -282,7 +282,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
 //      } catch (IOException e) {
 //        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error writing keyfile", "Error",
 //            JOptionPane.ERROR_MESSAGE);
-//        e.printStackTrace();
+//        Logger.error(e);
 //      }
 //    }
 //  }

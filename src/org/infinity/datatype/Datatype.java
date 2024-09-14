@@ -17,6 +17,7 @@ import javax.swing.event.EventListenerList;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 
@@ -152,7 +153,7 @@ public abstract class Datatype implements StructEntry {
     try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
       write(bbos);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     bb.position(0);
     return bb;

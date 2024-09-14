@@ -108,7 +108,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    return strokeColors.containsKey(state) ? strokeColors.get(state) : DEFAULT_COLOR;
+    return strokeColors.getOrDefault(state, DEFAULT_COLOR);
   }
 
   /**
@@ -169,7 +169,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    return fillColors.containsKey(state) ? fillColors.get(state) : DEFAULT_COLOR;
+    return fillColors.getOrDefault(state, DEFAULT_COLOR);
   }
 
   /**

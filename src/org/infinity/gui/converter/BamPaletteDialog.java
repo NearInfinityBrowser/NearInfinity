@@ -21,12 +21,7 @@ import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -59,7 +54,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * A dialog for managing BAM v1 palette entries.
  */
-class BamPaletteDialog extends JDialog
+public class BamPaletteDialog extends JDialog
     implements FocusListener, ActionListener, ChangeListener, ColorGrid.MouseOverListener {
   /** Specifies generated palette type */
   public static final int TYPE_GENERATED  = 0;
@@ -224,9 +219,7 @@ class BamPaletteDialog extends JDialog
         if (!isPaletteLocked() || type == TYPE_EXTERNAL) {
           if (palette != null) {
             // loading palette data
-            for (int i = 0; i < palette.length; i++) {
-              palettes[type][i] = palette[i];
-            }
+            System.arraycopy(palette, 0, palettes[type], 0, palette.length);
             for (int i = palette.length; i < palettes[type].length; i++) {
               palettes[type][i] = 0;
             }
@@ -262,7 +255,7 @@ class BamPaletteDialog extends JDialog
       }
 
       // fetching palette data
-      int[] palette = null;
+      final int[] palette;
       if ("BM".equals(new String(signature, 0, 2))) {
         palette = ColorConvert.loadPaletteBMP(paletteFile);
       } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4), new byte[] { (byte) 0x89, 0x50, 0x4e, 0x47 })) {
@@ -281,7 +274,7 @@ class BamPaletteDialog extends JDialog
       }
 
       // applying palette
-      if (palette != null && palette.length > 0) {
+      if (palette.length > 0) {
         System.arraycopy(palette, 0, palettes[type], 0, palette.length);
         for (int i = palette.length; i < palettes[type].length; i++) {
           palettes[type][i] = 0xff000000;
@@ -351,7 +344,7 @@ class BamPaletteDialog extends JDialog
 
         if (sharedPalette) {
           // using shared palette as is
-          System.arraycopy(palette, 0, palettes[TYPE_GENERATED], 0, palette.length);
+          System.arraycopy(Objects.requireNonNull(palette), 0, palettes[TYPE_GENERATED], 0, palette.length);
         } else {
           // creating palette directly from color map without reduction
           Iterator<Integer> iter = colorMap.keySet().iterator();

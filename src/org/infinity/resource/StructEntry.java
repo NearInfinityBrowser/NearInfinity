@@ -27,7 +27,7 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
   /**
    * Returns byte count of serialized value of this object.
    *
-   * @return Count of bytes that needed to store this object in it's {@link Writable natural format}
+   * @return Count of bytes that needed to store this object in it's {@link Writeable natural format}
    */
   int getSize();
 

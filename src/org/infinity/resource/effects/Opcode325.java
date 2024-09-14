@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 325.
+ * Implementation of opcode 325.
  */
 public class Opcode325 extends BaseOpcode {
   private static final String[] INC_TYPES_EE = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2],

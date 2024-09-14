@@ -170,7 +170,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
 
   // Internally used to retrieve stored BIFF entry information
   protected Entry getEntry(int locator) {
-    return mapEntries.get(Integer.valueOf(locator & 0xfffff));
+    return mapEntries.get(locator & 0xfffff);
   }
 
   // Internally used to remove all entries from the map
@@ -185,14 +185,15 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
 
     try (InputStream is = StreamUtils.getInputStream(file)) {
       String sigver = StreamUtils.readString(is, 8);
-      if ("BIFFV1  ".equals(sigver)) {
-        return Type.BIFF;
-      } else if ("BIF V1.0".equals(sigver)) {
-        return Type.BIF;
-      } else if ("BIFCV1.0".equals(sigver)) {
-        return Type.BIFC;
-      } else {
-        throw new IOException("Unsupported BIFF file: " + file);
+      switch (sigver) {
+        case "BIFFV1  ":
+          return Type.BIFF;
+        case "BIF V1.0":
+          return Type.BIF;
+        case "BIFCV1.0":
+          return Type.BIFC;
+        default:
+          throw new IOException("Unsupported BIFF file: " + file);
       }
     }
   }

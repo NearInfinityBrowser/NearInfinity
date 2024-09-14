@@ -20,6 +20,7 @@ import org.infinity.resource.bcs.Signatures;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 
 /**
  * A token maker that turns text into a linked list of {@code Token}s for syntax highlighting Infinity Engine BCS
@@ -544,7 +545,7 @@ public class BCSTokenMaker extends AbstractTokenMaker {
             throw new Exception(
                 String.format("Invalid token %d found at position %d", currentTokenType, newStartOfs + i));
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } // end of default:
       } // end of switch (currentTokenType)

@@ -48,6 +48,7 @@ import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
@@ -60,7 +61,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
   private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
 
   /** List of the {@link StrrefEntry} objects. */
-  private SortableTable table;
+  private final SortableTable table;
 
   public StrrefIndexChecker() {
     super("Find illegal strrefs", StringReferenceSearcher.FILE_TYPES);
@@ -217,9 +218,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
             }
           }
         } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
+          Logger.error(e);
         }
       }
     }
@@ -254,9 +253,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         }
       }
     } catch (Exception e) {
-      synchronized (System.err) {
-        e.printStackTrace();
-      }
+      Logger.error(e);
     }
   }
 
@@ -285,10 +282,9 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     }
 
     final String[] lines = text.getText().split("\r?\n");
-    for (int i = 0; i < lines.length; i++) {
-      final Matcher matcher = StringReferenceSearcher.NUMBER_PATTERN.matcher(lines[i]);
+    for (int line = 0; line < lines.length; line++) {
+      final Matcher matcher = StringReferenceSearcher.NUMBER_PATTERN.matcher(lines[line]);
       while (matcher.find()) {
-        final int line = i;
         final int pos = matcher.start();
         final int len = matcher.end() - pos;
         try {
@@ -302,9 +298,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
             }
           }
         } catch (NumberFormatException e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
+          Logger.error(e);
         }
       }
     }
@@ -324,6 +318,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           }
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
 
       // checking table content
@@ -341,6 +336,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
               }
             }
           } catch (NumberFormatException e) {
+            Logger.trace(e);
           }
         }
       }

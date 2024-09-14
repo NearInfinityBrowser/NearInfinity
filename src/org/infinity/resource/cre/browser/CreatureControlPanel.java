@@ -43,6 +43,7 @@ import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /**
@@ -145,7 +146,7 @@ public class CreatureControlPanel extends JPanel {
     try {
       getControlModel().resetDecoder(cre);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       getBrowser().showErrorMessage(e.getMessage(), "Loading creature");
     }
 
@@ -434,7 +435,7 @@ public class CreatureControlPanel extends JPanel {
    */
   public static String[] createColorLabels(SpriteDecoder decoder) {
     String[] retVal = null;
-    if (decoder != null && decoder instanceof MonsterPlanescapeDecoder) {
+    if (decoder instanceof MonsterPlanescapeDecoder) {
       MonsterPlanescapeDecoder mpd = (MonsterPlanescapeDecoder) decoder;
       IdsMap map = IdsMapCache.get("CLOWNRGE.IDS");
       if (map != null) {
@@ -506,7 +507,7 @@ public class CreatureControlPanel extends JPanel {
           getControlModel().creSelectionChanged();
           updateToolTip(cbCreSelection);
         } catch (Exception ex) {
-          ex.printStackTrace();
+          Logger.error(ex);
           getBrowser().showErrorMessage(ex.getMessage(), "Creature selection");
         }
       } else if (e.getSource() == cbCreAnimation) {

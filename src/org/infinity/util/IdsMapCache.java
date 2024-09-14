@@ -53,7 +53,7 @@ public class IdsMapCache {
           if (name.equals("ATTSTYLE.IDS")) {
             entry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
           } else {
-            System.err.println("Could not find " + name);
+            Logger.warn("Could not find {}", name);
           }
         }
         if (entry != null) {
@@ -61,7 +61,7 @@ public class IdsMapCache {
             retVal = new IdsMap(entry);
             CACHE.put(name, retVal);
           } catch (Exception e) {
-            System.err.println(e.getMessage());
+            Logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
           }
         }
       }
@@ -224,7 +224,7 @@ public class IdsMapCache {
       if (map != null) {
         final int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          final IdsMapEntry entry = map.get((1 << i));
+          final IdsMapEntry entry = map.get((1L << i));
           String s = (entry != null) ? entry.getSymbol() : null;
           if (s != null && !s.isEmpty()) {
             if (prettify) {
@@ -249,7 +249,7 @@ public class IdsMapCache {
     }
 
     // converting list into array
-    return list.toArray(new String[list.size()]);
+    return list.toArray(new String[0]);
   }
 
   /**

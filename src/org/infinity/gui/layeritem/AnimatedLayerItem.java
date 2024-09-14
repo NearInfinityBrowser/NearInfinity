@@ -273,7 +273,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    * Defines the frame width in pixels in the specified state.
    */
   public void setFrameWidth(ItemState state, int width) {
-    frameInfos[state.ordinal()].setStroke(new BasicStroke(width < 1 ? 1 : width));
+    frameInfos[state.ordinal()].setStroke(new BasicStroke(Math.max(width, 1)));
     updateFrame();
   }
 
@@ -545,8 +545,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
   /** Stores information about frames around the item. */
   private static class FrameInfo {
-    private static Color DefaultColor = new Color(0, true);
-    private static BasicStroke DefaultStroke = new BasicStroke(1.0f);
+    private static final Color DefaultColor = new Color(0, true);
+    private static final BasicStroke DefaultStroke = new BasicStroke(1.0f);
 
     private boolean enabled;
     private Color color;

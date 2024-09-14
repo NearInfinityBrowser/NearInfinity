@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -227,23 +226,13 @@ public class StringDuplicatesChecker extends AbstractSearcher
     /** Registers the specified strref in the string set. */
     public void register(int strref) {
       final String s = getInternalString(strref);
-      List<Integer> list = strings.get(s);
-      if (list == null) {
-        list = new ArrayList<>();
-        strings.put(s, list);
-      }
+      List<Integer> list = strings.computeIfAbsent(s, k -> new ArrayList<>());
       list.add(strref);
     }
 
     /** Removes all entries without duplicates. */
     public void cleanup() {
-      final Iterator<Map.Entry<String, List<Integer>>> iter = strings.entrySet().iterator();
-      while (iter.hasNext()) {
-        final Map.Entry<String, List<Integer>> entry = iter.next();
-        if (entry.getValue().size() < 2) {
-          iter.remove();
-        }
-      }
+      strings.entrySet().removeIf(entry -> entry.getValue().size() < 2);
     }
 
     /** Returns the number of duplicate string instances. */
@@ -271,7 +260,6 @@ public class StringDuplicatesChecker extends AbstractSearcher
 
     /**
      * Returns a normalized version of the given string.
-     *
      * A {@code null} string reference returns an empty string. Otherwise, whitespace is trimmed from the given string.
      *
      * @param s String to normalize.

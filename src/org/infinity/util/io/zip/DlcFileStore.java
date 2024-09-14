@@ -106,16 +106,16 @@ public class DlcFileStore extends FileStore {
 
   @Override
   public Object getAttribute(String attribute) throws IOException {
-    if (attribute.equals("totalSpace")) {
-      return getTotalSpace();
+    switch (attribute) {
+      case "totalSpace":
+        return getTotalSpace();
+      case "usableSpace":
+        return getUsableSpace();
+      case "unallocatedSpace":
+        return getUnallocatedSpace();
+      default:
+        throw new UnsupportedOperationException("does not support the given attribute");
     }
-    if (attribute.equals("usableSpace")) {
-      return getUsableSpace();
-    }
-    if (attribute.equals("unallocatedSpace")) {
-      return getUnallocatedSpace();
-    }
-    throw new UnsupportedOperationException("does not support the given attribute");
   }
 
   // -------------------------- INNER CLASSES --------------------------

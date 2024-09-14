@@ -6,9 +6,12 @@ package org.infinity.gui.converter;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
+import java.nio.file.Path;
 import java.util.Arrays;
 
+import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
+import org.infinity.util.Logger;
 
 /**
  * The base class for filters that output the current state of the BAM structure to disk.
@@ -52,5 +55,43 @@ public abstract class BamFilterBaseOutput extends BamFilterBase {
       }
     }
     return retVal;
+  }
+
+  /**
+   * Converts animation data from the specified decoder into the target BAM format and saves it to disk.
+   *
+   * @param converter The global {@link ConvertToBam} instance.
+   * @param outFileName Output path of the resulting BAM file.
+   * @param decoder {@link PseudoBamDecoder} instance with animation data to convert.
+   * @return {@code true} if the conversion completed successfully, {@code false} otherwise.
+   * @throws Exception if an unrecoverable error occurs during the conversion process.
+   */
+  public static boolean convertBam(ConvertToBam converter, Path outFileName, PseudoBamDecoder decoder)
+      throws Exception {
+    if (converter != null && outFileName != null && decoder != null) {
+      if (converter.isBamV1Selected()) {
+        // convert to BAM v1
+        decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX, converter.getPaletteDialog().getRleIndex());
+        decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED, converter.isBamV1Compressed());
+        try {
+          return decoder.exportBamV1(outFileName, converter.getProgressMonitor(), converter.getProgressMonitorStage());
+        } catch (Exception e) {
+          Logger.error(e);
+          throw e;
+        }
+      } else {
+        // convert to BAM v2
+        DxtEncoder.DxtType dxtType = converter.getDxtType();
+        int pvrzIndex = converter.getPvrzIndex();
+        try {
+          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, converter.getProgressMonitor(),
+              converter.getProgressMonitorStage());
+        } catch (Exception e) {
+          Logger.error(e);
+          throw e;
+        }
+      }
+    }
+    return false;
   }
 }

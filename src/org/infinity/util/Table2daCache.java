@@ -25,6 +25,26 @@ public class Table2daCache {
   }
 
   /**
+   * Returns whether the specified 2DA resource has already been cached.
+   *
+   * @param resource 2DA resource name.
+   * @return {@code true} if the resource has been cached, {@code false} otherwise.
+   */
+  public static boolean isCached(String resource) {
+    return isCached(ResourceFactory.getResourceEntry(resource));
+  }
+
+  /**
+   * Returns whether the specified 2DA resource has already been cached.
+   *
+   * @param entry 2DA resource entry.
+   * @return {@code true} if the resource has been cached, {@code false} otherwise.
+   */
+  public static boolean isCached(ResourceEntry entry) {
+    return (entry != null && MAP.containsKey(entry));
+  }
+
+  /**
    * Returns a Table2da object based on the specified 2DA resource.
    *
    * @param resource 2DA resource name.

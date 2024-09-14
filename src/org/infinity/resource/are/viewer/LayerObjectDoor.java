@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.infinity.datatype.Flag;
@@ -27,6 +28,7 @@ import org.infinity.resource.are.Door;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.vertex.ClosedVertex;
 import org.infinity.resource.vertex.OpenVertex;
+import org.infinity.util.Logger;
 
 /**
  * Handles specific layer type: ARE/Door
@@ -62,9 +64,9 @@ public class LayerObjectDoor extends LayerObject {
     super("Door", Door.class, parent);
     this.door = door;
     final DoorInfo doorOpen = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_OPEN), doorOpen);
+    doorMap.put(ViewerConstants.DOOR_OPEN, doorOpen);
     final DoorInfo doorClosed = new DoorInfo();
-    doorMap.put(Integer.valueOf(ViewerConstants.DOOR_CLOSED), doorClosed);
+    doorMap.put(ViewerConstants.DOOR_CLOSED, doorClosed);
     String name = null;
     try {
       String attr = getAttributes(this.door);
@@ -88,7 +90,7 @@ public class LayerObjectDoor extends LayerObject {
       launchPoint.x = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LAUNCH_POINT_X)).getValue();
       launchPoint.y = ((IsNumeric) door.getAttribute(Door.ARE_DOOR_LAUNCH_POINT_Y)).getValue();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     for (final DoorInfo info: getDoors()) {
@@ -273,11 +275,11 @@ public class LayerObjectDoor extends LayerObject {
   }
 
   private Collection<ShapedLayerItem> getDoorItems() {
-    return doorMap.values().stream().map(di -> di.getItem()).filter(item -> item != null).collect(Collectors.toList());
+    return doorMap.values().stream().map(DoorInfo::getItem).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   private DoorInfo getDoor(int id) {
-    return doorMap.get(Integer.valueOf(id));
+    return doorMap.get(id);
   }
 
   // ----------------------------- INNER CLASSES -----------------------------

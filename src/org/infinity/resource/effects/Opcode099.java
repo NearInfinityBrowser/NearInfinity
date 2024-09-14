@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 99.
+ * Implementation of opcode 99.
  */
 public class Opcode099 extends BaseOpcode {
   private static final String EFFECT_PERCENTAGE = "Percentage";

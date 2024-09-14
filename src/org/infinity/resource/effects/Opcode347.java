@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 347.
+ * Implementation of opcode 347.
  */
 public class Opcode347 extends BaseOpcode {
   private static final String EFFECT_SCROLL_SPEED = "Scroll speed";

@@ -138,7 +138,7 @@ public class ButtonPopupWindow extends JButton {
   /** Adds a new PopupWindowListener to this component. */
   public void addPopupWindowListener(PopupWindowListener listener) {
     if (listener != null) {
-      if (listeners.indexOf(listener) < 0) {
+      if (!listeners.contains(listener)) {
         listeners.add(listener);
       }
     }
@@ -416,7 +416,7 @@ public class ButtonPopupWindow extends JButton {
   private PopupWindow getParentPopupWindow(PopupWindow wnd) {
     if (wnd != null) {
       Window parent = SwingUtilities.getWindowAncestor(wnd.getButton());
-      if (parent != null && parent instanceof PopupWindow) {
+      if (parent instanceof PopupWindow) {
         return (PopupWindow) parent;
       }
     }
@@ -460,8 +460,10 @@ public class ButtonPopupWindow extends JButton {
 
     @Override
     public void mousePressed(MouseEvent event) {
-      if (event.getSource() instanceof ButtonPopupWindow && event.getButton() == MouseEvent.BUTTON1
-          && !event.isPopupTrigger() && event.getComponent().isEnabled() && window != null) {
+      if (event.getSource() instanceof ButtonPopupWindow &&
+          event.getButton() == MouseEvent.BUTTON1 &&
+          !event.isPopupTrigger() &&
+          event.getComponent().isEnabled()) {
         displayWindow(!window.isVisible());
       }
     }

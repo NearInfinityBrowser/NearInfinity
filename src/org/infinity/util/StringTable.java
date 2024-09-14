@@ -77,7 +77,7 @@ public class StringTable {
   /** String entry flag: Available tokens will be resolved */
   public static final short FLAGS_HAS_TOKEN = 0x04;
   /** The default flags value includes all supported bits */
-  public static final short FLAGS_DEFAULT = 0x07;
+  public static final short FLAGS_DEFAULT = FLAGS_HAS_TEXT | FLAGS_HAS_SOUND | FLAGS_HAS_TOKEN;
 
   /** Strref start index for virtual strings referenced by ENGINEST.2DA (EE only) */
   public static final int STRREF_VIRTUAL = 0xf00000;
@@ -129,7 +129,7 @@ public class StringTable {
           retVal = true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -712,7 +712,7 @@ public class StringTable {
       instance(type)._writeModified(callback);
       retVal = true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -747,6 +747,7 @@ public class StringTable {
       instance(type)._write(callback);
       retVal = true;
     } catch (IOException e) {
+      Logger.trace(e);
     }
 
     return retVal;
@@ -766,6 +767,7 @@ public class StringTable {
       instance(type)._write(tlkFile, callback);
       retVal = true;
     } catch (IOException e) {
+      Logger.trace(e);
     }
 
     return retVal;
@@ -783,7 +785,7 @@ public class StringTable {
       instance(type)._exportText(outFile, callback);
       retVal = true;
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return retVal;
@@ -845,10 +847,10 @@ public class StringTable {
     }
     boolean retVal = true;
     try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
-      String newline = System.getProperty("line.separator");
+      String newline = System.lineSeparator();
       // writing header
       String niPath = Utils.getJarFileName(NearInfinity.class);
-      if (niPath == null || niPath.isEmpty()) {
+      if (niPath.isEmpty()) {
         niPath = "Near Infinity";
       }
       niPath += " (" + NearInfinity.getVersion() + ")";
@@ -859,6 +861,7 @@ public class StringTable {
       try {
         pathDialog = Profile.getGameRoot().relativize(pathDialog);
       } catch (IllegalArgumentException e) {
+        Logger.trace(e);
       }
       writer.println("// dialog  : " + pathDialog);
 
@@ -868,6 +871,7 @@ public class StringTable {
         try {
           pathDialog = Profile.getGameRoot().relativize(pathDialog);
         } catch (IllegalArgumentException e) {
+          Logger.trace(e);
         }
         writer.println(pathDialog);
       } else {
@@ -931,7 +935,7 @@ public class StringTable {
         writer.println();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
       retVal = false;
     } finally {
       if (callback != null) {
@@ -1005,8 +1009,8 @@ public class StringTable {
 
   private int _getTranslatedIndex(int index) {
     if (Profile.isEnhancedEdition() && index >= STRREF_VIRTUAL) {
-      if (entriesVirtual.containsKey(Integer.valueOf(index))) {
-        index = entriesVirtual.get(Integer.valueOf(index));
+      if (entriesVirtual.containsKey(index)) {
+        index = entriesVirtual.get(index);
       } else {
         final Table2da engineTable = Table2daCache.get("ENGINEST.2DA");
         int row = index - STRREF_VIRTUAL;
@@ -1016,7 +1020,7 @@ public class StringTable {
             entriesVirtual.put(index, strref);
             index = strref;
           } catch (NumberFormatException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       }
@@ -1109,7 +1113,7 @@ public class StringTable {
           entriesPending = numEntries;
           initialized = true;
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1160,7 +1164,7 @@ public class StringTable {
             text = CharsetDetector.getLookup().decodeString(text);
           }
         } catch (IllegalArgumentException e) {
-          System.err.println("Error: Illegal offset " + ofsString + " for string entry " + index);
+          Logger.error("Error: Illegal offset {} for string entry {}", ofsString, index);
           text = "";
         }
       } else {
@@ -1222,7 +1226,7 @@ public class StringTable {
           }
           entriesPending = 0;
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1242,7 +1246,7 @@ public class StringTable {
             throw new Exception();
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -1383,6 +1387,7 @@ public class StringTable {
       } catch (IOException | UnsupportedOperationException e) {
         throw e;
       } catch (Exception e) {
+        Logger.trace(e);
       } finally {
         // 3. removing or restoring backup
         if (pathBackup != null) {
@@ -1413,7 +1418,7 @@ public class StringTable {
       }
       boolean success = false;
       try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
-        String newline = System.getProperty("line.separator");
+        String newline = System.lineSeparator();
         for (int idx = 0; idx < _getNumEntries(); idx++) {
           if (callback != null) {
             success = callback.progress(idx);
@@ -1465,6 +1470,10 @@ public class StringTable {
       this.pitch = 0;
       this.text = "";
       resetModified();
+    }
+
+    public StringEntry(StringTable parent, short flags) {
+      this(parent, flags, "", 0, 0, "");
     }
 
     public StringEntry(StringTable parent, short flags, String soundRef, int volume, int pitch, String text) {
@@ -1642,7 +1651,7 @@ public class StringTable {
           addField(e);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }

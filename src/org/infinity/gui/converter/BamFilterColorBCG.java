@@ -66,7 +66,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     if (entry != null) {
       entry.setFrame(applyEffect(entry.getFrame()));
     }
@@ -80,12 +80,10 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(sliderBrightness.getValue()).append(';');
-    sb.append(sliderContrast.getValue()).append(';');
-    sb.append(((SpinnerNumberModel) spinnerGamma.getModel()).getNumber().doubleValue()).append(';');
-    sb.append(encodeColorList(pExcludeColors.getSelectedIndices()));
-    return sb.toString();
+    return String.valueOf(sliderBrightness.getValue()) + ';' +
+        sliderContrast.getValue() + ';' +
+        ((SpinnerNumberModel) spinnerGamma.getModel()).getNumber().doubleValue() + ';' +
+        encodeColorList(pExcludeColors.getSelectedIndices());
   }
 
   @Override
@@ -94,9 +92,9 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
       config = config.trim();
       if (!config.isEmpty()) {
         String[] params = config.trim().split(";");
-        Integer bValue = Integer.MIN_VALUE;
-        Integer cValue = Integer.MIN_VALUE;
-        Double gValue = Double.MIN_VALUE;
+        int bValue = Integer.MIN_VALUE;
+        int cValue = Integer.MIN_VALUE;
+        double gValue = Double.MIN_VALUE;
         int[] indices = null;
 
         // parsing configuration data
@@ -238,17 +236,17 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
     if (event.getSource() == pExcludeColors) {
       fireChangeListener();
     } else if (event.getSource() == sliderBrightness) {
-      spinnerBrightness.setValue(Integer.valueOf(sliderBrightness.getValue()));
+      spinnerBrightness.setValue(sliderBrightness.getValue());
       if (!sliderBrightness.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderContrast) {
-      spinnerContrast.setValue(Integer.valueOf(sliderContrast.getValue()));
+      spinnerContrast.setValue(sliderContrast.getValue());
       if (!sliderContrast.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
     } else if (event.getSource() == sliderGamma) {
-      spinnerGamma.setValue(Double.valueOf(sliderGamma.getValue() / GAMMA_SCALE_FACTOR));
+      spinnerGamma.setValue(sliderGamma.getValue() / GAMMA_SCALE_FACTOR);
       if (!sliderGamma.getModel().getValueIsAdjusting()) {
         fireChangeListener();
       }
@@ -257,7 +255,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
     } else if (event.getSource() == spinnerContrast) {
       sliderContrast.setValue(((Integer) spinnerContrast.getValue()));
     } else if (event.getSource() == spinnerGamma) {
-      double v = ((Double) spinnerGamma.getValue()).doubleValue() * GAMMA_SCALE_FACTOR;
+      double v = (Double) spinnerGamma.getValue() * GAMMA_SCALE_FACTOR;
       sliderGamma.setValue((int) v);
     }
   }
@@ -316,7 +314,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor implements ChangeListe
       float gamma2 = 1.0f / ((Double) spinnerGamma.getValue()).floatValue();
 
       for (int i = 0; i < buffer.length; i++) {
-        if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) && (buffer[i] & 0xff000000) != 0) {
+        if ((cm == null || !pExcludeColors.isSelectedIndex(i)) && (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
           float fa = isPremultiplied ? (float) ((buffer[i] >>> 24) & 0xff) : 255.0f;
           float fr = ((buffer[i] >>> 16) & 0xff) / fa;

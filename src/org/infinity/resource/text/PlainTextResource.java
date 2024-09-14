@@ -17,7 +17,7 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
@@ -52,6 +52,7 @@ import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
@@ -95,6 +96,7 @@ public class PlainTextResource
           }
         }
       } catch (NumberFormatException e) {
+        Logger.trace(e);
       }
 
       if (retVal == null) {
@@ -182,24 +184,32 @@ public class PlainTextResource
       int maxCols = 0;
       int maxTokenLength = 0;
       final List<List<String>> matrix = new ArrayList<>(lines.length);
-      for (int i = 0; i < lines.length; i++) {
-        final String[] tokens = lines[i].split("\\s+");
+      int i = 0;
+      for (final String item : lines) {
+        final String line = item.trim();
+        if (line.isEmpty()) {
+          continue;
+        }
+
+        final String[] tokens = line.split("\\s+");
         if (tokens.length > 0) {
-          matrix.add(new ArrayList<>(tokens.length));
-          if (matrix.size() == 3) {
-            matrix.get(matrix.size() - 1).add("");
+          i++;
+          final ArrayList<String> row = new ArrayList<>(tokens.length);
+          if (i == 3) {
+            row.add("");
           }
-          for (String token : tokens) {
+          for (final String token : tokens) {
             if (!token.isEmpty()) {
-              matrix.get(i).add(token);
+              row.add(token);
             }
           }
-          if (matrix.size() > 2) {
-            maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
+          if (i > 2) {
+            maxCols = Math.max(maxCols, row.size());
             for (String token : tokens) {
               maxTokenLength = Math.max(maxTokenLength, token.length());
             }
           }
+          matrix.add(row);
         }
       }
 
@@ -297,6 +307,7 @@ public class PlainTextResource
           try {
             v1 = Long.parseLong(s, radix);
           } catch (NumberFormatException ex) {
+            Logger.trace(ex);
           }
         }
 
@@ -310,6 +321,7 @@ public class PlainTextResource
           try {
             v2 = Long.parseLong(s, radix);
           } catch (NumberFormatException ex) {
+            Logger.trace(ex);
           }
         }
 
@@ -318,7 +330,7 @@ public class PlainTextResource
           v2 &= ~0x4000;
         }
 
-        int result = (v1 < v2) ? -1 : ((v1 > v2) ? 1 : 0);
+        int result = Long.compare(v1, v2);
         if (!ascending) {
           result = -result;
         }
@@ -430,7 +442,7 @@ public class PlainTextResource
         final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == iFindThis) {
-        new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
+        new TextResourceSearcher(Collections.singletonList(entry), panel.getTopLevelAncestor());
       }
     } else if (event.getSource() == bpmFormat) {
       if (bpmFormat.getSelectedItem() == miFormatTrim) {
@@ -479,6 +491,7 @@ public class PlainTextResource
       }
       highlightText(startOfs, endOfs);
     } catch (BadLocationException ble) {
+      Logger.trace(ble);
     }
   }
 
@@ -489,6 +502,7 @@ public class PlainTextResource
       editor.moveCaretPosition(endOfs - 1);
       editor.getCaret().setSelectionVisible(true);
     } catch (IllegalArgumentException e) {
+      Logger.trace(e);
     }
   }
 

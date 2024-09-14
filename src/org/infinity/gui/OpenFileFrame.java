@@ -46,6 +46,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
@@ -82,17 +83,17 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
     tfExternalName.getDocument().addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
+        bOpenNew.setEnabled(rbInternal.isSelected() || !tfExternalName.getText().isEmpty());
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
+        bOpenNew.setEnabled(rbInternal.isSelected() || !tfExternalName.getText().isEmpty());
       }
 
       @Override
       public void changedUpdate(DocumentEvent e) {
-        bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
+        bOpenNew.setEnabled(rbInternal.isSelected() || !tfExternalName.getText().isEmpty());
       }
     });
     lpInternal = new TextListPanel<>(new ArrayList<>(ResourceFactory.getResourceTreeModel().getResourceEntries()));
@@ -191,7 +192,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
   public void actionPerformed(ActionEvent event) {
     if (event.getSource() == rbExternal) {
       bOpen.setEnabled(false);
-      bOpenNew.setEnabled(tfExternalName.getText().length() > 0);
+      bOpenNew.setEnabled(!tfExternalName.getText().isEmpty());
       lpInternal.setEnabled(false);
       tfExternalName.setEnabled(true);
       bExternalBrowse.setEnabled(true);
@@ -275,7 +276,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
         event.acceptDrop(DnDConstants.ACTION_COPY);
         files = (List<File>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         event.dropComplete(false);
         return;
       }

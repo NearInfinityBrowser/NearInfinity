@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 34.
+ * Implementation of opcode 34.
  */
 public class Opcode034 extends BaseOpcode {
   private static final String[] TYPES_EE = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Increment instantaneously" };

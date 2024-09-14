@@ -16,6 +16,7 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.Writeable;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -218,8 +219,7 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry> {
       try {
         this.fileSize = (int) Files.size(this.biffFile);
       } catch (IOException e) {
-        System.err.println(String.format("Could not determine file size: %s", this.biffFile));
-        e.printStackTrace();
+        Logger.error(e, "Could not determine file size: {}", this.biffFile);
       }
     }
   }

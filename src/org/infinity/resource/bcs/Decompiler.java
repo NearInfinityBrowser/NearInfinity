@@ -26,6 +26,7 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
@@ -732,10 +733,9 @@ public final class Decompiler {
       if (funcName == null) {
         funcName = Signatures.Function.ACTION_OVERRIDE_NAME;
       }
-      StringBuilder sbOverride = new StringBuilder();
-      sbOverride.append(funcName).append('(');
-      sbOverride.append(decompileObject(override)).append(',');
-      sb.insert(0, sbOverride.toString());
+      String sbOverride = funcName + '(' +
+          decompileObject(override) + ',';
+      sb.insert(0, sbOverride);
       sb.append(')');
     }
 
@@ -799,14 +799,12 @@ public final class Decompiler {
 
       // optional: getting region
       if (!object.isEmptyRect()) {
-        StringBuilder sbRect = new StringBuilder();
-        sbRect.append('[');
-        sbRect.append(object.region.x).append('.');
-        sbRect.append(object.region.y).append('.');
-        sbRect.append(object.region.width).append('.');
-        sbRect.append(object.region.height);
-        sbRect.append(']');
-        rect = sbRect.toString();
+        rect = "[" +
+            object.region.x + '.' +
+            object.region.y + '.' +
+            object.region.width + '.' +
+            object.region.height +
+            ']';
       }
 
       // assembling object string
@@ -1056,6 +1054,7 @@ public final class Decompiler {
               long number = Long.parseLong(snum);
               result = getNormalizedSymbol(IdsMapCache.getIdsSymbol("SPELL.IDS", number));
             } catch (NumberFormatException e) {
+              Logger.warn(e);
             }
             if (result == null) {
               sb.append("UNKNOWN_").append(snum);

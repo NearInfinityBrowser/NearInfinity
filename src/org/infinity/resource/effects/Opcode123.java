@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 123.
+ * Implementation of opcode 123.
  */
 public class Opcode123 extends BaseOpcode {
   private static final String RES_TYPE = "ITM";

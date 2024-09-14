@@ -7,6 +7,7 @@ package org.infinity.gui.hexview;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -82,7 +83,7 @@ public class ResourceMenuCreator extends MenuCreator {
               if (curViewer != null) {
                 curViewer.selectEntry(entry.getOffset(), false);
               }
-              ViewFrame curFrame = curViewer.getViewFrame((AbstractStruct) entry);
+              ViewFrame curFrame = Objects.requireNonNull(curViewer).getViewFrame((AbstractStruct) entry);
               if (curFrame.getViewable() instanceof AbstractStruct) {
                 curViewer = ((AbstractStruct) curFrame.getViewable()).getViewer();
               } else {
@@ -118,8 +119,7 @@ public class ResourceMenuCreator extends MenuCreator {
         if (!listEntries.isEmpty() && listEntries.get(0) == getStruct()) {
           listEntries.remove(0);
         }
-        for (int i = 0; i < listEntries.size(); i++) {
-          StructEntry e = listEntries.get(i);
+        for (StructEntry e : listEntries) {
           JMenuItem mi = new DataMenuItem(String.format("Go to \"%s\"", e.getName()), null, e);
           list.add(mi);
         }

@@ -7,7 +7,6 @@ package org.infinity.resource.are.viewer;
 import static org.infinity.resource.are.AreResource.ARE_NUM_ANIMATIONS;
 import static org.infinity.resource.are.AreResource.ARE_OFFSET_ANIMATIONS;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.infinity.datatype.Flag;
@@ -44,7 +43,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
         a -> new LayerObjectAnimation(parent, a));
 
     // sorting entries (animations not flagged as "draw as background" come first)
-    Collections.sort(getLayerObjects(), (o1, o2) -> {
+    getLayerObjects().sort((o1, o2) -> {
       boolean isBackground1, isBackground2;
       try {
         isBackground1 = ((Flag) ((Animation) o1.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE))

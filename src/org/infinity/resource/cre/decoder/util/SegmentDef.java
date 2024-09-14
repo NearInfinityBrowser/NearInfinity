@@ -290,12 +290,10 @@ public class SegmentDef implements Cloneable {
         }
         break;
       case REVERSE_REPEAT:
-        if (curFrame > 0) {
+        if (curFrame >= getMaximumFrames() - 1 || curFrame <= 0) {
+          curFrame = numFrames - 1;
+        } else {
           curFrame--;
-        } else if (curFrame <= 0) {
-          curFrame = numFrames - 1;
-        } else if (curFrame >= getMaximumFrames() - 1) {
-          curFrame = numFrames - 1;
         }
         break;
       case REVERSE_SINGLE:

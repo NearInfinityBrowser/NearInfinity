@@ -23,6 +23,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -50,7 +51,7 @@ public class PlaceholderDecoder extends SpriteDecoder {
       baos.flush();
       retVal = new BufferedResourceEntry(StreamUtils.getByteBuffer(baos.toByteArray()), "placeholder.bam");
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }
@@ -116,9 +117,9 @@ public class PlaceholderDecoder extends SpriteDecoder {
       try {
         int n = Integer.parseInt(value);
         if (n == 0 || n == 1) {
-          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.BOOLEAN), Boolean.valueOf(n != 0));
+          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.BOOLEAN), n != 0);
         } else {
-          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.DECIMAL), Integer.valueOf(n));
+          setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.DECIMAL), n);
         }
       } catch (NumberFormatException e) {
         setAttribute(new DecoderAttribute(key, DecoderAttribute.DataType.STRING), value);

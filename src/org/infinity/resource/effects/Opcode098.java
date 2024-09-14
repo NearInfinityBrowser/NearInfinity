@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 98.
+ * Implementation of opcode 98.
  */
 public class Opcode098 extends BaseOpcode {
   private static final String EFFECT_REGENERATION_TYPE = "Regeneration type";
@@ -61,7 +61,7 @@ public class Opcode098 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     final Bitmap bmp = new Bitmap(buffer, offset + 4, 4, EFFECT_REGENERATION_TYPE, regenTypes);
     list.add(bmp);
-    if (parent != null && parent instanceof UpdateListener) {
+    if (parent instanceof UpdateListener) {
       bmp.addUpdateListener((UpdateListener)parent);
     }
     return null;

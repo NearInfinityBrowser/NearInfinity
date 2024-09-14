@@ -39,7 +39,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener {
     setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     List<ResourceEntry> resList = ResourceFactory.getResources("IDS");
-    idsfiles = new JComboBox<>(resList.toArray(new ResourceEntry[resList.size()]));
+    idsfiles = new JComboBox<>(resList.toArray(new ResourceEntry[0]));
     idsfiles.setEditable(false);
     idsfiles.setSelectedIndex(0);
     idsfiles.addActionListener(this);
@@ -108,7 +108,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener {
 
   private void insertString(String s) {
     Viewable viewable = NearInfinity.getInstance().getViewable();
-    if (viewable == null || !(viewable instanceof BcsResource)) {
+    if (!(viewable instanceof BcsResource)) {
       JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error", JOptionPane.ERROR_MESSAGE);
     } else {
       ((BcsResource) viewable).insertString(s);

@@ -7,10 +7,10 @@ package org.infinity.resource.are.viewer;
 import java.util.EventObject;
 
 public class TilesetChangeEvent extends EventObject {
-  private boolean mapChanged;
-  private boolean appearanceChanged;
-  private boolean overlayChanged;
-  private boolean doorStatechanged;
+  private final boolean mapChanged;
+  private final boolean appearanceChanged;
+  private final boolean overlayChanged;
+  private final boolean doorStatechanged;
 
   /**
    * Constructs a TilesetChangeEvent object.

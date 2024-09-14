@@ -18,7 +18,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 186.
+ * Implementation of opcode 186.
  */
 public class Opcode186 extends BaseOpcode {
   private static final String EFFECT_DELAY        = "Delay";

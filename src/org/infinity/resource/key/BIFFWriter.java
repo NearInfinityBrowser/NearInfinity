@@ -20,6 +20,7 @@ import java.util.zip.DeflaterOutputStream;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -30,9 +31,9 @@ public final class BIFFWriter {
   private final Map<ResourceEntry, Boolean> tileResources = new HashMap<>();
   private final AbstractBIFFReader.Type format;
 
-  private static byte[] compress(byte data[]) {
+  private static byte[] compress(byte[] data) {
     Deflater deflater = new Deflater();
-    byte compr[] = new byte[data.length * 2];
+    byte[] compr = new byte[data.length * 2];
     deflater.setInput(data);
     deflater.finish();
     int clength = deflater.deflate(compr);
@@ -71,7 +72,7 @@ public final class BIFFWriter {
       StreamUtils.writeString(os, "V1.0", 4);
       StreamUtils.writeInt(os, (int) Files.size(biff));
       try (InputStream is = StreamUtils.getInputStream(biff)) {
-        byte block[] = readBytes(is, 8192);
+        byte[] block = readBytes(is, 8192);
         while (block.length != 0) {
           byte[] compressed = compress(block);
           StreamUtils.writeInt(os, block.length);
@@ -165,12 +166,14 @@ public final class BIFFWriter {
         try {
           Files.delete(dummyFile);
         } catch (IOException e) {
+          Logger.trace(e);
         }
       }
       if (compressedFile != null && FileEx.create(compressedFile).isFile()) {
         try {
           Files.delete(compressedFile);
         } catch (IOException e) {
+          Logger.trace(e);
         }
       }
     }
@@ -197,7 +200,7 @@ public final class BIFFWriter {
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(entry.getValue());
+        int[] info = resourceEntry.getResourceInfo(entry.getValue());
         offset += info[0];
         StreamUtils.writeInt(os, info[0]); // Size
         StreamUtils.writeShort(os, (short) ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
@@ -210,7 +213,7 @@ public final class BIFFWriter {
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(entry.getValue());
+        int[] info = resourceEntry.getResourceInfo(entry.getValue());
         StreamUtils.writeInt(os, info[0]); // Number of tiles
         StreamUtils.writeInt(os, info[1]); // Size of each tile (in bytes)
         offset += info[0] * info[1];
@@ -224,7 +227,7 @@ public final class BIFFWriter {
       for (final Map.Entry<ResourceEntry, Boolean> entry : tileResources.entrySet()) {
         final ResourceEntry resourceEntry = entry.getKey();
         ByteBuffer buffer = resourceEntry.getResourceBuffer(entry.getValue());
-        int info[] = resourceEntry.getResourceInfo(entry.getValue());
+        int[] info = resourceEntry.getResourceInfo(entry.getValue());
         int size = info[0] * info[1];
         int toSkip = buffer.limit() - size;
         if (toSkip > 0) {

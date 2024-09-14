@@ -47,6 +47,7 @@ import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 
 /**
  * A basic creature animation viewer.
@@ -247,7 +248,7 @@ public class ViewerAnimation extends JComponent implements ActionListener {
         WindowBlocker.blockWindow(true);
         initAnimation();
       } catch (Exception ex) {
-        ex.printStackTrace();
+        Logger.error(ex);
         WindowBlocker.blockWindow(false);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(),
             "Creature animation could not be loaded.\nError message: " + ex.getMessage(), "Error",
@@ -286,7 +287,7 @@ public class ViewerAnimation extends JComponent implements ActionListener {
         setAnimationSequence(seq);
         updateControls();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         cbSequences.setSelectedItem(getAnimationSequence());
       } finally {
@@ -315,7 +316,7 @@ public class ViewerAnimation extends JComponent implements ActionListener {
         getDecoder().setBoundingBoxVisible(showOverlayBorders);
         resetAnimationSequence();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         WindowBlocker.blockWindow(false);
       }

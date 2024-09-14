@@ -232,7 +232,7 @@ public class StandardDialogs extends JOptionPane {
 
   /** Ensures a valid result object for confirmation dialogs. */
   private static Couple<Integer, Boolean> getDialogResult(int result, JCheckBox cbOption) {
-    return Couple.with(result, cbOption != null ? cbOption.isSelected() : false);
+    return Couple.with(result, cbOption != null && cbOption.isSelected());
   }
 
   // -------------------------- INNER CLASSES --------------------------

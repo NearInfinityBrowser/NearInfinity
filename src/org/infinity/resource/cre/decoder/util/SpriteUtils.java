@@ -60,6 +60,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -321,18 +322,16 @@ public class SpriteUtils {
       }
     }
 
-    if (buffer != null) {
-      buffer.putInt(0x08, -1); // creature name
-      buffer.putInt(0x0c, -1); // creature tooltip
-      buffer.putInt(0x28, animationId);
-      if (equipment != null) {
-        for (final HashMap.Entry<Integer, String> itm : equipment.entrySet()) {
-          addPseudoCreItem(buffer, itm.getKey(), itm.getValue());
-        }
+    buffer.putInt(0x08, -1); // creature name
+    buffer.putInt(0x0c, -1); // creature tooltip
+    buffer.putInt(0x28, animationId);
+    if (equipment != null) {
+      for (final HashMap.Entry<Integer, String> itm : equipment.entrySet()) {
+        addPseudoCreItem(buffer, itm.getKey(), itm.getValue());
       }
-
-      entry = new CreResource(null, String.format("%04X", animationId & 0xffff), buffer, 0);
     }
+
+    entry = new CreResource(null, String.format("%04X", animationId & 0xffff), buffer, 0);
 
     return entry;
   }
@@ -448,7 +447,7 @@ public class SpriteUtils {
         retVal = Couple.with(decoder, control);
         BAM_CACHE.put(entry, retVal);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;
@@ -468,6 +467,7 @@ public class SpriteUtils {
       int numCycles = control.cycleCount();
       return (numCycles >= cycle + length && control.cycleFrameCount(cycle) > 0);
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return false;
   }
@@ -484,6 +484,7 @@ public class SpriteUtils {
       BamV1Decoder.BamV1Control control = loadBamController(entry);
       retVal = control.cycleCount();
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return retVal;
   }
@@ -503,6 +504,7 @@ public class SpriteUtils {
         retVal = control.cycleFrameCount(cycleIdx);
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return retVal;
   }
@@ -531,6 +533,7 @@ public class SpriteUtils {
         retVal &= (palette[87] & 0xffffff) == 0x004000;
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
     return retVal;
   }
@@ -591,13 +594,12 @@ public class SpriteUtils {
       return retVal;
     }
 
-    String resName = resref;
     String suffix = (index >= 0) ? Integer.toString(index) : "";
     String[] suffixList = (suffix.isEmpty()) ? new String[] { "" } : new String[] { suffix, "" };
     ResourceEntry entry = null;
     for (final String s : suffixList) {
-      if (ResourceFactory.resourceExists(resName + s + ".BMP")) {
-        entry = ResourceFactory.getResourceEntry(resName + s + ".BMP");
+      if (ResourceFactory.resourceExists(resref + s + ".BMP")) {
+        entry = ResourceFactory.getResourceEntry(resref + s + ".BMP");
         break;
       }
     }
@@ -609,14 +611,12 @@ public class SpriteUtils {
     if (retVal == null) {
       try {
         retVal = ColorConvert.loadPaletteBMP(entry);
-        if (retVal != null) {
-          if (retVal.length < 256) {
-            retVal = Arrays.copyOf(retVal, 256);
-          }
-          PALETTE_CACHE.put(entry, retVal);
+        if (retVal.length < 256) {
+          retVal = Arrays.copyOf(retVal, 256);
         }
+        PALETTE_CACHE.put(entry, retVal);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
 
@@ -711,7 +711,7 @@ public class SpriteUtils {
             COLOR_GRADIENTS.put(y, pixels);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       } else {
         // dummy entry to skip continuous gradient initialization attempts if gradient bitmap isn't available
@@ -1017,10 +1017,8 @@ public class SpriteUtils {
    *         animation info could be assembled.
    */
   public static IniMap getAnimationInfo(int animationId) {
-    List<IniMap> retVal = new ArrayList<>();
-
     // 1. look up existing INI resource
-    retVal.addAll(getAnimationInfoByIni(animationId));
+    List<IniMap> retVal = new ArrayList<>(getAnimationInfoByIni(animationId));
 
     if (retVal.isEmpty()) {
       // 2. look up hardcoded tables
@@ -1048,8 +1046,7 @@ public class SpriteUtils {
   public static Class<? extends SpriteDecoder> detectAnimationType(int animationId) {
     Class<? extends SpriteDecoder> retVal = null;
 
-    List<IniMap> iniList = new ArrayList<>();
-    iniList.addAll(getAnimationInfoByIni(animationId));
+    List<IniMap> iniList = new ArrayList<>(getAnimationInfoByIni(animationId));
 
     if (iniList.isEmpty()) {
       iniList.addAll(getAnimationInfoByTable(animationId));
@@ -1191,15 +1188,16 @@ public class SpriteUtils {
 
     try {
       Constructor<? extends SpriteDecoder> ctor = spriteClass.getConstructor(int.class, IniMap.class);
-      if (ctor != null) {
-        for (final IniMap ini : iniList) {
-          try {
-            retVal = (ctor.newInstance(animationId, ini).getClass() != null);
-          } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
-          }
+      for (final IniMap ini : iniList) {
+        try {
+          ctor.newInstance(animationId, ini);
+          retVal = true;
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+          Logger.trace(e);
         }
       }
     } catch (NoSuchMethodException e) {
+      Logger.trace(e);
     }
 
     return retVal;
@@ -1268,7 +1266,7 @@ public class SpriteUtils {
             try {
               String key = entry.getKey();
               int id = (key.startsWith("0x") || key.startsWith("0X"))
-                  ? Misc.toNumber(key.substring(2, key.length()), 16, -1)
+                  ? Misc.toNumber(key.substring(2), 16, -1)
                   : Misc.toNumber(key, -1);
               if (id == animationId) {
                 String value = entry.getValue();
@@ -1279,7 +1277,7 @@ public class SpriteUtils {
                 break;
               }
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }
@@ -1460,7 +1458,7 @@ public class SpriteUtils {
         break;
       case MONSTER_ICEWIND: {
         boolean found = false;
-        if (resref.length() >= 4 && !found) {
+        if (resref.length() >= 4) {
           for (final String suffix : new String[] { "A1", "A2", "A3", "A4", "CA", "DE", "GH", "GU", "SC", "SD", "SL",
               "SP", "TW", "WK" }) {
             if (ResourceFactory.resourceExists(resref + suffix + ".BAM")) {
@@ -1547,7 +1545,7 @@ public class SpriteUtils {
           ResourceEntry bamEntry = ResourceFactory.getResourceEntry(key + "b.bam");
           if (bamEntry != null) {
             clown = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
-            resref = key.substring(0, 1) + key.substring(4, key.length()) + "b";
+            resref = key.charAt(0) + key.substring(4) + "b";
             break;
           }
         }

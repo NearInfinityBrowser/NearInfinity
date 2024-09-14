@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 360.
+ * Implementation of opcode 360.
  */
 public class Opcode360 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

@@ -58,7 +58,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.StringTable;
 
 /** Show dialog content as tree structure. */
-final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener, PropertyChangeListener {
+public class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener, PropertyChangeListener {
   private final JPopupMenu pmTree = new JPopupMenu();
 
   private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes", Icons.ICON_EXPAND_ALL_24.getIcon());
@@ -81,7 +81,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private TreeWorker worker;
   private WindowBlocker blocker;
 
-  TreeViewer(DlgResource dlg) {
+  public TreeViewer(DlgResource dlg) {
     super(new BorderLayout());
     this.dlg = dlg;
     dlgModel = new DlgTreeModel(dlg);
@@ -521,7 +521,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private static final String CARD_RESPONSE = "Response";
 
     private static final Color COLOR_BACKGROUND = UIManager.getColor("Panel.background");
-    private static final Font FONT_DEFAULT = UIManager.getFont("Label.font").deriveFont(0);
+    private static final Font FONT_DEFAULT = UIManager.getFont("Label.font").deriveFont(Font.PLAIN);
 
     private final CardLayout cardLayout;
     private final JPanel pMainPanel;

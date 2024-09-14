@@ -40,6 +40,7 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
@@ -179,9 +180,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       try {
         checkScript(new BcsResource(entry));
       } catch (Exception e) {
-        synchronized (System.err) {
-          e.printStackTrace();
-        }
+        Logger.error(e);
       }
       advanceProgress();
     };
@@ -204,7 +203,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       final String error = e.getValue();
       if (!error.contains("GTIMES.IDS") && !error.contains("SCROLL.IDS") && !error.contains("SHOUTIDS.IDS")
           && !error.contains("SPECIFIC.IDS") && !error.contains("TIME.IDS")) {
-        synchronized (table) {
+        synchronized (this) {
           table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
         }
       }

@@ -34,8 +34,8 @@ public class DummyDecoder implements Decodable {
 
     int[] imgData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     int ofs = 0;
-    int maxX = (image.getWidth() < region.width) ? image.getWidth() : region.width;
-    int maxY = (image.getHeight() < region.height) ? image.getHeight() : region.height;
+    int maxX = Math.min(image.getWidth(), region.width);
+    int maxY = Math.min(image.getHeight(), region.height);
     for (int y = 0; y < maxY; y++) {
       for (int x = 0; x < maxX; x++) {
         imgData[ofs + x] = 0;

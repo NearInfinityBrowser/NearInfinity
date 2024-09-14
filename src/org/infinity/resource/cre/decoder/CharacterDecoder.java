@@ -277,7 +277,7 @@ public class CharacterDecoder extends CharacterBaseDecoder {
     if (s.isEmpty()) {
       s = getAnimationResref();
     } else {
-      s = getAnimationResref().substring(0, 3) + s.substring(0, 1);
+      s = getAnimationResref().substring(0, 3) + s.charAt(0);
     }
     setAttribute(KEY_RESREF_ARMOR_BASE, s);
   }
@@ -294,7 +294,7 @@ public class CharacterDecoder extends CharacterBaseDecoder {
     if (s.isEmpty()) {
       s = getAnimationResref();
     } else {
-      s = getAnimationResref().substring(0, 3) + s.substring(0, 1);
+      s = getAnimationResref().substring(0, 3) + s.charAt(0);
     }
     setAttribute(KEY_RESREF_ARMOR_SPECIFIC, s);
   }
@@ -343,7 +343,7 @@ public class CharacterDecoder extends CharacterBaseDecoder {
           }
         }
       }
-      retVal = new ArrayList<>(Arrays.asList(files.toArray(new String[files.size()])));
+      retVal = new ArrayList<>(Arrays.asList(files.toArray(new String[0])));
     } else {
       // collecting suffixes
       HashSet<String> actionSet = new HashSet<>();
@@ -495,9 +495,9 @@ public class CharacterDecoder extends CharacterBaseDecoder {
       ResourceEntry entry = ResourceFactory.getResourceEntry(prefix + suffix + ".BAM");
       if (SpriteUtils.bamCyclesExist(entry, cycleIdx, SeqDef.DIR_FULL_W.length)) {
         SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, cycleIdx, spriteType, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, cycleIdx + 1, spriteType, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
     }
 

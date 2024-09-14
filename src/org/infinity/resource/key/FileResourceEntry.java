@@ -21,6 +21,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
 
@@ -56,7 +57,7 @@ public final class FileResourceEntry extends ResourceEntry {
     try {
       return Files.size(file);
     } catch (IOException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return -1L;
   }

@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 401.
+ * Implementation of opcode 401.
  */
 public class Opcode401 extends BaseOpcode {
   private static final String EFFECT_STAT = "Stat";

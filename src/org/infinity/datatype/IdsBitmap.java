@@ -6,6 +6,8 @@ package org.infinity.datatype;
 
 import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 
@@ -24,6 +26,8 @@ public class IdsBitmap extends AbstractBitmap<IdsMapEntry> {
       return "Unknown - " + number;
     }
   };
+
+  private static final HashMap<String, TreeMap<Long, IdsMapEntry>> MAP_CACHE = new HashMap<>();
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource) {
     this(buffer, offset, length, name, resource, true, false, false);
@@ -63,8 +67,22 @@ public class IdsBitmap extends AbstractBitmap<IdsMapEntry> {
     getBitmap().putIfAbsent(entry.getID(), entry);
   }
 
+  public static void clearCache() {
+    MAP_CACHE.clear();
+  }
+
   private static TreeMap<Long, IdsMapEntry> createResourceList(String resource) {
     TreeMap<Long, IdsMapEntry> retVal = null;
+    if (resource == null) {
+      return retVal;
+    }
+
+    resource = resource.trim().toUpperCase(Locale.ENGLISH);
+    retVal = MAP_CACHE.get(resource);
+    if (retVal != null) {
+      return retVal;
+    }
+
     IdsMap idsMap = IdsMapCache.get(resource);
     if (idsMap != null) {
       retVal = new TreeMap<>();
@@ -81,6 +99,8 @@ public class IdsBitmap extends AbstractBitmap<IdsMapEntry> {
           retVal.put(0L, new IdsMapEntry(0L, "NONE"));
         }
       }
+
+      MAP_CACHE.put(resource, retVal);
     }
     return retVal;
   }

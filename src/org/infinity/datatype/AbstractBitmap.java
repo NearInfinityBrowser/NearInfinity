@@ -88,10 +88,10 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
 
   private final TreeMap<Long, T> itemMap;
   private final List<JButton> buttonList;
+  private final JButton bUpdate;
 
   private BiFunction<Long, T, String> formatter;
   private TextListPanel<FormattedData<T>> list;
-  private JButton bUpdate;
   private long value;
   private boolean signed;
   private boolean sortByName;
@@ -311,9 +311,8 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
 
     // taking care of signedness
     long mask = (1L << (getSize() * 8)) - 1L;
-    boolean retVal = ((value & mask) == (other.value & mask));
 
-    return retVal;
+    return ((value & mask) == (other.value & mask));
   }
 
   /** Returns the TextListPanel control used by this datatype. */
@@ -348,7 +347,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
    * @return the data object associated with the numeric value, {@code null} otherwise.
    */
   public T getDataOf(long value) {
-    return itemMap.get(Long.valueOf(value));
+    return itemMap.get(value);
   }
 
   /**
@@ -359,7 +358,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
    */
   public String toString(long value) {
     Long number = value;
-    T data = itemMap.get(Long.valueOf(value));
+    T data = itemMap.get(value);
     return formatter.apply(number, data);
   }
 
@@ -474,7 +473,6 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
    * Helper method: returns the specified number in hexadecimal notation.
    *
    * @param value the value to return as hexadecimal representation.
-   * @param size  size of the value in bytes.
    * @return String containing hexadecimal notation of the specified value.
    */
   protected String getHexValue(long value) {

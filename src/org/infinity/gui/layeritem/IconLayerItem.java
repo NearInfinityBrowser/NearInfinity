@@ -35,8 +35,8 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   private final EnumMap<ItemState, Image> images = new EnumMap<>(ItemState.class);
   private final EnumMap<ItemState, FrameInfo> frames = new EnumMap<>(ItemState.class);
 
-  private RenderCanvas rcCanvas;
-  private JLabel label;
+  private final RenderCanvas rcCanvas;
+  private final JLabel label;
 
   /**
    * Initialize object with an associated Viewable and an additional text message.
@@ -126,7 +126,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    return images.containsKey(state) ? images.get(state) : DEFAULT_IMAGE;
+    return images.getOrDefault(state, DEFAULT_IMAGE);
   }
 
   /**

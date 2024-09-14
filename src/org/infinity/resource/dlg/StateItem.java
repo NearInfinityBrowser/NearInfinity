@@ -21,7 +21,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog state entry. */
-class StateItem extends TransitionOwnerItem {
+public class StateItem extends TransitionOwnerItem {
   private static final ImageIcon ICON = Icons.ICON_STOP_16.getIcon();
 
   private final State state;
@@ -77,7 +77,10 @@ class StateItem extends TransitionOwnerItem {
 
   @Override
   public boolean removeChild(ItemBase child) {
-    return trans.remove(child);
+    if (child instanceof TransitionItem) {
+      return trans.remove(child);
+    }
+    return false;
   }
 
   @Override
@@ -109,7 +112,10 @@ class StateItem extends TransitionOwnerItem {
 
   @Override
   public int getIndex(TreeNode node) {
-    return getAllowsChildren() ? trans.indexOf(node) : -1;
+    if (getAllowsChildren() && node instanceof TransitionItem) {
+      return trans.indexOf(node);
+    }
+    return -1;
   }
 
   @Override
@@ -119,7 +125,7 @@ class StateItem extends TransitionOwnerItem {
 
   @Override
   public boolean isLeaf() {
-    return getAllowsChildren() ? trans.isEmpty() : true;
+    return !getAllowsChildren() || trans.isEmpty();
   }
 
   @Override

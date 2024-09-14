@@ -209,7 +209,7 @@ public class ScrollPopupMenu extends JPopupMenu {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  protected class ScrollPopupMenuLayout implements LayoutManager {
+  protected static class ScrollPopupMenuLayout implements LayoutManager {
     @Override
     public void addLayoutComponent(String name, Component comp) {
     }

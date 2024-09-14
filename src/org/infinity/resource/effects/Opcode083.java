@@ -17,7 +17,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMapEntry;
 
 /**
- * Implemention of opcode 83.
+ * Implementation of opcode 83.
  */
 public class Opcode083 extends BaseOpcode {
   private static final String EFFECT_PROJECTILE = "Projectile";

@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 37.
+ * Implementation of opcode 37.
  */
 public class Opcode037 extends BaseOpcode {
   private static final String[] TYPES_EE = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Increment instantaneously" };
@@ -56,11 +56,5 @@ public class Opcode037 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_MODIFIER_TYPE, TYPES_EE));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

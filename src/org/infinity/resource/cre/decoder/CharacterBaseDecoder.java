@@ -148,9 +148,7 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder {
     }
     int abilType = -1;
     abilityIndex = Math.max(0, Math.min(itm.getAbilityCount() - 1, abilityIndex));
-    if (abilityIndex >= 0) {
-      abilType = itm.getAbility(abilityIndex).getAbilityType();
-    }
+    abilType = itm.getAbility(abilityIndex).getAbilityType();
 
     switch (itm.getCategory()) {
       case 15: // Bows

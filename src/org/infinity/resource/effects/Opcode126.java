@@ -14,7 +14,7 @@ import org.infinity.datatype.HashBitmap;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 126.
+ * Implementation of opcode 126.
  */
 public class Opcode126 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */

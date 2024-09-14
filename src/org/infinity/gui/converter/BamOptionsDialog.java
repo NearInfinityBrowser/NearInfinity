@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -44,6 +45,7 @@ import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
@@ -77,6 +79,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   private static final int DEFAULT_RECENT_SESSIONS_MAX    = 10;
 
   // Current settings
+  private static final List<Path> recentSessions  = new ArrayList<>();
   private static boolean settingsLoaded = false;
   private static int bamVersion             = DEFAULT_BAM_VERSION;
   private static String path                = DEFAULT_PATH;
@@ -88,7 +91,6 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   private static boolean compressBam        = DEFAULT_COMPRESS_BAM;
   private static int compressionType        = DEFAULT_COMPRESSION_TYPE;
   private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
-  private static List<Path> recentSessions  = new ArrayList<>();
 
   private final ConvertToBam converter;
 
@@ -254,7 +256,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     if (session != null) {
       try {
         session = session.toAbsolutePath();
-        for (int idx = 0; idx < recentSessions.size(); idx++) {
+        for (int idx = recentSessions.size() - 1; idx >= 0; idx--) {
           if (recentSessions.get(idx).equals(session)) {
             recentSessions.remove(idx);
           }
@@ -264,7 +266,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
         }
         recentSessions.add(0, session);
       } catch (IOError e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
   }
@@ -557,12 +559,12 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     tfPath.setText(DEFAULT_PATH);
     cbAutoClear.setSelected(DEFAULT_AUTO_CLEAR);
     cbCloseOnExit.setSelected(DEFAULT_CLOSE_ON_EXIT);
-    sTransparency.setValue(Integer.valueOf(DEFAULT_TRANSPARENCY_THRESHOLD));
+    sTransparency.setValue(DEFAULT_TRANSPARENCY_THRESHOLD);
     cbUseAlpha.setSelectedIndex(DEFAULT_USE_ALPHA);
     cbSortPalette.setSelectedItem(DEFAULT_SORT_PALETTE);
     cbCompressBam.setSelected(DEFAULT_COMPRESS_BAM);
     cbCompressionType.setSelectedIndex(DEFAULT_COMPRESSION_TYPE);
-    sPvrzIndex.setValue(Integer.valueOf(DEFAULT_PVRZ_INDEX));
+    sPvrzIndex.setValue(DEFAULT_PVRZ_INDEX);
   }
 
   // Fetches the values from the dialog controls
@@ -573,7 +575,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     closeOnExit = cbCloseOnExit.isSelected();
     transparencyThreshold = (Integer) sTransparency.getValue();
     useAlpha = cbUseAlpha.getSelectedIndex();
-    sortPalette = cbSortPalette.getSelectedItem().toString();
+    sortPalette = Objects.requireNonNull(cbSortPalette.getSelectedItem()).toString();
     compressBam = cbCompressBam.isSelected();
     compressionType = cbCompressionType.getSelectedIndex();
     pvrzIndex = (Integer) sPvrzIndex.getValue();

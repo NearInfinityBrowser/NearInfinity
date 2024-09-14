@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 66.
+ * Implementation of opcode 66.
  */
 public class Opcode066 extends BaseOpcode {
   private static final String EFFECT_FADE_AMOUNT    = "Fade amount";

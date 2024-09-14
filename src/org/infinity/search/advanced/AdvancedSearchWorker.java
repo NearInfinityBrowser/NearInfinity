@@ -24,6 +24,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceHitFrame;
+import org.infinity.util.Logger;
 
 /**
  * Worker class for performing a full match against a resource entry.
@@ -65,15 +66,13 @@ public class AdvancedSearchWorker implements Runnable {
       Map<List<String>, Set<StructEntry>> groupCache = new HashMap<>();
 
       int matches = 0;
-      for (int filterIdx = 0; filterIdx < searchOptions.size(); filterIdx++) {
-        SearchOptions so = searchOptions.get(filterIdx);
-
+      for (SearchOptions so : searchOptions) {
         // keep track of grouped filter count per structure
         if (so.isStructureGroup()) {
           Integer count = groupFilters.get(so.getStructure());
           if (count == null)
-            count = Integer.valueOf(0);
-          groupFilters.put(so.getStructure(), Integer.valueOf(count.intValue() + 1));
+            count = 0;
+          groupFilters.put(so.getStructure(), count + 1);
         }
 
         // list of structures to search
@@ -187,7 +186,7 @@ public class AdvancedSearchWorker implements Runnable {
                   groupSet.removeAll(structureSet);
                 break;
               case MATCH_ANY:
-                if (structureSet.size() == 0)
+                if (structureSet.isEmpty())
                   groupSet.removeAll(structureSet);
                 break;
               case MATCH_ONE:
@@ -199,11 +198,11 @@ public class AdvancedSearchWorker implements Runnable {
         }
 
         // structure level entry can be removed if it contains no matches
-        if (groupSet.size() == 0) {
+        if (groupSet.isEmpty()) {
           iter.remove();
         }
       } else {
-        System.err.println("Skipping unidentified group match");
+        Logger.warn("Skipping unidentified group match");
         iter.remove();
       }
     }
@@ -298,6 +297,7 @@ public class AdvancedSearchWorker implements Runnable {
         number = Integer.parseInt(text.trim());
       isNumber = true;
     } catch (NumberFormatException e) {
+      Logger.trace(e);
     }
 
     Pattern pattern;
@@ -338,10 +338,7 @@ public class AdvancedSearchWorker implements Runnable {
     }
 
     // "catch all" check
-    if (pattern.matcher(se.toString()).find())
-      return true;
-
-    return false;
+    return pattern.matcher(se.toString()).find();
   }
 
   // Match value numerically

@@ -23,7 +23,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractJFlexTokenMaker;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
-
+import org.infinity.util.Logger;
 
 /**
  * Scanner for the Menu scripting language extension.<p>
@@ -4414,7 +4414,7 @@ public class MenuTokenMaker extends AbstractJFlexTokenMaker {
       yybegin(state);
       return yylex();
     } catch (IOException ioe) {
-      ioe.printStackTrace();
+      Logger.error(ioe);
       return new TokenImpl();
     }
 

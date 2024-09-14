@@ -25,6 +25,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.mus.MusResource;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -103,7 +104,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher {
       String text = decompiler.decompile();
       searchText(entry, null, text);
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

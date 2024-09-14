@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 411.
+ * Implementation of opcode 411.
  */
 public class Opcode411 extends BaseOpcode {
   private static final String EFFECT_NUM_CREATURES    = "# creatures";

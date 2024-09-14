@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 172.
+ * Implementation of opcode 172.
  */
 public class Opcode172 extends BaseOpcode {
   private static final String RES_TYPE = "SPL";

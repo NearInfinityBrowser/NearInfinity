@@ -18,7 +18,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 /**
  * <p>
  * Renderer for dialogue tree, drawing elements of each dialog with its own color (maximum of
- * {@link #OTHER_DIALOG_COLORS}{@code .length} different colors).
+ * {@link ViewerUtil#getBackgroundColors()}{@code .length} different colors).
  * </p>
  *
  * <p>
@@ -28,7 +28,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
  *
  * @author Mingun
  */
-final class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
+public class DlgTreeCellRenderer extends DefaultTreeCellRenderer {
   // Color for response entry (if colored)
   private static final Color COLOR_RESPONSE = Color.BLUE;
   private static final Color COLOR_RESPONSE_DARK = Color.CYAN;

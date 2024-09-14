@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 420.
+ * Implementation of opcode 420.
  */
 public class Opcode420 extends BaseOpcode {
   private static final String EFFECT_DEATH_TYPE = "Death type";

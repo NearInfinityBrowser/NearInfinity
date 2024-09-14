@@ -32,7 +32,7 @@ public class SecTypeBitmap extends HashBitmap {
 
   public static String[] getTypeArray() {
     final TreeMap<Long, String> map = getTypeTable();
-    return map.values().toArray(new String[map.size()]);
+    return map.values().toArray(new String[0]);
   }
 
   private static synchronized TreeMap<Long, String> getTypeTable() {
@@ -42,9 +42,8 @@ public class SecTypeBitmap extends HashBitmap {
         Table2da table = Table2daCache.get(TABLE_NAME);
         if (table != null) {
           for (int row = 0, size = table.getRowCount(); row < size; row++) {
-            long id = row;
             String label = table.get(row, 0).toUpperCase(Locale.ENGLISH);
-            TYPE_MAP.put(id, label);
+            TYPE_MAP.put((long) row, label);
           }
         }
       } else {

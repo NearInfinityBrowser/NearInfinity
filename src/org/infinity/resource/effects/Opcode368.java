@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 368.
+ * Implementation of opcode 368.
  */
 public class Opcode368 extends BaseOpcode {
   private static final String EFFECT_FLAGS = "Flags";

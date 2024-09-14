@@ -75,6 +75,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
@@ -437,7 +438,8 @@ public final class CreResource extends AbstractStruct
       "Hide status", "Affected by alternate damage", "Moving between areas", "Been in party", "Holding item",
       "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode", "EE: No tooltip",
       "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
-      "Gender tracking", "Alignment tracking", "Uninterruptible" };
+      "Gender tracking", "Alignment tracking",
+      "Uninterruptible;Used internally to indicate whether execution of creature script actions can be interrupted." };
 
   public static final String[] FLAGS_IWD2_ARRAY = { "No flags set", "Damage don't stop casting", "No corpse",
       "Permanent corpse", null, null, null, null, null, null, "Fallen paladin", "Fallen ranger", "Export allowed", null,
@@ -550,7 +552,7 @@ public final class CreResource extends AbstractStruct
         } else {
           offset += 0x64;
         }
-        signature = StreamUtils.readString(buffer, offset + 0, 4);
+        signature = StreamUtils.readString(buffer, offset, 4);
       }
 
       if (signature.equalsIgnoreCase("CRE ")) {
@@ -564,7 +566,7 @@ public final class CreResource extends AbstractStruct
         } else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
           scriptName = StreamUtils.readString(buffer, offset + 744, 32);
         }
-        if (scriptName.equals("") || scriptName.equalsIgnoreCase("None")) {
+        if (scriptName.isEmpty() || scriptName.equalsIgnoreCase("None")) {
           return;
           // Apparently script name is the only thing that matters
           // scriptName = entry.toString().substring(0, entry.toString().length() - 4);
@@ -585,6 +587,7 @@ public final class CreResource extends AbstractStruct
         }
       }
     } catch (Exception e) {
+      Logger.trace(e);
     }
   }
 
@@ -616,7 +619,7 @@ public final class CreResource extends AbstractStruct
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path, "Conversion complete",
             JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Errors during conversion", "Error",
             JOptionPane.ERROR_MESSAGE);
       }
@@ -626,7 +629,7 @@ public final class CreResource extends AbstractStruct
   private static void convertToSemiStandard(CreResource crefile) {
     final List<StructEntry> fields = crefile.getFields();
     if (!fields.get(1).toString().equals("V1.0")) {
-      System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
+      Logger.warn("Conversion to semi-standard aborted: Unsupported CRE version");
       return;
     }
 
@@ -711,9 +714,11 @@ public final class CreResource extends AbstractStruct
     if (sig.equals("CHR ")) {
       retVal = StreamUtils.readString(is, 32);
     } else {
-      String name = StringTable.getStringRef(StreamUtils.readInt(is));
-      String shortName = StringTable.getStringRef(StreamUtils.readInt(is));
-      if (name.equals(shortName)) {
+      final int strrefName = StreamUtils.readInt(is);
+      final int strrefShortName = StreamUtils.readInt(is);
+      final String name = StringTable.getStringRef(strrefName).trim();
+      final String shortName = StringTable.getStringRef(strrefShortName).trim();
+      if (strrefName == strrefShortName || strrefShortName < 0 || name.equals(shortName) || shortName.isEmpty()) {
         retVal = name;
       } else {
         retVal = name + " - " + shortName;
@@ -734,12 +739,10 @@ public final class CreResource extends AbstractStruct
     String ver = StreamUtils.readString(buffer, 4, 4);
     int startOfs = 0;
     if (sig.equals("CHR ")) {
-      switch (ver) {
-        case "V2.2":
-          startOfs = 0x224;
-          break;
-        default:
-          startOfs = 0x64;
+      if (ver.equals("V2.2")) {
+        startOfs = 0x224;
+      } else {
+        startOfs = 0x64;
       }
       ver = StreamUtils.readString(buffer, startOfs + 4, 4);
     } else if (!sig.equals("CRE ")) {
@@ -936,8 +939,8 @@ public final class CreResource extends AbstractStruct
   // Needed for embedded CRE resources
   private boolean showRawTab() {
     if (hasRawTab == null) {
-      hasRawTab = !(Boolean.valueOf(this.isChildOf(GamResource.class))
-          || Boolean.valueOf(this.isChildOf(AreResource.class)));
+      hasRawTab = !(this.isChildOf(GamResource.class)
+          || this.isChildOf(AreResource.class));
     }
     return hasRawTab;
   }
@@ -2130,9 +2133,9 @@ public final class CreResource extends AbstractStruct
           try {
             Effect newEff = (Effect) oldEff.clone(true);
             addDatatype(newEff);
-            retVal |= true;
+            retVal = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
       } else if (version == 1 && so.getSection().equals(Effect.class)) {
@@ -2160,9 +2163,9 @@ public final class CreResource extends AbstractStruct
           try {
             Effect2 newEff = (Effect2) oldEff.clone(true);
             addDatatype(newEff);
-            retVal |= true;
+            retVal = true;
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         }
 
@@ -2297,7 +2300,7 @@ public final class CreResource extends AbstractStruct
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchString(struct, o, false, false);
+            retVal = SearchOptions.Utils.matchString(struct, o, false, false);
           } else {
             break;
           }
@@ -2321,7 +2324,7 @@ public final class CreResource extends AbstractStruct
               StructEntry struct = cre.getAttribute(scriptField, false);
               found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
             }
-            retVal &= found;
+            retVal = found;
           }
         }
 
@@ -2332,7 +2335,7 @@ public final class CreResource extends AbstractStruct
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchFlags(struct, o);
+            retVal = SearchOptions.Utils.matchFlags(struct, o);
           } else {
             break;
           }
@@ -2351,7 +2354,7 @@ public final class CreResource extends AbstractStruct
             key = element;
             o = searchOptions.getOption(key);
             StructEntry struct = cre.getAttribute(SearchOptions.getResourceName(key), false);
-            retVal &= SearchOptions.Utils.matchNumber(struct, o);
+            retVal = SearchOptions.Utils.matchNumber(struct, o);
           } else {
             break;
           }
@@ -2368,13 +2371,13 @@ public final class CreResource extends AbstractStruct
               if (!found) {
                 if (effect != null) {
                   StructEntry struct = effect.getAttribute(SearchOptions.getResourceName(key), false);
-                  found |= SearchOptions.Utils.matchNumber(struct, o);
+                  found = SearchOptions.Utils.matchNumber(struct, o);
                 }
               } else {
                 break;
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -2391,13 +2394,13 @@ public final class CreResource extends AbstractStruct
               if (!found) {
                 if (item != null) {
                   StructEntry struct = item.getAttribute(SearchOptions.getResourceName(key), false);
-                  found |= SearchOptions.Utils.matchResourceRef(struct, o, false);
+                  found = SearchOptions.Utils.matchResourceRef(struct, o, false);
                 }
               } else {
                 break;
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -2413,13 +2416,13 @@ public final class CreResource extends AbstractStruct
             for (Datatype spell : spells) {
               if (!found) {
                 if (spell != null) {
-                  found |= SearchOptions.Utils.matchResourceRef(spell, o, false);
+                  found = SearchOptions.Utils.matchResourceRef(spell, o, false);
                 }
               } else {
                 break;
               }
             }
-            retVal &= found || (o == null);
+            retVal = found || (o == null);
           } else {
             break;
           }
@@ -2431,7 +2434,7 @@ public final class CreResource extends AbstractStruct
           if (retVal) {
             key = element;
             o = searchOptions.getOption(key);
-            retVal &= SearchOptions.Utils.matchCustomFilter(cre, o);
+            retVal = SearchOptions.Utils.matchCustomFilter(cre, o);
           } else {
             break;
           }
@@ -2439,6 +2442,7 @@ public final class CreResource extends AbstractStruct
 
         return retVal;
       } catch (Exception e) {
+        Logger.trace(e);
       }
     }
     return false;

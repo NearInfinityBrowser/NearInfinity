@@ -6,7 +6,6 @@ package org.infinity.resource.cre.decoder.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,7 +98,7 @@ public class CycleDef implements Cloneable {
    * Creates a new cycle definition with the attributes defined in the specified {@code CycleDef} argument. Parent
    * attribute is set to {@code null}.
    *
-   * @param sd the {@code CycleDef} object to clone.
+   * @param cd the {@code CycleDef} object to clone.
    */
   public CycleDef(CycleDef cd) {
     Objects.requireNonNull(cd, "CycleDef instance cannot be null");
@@ -143,9 +142,9 @@ public class CycleDef implements Cloneable {
 
   /** Adds new cycle definitions. */
   public void addCycles(Collection<SegmentDef> cycleInfo) {
-    for (Iterator<SegmentDef> iter = cycleInfo.iterator(); iter.hasNext();) {
-      final SegmentDef sd = Objects.requireNonNull(iter.next(), "Segment definition cannot be null");
-      if (!this.cycles.stream().anyMatch(sd2 -> sd2.equals(sd))) {
+    for (SegmentDef segmentDef : cycleInfo) {
+      final SegmentDef sd = Objects.requireNonNull(segmentDef, "Segment definition cannot be null");
+      if (this.cycles.stream().noneMatch(sd2 -> sd2.equals(sd))) {
         sd.setParent(this);
         this.cycles.add(sd);
       }

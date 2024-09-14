@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 321.
+ * Implementation of opcode 321.
  */
 public class Opcode321 extends BaseOpcode {
   private static final String RES_TYPE = "ITM:SPL";

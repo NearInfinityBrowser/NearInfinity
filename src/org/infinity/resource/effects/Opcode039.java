@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 39.
+ * Implementation of opcode 39.
  */
 public class Opcode039 extends BaseOpcode {
   private static final String EFFECT_WAKE_ON_DAMAGE = "Wake on damage?";

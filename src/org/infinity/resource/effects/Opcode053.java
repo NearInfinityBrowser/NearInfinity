@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 53.
+ * Implementation of opcode 53.
  */
 public class Opcode053 extends BaseOpcode {
   private static final String EFFECT_MORPH_INTO = "Morph into";

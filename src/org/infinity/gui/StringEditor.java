@@ -57,6 +57,7 @@ import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
@@ -143,7 +144,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
           worker.execute();
           worker.get();
         } catch (InterruptedException | ExecutionException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
 
@@ -595,15 +596,20 @@ public class StringEditor extends ChildFrame implements SearchClient {
     StringTable.StringEntry entry = getSelectedEntry();
     if (cellName != null && cellValue != null && entry != null) {
       String name = cellName.toString();
-      if (StringEditor.TLK_FLAGS.equals(name)) {
-        entry.setFlags((short) ((IsNumeric) cellValue).getValue());
-      } else if (StringEditor.TLK_SOUND.equals(name)) {
-        ResourceRef ref = (ResourceRef) cellValue;
-        entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
-      } else if (StringEditor.TLK_VOLUME.equals(name)) {
-        entry.setVolume(((IsNumeric) cellValue).getValue());
-      } else if (StringEditor.TLK_PITCH.equals(name)) {
-        entry.setPitch(((IsNumeric) cellValue).getValue());
+      switch (name) {
+        case StringEditor.TLK_FLAGS:
+          entry.setFlags((short) ((IsNumeric) cellValue).getValue());
+          break;
+        case StringEditor.TLK_SOUND:
+          ResourceRef ref = (ResourceRef) cellValue;
+          entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
+          break;
+        case StringEditor.TLK_VOLUME:
+          entry.setVolume(((IsNumeric) cellValue).getValue());
+          break;
+        case StringEditor.TLK_PITCH:
+          entry.setPitch(((IsNumeric) cellValue).getValue());
+          break;
       }
       updateModifiedUI(getSelectedDialogType());
     }
@@ -745,7 +751,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
             JOptionPane.INFORMATION_MESSAGE);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     } finally {
       bSync.setEnabled(isSync);
       bAdd.setEnabled(isAdd);
@@ -818,7 +824,8 @@ public class StringEditor extends ChildFrame implements SearchClient {
             WindowBlocker blocker = new WindowBlocker(StringEditor.this);
             try {
               blocker.setBlocked(true);
-              showEntry(addEntry(new StringTable.StringEntry(null), new StringTable.StringEntry(null), true));
+              showEntry(addEntry(new StringTable.StringEntry(null, StringTable.FLAGS_DEFAULT),
+                  new StringTable.StringEntry(null, StringTable.FLAGS_DEFAULT), true));
             } finally {
               blocker.setBlocked(false);
             }

@@ -58,6 +58,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -282,7 +283,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
    * Returns the name associated with the specified color entry. Returns {@code null} if no name is available.
    */
   public String getColorName(int index) {
-    String retVal = randomColors.get(Integer.valueOf(index));
+    String retVal = randomColors.get(index);
     if (retVal == null) {
       retVal = lookupColorName(colorMap, index, true);
     }
@@ -421,7 +422,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
 
           for (int idx = 0; idx <= maxValue; idx++) {
             BufferedImage range;
-            if (!colorValue.randomColors.containsKey(Integer.valueOf(idx)) && idx < image.getHeight()) {
+            if (!colorValue.randomColors.containsKey(idx) && idx < image.getHeight()) {
               // fixed color
               range = getFixedColor(image, idx, defaultWidth, defaultHeight);
             } else {
@@ -431,7 +432,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
             colors.add(range);
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
       }
     }
@@ -463,7 +464,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
       BufferedImage retVal = null;
 
       Color invalidColor = new Color(0xe0e0e0);
-      boolean isRandom = colorValue.randomColors.containsKey(Integer.valueOf(index));
+      boolean isRandom = colorValue.randomColors.containsKey(index);
       retVal = new BufferedImage(12 * width, height, BufferedImage.TYPE_INT_RGB);
       Graphics2D g = retVal.createGraphics();
       try {

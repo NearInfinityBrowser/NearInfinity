@@ -19,14 +19,14 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.util.StringTable;
 
 /** Common base class for node type specific classes. */
-abstract class ItemBase implements TreeNode {
+public abstract class ItemBase implements TreeNode {
   /** Maximum string length to display. */
   private static final int MAX_LENGTH = 200;
 
   private final boolean showStrrefs;
   private final boolean showTechInfo;
 
-  public ItemBase() {
+  protected ItemBase() {
     this.showStrrefs = BrowserMenuBar.getInstance().getOptions().showStrrefs();
     this.showTechInfo = BrowserMenuBar.getInstance().getOptions().showDlgTechInfo();
   }
@@ -113,22 +113,4 @@ abstract class ItemBase implements TreeNode {
     }
     return text;
   }
-}
-
-/** Auxiliary class, being the parent for states, for a type safety. */
-abstract class StateOwnerItem extends ItemBase {
-  @Override
-  public abstract StateItem getChildAt(int childIndex);
-
-  @Override
-  public abstract Enumeration<? extends StateItem> children();
-}
-
-/** Auxiliary class, being the parent for transitions, for a type safety. */
-abstract class TransitionOwnerItem extends ItemBase implements Iterable<TransitionItem> {
-  @Override
-  public abstract TransitionItem getChildAt(int childIndex);
-
-  @Override
-  public abstract Enumeration<? extends TransitionItem> children();
 }

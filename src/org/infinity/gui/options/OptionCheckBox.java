@@ -185,7 +185,7 @@ public class OptionCheckBox extends OptionElementBase {
     if (getOnAccept() != null) {
       getOnAccept().accept(this);
     } else if (getOption() != null && getOption().getDefault() instanceof Boolean) {
-      getOption().setValue(Boolean.valueOf(getValue()));
+      getOption().setValue(getValue());
     }
   }
 

@@ -13,7 +13,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 73.
+ * Implementation of opcode 73.
  */
 public class Opcode073 extends BaseOpcode {
   private static final String EFFECT_DAMAGE_TYPE = "Damage type";

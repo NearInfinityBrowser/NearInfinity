@@ -87,7 +87,7 @@ public class FlyingDecoder extends SpriteDecoder {
   protected SeqDef getSequenceDefinition(Sequence seq) {
     SeqDef retVal = null;
 
-    int cycleIndex = 0;
+    final int cycleIndex;
     switch (seq) {
       case STAND:
         cycleIndex = 0;
@@ -103,7 +103,7 @@ public class FlyingDecoder extends SpriteDecoder {
     if (SpriteUtils.bamCyclesExist(entry, cycleIndex, SeqDef.DIR_FULL_W.length)) {
       retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, cycleIndex, null);
       SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, cycleIndex + 1, null);
-      retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+      retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
     }
 
     return retVal;

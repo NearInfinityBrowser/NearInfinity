@@ -19,7 +19,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 319.
+ * Implementation of opcode 319.
  */
 public class Opcode319 extends BaseOpcode {
   private static final String EFFECT_MODE_EEEX  = "EEex: Mode";

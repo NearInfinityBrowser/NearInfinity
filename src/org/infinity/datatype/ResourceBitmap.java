@@ -99,7 +99,7 @@ public class ResourceBitmap extends AbstractBitmap<ResourceBitmap.RefEntry> impl
     if (curEntry == null) {
       curEntry = getDataOf(0L);
     }
-    if (curEntry == null && resources != null && resources.size() > 0) {
+    if (curEntry == null && resources != null && !resources.isEmpty()) {
       curEntry = resources.get(0);
     }
     this.bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
@@ -181,7 +181,7 @@ public class ResourceBitmap extends AbstractBitmap<ResourceBitmap.RefEntry> impl
     private final String searchString;
 
     /** Cached textual output for {@link #toString()} method. */
-    private String desc;
+    private final String desc;
 
     public RefEntry(long value, String ref) {
       this(value, ref, null, null);

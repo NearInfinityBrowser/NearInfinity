@@ -17,6 +17,7 @@ import java.util.zip.Inflater;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
+import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
@@ -26,11 +27,11 @@ import org.infinity.util.io.StreamUtils;
  */
 public class SavResourceEntry extends ResourceEntry implements Writeable {
   private final String fileName;
+  private final ByteBuffer cdata;
 
   private int offset;
   private int comprLength;
   private int uncomprLength;
-  private ByteBuffer cdata;
 
   public SavResourceEntry(ByteBuffer buffer, int offset) {
     this.offset = offset;
@@ -116,7 +117,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
           return new int[] { data.getInt(8), data.getInt(12) };
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
       return null;
     }
@@ -146,18 +147,18 @@ public class SavResourceEntry extends ResourceEntry implements Writeable {
         if (info.length == 1) {
           return info[0];
         } else if (info.length > 1) {
-          return info[0] * info[1] + 0x18;
+          return (long) info[0] * info[1] + 0x18;
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return -1L;
   }
 
   public ByteBuffer decompress() throws Exception {
     Inflater inflater = new Inflater();
-    byte udata[] = new byte[uncomprLength];
+    byte[] udata = new byte[uncomprLength];
     inflater.setInput(cdata.array());
     inflater.inflate(udata);
     return StreamUtils.getByteBuffer(udata);

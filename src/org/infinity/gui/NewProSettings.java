@@ -19,8 +19,9 @@ import javax.swing.JPanel;
 public final class NewProSettings extends NewAbstractSettings {
   private static final String[] PRO_DESC = { "1 - No BAM", "2 - Single target", "3 - Area of effect" };
 
+  private final ProConfig config;
+
   private JComboBox<String> cbType;
-  private ProConfig config;
 
   public NewProSettings(Window parent) {
     super(parent, "PRO settings");
@@ -98,7 +99,7 @@ public final class NewProSettings extends NewAbstractSettings {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  public class ProConfig {
+  public static class ProConfig {
     private int proType; // field at offset 0x08
 
     public ProConfig() {

@@ -13,7 +13,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 333.
+ * Implementation of opcode 333.
  */
 public class Opcode333 extends BaseOpcode {
   private static final String EFFECT_NUM_HITS       = "# hits";

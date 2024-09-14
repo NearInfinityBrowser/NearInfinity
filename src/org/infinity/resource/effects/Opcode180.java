@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 180.
+ * Implementation of opcode 180.
  */
 public class Opcode180 extends BaseOpcode {
   private static final String EFFECT_RESTRICTION = "Restriction";
@@ -52,11 +52,5 @@ public class Opcode180 extends BaseOpcode {
     list.add(new StringRef(buffer, offset, EFFECT_STRING));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_RESTRICTION, RESTRICTION_TYPES_EE));
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

@@ -17,6 +17,7 @@ import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.to.TohResource;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 
 /**
@@ -60,7 +61,7 @@ public class LayerObjectAutomap extends LayerObject {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     // Using cached icons

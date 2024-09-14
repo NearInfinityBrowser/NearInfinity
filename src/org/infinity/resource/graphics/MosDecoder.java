@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -39,10 +40,9 @@ public abstract class MosDecoder {
   public static Type getType(ResourceEntry mosEntry) {
     Type retVal = Type.INVALID;
     if (mosEntry != null) {
-      try (InputStream is = mosEntry.getResourceDataAsStream()) {
+      try (final InputStream is = mosEntry.getResourceDataAsStream()) {
         String signature = StreamUtils.readString(is, 4);
         String version = StreamUtils.readString(is, 4);
-        is.close();
         if ("MOSC".equals(signature)) {
           retVal = Type.MOSC;
         } else if ("MOS ".equals(signature)) {
@@ -53,7 +53,7 @@ public abstract class MosDecoder {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return retVal;

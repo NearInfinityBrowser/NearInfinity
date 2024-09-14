@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.Logger;
 
 /**
  * Field that represents numerical value which is usually edited in a decimal mode.
@@ -25,8 +26,9 @@ import org.infinity.resource.AbstractStruct;
  * </ul>
  */
 public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
+  private final boolean signed;
+
   private long number;
-  private boolean signed;
 
   public DecNumber(ByteBuffer buffer, int offset, int length, String name) {
     this(buffer, offset, length, name, true);
@@ -52,7 +54,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
       }
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
 
     return false;
@@ -93,7 +95,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
         if (signed) {
           number = buffer.getInt();
         } else {
-          number = buffer.getInt() & 0xffffffff;
+          number = buffer.getInt() & 0xffffffffL;
         }
         break;
       default:
@@ -173,7 +175,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
       if (value instanceof IsTextual) {
         s = ((IsTextual) value).getText();
       } else {
-        s = (value != null) ? value.toString() : "";
+        s = value.toString();
       }
       s = s.toLowerCase(Locale.ENGLISH);
 

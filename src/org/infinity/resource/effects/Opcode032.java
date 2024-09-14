@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 32.
+ * Implementation of opcode 32.
  */
 public class Opcode032 extends BaseOpcode {
   private static final String EFFECT_RESTORE_CRE_ANIM = "Restore creature animation?";

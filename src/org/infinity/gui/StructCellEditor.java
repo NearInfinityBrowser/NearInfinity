@@ -35,7 +35,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
   protected InlineEditable editorComponent;
 
   /**
-   * An integer specifying the number of clicks needed to start editing. Even if {@codeclickCountToStart} is defined as
+   * An integer specifying the number of clicks needed to start editing. Even if {@code clickCountToStart} is defined as
    * zero, it will not initiate until a click occurs.
    */
   protected int clickCountToStart;

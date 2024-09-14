@@ -115,6 +115,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -209,6 +210,7 @@ public class AreaViewer extends ChildFrame {
             return true;
           }
         } catch (Exception e) {
+          Logger.warn(e);
         }
       }
     }
@@ -238,7 +240,7 @@ public class AreaViewer extends ChildFrame {
         try {
           init();
         } catch (Exception e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
         return null;
       }
@@ -695,7 +697,7 @@ public class AreaViewer extends ChildFrame {
     try {
       initGuiSettings();
     } catch (OutOfMemoryError e) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(this, "Not enough memory to load area!", "Error", JOptionPane.ERROR_MESSAGE);
       throw e;
     }
@@ -1397,7 +1399,7 @@ public class AreaViewer extends ChildFrame {
               int lenPrefix = sb.length();
               int lenMsg = item.getToolTipText().length();
               if (lenPrefix + lenMsg > MaxLen) {
-                sb.append(item.getToolTipText().substring(0, MaxLen - lenPrefix));
+                sb.append(item.getToolTipText(), 0, MaxLen - lenPrefix);
                 sb.append("...");
               } else {
                 sb.append(item.getToolTipText());
@@ -1774,7 +1776,7 @@ public class AreaViewer extends ChildFrame {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_NONE;
       } else if (cbLayerRealActor[0].isSelected() && !cbLayerRealActor[1].isSelected()) {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_STILL;
-      } else if (!cbLayerRealActor[0].isSelected() && cbLayerRealActor[1].isSelected()) {
+      } else if (!cbLayerRealActor[0].isSelected()) {
         Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
     }
@@ -1813,7 +1815,7 @@ public class AreaViewer extends ChildFrame {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_NONE;
       } else if (cbLayerRealAnimation[0].isSelected() && !cbLayerRealAnimation[1].isSelected()) {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_STILL;
-      } else if (!cbLayerRealAnimation[0].isSelected() && cbLayerRealAnimation[1].isSelected()) {
+      } else if (!cbLayerRealAnimation[0].isSelected()) {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
     }
@@ -2100,7 +2102,7 @@ public class AreaViewer extends ChildFrame {
 
   /** Recursive function to find the node containing c. */
   private TreeNode getTreeNodeOf(TreeNode node, Component c) {
-    if (node != null && node instanceof DefaultMutableTreeNode && c != null) {
+    if (node instanceof DefaultMutableTreeNode && c != null) {
       if (((DefaultMutableTreeNode) node).getUserObject() == c) {
         return node;
       }
@@ -2229,7 +2231,7 @@ public class AreaViewer extends ChildFrame {
         bRet = ImageIO.write(dstImage, "png", os);
         dstImage.flush();
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       } finally {
         releaseProgressMonitor();
         WindowBlocker.blockWindow(AreaViewer.this, false);
@@ -2402,7 +2404,7 @@ public class AreaViewer extends ChildFrame {
           try {
             setZoomFactor(Settings.ITEM_ZOOM_FACTOR[cbZoomLevel.getSelectedIndex()], previousZoomFactor);
           } catch (OutOfMemoryError e) {
-            e.printStackTrace();
+            Logger.error(e);
             cbZoomLevel.hidePopup();
             WindowBlocker.blockWindow(AreaViewer.this, false);
             String msg = "Not enough memory to set selected zoom level.\n"
@@ -2554,7 +2556,7 @@ public class AreaViewer extends ChildFrame {
             try {
               setZoomFactor(zoom, previousZoomFactor);
             } catch (OutOfMemoryError e) {
-              e.printStackTrace();
+              Logger.error(e);
               cbZoomLevel.hidePopup();
               WindowBlocker.blockWindow(AreaViewer.this, false);
               String msg = "Not enough memory to set selected zoom level.\n"
@@ -2592,19 +2594,17 @@ public class AreaViewer extends ChildFrame {
       if (event.getSource() == pDayTime) {
         if (workerLoadMap == null) {
           // loading map in a separate thread
-          if (workerLoadMap == null) {
-            blocker = new WindowBlocker(AreaViewer.this);
-            blocker.setBlocked(true);
-            workerLoadMap = new SwingWorker<Void, Void>() {
-              @Override
-              protected Void doInBackground() throws Exception {
-                setHour(pDayTime.getHour());
-                return null;
-              }
-            };
-            workerLoadMap.addPropertyChangeListener(this);
-            workerLoadMap.execute();
-          }
+          blocker = new WindowBlocker(AreaViewer.this);
+          blocker.setBlocked(true);
+          workerLoadMap = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+              setHour(pDayTime.getHour());
+              return null;
+            }
+          };
+          workerLoadMap.addPropertyChangeListener(this);
+          workerLoadMap.execute();
         }
       }
     }
@@ -2878,7 +2878,7 @@ public class AreaViewer extends ChildFrame {
           }
           int optionIndex = allowCancel ? 1 : 0;
           int optionType = allowCancel ? JOptionPane.YES_NO_CANCEL_OPTION : JOptionPane.YES_NO_OPTION;
-          String options[][] = { { "Save changes", "Discard changes" },
+          String[][] options = { { "Save changes", "Discard changes" },
               { "Save changes", "Discard changes", "Cancel" } };
           int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?', "Resource changed",
               optionType, JOptionPane.WARNING_MESSAGE, null, options[optionIndex], options[optionIndex][0]);
@@ -2918,7 +2918,7 @@ public class AreaViewer extends ChildFrame {
               wedItem[dayNight].setVisible(false);
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
         } else {
           wed[dayNight] = wed[ViewerConstants.AREA_DAY];
@@ -2931,7 +2931,7 @@ public class AreaViewer extends ChildFrame {
               try {
                 wed[dayNight] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
               } catch (Exception e) {
-                e.printStackTrace();
+                Logger.error(e);
               }
             }
           }
@@ -3130,7 +3130,7 @@ public class AreaViewer extends ChildFrame {
      */
     @SuppressWarnings("unused")
     public ChangeListener[] getChangeListeners() {
-      return listeners.toArray(new ChangeListener[listeners.size()]);
+      return listeners.toArray(new ChangeListener[0]);
     }
 
     @Override

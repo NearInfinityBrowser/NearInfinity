@@ -16,7 +16,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 219.
+ * Implementation of opcode 219.
  */
 public class Opcode219 extends BaseOpcode {
   private final String[] idsList   = { "", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "", "GENDER.IDS",
@@ -52,12 +52,6 @@ public class Opcode219 extends BaseOpcode {
   }
 
   @Override
-  protected String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     final IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, IdsTargetType.DEFAULT_NAME_TYPE, idsListEE);
@@ -72,17 +66,5 @@ public class Opcode219 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

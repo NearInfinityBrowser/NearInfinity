@@ -49,6 +49,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
@@ -227,7 +228,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   @Override
   public void actionPerformed(ActionEvent event) {
     if (event.getSource() == tfield || event.getSource() == bsearch) {
-      if (tfield.getText() == null || tfield.getText().equals("")) {
+      if (tfield.getText() == null || tfield.getText().isEmpty()) {
         return;
       }
       new Thread(this).start();
@@ -239,7 +240,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       new ViewFrame(this, ResourceFactory.getResource(entry));
     } else if (event.getSource() == binsert) {
       Viewable viewable = NearInfinity.getInstance().getViewable();
-      if (viewable == null || !(viewable instanceof BcsResource)) {
+      if (!(viewable instanceof BcsResource)) {
         JOptionPane.showMessageDialog(this, "No script displayed in the main window", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
@@ -303,7 +304,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
           String text = tfield.getText();
           regex = Pattern.compile(text, isCase ? 0 : Pattern.CASE_INSENSITIVE);
         } catch (PatternSyntaxException e) {
-          e.printStackTrace();
+          Logger.error(e);
           JOptionPane.showMessageDialog(this, "Regular expression error:\n" + e.getMessage(), "Error",
               JOptionPane.ERROR_MESSAGE);
           return;
@@ -346,9 +347,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
       progress.setValue(0);
 
       list.ensureIndexIsVisible(0);
-      if (found.size() > 0) {
+      if (!found.isEmpty()) {
         Collections.sort(found);
-        list.setListData(found.toArray(new ResourceWrapper[found.size()]));
+        list.setListData(found.toArray(new ResourceWrapper[0]));
         list.setEnabled(true);
       }
     } finally {

@@ -42,6 +42,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.WavReferenceSearcher;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -179,7 +180,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         player.play(audioBuffer);
       } catch (Exception e) {
         JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-        e.printStackTrace();
+        Logger.error(e);
       }
       player.stopPlay();
       timerTask.stop();
@@ -336,7 +337,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         return true;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
     return false;
@@ -354,7 +355,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     int channels;
     String channelsDesc;
     String duration = getTotalDurationString(true);
-    String extra = null;
+    final String extra;
     if (audioBuffer instanceof OggBuffer) {
       format = "Ogg Vorbis";
       final OggBuffer buf = (OggBuffer) audioBuffer;
@@ -397,9 +398,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
     sb.append("Format:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(format).append(br);
     sb.append("Duration:&nbsp;&nbsp;&nbsp;&nbsp;").append(duration).append(br);
-    if (extra != null) {
-      sb.append(extra).append(br);
-    }
+    sb.append(extra).append(br);
     sb.append("Sample Rate:&nbsp;").append(rate).append(" Hz").append(br);
     sb.append("Channels:&nbsp;&nbsp;&nbsp;&nbsp;").append(channels).append(channelsDesc).append(br);
     sb.append("</div></html>");
@@ -411,8 +410,9 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   // -------------------------- INNER CLASSES --------------------------
 
   private class TimerElapsedTask extends TimerTask {
+    private final long delay;
+
     private Timer timer;
-    private long delay;
     private boolean paused;
 
     /** Initializes a new timer task with the given delay, in milliseconds. */

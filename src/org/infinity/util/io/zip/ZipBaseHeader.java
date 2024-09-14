@@ -56,32 +56,26 @@ public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader> {
     if (this == o) {
       return 0;
     } else if (o != null) {
-      if (this.offset < o.offset) {
-        return -1;
-      } else if (this.offset > o.offset) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Long.compare(this.offset, o.offset);
     } else {
       throw new NullPointerException();
     }
   }
 
-  protected static final long readFullyAt(SeekableByteChannel ch, byte[] buf, int ofs, long len, long pos) throws IOException {
+  protected static long readFullyAt(SeekableByteChannel ch, byte[] buf, int ofs, long len, long pos) throws IOException {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     bb.position(ofs);
     bb.limit((int) (ofs + len));
     return readFullyAt(ch, bb, pos);
   }
 
-  protected static final long readFullyAt(SeekableByteChannel ch, ByteBuffer bb, long pos) throws IOException {
+  protected static long readFullyAt(SeekableByteChannel ch, ByteBuffer bb, long pos) throws IOException {
     synchronized (ch) {
       return ch.position(pos).read(bb);
     }
   }
 
-  protected static final void zerror(String msg) {
+  protected static void zerror(String msg) {
     throw new ZipError(msg);
   }
 

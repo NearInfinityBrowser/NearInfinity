@@ -13,7 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 174.
+ * Implementation of opcode 174.
  */
 public class Opcode174 extends BaseOpcode {
   private static final String RES_TYPE = "WAV";

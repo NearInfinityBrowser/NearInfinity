@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 332.
+ * Implementation of opcode 332.
  */
 public class Opcode332 extends BaseOpcode {
   private static final String EFFECT_DAMAGE_TYPE = "Damage type";

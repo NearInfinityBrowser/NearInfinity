@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 352.
+ * Implementation of opcode 352.
  */
 public class Opcode352 extends BaseOpcode {
   private static final String RES_TYPE = "BMP";

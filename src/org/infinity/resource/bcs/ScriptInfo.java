@@ -328,20 +328,27 @@ public class ScriptInfo {
    * Maps parameter information returned by the method {@code key(FunctionType ftype, int id, char type, int index)} to
    * one or more resource types.
    *
-   * @param Key   A colon-separated list of function type, function id, parameter type (I, S, O or P) and parameter
+   * <p>
+   * <b>Key</b>   A colon-separated list of function type, function id, parameter type (I, S, O or P) and parameter
    *              position.<br>
    *              <b>Example:</b> {@code "A:7:S:1"} points to the parameter {@code "S:Effect*"} of the action function
    *              {@code "7 CreateCreatureEffect(S:NewObject*,S:Effect*,P:Location*,I:Face*DIR)"}.
-   * @param Value A colon-separated list of resource types (in upper case) or special keywords (in lower case)
+   * </p>
+   * <p>
+   * <b>Value</b> A colon-separated list of resource types (in upper case) or special keywords (in lower case)
    *              associated with the parameter.
+   * </p>
    */
   public final Map<String, String> functionResTypeMap = new HashMap<>(128);
 
   /**
    * Returns number and type of concatenated strings of the specified trigger or action specified by code.
    *
-   * @param Key   The trigger or action function code.
-   * @param Value A numeric code: Bit 0: Whether first string parameter consists of two separate strings.<br>
+   * <p>
+   * <b>Key</b>   The trigger or action function code.
+   * </p>
+   * <p>
+   * <b>Value</b> A numeric code: Bit 0: Whether first string parameter consists of two separate strings.<br>
    *              Bit 4: Whether second string parameter consists of two separate strings.<br>
    *              Bit 8: Whether first string parameter is separated by fixed-size string (0) or is colon-separated
    *              (1).<br>
@@ -349,6 +356,7 @@ public class ScriptInfo {
    *              (1).<br>
    *              Bits 16..31: Optional number of expected parameter. This is useful to distinguish functions with
    *              identical code, but different signatures.
+   * </p>
    */
   public final Map<Integer, Integer> functionConcatMap = new HashMap<>(64);
 
@@ -362,8 +370,12 @@ public class ScriptInfo {
    * Defines which parameter of a function should generate comments. Unlisted functions generate comments for the first
    * commentable parameter only.
    *
-   * @param Key   The trigger or action function code.
-   * @param Value The parameter index.
+   * <p>
+   * <b>Key</b>   The trigger or action function code.
+   * </p>
+   * <p>
+   * <b>Value</b> The parameter index.
+   * </p>
    */
   public final Map<Integer, Integer> functionParamCommentMap = new HashMap<>(64);
 
@@ -417,10 +429,9 @@ public class ScriptInfo {
    * Internally used: Create a correctly formatted string for use as key for {@code FUNCTION_RESTYPE}.
    */
   private static String key(Function.FunctionType ftype, int id, char type, int index) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(ftype == Function.FunctionType.TRIGGER ? 'T' : 'A').append(':').append(id).append(':')
-        .append(Character.toUpperCase(type)).append(':').append(index);
-    return sb.toString();
+    String s = String.valueOf(ftype == Function.FunctionType.TRIGGER ? 'T' : 'A') + ':' + id + ':' +
+        Character.toUpperCase(type) + ':' + index;
+    return s;
   }
 
   /**
@@ -464,30 +475,44 @@ public class ScriptInfo {
     SCOPES = scopes;
     OBJECT_SPECIFIER_IDS = objectSpecifierIds;
     for (int i = 0; i < OBJECT_SPECIFIER_IDS.length; i++) {
-      if (OBJECT_SPECIFIER_IDS[i].equals("EA")) {
-        IDX_OBJECT_EA = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("FACTION")) {
-        IDX_OBJECT_FACTION = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("TEAM")) {
-        IDX_OBJECT_TEAM = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("GENERAL")) {
-        IDX_OBJECT_GENERAL = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("RACE")) {
-        IDX_OBJECT_RACE = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("CLASS")) {
-        IDX_OBJECT_CLASS = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("SPECIFIC")) {
-        IDX_OBJECT_SPECIFIC = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("GENDER")) {
-        IDX_OBJECT_GENDER = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("ALIGN") || OBJECT_SPECIFIER_IDS[i].equals("ALIGNMNT")) {
-        IDX_OBJECT_ALIGN = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("SUBRACE")) {
-        IDX_OBJECT_SUBRACE = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("AVCLASS")) {
-        IDX_OBJECT_AVCLASS = i;
-      } else if (OBJECT_SPECIFIER_IDS[i].equals("CLASSMSK")) {
-        IDX_OBJECT_CLASSMASK = i;
+      switch (OBJECT_SPECIFIER_IDS[i]) {
+        case "EA":
+          IDX_OBJECT_EA = i;
+          break;
+        case "FACTION":
+          IDX_OBJECT_FACTION = i;
+          break;
+        case "TEAM":
+          IDX_OBJECT_TEAM = i;
+          break;
+        case "GENERAL":
+          IDX_OBJECT_GENERAL = i;
+          break;
+        case "RACE":
+          IDX_OBJECT_RACE = i;
+          break;
+        case "CLASS":
+          IDX_OBJECT_CLASS = i;
+          break;
+        case "SPECIFIC":
+          IDX_OBJECT_SPECIFIC = i;
+          break;
+        case "GENDER":
+          IDX_OBJECT_GENDER = i;
+          break;
+        case "ALIGN":
+        case "ALIGNMNT":
+          IDX_OBJECT_ALIGN = i;
+          break;
+        case "SUBRACE":
+          IDX_OBJECT_SUBRACE = i;
+          break;
+        case "AVCLASS":
+          IDX_OBJECT_AVCLASS = i;
+          break;
+        case "CLASSMSK":
+          IDX_OBJECT_CLASSMASK = i;
+          break;
       }
     }
   }
@@ -609,8 +634,8 @@ public class ScriptInfo {
 
   /** Returns whether the parameter at the specified index may generate comments. */
   public boolean isCommentAllowed(int code, int paramIndex) {
-    if (functionParamCommentMap.containsKey(Integer.valueOf(code))) {
-      return (paramIndex >= functionParamCommentMap.get(Integer.valueOf(code)).intValue());
+    if (functionParamCommentMap.containsKey(code)) {
+      return (paramIndex >= functionParamCommentMap.get(code));
     } else {
       return true;
     }
@@ -626,7 +651,7 @@ public class ScriptInfo {
    */
   public boolean isCombinedString(int code, int position, int numParameters) {
     boolean retVal = false;
-    Integer v = functionConcatMap.get(Integer.valueOf(code));
+    Integer v = functionConcatMap.get(code);
     if (v != null) {
       int numParams = (v >> 16) & 0xffff;
       if (numParams == 0 || numParameters == 0 || numParams == numParameters) {
@@ -656,7 +681,7 @@ public class ScriptInfo {
    */
   public boolean isColonSeparatedString(int code, int position, int numParameters) {
     boolean retVal = false;
-    Integer v = functionConcatMap.get(Integer.valueOf(code));
+    Integer v = functionConcatMap.get(code);
     if (v != null) {
       int numParams = (v >> 16) & 0xffff;
       if (numParams == 0 || numParameters == 0 || numParams == numParameters) {

@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.Logger;
 
 /**
  * Field that represents binary data in decimal format in their editor.
@@ -31,7 +32,7 @@ public final class UnknownDecimal extends Unknown {
   public boolean updateValue(AbstractStruct struct) {
     String value = textArea.getText().trim();
     value = value.replaceAll("\r?\n", " ") + ' ';
-    byte newdata[] = new byte[buffer.limit()];
+    byte[] newdata = new byte[buffer.limit()];
     int counter = 0;
     try {
       int index = value.indexOf(' ');
@@ -50,7 +51,7 @@ public final class UnknownDecimal extends Unknown {
         return true;
       }
     } catch (NumberFormatException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

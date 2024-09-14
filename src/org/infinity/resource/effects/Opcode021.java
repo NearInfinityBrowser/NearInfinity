@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 21.
+ * Implementation of opcode 21.
  */
 public class Opcode021 extends BaseOpcode {
   private static final String[] TYPE_IWD2 = { INC_TYPES[0], INC_TYPES[1], "Mastery" };

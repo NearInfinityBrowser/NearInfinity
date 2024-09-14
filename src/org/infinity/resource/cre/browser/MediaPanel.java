@@ -21,7 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -53,6 +52,7 @@ import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Logger;
 import org.infinity.util.tuples.Couple;
 
 import ork.sevenstates.apng.APNGSeqWriter;
@@ -61,7 +61,7 @@ import ork.sevenstates.apng.APNGSeqWriter;
  * This panel provides controls for animation playback and related visual options.
  */
 public class MediaPanel extends JPanel {
-  private static boolean isLoop;
+  private static final boolean isLoop;
 
   static {
     isLoop = true;
@@ -113,7 +113,7 @@ public class MediaPanel extends JPanel {
     Sequence oldSequence = preserveState ? getSequence() : null;
     Direction oldDir = preserveState ? getDirection(getCurrentDirection()) : null;
     int oldFrameIdx = preserveState ? getCurrentFrame() : 0;
-    boolean isRunning = preserveState ? isRunning() : false;
+    boolean isRunning = preserveState && isRunning();
 
     stop();
     modelSequences.removeAllElements();
@@ -321,7 +321,7 @@ public class MediaPanel extends JPanel {
         throw new Exception();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
       throw new IllegalArgumentException("Could not load animation sequence");
     }
 
@@ -663,7 +663,7 @@ public class MediaPanel extends JPanel {
       }
 
       // sorting in descending order: maps relative slider positions to more natural directions
-      Collections.sort(directions, (a, b) -> b - a);
+      directions.sort((a, b) -> b - a);
 
       int min = -directions.size() + 1;
       int max = directions.size();
@@ -731,7 +731,7 @@ public class MediaPanel extends JPanel {
 
   /** Returns the {@code Direction} of the specified direction slider position. Defaults to {@code Direction.S}. */
   private Direction getDirection(int index) {
-    return directionMap.getOrDefault(Integer.valueOf(index), Direction.S);
+    return directionMap.getOrDefault(index, Direction.S);
   }
 
   /** Interactive export of the current animation sequence to an animation file. */
@@ -819,7 +819,7 @@ public class MediaPanel extends JPanel {
         JOptionPane.showMessageDialog(browser, message, "Export animation sequence",
             JOptionPane.INFORMATION_MESSAGE);
       } catch (IOException e) {
-        e.printStackTrace();
+        Logger.error(e);
         JOptionPane.showMessageDialog(browser, "Unable to export animation sequence.", "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -893,7 +893,7 @@ public class MediaPanel extends JPanel {
             WindowBlocker.blockWindow(getBrowser(), true);
             loadSequence(seq);
           } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.error(ex);
             getBrowser().showErrorMessage(ex.getMessage(), "Sequence selection");
           } finally {
             WindowBlocker.blockWindow(getBrowser(), false);

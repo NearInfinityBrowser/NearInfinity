@@ -18,6 +18,7 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -149,7 +150,7 @@ public class BamV1Decoder extends BamDecoder {
         if ("BAMC".equals(signature)) {
           setType(Type.BAMC);
           bamBuffer = Compressor.decompress(bamBuffer);
-          signature = StreamUtils.readString(bamBuffer, 00, 4);
+          signature = StreamUtils.readString(bamBuffer, 0, 4);
           version = StreamUtils.readString(bamBuffer, 4, 4);
         } else if ("BAM ".equals(signature) && "V1  ".equals(version)) {
           setType(Type.BAMV1);
@@ -223,7 +224,7 @@ public class BamV1Decoder extends BamDecoder {
         defaultControl.setMode(BamControl.Mode.SHARED);
         defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
         close();
       }
     }
@@ -270,8 +271,8 @@ public class BamV1Decoder extends BamDecoder {
         dstOfs = top * dstWidth + left;
       } else {
         left = top = 0;
-        maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
-        maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
+        maxWidth = Math.min(dstWidth, srcWidth);
+        maxHeight = Math.min(dstHeight, srcHeight);
         srcOfs = ofsData;
         dstOfs = 0;
       }
@@ -308,9 +309,8 @@ public class BamV1Decoder extends BamDecoder {
           dstOfs += dstWidth - srcWidth;
         }
       } catch (Exception e) {
-        System.err.printf("Error [%s]: input (offset=%d, size=%d), output (offset=%d, size=%d)\n",
-            e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs,
-            bufferB != null ? bufferB.length : bufferI.length);
+        Logger.error("Error [{}]: input (offset={}, size={}), output (offset={}, size={})",
+            e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs, bufferB != null ? bufferB.length : bufferI.length);
       }
       bufferB = null;
       bufferI = null;
@@ -362,19 +362,19 @@ public class BamV1Decoder extends BamDecoder {
   // -------------------------- INNER CLASSES --------------------------
 
   /** Provides information for a single frame entry */
-  public class BamV1FrameEntry implements BamDecoder.FrameEntry {
-    private int width;
-    private int height;
-    private int centerX;
-    private int centerY;
-    private int ofsData;
+  public static class BamV1FrameEntry implements BamDecoder.FrameEntry {
+    private final int width;
+    private final int height;
+    private final int centerX;
+    private final int centerY;
+    private final int ofsData;
+    private final boolean compressed;
     private int overrideCenterX;
     private int overrideCenterY;
-    private boolean compressed;
 
     private BamV1FrameEntry(ByteBuffer buffer, int ofs) {
       if (buffer != null && ofs + 12 <= buffer.limit()) {
-        width = buffer.getShort(ofs + 0) & 0xffff;
+        width = buffer.getShort(ofs) & 0xffff;
         height = buffer.getShort(ofs + 2) & 0xffff;
         centerX = overrideCenterX = buffer.getShort(ofs + 4);
         centerY = overrideCenterY = buffer.getShort(ofs + 6);
@@ -760,7 +760,7 @@ public class BamV1Decoder extends BamDecoder {
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00 && transIndices.size() < 2) {
             transIndices.add(idx);
           }
         }
@@ -773,23 +773,27 @@ public class BamV1Decoder extends BamDecoder {
         }
       }
 
-      // applying transparent indices
-      for (int i : transIndices) {
+      // applying transparent index
+      // use only one transparent color index (prefer magic color "green" over first palette index)
+      if (transIndices.size() > 1 && (currentPalette[transIndices.get(0)] & 0x00ffffff) != 0x0000ff00) {
+        transIndices.remove(0);
+      }
+      final int transIndex = !transIndices.isEmpty() ? transIndices.get(0) : -1;
+      if (transIndex >= 0) {
         if (transparencyEnabled) {
-          currentPalette[i] = 0;
+          currentPalette[transIndex] = 0;
         } else {
-          currentPalette[i] |= 0xff000000;
+          currentPalette[transIndex] |= 0xff000000;
         }
       }
     }
   }
 
   // Stores information for a single cycle
-  private class CycleEntry {
+  private static class CycleEntry {
     private final int[] frames; // list of frame indices used in this cycle
-
-    private int indexCount; // number of frame indices in this cycle
-    private int lookupIndex; // index into frame lookup table
+    private final int indexCount; // number of frame indices in this cycle
+    private final int lookupIndex; // index into frame lookup table
 
     /**
      * @param buffer    The BAM data buffer

@@ -17,7 +17,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 188.
+ * Implementation of opcode 188.
  */
 public class Opcode188 extends BaseOpcode {
   private static final String EFFECT_SPELLS_PER_ROUND = "Spells per round";

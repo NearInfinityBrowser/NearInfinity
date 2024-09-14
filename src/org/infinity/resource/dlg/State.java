@@ -18,7 +18,7 @@ import org.infinity.util.io.StreamUtils;
  * and may have associated {@link StateTrigger trigger} with a condition, defining whether it is possible to use this
  * state.
  */
-public final class State extends AbstractStruct implements AddRemovable, TreeItemEntry {
+public class State extends AbstractStruct implements AddRemovable, TreeItemEntry {
   // DLG/State-specific field labels
   public static final String DLG_STATE                      = "State";
   public static final String DLG_STATE_RESPONSE             = "Response";
@@ -29,11 +29,11 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
   /** State number which is unique defining it in a dialog. */
   private int nr;
 
-  State() throws Exception {
+  public State() throws Exception {
     super(null, DLG_STATE, StreamUtils.getByteBuffer(16), 0);
   }
 
-  State(DlgResource dlg, ByteBuffer buffer, int offset, int count) throws Exception {
+  public State(DlgResource dlg, ByteBuffer buffer, int offset, int count) throws Exception {
     super(dlg, DLG_STATE + " " + count, buffer, offset);
     nr = count;
   }

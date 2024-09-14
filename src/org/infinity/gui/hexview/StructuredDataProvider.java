@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 import tv.porst.jhexview.DataChangedEvent;
@@ -44,7 +45,7 @@ public class StructuredDataProvider implements IDataProvider {
 
   @Override
   public void addListener(IDataChangedListener listener) {
-    if (listener != null && listeners.indexOf(listener) < 0) {
+    if (listener != null && !listeners.contains(listener)) {
       listeners.add(listener);
     }
   }
@@ -97,7 +98,7 @@ public class StructuredDataProvider implements IDataProvider {
           try {
             entry.write(os);
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
           curOfs += entry.getSize();
         }
@@ -106,7 +107,7 @@ public class StructuredDataProvider implements IDataProvider {
         try {
           System.arraycopy(os.toByteArray(), (int) offset - startOffset, retVal, 0, length);
         } catch (ArrayIndexOutOfBoundsException e) {
-          e.printStackTrace();
+          Logger.error(e);
         }
 
         return retVal;
@@ -193,7 +194,7 @@ public class StructuredDataProvider implements IDataProvider {
                 hasChanged = true;
               }
             } catch (Exception e) {
-              e.printStackTrace();
+              Logger.error(e);
             }
           }
         }

@@ -20,6 +20,7 @@ import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Writeable;
+import org.infinity.util.Logger;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -154,7 +155,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
     try {
       return ResourceFactory.getKeyfile().getBIFFFile(getBIFFEntry()).getFile();
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return null;
   }
@@ -177,11 +178,11 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable 
         if (info.length == 1) {
           retVal = info[0];
         } else if (info.length == 2) {
-          retVal = info[0] * info[1] + 0x18;
+          retVal = (long) info[0] * info[1] + 0x18;
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return retVal;
   }

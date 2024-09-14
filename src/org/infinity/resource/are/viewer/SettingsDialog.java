@@ -224,8 +224,8 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
     cbQualityAnim.setSelectedIndex(Settings.getDefaultInterpolationAnim());
 
-    sOverlaysFps.setValue(Double.valueOf(Settings.getDefaultFrameRateOverlays()));
-    sAnimationsFps.setValue(Double.valueOf(Settings.getDefaultFrameRateAnimations()));
+    sOverlaysFps.setValue(Settings.getDefaultFrameRateOverlays());
+    sAnimationsFps.setValue(Settings.getDefaultFrameRateAnimations());
 
     sMiniMapAlpha.setValue((int) (Settings.getDefaultMiniMapAlpha() * 100.0));
 

@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 443.
+ * Implementation of opcode 443.
  */
 public class Opcode443 extends BaseOpcode {
   private static final String EFFECT_DAMAGE_REDUCTION = "Damage reduction";

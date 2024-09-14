@@ -62,8 +62,8 @@ public class OptionGroupBox extends OptionElementBase {
     super(id, label, desc, option);
 
     if (items != null) {
-      for (int i = 0; i < items.length; i++) {
-        this.items.add(Objects.requireNonNull(items[i]));
+      for (Object item : items) {
+        this.items.add(Objects.requireNonNull(item));
       }
     }
 
@@ -221,7 +221,7 @@ public class OptionGroupBox extends OptionElementBase {
   /**
    * Specifies a function that will be executed whenever the user changed the selected item of the associated combobox.
    *
-   * @param action {@link Function} instance which is called with this {@code OptionGroupBox} instance as parameter.
+   * @param select {@link Function} instance which is called with this {@code OptionGroupBox} instance as parameter.
    * The function should return {@code true} if the current combobox selection state should be retained and
    * {@code false} if the selection state should be reverted to the previous value.
    */
@@ -302,7 +302,7 @@ public class OptionGroupBox extends OptionElementBase {
     if (getOnAccept() != null) {
       getOnAccept().accept(this);
     } else if (getOption() != null && getOption().getDefault() instanceof Number) {
-      getOption().setValue(Integer.valueOf(getSelectedIndex()));
+      getOption().setValue(getSelectedIndex());
     }
   }
 

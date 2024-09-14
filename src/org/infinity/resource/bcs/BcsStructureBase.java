@@ -159,7 +159,7 @@ public abstract class BcsStructureBase {
           if (p.isCombinedString()) {
             boolean colon = p.isColonSeparatedString();
 
-            if (colon && retVal[dstIndex].length() == 0) {
+            if (colon && retVal[dstIndex].isEmpty()) {
               retVal[dstIndex] = ":";
             }
 

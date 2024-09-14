@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -51,7 +52,7 @@ public class FloatNumber extends Datatype implements InlineEditable {
 
       return true;
     } catch (NumberFormatException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return false;
   }

@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 178.
+ * Implementation of opcode 178.
  */
 public class Opcode178 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */
@@ -37,12 +37,6 @@ public class Opcode178 extends BaseOpcode {
     list.add(param2.createIdsValueFromType(buffer));
     list.add(param2);
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 
   @Override

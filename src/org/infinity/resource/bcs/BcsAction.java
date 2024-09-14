@@ -7,6 +7,7 @@ package org.infinity.resource.bcs;
 import java.awt.Point;
 import java.util.Arrays;
 
+import org.infinity.util.Logger;
 import org.infinity.util.StringBufferStream;
 
 /**
@@ -340,6 +341,7 @@ public class BcsAction extends BcsStructureBase {
             }
             cntNums++;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'S':
@@ -352,6 +354,7 @@ public class BcsAction extends BcsStructureBase {
             }
             cntStrings++;
           } catch (Exception e) {
+            Logger.warn(e);
           }
           break;
         case 'O':
@@ -383,7 +386,7 @@ public class BcsAction extends BcsStructureBase {
         retVal = o1.getName().compareTo(o2.getName());
       } else if (o1 == null && o2 == null) {
         retVal = 0;
-      } else if (o1 != null && o2 == null) {
+      } else if (o1 != null) {
         retVal = -1;
       } else {
         retVal = 1;

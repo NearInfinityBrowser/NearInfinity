@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 403.
+ * Implementation of opcode 403.
  */
 public class Opcode403 extends BaseOpcode {
   private static final String EFFECT_LUA_FUNCTION = "Lua function";

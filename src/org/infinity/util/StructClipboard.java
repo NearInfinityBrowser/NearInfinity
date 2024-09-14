@@ -138,6 +138,7 @@ public final class StructClipboard {
         for (final AddRemovable targetClass : targetClasses) {
           if (targetClass != null && c.equals(targetClass.getClass())) {
             found = true;
+            break;
           }
         }
         if (!found) {
@@ -178,7 +179,7 @@ public final class StructClipboard {
         ++i;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
     return lastIndex;
   }
@@ -200,7 +201,7 @@ public final class StructClipboard {
         struct.setField(index + i, newEntry);
       }
     } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
+      Logger.error(e);
       return 0;
     }
     return contents.size();
@@ -219,7 +220,7 @@ public final class StructClipboard {
         contents.add(entry.clone());
       }
     } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
+      Logger.error(e);
     }
   }
 

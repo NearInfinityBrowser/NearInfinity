@@ -13,6 +13,7 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.infinity.resource.Profile;
+import org.infinity.util.Logger;
 
 /**
  * A token maker that turns text into a linked list of {@link Token}s for syntax highlighting Infinity Engine text
@@ -132,7 +133,7 @@ public class TLKTokenMaker extends AbstractTokenMaker {
           try {
             throw new Exception("Invalid token " + currentTokenType + " found at position " + (newStartOfs + i));
           } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
           }
       }
     }

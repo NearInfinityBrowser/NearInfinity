@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 24.
+ * Implementation of opcode 24.
  */
 public class Opcode024 extends BaseOpcode {
   private static final String EFFECT_PANIC_TYPE = "Panic type";

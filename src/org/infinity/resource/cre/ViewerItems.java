@@ -143,7 +143,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   @Override
   public void tableChanged(TableModelEvent event) {
     if (event.getType() == TableModelEvent.UPDATE) {
-      CreResource cre = (CreResource) event.getSource();
+      final CreResource cre = (CreResource) event.getSource();
       final StructEntry changed = cre.getFields().get(event.getFirstRow());
       if (slots.contains(changed)) {
         final List<Item> items = new ArrayList<>();
@@ -154,13 +154,19 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
         }
         table.clearSelection();
         tableModel.clear();
-        String selectedSlotName = getSelectedWeaponSlot(cre);
+        final String selectedSlotName = getSelectedWeaponSlot(cre);
         slots.forEach(e -> {
-          IsNumeric slot = (IsNumeric) e;
-          String slotName = e.getName().equals(selectedSlotName) ? "*" + e.getName() : e.getName();
+          final IsNumeric slot = (IsNumeric) e;
+          final String slotName = e.getName().equals(selectedSlotName) ? "*" + e.getName() : e.getName();
           if (slot.getValue() >= 0 && slot.getValue() < items.size()) {
-            Item item = items.get(slot.getValue());
-            ResourceRef itemRef = (ResourceRef) item.getAttribute(Item.CRE_ITEM_RESREF);
+            final Item item = items.get(slot.getValue());
+            final StructEntry itemEntry = item.getAttribute(Item.CRE_ITEM_RESREF);
+            final ResourceRef itemRef;
+            if (itemEntry instanceof ResourceRef) {
+              itemRef = (ResourceRef) itemEntry;
+            } else {
+              itemRef = new ResourceRef(itemEntry.getDataBuffer(), 0, itemEntry.getName(), "ITM");
+            }
             tableModel.addEntry(slotName, itemRef);
           } else {
             tableModel.addEntry(slotName, null);

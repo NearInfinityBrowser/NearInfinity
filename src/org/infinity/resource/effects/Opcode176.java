@@ -15,7 +15,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 176.
+ * Implementation of opcode 176.
  */
 public class Opcode176 extends BaseOpcode {
   /** Returns the opcode name for the current game variant. */
@@ -48,11 +48,5 @@ public class Opcode176 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     list.add(new HashBitmap(buffer, offset + 4, 4, EFFECT_MODIFIER_TYPE, INC_TYPES_MAP, false));
     return null;
-  }
-
-  @Override
-  protected String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

@@ -14,7 +14,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 127.
+ * Implementation of opcode 127.
  */
 public class Opcode127 extends BaseOpcode {
   private static final String EFFECT_TOTAL_XP = "Total XP";
@@ -45,11 +45,5 @@ public class Opcode127 extends BaseOpcode {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_TOTAL_XP));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_FROM_2DA, FILE_TYPES));
     return RES_TYPE;
-  }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
   }
 }

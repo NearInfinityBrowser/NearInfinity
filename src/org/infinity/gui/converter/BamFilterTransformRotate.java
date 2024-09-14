@@ -14,6 +14,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.util.Objects;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -34,9 +35,9 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   private static final String FILTER_DESC = "This filter allows you to rotate each BAM frame by a specified amount.";
 
   private enum Angle {
-    Angle90("90\u00B0"),
-    Angle180("180\u00B0"),
-    Angle270("270\u00B0"),
+    Angle90("90°"),
+    Angle180("180°"),
+    Angle270("270°"),
     ;
 
     private final String label;
@@ -78,17 +79,15 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
   }
 
   @Override
-  public PseudoBamFrameEntry updatePreview(PseudoBamFrameEntry entry) {
+  public PseudoBamFrameEntry updatePreview(int frameIndex, PseudoBamFrameEntry entry) {
     return applyEffect(entry);
   }
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(rbCW.isSelected() ? 0 : 1).append(';');
-    sb.append(cbAngle.getSelectedIndex()).append(';');
-    sb.append(cbAdjustCenter.isSelected());
-    return sb.toString();
+    return String.valueOf(rbCW.isSelected() ? 0 : 1) + ';' +
+        cbAngle.getSelectedIndex() + ';' +
+        cbAdjustCenter.isSelected();
   }
 
   @Override
@@ -207,7 +206,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
       int height = entry.getFrame().getHeight();
       BufferedImage dstImage = null;
       int newWidth, newHeight;
-      switch ((Angle) cbAngle.getSelectedItem()) {
+      switch ((Angle) Objects.requireNonNull(cbAngle.getSelectedItem())) {
         case Angle90:
         case Angle270:
           newWidth = height;

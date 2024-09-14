@@ -14,7 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 /**
- * Implemention of opcode 107.
+ * Implementation of opcode 107.
  */
 public class Opcode107 extends BaseOpcode {
   private static final String EFFECT_WHICH_PORTRAIT = "Which portrait?";

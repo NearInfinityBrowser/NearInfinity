@@ -188,7 +188,7 @@ public class MonsterIcewindDecoder extends SpriteDecoder {
         ResourceEntry entryE = ResourceFactory.getResourceEntry(resref + ovl + suffix + "E.BAM");
         if (SpriteUtils.bamCyclesExist(entry, 0, SeqDef.DIR_REDUCED_W.length)) {
           SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, 0, spriteType, behavior);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
           if (SpriteUtils.bamCyclesExist(entryE, 0, SeqDef.DIR_REDUCED_E.length)) {
             tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE, SeqDef.DIR_REDUCED_W.length,
                 spriteType, behavior);
@@ -196,7 +196,7 @@ public class MonsterIcewindDecoder extends SpriteDecoder {
             // fallback: mirror eastern directions
             tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, true, entry, 1, spriteType, behavior);
           }
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
         }
       }
     }

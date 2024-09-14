@@ -15,6 +15,7 @@ import java.util.Vector;
 import javax.sound.sampled.AudioFormat;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -526,7 +527,7 @@ public class MveDecoder {
             return true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
       }
     }
     return false;
@@ -597,6 +598,7 @@ public class MveDecoder {
         try {
           mveInput.close();
         } catch (IOException e) {
+          Logger.trace(e);
         }
         mveInput = null;
       }
@@ -777,7 +779,7 @@ public class MveDecoder {
               segments.add(segment);
               curSize += segmentSize;
             } catch (IOException e) {
-              e.printStackTrace();
+              Logger.error(e);
               return false;
             }
           }
@@ -799,7 +801,7 @@ public class MveDecoder {
             nextChunkSize = StreamUtils.readUnsignedShort(in);
             nextChunkType = StreamUtils.readUnsignedShort(in);
           } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
             return false;
           }
         }
@@ -852,6 +854,7 @@ public class MveDecoder {
             }
             numRead += n;
           } catch (IOException e) {
+            Logger.trace(e);
           }
         }
       }
