@@ -139,6 +139,7 @@ public class BaseOpcode {
 
   public static final TreeMap<Long, String> DURATIONS_V1_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> DURATIONS_V2_MAP = new TreeMap<>();
+  public static final TreeMap<Long, String> AC_TYPES_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> COLOR_LOCATIONS_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> PROJECTILES_IWD_MAP = new TreeMap<>();
   public static final TreeMap<Long, String> INC_TYPES_MAP = new TreeMap<>();
@@ -304,11 +305,6 @@ public class BaseOpcode {
       "", "Black", "Blue", "Chromatic", "Gold", "Green", "Purple", "Red", "White", "Ice", "Stone", "Magenta", "Orange"
   };
 
-  public static final String[] AC_TYPES = {
-      "All weapons", "Crushing weapons", "Missile weapons", "Piercing weapons", "Slashing weapons",
-      "Set base AC to value"
-  };
-
   public static final String[] DAMAGE_TYPES = {
       "All", "Fire damage", "Cold damage", "Electricity damage", "Acid damage", "Magic damage", "Poison damage",
       "Slashing damage", "Piercing damage", "Crushing damage", "Missile damage"
@@ -405,6 +401,13 @@ public class BaseOpcode {
     DURATIONS_V2_MAP.put(9L, "Instant/Permanent");
     DURATIONS_V2_MAP.put(10L, "Instant/Limited (ticks)");
     DURATIONS_V2_MAP.put(4096L, "Absolute duration");
+
+    AC_TYPES_MAP.put(0x0L, "All weapons");
+    AC_TYPES_MAP.put(0x1L, "Crushing weapons");
+    AC_TYPES_MAP.put(0x2L, "Missile weapons");
+    AC_TYPES_MAP.put(0x4L, "Piercing weapons");
+    AC_TYPES_MAP.put(0x8L, "Slashing weapons");
+    AC_TYPES_MAP.put(0x10L, "Set base AC to value");
 
     COLOR_LOCATIONS_MAP.put(0x00L, "Armor (grey): Belt/Amulet");
     COLOR_LOCATIONS_MAP.put(0x01L, "Armor (teal): Minor color");
