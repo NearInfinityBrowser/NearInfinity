@@ -549,7 +549,7 @@ public final class DlgResource extends AbstractStruct
   }
 
   /** Exports DLG resource as WeiDU D file. */
-  private boolean exportDlgAsText(PrintWriter writer) {
+  public boolean exportDlgAsText(PrintWriter writer) {
     boolean retVal = false;
 
     if (writer != null) {

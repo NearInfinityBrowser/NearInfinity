@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -68,6 +69,7 @@ import org.infinity.resource.TextResource;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.ColorConvert;
@@ -97,7 +99,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbPattern = new JCheckBox("Use regular expressions", false);
   private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
-  private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts", true);
+  private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts and dialogs", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);
   private final JCheckBox cbConvertWAV = new JCheckBox("Convert sounds", true);
   private final JCheckBox cbConvertCRE = new JCheckBox("Convert CHR=>CRE", false);
@@ -554,6 +556,16 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
+  private void decompileDialog(ResourceEntry entry, Path output) throws Exception {
+    output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "D"));
+    final DlgResource dlg = new DlgResource(entry);
+    try (PrintWriter writer = new PrintWriter(output.toFile(), BrowserMenuBar.getInstance().getOptions().getSelectedCharset())) {
+      if (!dlg.exportDlgAsText(writer)) {
+        Logger.error("Failed to decompile: ", entry);
+      }
+    }
+  }
+
   private void decompressBamMos(ResourceEntry entry, Path output) throws Exception {
     ByteBuffer bb = entry.getResourceBuffer();
     if (bb.limit() > 0) {
@@ -788,6 +800,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
       if (isTextResource) {
         exportText(entry, resourceType, output);
+      } else if (entry.getExtension().equalsIgnoreCase("DLG") && cbDecompile.isSelected()) {
+        decompileDialog(entry, output);
       } else if (entry.getExtension().equalsIgnoreCase("MOS") && cbConvertToPNG.isSelected()) {
         mosToPng(entry, output);
       } else if (entry.getExtension().equalsIgnoreCase("PVRZ") && cbConvertToPNG.isSelected()) {
