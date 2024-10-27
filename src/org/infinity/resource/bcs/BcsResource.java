@@ -672,9 +672,9 @@ public final class BcsResource
   @Override
   public void write(OutputStream os) throws IOException {
     if (codeText == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      StreamUtils.writeString(os, codeText.getText(), codeText.getText().length());
+      StreamUtils.writeString(os, codeText.getText(), codeText.getText().length(), Profile.getDefaultCharset());
     }
   }
 

@@ -352,9 +352,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void write(OutputStream os) throws IOException {
     if (sourceText == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      sourceText.write(new OutputStreamWriter(os));
+      sourceText.write(new OutputStreamWriter(os, Profile.getDefaultCharset()));
     }
   }
 

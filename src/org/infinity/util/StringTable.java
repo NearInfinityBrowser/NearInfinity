@@ -108,7 +108,7 @@ public class StringTable {
         setCharset(BrowserMenuBar.getInstance().getOptions().getSelectedCharset());
       } catch (Throwable t) {
         // returns a temporary value if BrowserMenuBar has not yet been initialized
-        return Profile.isEnhancedEdition() ? Misc.CHARSET_UTF8 : Misc.CHARSET_DEFAULT;
+        return Profile.getDefaultCharset();
       }
     }
     return charset;

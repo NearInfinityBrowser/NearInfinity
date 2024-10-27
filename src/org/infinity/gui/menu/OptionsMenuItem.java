@@ -410,9 +410,9 @@ public class OptionsMenuItem extends JMenuItem {
   }
 
   /** Attempts to determine the correct charset for the current game. */
-  public String charsetName(String charset, boolean detect) {
+  public String charsetName(String charset) {
     if (DEFAULT_CHARSET.equalsIgnoreCase(charset)) {
-      charset = CharsetDetector.guessCharset(detect);
+      charset = Profile.getDefaultCharset().name();
     } else {
       charset = CharsetDetector.setCharset(charset);
     }
@@ -856,7 +856,7 @@ public class OptionsMenuItem extends JMenuItem {
 
   /** Returns the character encoding of the string table. */
   public String getSelectedCharset() {
-    return charsetName(AppOption.TLK_CHARSET_TYPE.getStringValue(), true);
+    return charsetName(AppOption.TLK_CHARSET_TYPE.getStringValue());
   }
 
   /** Returns the currently selected game language. Returns empty string on autodetect. */
@@ -941,7 +941,7 @@ public class OptionsMenuItem extends JMenuItem {
           final String csName = option.getStringValue();
           if (csName != null) {
             CharsetDetector.clearCache();
-            StringTable.setCharset(charsetName(csName, true));
+            StringTable.setCharset(charsetName(csName));
             messages.add("TLK Character Encoding: " + csName);
             // enforce re-reading strings
             refresh = true;

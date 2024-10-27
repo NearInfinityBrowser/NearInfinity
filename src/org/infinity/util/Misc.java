@@ -127,15 +127,6 @@ public class Misc {
   }
 
   /**
-   * Returns a default charset depending on the current game type.
-   *
-   * @return {@link #CHARSET_UTF8} for Enhanced Edition games, {@link #CHARSET_DEFAULT} otherwise.
-   */
-  public static Charset getDefaultCharset() {
-    return Profile.isEnhancedEdition() ? CHARSET_UTF8 : CHARSET_DEFAULT;
-  }
-
-  /**
    * A convenience method that attempts to return the charset specified by the given name or the next best match
    * depending on the current game type.
    *
@@ -143,7 +134,7 @@ public class Misc {
    * @return The desired charset if successful, a game-specific default charset otherwise.
    */
   public static Charset getCharsetFrom(String charsetName) {
-    return getCharsetFrom(charsetName, getDefaultCharset());
+    return getCharsetFrom(charsetName, Profile.getDefaultCharset());
   }
 
   /**

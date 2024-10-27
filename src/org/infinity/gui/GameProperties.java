@@ -227,6 +227,11 @@ public final class GameProperties extends ChildFrame implements ActionListener {
       listControls.add(Couple.with(l, tf));
     }
 
+    // Entry: Default charset
+    l = new JLabel("Default character set:");
+    tf = createReadOnlyField(Profile.getDefaultCharset().displayName(), true);
+    listControls.add(Couple.with(l,  tf));
+
     // Entry: Use female TLK file
     l = new JLabel("Uses female TLK file:");
     tf = createReadOnlyField(Boolean.toString((Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null)), true);

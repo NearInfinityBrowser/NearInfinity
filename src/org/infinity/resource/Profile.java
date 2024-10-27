@@ -11,6 +11,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
@@ -49,9 +50,11 @@ import org.infinity.gui.menu.Bookmark;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.CharsetDetector;
 import org.infinity.util.DataString;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.Logger;
+import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -288,6 +291,11 @@ public final class Profile {
      * generated on first call of {@code getEquippedAppearanceMap()}.
      */
     GET_GAME_EQUIPPED_APPEARANCES,
+    /**
+     * Property: ({@code String}) The autodetected character set used to encode or decode strings in the game.
+     * Can be overridden by NI's preferences.
+     */
+    GET_GAME_CHARSET,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
     /** Property: ({@code Boolean}) Has current game been enhanced by EEex? */
@@ -937,6 +945,21 @@ public final class Profile {
   public static Path getChitinKey() {
     Object ret = getProperty(Key.GET_GAME_CHITIN_KEY);
     return (ret instanceof Path) ? (Path) ret : null;
+  }
+
+  /**
+   * Returns the default character set used by the currently open game to encode or decode game strings.
+   *
+   * <p>
+   * <b>Note:</b> Charset detection uses heuristics for the original games and may not be fully accurate.
+   * It falls back to {@code windows-1252} if the charset could not be autodetected.
+   * </p>
+   *
+   * @return Character set as {@link Charset} object.
+   */
+  public static Charset getDefaultCharset() {
+    final String retVal = getProperty(Key.GET_GAME_CHARSET);
+    return Charset.forName((retVal != null) ? retVal : Misc.CHARSET_DEFAULT.name());
   }
 
   /**
@@ -2370,6 +2393,9 @@ public final class Profile {
   private void initFeatures() {
     Game game = getGame();
     Engine engine = getEngine();
+
+    // Autodetect default charset used by game strings
+    addEntry(Key.GET_GAME_CHARSET, Type.STRING, CharsetDetector.guessCharset(true));
 
     // Are Kits supported?
     addEntry(Key.IS_SUPPORTED_KITS, Type.BOOLEAN,

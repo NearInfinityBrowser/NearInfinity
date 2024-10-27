@@ -582,9 +582,9 @@ public class PlainTextResource
   @Override
   public void write(OutputStream os) throws IOException {
     if (editor == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      editor.write(new OutputStreamWriter(os));
+      editor.write(new OutputStreamWriter(os, Profile.getDefaultCharset()));
     }
   }
 

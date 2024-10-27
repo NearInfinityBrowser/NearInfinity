@@ -41,6 +41,7 @@ import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.ScriptMessage;
@@ -78,7 +79,7 @@ public abstract class AbstractCode extends Datatype
   protected AbstractCode(ByteBuffer buffer, int offset, String name) {
     super(offset, 8, name);
     read(buffer, offset);
-    this.text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue()) : "";
+    this.text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue(), Profile.getDefaultCharset()) : "";
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -322,7 +323,7 @@ public abstract class AbstractCode extends Datatype
     flatList.add(off);
     flatList.add(len);
     try {
-      TextString ts = new TextString(StreamUtils.getByteBuffer(text.getBytes()), 0, len.getValue(), DLG_CODE_TEXT);
+      TextString ts = new TextString(StreamUtils.getByteBuffer(text.getBytes(Profile.getDefaultCharset())), 0, len.getValue(), DLG_CODE_TEXT);
       ts.setOffset(off.getValue());
       flatList.add(ts);
     } catch (Exception e) {
@@ -345,7 +346,7 @@ public abstract class AbstractCode extends Datatype
   }
 
   public void writeString(OutputStream os) throws IOException {
-    StreamUtils.writeString(os, text, len.getValue());
+    StreamUtils.writeString(os, text, len.getValue(), Profile.getDefaultCharset());
   }
 
   private void highlightLine(int linenr) {
