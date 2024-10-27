@@ -27,6 +27,7 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -47,9 +48,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -60,6 +63,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.LookAndFeel;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingConstants;
@@ -161,6 +165,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public static final String APP_LOG_LEVEL            = "AppLogLevel";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
+
+  // Input map key for triggering the quick search feature
+  private static final String ACTIONMAP_KEY_QUICK_SEARCH = "SHORTCUT_OPEN_QUICK_SEARCH";
 
   private static final List<Class<? extends LookAndFeel>> CUSTOM_LOOK_AND_FEELS = new ArrayList<>();
 
@@ -529,12 +536,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       b.setMargin(new Insets(0, 0, 0, 0));
       toolBar.add(b);
       toolBar.addSeparator(new Dimension(8, 24));
+
+      final String shortcutModifier =
+          Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() == KeyEvent.CTRL_MASK ? "Ctrl" : "⌘";
       bpwQuickSearch = new ButtonPopupWindow(Icons.ICON_MAGNIFY_16.getIcon());
-      bpwQuickSearch.setToolTipText("Find resource");
+      bpwQuickSearch.setToolTipText("Find resource (Shortcut: " + shortcutModifier + "-/)");
       bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
       toolBar.add(bpwQuickSearch);
       bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
-
         @Override
         public void popupWindowWillBecomeVisible(PopupWindowEvent event) {
           // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
@@ -555,6 +564,17 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
             bpwQuickSearch.setContent(null);
             tree.requestFocusInWindow();
           });
+        }
+      });
+
+      // registering window-global shortcut for the quick search option
+      final int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+          .put(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ctrl), ACTIONMAP_KEY_QUICK_SEARCH);
+      getRootPane().getActionMap().put(ACTIONMAP_KEY_QUICK_SEARCH, new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          bpwQuickSearch.showPopupWindow();
         }
       });
 

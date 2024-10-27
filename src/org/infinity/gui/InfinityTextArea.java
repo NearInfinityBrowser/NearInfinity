@@ -8,6 +8,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -17,8 +22,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JRootPane;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
@@ -49,7 +61,7 @@ import org.infinity.util.Misc;
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
  */
-public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener {
+public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener, KeyListener, HierarchyListener {
   /** Available languages for syntax highlighting. */
   public enum Language {
     /** Disables syntax highlighting */
@@ -175,6 +187,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
 
   private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
   private final Map<Integer, GutterIconInfo> gutterIconsActive = new HashMap<>();
+  private final HashMap<KeyStroke, Action> inputActionMap = new HashMap<>();
 
   private RTextScrollPane scrollPane;
 
@@ -296,8 +309,12 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
    *
    * @param resetUndo Specifies whether the undo history will be discarded.
    */
-  public static void applySettings(RSyntaxTextArea edit, boolean resetUndo) {
+  public static void applySettings(InfinityTextArea edit, boolean resetUndo) {
     if (edit != null) {
+      // Allows key strokes defined by a parent components to be processed when this component has focus
+      edit.addKeyListener(edit);
+      edit.addHierarchyListener(edit);
+
       edit.setCurrentLineHighlightColor(DEFAULT_LINE_HIGHLIGHT_COLOR);
       if (BrowserMenuBar.isInstantiated()) {
         edit.setTabsEmulated(BrowserMenuBar.getInstance().getOptions().isTextTabEmulated());
@@ -483,6 +500,67 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener 
   }
 
   // --------------------- End Interface ChangeListener ---------------------
+
+  // --------------------- Begin Interface KeyListener ---------------------
+
+  @Override
+  public void keyTyped(KeyEvent e) {
+  }
+
+  @Override
+  public void keyPressed(KeyEvent e) {
+    // Processing key strokes defined in parent components.
+    // Registration of key strokes is handled by the HierarchyListener.
+    final KeyStroke keyStroke = KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers());
+    final Action action = inputActionMap.get(keyStroke);
+    if (action != null) {
+      action.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+      e.consume();
+    }
+  }
+
+  @Override
+  public void keyReleased(KeyEvent e) {
+  }
+
+  // --------------------- End Interface KeyListener ---------------------
+
+  // --------------------- Begin Interface HierarchyListener ---------------------
+
+  @Override
+  public void hierarchyChanged(HierarchyEvent e) {
+    // InfinityTextArea appears to discard or override certain global key stroke definitions.
+    // This method registers key strokes from parent components, so that they can still be processed.
+    // Registration process is placed into a HierarchyListener to register key strokes even if
+    // parent components are assigned later.
+    if (!(e.getChanged() instanceof JComponent && getTopLevelAncestor() instanceof JFrame)) {
+      return;
+    }
+
+    final JRootPane rootPane = ((JFrame) getTopLevelAncestor()).getRootPane();
+    if (rootPane == null) {
+      return;
+    }
+
+    final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    final KeyStroke[] keyStrokes = inputMap.allKeys();
+    final ActionMap actionMap = rootPane.getActionMap();
+    if (inputMap == null || keyStrokes == null || keyStrokes.length == 0 || actionMap == null) {
+      return;
+    }
+
+    for (final KeyStroke keyStroke : keyStrokes) {
+      final Object binding = inputMap.get(keyStroke);
+      if (binding != null) {
+        final Action action = actionMap.get(binding);
+        if (action != null) {
+          inputActionMap.put(keyStroke, action);
+        }
+      }
+    }
+  }
+
+  // --------------------- End Interface HierarchyListener ---------------------
 
   /**
    * Returns the underlying ScrollPane if available. Returns {@code null} otherwise.
