@@ -5,8 +5,8 @@
 package org.infinity.gui;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -57,6 +57,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
   private final JButton bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
   private final JButton bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbStayOpen = new JCheckBox("Keep this dialog open");
+  private final JCheckBox cbAlwaysOnTop = new JCheckBox("Keep dialog always on top");
   private final JLabel lExternalDrop = new JLabel("or drop file(s) here", SwingConstants.CENTER);
   private final JRadioButton rbExternal = new JRadioButton("Open external file");
   private final JRadioButton rbInternal = new JRadioButton("Open internal file");
@@ -71,6 +72,8 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
     rbExternal.setMnemonic('e');
     rbInternal.setMnemonic('i');
     cbStayOpen.setMnemonic('k');
+    cbAlwaysOnTop.setMnemonic('t');
+    cbAlwaysOnTop.addActionListener(this);
     ButtonGroup gb = new ButtonGroup();
     gb.add(rbExternal);
     gb.add(rbInternal);
@@ -102,6 +105,8 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
     bOpenNew.setEnabled(false);
     bOpen.setMnemonic('o');
     bOpenNew.setMnemonic('n');
+    final Dimension dim = lExternalDrop.getPreferredSize();
+    lExternalDrop.setPreferredSize(new Dimension(dim.width, dim.height * 4));
     lExternalDrop.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
     new DropTarget(lExternalDrop, new MyDropTargetListener());
     rbExternal.setSelected(true);
@@ -117,69 +122,64 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
       }
     });
 
-    JPanel pane = (JPanel) getContentPane();
-    GridBagLayout gbl = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
-    pane.setLayout(gbl);
+    final Container pane = getContentPane();
+    pane.setLayout(new GridBagLayout());
 
-    gbc.weightx = 1.0;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(6, 4, 3, 8);
-    gbl.setConstraints(rbExternal, gbc);
-    pane.add(rbExternal);
+    final JPanel mainPanel = new JPanel(new GridBagLayout());
+    final GridBagConstraints gbc = new GridBagConstraints();
 
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.weightx = 1.0;
-    gbc.gridwidth = 1;
-    gbc.insets = new Insets(0, 8, 3, 0);
-    gbl.setConstraints(tfExternalName, gbc);
-    pane.add(tfExternalName);
+    final JPanel externalFilePanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    externalFilePanel.add(tfExternalName, gbc);
+    ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
+    externalFilePanel.add(bExternalBrowse, gbc);
 
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.weightx = 0.0;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.insets = new Insets(0, 3, 3, 8);
-    gbl.setConstraints(bExternalBrowse, gbc);
-    pane.add(bExternalBrowse);
+    final JPanel buttonPanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 4), 0, 0);
+    buttonPanel.add(bOpen, gbc);
+    ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 4, 0, 0), 0, 0);
+    buttonPanel.add(bOpenNew, gbc);
 
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1.0;
-    gbc.weighty = 1.0;
-    gbc.insets = new Insets(0, 8, 3, 8);
-    gbl.setConstraints(lExternalDrop, gbc);
-    pane.add(lExternalDrop);
+    final JPanel optionsPanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
+    optionsPanel.add(cbStayOpen, gbc);
+    ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 8, 0, 0), 0, 0);
+    optionsPanel.add(cbAlwaysOnTop, gbc);
+    ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    optionsPanel.add(new JPanel(), gbc);
 
-    gbc.weighty = 0.0;
-    gbc.weightx = 1.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(9, 4, 3, 8);
-    gbl.setConstraints(rbInternal, gbc);
-    pane.add(rbInternal);
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    mainPanel.add(rbExternal, gbc);
+    ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
+    mainPanel.add(externalFilePanel, gbc);
+    ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
+    mainPanel.add(lExternalDrop, gbc);
+    ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(16, 0, 0, 0), 0, 0);
+    mainPanel.add(rbInternal, gbc);
+    ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+        new Insets(8, 0, 0, 0), 0, 0);
+    mainPanel.add(lpInternal, gbc);
+    ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
+    mainPanel.add(buttonPanel, gbc);
+    ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
+    mainPanel.add(optionsPanel, gbc);
 
-    gbc.weighty = 3.0;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.insets = new Insets(0, 8, 3, 8);
-    gbl.setConstraints(lpInternal, gbc);
-    pane.add(lpInternal);
-
-    JPanel bPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bPanel.add(bOpen);
-    bPanel.add(bOpenNew);
-
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.weighty = 0.0;
-    gbc.insets = new Insets(3, 8, 0, 8);
-
-    gbl.setConstraints(bPanel, gbc);
-    pane.add(bPanel);
-
-    gbc.insets.top = 0;
-    gbc.insets.bottom = 6;
-    gbc.anchor = GridBagConstraints.CENTER;
-    gbc.fill = GridBagConstraints.NONE;
-    gbl.setConstraints(cbStayOpen, gbc);
-    pane.add(cbStayOpen);
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+        new Insets(8, 8, 8, 8), 0, 0);
+    pane.add(mainPanel, gbc);
 
     pack();
     setMinimumSize(getSize());
@@ -226,6 +226,8 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
       } else {
         openExternalFile(this, FileManager.resolve(tfExternalName.getText()));
       }
+    } else if (event.getSource() == cbAlwaysOnTop) {
+      setAlwaysOnTop(cbAlwaysOnTop.isSelected());
     }
   }
 
