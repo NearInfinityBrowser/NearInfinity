@@ -1266,7 +1266,8 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 612, 1, CRE_MORALE));
     addField(new DecNumber(buffer, offset + 613, 1, CRE_MORALE_BREAK));
     addField(new DecNumber(buffer, offset + 614, 2, CRE_MORALE_RECOVERY));
-    addField(new KitIdsBitmap(buffer, offset + 616, CRE_KIT));
+    addField(new Flag(buffer, offset + 616, 4, CRE_KIT,
+        IdsMapCache.getUpdatedIdsFlags(new String[] { "No Kit", "" }, "KIT.IDS", 4, true, true)));
     addField(new ResourceRef(buffer, offset + 620, CRE_SCRIPT_OVERRIDE, "BCS"));
     addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));
