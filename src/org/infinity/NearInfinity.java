@@ -687,6 +687,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         statusBar.setMessage(msg);
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
         tree.setModel(treemodel);
+        ChildFrame.fireGameReset(false);
         containerpanel.removeAll();
         containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
         containerpanel.revalidate();
@@ -879,6 +880,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       statusBar.setMessage(msg);
       BrowserMenuBar.getInstance().gameLoaded(oldGame, Objects.requireNonNull(oldKeyFile).toString());
       tree.setModel(treemodel);
+      ChildFrame.fireGameReset(false);
       containerpanel.removeAll();
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       containerpanel.revalidate();
@@ -915,7 +917,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public void quit() {
     if (removeViewable()) {
-      ChildFrame.closeWindows();
+      ChildFrame.closeWindows(true);
       storePreferences();
       clearCache(false);
       System.exit(0);
@@ -944,6 +946,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         containerpanel.repaint();
       }
       cacheResourceIcons(true);
+      ChildFrame.fireGameReset(true);
     } finally {
       blocker.setBlocked(false);
     }

@@ -131,6 +131,10 @@ public class Entry {
     return endBuffer;
   }
 
+  public String getName() {
+    return name;
+  }
+
   public int getNextNr() {
     return nextnr;
   }

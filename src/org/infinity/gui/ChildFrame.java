@@ -45,18 +45,34 @@ public class ChildFrame extends JFrame {
 
   private final boolean closeOnInvisible;
 
-  /** Closes all child windows. */
+  // Indicates whether the window should be closed when the game is reset or closed
+  private boolean closeOnReset;
+
+  /** Closes all child windows except for child windows with {@code closeOnReset} set to {@code false}. */
   public static int closeWindows() {
-    return closeWindow((Class<ChildFrame>)null);
+    return closeWindow((Class<ChildFrame>)null, false);
+  }
+
+  /** Closes all child windows. */
+  public static int closeWindows(boolean forced) {
+    return closeWindow((Class<ChildFrame>)null, forced);
+  }
+
+  /**
+   * Closes all windows of the specified window class except for child windows with {@code closeOnReset} set to
+   * {@code false}.
+   */
+  public static int closeWindow(Class<ChildFrame> frameClass) {
+    return closeWindow(frameClass, false);
   }
 
   /** Closes all windows of the specified window class. */
-  public static int closeWindow(Class<ChildFrame> frameClass) {
+  public static int closeWindow(Class<ChildFrame> frameClass, boolean forced) {
     int retVal = 0;
     WindowEvent event = new WindowEvent(NearInfinity.getInstance(), WindowEvent.WINDOW_CLOSING);
     for (Iterator<ChildFrame> i = WINDOWS.iterator(); i.hasNext();) {
       ChildFrame frame = i.next();
-      if (frameClass == null || frame.getClass() == frameClass) {
+      if ((forced || frame.isCloseOnReset()) && (frameClass == null || frame.getClass() == frameClass)) {
         i.remove();
         retVal++;
         closeWindow(frame, event);
@@ -75,6 +91,31 @@ public class ChildFrame extends JFrame {
       }
     }
     return retVal;
+  }
+
+  /**
+   * Signals all persistent {@link ChildFrame} instances that the game has been refreshed or a new game has been opened.
+   *
+   * @param refreshOnly Specify {@code true} if the game has only been refreshed.
+   */
+  public static void fireGameReset(boolean refreshOnly) {
+    fireGameReset(null, refreshOnly);
+  }
+
+  /**
+   * Signals all persistent {@link ChildFrame} instances of the given class that the game has been refreshed or a new
+   * game has been opened.
+   *
+   * @param frameClass  Filter by the specific {@code ChildFrame} class. Specify {@code null} to process all instances.
+   * @param refreshOnly Specify {@code true} if the game has only been refreshed.
+   */
+  public static void fireGameReset(Class<ChildFrame> frameClass, boolean refreshOnly) {
+    for (Iterator<ChildFrame> iter = WINDOWS.iterator(); iter.hasNext(); ) {
+      final ChildFrame frame = iter.next();
+      if (!frame.isCloseOnReset() && (frameClass == null || frame.getClass() == frameClass)) {
+        frame.gameReset(refreshOnly);
+      }
+    }
   }
 
   /**
@@ -170,10 +211,14 @@ public class ChildFrame extends JFrame {
   }
 
   protected ChildFrame(String title) {
-    this(title, false);
+    this(title, false, true);
   }
 
   public ChildFrame(String title, boolean closeOnInvisible) {
+    this(title, closeOnInvisible, true);
+  }
+
+  public ChildFrame(String title, boolean closeOnInvisible, boolean closeOnReset) {
     super(title);
     setIconImages(NearInfinity.getInstance().getIconImages());
     this.closeOnInvisible = closeOnInvisible;
@@ -220,6 +265,33 @@ public class ChildFrame extends JFrame {
   public void close() {
     setVisible(false);
     WINDOWS.remove(this);
+  }
+
+  /**
+   * Returns whether the {@code ChildFrame} instance is automatically closed when the game is refreshed or closed.
+   *
+   * @return {@code true} if the frame is closed automatically if the game state changes, {@code false} otherwise.
+   */
+  public boolean isCloseOnReset() {
+    return closeOnReset;
+  }
+
+  /**
+   * Specifies whether the {@code ChildFrame} instance is automatically closed when the game is refreshed or closed.
+   *
+   * @param b Specify whether to close the frame automatically if the game state changes.
+   */
+  public void setCloseOnReset(boolean b) {
+    closeOnReset = b;
+  }
+
+  /**
+   * This method is called whenever the game has been refreshed or a new game has been opened. It is only relevant for
+   * frames that persist after refreshing or reopening games, i.e. when {@link #isCloseOnReset()} returns {@code false}.
+   *
+   * @param refreshOnly {@code true} if the game content has only been refreshed.
+   */
+  protected void gameReset(boolean refreshOnly) {
   }
 
   /**

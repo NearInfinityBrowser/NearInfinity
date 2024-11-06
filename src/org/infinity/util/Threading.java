@@ -162,6 +162,15 @@ public class Threading implements AutoCloseable {
   }
 
   /**
+   * Returns the {@link ThreadPoolExecutor} object used to perform background tasks.
+   *
+   * @return {@link ThreadPoolExecutor}.
+   */
+  public ThreadPoolExecutor getExecutor() {
+    return executor;
+  }
+
+  /**
    * Returns {@code true} if this pool has been shut down.
    *
    * @return {@code true} if this pool has been shut down.

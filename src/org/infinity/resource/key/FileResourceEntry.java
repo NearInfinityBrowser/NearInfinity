@@ -25,7 +25,7 @@ import org.infinity.util.Logger;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.StreamUtils;
 
-public final class FileResourceEntry extends ResourceEntry {
+public class FileResourceEntry extends ResourceEntry {
   private final boolean override;
   private Path file;
 

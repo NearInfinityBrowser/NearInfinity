@@ -37,7 +37,7 @@ import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ClipboardViewer;
 import org.infinity.gui.DebugConsole;
 import org.infinity.gui.IdsBrowser;
-import org.infinity.gui.InfinityAmp;
+import org.infinity.gui.InfinityAmpPlus;
 import org.infinity.gui.converter.ConvertToBam;
 import org.infinity.gui.converter.ConvertToBmp;
 import org.infinity.gui.converter.ConvertToMos;
@@ -103,8 +103,8 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
         Icons.ICON_CRE_VIEWER_24.getIcon(), -1, this);
     add(toolCreatureBrowser);
 
-    toolInfinityAmp = BrowserMenuBar.makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.ICON_VOLUME_16.getIcon(), -1,
-        this);
+    toolInfinityAmp = BrowserMenuBar.makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.ICON_VOLUME_16.getIcon(),
+        -1, this);
     add(toolInfinityAmp);
 
     addSeparator();
@@ -314,7 +314,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
     if (event.getSource() == toolCreatureBrowser) {
       ChildFrame.show(CreatureBrowser.class, CreatureBrowser::new);
     } else if (event.getSource() == toolInfinityAmp) {
-      ChildFrame.show(InfinityAmp.class, InfinityAmp::new);
+      ChildFrame.show(InfinityAmpPlus.class, InfinityAmpPlus::new);
     } else if (event.getSource() == toolIDSBrowser) {
       ChildFrame.show(IdsBrowser.class, IdsBrowser::new);
     } else if (event.getSource() == toolClipBoard) {

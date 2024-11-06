@@ -42,6 +42,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
 
+@Deprecated
 public final class InfinityAmp extends ChildFrame
     implements ActionListener, ListSelectionListener, Runnable, Closeable {
   private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<>();
