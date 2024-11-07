@@ -401,9 +401,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
 
     private void initEntries(int defaultWidth, int defaultHeight) {
       if (colorValue.colorEntry == null) {
-        if (ResourceFactory.resourceExists("RANGES12.BMP")) {
-          colorValue.colorEntry = ResourceFactory.getResourceEntry("RANGES12.BMP");
-        } else if (ResourceFactory.resourceExists("MPALETTE.BMP")) {
+        if (ResourceFactory.resourceExists("MPALETTE.BMP")) {
           colorValue.colorEntry = ResourceFactory.getResourceEntry("MPALETTE.BMP");
         }
       }
