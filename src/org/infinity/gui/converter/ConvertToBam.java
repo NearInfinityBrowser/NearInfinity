@@ -1004,6 +1004,18 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         // List is set to single selection mode
         doWithSelectedListItems(listFilters, list -> filterRemove(), true, "Remove selected filter?", null);
       }
+    } else if (e.getSource() == tfFrameCenterX) {
+      if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        // Accept current input value
+        framesValidateCenterValue(tfFrameCenterX);
+        tfFrameCenterY.requestFocusInWindow();
+      }
+    } else if (e.getSource() == tfFrameCenterY) {
+      if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        // Accept current input value
+        framesValidateCenterValue(tfFrameCenterY);
+        cbCompressFrame.requestFocusInWindow();
+      }
     }
   }
 
@@ -1226,9 +1238,11 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     tfFrameCenterX = new JTextField("0", 6);
     tfFrameCenterX.setToolTipText(tip);
     tfFrameCenterX.addFocusListener(this);
+    tfFrameCenterX.addKeyListener(this);
     tfFrameCenterY = new JTextField("0", 6);
     tfFrameCenterY.setToolTipText(tip);
     tfFrameCenterY.addFocusListener(this);
+    tfFrameCenterY.addKeyListener(this);
     cbCompressFrame = new JCheckBox("Compress frame");
     cbCompressFrame.setToolTipText("Selecting this option activates RLE compression for the current frame(s).");
     cbCompressFrame.addActionListener(this);
