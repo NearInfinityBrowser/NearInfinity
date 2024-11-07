@@ -17,6 +17,7 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -885,8 +886,8 @@ public class PseudoBamDecoder extends BamDecoder {
    * @return {@code true} if the export was successful, {@code false} otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
-  public boolean exportBamV2(Path fileName, DxtEncoder.DxtType dxtType, int pvrzIndex, ProgressMonitor progress,
-      int curProgress) throws Exception {
+  public boolean exportBamV2(Path fileName, DxtEncoder.DxtType dxtType, int pvrzIndex, boolean overwrite,
+      ProgressMonitor progress, int curProgress) throws Exception {
     final int FrameEntrySize = 12;
     final int CycleEntrySize = 4;
     final int BlockEntrySize = 28;
@@ -922,6 +923,28 @@ public class PseudoBamDecoder extends BamDecoder {
       // generating block data list
       if (!buildFrameDataList(listFrameData, listGrid, pvrzIndex)) {
         return false;
+      }
+
+      if (!overwrite) {
+        // adjusting pvrz indices
+        final HashMap<Integer, Integer> indexMap = new HashMap<>(Math.max(4, listGrid.size() + listGrid.size() / 2));
+        for (final FrameDataV2 frame : listFrameData) {
+          final int newIndex = indexMap.computeIfAbsent(frame.page, index -> {
+            for (int i = index; i < 100_000; i++) {
+              if (!indexMap.containsValue(i)) {
+                final Path pvrzPath = pvrzFilePath.resolve(getPvrzFileName(i));
+                if (!Files.exists(pvrzPath)) {
+                  return i;
+                }
+              }
+            }
+            return -1;
+          });
+          if (newIndex < 0) {
+            throw new Exception("Effective PVRZ index is out of range [0..99999].");
+          }
+          frame.page = newIndex;
+        }
       }
 
       // generating remaining info blocks
@@ -1216,6 +1239,17 @@ public class PseudoBamDecoder extends BamDecoder {
     }
   }
 
+  /**
+   * Returns a PVRZ filename (without path) for the specified index. Throws an {@link IndexOutOfBoundsException}
+   * if the index is out of bounds.
+   */
+  public static String getPvrzFileName(int index) throws IndexOutOfBoundsException {
+    if (index < 0 || index > 99999) {
+      throw new IndexOutOfBoundsException("Pvrz index is out of bounds: " + index);
+    }
+    return String.format("MOS%04d.PVRZ", index);
+  }
+
   // Calculates the locations of all frames on PVRZ textures and stores the results in framesList and gridList.
   private boolean buildFrameDataList(List<FrameDataV2> framesList, List<BinPack2D> gridList, int pvrzPageIndex)
       throws Exception {
@@ -1271,50 +1305,51 @@ public class PseudoBamDecoder extends BamDecoder {
     }
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
-    int pageMin = Integer.MAX_VALUE;
-    int pageMax = -1;
+    final HashSet<Integer> pageSet = new HashSet<>();
     for (FrameDataV2 entry : framesList) {
-      pageMin = Math.min(pageMin, entry.page);
-      pageMax = Math.max(pageMax, entry.page);
+      pageSet.add(entry.page);
     }
+    final List<Integer> pageList = new ArrayList<>(pageSet);
+    pageList.sort(null);
 
     String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
       if (curProgress < 0) {
         curProgress = 0;
       }
-      progress.setMaximum(curProgress + pageMax - pageMin + 1);
+      progress.setMaximum(curProgress + pageList.size());
       progress.setProgress(curProgress++);
     }
 
     // processing each PVRZ page
-    for (int i = pageMin; i <= pageMax; i++) {
+    for (int i = 0; i < pageList.size(); i++) {
       if (progress != null) {
         if (progress.isCanceled()) {
           throw new Exception("Conversion has been cancelled by the user.");
         }
         progress.setProgress(curProgress);
-        progress.setNote(String.format(note, curProgress, pageMax - pageMin + 1));
+        progress.setNote(String.format(note, curProgress, pageList.size()));
         curProgress++;
       }
 
-      Path pvrzName = path.resolve(String.format("MOS%04d.PVRZ", i));
-      BinPack2D packer = gridList.get(i - pageMin);
+      final int pageIndex = pageList.get(i);
+      final Path pvrzName = path.resolve(getPvrzFileName(pageIndex));
+      final BinPack2D packer = gridList.get(i);
       packer.shrinkBin(true);
 
       // generating texture image
       int tw = packer.getBinWidth();
       int th = packer.getBinHeight();
-      BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
+      final BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = texture.createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
         g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
         for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
-          BufferedImage image = listFrames.get(frameIdx).frame;
-          FrameDataV2 frame = framesList.get(frameIdx);
-          if (frame.page == i) {
+          final BufferedImage image = listFrames.get(frameIdx).frame;
+          final FrameDataV2 frame = framesList.get(frameIdx);
+          if (frame.page == pageIndex) {
             int sx = frame.dx, sy = frame.dy;
             int dx = frame.sx, dy = frame.sy;
             int w = frame.width, h = frame.height;
@@ -2180,6 +2215,12 @@ public class PseudoBamDecoder extends BamDecoder {
       FrameDataV2 other = (FrameDataV2) obj;
       return dx == other.dx && dy == other.dy && height == other.height && page == other.page && sx == other.sx
           && sy == other.sy && width == other.width;
+    }
+
+    @Override
+    public String toString() {
+      return "FrameDataV2 [page=" + page + ", sx=" + sx + ", sy=" + sy + ", width=" + width + ", height=" + height
+          + ", dx=" + dx + ", dy=" + dy + "]";
     }
   }
 }

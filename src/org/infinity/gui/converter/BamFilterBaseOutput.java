@@ -84,8 +84,8 @@ public abstract class BamFilterBaseOutput extends BamFilterBase {
         DxtEncoder.DxtType dxtType = converter.getDxtType();
         int pvrzIndex = converter.getPvrzIndex();
         try {
-          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, converter.getProgressMonitor(),
-              converter.getProgressMonitorStage());
+          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, BamOptionsDialog.getOverwritePvrzIndices(),
+              converter.getProgressMonitor(), converter.getProgressMonitorStage());
         } catch (Exception e) {
           Logger.error(e);
           throw e;
