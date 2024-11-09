@@ -222,6 +222,7 @@ public class ChildFrame extends JFrame {
     super(title);
     setIconImages(NearInfinity.getInstance().getIconImages());
     this.closeOnInvisible = closeOnInvisible;
+    this.closeOnReset = closeOnReset;
     WINDOWS.add(this);
     JPanel pane = new JPanel();
     setContentPane(pane);
