@@ -20,6 +20,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
@@ -357,38 +358,89 @@ public class StringValidationChecker extends AbstractSearcher
     outBuf.flip();
     final String textAnsi = outBuf.toString();
 
+    // performing detection of utf-8 characters in ansi byte code
     inBuf.flip();
-    outBuf.limit(outBuf.capacity());
-    outBuf.position(0);
-    final CharsetDecoder decoderUtf8 = StandardCharsets.UTF_8.newDecoder();
-    final CoderResult cr = decoderUtf8.decode(inBuf, outBuf, true);
-    if (!cr.isError()) {
-      outBuf.flip();
-      final String textUtf8 = outBuf.toString();
+    final byte[] buffer = Arrays.copyOf(inBuf.array(), inBuf.limit());
+    int offset = 0;
+    while (offset < buffer.length) {
+      final StringError se = validateUtf8Input(buffer, offset, buffer.length - offset, isFemale, strref);
+      if (se == null) {
+        break;
+      }
+      table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi, se));
+      offset = se.getOffset() + se.getLength();
+    }
+  }
 
-      boolean isError = false;
-      for (int ofs = 0, len1 = textAnsi.length(), len2 = textUtf8.length(); ofs < len1 && ofs < len2
-          && !isError; ofs++) {
-        final char ch1 = textAnsi.charAt(ofs);
-        final char ch2 = textUtf8.charAt(ofs);
-        if (ch1 != ch2) {
-          synchronized(this) {
-            final byte[] buffer = Arrays.copyOf(inBuf.array(), inBuf.limit());
-            table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi,
-                new StringError(isFemale, strref, buffer, ofs, 1, "encoding error")));
-            isError = true;
+  /**
+   * Analyzes the specified buffer for multi-byte UTF-8 characters and returns them as {@link StringError} objects.
+   *
+   * @param buffer Byte buffer with raw text data.
+   * @param offset Start offset for the analyzation process.
+   * @param len Max. number of bytes to analyze.
+   * @return An initialized {@link StringError} if a multi-byte UTF-8 character was found, {@code null} otherwise.
+   */
+  private StringError validateUtf8Input(byte[] buffer, int offset, int len, boolean isFemale, int strref) {
+    if (buffer == null || offset < 0 || len <= 0 || offset + len > buffer.length) {
+      return null;
+    }
+
+    // Limiting max. number of bytes per utf-8 code to the specified ANSI code page
+    // to reduce detection of false positives.
+    final int maxBytes = CharsetDetector.getMaxAnsiUtf8Length(StringTable.getCharset());
+
+    final int length = offset + len;
+    for (int i = offset; i < length; i++) {
+      final int b1 = buffer[i] & 0xff;
+      if (b1 >= 0x80) {
+        switch (b1) {
+          case 0xc0:
+          case 0xc1:
+          case 0xf5:
+          case 0xf6:
+          case 0xf7:
+          case 0xf8:
+          case 0xf9:
+          case 0xfa:
+          case 0xfb:
+          case 0xfc:
+          case 0xfd:
+          case 0xfe:
+          case 0xff:
+            // not a legal UTF-8 code
+            continue;
+        }
+
+        if (maxBytes > 1 && (b1 & 0xe0) == 0xc0 && i + 1 < length) {
+          // two bytes
+          final int b2 = buffer[i + 1] & 0xff;
+          if ((b2 & 0xc0) == 0x80) {
+            return new StringError(isFemale, strref, buffer, i, 2, "encoding error");
+          }
+        } else if (maxBytes > 2 && (b1 & 0xf0) == 0xe0 && i + 2 < length) {
+          // three bytes
+          final int b2 = buffer[i + 1] & 0xff;
+          final int b3 = buffer[i + 2] & 0xff;
+          if ((b2 & 0xc0) == 0x80 && (b3 & 0xc0) == 0x80) {
+            return new StringError(isFemale, strref, buffer, i, 3, "encoding error");
+          }
+        } else if (maxBytes > 3 && (b1 & 0xf8) == 0xf0 && i + 3 < length) {
+          // four bytes
+          final int b2 = buffer[i + 1] & 0xff;
+          final int b3 = buffer[i + 2] & 0xff;
+          final int b4 = buffer[i + 3] & 0xff;
+          if ((b2 & 0xc0) == 0x80 && (b3 & 0xc0) == 0x80 && (b4 & 0xc0) == 0x80) {
+            final int codePoint = ((b1 & 0x07) << 18) | ((b2 & 0x3f) << 12) | ((b3 & 0x3f) << 6) | (b4 & 0x3f);
+            if (codePoint < 0x110000) {
+              return new StringError(isFemale, strref, buffer, i, 4, "encoding error");
+            }
           }
         }
-      }
-
-      if (!isError && textAnsi.length() > textUtf8.length()) {
-        synchronized (this) {
-          final byte[] buffer = Arrays.copyOf(inBuf.array(), inBuf.limit());
-          table.addTableItem(new StringErrorTableItem(entry, strref, textAnsi,
-              new StringError(isFemale, strref, buffer, textUtf8.length(), 1, "encoding error")));
-        }
+        // else assume legal ANSI character
       }
     }
+
+    return null;
   }
 
   /** Executes the repair operation as a background task with UI feedback. */
@@ -474,7 +526,7 @@ public class StringValidationChecker extends AbstractSearcher
         StringTable.write(null);
       }
 
-      retVal = new Couple<>(numRemoved, numRemoved);
+      retVal = new Couple<>(numReplaced, numRemoved);
     }
 
     return retVal;
@@ -552,7 +604,10 @@ public class StringValidationChecker extends AbstractSearcher
 
       // perform repair operation
       final int count = table.getModel().getRowCount();
-      final String msg = (count > 1) ? "Repair all " + count + " entries?" : "Repair " + count + " entry?";
+      String msg = (count > 1) ? "Repair all " + count + " issues?" : "Repair " + count + " issue?";
+      if (!Profile.isEnhancedEdition()) {
+        msg += "\nCaution: Operation may be inaccurate for some languages.";
+      }
       final int result = JOptionPane.showConfirmDialog(getResultFrame(), msg, "Question", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE);
       if (result == JOptionPane.YES_OPTION) {
@@ -733,14 +788,74 @@ public class StringValidationChecker extends AbstractSearcher
         }
       } else {
         // Fixing ANSI/multi-byte charset
-        final CharsetDecoder csd = StandardCharsets.UTF_8.newDecoder();
-        csd.onMalformedInput(CodingErrorAction.REPORT);
-        csd.onUnmappableCharacter(CodingErrorAction.REPORT);
-        final int maxCharLength = (int) Math.ceil(csd.maxCharsPerByte() * data.length);
-        final CharBuffer outBuf = CharBuffer.allocate(maxCharLength);
-        final CoderResult cr = csd.decode(ByteBuffer.wrap(data), outBuf, true);
-        if (!cr.isError() && !cr.isUnderflow()) {
-          retVal = outBuf.flip().toString();
+        if (data.length > 0) {
+          // attempting to find a replacement string
+          int ofs = 0;
+          while (ofs < data.length) {
+            int codePoint = 0;
+            final int b1 = data[ofs] & 0xff;
+            if ((b1 & 0xe0) == 0xc0 && ofs + 1 < data.length) {
+              // two bytes
+              final int b2 = data[ofs + 1] & 0xff;
+              if ((b2 & 0xc0) == 0x80) {
+                codePoint = ((b1 & 0x1f) << 6) | (b2 & 0x3f);
+              }
+              ofs += 2;
+            } else if ((b1 & 0xf0) == 0xe0 && ofs + 2 < data.length) {
+              // three bytes
+              final int b2 = data[ofs + 1] & 0xff;
+              final int b3 = data[ofs + 2] & 0xff;
+              if ((b2 & 0xc0) == 0x80 && (b3 & 0xc0) == 0x80) {
+                codePoint = ((b1 & 0x0f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f);
+              }
+              ofs += 3;
+            } else if ((b1 & 0xf8) == 0xf0 && ofs + 3 < data.length) {
+              // four bytes
+              final int b2 = data[ofs + 1] & 0xff;
+              final int b3 = data[ofs + 2] & 0xff;
+              final int b4 = data[ofs + 3] & 0xff;
+              if ((b2 & 0xc0) == 0x80 && (b3 & 0xc0) == 0x80 && (b4 & 0xc0) == 0x80) {
+                codePoint = ((b1 & 0x07) << 18) | ((b2 & 0x3f) << 12) | ((b3 & 0x3f) << 6) | (b4 & 0x3f);
+              }
+              ofs += 4;
+            }
+
+            if (codePoint > 0) {
+              // Performing thorough analysis on byte data
+              boolean isUtf = true;
+              try {
+                final char[] chars = Character.toChars(codePoint);
+                final CharsetEncoder cse = StringTable.getCharset().newEncoder();
+                cse.onMalformedInput(CodingErrorAction.REPORT);
+                cse.onUnmappableCharacter(CodingErrorAction.REPORT);
+                final CoderResult ecr = cse.encode(CharBuffer.wrap(chars), ByteBuffer.allocate(chars.length * 4), true);
+                if (!ecr.isError()) {
+                  // Add only if utf-8 code point defines a valid character in the local charset of the string table
+                  retVal += new String(chars);
+                } else {
+                  isUtf = false;
+                }
+              } catch (IllegalArgumentException e) {
+                // not a valid Unicode code point
+                isUtf = false;
+              }
+
+              if (!isUtf) {
+                // Test if raw bytes already defined valid characters in the local charset of the string table
+                final CharsetDecoder csd = StringTable.getCharset().newDecoder();
+                csd.onMalformedInput(CodingErrorAction.REPORT);
+                csd.onUnmappableCharacter(CodingErrorAction.REPORT);
+                final ByteBuffer bb = ByteBuffer.wrap(data);
+                final CharBuffer cb = CharBuffer.allocate(data.length * 2);
+                final CoderResult dcr = csd.decode(bb, cb, true);
+                if (!dcr.isError()) {
+                  // Restoring original content
+                  cb.flip();
+                  retVal += cb.toString();
+                }
+              }
+            }
+          }
         }
       }
 

@@ -120,7 +120,15 @@ public class StringEditor extends ChildFrame implements SearchClient {
   }
 
   /**
-   * Saves any changes that were made to the string table to disk.
+   * Performs the chosen operation on the string table.
+   * <p>
+   * In non-interactive mode it will execute the code specified by the {@code saveOperation} parameter.
+   * </p>
+   * <p>
+   * In interactive mode it depends on the user choice: {@code YES} executes the code specified by the
+   * {@code saveOperation} parameter. {@code NO} resets the modified content of the string table. {@code CANCEL} skips
+   * all operations.
+   * </p>
    *
    * @param saveOperation {@code Operation} that performs the actual string table save operation. If {@code null} is
    *                        specified then a simple {@link StringTable#write(ProgressCallback)} is performed.
@@ -137,6 +145,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
     boolean retVal = true;
     if (StringTable.isModified()) {
       boolean shouldSave = true;
+      boolean shouldClear = false;
 
       if (interactive) {
         int optionType = forced ? JOptionPane.YES_NO_OPTION : JOptionPane.YES_NO_CANCEL_OPTION;
@@ -146,10 +155,12 @@ public class StringEditor extends ChildFrame implements SearchClient {
         int result = JOptionPane.showConfirmDialog(parent, "String table has been modified. Save changes to disk?",
             "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
         shouldSave = (result == JOptionPane.YES_OPTION);
+        shouldClear = (result == JOptionPane.NO_OPTION);
         retVal = (result != JOptionPane.CANCEL_OPTION);
       }
 
       if (shouldSave) {
+        // performing specified save operation
         final Operation op = (saveOperation != null) ? saveOperation : () -> StringTable.write(null);
         final RootPaneContainer pane =
             (parent instanceof RootPaneContainer) ? (RootPaneContainer)parent : NearInfinity.getInstance();
@@ -172,6 +183,14 @@ public class StringEditor extends ChildFrame implements SearchClient {
           worker.get();
         } catch (InterruptedException | ExecutionException e) {
           Logger.error(e);
+        }
+      }
+
+      if (shouldClear) {
+        // removing "modified" flag from string table
+        StringTable.resetModified(StringTable.Type.MALE);
+        if (StringTable.hasFemaleTable()) {
+          StringTable.resetModified(StringTable.Type.FEMALE);
         }
       }
     }

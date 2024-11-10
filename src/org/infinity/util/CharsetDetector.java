@@ -268,6 +268,56 @@ public class CharsetDetector {
     return retVal;
   }
 
+  /**
+   * Returns the max. number of bytes required to encode a character supported by the specified ANSI charset mapped to
+   * UTF-8.
+   *
+   * @param charset ANSI codepage as {@code Charset} object.
+   * @return Number of required bytes which should range from 1 to 4.
+   */
+  public static int getMaxAnsiUtf8Length(Charset charset) {
+    int retVal = 4;
+    if (charset != null) {
+      if (charsetIs(charset, "us-ascii")) {
+        retVal = 1;
+      } else if (charsetIs(charset, "windows-1252")) {
+        retVal = 2;
+      } else if (charsetIs(charset, "windows-1250")) {
+        retVal = 2;
+      } else if (charsetIs(charset, "windows-1251")) {
+        retVal = 2;
+      } else if (charsetIs(charset, "windows-1254")) {
+        retVal = 2;
+      } else if (charsetIs(charset, "windows-31j")) {
+        retVal = 3;
+      } else if (charsetIs(charset, "ibm-949")) {
+        retVal = 3;
+      } else if (charsetIs(charset, "gbk")) {
+        retVal = 3;
+      }
+    }
+    return retVal;
+  }
+
+  /**
+   * Returns whether the name of the specified charset matches the search name.
+   *
+   * @param charset {@link Charset} to check.
+   * @param name    Charset name.
+   * @return {@code true} if {@code name} matches the name or any of the name aliases of the specified {@code charset}.
+   *         Returns {@code false} otherwise.
+   */
+  private static boolean charsetIs(Charset charset, String name) {
+    boolean retVal = false;
+    if (charset != null && name != null) {
+      retVal = charset.name().equalsIgnoreCase(name);
+      if (!retVal) {
+        retVal = charset.aliases().stream().anyMatch(n -> n.equalsIgnoreCase(name));
+      }
+    }
+    return retVal;
+  }
+
 //-------------------------- INNER CLASSES --------------------------
 
   // Handles character decoding and encoding
