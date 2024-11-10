@@ -230,6 +230,44 @@ public class CharsetDetector {
     return lookup;
   }
 
+  /**
+   * Returns the most likely non-UTF character encoding name for the specified language code.
+   *
+   * @param langCode Language code (e.g. {@code en_US}).
+   * @return Charset name associated with the specified language. Returns {@code windows-1252} if a match could not be
+   *         determined.
+   */
+  public static String getDefaultCharset(String langCode) {
+    String retVal = "window-1252";
+    if (langCode != null) {
+      switch (langCode.toLowerCase()) {
+        case "cs_cz":
+        case "hu_hu":
+        case "pl_pl":
+          retVal = "window-1250";
+          break;
+        case "ru_ru":
+        case "uk_ua":
+          retVal = "window-1251";
+          break;
+        case "tr_tr":
+          retVal = "window-1254";
+          break;
+        case "ja_jp":
+          retVal = "windows-31j";
+          break;
+        case "ko_kr":
+          retVal = "ibm-949";
+          break;
+        case "zh_cn":
+          retVal = "gbk";
+          break;
+        default:
+      }
+    }
+    return retVal;
+  }
+
 //-------------------------- INNER CLASSES --------------------------
 
   // Handles character decoding and encoding

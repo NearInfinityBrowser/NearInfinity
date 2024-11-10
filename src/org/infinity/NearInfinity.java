@@ -93,6 +93,7 @@ import org.infinity.gui.PopupWindowListener;
 import org.infinity.gui.QuickSearch;
 import org.infinity.gui.ResourceTree;
 import org.infinity.gui.StatusBar;
+import org.infinity.gui.StringEditor;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
@@ -1206,6 +1207,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     CreMapCache.clearCache();
     BaseOpcode.reset();
 //    SearchFrame.clearCache();
+    StringEditor.saveModified(null, true, true, NearInfinity.getInstance());
     StringTable.resetAll();
     ProRef.clearCache();
     Signatures.clearCache();

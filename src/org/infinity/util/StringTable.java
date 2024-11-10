@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 
@@ -1156,10 +1157,15 @@ public class StringTable {
       int lenString = headerData.getInt();
       headerData.position(0);
       String text = null;
+      byte[] buffer = null;
       if (lenString > 0) {
         try {
           ch.position(ofsString);
-          text = StreamUtils.readString(ch, lenString, getCharset());
+          final ByteBuffer bb = ByteBuffer.allocate(lenString);
+          ch.read(bb);
+          bb.flip();
+          buffer = bb.array();
+          text = new String(buffer, getCharset());
           if (!CharsetDetector.getLookup().isExcluded(index)) {
             text = CharsetDetector.getLookup().decodeString(text);
           }
@@ -1170,7 +1176,7 @@ public class StringTable {
       } else {
         text = "";
       }
-      entry = new StringEntry(this, flags, soundRef, volume, pitch, text);
+      entry = new StringEntry(this, flags, soundRef, volume, pitch, text, buffer);
     }
     return entry;
   }
@@ -1447,7 +1453,7 @@ public class StringTable {
   // Manages a single string entry
   public static class StringEntry extends AbstractStruct {
     // Default entry for non-existing indices
-    private static final StringEntry INVALID = new StringEntry(null, FLAGS_HAS_TEXT, "", 0, 0, "No such index");
+    private static final StringEntry INVALID = new StringEntry(null, FLAGS_HAS_TEXT, "", 0, 0, "No such index", null);
 
     private StringTable parent;
     private short flags;
@@ -1455,6 +1461,7 @@ public class StringTable {
     private int volume;
     private int pitch;
     private String text;
+    private byte[] buffer;
     private boolean modified;
 
     public static StringEntry getInvalidEntry() {
@@ -1469,14 +1476,15 @@ public class StringTable {
       this.volume = 0;
       this.pitch = 0;
       this.text = "";
+      this.buffer = new byte[0];
       resetModified();
     }
 
     public StringEntry(StringTable parent, short flags) {
-      this(parent, flags, "", 0, 0, "");
+      this(parent, flags, "", 0, 0, "", null);
     }
 
-    public StringEntry(StringTable parent, short flags, String soundRef, int volume, int pitch, String text) {
+    public StringEntry(StringTable parent, short flags, String soundRef, int volume, int pitch, String text, byte[] buffer) {
       super(null, null, 0, 4);
       this.parent = parent;
       this.flags = flags;
@@ -1484,6 +1492,7 @@ public class StringTable {
       this.volume = volume;
       this.pitch = pitch;
       this.text = text;
+      this.buffer = (buffer != null) ? Arrays.copyOf(buffer, buffer.length) : new byte[0];
       resetModified();
     }
 
@@ -1564,6 +1573,10 @@ public class StringTable {
       }
     }
 
+    public byte[] getBuffer() {
+      return Arrays.copyOf(buffer, buffer.length);
+    }
+
     public boolean isModified() {
       return modified;
     }
@@ -1586,7 +1599,11 @@ public class StringTable {
     }
 
     public byte[] getTextBytes() {
-      return text.getBytes(StringTable.getCharset());
+      if (isModified()) {
+        return getTextBytes(text);
+      } else {
+        return buffer;
+      }
     }
 
     public byte[] getTextBytes(String text) {
@@ -1610,7 +1627,7 @@ public class StringTable {
 
     @Override
     public StringEntry clone() {
-      return new StringEntry(parent, flags, soundRef, volume, pitch, text);
+      return new StringEntry(parent, flags, soundRef, volume, pitch, text, buffer);
     }
 
     @Override
