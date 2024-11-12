@@ -165,7 +165,7 @@ public final class Profile {
     PST,
     /** Includes IWD, IWDHoW and IWDTotLM. */
     IWD,
-    /** Includes IWD2. */
+    /** Includes IWD2 and IWD2EE. */
     IWD2,
     /** Includes BG1EE, BG1SoD, BG2EE, IWDEE, PSTEE and EET. */
     EE,

@@ -16,13 +16,18 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.ResourceRef;
+import org.infinity.gui.LinkButton;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.viewer.AreaViewer;
 
 final class Viewer extends JPanel implements ActionListener {
@@ -47,7 +52,22 @@ final class Viewer extends JPanel implements ActionListener {
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_SNOW), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_FOG), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_LIGHTNING), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SCRIPT), gbl, gbc, true);
+
+    // Special: IWD and IWD2 may fall back to a default area script if the script field is empty in the ARE resource
+    final boolean allowAlternate = (Profile.getEngine() == Profile.Engine.IWD) ||
+                                   (Profile.getEngine() == Profile.Engine.IWD2);
+    final ResourceRef scriptRef = (ResourceRef) are.getAttribute(AreResource.ARE_AREA_SCRIPT);
+    String scriptResref = scriptRef.getResourceName();
+    boolean isAlternate = false;
+    if (allowAlternate && scriptRef.isEmpty()) {
+      final String areString = are.getResourceEntry().getResourceRef() + ".BCS";
+      if (ResourceFactory.resourceExists(areString)) {
+        scriptResref = areString;
+        isAlternate = true;
+      }
+    }
+    ViewerUtil.addLabelFieldPair(fieldPanel, new JLabel(AreResource.ARE_AREA_SCRIPT),
+        new LinkButton(scriptResref, 0, isAlternate), gbl, gbc, true);
 
     JButton bView = new JButton("View Area", Icons.ICON_VOLUME_16.getIcon());
     bView.setActionCommand(CMD_VIEWAREA);
