@@ -231,7 +231,7 @@ public class LinkButton extends JLabel implements MouseListener, ActionListener 
     } else if (resource != null && !resource.isEmpty()) {
       final String colorAttr;
       if (color != null) {
-        colorAttr = String.format(" color=\"#%02X%02X%02X\"", color.getRed(), color.getGreen(), color.getBlue());
+        colorAttr = String.format(" style=\"color: #%02X%02X%02X\"", color.getRed(), color.getGreen(), color.getBlue());
       } else {
         colorAttr = "";
       }
