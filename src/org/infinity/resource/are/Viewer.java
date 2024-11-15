@@ -22,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ViewerUtil;
@@ -57,17 +58,28 @@ final class Viewer extends JPanel implements ActionListener {
     final boolean allowAlternate = (Profile.getEngine() == Profile.Engine.IWD) ||
                                    (Profile.getEngine() == Profile.Engine.IWD2);
     final ResourceRef scriptRef = (ResourceRef) are.getAttribute(AreResource.ARE_AREA_SCRIPT);
-    String scriptResref = scriptRef.getResourceName();
+    String scriptName = scriptRef.getResourceName();
     boolean isAlternate = false;
     if (allowAlternate && scriptRef.isEmpty()) {
-      final String areString = are.getResourceEntry().getResourceRef() + ".BCS";
-      if (ResourceFactory.resourceExists(areString)) {
-        scriptResref = areString;
+      String bcsName = null;
+      if (Profile.getEngine() == Profile.Engine.IWD) {
+        // IWD only: draws fallback area script name from WED resource name
+        // (IWD2 is hardcoded to use only WED resources of the same name as the ARE resource)
+        final String wedResref = ((IsTextual)are.getAttribute(AreResource.ARE_WED_RESOURCE)).getText();
+        if (!wedResref.isEmpty()) {
+          bcsName = wedResref + ".BCS";
+        }
+      }
+      if (bcsName == null) {
+        bcsName = are.getResourceEntry().getResourceRef() + ".BCS";
+      }
+      if (ResourceFactory.resourceExists(bcsName)) {
+        scriptName = bcsName;
         isAlternate = true;
       }
     }
     ViewerUtil.addLabelFieldPair(fieldPanel, new JLabel(AreResource.ARE_AREA_SCRIPT),
-        new LinkButton(scriptResref, 0, isAlternate), gbl, gbc, true);
+        new LinkButton(scriptName, 0, isAlternate), gbl, gbc, true);
 
     JButton bView = new JButton("View Area", Icons.ICON_VOLUME_16.getIcon());
     bView.setActionCommand(CMD_VIEWAREA);
