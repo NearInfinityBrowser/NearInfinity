@@ -81,6 +81,13 @@ final class Viewer extends JPanel implements ActionListener {
     ViewerUtil.addLabelFieldPair(fieldPanel, new JLabel(AreResource.ARE_AREA_SCRIPT),
         new LinkButton(scriptName, 0, isAlternate), gbl, gbc, true);
 
+    // IWDs and PSTs also have area INI spawn files
+    if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_INI)) {
+      String iniFile = are.getResourceEntry().getResourceRef() + ".INI";
+      ViewerUtil.addLabelFieldPair(fieldPanel, new JLabel(AreResource.ARE_AREA_INI_FILE),
+          new LinkButton(iniFile, 0, false), gbl, gbc, true);
+    }
+
     JButton bView = new JButton("View Area", Icons.ICON_VOLUME_16.getIcon());
     bView.setActionCommand(CMD_VIEWAREA);
     bView.addActionListener(this);
