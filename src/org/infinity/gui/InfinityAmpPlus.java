@@ -26,7 +26,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -45,8 +44,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -93,7 +90,6 @@ import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.InputKeyHelper;
 import org.infinity.util.Misc;
-import org.infinity.util.Operation;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StopWatch;
 import org.infinity.util.Threading;
@@ -222,9 +218,9 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
 
   @Override
   public void run() {
-    int index = invokeInEventThread(this::setCurrentPlayListItem, 0);
+    int index = Threading.invokeInEventThread(this::setCurrentPlayListItem, 0);
     if (index < 0) {
-      invokeInEventThread(this::stopPlayback, false);
+      Threading.invokeInEventThread(this::stopPlayback, false);
       return;
     }
 
@@ -232,14 +228,14 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
       final MusicResourceEntry musFile = playListModel.get(index);
       playMusic(musFile);
       if (isPlaying() && !isNextItemRequested()) {
-        index = invokeInEventThread(this::setNextPlayListItem, -1);
+        index = Threading.invokeInEventThread(this::setNextPlayListItem, -1);
       }
     }
 
     if (isNextItemRequested()) {
       acceptNextItem();
     } else {
-      invokeInEventThread(this::stopPlayback, false);
+      Threading.invokeInEventThread(this::stopPlayback, false);
     }
   }
 
@@ -522,7 +518,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
       timer.pause();
       timer.reset();
       if (isPlaying()) {
-        invokeInEventThread(() -> updateTimeDisplay(musEntry));
+        Threading.invokeInEventThread(() -> updateTimeDisplay(musEntry));
         updateTimeDisplay(musEntry);
       }
       while (isPlaying() && !isNextItemRequested()) {
@@ -1626,49 +1622,6 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
       Logger.error(e, "Resource: " + resource);
     }
     return retVal;
-  }
-
-  /**
-   * A helper method that invokes a function with return value in the event dispatching thread.
-   *
-   * @param supplier The {@link Supplier} operation to perform.
-   * @param defValue Used as return value if the specified operation could not be completed.
-   * @param <T>      Type of the return value.
-   * @return Return value of the {@code supplier} operation if successful, {@code defValue} otherwise.
-   */
-  private static <T> T invokeInEventThread(Supplier<T> supplier, T defValue) {
-    final BlockingQueue<T> queue = new ArrayBlockingQueue<>(1);
-    if (supplier != null) {
-      try {
-        SwingUtilities.invokeAndWait(() -> queue.add(supplier.get()));
-      } catch (InvocationTargetException | InterruptedException e) {
-        Logger.debug(e);
-      }
-    }
-
-    if (queue.isEmpty()) {
-      return defValue;
-    } else {
-      return queue.poll();
-    }
-  }
-
-  /**
-   * A helper method that invokes an operation in the event dispatching thread.
-   *
-   * @param operation The {@link Operation} to perform.
-   * @return {@code true} if the operation was completed successfully, {@code false} otherwise.
-   */
-  private static boolean invokeInEventThread(Operation operation) {
-    if (operation != null) {
-      try {
-        SwingUtilities.invokeAndWait(operation::perform);
-        return true;
-      } catch (InvocationTargetException | InterruptedException e) {
-        Logger.debug(e);
-      }
-    }
-    return false;
   }
 
   // -------------------------- INNER CLASSES --------------------------
