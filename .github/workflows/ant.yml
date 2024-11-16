@@ -24,7 +24,7 @@ jobs:
           ant -noinput -buildfile build.xml
       - name: Upload artifact
         if: ${{ github.repository == 'Argent77/NearInfinity' }}
-        uses: pyTooling/Actions/releaser@r0
+        uses: pyTooling/Actions/releaser@r2
         with:
           tag: nightly
           rm: true
