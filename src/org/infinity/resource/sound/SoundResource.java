@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Locale;
@@ -29,6 +31,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
+import javax.swing.event.EventListenerList;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPanel;
@@ -57,10 +60,18 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   /** Provides quick access to the "play" and "pause" image icon. */
   private static final HashMap<Boolean, Icon> PLAY_ICONS = new HashMap<>();
 
+  /**
+   * Property name for {@link PropertyChangeEvent} calls.
+   * Associated parameter is of type {@link Boolean} and indicates the playback state.
+   */
+  public static final String PROPERTY_NAME_PLAYBACK = "playback";
+
   static {
     PLAY_ICONS.put(true, Icons.ICON_PLAY_16.getIcon());
     PLAY_ICONS.put(false, Icons.ICON_PAUSE_16.getIcon());
   }
+
+  private final EventListenerList listenerList = new EventListenerList();
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -169,25 +180,30 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   @Override
   public void run() {
-    if (bPlay != null) {
-      bPlay.setIcon(PLAY_ICONS.get(false));
-      bStop.setEnabled(true);
-    }
-    if (audioBuffer != null) {
-      final TimerElapsedTask timerTask = new TimerElapsedTask(250L);
-      try {
-        timerTask.start();
-        player.play(audioBuffer);
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-        Logger.error(e);
+    firePlaybackStarted();
+    try {
+      if (bPlay != null) {
+        bPlay.setIcon(PLAY_ICONS.get(false));
+        bStop.setEnabled(true);
       }
-      player.stopPlay();
-      timerTask.stop();
-    }
-    if (bPlay != null) {
-      bStop.setEnabled(false);
-      bPlay.setIcon(PLAY_ICONS.get(true));
+      if (audioBuffer != null) {
+        final TimerElapsedTask timerTask = new TimerElapsedTask(250L);
+        try {
+          timerTask.start();
+          player.play(audioBuffer);
+        } catch (Exception e) {
+          JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
+          Logger.error(e);
+        }
+        player.stopPlay();
+        timerTask.stop();
+      }
+      if (bPlay != null) {
+        bStop.setEnabled(false);
+        bPlay.setIcon(PLAY_ICONS.get(true));
+      }
+    } finally {
+      firePlaybackStopped();
     }
   }
 
@@ -246,6 +262,49 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     loadSoundResource();
 
     return panel;
+  }
+
+  /** Adds a {@link PropertyChangeListener} to the sound resource. */
+  public void addPropertyChangeListener(PropertyChangeListener l) {
+    if (l != null) {
+      listenerList.add(PropertyChangeListener.class, l);
+    }
+  }
+
+  /** Returns all registered {@link PropertyChangeListener}s for this sound resource. */
+  public PropertyChangeListener[] getPropertyChangeListeners() {
+    return listenerList.getListeners(PropertyChangeListener.class);
+  }
+
+  /** Removes a {@link PropertyChangeListener} from the sound resource. */
+  public void removePropertyChangeListener(PropertyChangeListener l) {
+    if (l != null) {
+      listenerList.remove(PropertyChangeListener.class, l);
+    }
+  }
+
+  private void firePropertyChangePerformed(String name, Object oldValue, Object newValue) {
+    if (name != null) {
+      Object[] listeners = listenerList.getListenerList();
+      PropertyChangeEvent e = null;
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == PropertyChangeListener.class) {
+          // Event object is lazily created
+          if (e == null) {
+            e = new PropertyChangeEvent(this, name, oldValue, newValue);
+          }
+          ((PropertyChangeListener)listeners[i + 1]).propertyChange(e);
+        }
+      }
+    }
+  }
+
+  private void firePlaybackStarted() {
+    firePropertyChangePerformed(PROPERTY_NAME_PLAYBACK, Boolean.FALSE, Boolean.TRUE);
+  }
+
+  private void firePlaybackStopped() {
+    firePropertyChangePerformed(PROPERTY_NAME_PLAYBACK, Boolean.TRUE, Boolean.FALSE);
   }
 
   // Updates the time label with total duration and specified elapsed time (in milliseconds).
@@ -467,8 +526,31 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
   }
 
-  public void playSound() {
+  /**
+   * Start playback of the current sound resource.
+   *
+   * @param listener An optional {@link PropertyChangeListener} instance that is notified when playback starts or ends.
+   */
+  public void playSound(PropertyChangeListener listener) {
+    if (listener != null) {
+      addPropertyChangeListener(listener);
+    }
     loadAudio();
     new Thread(this).start();
+  }
+
+  /**
+   * Stops playback of the current sound resource.
+   *
+   * @param listener An optional {@link PropertyChangeListener} instance that is removed from the queue after playback
+   *                   has stopped.
+   */
+  public void stopSound(PropertyChangeListener listener) {
+    if (player != null) {
+      player.stopPlay();
+    }
+    if (listener != null) {
+      removePropertyChangeListener(listener);
+    }
   }
 }

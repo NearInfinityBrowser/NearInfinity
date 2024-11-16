@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -61,7 +62,7 @@ import org.infinity.util.io.StreamUtils;
  * </ul>
  */
 public class ResourceRef extends Datatype
-    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener {
+    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener, PropertyChangeListener {
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
   /** List of resource types that are can be used to display associated icons.  */
@@ -87,6 +88,9 @@ public class ResourceRef extends Datatype
 
   /** Button that used to play sound of current selected element in the list. */
   private JButton bPlay;
+
+  /** Button that used to stop sound playback of current selected element in the list. */
+  private JButton bStop;
 
   /**
    * GUI component that lists all available resources that can be set to this resource reference and have edit field for
@@ -134,8 +138,23 @@ public class ResourceRef extends Datatype
         // prevent overlapping sound playback
         closeResource(currentResource);
         SoundResource res = (SoundResource) ResourceFactory.getResource(selected.entry);
-        res.playSound();
+        res.playSound(this);
         currentResource = res;
+      }
+    } else if (event.getSource() == bStop) {
+      if (currentResource instanceof SoundResource) {
+        ((SoundResource) currentResource).stopSound(this);
+      }
+    }
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    if (SoundResource.PROPERTY_NAME_PLAYBACK.equals(evt.getPropertyName())) {
+      final boolean value = (Boolean)evt.getNewValue();
+      updatePlayback(value);
+      if (!value) {
+        ((SoundResource) evt.getSource()).removePropertyChangeListener(this);
       }
     }
   }
@@ -200,16 +219,32 @@ public class ResourceRef extends Datatype
     JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
+
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
-    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
+
+    bPlay = new JButton(Icons.ICON_PLAY_16.getIcon());
+    bPlay.setToolTipText("Play sound");
     bPlay.addActionListener(this);
-    bPlay.setVisible(ResourceEntry.isSound(types));
+    bStop = new JButton(Icons.ICON_STOP_16.getIcon());
+    bStop.setToolTipText("Stop playback");
+    bStop.addActionListener(this);
+    bStop.setEnabled(false);
+
     list.addListSelectionListener(this);
     setResourceEntryUpdated(list.getSelectedValue());
 
     GridBagConstraints gbc = null;
     JPanel panel = new JPanel(new GridBagLayout());
+
+    final JPanel soundPanel = new JPanel(new GridBagLayout());
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    soundPanel.add(bPlay, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 8, 0, 0), 0, 0);
+    soundPanel.add(bStop, gbc);
+    soundPanel.setVisible(ResourceEntry.isSound(types));
 
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 5, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
@@ -230,7 +265,7 @@ public class ResourceRef extends Datatype
     panel.add(bView, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
             new Insets(24, 6, 3, 0), 0, 0);
-    panel.add(bPlay, gbc);
+    panel.add(soundPanel, gbc);
 
     // spacer keeps controls in the center
     final JPanel spacerBottom = new JPanel();
@@ -419,9 +454,11 @@ public class ResourceRef extends Datatype
     if (entry != null) {
       bView.setEnabled(isEditable(entry));
       bPlay.setEnabled(isSound(entry));
+      bStop.setEnabled(false);
     } else {
       bView.setEnabled(false);
       bPlay.setEnabled(false);
+      bStop.setEnabled(false);
     }
   }
 
@@ -440,7 +477,7 @@ public class ResourceRef extends Datatype
   }
 
   private boolean isSound(ResourceRefEntry ref) {
-    return ref != null && ref != NONE && ref.entry != null && ref.entry.isSound();
+    return ref != null && ref.entry != null && ref.entry.isSound();
   }
 
   private void setValue(String newValue) {
@@ -453,6 +490,11 @@ public class ResourceRef extends Datatype
     if (!Objects.equals(oldValue, newValue)) {
       firePropertyChange(oldValue, newValue);
     }
+  }
+
+  private void updatePlayback(boolean isPlaying) {
+    bPlay.setEnabled(!isPlaying);
+    bStop.setEnabled(isPlaying);
   }
 
   // -------------------------- INNER CLASSES --------------------------
