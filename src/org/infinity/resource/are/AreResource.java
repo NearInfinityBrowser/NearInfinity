@@ -127,6 +127,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
   public static final String ARE_REST_MOVIE_DAY           = "Rest movie (day)";
   public static final String ARE_REST_MOVIE_NIGHT         = "Rest movie (night)";
   public static final String ARE_EXPLORED_BITMAP          = "Explored bitmap";
+  public static final String ARE_AREA_INI_FILE            = "Area INI";
 
   public static final String[] FLAGS_ARRAY = { "Indoors", "Outdoors", "Day/Night", "Weather", "City", "Forest",
       "Dungeon", "Extended night", "Can rest indoors" };
