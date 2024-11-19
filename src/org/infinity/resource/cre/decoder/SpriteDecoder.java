@@ -1012,7 +1012,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     if (value != null) {
       retVal = value;
     }
-    directionMap.put(dir, cycleIndex);
+    directionMap.putIfAbsent(dir, cycleIndex);
 
     return retVal;
   }

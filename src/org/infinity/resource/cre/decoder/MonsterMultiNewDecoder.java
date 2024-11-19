@@ -14,6 +14,7 @@ import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.cre.decoder.util.AnimationInfo;
 import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.resource.cre.decoder.util.DirDef;
+import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
@@ -211,9 +212,11 @@ public class MonsterMultiNewDecoder extends QuadrantsBaseDecoder {
     }
 
     if (!cycleList.isEmpty() && valid) {
-      retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, cycleList);
-      SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, cycleListE);
-      retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
+      Direction[] dirs = isSmoothPath() ? SeqDef.DIR_FULL_W : SeqDef.DIR_FULL_LIMITED_W;
+      retVal = SeqDef.createSequence(false, seq, dirs, false, cycleList);
+      dirs = isSmoothPath() ? SeqDef.DIR_FULL_E : SeqDef.DIR_FULL_LIMITED_E;
+      SeqDef tmp = SeqDef.createSequence(false, seq, dirs, true, cycleListE);
+      retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
     }
 
     return retVal;

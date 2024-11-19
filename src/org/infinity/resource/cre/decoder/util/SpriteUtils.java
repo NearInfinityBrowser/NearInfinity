@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -1109,6 +1110,7 @@ public class SpriteUtils {
     if (id < 0) {
       return retVal;
     }
+    int moveScale = SpriteTables.valueToInt(data, SpriteTables.COLUMN_MOVE_SCALE, 8);
     int ellipse = SpriteTables.valueToInt(data, SpriteTables.COLUMN_ELLIPSE, 16);
     int space = SpriteTables.valueToInt(data, SpriteTables.COLUMN_SPACE, 3);
     int blending = SpriteTables.valueToInt(data, SpriteTables.COLUMN_BLENDING, 0);
@@ -1129,6 +1131,7 @@ public class SpriteUtils {
 
     retVal.add("[general]");
     retVal.add(String.format("animation_type=%04X", animType));
+    retVal.add("move_scale=" + moveScale);
     retVal.add("ellipse=" + ellipse);
     retVal.add("personal_space=" + space);
     if ((blending & 1) == 1) {
@@ -1164,11 +1167,13 @@ public class SpriteUtils {
     if (id < 0) {
       return retVal;
     }
+    double moveScale = SpriteTables.valueToDouble(data, SpriteTables.COLUMN_PST_MOVE_SCALE, 6.0);
     int ellipse = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_ELLIPSE, 16);
     int space = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_SPACE, 3);
 
     retVal.add("[general]");
     retVal.add("animation_type=F000");
+    retVal.add(String.format(Locale.US, "move_scale=%f", moveScale));
     retVal.add("ellipse=" + ellipse);
     retVal.add("personal_space=" + space);
 

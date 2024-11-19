@@ -36,6 +36,10 @@ public class SeqDef implements Cloneable {
   public static final Direction[] DIR_REDUCED_W = { Direction.S, Direction.SW, Direction.W, Direction.NW, Direction.N };
   /** Reduced set of 3 eastern directions. */
   public static final Direction[] DIR_REDUCED_E = { Direction.NE, Direction.E, Direction.SE };
+  public static final Direction[] DIR_FULL_LIMITED_W = { Direction.S, Direction.S, Direction.SW, Direction.SW,
+      Direction.W, Direction.W, Direction.NW, Direction.NW, Direction.N };
+  public static final Direction[] DIR_FULL_LIMITED_E = { Direction.N, Direction.NE, Direction.NE, Direction.E,
+      Direction.E, Direction.SE, Direction.SE };
 
   private final Sequence sequence;
   private final ArrayList<DirDef> directions;
@@ -75,8 +79,20 @@ public class SeqDef implements Cloneable {
    * Appends list of direction definitions. Cycles of existing directions are appended.
    */
   public void addDirections(DirDef... directions) {
+    addDirections(true, directions);
+  }
+
+  /**
+   * Appends list of direction definitions. Cycles of existing directions are only appended if {@code group} is
+   * {@code true}. This is useful if only a limited direction set is available, but the animation format itself
+   * provides a full set of directions (e.g. via {@code path_smooth=0} parameter).
+   */
+  public void addDirections(boolean group, DirDef... directions) {
     for (final DirDef dd : directions) {
-      DirDef dir = this.directions.stream().filter(d -> d.getDirection() == dd.getDirection()).findAny().orElse(null);
+      DirDef dir = null;
+      if (group) {
+        dir = this.directions.stream().filter(d -> d.getDirection() == dd.getDirection()).findAny().orElse(null);
+      }
       if (dir != null) {
         dir.getCycle().addCycles(dd.getCycle().getCycles());
       } else {
@@ -230,6 +246,22 @@ public class SeqDef implements Cloneable {
    */
   public static SeqDef createSequence(Sequence seq, Direction[] directions, boolean mirrored,
       Collection<SegmentDef> cycleInfo) {
+    return createSequence(false, seq, directions, mirrored, cycleInfo);
+  }
+
+  /**
+   * Convenience method: Creates a fully defined sequence for all directions and their associated segment definitions.
+   *
+   * @param group      Whether to group identical directions. Useful if only a limited direction set is available, but
+   *                     the animation format itself provides a full set of directions (e.g. via {@code path_smooth=0}
+   *                     parameter).
+   * @param seq        the animation {@link Sequence}.
+   * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
+   * @param mirrored   indicates whether cycle indices are calculated in reversed direction
+   * @param cycleInfo  collection of {@link SegmentDef} instances that are to be associated with the directions.
+   */
+  public static SeqDef createSequence(boolean group, Sequence seq, Direction[] directions, boolean mirrored,
+      Collection<SegmentDef> cycleInfo) {
     SeqDef retVal = new SeqDef(seq);
 
     DirDef[] dirs = new DirDef[Objects.requireNonNull(directions,
@@ -244,7 +276,7 @@ public class SeqDef implements Cloneable {
       }
       dirs[i] = new DirDef(retVal, directions[i], mirrored, new CycleDef(null, cycleDefs));
     }
-    retVal.addDirections(dirs);
+    retVal.addDirections(group, dirs);
 
     return retVal;
   }

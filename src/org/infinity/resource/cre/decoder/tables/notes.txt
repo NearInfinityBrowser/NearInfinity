@@ -44,6 +44,8 @@ Non-PST: (all games except PST and PST:EE)
 - HEIGHT_SHIELD (string)
   - animation type "character": overlay prefix for shields
   - animation type "monster_layered": specifies "resref_weapon2" attribute
+- MOVE_SCALE (int)
+  - the movement speed
 
 
 PST: (PST and PST:EE only)
@@ -71,3 +73,5 @@ PST: (PST and PST:EE only)
   - (currently) unused by NI
 - BESTIARY (int)
   - (currently) unused by NI
+- MOVE_SCALE (int or decimal)
+  - the movement speed
