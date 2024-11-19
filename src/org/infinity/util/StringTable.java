@@ -90,6 +90,17 @@ public class StringTable {
   private static Boolean hasFemaleTable = null;
 
   /**
+   * Returns whether a string table is available for the current game. Only the non-interactive BG1 demo should return
+   * {@code false}.
+   *
+   * @return {@code true} if a string table is available, {@code false} otherwise.
+   */
+  public static boolean isAvailable() {
+    final Path tlkPath = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
+    return (tlkPath != null);
+  }
+
+  /**
    * Returns whether the current language provides a separate string table for female text. <b>Important:</b> This is
    * the only way to determine whether a method deals with the female string table when {@code Type.FEMALE} is
    * specified.
@@ -176,7 +187,11 @@ public class StringTable {
    * available.)
    */
   public static void resetModified(Type type) {
-    instance(type)._resetEntries();
+    try {
+      instance(type)._resetEntries();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
   }
 
   /**
@@ -236,7 +251,12 @@ public class StringTable {
    * available.)
    */
   public static Path getPath(Type type) {
-    return instance(type)._getPath();
+    try {
+      return instance(type)._getPath();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
+    return null;
   }
 
   /** Return language id of male string table. */
@@ -248,7 +268,12 @@ public class StringTable {
    * Return language id of specified string table. (Defaults to {@code Type.MALE} if specified type is not available.)
    */
   public static int getLanguageId(Type type) {
-    return instance(type)._getLanguageId();
+    try {
+      return instance(type)._getLanguageId();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
+    return 0;
   }
 
   /**
@@ -271,7 +296,12 @@ public class StringTable {
    * type is not available.)
    */
   public static int getNumEntries(Type type) {
-    return instance(type)._getNumEntries();
+    try {
+      return instance(type)._getNumEntries();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
+    return 0;
   }
 
   /**
@@ -290,7 +320,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static String getStringRef(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getStringRef(index, getDisplayFormat());
+    try {
+      return instance(type)._getStringRef(index, getDisplayFormat());
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -309,7 +343,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static String getStringRef(Type type, int index, Format fmt) throws IndexOutOfBoundsException {
-    return instance(type)._getStringRef(index, fmt);
+    try {
+      return instance(type)._getStringRef(index, fmt);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -323,7 +361,11 @@ public class StringTable {
    */
   public static int getTranslatedIndex(int index) {
     if (index >= STRREF_VIRTUAL) {
-      index = instance(Type.MALE)._getTranslatedIndex(index);
+      try {
+        index = instance(Type.MALE)._getTranslatedIndex(index);
+      } catch (StringTableUnavailableException e) {
+        // ignore
+      }
     }
     return index;
   }
@@ -346,7 +388,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void setStringRef(Type type, int index, String text) throws IndexOutOfBoundsException {
-    instance(type)._setStringRef(index, text);
+    try {
+      instance(type)._setStringRef(index, text);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -366,7 +412,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static String getSoundResource(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getSoundResource(index);
+    try {
+      return instance(type)._getSoundResource(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -388,7 +438,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void setSoundResource(Type type, int index, String resRef) throws IndexOutOfBoundsException {
-    instance(type)._setSoundResource(index, resRef);
+    try {
+      instance(type)._setSoundResource(index, resRef);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -406,7 +460,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static short getFlags(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getFlags(index);
+    try {
+      return instance(type)._getFlags(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -428,7 +486,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void setFlags(Type type, int index, short value) throws IndexOutOfBoundsException {
-    instance(type)._setFlags(index, value);
+    try {
+      instance(type)._setFlags(index, value);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -446,7 +508,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static int getVolume(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getVolume(index);
+    try {
+      return instance(type)._getVolume(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -468,7 +534,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void setVolume(Type type, int index, int value) throws IndexOutOfBoundsException {
-    instance(type)._setVolume(index, value);
+    try {
+      instance(type)._setVolume(index, value);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -486,7 +556,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static int getPitch(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getPitch(index);
+    try {
+      return instance(type)._getPitch(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -508,7 +582,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void setPitch(Type type, int index, int value) throws IndexOutOfBoundsException {
-    instance(type)._setPitch(index, value);
+    try {
+      instance(type)._setPitch(index, value);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -518,7 +596,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static StringEntry getStringEntry(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._getEntry(index);
+    try {
+      return instance(type)._getEntry(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -538,7 +620,12 @@ public class StringTable {
    * specified type is not available.)
    */
   public static boolean isModified(Type type) {
-    return instance(type)._isModified();
+    try {
+      return instance(type)._isModified();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
+    return false;
   }
 
   /**
@@ -547,7 +634,11 @@ public class StringTable {
    * @param type The string table
    */
   public static void ensureFullyLoaded(Type type) {
-    instance(type)._ensureFullyLoaded();
+    try {
+      instance(type)._ensureFullyLoaded();
+    } catch (StringTableUnavailableException e) {
+      // ignore
+    }
   }
 
   /**
@@ -624,7 +715,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static int insertEntry(Type type, int index) throws IndexOutOfBoundsException {
-    return instance(type)._insertEntry(index);
+    try {
+      return instance(type)._insertEntry(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -656,7 +751,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static int insertEntry(Type type, int index, StringEntry newEntry) throws IndexOutOfBoundsException {
-    return instance(type)._insertEntry(index, newEntry);
+    try {
+      return instance(type)._insertEntry(index, newEntry);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -681,7 +780,11 @@ public class StringTable {
    * @throws IndexOutOfBoundsException if index is outside of range.
    */
   public static void removeEntry(Type type, int index) throws IndexOutOfBoundsException {
-    instance(type)._removeEntry(index);
+    try {
+      instance(type)._removeEntry(index);
+    } catch (StringTableUnavailableException e) {
+      throw new IndexOutOfBoundsException(index + " >= 0");
+    }
   }
 
   /**
@@ -712,6 +815,8 @@ public class StringTable {
     try {
       instance(type)._writeModified(callback);
       retVal = true;
+    } catch (StringTableUnavailableException e) {
+      // ignore
     } catch (IOException e) {
       Logger.error(e);
     }
@@ -747,6 +852,8 @@ public class StringTable {
     try {
       instance(type)._write(callback);
       retVal = true;
+    } catch (StringTableUnavailableException e) {
+      // ignore
     } catch (IOException e) {
       Logger.trace(e);
     }
@@ -767,6 +874,8 @@ public class StringTable {
     try {
       instance(type)._write(tlkFile, callback);
       retVal = true;
+    } catch (StringTableUnavailableException e) {
+      // ignore
     } catch (IOException e) {
       Logger.trace(e);
     }
@@ -785,6 +894,8 @@ public class StringTable {
     try {
       instance(type)._exportText(outFile, callback);
       retVal = true;
+    } catch (StringTableUnavailableException e) {
+      // ignore
     } catch (IOException e) {
       Logger.error(e);
     }
@@ -836,11 +947,18 @@ public class StringTable {
       return false;
     }
 
-    StringTable tableMale = instance(Type.MALE);
-    tableMale._ensureFullyLoaded();
-    StringTable tableFemale = hasFemaleTable() ? instance(Type.FEMALE) : null;
-    if (tableFemale != null) {
-      tableFemale._ensureFullyLoaded();
+    StringTable tableMale = null;
+    StringTable tableFemale = null;
+
+    try {
+      tableMale = instance(Type.MALE);
+      tableMale._ensureFullyLoaded();
+      tableFemale = hasFemaleTable() ? instance(Type.FEMALE) : null;
+      if (tableFemale != null) {
+        tableFemale._ensureFullyLoaded();
+      }
+    } catch (StringTableUnavailableException e) {
+      return false;
     }
 
     if (callback != null) {
@@ -948,7 +1066,7 @@ public class StringTable {
   }
 
   // Returns specified talk table instance (defaults to male if specified type not available)
-  private static StringTable instance(Type type) {
+  private static StringTable instance(Type type) throws StringTableUnavailableException {
     if (type == null) {
       type = Type.MALE;
     }
@@ -960,6 +1078,9 @@ public class StringTable {
     if (retVal == null) {
       Path tlkPath = Profile
           .getProperty((type == Type.FEMALE) ? Profile.Key.GET_GAME_DIALOGF_FILE : Profile.Key.GET_GAME_DIALOG_FILE);
+      if (tlkPath == null) {
+        throw new StringTableUnavailableException();
+      }
       retVal = new StringTable(type, tlkPath);
       TLK_TABLE.put(type, retVal);
     }
@@ -1700,5 +1821,26 @@ public class StringTable {
      * @return {@code false} to cancel current operation, {@code true} to continue.
      */
     public abstract boolean progress(int index);
+  }
+
+  /**
+   * A specialized exception class that is only thrown if a string table is not available for the current game.
+   */
+  public static class StringTableUnavailableException extends Exception {
+    public StringTableUnavailableException() {
+      super();
+    }
+
+    public StringTableUnavailableException(String message) {
+      super(message);
+    }
+
+    public StringTableUnavailableException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public StringTableUnavailableException(Throwable cause) {
+      super(cause);
+    }
   }
 }

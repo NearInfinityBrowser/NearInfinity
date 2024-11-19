@@ -22,6 +22,7 @@ import org.infinity.search.SearchFrame;
 import org.infinity.search.SearchResource;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.search.advanced.AdvancedSearch;
+import org.infinity.util.StringTable;
 
 /**
  * Handles Search menu items for the {@link BrowserMenuBar}.
@@ -91,6 +92,9 @@ public class SearchMenu extends JMenu implements BrowserSubMenu, ActionListener 
         }
       }
     }
+
+    // String table may not be available
+    searchString.setEnabled(StringTable.isAvailable());
   }
 
   @Override
