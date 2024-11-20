@@ -491,12 +491,31 @@ public class BamV1Decoder extends BamDecoder {
 
     /** Returns the transparency index of the current palette. */
     public int getTransparencyIndex() {
-      int idx = currentPalette.length - 1;
-      for (; idx > 0; idx--) {
-        if ((currentPalette[idx] & 0xff000000) == 0) {
-          break;
+      return getTransparencyIndex(false);
+    }
+
+    /**
+     * Returns the transparency index of the current palette. {@code firstAvailable} defines the search direction in the
+     * palette.
+     */
+    public int getTransparencyIndex(boolean firstAvailable) {
+      int idx;
+      if (firstAvailable) {
+        idx = 0;
+        for (int length = currentPalette.length; idx < length; idx++) {
+          if ((currentPalette[idx] & 0xff000000) == 0) {
+            break;
+          }
+        }
+      } else {
+        idx = currentPalette.length - 1;
+        for (; idx > 0; idx--) {
+          if ((currentPalette[idx] & 0xff000000) == 0) {
+            break;
+          }
         }
       }
+
       return idx;
     }
 
@@ -529,12 +548,27 @@ public class BamV1Decoder extends BamDecoder {
      * @param palette An external palette. Specify {@code null} to use the default palette.
      */
     public void setExternalPalette(int[] palette) {
+      setExternalPalette(palette, -1);
+    }
+
+    /**
+     * Applies the colors of the specified palette to the active BAM palette. <b>Note:</b> Must be called whenever any
+     * changes to the external palette have been done.
+     *
+     * @param palette           An external palette. Specify {@code null} to use the default palette.
+     * @param transparencyIndex Index of the palette entry that should be considered transparent. Specify {@code -1} to
+     *                            autodetect palette entry.
+     */
+    public void setExternalPalette(int[] palette, int transparencyIndex) {
       if (palette != null) {
         externalPalette = new int[palette.length];
         for (int i = 0; i < palette.length; i++) {
           externalPalette[i] = palette[i];
           if ((externalPalette[i] & 0xff000000) == 0) {
             externalPalette[i] |= 0xff000000;
+          }
+          if (i == transparencyIndex) {
+            externalPalette[i] = 0x00ff00;
           }
         }
       }

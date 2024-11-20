@@ -1573,7 +1573,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       palette[3] = 0xFF000000;
     }
 
-    control.setExternalPalette(palette);
+    control.setExternalPalette(palette, control.getTransparencyIndex(true));
   }
 
   /**
@@ -1615,14 +1615,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
         }
       }
 
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     } else if (isBurnedEffect) {
       // isBurnedEffect: includes flame death status
       int opcode = 51;
       int color = 0x4b4b4b;
       int[] palette = control.getCurrentPalette();
       palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     }
 
   }
@@ -1692,7 +1692,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
     }
 
-    control.setExternalPalette(palette);
+    control.setExternalPalette(palette, control.getTransparencyIndex(true));
   }
 
   /**
@@ -1742,7 +1742,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
         palette[i] = alpha | (palette[i] & 0x00ffffff);
       }
 
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     }
   }
 

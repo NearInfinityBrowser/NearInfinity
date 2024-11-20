@@ -550,7 +550,7 @@ public class SpriteUtils {
       int[] palette = control.getCurrentPalette();
       palette[0] = 0x0000FF00;
       palette[1] = isTransparentShadow ? 0x80000000 : 0xFF000000;
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     }
   }
 
