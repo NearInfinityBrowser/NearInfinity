@@ -4,6 +4,7 @@
 
 package org.infinity.util;
 
+import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,8 +25,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.swing.SwingUtilities;
-
-import org.tinylog.Logger;
 
 /**
  * A convenience class for performing multiple tasks in parallel.
@@ -454,7 +453,11 @@ public class Threading implements AutoCloseable {
   public static boolean invokeInEventThread(Operation operation) {
     if (operation != null) {
       try {
-        SwingUtilities.invokeAndWait(operation::perform);
+        if (EventQueue.isDispatchThread()) {
+          operation.perform();
+        } else {
+          SwingUtilities.invokeAndWait(operation::perform);
+        }
         return true;
       } catch (InvocationTargetException | InterruptedException e) {
         Logger.debug(e);
@@ -474,7 +477,11 @@ public class Threading implements AutoCloseable {
   public static <T> boolean invokeInEventThread(Consumer<T> consumer, T arg) {
     if (consumer != null) {
       try {
-        SwingUtilities.invokeAndWait(() -> consumer.accept(arg));
+        if (EventQueue.isDispatchThread()) {
+          consumer.accept(arg);
+        } else {
+          SwingUtilities.invokeAndWait(() -> consumer.accept(arg));
+        }
         return true;
       } catch (InvocationTargetException | InterruptedException e) {
         Logger.debug(e);
@@ -495,7 +502,11 @@ public class Threading implements AutoCloseable {
     final BlockingQueue<R> queue = new ArrayBlockingQueue<>(1);
     if (supplier != null) {
       try {
-        SwingUtilities.invokeAndWait(() -> queue.add(supplier.get()));
+        if (EventQueue.isDispatchThread()) {
+          queue.add(supplier.get());
+        } else {
+          SwingUtilities.invokeAndWait(() -> queue.add(supplier.get()));
+        }
       } catch (InvocationTargetException | InterruptedException e) {
         Logger.debug(e);
       }
@@ -522,7 +533,11 @@ public class Threading implements AutoCloseable {
     final BlockingQueue<R> queue = new ArrayBlockingQueue<>(1);
     if (function != null) {
       try {
-        SwingUtilities.invokeAndWait(() -> queue.add(function.apply(arg)));
+        if (EventQueue.isDispatchThread()) {
+          queue.add(function.apply(arg));
+        } else {
+          SwingUtilities.invokeAndWait(() -> queue.add(function.apply(arg)));
+        }
       } catch (InvocationTargetException | InterruptedException e) {
         Logger.debug(e);
       }
