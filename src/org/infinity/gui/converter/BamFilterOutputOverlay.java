@@ -83,10 +83,10 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Output filter: Overlay the current animation with multiple BAM files.

@@ -89,6 +89,7 @@ import org.infinity.resource.mus.Entry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.InputKeyHelper;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StopWatch;
@@ -96,7 +97,6 @@ import org.infinity.util.Threading;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * A global music player for MUS files found in all supported IE games. It supercedes the original {@link InfinityAmp}
