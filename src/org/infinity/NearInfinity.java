@@ -686,6 +686,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         updateWindowTitle();
+        updateLauncher();
         final String msg = String.format(STATUSBAR_TEXT_FMT, Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), Objects.requireNonNull(treemodel).size());
         statusBar.setMessage(msg);
