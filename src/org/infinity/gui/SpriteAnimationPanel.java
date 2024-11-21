@@ -156,6 +156,9 @@ public class SpriteAnimationPanel extends JPanel
   /** Indicates whether the running thread is actively updating. */
   private boolean running;
 
+  /** Indicates whether the running thread is currently in the paused state. */
+  private boolean paused;
+
   /** Indicates whether the SpriteAnimator instance has been terminated. */
   private boolean closed;
 
@@ -326,12 +329,16 @@ public class SpriteAnimationPanel extends JPanel
     }
 
     boolean wasRunning = isRunning();
+    boolean wasPaused = isPaused();
     stop();
 
     cacheCreResources();
 
     if (wasRunning) {
       start();
+      if (wasPaused) {
+        pause();
+      }
     }
   }
 
@@ -346,6 +353,7 @@ public class SpriteAnimationPanel extends JPanel
       creationTimer.start();
       releaseTimer.start();
       running = true;
+      paused = false;
       runner.interrupt();
     }
   }
@@ -359,6 +367,7 @@ public class SpriteAnimationPanel extends JPanel
     if (isRunning()) {
       releaseTimer.stop();
       creationTimer.stop();
+      paused = true;
       running = false;
     }
   }
@@ -373,14 +382,23 @@ public class SpriteAnimationPanel extends JPanel
       releaseTimer.stop();
       creationTimer.stop();
       running = false;
+      paused = false;
       cleanup();
       SwingUtilities.invokeLater(this::repaint);
     }
   }
 
+  /**
+   * Returns {@code true} if the sprite runner is in paused state. The paused state is only set if the runner was
+   * explicitly halted by the {@link #pause()} method.
+   */
+  public boolean isPaused() {
+    return !isClosed() && paused;
+  }
+
   /** Returns {@code true} if the sprite runner is currently running. Returns {@code false} otherwise. */
   public boolean isRunning() {
-    return !isClosed() && running;
+    return !isClosed() && running && !paused;
   }
 
   /**
@@ -398,6 +416,7 @@ public class SpriteAnimationPanel extends JPanel
   @Override
   public void close() throws Exception {
     closed = true;
+    paused = false;
     if (isRunning()) {
       running = false;
     } else {
@@ -445,10 +464,10 @@ public class SpriteAnimationPanel extends JPanel
 
   @Override
   public void windowStateChanged(WindowEvent e) {
-    if (isRunning() && (e.getNewState() & Frame.ICONIFIED) != 0) {
+    if (isRunning() && !isPaused() && (e.getNewState() & Frame.ICONIFIED) != 0) {
       Logger.trace("Window iconified: Stopping sprite actions");
       pause();
-    } else if (!isRunning()) {
+    } else if (isPaused()) {
       Logger.trace("Window restored: Resuming sprite actions");
       start();
     }
