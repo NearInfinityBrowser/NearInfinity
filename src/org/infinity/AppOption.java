@@ -140,6 +140,9 @@ public class AppOption {
   /** Menu Options: RememberChildFrameRect (Boolean, Default: false) */
   public static final AppOption REMEMBER_CHILD_FRAME_RECT = new AppOption(OptionsMenuItem.OPTION_REMEMBER_CHILDFRAME_RECT,
       "Remember Last Child Frame Size and Position", false);
+  /** Menu Options: ShowCreaturesOnPanel (Boolean, Default: false) */
+  public static final AppOption SHOW_CREATURES_ON_PANEL = new AppOption(OptionsMenuItem.OPTION_SHOW_CREATURES_ON_PANEL,
+      "Show creatures on main panel", false);
   /**
    * Menu Options: OptionFixedInternal (Integer, Default: 0).
    * Note: Used internally to fix incorrect default values after the public release.

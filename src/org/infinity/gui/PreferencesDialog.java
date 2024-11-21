@@ -243,7 +243,13 @@ public class PreferencesDialog extends JDialog {
                   "With this option enabled Near Infinity remembers current size and position of child windows on the screen.<br/>"
                       + "This information is only remembered across the current session and will be discarded whenever "
                       + "Near Infinity is closed.",
-                  AppOption.REMEMBER_CHILD_FRAME_RECT)
+                  AppOption.REMEMBER_CHILD_FRAME_RECT),
+              OptionCheckBox.create(AppOption.SHOW_CREATURES_ON_PANEL.getName(), AppOption.SHOW_CREATURES_ON_PANEL.getLabel(),
+                  "With this option enabled creatures from the currently opened game will progressively populate the "
+                      + "main panel and perform all kinds of random actions. This option is primarily meant as a gimmick. ;)"
+                      + "<p><strong>Note:</strong> Changing this option requires to open a new game or use the command "
+                      + "\"Refresh Tree\" (Shortcut: <code>F5</code>)</p>",
+                  AppOption.SHOW_CREATURES_ON_PANEL)
           )
       ),
       OptionCategory.create(Category.SCRIPT_COMPILER,

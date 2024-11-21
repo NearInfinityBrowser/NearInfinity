@@ -92,6 +92,7 @@ import org.infinity.gui.PopupWindowEvent;
 import org.infinity.gui.PopupWindowListener;
 import org.infinity.gui.QuickSearch;
 import org.infinity.gui.ResourceTree;
+import org.infinity.gui.SpriteAnimationPanel;
 import org.infinity.gui.StatusBar;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.StructViewer;
@@ -232,7 +233,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static NearInfinity browser;
 
-  private final JPanel containerpanel;
+  private final SpriteAnimationPanel containerpanel;
   private final JSplitPane spSplitter;
   private final ResourceTree tree;
   private final StatusBar statusBar;
@@ -594,7 +595,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       leftPanel.add(tree, BorderLayout.CENTER);
       leftPanel.add(toolBar, BorderLayout.NORTH);
 
-      containerpanel = new JPanel(new BorderLayout());
+      containerpanel = new SpriteAnimationPanel(new BorderLayout());
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
       spSplitter.setBorder(BorderFactory.createEmptyBorder());
@@ -612,6 +613,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(AppOption.APP_WINDOW_POS_X.getIntValue(), AppOption.APP_WINDOW_POS_Y.getIntValue());
     setVisible(true);
     setExtendedState(AppOption.APP_WINDOW_STATE.getIntValue());
+
+    setSpriteAnimationPanelEnabled(true);
 
     // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
     if (Platform.IS_MACOS) {
@@ -689,6 +692,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
         tree.setModel(treemodel);
         ChildFrame.fireGameReset(false);
+        resetSpriteAnimationPanel();
         containerpanel.removeAll();
         containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
         containerpanel.revalidate();
@@ -835,6 +839,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       statusBar.setMessage(resource.getResourceEntry().getActualPath().toString());
       containerpanel.removeAll();
       containerpanel.add(viewable.makeViewer(this), BorderLayout.CENTER);
+      setSpriteAnimationPanelEnabled(false);
       containerpanel.revalidate();
       containerpanel.repaint();
       toFront();
@@ -882,6 +887,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       BrowserMenuBar.getInstance().gameLoaded(oldGame, Objects.requireNonNull(oldKeyFile).toString());
       tree.setModel(treemodel);
       ChildFrame.fireGameReset(false);
+      resetSpriteAnimationPanel();
       containerpanel.removeAll();
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       containerpanel.revalidate();
@@ -903,6 +909,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree.select(null);
     containerpanel.removeAll();
     containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
+    setSpriteAnimationPanelEnabled(true);
     containerpanel.revalidate();
     containerpanel.repaint();
     return true;
@@ -919,6 +926,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public void quit() {
     if (removeViewable()) {
       ChildFrame.closeWindows(true);
+      try { containerpanel.close(); } catch (Exception e) {}
       storePreferences();
       clearCache(false);
       System.exit(0);
@@ -948,6 +956,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
       cacheResourceIcons(true);
       ChildFrame.fireGameReset(true);
+      resetSpriteAnimationPanel();
     } finally {
       blocker.setBlocked(false);
     }
@@ -1347,6 +1356,32 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (path != null && !Files.isReadable(path)) {
       throw new IOException("Readable check failed: " + path);
     }
+  }
+
+  /** Controls enabled state of the creature animation panel. */
+  public void setSpriteAnimationPanelEnabled(boolean enable) {
+    if (BrowserMenuBar.getInstance().getOptions().showCreaturesOnPanel()) {
+      if (enable && !containerpanel.isRunning()) {
+        Logger.trace("Starting creature animation panel");
+        containerpanel.start();
+      } else if (!enable && containerpanel.isRunning()) {
+        Logger.trace("Stopping creature animation panel");
+        containerpanel.stop();
+      }
+    } else {
+      if (containerpanel.isRunning()) {
+        containerpanel.stop();
+      }
+    }
+  }
+
+  /** Resets the animation panel in a controlled manner. */
+  public void resetSpriteAnimationPanel() {
+    if (BrowserMenuBar.getInstance().getOptions().showCreaturesOnPanel()) {
+      Logger.trace("Resetting creature animation panel");
+      containerpanel.reset();
+    }
+    setSpriteAnimationPanelEnabled(true);
   }
 
   /**

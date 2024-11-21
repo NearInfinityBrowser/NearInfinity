@@ -167,6 +167,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWMEMSTATUS             = "ShowMemStatus";
   public static final String OPTION_OPENBOOKMARKSPROMPT       = "OpenBookmarksPrompt";
   public static final String OPTION_REMEMBER_CHILDFRAME_RECT  = "RememberChildFrameRect";
+  public static final String OPTION_SHOW_CREATURES_ON_PANEL   = "ShowCreaturesOnPanel";
 
   public static final String OPTION_AUTOCHECK_BCS             = "AutocheckBCS";
   public static final String OPTION_AUTOGEN_BCS_COMMENTS      = "AutogenBCSComments";
@@ -530,6 +531,11 @@ public class OptionsMenuItem extends JMenuItem {
   /** Returns whether the size and position of the last opened child frame should be reused for new child frames. */
   public boolean rememberChildFrameRect() {
     return AppOption.REMEMBER_CHILD_FRAME_RECT.getBoolValue();
+  }
+
+  /** Returns whether the main main panel should be progressively populated with creatures from the game. */
+  public boolean showCreaturesOnPanel() {
+    return AppOption.SHOW_CREATURES_ON_PANEL.getBoolValue();
   }
 
   /** Returns whether offset column is shown for structured resources. */
