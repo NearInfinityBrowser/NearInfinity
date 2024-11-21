@@ -1,16 +1,17 @@
-# This workflow will build a Java project with Apache Ant and upload the created artifacts
-# on pushes to the master branch.
+# This workflow will build a Java project with Apache Ant and:
+# - on release: upload the created files to the current release or tag
+# - on workflow_dispatch: upload the created files as artifacts to the workflow
 
 name: Java CD with Apache Ant
 
 on:
-  push:
-    branches: [ "master" ]
+  release:
+    types: [published]
   workflow_dispatch:
     branches: [ "master", "devel" ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   # Build and upload NearInfinity.jar
@@ -35,11 +36,22 @@ jobs:
           ant -noinput -buildfile build.xml
           echo "NI_VERSION=$(java -jar "NearInfinity.jar" -version 2>/dev/null | grep -Eo '[0-9]{8}')" >> "$GITHUB_OUTPUT"
 
+      # Required internally to build the installer packages
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}
           path: NearInfinity.jar
+
+      - name: Upload JAR asset to release
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: NearInfinity.jar
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          asset_name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}.jar
+          overwrite: true
 
   # Build and upload installer versions for Windows, macOS-x86_64 and macOS-arm64
   deploy-installer:
@@ -123,31 +135,86 @@ jobs:
         if: startsWith(matrix.os, 'macos-')
         run: ls -l
 
-      # Uploading
+      # Uploading artifacts (workflow_dispatch)
       - name: Upload portable artifact (windows)
-        if: startsWith(matrix.os, 'windows-')
+        if: startsWith(matrix.os, 'windows-') && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: portable-windows
           path: NearInfinity-*.zip
 
       - name: Upload exe artifact (windows)
-        if: startsWith(matrix.os, 'windows-')
+        if: startsWith(matrix.os, 'windows-') && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: installer-windows
           path: NearInfinity-*.exe
 
       - name: Upload pkg artifact (macos-x86_64)
-        if: (matrix.os == 'macos-13')
+        if: (matrix.os == 'macos-13') && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: installer-macos-x86_64
           path: NearInfinity-*.pkg
 
       - name: Upload pkg artifact (macos-arm64)
-        if: (matrix.os == 'macos-14')
+        if: (matrix.os == 'macos-14') && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: installer-macos-arm64
           path: NearInfinity-*.pkg
+
+      # Uploading assets (release)
+      - name: Upload portable asset to release (windows)
+        if: startsWith(matrix.os, 'windows-') && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: NearInfinity-*.zip
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          overwrite: true
+
+      - name: Upload exe asset to release (windows)
+        if: startsWith(matrix.os, 'windows-') && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: NearInfinity-*.exe
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          overwrite: true
+
+      - name: Upload pkg asset to release (macos-x86_64)
+        if: (matrix.os == 'macos-13') && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: NearInfinity-*.pkg
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          overwrite: true
+
+      - name: Upload pkg asset to release (macos-arm64)
+        if: (matrix.os == 'macos-14') && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: NearInfinity-*.pkg
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          overwrite: true
+
+  # Remove JAR artifact (release)
+  cleanup:
+    if: ${{ github.repository == 'Argent77/NearInfinity' && github.event_name == 'release' }}
+    needs: [deploy-jar, deploy-installer]
+    runs-on: ubuntu-latest
+    name: Clean up artifacts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove JAR artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: NearInfinity-*
