@@ -117,12 +117,12 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON)) {
       ResourceFactory.exportResource(entry, panelMain.getTopLevelAncestor());
     } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE)) {
-      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setTextModified(false);
         setRawModified(false);
       }
     } else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS)) {
-      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setTextModified(false);
         setRawModified(false);
       }

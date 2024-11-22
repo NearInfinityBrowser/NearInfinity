@@ -467,9 +467,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     }
     final boolean result;
     if (interactive) {
-      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue();
     } else {
-      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue();
     }
     if (result) {
       bSave.setEnabled(false);

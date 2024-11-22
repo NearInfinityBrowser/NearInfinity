@@ -242,11 +242,11 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panelMain.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     } else if (event.getSource() == timer) {

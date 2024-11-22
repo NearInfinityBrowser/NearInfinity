@@ -28,6 +28,7 @@ import java.util.Objects;
 
 import javax.swing.ProgressMonitor;
 
+import org.infinity.exceptions.AbortException;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.resource.Profile;
 import org.infinity.util.BinPack2D;
@@ -1325,7 +1326,7 @@ public class PseudoBamDecoder extends BamDecoder {
     for (int i = 0; i < pageList.size(); i++) {
       if (progress != null) {
         if (progress.isCanceled()) {
-          throw new Exception("Conversion has been cancelled by the user.");
+          throw new AbortException("Conversion has been cancelled by the user.");
         }
         progress.setProgress(curProgress);
         progress.setNote(String.format(note, curProgress, pageList.size()));

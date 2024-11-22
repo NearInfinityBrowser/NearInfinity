@@ -22,6 +22,7 @@ import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
+import org.infinity.exceptions.AbortException;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
@@ -817,7 +818,9 @@ public class StringTable {
       retVal = true;
     } catch (StringTableUnavailableException e) {
       // ignore
-    } catch (IOException e) {
+    } catch (AbortException e) {
+      Logger.debug(e);
+    } catch (Exception e) {
       Logger.error(e);
     }
 
@@ -854,7 +857,7 @@ public class StringTable {
       retVal = true;
     } catch (StringTableUnavailableException e) {
       // ignore
-    } catch (IOException e) {
+    } catch (Exception e) {
       Logger.trace(e);
     }
 
@@ -876,7 +879,7 @@ public class StringTable {
       retVal = true;
     } catch (StringTableUnavailableException e) {
       // ignore
-    } catch (IOException e) {
+    } catch (Exception e) {
       Logger.trace(e);
     }
 
@@ -1406,19 +1409,19 @@ public class StringTable {
   }
 
   // Writes data back to disk only if entries have been modified
-  private void _writeModified(ProgressCallback callback) throws IOException {
+  private void _writeModified(ProgressCallback callback) throws Exception {
     if (_isModified()) {
       _write(callback);
     }
   }
 
   // Writes currently loaded data to disk regardless of its modified state
-  private void _write(ProgressCallback callback) throws IOException {
+  private void _write(ProgressCallback callback) throws Exception {
     _write(_getPath(), callback);
   }
 
   // Writes currently loaded data to disk under specified filename regardless of its modified state
-  private void _write(Path tlkPath, ProgressCallback callback) throws IOException {
+  private void _write(Path tlkPath, ProgressCallback callback) throws Exception {
     if (tlkPath == null) {
       throw new NullPointerException();
     }
@@ -1499,7 +1502,7 @@ public class StringTable {
           if (callback != null) {
             success = callback.progress(index++);
             if (!success) {
-              throw new Exception("Operation cancelled");
+              throw new AbortException("Operation cancelled");
             }
           }
           buffer = StreamUtils.getByteBuffer(data);

@@ -117,7 +117,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
   @Override
   public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(CTRL_COMPRESS) == event.getSource()) {
-      compressData(true);
+      compressData(true, true);
     } else if (buttonPanel.getControlByType(CTRL_DECOMPRESS) == event.getSource()) {
       decompressData(true);
     } else if (buttonPanel.getControlByType(CTRL_EDIT) == event.getSource()) {
@@ -184,7 +184,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
       final String msg = getResourceEntry().getResourceName() + " is still decompressed. Compress it?";
       if (JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(), msg, "Question", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-        compressData(true);
+        compressData(true, false);
       }
     }
     handler.close();
@@ -316,13 +316,29 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
     return handler;
   }
 
-  private boolean compressData(boolean showError) {
+  private boolean compressData(boolean showError, boolean confirm) {
+    final int result;
+    if (confirm) {
+      final String[] options = { "Save", "Don't save", "Cancel" };
+      result = JOptionPane.showOptionDialog(panel.getTopLevelAncestor(),
+          "Compress any changes to " + getResourceEntry().getResourceName() + "?", "Question",
+          JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+    } else {
+      result = JOptionPane.YES_OPTION;
+    }
+
+    if (result == JOptionPane.CANCEL_OPTION) {
+      return false;
+    }
+
     try {
       WindowBlocker block = new WindowBlocker(NearInfinity.getInstance());
       try {
         block.setBlocked(true);
         handler.compress(entries);
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+        if (result == JOptionPane.YES_OPTION) {
+          ResourceFactory.saveResource(this, panel.getTopLevelAncestor(), true);
+        }
         buttonPanel.getControlByType(CTRL_DECOMPRESS).setEnabled(true);
         filelist.setEnabled(false);
         buttonPanel.getControlByType(CTRL_EDIT).setEnabled(false);

@@ -369,11 +369,11 @@ public class PlainTextResource
   @Override
   public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue()) {
         resourceChanged = false;
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue()) {
         resourceChanged = false;
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {

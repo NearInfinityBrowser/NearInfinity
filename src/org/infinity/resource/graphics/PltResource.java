@@ -292,11 +292,11 @@ public class PltResource
             JOptionPane.ERROR_MESSAGE);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == e.getSource()) {
-      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == e.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     }

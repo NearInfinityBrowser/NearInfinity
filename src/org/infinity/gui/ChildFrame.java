@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.infinity.NearInfinity;
+import org.infinity.exceptions.AbortException;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
@@ -236,6 +237,9 @@ public class ChildFrame extends JFrame {
             if (!ChildFrame.this.windowClosing(false)) {
               return;
             }
+          } catch (AbortException e2) {
+            Logger.debug(e2);
+            return;
           } catch (Exception e2) {
             Logger.error(e2);
             return;
@@ -411,6 +415,8 @@ public class ChildFrame extends JFrame {
           frame.close();
         }
         frame.dispose();
+      } catch (AbortException e) {
+        Logger.debug(e);
       } catch (Exception e) {
         Logger.error(e);
       }

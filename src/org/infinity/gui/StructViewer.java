@@ -550,11 +550,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           WindowBlocker.blockWindow(wnd, false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-        if (ResourceFactory.saveResource((Resource) struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResource((Resource) struct, getTopLevelAncestor()).isTrue()) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-        if (ResourceFactory.saveResourceAs((Resource) struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResourceAs((Resource) struct, getTopLevelAncestor()).isTrue()) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
