@@ -232,36 +232,52 @@ public class ChildFrame extends JFrame {
     pane.getActionMap().put(pane, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (ChildFrame.this.closeOnInvisible) {
-          try {
+        try {
+          if (ChildFrame.this.closeOnInvisible) {
             if (!ChildFrame.this.windowClosing(false)) {
               return;
             }
-          } catch (AbortException e2) {
-            Logger.debug(e2);
-            return;
-          } catch (Exception e2) {
-            Logger.error(e2);
-            return;
+          } else {
+            if (!ChildFrame.this.windowHiding(false)) {
+              return;
+            }
           }
+        } catch (AbortException e2) {
+          Logger.debug(e2);
+          return;
+        } catch (Exception e2) {
+          Logger.error(e2);
+          return;
+        }
+
+        if (ChildFrame.this.closeOnInvisible) {
           WINDOWS.remove(ChildFrame.this);
         }
+
         ChildFrame.this.setVisible(false);
       }
     });
     addWindowListener(new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
-        if (ChildFrame.this.closeOnInvisible) {
-          try {
+        try {
+          if (ChildFrame.this.closeOnInvisible) {
             if (!ChildFrame.this.windowClosing(false)) {
               return;
             }
-          } catch (Exception e2) {
-            throw new IllegalAccessError(); // ToDo: This is just too ugly
+          } else {
+            if (!ChildFrame.this.windowHiding(false)) {
+              return;
+            }
           }
+        } catch (Exception e2) {
+          throw new IllegalAccessError(); // ToDo: This is just too ugly
+        }
+
+        if (ChildFrame.this.closeOnInvisible) {
           WINDOWS.remove(ChildFrame.this);
         }
+
         ChildFrame.this.setVisible(false);
       }
     });
@@ -315,6 +331,18 @@ public class ChildFrame extends JFrame {
         updateLastFrameRect(getSize(), getLocation());
       }
     }
+    return true;
+  }
+
+  /**
+   * This method is called whenever the dialog is about to be hidden without being removed from memory.
+   *
+   * @param forced If {@code false}, the return value will be honored. If {@code true}, the return value will be
+   *                 disregarded.
+   * @return If {@code true}, the hiding procedure continues. If {@code false}, the hiding procedure will be cancelled.
+   * @throws Exception
+   */
+  protected boolean windowHiding(boolean forced) throws Exception {
     return true;
   }
 

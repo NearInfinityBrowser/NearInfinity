@@ -15,6 +15,10 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.infinity.util.Logger;
 
+/**
+ * This class provides a conventional way to play back sound data. It is mostly suited for playing streamed sound data.
+ * For playback of single sound clips the {@link SingleAudioPlayer} class is more suited.
+ */
 public class AudioPlayer {
   private final byte[] buffer = new byte[8196];
 

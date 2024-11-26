@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -33,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.infinity.gui.SoundPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewFrame;
@@ -44,7 +44,6 @@ import org.infinity.resource.Closeable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.resource.sound.SoundResource;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
@@ -62,7 +61,7 @@ import org.infinity.util.io.StreamUtils;
  * </ul>
  */
 public class ResourceRef extends Datatype
-    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener, PropertyChangeListener {
+    implements Editable, IsTextual, IsReference, Closeable, ActionListener, ListSelectionListener {
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
   /** List of resource types that are can be used to display associated icons.  */
@@ -86,11 +85,8 @@ public class ResourceRef extends Datatype
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
 
-  /** Button that used to play sound of current selected element in the list. */
-  private JButton bPlay;
-
-  /** Button that used to stop sound playback of current selected element in the list. */
-  private JButton bStop;
+  /** Handles playback of sound resources. */
+  private SoundPanel soundPanel;
 
   /**
    * GUI component that lists all available resources that can be set to this resource reference and have edit field for
@@ -131,30 +127,6 @@ public class ResourceRef extends Datatype
       final ResourceRefEntry selected = list.getSelectedValue();
       if (isEditable(selected)) {
         new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(selected.entry));
-      }
-    } else if (event.getSource() == bPlay) {
-      final ResourceRefEntry selected = list.getSelectedValue();
-      if (isSound(selected)) {
-        // prevent overlapping sound playback
-        closeResource(currentResource);
-        SoundResource res = (SoundResource) ResourceFactory.getResource(selected.entry);
-        res.playSound(this);
-        currentResource = res;
-      }
-    } else if (event.getSource() == bStop) {
-      if (currentResource instanceof SoundResource) {
-        ((SoundResource) currentResource).stopSound(this);
-      }
-    }
-  }
-
-  @Override
-  public void propertyChange(PropertyChangeEvent evt) {
-    if (SoundResource.PROPERTY_NAME_PLAYBACK.equals(evt.getPropertyName())) {
-      final boolean value = (Boolean)evt.getNewValue();
-      updatePlayback(value);
-      if (!value) {
-        ((SoundResource) evt.getSource()).removePropertyChangeListener(this);
       }
     }
   }
@@ -223,28 +195,15 @@ public class ResourceRef extends Datatype
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
 
-    bPlay = new JButton(Icons.ICON_PLAY_16.getIcon());
-    bPlay.setToolTipText("Play sound");
-    bPlay.addActionListener(this);
-    bStop = new JButton(Icons.ICON_STOP_16.getIcon());
-    bStop.setToolTipText("Stop playback");
-    bStop.addActionListener(this);
-    bStop.setEnabled(false);
+    soundPanel = new SoundPanel(SoundPanel.Option.TIME_LABEL, SoundPanel.Option.PROGRESS_BAR);
+    soundPanel.setDisplayFormat(SoundPanel.DisplayFormat.ELAPSED_TOTAL_PRECISE);
+    soundPanel.setVisible(ResourceEntry.isSound(types));
 
     list.addListSelectionListener(this);
     setResourceEntryUpdated(list.getSelectedValue());
 
     GridBagConstraints gbc = null;
     JPanel panel = new JPanel(new GridBagLayout());
-
-    final JPanel soundPanel = new JPanel(new GridBagLayout());
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(0, 0, 0, 0), 0, 0);
-    soundPanel.add(bPlay, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(0, 8, 0, 0), 0, 0);
-    soundPanel.add(bStop, gbc);
-    soundPanel.setVisible(ResourceEntry.isSound(types));
 
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 5, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
@@ -258,13 +217,13 @@ public class ResourceRef extends Datatype
     panel.add(spacerTop, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-        new Insets(3, 6, 3, 0), 0, 0);
+        new Insets(3, 6, 3, 6), 0, 0);
     panel.add(bUpdate, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-        new Insets(3, 6, 3, 0), 0, 0);
+        new Insets(3, 6, 3, 6), 0, 0);
     panel.add(bView, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-            new Insets(24, 6, 3, 0), 0, 0);
+            new Insets(24, 6, 3, 6), 0, 0);
     panel.add(soundPanel, gbc);
 
     // spacer keeps controls in the center
@@ -414,6 +373,13 @@ public class ResourceRef extends Datatype
     return resname;
   }
 
+  @Override
+  public void close() throws Exception {
+    if (soundPanel != null) {
+      soundPanel.setPlaying(false);
+    }
+  }
+
   public boolean isEmpty() {
     return (resname.equals(NONE.name));// FIXME: use null instead of NONE.name
   }
@@ -453,16 +419,30 @@ public class ResourceRef extends Datatype
     closeResource(currentResource);
     if (entry != null) {
       bView.setEnabled(isEditable(entry));
-      bPlay.setEnabled(isSound(entry));
-      bStop.setEnabled(false);
+      if (soundPanel != null && soundPanel.isVisible()) {
+        try {
+          soundPanel.loadSound(entry.getEntry());
+          soundPanel.setEnabled(isSound(entry));
+        } catch (NullPointerException e) {
+          // expected
+          soundPanel.setEnabled(false);
+        } catch (Exception e) {
+          Logger.error(e);
+          soundPanel.setEnabled(false);
+        }
+      }
     } else {
       bView.setEnabled(false);
-      bPlay.setEnabled(false);
-      bStop.setEnabled(false);
+      if (soundPanel != null && soundPanel.isVisible()) {
+        soundPanel.setEnabled(false);
+      }
     }
   }
 
   private void closeResource(Resource resource) {
+    if (soundPanel != null) {
+      soundPanel.unload();
+    }
     if (resource instanceof Closeable) {
       try {
         ((Closeable) resource).close();
@@ -490,11 +470,6 @@ public class ResourceRef extends Datatype
     if (!Objects.equals(oldValue, newValue)) {
       firePropertyChange(oldValue, newValue);
     }
-  }
-
-  private void updatePlayback(boolean isPlaying) {
-    bPlay.setEnabled(!isPlaying);
-    bStop.setEnabled(isPlaying);
   }
 
   // -------------------------- INNER CLASSES --------------------------

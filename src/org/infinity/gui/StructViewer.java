@@ -1010,6 +1010,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
       tabbedPane = null;
     }
+
+    closeEditor();
   }
 
   public StructEntry getSelectedEntry() {
@@ -1348,6 +1350,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
    * @throws NullPointerException if {@code editable} is {@code null}
    */
   private void edit(Editable editable) {
+    closeEditor();
+
     // Save for handle UPDATE_VALUE events later
     this.editable = editable;
     editpanel.removeAll();
@@ -1369,6 +1373,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     editpanel.repaint();
     cards.show(lowerpanel, CARD_EDIT);
     editable.select();
+  }
+
+  private void closeEditor() {
+    if (this.editable instanceof Closeable) {
+      try {
+        ((Closeable)this.editable).close();
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
   }
 
   /**
