@@ -72,10 +72,12 @@ import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.ProRef;
 import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TextBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
@@ -1567,6 +1569,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (entry instanceof Flag) {
       so = new SearchOptions();
       so.setValueBitfield(((Flag) entry).getValue(), SearchOptions.BitFieldMode.EXACT);
+    } else if (entry instanceof ProRef || entry instanceof Song2daBitmap) {
+      so = new SearchOptions();
+      so.setValueNumber(((IsNumeric) entry).getValue());
     } else if (entry instanceof IsReference) {
       so = new SearchOptions();
       so.setValueResource(((IsReference) entry).getResourceName());
