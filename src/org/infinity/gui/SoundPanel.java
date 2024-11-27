@@ -648,7 +648,7 @@ public class SoundPanel extends JPanel implements Closeable {
     if (runner.isAvailable()) {
       if (runner.isPlaying()) {
         if (combinedPlayPause) {
-          playButton.setIcon(runner.isPaused() ? ICON_PAUSE : ICON_PLAY);
+          playButton.setIcon(runner.isPaused() ? ICON_PLAY : ICON_PAUSE);
           playButton.setEnabled(true);
         } else {
           playButton.setEnabled(runner.isPaused());
@@ -743,7 +743,7 @@ public class SoundPanel extends JPanel implements Closeable {
   }
 
   /** Creates the sound panel. */
-  private void init(Option... options) {
+  private void init(Option[] options) {
     closed = false;
 
     combinedPlayPause = isOption(options, Option.COMPACT_CONTROLS);
