@@ -13,6 +13,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
@@ -41,6 +42,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicSliderUI;
 
 import org.infinity.exceptions.ResourceNotFoundException;
 import org.infinity.icon.Icons;
@@ -48,9 +50,11 @@ import org.infinity.resource.Closeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioFactory;
+import org.infinity.resource.sound.AudioPlayback;
 import org.infinity.resource.sound.AudioStateEvent;
 import org.infinity.resource.sound.AudioStateListener;
-import org.infinity.resource.sound.SingleAudioPlayer;
+import org.infinity.resource.sound.BufferedAudioPlayback;
+import org.infinity.resource.sound.BufferedAudioPlayer;
 import org.infinity.resource.sound.WavBuffer;
 import org.infinity.util.Threading;
 import org.tinylog.Logger;
@@ -64,6 +68,10 @@ import org.tinylog.Logger;
 public class SoundPanel extends JPanel implements Closeable {
   /** Optional UI controls for display. */
   public enum Option {
+    /**
+     * Specifies that the {@code Play} and {@code Pause} buttons are combined to a single button to save space.
+     */
+    COMPACT_CONTROLS,
     /**
      * Specifies a label that displays the current playback time. The control is shown below the playback controls and
      * progress bar if visible.
@@ -168,12 +176,13 @@ public class SoundPanel extends JPanel implements Closeable {
   public static final String PROPERTY_NAME_PAUSED = "soundPanelPaused";
 
   private static final String CMD_PLAY      = "play";
+  private static final String CMD_PAUSE     = "pause";
   private static final String CMD_STOP      = "stop";
   private static final String CMD_LOOP      = "loop";
 
-  private static final ImageIcon ICON_PLAY = Icons.ICON_PLAY_16.getIcon();
+  private static final ImageIcon ICON_PLAY  = Icons.ICON_PLAY_16.getIcon();
   private static final ImageIcon ICON_PAUSE = Icons.ICON_PAUSE_16.getIcon();
-  private static final ImageIcon ICON_STOP = Icons.ICON_STOP_16.getIcon();
+  private static final ImageIcon ICON_STOP  = Icons.ICON_STOP_16.getIcon();
 
   private static boolean looped = false;
 
@@ -183,6 +192,7 @@ public class SoundPanel extends JPanel implements Closeable {
   private final Listeners listener = new Listeners();
 
   private JButton playButton;
+  private JButton pauseButton;
   private JButton stopButton;
   private JLabel displayLabel;
   private JCheckBox loopCheckBox;
@@ -195,6 +205,7 @@ public class SoundPanel extends JPanel implements Closeable {
   private boolean closed;
 
   private boolean progressAdjusting;
+  private boolean combinedPlayPause;
   private boolean showProgressLabels;
 
   /**
@@ -408,6 +419,8 @@ public class SoundPanel extends JPanel implements Closeable {
     }
 
     switch (option) {
+      case COMPACT_CONTROLS:
+        return combinedPlayPause;
       case LOOP_CHECKBOX:
         return loopCheckBox.isVisible();
       case PROGRESS_BAR:
@@ -417,6 +430,7 @@ public class SoundPanel extends JPanel implements Closeable {
       case TIME_LABEL:
         return displayLabel.isVisible();
     }
+
     return false;
   }
 
@@ -534,6 +548,9 @@ public class SoundPanel extends JPanel implements Closeable {
       updateControls();
     } else {
       playButton.setEnabled(false);
+      if (!combinedPlayPause) {
+        pauseButton.setEnabled(false);
+      }
       stopButton.setEnabled(false);
       progressSlider.setEnabled(false);
     }
@@ -630,16 +647,21 @@ public class SoundPanel extends JPanel implements Closeable {
   private void updateControls() {
     if (runner.isAvailable()) {
       if (runner.isPlaying()) {
-        if (runner.isPaused()) {
-          playButton.setIcon(ICON_PAUSE);
+        if (combinedPlayPause) {
+          playButton.setIcon(runner.isPaused() ? ICON_PAUSE : ICON_PLAY);
+          playButton.setEnabled(true);
         } else {
-          playButton.setIcon(ICON_PLAY);
+          playButton.setEnabled(runner.isPaused());
+          pauseButton.setEnabled(!runner.isPaused());
         }
-        playButton.setEnabled(true);
         stopButton.setEnabled(true);
         progressSlider.setEnabled(true);
       } else {
-        playButton.setIcon(ICON_PLAY);
+        if (combinedPlayPause) {
+          playButton.setIcon(ICON_PLAY);
+        } else {
+          pauseButton.setEnabled(false);
+        }
         playButton.setEnabled(true);
         stopButton.setEnabled(false);
         progressSlider.setEnabled(false);
@@ -647,6 +669,9 @@ public class SoundPanel extends JPanel implements Closeable {
     } else {
       playButton.setIcon(ICON_PLAY);
       playButton.setEnabled(false);
+      if (!combinedPlayPause) {
+        pauseButton.setEnabled(false);
+      }
       stopButton.setEnabled(false);
       progressSlider.setEnabled(false);
     }
@@ -721,9 +746,19 @@ public class SoundPanel extends JPanel implements Closeable {
   private void init(Option... options) {
     closed = false;
 
+    combinedPlayPause = isOption(options, Option.COMPACT_CONTROLS);
+
     playButton = new JButton(ICON_PLAY);
     playButton.setActionCommand(CMD_PLAY);
     playButton.addActionListener(listener);
+
+    if (!combinedPlayPause) {
+      pauseButton = new JButton(ICON_PAUSE);
+      pauseButton.setActionCommand(CMD_PAUSE);
+      pauseButton.addActionListener(listener);
+    } else {
+      playButton.setToolTipText("Start or pause playback.");
+    }
 
     stopButton = new JButton(ICON_STOP);
     stopButton.setActionCommand(CMD_STOP);
@@ -732,49 +767,36 @@ public class SoundPanel extends JPanel implements Closeable {
     loopCheckBox = new JCheckBox("Loop", looped);
     loopCheckBox.setActionCommand(CMD_LOOP);
     loopCheckBox.addActionListener(listener);
-    loopCheckBox.setVisible(false);
+    loopCheckBox.setVisible(isOption(options, Option.LOOP_CHECKBOX));
 
     displayLabel = new JLabel(DisplayFormat.ELAPSED_TOTAL.toString(0L, 0L), SwingConstants.LEADING);
-    displayLabel.setVisible(false);
+    displayLabel.setVisible(isOption(options, Option.TIME_LABEL));
 
     progressSlider = new FixedSlider(new AdjustingBoundedRangeModel());
     progressSlider.setOrientation(SwingConstants.HORIZONTAL);
     progressSlider.setPaintTicks(true);
     progressSlider.addChangeListener(listener);
-    progressSlider.setVisible(false);
+    progressSlider.setVisible(isOption(options, Option.PROGRESS_BAR));
 
-    // making selected options visible
-    for (final Option option : options) {
-      if (option != null) {
-        switch (option) {
-          case LOOP_CHECKBOX:
-            loopCheckBox.setVisible(true);
-            break;
-          case PROGRESS_BAR:
-            progressSlider.setVisible(true);
-            break;
-          case PROGRESS_BAR_LABELS:
-            showProgressLabels = true;
-            break;
-          case TIME_LABEL:
-            displayLabel.setVisible(true);
-            break;
-        }
-      }
-    }
-
+    showProgressLabels = isOption(options, Option.PROGRESS_BAR_LABELS);
     progressSlider.setPaintLabels(showProgressLabels);
 
     // assembling panel
     final GridBagConstraints gbc = new GridBagConstraints();
     final JPanel playbackPanel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+    int idx = 0;
+    ViewerUtil.setGBC(gbc, idx++, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
     playbackPanel.add(playButton, gbc);
-    ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+    if (!combinedPlayPause) {
+      ViewerUtil.setGBC(gbc, idx++, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+          new Insets(0, 8, 0, 0), 0, 0);
+      playbackPanel.add(pauseButton, gbc);
+    }
+    ViewerUtil.setGBC(gbc, idx++, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 8, 0, 0), 0, 0);
     playbackPanel.add(stopButton, gbc);
-    ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+    ViewerUtil.setGBC(gbc, idx++, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 8, 0, 0), 0, 0);
     playbackPanel.add(loopCheckBox, gbc);
 
@@ -801,6 +823,26 @@ public class SoundPanel extends JPanel implements Closeable {
     }
   }
 
+  /**
+   * Returns whether the specified option is listed in the options array.
+   *
+   * @param options Array of {@link Option} enums.
+   * @param option  {@link Option} to test.
+   * @return {@code true} if {@code option} is found in {@code options}, {@code false} otherwise.
+   */
+  private boolean isOption(Option[] options, Option option) {
+    boolean retVal = false;
+    if (options != null) {
+      for (final Option o : options) {
+        if (o == option) {
+          retVal = true;
+          break;
+        }
+      }
+    }
+    return retVal;
+  }
+
   // -------------------------- INNER CLASSES --------------------------
 
   /** Listeners for the SoundPanel class. */
@@ -813,9 +855,18 @@ public class SoundPanel extends JPanel implements Closeable {
       switch (e.getActionCommand()) {
         case CMD_PLAY:
           if (SoundPanel.this.isPlaying()) {
-            SoundPanel.this.setPaused(!SoundPanel.this.isPaused());
+            if (SoundPanel.this.combinedPlayPause) {
+              SoundPanel.this.setPaused(!SoundPanel.this.isPaused());
+            } else if (SoundPanel.this.isPaused()) {
+              SoundPanel.this.setPaused(false);
+            }
           } else {
             SoundPanel.this.setPlaying(true);
+          }
+          break;
+        case CMD_PAUSE:
+          if (SoundPanel.this.isPlaying()) {
+            SoundPanel.this.setPaused(true);
           }
           break;
         case CMD_STOP:
@@ -853,7 +904,7 @@ public class SoundPanel extends JPanel implements Closeable {
     private final ReentrantLock lock = new ReentrantLock();
     private final Thread thread;
 
-    private SingleAudioPlayer player;
+    private AudioPlayback player;
     private boolean running;
 
     /** Initializes the class instance and starts a background thread. */
@@ -864,7 +915,7 @@ public class SoundPanel extends JPanel implements Closeable {
     }
 
     /**
-     * Assigns a new {@link SingleAudioPlayer} instance to the runner. The old player instance, if any, is properly closed
+     * Assigns a new {@link BufferedAudioPlayer} instance to the runner. The old player instance, if any, is properly closed
      * before the new instance is assigned.
      *
      * @param newBuffer
@@ -877,14 +928,15 @@ public class SoundPanel extends JPanel implements Closeable {
       lock.lock();
       try {
         if (player != null) {
-          player.stop();
+          player.setPlaying(false);
           player.close();
           player = null;
         }
 
         if (newBuffer != null) {
-          player = new SingleAudioPlayer(newBuffer, this);
-          player.setLooped(SoundPanel.looped);
+          // TODO: externalize audio player instantiation to abstract audio player backend
+          player = new BufferedAudioPlayer(newBuffer, this);
+          ((BufferedAudioPlayback)player).setLooped(SoundPanel.looped);
         }
       } finally {
         lock.unlock();
@@ -902,13 +954,13 @@ public class SoundPanel extends JPanel implements Closeable {
     /** Returns whether loop mode is enabled. */
     @SuppressWarnings("unused")
     public boolean isLooped() {
-      return (player != null) ? player.isLooped() : false;
+      return (player instanceof BufferedAudioPlayback) ? ((BufferedAudioPlayback)player).isLooped() : false;
     }
 
     /** Enables or disable looped playback. */
     public void setLooped(boolean loop) {
-      if (player != null) {
-        player.setLooped(loop);
+      if (player instanceof BufferedAudioPlayback) {
+        ((BufferedAudioPlayback)player).setLooped(loop);
       }
     }
 
@@ -926,11 +978,7 @@ public class SoundPanel extends JPanel implements Closeable {
      */
     public void setPlaying(boolean play) {
       if (player != null) {
-        if (play) {
-          player.play();
-        } else {
-          player.stop();
-        }
+        player.setPlaying(play);
       }
     }
 
@@ -948,11 +996,7 @@ public class SoundPanel extends JPanel implements Closeable {
      */
     public void setPaused(boolean pause) {
       if (player != null) {
-        if (pause) {
-          player.pause();
-        } else {
-          player.resume();
-        }
+        player.setPaused(pause);
       }
     }
 
@@ -961,7 +1005,7 @@ public class SoundPanel extends JPanel implements Closeable {
      * initialized.
      */
     public long getTotalLength() {
-      return (player != null) ? player.getTotalLength() : 0L;
+      return (player instanceof BufferedAudioPlayback) ? ((BufferedAudioPlayback)player).getTotalLength() : 0L;
     }
 
     /**
@@ -978,8 +1022,8 @@ public class SoundPanel extends JPanel implements Closeable {
      * @param position New playback position in milliseconds. Position is clamped to the available audio clip duration.
      */
     public void setSoundPosition(int position) {
-      if (player != null) {
-        player.setSoundPosition(position);
+      if (player instanceof BufferedAudioPlayback) {
+        ((BufferedAudioPlayback)player).setSoundPosition(position);
       }
     }
 
@@ -1074,30 +1118,36 @@ public class SoundPanel extends JPanel implements Closeable {
     @SuppressWarnings("unused")
     public FixedSlider() {
       super();
+      init();
     }
 
     @SuppressWarnings("unused")
     public FixedSlider(int orientation) {
       super(orientation);
+      init();
     }
 
     @SuppressWarnings("unused")
     public FixedSlider(int min, int max) {
       super(min, max);
+      init();
     }
 
     @SuppressWarnings("unused")
     public FixedSlider(int min, int max, int value) {
       super(min, max, value);
+      init();
     }
 
     @SuppressWarnings("unused")
     public FixedSlider(int orientation, int min, int max, int value) {
       super(orientation, min, max, value);
+      init();
     }
 
     public FixedSlider(BoundedRangeModel brm) {
       super(brm);
+      init();
     }
 
     @Override
@@ -1130,6 +1180,30 @@ public class SoundPanel extends JPanel implements Closeable {
           m.mouseReleased(me);
         }
       }
+    }
+
+    private void processMousePressed(MouseEvent e) {
+      if (getUI() instanceof BasicSliderUI) {
+        final BasicSliderUI ui = (BasicSliderUI)getUI();
+        final int value;
+        if (getOrientation() == SwingConstants.VERTICAL) {
+          value = ui.valueForYPosition(e.getY());
+        } else {
+          value = ui.valueForXPosition(e.getX());
+        }
+        setValue(value);
+      } else {
+        Logger.debug("FixedSlider.getUI() not instance of BasicSliderUI");
+      }
+    }
+
+    private void init() {
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          processMousePressed(e);
+        }
+      });
     }
   }
 

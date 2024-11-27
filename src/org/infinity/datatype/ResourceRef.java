@@ -195,7 +195,8 @@ public class ResourceRef extends Datatype
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
 
-    soundPanel = new SoundPanel(SoundPanel.Option.TIME_LABEL, SoundPanel.Option.PROGRESS_BAR);
+    soundPanel = new SoundPanel(SoundPanel.Option.COMPACT_CONTROLS, SoundPanel.Option.TIME_LABEL,
+        SoundPanel.Option.PROGRESS_BAR);
     soundPanel.setDisplayFormat(SoundPanel.DisplayFormat.ELAPSED_TOTAL_PRECISE);
     soundPanel.setVisible(ResourceEntry.isSound(types));
 

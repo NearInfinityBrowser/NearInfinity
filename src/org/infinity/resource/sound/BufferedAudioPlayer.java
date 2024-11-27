@@ -4,7 +4,6 @@
 
 package org.infinity.resource.sound;
 
-import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Objects;
@@ -27,10 +26,10 @@ import org.tinylog.Logger;
 /**
    * A class for providing smooth and responsive playback of a single sound clip.
    * <p>
-   * None of the methods block execution. Playback state changes are propagated through {@link PropertyChangeEvent}s.
+   * None of the methods block execution. Playback state changes are propagated through {@link AudioStateEvent}s.
    * </p>
    */
-  public class SingleAudioPlayer implements AutoCloseable, LineListener {
+  public class BufferedAudioPlayer implements BufferedAudioPlayback, LineListener {
     private final EventListenerList listenerList = new EventListenerList();
 
     private final AudioBuffer audioBuffer;
@@ -48,7 +47,7 @@ import org.tinylog.Logger;
     private boolean looped;
     private boolean listenersEnabled;
 
-    public SingleAudioPlayer(AudioBuffer audioBuffer) throws Exception {
+    public BufferedAudioPlayer(AudioBuffer audioBuffer) throws Exception {
       this(audioBuffer, null);
     }
 
@@ -62,7 +61,7 @@ import org.tinylog.Logger;
      * @throws LineUnavailableException  if the audio line is not available due to resource restrictions.
      * @throws IllegalArgumentException if the audio data is invalid.
      */
-    public SingleAudioPlayer(AudioBuffer audioBuffer, AudioStateListener listener) throws Exception {
+    public BufferedAudioPlayer(AudioBuffer audioBuffer, AudioStateListener listener) throws Exception {
       this.audioBuffer = Objects.requireNonNull(audioBuffer);
       addAudioStateListener(listener);
       audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(this.audioBuffer.getAudioData()));
@@ -74,7 +73,7 @@ import org.tinylog.Logger;
       audioClip.setLoopPoints(0, -1);
     }
 
-    /** Returns the total length of the audio clip, in milliseconds. */
+    @Override
     public long getTotalLength() {
       if (isClosed()) {
         return 0L;
@@ -82,7 +81,7 @@ import org.tinylog.Logger;
       return audioClip.getMicrosecondLength() / 1_000L;
     }
 
-    /** Returns the elapsed playback time of the current clip, in milliseconds. */
+    @Override
     public long getElapsedTime() {
       if (isClosed()) {
         return 0L;
@@ -91,11 +90,7 @@ import org.tinylog.Logger;
       return position / 1_000L;
     }
 
-    /**
-     * Sets an explicit playback position.
-     *
-     * @param position New playback position in milliseconds. Position is clamped to the available audio clip duration.
-     */
+    @Override
     public void setSoundPosition(long position) {
       if (isClosed()) {
         return;
@@ -113,22 +108,19 @@ import org.tinylog.Logger;
         audioClip.setMicrosecondPosition(position);
         if (isPlaying) {
           audioClip.start();
+          setLooped();
         }
       } finally {
         setLineListenersEnabled(true);
       }
     }
 
-    /** Returns whether loop mode is enabled. */
+    @Override
     public boolean isLooped() {
       return looped;
     }
 
-    /**
-     * Enables or disable looped playback.
-     *
-     * @param loop Indicates whether to loop playback.
-     */
+    @Override
     public void setLooped(boolean loop) {
       if (isClosed()) {
         return;
@@ -142,64 +134,22 @@ import org.tinylog.Logger;
       setLooped();
     }
 
-    /** Use internally after each call {@link Clip#start()} to set up looping mode. */
-    private void setLooped() {
-      if (isClosed()) {
-        return;
-      }
-      if (isPlaying()) {
-        audioClip.loop(isLooped() ? Clip.LOOP_CONTINUOUSLY : 0);
-      }
-    }
-
-    /** Returns {@code true} if playback is active. Pausing and resuming playback does not affect the result. */
+    @Override
     public boolean isPlaying() {
       return !isClosed() && playing;
     }
 
     /**
-     * Starts playback of the associated audio data. Does nothing if the player is closed or already playing.
-     * Triggers a {@link PropertyChangeEvent} with the name {@link #PROPERTY_NAME_START}.
+     * Starts or stops playback of audio data. Triggers an {@link AudioStateEvent} if playback is started or stopped.
+     *
+     * @param play Specify {@code true} to start playback or {@code false} to stop playback.
      */
-    public void play() {
-      if (isClosed() || isPlaying()) {
-        return;
-      }
-
-      synchronized (audioClip) {
-        if (audioClip.isRunning()) {
-          audioClip.stop();
-          audioClip.flush();
-        }
-        playing = true;
-        paused = false;
-        audioClip.setFramePosition(0);
-        audioClip.start();
-        setLooped();
-      }
-    }
-
-    /**
-     * Stops active playback and sets position to the start of the clip. Does nothing if the player is closed or has
-     * stopped playback. Triggers a {@link PropertyChangeEvent} with the name {@link #PROPERTY_NAME_STOP}.
-     */
-    public void stop() {
-      if (isClosed() || !isPlaying()) {
-        return;
-      }
-
-      synchronized (audioClip) {
-        final boolean isPaused = isPaused();
-        playing = false;
-        paused = false;
-        if (isPaused) {
-          // Pause mode is technically "stop" mode, so we need to trigger a "STOP" event manually
-          update(new LineEvent(audioClip, LineEvent.Type.STOP, audioClip.getLongFramePosition()));
-        } else {
-          audioClip.stop();
-        }
-        audioClip.flush();
-        audioClip.setFramePosition(0);
+    @Override
+    public void setPlaying(boolean play) {
+      if (play) {
+        play();
+      } else {
+        stop();
       }
     }
 
@@ -207,57 +157,34 @@ import org.tinylog.Logger;
      * Returns {@code true} if playback is paused. Enabling or disabled the paused state does not affect playback
      * activity.
      */
+    @Override
     public boolean isPaused() {
       return isPlaying() && paused;
     }
 
     /**
-     * Pauses active playback. Does nothing if the player is closed, playback is not active, or already in the paused
-     * state. Triggers a {@link PropertyChangeEvent} with the name {@link #PROPERTY_NAME_PAUSE}.
+     * Enters or leaves paused state when playback is active. Does nothing is playback is stopped.
+     * Triggers an {@link AudioStateEvent} if playback is paused or resumed.
+     *
+     * @param pause Specify {@code true} to pause current playback or {@code false} to resume playback.
      */
-    public void pause() {
-      if (isClosed()) {
-        return;
-      }
-
-      synchronized (audioClip) {
-        if (isPlaying() && !isPaused()) {
-          paused = true;
-          audioClip.stop();
-          firePlaybackPaused();
-        }
+    @Override
+    public void setPaused(boolean pause) {
+      if (pause) {
+        pause();
+      } else {
+        resume();
       }
     }
 
-    /**
-     * Resumes previously paused playback. Does nothing if the player is closed, playback is not active, or not in the
-     * paused state. Triggers a {@link PropertyChangeEvent} with the name {@link #PROPERTY_NAME_RESUME}.
-     */
-    public void resume() {
-      if (isClosed()) {
-        return;
-      }
-
-      synchronized (audioClip) {
-        if (isPlaying() && isPaused()) {
-          paused = false;
-          audioClip.start();
-          setLooped();
-          firePlaybackResumed();
-        }
-      }
-    }
-
-    /** Returns whether the player has been closed. A closed player does not accept any playback commands. */
+    @Override
     public boolean isClosed() {
       return closed;
     }
 
-    /**
-     * Closes the player and releases any resources. Playback cannot be used anymore after calling this method.
-     */
+    /** Closes the player and releases all resources. A closed audio player does not accept new playback commands. */
     @Override
-    public void close() {
+    public void close() throws Exception {
       if (isClosed()) {
         return;
       }
@@ -265,6 +192,13 @@ import org.tinylog.Logger;
       closed = true;
       playing = false;
       paused = false;
+
+      // removing listeners
+      final AudioStateListener[] items = getAudioStateListeners();
+      for (int i = items.length - 1; i >= 0; i--) {
+        removeAudioStateListener(items[i]);
+      }
+
       synchronized (audioClip) {
         if (audioClip.isRunning()) {
           audioClip.stop();
@@ -278,12 +212,6 @@ import org.tinylog.Logger;
         Logger.warn(e);
       }
       audioStream = null;
-
-      // removing listeners
-      final AudioStateListener[] items = getAudioStateListeners();
-      for (int i = items.length - 1; i >= 0; i--) {
-        removeAudioStateListener(items[i]);
-      }
     }
 
     @Override
@@ -316,6 +244,96 @@ import org.tinylog.Logger;
     public void removeAudioStateListener(AudioStateListener l) {
       if (l != null) {
         listenerList.remove(AudioStateListener.class, l);
+      }
+    }
+
+    /** Use internally after each call {@link Clip#start()} to set up looping mode. */
+    private void setLooped() {
+      if (isClosed()) {
+        return;
+      }
+      if (isPlaying() && !isPaused()) {
+        audioClip.loop(isLooped() ? Clip.LOOP_CONTINUOUSLY : 0);
+      }
+    }
+
+    /** Starts playback of the associated audio data. Does nothing if the player is closed or already playing. */
+    private void play() {
+      if (isClosed() || isPlaying()) {
+        return;
+      }
+
+      synchronized (audioClip) {
+        if (audioClip.isRunning()) {
+          audioClip.stop();
+          audioClip.flush();
+        }
+        playing = true;
+        paused = false;
+        audioClip.setFramePosition(0);
+        audioClip.start();
+        setLooped();
+      }
+    }
+
+    /**
+     * Stops active playback and sets position to the start of the clip. Does nothing if the player is closed or has
+     * stopped playback.
+     */
+    private void stop() {
+      if (isClosed() || !isPlaying()) {
+        return;
+      }
+
+      synchronized (audioClip) {
+        final boolean isPaused = isPaused();
+        playing = false;
+        paused = false;
+        if (isPaused) {
+          // Pause mode is technically "stop" mode, so we need to trigger a "STOP" event manually
+          update(new LineEvent(audioClip, LineEvent.Type.STOP, audioClip.getLongFramePosition()));
+        } else {
+          audioClip.stop();
+        }
+        audioClip.flush();
+        audioClip.setFramePosition(0);
+      }
+    }
+
+    /**
+     * Pauses active playback. Does nothing if the player is closed, playback is not active, or already in the paused
+     * state.
+     */
+    private void pause() {
+      if (isClosed()) {
+        return;
+      }
+
+      synchronized (audioClip) {
+        if (isPlaying() && !isPaused()) {
+          paused = true;
+          audioClip.stop();
+          firePlaybackPaused();
+        }
+      }
+    }
+
+    /**
+     * Resumes previously paused playback. Does nothing if the player is closed, playback is not active, or not in the
+     * paused state.
+     */
+    private void resume() {
+      if (isClosed()) {
+        return;
+      }
+
+      synchronized (audioClip) {
+        if (isPlaying() && isPaused()) {
+          paused = false;
+          audioClip.start();
+          setLooped();
+          firePlaybackResumed();
+        }
       }
     }
 
