@@ -42,6 +42,12 @@ import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
 
+// TODO: remove class from project
+/**
+ * A music player for MUS files.
+ *
+ * @deprecated Superseded by {@link InfinityAmpPlus}.
+ */
 @Deprecated
 public final class InfinityAmp extends ChildFrame
     implements ActionListener, ListSelectionListener, Runnable, Closeable {

@@ -126,7 +126,7 @@ public class SoundPanel extends JPanel implements Closeable {
      */
     private final String fmt;
 
-    private DisplayFormat(String fmt) {
+    DisplayFormat(String fmt) {
       this.fmt = fmt;
     }
 
@@ -239,7 +239,7 @@ public class SoundPanel extends JPanel implements Closeable {
    *
    * @param entry   {@link ResourceEntry} of the sound resource.
    * @param format  {@link DisplayFormat} enum with the format description. {@code null} resolves to
-   *                  {@link DisplayFormat#NONE}.
+   *                  {@link DisplayFormat#ELAPSED_TOTAL}.
    * @param options A set of {@link Option} values that controls visibility of optional control elements.
    * @throws ResourceNotFoundException if the resource referenced by the {@code ResourceEntry} parameter does not exist.
    * @throws NullPointerException      if {@code entry} is {@code null}.
@@ -253,7 +253,7 @@ public class SoundPanel extends JPanel implements Closeable {
    *
    * @param entry    {@link ResourceEntry} of the sound resource.
    * @param format   {@link DisplayFormat} enum with the format description. {@code null} resolves to
-   *                   {@link DisplayFormat#NONE}.
+   *                   {@link DisplayFormat#ELAPSED_TOTAL}.
    * @param playback Specifies whether sound playback should start automatically.
    * @param options  A set of {@link Option} values that controls visibility of optional control elements.
    * @throws ResourceNotFoundException if the resource referenced by the {@code ResourceEntry} parameter does not exist.
@@ -313,7 +313,7 @@ public class SoundPanel extends JPanel implements Closeable {
     final Supplier<Throwable> operation = () -> {
       try {
         AudioBuffer.AudioOverride override = null;
-        AudioBuffer buffer = null;
+        AudioBuffer buffer;
 
         // ignore # channels in ACM headers
         if (entry.getExtension().equalsIgnoreCase("ACM")) {
@@ -365,6 +365,7 @@ public class SoundPanel extends JPanel implements Closeable {
     try {
       runner.setAudio(null);
     } catch (Exception e) {
+      Logger.debug(e);
     }
   }
 
@@ -583,20 +584,15 @@ public class SoundPanel extends JPanel implements Closeable {
     // collecting
     stateListeners.clear();
     final Object[] entries = getAudioStateListeners();
-    AudioStateEvent evt = null;
     for (int i = entries.length - 2; i >= 0; i -= 2) {
       if (entries[i] == AudioStateListener.class) {
-        // event object is lazily created
-        if (evt == null) {
-          evt = new AudioStateEvent(this, state, value);
-        }
         stateListeners.add((AudioStateListener) entries[i + 1]);
       }
     }
 
     // executing
     if (!stateListeners.isEmpty()) {
-      final AudioStateEvent event = evt;
+      final AudioStateEvent event = new AudioStateEvent(this, state, value);
       SwingUtilities.invokeLater(() -> stateListeners.forEach(l -> l.audioStateChanged(event)));
     }
   }
@@ -625,16 +621,16 @@ public class SoundPanel extends JPanel implements Closeable {
 
   /** Fires a {@link AudioStateEvent} when entering the paused state. */
   private void fireSoundPaused() {
-    fireAudioStateEvent(AudioStateEvent.State.PAUSE, Long.valueOf(runner.getElapsedTime()));
+    fireAudioStateEvent(AudioStateEvent.State.PAUSE, runner.getSoundPosition());
   }
 
   /** Fires a {@link AudioStateEvent} when resuming from the paused state. */
   private void fireSoundResumed() {
-    fireAudioStateEvent(AudioStateEvent.State.RESUME, Long.valueOf(runner.getElapsedTime()));
+    fireAudioStateEvent(AudioStateEvent.State.RESUME, runner.getSoundPosition());
   }
 
   private void updateLabel() {
-    final long elapsedTime = runner.getElapsedTime();
+    final long elapsedTime = runner.getSoundPosition();
     final long totalTime = runner.getTotalLength();
     final String displayString = getDisplayFormat().toString(elapsedTime, totalTime);
     displayLabel.setText(displayString);
@@ -645,6 +641,8 @@ public class SoundPanel extends JPanel implements Closeable {
 
   /** Updates playback UI controls to reflect the current state. */
   private void updateControls() {
+//    Logger.trace("SoundPanel.updateControls: isAvailable={}, isPlaying={}, isPaused={}", runner.isAvailable(),
+//        runner.isPlaying(), runner.isPaused());
     if (runner.isAvailable()) {
       if (runner.isPlaying()) {
         if (combinedPlayPause) {
@@ -685,11 +683,11 @@ public class SoundPanel extends JPanel implements Closeable {
       if (duration < 45_000) {
         // major: per ten seconds, minor: per second
         progressSlider.setMajorTickSpacing(10_000);
-        progressSlider.setMinorTickSpacing(1_000);
+        progressSlider.setMinorTickSpacing(1000);
       } else {
         // major: per minute, minor: per ten seconds
         progressSlider.setMajorTickSpacing(30_000);
-        progressSlider.setMinorTickSpacing(5_000);
+        progressSlider.setMinorTickSpacing(5000);
       }
       initSliderTickLabels();
     } else {
@@ -710,7 +708,7 @@ public class SoundPanel extends JPanel implements Closeable {
     final Hashtable<Integer, JLabel> labels = new Hashtable<>();
     final int spacing = progressSlider.getMajorTickSpacing();
     for (int pos = progressSlider.getMinimum(); pos < progressSlider.getMaximum(); pos += spacing) {
-      labels.put(Integer.valueOf(pos), createSliderTickLabel(pos));
+      labels.put(pos, createSliderTickLabel(pos));
     }
 
     // add label for end of range if suitable
@@ -724,7 +722,7 @@ public class SoundPanel extends JPanel implements Closeable {
     }
     final int remainingSpace = (progressSlider.getMaximum() - progressSlider.getMinimum()) % spacing;
     if (remainingSpace > minSpace) {
-      labels.put(Integer.valueOf(progressSlider.getMaximum()), createSliderTickLabel(progressSlider.getMaximum()));
+      labels.put(progressSlider.getMaximum(), createSliderTickLabel(progressSlider.getMaximum()));
     }
 
     if (!labels.isEmpty()) {
@@ -735,7 +733,7 @@ public class SoundPanel extends JPanel implements Closeable {
   /** Creates a label for a slider tick with the specified time value. */
   private static JLabel createSliderTickLabel(int timeMs) {
     final int min = timeMs / 60_000;
-    final int sec = (timeMs / 1_000) % 60;
+    final int sec = (timeMs / 1000) % 60;
     final JLabel label = new JLabel(String.format("%02d:%02d", min, sec));
     final Font font = label.getFont();
     label.setFont(font.deriveFont(Font.PLAIN, font.getSize2D() * 0.75f));
@@ -915,14 +913,14 @@ public class SoundPanel extends JPanel implements Closeable {
     }
 
     /**
-     * Assigns a new {@link BufferedAudioPlayer} instance to the runner. The old player instance, if any, is properly closed
-     * before the new instance is assigned.
+     * Assigns a new {@link BufferedAudioPlayer} instance to the runner. The old player instance, if any, is properly
+     * closed before the new instance is assigned.
      *
-     * @param newBuffer
-     * @throws IOException if an I/O error occurs.
+     * @param newBuffer the {@link AudioBuffer} object to load.
+     * @throws IOException                   if an I/O error occurs.
      * @throws UnsupportedAudioFileException if the audio data is incompatible with the player.
-     * @throws LineUnavailableException if the audio line is not available due to resource restrictions.
-     * @throws IllegalArgumentException if the audio data is invalid.
+     * @throws LineUnavailableException      if the audio line is not available due to resource restrictions.
+     * @throws IllegalArgumentException      if the audio data is invalid.
      */
     public void setAudio(AudioBuffer newBuffer) throws Exception{
       lock.lock();
@@ -954,7 +952,7 @@ public class SoundPanel extends JPanel implements Closeable {
     /** Returns whether loop mode is enabled. */
     @SuppressWarnings("unused")
     public boolean isLooped() {
-      return (player instanceof BufferedAudioPlayback) ? ((BufferedAudioPlayback)player).isLooped() : false;
+      return player instanceof BufferedAudioPlayback && ((BufferedAudioPlayback) player).isLooped();
     }
 
     /** Enables or disable looped playback. */
@@ -969,7 +967,7 @@ public class SoundPanel extends JPanel implements Closeable {
      * Returns {@code false} if the player is not initialized.
      */
     public boolean isPlaying() {
-      return (player != null) ? player.isPlaying() : false;
+      return (player != null) && player.isPlaying();
     }
 
     /**
@@ -987,7 +985,7 @@ public class SoundPanel extends JPanel implements Closeable {
      * state. Always returns {@code false} if playback is stopped or the player is not initialized.
      */
     public boolean isPaused() {
-      return (player != null) ? player.isPaused() : false;
+      return (player != null) && player.isPaused();
     }
 
     /**
@@ -1012,8 +1010,8 @@ public class SoundPanel extends JPanel implements Closeable {
      * Returns the elapsed playback time of the sound clip, in milliseconds. Returns {@code 0} if the player is not
      * initialized.
      */
-    public long getElapsedTime() {
-      return (player != null) ? player.getElapsedTime() : 0L;
+    public long getSoundPosition() {
+      return (player != null) ? player.getSoundPosition() : 0L;
     }
 
     /**
@@ -1044,6 +1042,7 @@ public class SoundPanel extends JPanel implements Closeable {
       try {
         setAudio(null);
       } catch (Exception e) {
+        Logger.debug(e);
       }
       updatePanel();
     }
@@ -1077,6 +1076,7 @@ public class SoundPanel extends JPanel implements Closeable {
 
     @Override
     public void audioStateChanged(AudioStateEvent event) {
+//      Logger.trace("{}.audioStateChanged({})", SoundPanel.class.getSimpleName(), event);
       switch (event.getAudioState()) {
         case START:
           SoundPanel.this.fireSoundStarted();
@@ -1245,7 +1245,7 @@ public class SoundPanel extends JPanel implements Closeable {
         if (newValue + getExtent() > getMaximum()) {
           newValue = getMaximum() - getExtent();
         }
-        adjustedValue = getValidatedValue(n);
+        adjustedValue = getValidatedValue(newValue);
         fireStateChanged();
       } else {
         super.setValue(n);

@@ -16,6 +16,8 @@ import java.util.EventObject;
 public class AudioStateEvent extends EventObject {
   /** Provides available audio states. */
   public enum State {
+    /** An unrecoverable error was triggered during audio playback. Associated value: the thrown {@link Exception}. */
+    ERROR,
     /**
      * A sound resource has been successfully opened and is ready for playback. Associated value: Sound resource name
      * {@link String}) if available, {@code null} otherwise.
@@ -26,7 +28,10 @@ public class AudioStateEvent extends EventObject {
      * {@code null} otherwise.
      */
     CLOSE,
-    /** Playback of the current sound clip has started from the beginning. Associated value: {@code null} */
+    /**
+     * Playback of the current sound clip has started from the beginning. Associated value: {@code null}
+     * <p><strong>Note:</strong> This state is only triggered if the audio line starts processing actual audio data.</p>
+     */
     START,
     /** Playback of the current sound clip has stopped. Associated value: {@code null} */
     STOP,
@@ -34,10 +39,15 @@ public class AudioStateEvent extends EventObject {
     PAUSE,
     /** Paused playback is resumed. Associated value: Elapsed time in milliseconds ({@link Long}) */
     RESUME,
+    /**
+     * Streamed audio playback only: The current audio buffer contains no more data. Associated value: {@link Boolean}
+     * that indicates whether more audio buffers are queued.
+     */
+    BUFFER_EMPTY,
   }
 
-  private AudioStateEvent.State audioState;
-  private Object value;
+  private final AudioStateEvent.State audioState;
+  private final Object value;
 
   public AudioStateEvent(Object source, AudioStateEvent.State audioState, Object value) {
     super(source);
@@ -56,10 +66,9 @@ public class AudioStateEvent extends EventObject {
   }
 
   public String toString() {
-    StringBuilder sb = new StringBuilder(getClass().getName());
-    sb.append("[audioState=").append(getAudioState());
-    sb.append("; value=").append(getValue());
-    sb.append("; source=").append(getSource());
-    return sb.append("]").toString();
+    return getClass().getName() + "[audioState=" + getAudioState() +
+        "; value=" + getValue() +
+        "; source=" + getSource() +
+        "]";
   }
 }

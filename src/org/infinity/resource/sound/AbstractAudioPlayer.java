@@ -4,10 +4,16 @@
 
 package org.infinity.resource.sound;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.LineListener;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
+
+import org.infinity.util.Logger;
 
 /**
  * Common base for audio player classes.
@@ -44,11 +50,17 @@ public abstract class AbstractAudioPlayer implements AudioPlayback, LineListener
       if (listeners.length > 0) {
         final AudioStateEvent event = new AudioStateEvent(this, state, value);
         SwingUtilities.invokeLater(() -> {
-          for (int i = 0; i < listeners.length; i++)
-            listeners[i].audioStateChanged(event);
+          for (AudioStateListener listener : listeners) {
+            listener.audioStateChanged(event);
+          }
         });
       }
     }
+  }
+
+  /** Fires if an unrecoverable error occurs during audio playback. */
+  protected void fireError(Exception e) {
+    fireAudioStateEvent(AudioStateEvent.State.ERROR, e);
   }
 
   /** Fires when the the audio device is opened. */
@@ -73,12 +85,12 @@ public abstract class AbstractAudioPlayer implements AudioPlayback, LineListener
 
   /** Fires when playback is set to paused mode. */
   protected void firePlaybackPaused() {
-    fireAudioStateEvent(AudioStateEvent.State.PAUSE, Long.valueOf(getElapsedTime()));
+    fireAudioStateEvent(AudioStateEvent.State.PAUSE, getSoundPosition());
   }
 
   /** Fires when paused playback is resumed. */
   protected void firePlaybackResumed() {
-    fireAudioStateEvent(AudioStateEvent.State.RESUME, Long.valueOf(getElapsedTime()));
+    fireAudioStateEvent(AudioStateEvent.State.RESUME, getSoundPosition());
   }
 
   /**
@@ -95,6 +107,11 @@ public abstract class AbstractAudioPlayer implements AudioPlayback, LineListener
 
   /** Specifies whether {@link Line}'s status changes should be tracked by this class instance. */
   protected void setLineListenersEnabled(boolean enable) {
+    if (getLine() == null) {
+      listenersEnabled = false;
+      return;
+    }
+
     if (enable != listenersEnabled) {
       if (enable) {
         getLine().addLineListener(this);
@@ -105,4 +122,32 @@ public abstract class AbstractAudioPlayer implements AudioPlayback, LineListener
     }
   }
 
+  /**
+   * Diagnostic method that prints all available sound mixers and their supported audio formats to {@code stdout}.
+   */
+  public static void printMixerInfo() {
+    final StringBuilder sb = new StringBuilder("Available sound mixers:\n");
+    try {
+      final Mixer.Info[] mixersInfo = AudioSystem.getMixerInfo();
+      for (final Mixer.Info mi : mixersInfo) {
+        final Mixer mixer = AudioSystem.getMixer(mi);
+        sb.append("  Mixer: ").append(mixer).append('\n');
+        Line.Info[] sourceLinesInfo = mixer.getSourceLineInfo();
+        for (final Line.Info sli : sourceLinesInfo) {
+          sb.append("    Line: ").append(sli).append('\n');
+          if (sli instanceof SourceDataLine.Info) {
+            final SourceDataLine.Info info = (SourceDataLine.Info)sli;
+            final AudioFormat[] formats = info.getFormats();
+            for (final AudioFormat af : formats) {
+              sb.append("      Format: ").append(af).append('\n');
+            }
+          }
+        }
+      }
+      System.out.println(sb);
+    } catch (Throwable t) {
+      System.out.println(sb);
+      Logger.warn(t);
+    }
+  }
 }

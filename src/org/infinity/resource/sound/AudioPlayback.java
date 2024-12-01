@@ -12,10 +12,14 @@ import org.infinity.resource.Closeable;
 public interface AudioPlayback extends Closeable {
   /**
    * Returns the elapsed playback time of audio data.
+   * <p>
+   * <strong>Caution:</strong> Depending on the implementation, return value may be inaccurate if source and target
+   * audio formats specify different sample rates.
+   * </p>
    *
    * @return Elapsed playback time, in milliseconds.
    */
-  long getElapsedTime();
+  long getSoundPosition();
 
   /**
    * Returns whether playback is active. Pausing and resuming playback does not affect the result.

@@ -65,8 +65,7 @@ public class ResourceRef extends Datatype
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
   /** List of resource types that are can be used to display associated icons.  */
-  private static final HashSet<String> ICON_EXTENSIONS = new HashSet<>(
-      Arrays.asList(new String[] { "BMP", "ITM", "SPL" }));
+  private static final HashSet<String> ICON_EXTENSIONS = new HashSet<>(Arrays.asList("BMP", "ITM", "SPL"));
 
   /** Special constant that represents absense of resource in the field. */
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");

@@ -17,6 +17,10 @@ public interface BufferedAudioPlayback extends AudioPlayback {
 
   /**
    * Sets an explicit playback position.
+   * <p>
+   * <strong>Caution:</strong> Depending on the implementation, specified value may point to the wrong position if
+   * source and target audio formats specify different sample rates.
+   * </p>
    *
    * @param position New playback position in milliseconds. Position is clamped to the available audio clip duration.
    */

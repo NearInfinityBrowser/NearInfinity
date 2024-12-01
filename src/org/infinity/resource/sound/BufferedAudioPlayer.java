@@ -39,6 +39,8 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
   private boolean paused;
   /** Indicates whether playback is looped. */
   private boolean looped;
+  /** Marks pause/resume state changes internally to fire correct state events. */
+  private boolean pauseResume;
 
   /**
    * Creates a new audio player and initializes it with the specified audio buffer.
@@ -82,16 +84,16 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
     if (isClosed()) {
       return 0L;
     }
-    return audioClip.getMicrosecondLength() / 1_000L;
+    return audioClip.getMicrosecondLength() / 1000L;
   }
 
   @Override
-  public long getElapsedTime() {
+  public long getSoundPosition() {
     if (isClosed()) {
       return 0L;
     }
     long position = audioClip.getMicrosecondPosition() % audioClip.getMicrosecondLength();
-    return position / 1_000L;
+    return position / 1000L;
   }
 
   @Override
@@ -100,7 +102,7 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
       return;
     }
 
-    position = Math.max(0L, Math.min(audioClip.getMicrosecondLength(), position * 1_000L));
+    position = Math.max(0L, Math.min(audioClip.getMicrosecondLength(), position * 1000L));
 
     try {
       setLineListenersEnabled(false);
@@ -197,12 +199,6 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
     playing = false;
     paused = false;
 
-    // removing listeners
-    final AudioStateListener[] items = getAudioStateListeners();
-    for (int i = items.length - 1; i >= 0; i--) {
-      removeAudioStateListener(items[i]);
-    }
-
     synchronized (audioClip) {
       if (audioClip.isRunning()) {
         audioClip.stop();
@@ -210,21 +206,37 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
       audioClip.flush();
       audioClip.close();
     }
+
     try {
       audioStream.close();
     } catch (IOException e) {
       Logger.warn(e);
     }
     audioStream = null;
+
+    // removing listeners
+    final AudioStateListener[] items = getAudioStateListeners();
+    for (int i = items.length - 1; i >= 0; i--) {
+      removeAudioStateListener(items[i]);
+    }
   }
 
   @Override
   public void update(LineEvent event) {
     if (event.getType() == LineEvent.Type.START) {
-      firePlaybackStarted();
+      if (!pauseResume) {
+        firePlaybackStarted();
+      } else {
+        pauseResume = false;
+      }
     } else if (event.getType() == LineEvent.Type.STOP) {
-      playing = paused;   // override if paused to keep state consistent
-      firePlaybackStopped();
+      if (!pauseResume) {
+        playing = false;
+        firePlaybackStopped();
+      } else {
+        playing = true;   // override if paused to keep state consistent
+        pauseResume = false;
+      }
     } else if (event.getType() == LineEvent.Type.OPEN) {
       firePlayerOpened();
     } else if (event.getType() == LineEvent.Type.CLOSE) {
@@ -301,6 +313,7 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
 
     synchronized (audioClip) {
       if (isPlaying() && !isPaused()) {
+        pauseResume = true;
         paused = true;
         audioClip.stop();
         firePlaybackPaused();
@@ -319,6 +332,7 @@ public class BufferedAudioPlayer extends AbstractAudioPlayer implements Buffered
 
     synchronized (audioClip) {
       if (isPlaying() && isPaused()) {
+        pauseResume = true;
         paused = false;
         audioClip.start();
         setLooped();

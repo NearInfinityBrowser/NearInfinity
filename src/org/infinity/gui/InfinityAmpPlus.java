@@ -26,7 +26,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -79,6 +78,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPopupMenu.Align;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -86,8 +86,10 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.mus.Entry;
-import org.infinity.resource.sound.AudioBuffer;
-import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.resource.mus.MusResourceHandler;
+import org.infinity.resource.sound.AudioStateEvent;
+import org.infinity.resource.sound.AudioStateListener;
+import org.infinity.resource.sound.StreamingAudioPlayer;
 import org.infinity.util.InputKeyHelper;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
@@ -95,14 +97,13 @@ import org.infinity.util.SimpleListModel;
 import org.infinity.util.StopWatch;
 import org.infinity.util.Threading;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 
 /**
- * A global music player for MUS files found in all supported IE games. It supercedes the original {@link InfinityAmp}
+ * A global music player for MUS files found in all supported IE games. It supersedes the original {@link InfinityAmp}
  * music player.
  */
-public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
+public class InfinityAmpPlus extends ChildFrame implements Closeable {
   // static window title
   private static final String TITLE_DEFAULT = "InfinityAmp";
   // format string for window title: resource name, directory
@@ -185,26 +186,26 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   private final JRadioButtonMenuItem rbmiPathAsSuffix = new JRadioButtonMenuItem("Format: <filename.MUS> (<path>)");
   private final JRadioButtonMenuItem rbmiPathAsPrefix = new JRadioButtonMenuItem("Format: (<path>) <filename.MUS>");
 
+  // Stores the previously played back MUS entries if Shuffle mode is enabled
+  private final List<Integer> undoPlayListItems = new ArrayList<>();
   private final Listeners listeners = new Listeners();
-  private final AudioPlayer player = new AudioPlayer();
   private final Random random = new Random();
   private final StopWatch timer = new StopWatch(1000L, false);
 
-  // Stores the previously played back MUS entries if Shuffle mode is enabled
-  private final List<Integer> undoPlayListItems = new ArrayList<>();
+  private final StreamingAudioPlayer player;
 
-  private boolean playing = false;
-  private boolean paused = false;
+  private MusResourceHandler musHandler;
   private boolean requestNextItem = false;
 
   public InfinityAmpPlus() {
     super(TITLE_DEFAULT, false, false);
+    player = initPlayer(true);
     init();
   }
 
   @Override
   public void close() {
-    stopPlayback();
+    closePlayer();
     Entry.clearCache();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(listeners::dispatchKeyEvent);
     savePreferences();
@@ -214,29 +215,6 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   protected void gameReset(boolean refreshOnly) {
     // Update the window content to reflect a potentially changed game configuration
     refreshAllResourceEntries();
-  }
-
-  @Override
-  public void run() {
-    int index = Threading.invokeInEventThread(this::setCurrentPlayListItem, 0);
-    if (index < 0) {
-      Threading.invokeInEventThread(this::stopPlayback, false);
-      return;
-    }
-
-    while (isPlaying() && !isNextItemRequested() && index >= 0) {
-      final MusicResourceEntry musFile = playListModel.get(index);
-      playMusic(musFile);
-      if (isPlaying() && !isNextItemRequested()) {
-        index = Threading.invokeInEventThread(this::setNextPlayListItem, -1);
-      }
-    }
-
-    if (isNextItemRequested()) {
-      acceptNextItem();
-    } else {
-      Threading.invokeInEventThread(this::stopPlayback, false);
-    }
   }
 
   /** Scans available music list and playlist for non-existing files. */
@@ -282,15 +260,16 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
 
   /** Returns whether playback is currently active. Paused state does not affect the result. */
   public boolean isPlaying() {
-    return playing;
+    return player.isPlaying();
   }
 
   public synchronized void setPlaying(boolean play) {
     if (play != isPlaying()) {
       if (play) {
-        startPlayback();
+        player.setPlaying(true);
       } else {
-        stopPlayback();
+        player.setPlaying(false);
+        player.clearAudioQueue();
       }
     }
   }
@@ -301,22 +280,11 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
    * @return {@code true} only if playback is enabled but paused, {@code false} otherwise.
    */
   public boolean isPaused() {
-    return isPlaying() && paused;
+    return player.isPaused();
   }
 
   public synchronized void setPaused(boolean pause) {
-    if (isPlaying()) {
-      if (pause != isPaused()) {
-        player.setPaused(pause);
-        paused = pause;
-        if (paused) {
-          timer.pause();
-        } else {
-          timer.resume();
-        }
-        updatePlayListButtons();
-      }
-    }
+    player.setPaused(pause);
   }
 
   /** Returns whether Loop mode is enabled. */
@@ -502,49 +470,6 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     return retVal;
   }
 
-  /**
-   * Plays back the specified MUS resource. This method is called internally by the playback thread.
-   *
-   * @param musEntry {@link MusicResourceEntry} of the MUS file to play back.
-   */
-  private void playMusic(MusicResourceEntry musEntry) {
-    if (musEntry == null || !Files.isRegularFile(musEntry.getActualPath())) {
-      return;
-    }
-
-    try {
-      final List<Entry> entryList = parseMusFile(musEntry);
-      int index = 0;
-      timer.pause();
-      timer.reset();
-      if (isPlaying()) {
-        Threading.invokeInEventThread(() -> updateTimeDisplay(musEntry));
-        updateTimeDisplay(musEntry);
-      }
-      while (isPlaying() && !isNextItemRequested()) {
-        timer.resume();
-        final Entry entry = entryList.get(index);
-        if (!isSoundExcluded(entry)) {
-          final AudioBuffer audio = entry.getAudioBuffer();
-          player.playContinuous(audio);
-        }
-        if (entry.getNextNr() <= index || entry.getNextNr() >= entryList.size()) {
-          break;
-        }
-        index = entry.getNextNr();
-      }
-
-      final Entry entry = entryList.get(index);
-      if (isPlaying() && !isNextItemRequested() && entry.getEndBuffer() != null && !isSoundExcluded(entry)) {
-        player.play(entry.getEndBuffer());
-      }
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(this, String.format("Error playing %s\n%s", musEntry, e.getMessage()),
-          "Error", JOptionPane.ERROR_MESSAGE);
-      Logger.error(e);
-    }
-  }
-
   /** Calculates duration of all available song entries. */
   private void calculateDurations() {
     for (int i = 0, size = availableListModel.size(); i < size; i++) {
@@ -561,7 +486,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   private synchronized void requestNextItem() {
     if (isPlaying() && !isNextItemRequested()) {
       requestNextItem = true;
-      stopPlayback();
+      setPlaying(false);
     }
   }
 
@@ -569,68 +494,8 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   private synchronized void acceptNextItem() {
     if (isNextItemRequested()) {
       requestNextItem = false;
-      startPlayback();
+      setPlaying(true);
     }
-  }
-
-  /**
-   * Starts playback of the first selected playlist item.
-   *
-   * @return {@code true} if playback is started by this method call, {@code false} otherwise.
-   */
-  private boolean startPlayback() {
-    if (isPlaying()) {
-      return false;
-    }
-
-    int index = playList.getSelectedIndex();
-    if (index < 0 && !playListModel.isEmpty()) {
-      index = 0;
-    }
-    if (index < 0) {
-      return false;
-    }
-
-    playList.setSelectedIndex(index);
-    playing = true;
-    new Thread(this).start();
-    timer.reset();
-    timer.resume();
-    availableList.setEnabled(false);
-    playList.setEnabled(false);
-    elapsedTimeLabel.setEnabled(true);
-    updateAvailableListButtons();
-    updatePlayListButtons();
-    updateTransferButtons();
-    updateTimeDisplay(playList.getSelectedValue());
-    updateWindowTitle();
-    return true;
-  }
-
-  /**
-   * Stops current playback.
-   *
-   * @return {@code true} if playback was enabled and has been stopped by this method call, {@code false} otherwise.
-   */
-  private boolean stopPlayback() {
-    if (!isPlaying()) {
-      return false;
-    }
-
-    paused = false;
-    playing = false;
-    player.stopPlay();
-    timer.pause();
-    timer.reset();
-    availableList.setEnabled(true);
-    playList.setEnabled(true);
-    elapsedTimeLabel.setEnabled(false);
-    updateWindowTitle();
-    updateTimeDisplay(null);
-    updateAvailableListButtons();
-    updatePlayListButtons();
-    updateTransferButtons();
-    return true;
   }
 
   /**
@@ -796,7 +661,8 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     try (final Stream<Path> fstream = Files.list(musicDir)) {
       final List<MusicResourceEntry> fileList = fstream
           .map(file -> {
-            if (Files.isRegularFile(file) && !inAvailableList(file)) {
+            if (Files.isRegularFile(file) && file.getFileName().toString().toLowerCase().endsWith(".mus") &&
+                !inAvailableList(file)) {
               try {
                 return new MusicResourceEntry(file, isPathAsPrefix());
               } catch (Exception e) {
@@ -1008,7 +874,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
       fromPlayListButton.setEnabled(false);
       moveUpButton.setEnabled(false);
       moveDownButton.setEnabled(false);
-    } else {
+    } else if (!isNextItemRequested()) {
       toPlayListButton.setEnabled(!availableList.getSelectionModel().isSelectionEmpty());
       fromPlayListButton.setEnabled(!playList.getSelectionModel().isSelectionEmpty());
 
@@ -1043,6 +909,14 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
 
   /** Updates the media buttons for the playlist. */
   private void updatePlayListButtons() {
+    if (!isPlayerAvailable()) {
+      prevMusicButton.setEnabled(false);
+      nextMusicButton.setEnabled(false);
+      playMusicButton.setEnabled(false);
+      stopMusicButton.setEnabled(false);
+      return;
+    }
+
     final int[] indices = playList.getSelectedIndices();
     if (playListModel.isEmpty() || indices.length == 0) {
       prevMusicButton.setEnabled(false);
@@ -1089,13 +963,13 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
    */
   private void updateTimeDisplay(MusicResourceEntry resourceEntry) {
     if (resourceEntry != null) {
-      final long elapsed = StopWatch.toSeconds(timer.elapsed());
-      final long elapsedSec = elapsed % 60L;
-      final long elapsedMin = elapsed / 60L;
+      final int elapsed = (int) StopWatch.toSeconds(timer.elapsed());
+      final int elapsedMin = elapsed / 60;
+      final int elapsedSec = elapsed % 60;
       if (resourceEntry.isDurationAvailable()) {
-        final long duration = resourceEntry.getDuration() / 1000L;
-        final long totalSec = duration % 60L;
-        final long totalMin = duration / 60L;
+        final int duration = resourceEntry.getDurationSeconds();
+        final int totalMin = duration / 60;
+        final int totalSec = duration % 60;
         elapsedTimeLabel.setText(String.format(PLAYTIME_FMT, elapsedMin, elapsedSec, totalMin, totalSec));
       } else {
         elapsedTimeLabel.setText(String.format(PLAYTIME_SHORT_FMT, elapsedMin, elapsedSec));
@@ -1119,6 +993,117 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     }
 
     setTitle(title);
+  }
+
+  /** Called when the audio player triggers an {@code OPEN} event. */
+  private void handleAudioOpenEvent(Object value) {
+    // nothing to do
+  }
+
+  /** Called when the audio player triggers a {@code CLOSE} event. */
+  private void handleAudioCloseEvent(Object value) {
+    // nothing to do
+  }
+
+  /** Called when the audio player triggers a {@code START} event. */
+  private void handleAudioStartEvent() {
+    timer.reset();
+    timer.resume();
+    availableList.setEnabled(false);
+    playList.setEnabled(false);
+    elapsedTimeLabel.setEnabled(true);
+    updateAvailableListButtons();
+    updatePlayListButtons();
+    updateTransferButtons();
+    updateTimeDisplay(playList.getSelectedValue());
+    updateWindowTitle();
+  }
+
+  /** Called when the audio player triggers a {@code STOP} event. */
+  private void handleAudioStopEvent() {
+    if (musHandler != null) {
+      try {
+        musHandler.close();
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+      musHandler = null;
+    }
+
+    if (isNextItemRequested()) {
+      acceptNextItem();
+    } else {
+      timer.pause();
+      timer.reset();
+      availableList.setEnabled(true);
+      playList.setEnabled(true);
+      elapsedTimeLabel.setEnabled(false);
+      updateWindowTitle();
+      updateTimeDisplay(null);
+      updateAvailableListButtons();
+      updatePlayListButtons();
+      updateTransferButtons();
+    }
+  }
+
+  /** Called when the audio player triggers a {@code PAUSE} event. */
+  private void handleAudioPauseEvent(Object value) {
+    timer.pause();
+    updatePlayListButtons();
+  }
+
+  /** Called when the audio player triggers a {@code RESUME} event. */
+  private void handleAudioResumeEvent(Object value) {
+    timer.resume();
+    updatePlayListButtons();
+  }
+
+  /** Called when the audio player triggers a {@code BUFFER_EMPTY} event. */
+  private void handleAudioBufferEmptyEvent(Object value) {
+    if (musHandler == null) {
+      // loading currently selected MUS resource
+      int index = setCurrentPlayListItem();
+      if (index < 0) {
+        setPlaying(false);
+        return;
+      }
+
+      try {
+        musHandler = new MusResourceHandler(playListModel.get(index), 0, true, false);
+      } catch (Exception e) {
+        handleAudioErrorEvent(e);
+        return;
+      }
+    }
+
+    boolean advanced;
+    for (advanced = musHandler.advance(); advanced; advanced = musHandler.advance()) {
+      if (!isSoundExcluded(musHandler.getCurrentEntry())) {
+        player.addAudioBuffer(musHandler.getAudioBuffer());
+        break;
+      }
+    }
+
+    if (!advanced) {
+      if (setNextPlayListItem() >= 0) {
+        requestNextItem();
+      } else {
+        setPlaying(false);
+      }
+    }
+  }
+
+  /** Called when the audio player triggers an {@code ERROR} event. */
+  private void handleAudioErrorEvent(Object value) {
+    requestNextItem = false;
+    setPlaying(false);
+
+    final Exception e = (value instanceof Exception) ? (Exception)value : null;
+    if (e != null) {
+      Logger.error(e);
+    }
+    final String msg = (e != null) ? "Error during playback:\n" + e.getMessage() : "Error during playback.";
+    JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
   }
 
   private void init() {
@@ -1166,10 +1151,12 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     removeMusicButton.addActionListener(listeners);
     clearMusicButton.addActionListener(listeners);
 
-    prevMusicButton.addActionListener(listeners);
-    playMusicButton.addActionListener(listeners);
-    stopMusicButton.addActionListener(listeners);
-    nextMusicButton.addActionListener(listeners);
+    if (isPlayerAvailable()) {
+      prevMusicButton.addActionListener(listeners);
+      playMusicButton.addActionListener(listeners);
+      stopMusicButton.addActionListener(listeners);
+      nextMusicButton.addActionListener(listeners);
+    }
 
     importPlayListButton.setToolTipText("Import music entries from M3U playlist file.");
     importPlayListButton.addActionListener(listeners);
@@ -1397,6 +1384,48 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   }
 
   /**
+   * Returns a new and fully initialized {@link StreamingAudioPlayer} instance.
+   *
+   * @param showError Whether to show an error message box if the player instance could not be created.
+   * @return {@link StreamingAudioPlayer} instance if successful, {@code null} otherwise.
+   */
+  private StreamingAudioPlayer initPlayer(boolean showError) {
+    try {
+      return new StreamingAudioPlayer(listeners);
+    } catch (Exception e) {
+      Logger.error(e);
+      if (showError) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+            "Failed to initialize audio backend:\n" + e.getMessage() + "\n\nPlayback will be disabled.",
+            "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns whether the global {@link StreamingAudioPlayer} instance is available.
+   *
+   * @return {@code true} if audio player instance is available, {@code false} otherwise.
+   */
+  private boolean isPlayerAvailable() {
+    return Objects.nonNull(player);
+  }
+
+  /** Closes the {@link StreamingAudioPlayer} instance. */
+  private void closePlayer() {
+    if (!isPlayerAvailable()) {
+      return;
+    }
+
+    try {
+      player.close();
+    } catch (Exception e) {
+      Logger.error(e);
+    }
+  }
+
+  /**
    * Loads the window position and size from the preferences.
    *
    * @return {@link Rectangle} instances with position relative to the parent and size of the window.
@@ -1564,7 +1593,8 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
   /**
    * Returns a {@link MusicResourceEntry} object for the specified MUS file.
    *
-   * @param musicFilePath {@link Path} to the MUS file.
+   * @param musicFilePath {@link Path} to the MUS file. The path string can optionally be appended by the music duration
+   *                        in milliseconds, separated by semicolon.
    * @return A {@link MusicResourceEntry} object for the MUS file. Returns {@code null} if not available.
    */
   private static MusicResourceEntry getMusicResource(String musicFilePath, boolean pathAsPrefix) {
@@ -1598,36 +1628,10 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     return retVal;
   }
 
-  /** Creates a parsed list of sound entries from the specified MUS resource. */
-  private static List<Entry> parseMusFile(MusicResourceEntry resource) {
-    Objects.requireNonNull(resource);
-    List<Entry> retVal = new ArrayList<>();
-    try {
-      final ByteBuffer bb = resource.getResourceBuffer();
-      final String[] lines = StreamUtils.readString(bb, bb.limit()).split("\r?\n");
-      int idx = 0;
-      final String acmFolder = lines[0].trim();
-      final int numEntries = Integer.parseInt(lines[1].trim());
-      for (int i = 2, counter = 0, size = Math.min(numEntries + 2, lines.length); i < size; i++) {
-        final String line = lines[idx++].trim();
-        if (!line.isEmpty()) {
-          retVal.add(new Entry(resource, acmFolder, retVal, lines[i], counter));
-          counter++;
-        }
-      }
-      for (final Entry entry : retVal) {
-        entry.init();
-      }
-    } catch (Exception e) {
-      Logger.error(e, "Resource: " + resource);
-    }
-    return retVal;
-  }
-
   // -------------------------- INNER CLASSES --------------------------
 
-  private class Listeners
-      implements ActionListener, ListSelectionListener, ItemListener, MouseListener, KeyListener, ComponentListener {
+  private class Listeners implements ActionListener, ListSelectionListener, ItemListener, AudioStateListener,
+      MouseListener, KeyListener, ComponentListener {
     public Listeners() {
     }
 
@@ -1787,6 +1791,38 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
     }
 
     @Override
+    public void audioStateChanged(AudioStateEvent event) {
+//      Logger.trace("{}.audioStateChanged: state={}({})", InfinityAmpPlus.class.getSimpleName(), event.getAudioState(),
+//          event.getValue());
+      switch (event.getAudioState()) {
+        case OPEN:
+          handleAudioOpenEvent(event.getValue());
+          break;
+        case CLOSE:
+          handleAudioCloseEvent(event.getValue());
+          break;
+        case START:
+          handleAudioStartEvent();
+          break;
+        case STOP:
+          handleAudioStopEvent();
+          break;
+        case PAUSE:
+          handleAudioPauseEvent(event.getValue());
+          break;
+        case RESUME:
+          handleAudioResumeEvent(event.getValue());
+          break;
+        case BUFFER_EMPTY:
+          handleAudioBufferEmptyEvent(event.getValue());
+          break;
+        case ERROR:
+          handleAudioErrorEvent(event.getValue());
+          break;
+      }
+    }
+
+    @Override
     public void mouseClicked(MouseEvent e) {
       if (e.getSource() == availableList) {
         if (e.getClickCount() == 2) {
@@ -1866,7 +1902,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
 
     @Override
     public void componentHidden(ComponentEvent e) {
-      stopPlayback();
+      setPlaying(false);
     }
 
     /** Called by a {@link KeyEventDispatcher} instance. */
@@ -1989,6 +2025,16 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
       return (duration != null);
     }
 
+    /** Returns the duration of the music file in seconds if available, -1 otherwise. */
+    public int getDurationSeconds() {
+      final long duration = getDuration();
+      if (duration >= 0) {
+        // duration is rounded to the nearest full second
+        return (int)((duration + 500L) / 1000L);
+      }
+      return -1;
+    }
+
     /** Returns the duration of the music file in milliseconds if available, -1 otherwise. */
     public long getDuration() {
       return isDurationAvailable() ? duration : -1L;
@@ -2018,7 +2064,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
         }
 
         try {
-          final List<Entry> entries = parseMusFile(this);
+          final List<Entry> entries = MusResourceHandler.parseMusFile(this);
           long timeMs = 0L;
           int index = 0;
           while (true) {
@@ -2040,7 +2086,7 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
           entries.clear();
           return timeMs;
         } catch (Throwable t) {
-          Logger.debug(t);
+          Logger.debug(t, "Resource: " + this);
         }
         return -1L;
       };
@@ -2064,12 +2110,11 @@ public class InfinityAmpPlus extends ChildFrame implements Runnable, Closeable {
 
       final String time;
       if (isDurationAvailable()) {
-          final long duration = getDuration();
-          if (duration >= 0L) {
-          final int len = (int) ((duration + 500L) / 1000L);  // in seconds, rounded up
-          final int hours = len / 3600;
-          final int minutes = (len / 60) % 60;
-          final int seconds = len % 60;
+        final int duration = getDurationSeconds();
+        if (duration >= 0) {
+          final int hours = duration / 3600;
+          final int minutes = (duration / 60) % 60;
+          final int seconds = duration % 60;
           time = String.format("%02d:%02d:%02d", hours, minutes, seconds);
         } else {
           time = "<unavailable>";

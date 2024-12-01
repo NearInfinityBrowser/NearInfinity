@@ -15,10 +15,14 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.infinity.util.Logger;
 
+// TODO: remove class from project
 /**
  * This class provides a conventional way to play back sound data. It is mostly suited for playing streamed sound data.
  * For playback of single sound clips the {@link BufferedAudioPlayer} class is more suited.
+ *
+ * @deprecated Superseded by {@link StreamingAudioPlayer} and {@link BufferedAudioPlayer}.
  */
+@Deprecated
 public class AudioPlayer {
   private final byte[] buffer = new byte[8196];
 

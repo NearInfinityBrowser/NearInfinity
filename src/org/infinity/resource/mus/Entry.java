@@ -124,7 +124,14 @@ public class Entry {
 
   @Override
   public String toString() {
-    return line;
+    final String time;
+    if (audioBuffer != null) {
+      final int duration = (int)(audioBuffer.getDuration() / 1_000L);
+      time = String.format("[%02d:%02d] ", duration / 60, duration % 60);
+    } else {
+      time = "[??:??] ";
+    }
+    return time + line;
   }
 
   public AudioBuffer getEndBuffer() {
