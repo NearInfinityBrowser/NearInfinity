@@ -206,6 +206,7 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
   @Override
   public void close() {
     closePlayer();
+    timer.close();
     Entry.clearCache();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(listeners::dispatchKeyEvent);
     savePreferences();
@@ -995,6 +996,37 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
     setTitle(title);
   }
 
+  /**
+   * Used internally to handle UI-related updates depending on the specified playback state.
+   *
+   * @param playing Specify {@code true} if audio playback started, and {@code false} if playback stopped.
+   */
+  private void onAudioPlaying(boolean playing) {
+    if (playing) {
+      timer.reset();
+      timer.resume();
+      availableList.setEnabled(false);
+      playList.setEnabled(false);
+      elapsedTimeLabel.setEnabled(true);
+      updateAvailableListButtons();
+      updatePlayListButtons();
+      updateTransferButtons();
+      updateTimeDisplay(playList.getSelectedValue());
+      updateWindowTitle();
+    } else {
+      timer.pause();
+      timer.reset();
+      availableList.setEnabled(true);
+      playList.setEnabled(true);
+      elapsedTimeLabel.setEnabled(false);
+      updateWindowTitle();
+      updateTimeDisplay(null);
+      updateAvailableListButtons();
+      updatePlayListButtons();
+      updateTransferButtons();
+    }
+  }
+
   /** Called when the audio player triggers an {@code OPEN} event. */
   private void handleAudioOpenEvent(Object value) {
     // nothing to do
@@ -1007,16 +1039,7 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
 
   /** Called when the audio player triggers a {@code START} event. */
   private void handleAudioStartEvent() {
-    timer.reset();
-    timer.resume();
-    availableList.setEnabled(false);
-    playList.setEnabled(false);
-    elapsedTimeLabel.setEnabled(true);
-    updateAvailableListButtons();
-    updatePlayListButtons();
-    updateTransferButtons();
-    updateTimeDisplay(playList.getSelectedValue());
-    updateWindowTitle();
+    onAudioPlaying(true);
   }
 
   /** Called when the audio player triggers a {@code STOP} event. */
@@ -1033,16 +1056,7 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
     if (isNextItemRequested()) {
       acceptNextItem();
     } else {
-      timer.pause();
-      timer.reset();
-      availableList.setEnabled(true);
-      playList.setEnabled(true);
-      elapsedTimeLabel.setEnabled(false);
-      updateWindowTitle();
-      updateTimeDisplay(null);
-      updateAvailableListButtons();
-      updatePlayListButtons();
-      updateTransferButtons();
+      onAudioPlaying(false);
     }
   }
 
@@ -1097,11 +1111,13 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
   private void handleAudioErrorEvent(Object value) {
     requestNextItem = false;
     setPlaying(false);
+    onAudioPlaying(false);
 
     final Exception e = (value instanceof Exception) ? (Exception)value : null;
     if (e != null) {
       Logger.error(e);
     }
+
     final String msg = (e != null) ? "Error during playback:\n" + e.getMessage() : "Error during playback.";
     JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
   }
