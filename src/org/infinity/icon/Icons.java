@@ -58,6 +58,7 @@ public enum Icons {
   ICON_LAUNCH_PLUS_24("LaunchRedPlus24.png"),
   ICON_MAGNIFY_16("Magnify16.png"),
   ICON_MOVIE_16("Movie16.gif"),
+  ICON_MUSIC_16("Music16.png"),
   ICON_NEW_16("New16.gif"),
   ICON_OPEN_16("Open16.gif"),
   ICON_PASTE_16("Paste16.gif"),

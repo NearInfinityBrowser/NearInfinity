@@ -1380,7 +1380,7 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(listeners::dispatchKeyEvent);
 
-    setIconImage(Icons.ICON_VOLUME_16.getIcon().getImage());
+    setIconImage(Icons.ICON_MUSIC_16.getIcon().getImage());
   }
 
   /**

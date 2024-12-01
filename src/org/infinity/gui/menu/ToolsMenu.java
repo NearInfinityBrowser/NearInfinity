@@ -103,7 +103,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
         Icons.ICON_CRE_VIEWER_24.getIcon(), -1, this);
     add(toolCreatureBrowser);
 
-    toolInfinityAmp = BrowserMenuBar.makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.ICON_VOLUME_16.getIcon(),
+    toolInfinityAmp = BrowserMenuBar.makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.ICON_MUSIC_16.getIcon(),
         -1, this);
     add(toolInfinityAmp);
 
