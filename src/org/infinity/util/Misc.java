@@ -434,8 +434,8 @@ public class Misc {
       StringBuilder sb = new StringBuilder();
       boolean isUpper = false;
       boolean isDigit = false;
-      boolean isPrevUpper = false;
-      boolean isPrevDigit = false;
+      boolean isPrevUpper;
+      boolean isPrevDigit;
       boolean toUpper = true;
       for (int idx = 0, len = symbol.length(); idx < len; idx++) {
         char ch = symbol.charAt(idx);
@@ -666,7 +666,7 @@ public class Misc {
       }
 
       for (final Class<?> cls : new Class<?>[] { classEx, Exception.class }) {
-        Object ex = null;
+        Object ex;
         if (message != null) {
           Constructor<?> ctor = cls.getConstructor(String.class);
           ex = ctor.newInstance(message);

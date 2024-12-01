@@ -220,9 +220,7 @@ public class ItemCategoryOrderDialog extends JDialog implements ActionListener, 
         invMap[indexMap[i]] = i;
       }
 
-      for (int i = 0; i < invMap.length; i++) {
-        final int catIdx = invMap[i];
-
+      for (final int catIdx : invMap) {
         // use default category list if category name is not defined in generated list
         String catName = null;
         if (catIdx >= 0 && catIdx < categories.length) {
@@ -426,6 +424,7 @@ public class ItemCategoryOrderDialog extends JDialog implements ActionListener, 
           final int value = Integer.parseInt(items[i]);
           retVal[i] = Math.max(0, value);
         } catch (NumberFormatException e) {
+          Logger.debug(e);
         }
       }
     }
@@ -446,7 +445,7 @@ public class ItemCategoryOrderDialog extends JDialog implements ActionListener, 
       prefs.remove(prefKey);
     } else {
       final String data =
-          String.join(",", Arrays.stream(indices).mapToObj(v -> Integer.toString(v)).collect(Collectors.toList()));
+          Arrays.stream(indices).mapToObj(Integer::toString).collect(Collectors.joining(","));
       prefs.put(prefKey, data);
     }
   }

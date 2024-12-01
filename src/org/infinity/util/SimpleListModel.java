@@ -125,7 +125,7 @@ public class SimpleListModel<E> extends AbstractListModel<E> {
 
   /** Returns true if this list contains all of the elements in the specified Collection. */
   public boolean containsAll(Collection<?> c) {
-    return delegate.containsAll(c);
+    return new HashSet<>(delegate).containsAll(c);
   }
 
   /**

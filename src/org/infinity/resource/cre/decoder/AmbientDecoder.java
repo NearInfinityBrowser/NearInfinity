@@ -171,7 +171,7 @@ public class AmbientDecoder extends SpriteDecoder {
           && SpriteUtils.bamCyclesExist(entryE, cycleE, SeqDef.DIR_REDUCED_E.length)) {
         retVal = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, cycle, null, behavior);
         SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE, cycleE, null, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
       }
     }
     return retVal;

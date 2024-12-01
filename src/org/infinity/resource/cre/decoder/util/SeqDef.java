@@ -19,7 +19,7 @@ import org.infinity.resource.key.ResourceEntry;
  */
 public class SeqDef implements Cloneable {
   /** Definition of an empty {@code SeqDef} object. */
-  public static final SeqDef DEFAULT = new SeqDef(Sequence.NONE, new DirDef[0]);
+  public static final SeqDef DEFAULT = new SeqDef(Sequence.NONE);
 
   /** Full set of 16 directions (east & west). */
   public static final Direction[] DIR_FULL = Direction.values();

@@ -12,7 +12,7 @@ import org.infinity.util.io.StreamUtils;
 
 public class AudioFactory {
   // supported audio formats
-  private static enum AudioFormat {
+  private enum AudioFormat {
     FMT_UNKNOWN, FMT_WAV, FMT_ACM, FMT_WAVC, FMT_OGG
   }
 

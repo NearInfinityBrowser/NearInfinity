@@ -254,7 +254,7 @@ public class PlainTextResource
             }
           }
         }
-        newText.append(sb.toString()).append(newline);
+        newText.append(sb).append(newline);
       }
       retVal = newText.toString();
     }
@@ -679,7 +679,7 @@ public class PlainTextResource
 
   private String applyTransformText(String data) {
     if (data == null) {
-      return data;
+      return null;
     }
 
     final String ext = (entry != null) ? entry.getExtension() : "";

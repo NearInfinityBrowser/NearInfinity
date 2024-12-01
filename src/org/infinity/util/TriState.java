@@ -32,7 +32,7 @@ public enum TriState {
 
   private final Boolean value;
 
-  private TriState(Boolean b) {
+  TriState(Boolean b) {
     this.value = b;
   }
 
@@ -57,7 +57,7 @@ public enum TriState {
    * @return {@code true} for {@link #TRUE}, {@code false} otherwise.
    */
   public boolean isTrue() {
-    return (value != null && value.booleanValue());
+    return (value != null && value);
   }
 
   /**
@@ -66,7 +66,7 @@ public enum TriState {
    * @return {@code true} for {@link #FALSE}, {@code false} otherwise.
    */
   public boolean isFalse() {
-    return (value != null && !value.booleanValue());
+    return (value != null && !value);
   }
 
   /**

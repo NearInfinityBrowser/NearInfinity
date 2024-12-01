@@ -182,7 +182,7 @@ public class TilesetRenderer extends RenderCanvas {
   public void dispose() {
     release(true);
     if (getImage() instanceof VolatileImage) {
-      ((VolatileImage) getImage()).flush();
+      getImage().flush();
     }
   }
 
@@ -986,7 +986,7 @@ public class TilesetRenderer extends RenderCanvas {
         }
       } else { // no overlay or disabled overlay
         // preparing tile graphics
-        int[] srcTile = null;
+        int[] srcTile;
         int tileIdx = (!isDoorClosed || !isDoorTile) ? tile.getPrimaryIndex() : tile.getSecondaryIndex();
         if (tileIdx < 0) {
           tileIdx = tile.getPrimaryIndex();
@@ -1017,7 +1017,7 @@ public class TilesetRenderer extends RenderCanvas {
         double curY = tile.getY() * scaleY;
         double nextY = Math.floor(curY) + 1.0;
         int startPixelX = (int) Math.floor(curX);
-        int curPixelX = startPixelX;
+        int curPixelX;
         int curPixelY = (int) Math.floor(curY);
 
         int srcAlpha = miniMapAlpha;

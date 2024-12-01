@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import javax.swing.JComponent;
 
@@ -220,7 +221,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
     HexNumber[] offsets = new HexNumber[] { offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile, offsetPolygons,
         offsetWallgroups, offsetPolytable, new HexNumber(
             ByteBuffer.wrap(Misc.intToArray(buffer.limit() - startOffset)).order(ByteOrder.LITTLE_ENDIAN), 0, 4, "") };
-    Arrays.sort(offsets, (s1, s2) -> s1.getValue() - s2.getValue());
+    Arrays.sort(offsets, Comparator.comparingInt(DecNumber::getValue));
 
     offset = offsetDoors.getValue();
     for (int i = 0; i < countDoors.getValue(); i++) {

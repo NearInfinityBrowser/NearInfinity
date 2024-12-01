@@ -86,9 +86,9 @@ public class SearchMenu extends JMenu implements BrowserSubMenu, ActionListener 
       if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
         JMenuItem mi = (JMenuItem) textSearchMenu.getMenuComponent(i);
         if ("INI".equals(mi.getText())) {
-          mi.setEnabled((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_INI));
+          mi.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_INI));
         } else if ("LUA".equals(mi.getText())) {
-          mi.setEnabled((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_LUA));
+          mi.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_LUA));
         }
       }
     }

@@ -55,7 +55,7 @@ public class BafNodeTransformer {
       throw new NullPointerException();
     }
 
-    ScriptNode scriptRoot = null;
+    ScriptNode scriptRoot;
     if (root.getId() == BafParserTreeConstants.JJTSC) {
       scriptRoot = transformSC(root);
     } else if (root.getId() == BafParserTreeConstants.JJTSEQ_TR) {
@@ -217,7 +217,7 @@ public class BafNodeTransformer {
               child.jjtGetFirstToken(), child.jjtGetLastToken()));
           return;
         } else if (verbose && !token.toString().equals(func.getName())) {
-          warnings.add(new ScriptMessage("No exact match: " + token.toString() + " vs. " + func.getName(),
+          warnings.add(new ScriptMessage("No exact match: " + token + " vs. " + func.getName(),
               child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         nodeTR.code = func.getId();
@@ -258,7 +258,7 @@ public class BafNodeTransformer {
               child.jjtGetFirstToken(), child.jjtGetLastToken()));
           return;
         } else if (verbose && !token.toString().equals(func.getName())) {
-          warnings.add(new ScriptMessage("No exact match: " + token.toString() + " vs. " + func.getName(),
+          warnings.add(new ScriptMessage("No exact match: " + token + " vs. " + func.getName(),
               child.jjtGetFirstToken(), child.jjtGetLastToken()));
         }
         nodeAC.code = func.getId();
@@ -900,11 +900,11 @@ public class BafNodeTransformer {
     }
 
     public void dump(PrintStream output, String prefix, int level) {
-      String prefix2 = "";
+      final StringBuilder prefix2 = new StringBuilder();
       for (int i = 0; i < level; i++) {
-        prefix2 += prefix;
+        prefix2.append(prefix);
       }
-      System.out.println(toString(prefix2));
+      System.out.println(toString(prefix2.toString()));
       Iterator<ScriptNode> iter = getChildren();
       while (iter.hasNext()) {
         iter.next().dump(output, prefix, level + 1);

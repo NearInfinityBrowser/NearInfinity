@@ -36,7 +36,7 @@ public enum ResRefMode {
   private final int keyCode;
   private final String title;
 
-  private ResRefMode(int keyCode, String title) {
+  ResRefMode(int keyCode, String title) {
     this.keyCode = keyCode;
     this.title = title;
   }

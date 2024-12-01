@@ -119,7 +119,7 @@ public class PreferencesDialog extends JDialog {
 
     private final String label;
 
-    private Category(String label) {
+    Category(String label) {
       this.label = label;
     }
 
@@ -1135,13 +1135,10 @@ public class PreferencesDialog extends JDialog {
       }
     });
 
-    cb.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        checkBox.setValue(cb.isSelected());
-        checkBox.fireOnAction();
-        setModified(true);
-      }
+    cb.addActionListener(e -> {
+      checkBox.setValue(cb.isSelected());
+      checkBox.fireOnAction();
+      setModified(true);
     });
 
     return checkBox;
@@ -1181,13 +1178,10 @@ public class PreferencesDialog extends JDialog {
     label.addMouseListener(adapter);
     comboBox.addMouseListener(adapter);
 
-    comboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        groupBox.setSelectedIndex(comboBox.getSelectedIndex());
-        groupBox.fireOnSelect();
-        setModified(true);
-      }
+    comboBox.addActionListener(e -> {
+      groupBox.setSelectedIndex(comboBox.getSelectedIndex());
+      groupBox.fireOnSelect();
+      setModified(true);
     });
 
     return groupBox;

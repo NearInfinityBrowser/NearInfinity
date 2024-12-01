@@ -132,7 +132,7 @@ public class GifSequenceReader {
     }
 
     // Converting RenderedImage into BufferedImage object
-    BufferedImage gifImg = null;
+    BufferedImage gifImg;
     if (rimg instanceof BufferedImage) {
       gifImg = (BufferedImage) rimg;
     } else {
@@ -150,8 +150,8 @@ public class GifSequenceReader {
       gifImg.copyData(raster);
     }
 
-    BufferedImage bimg = null;
-    Graphics2D g = null;
+    BufferedImage bimg;
+    Graphics2D g;
     if (framePrev != null) {
       bimg = new BufferedImage(framePrev.getRenderedImage().getWidth(), framePrev.getRenderedImage().getHeight(),
           BufferedImage.TYPE_INT_ARGB);

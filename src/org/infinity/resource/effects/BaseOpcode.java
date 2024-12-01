@@ -86,7 +86,7 @@ public class BaseOpcode {
   /**
    * Used in conjunction with {@code getEffectStructure} to address specific fields within an effect structure.
    */
-  public static enum EffectEntry {
+  public enum EffectEntry {
     // EFF all versions
     // table index            abs. structure offset
     IDX_OPCODE,               OFS_OPCODE,

@@ -195,7 +195,7 @@ public final class GameProperties extends ChildFrame implements ActionListener {
           if (sb.length() > 0) {
             sb.append("; ");
           }
-          sb.append(dlcPath.getFileSystem().toString());
+          sb.append(dlcPath.getFileSystem());
         }
         l = new JLabel("DLC archives:");
         tf = createReadOnlyField(sb.toString(), true);

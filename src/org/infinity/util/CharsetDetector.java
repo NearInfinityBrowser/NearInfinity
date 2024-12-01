@@ -188,7 +188,6 @@ public class CharsetDetector {
               }
             }
           }
-          ch.close();
         } catch (Exception e) {
           Logger.error(e);
         }

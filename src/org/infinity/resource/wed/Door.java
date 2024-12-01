@@ -80,7 +80,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     int polyOffset = Integer.MAX_VALUE;
     for (final StructEntry o : getFields()) {
       if (o instanceof Polygon) {
-        polyOffset = Math.min(polyOffset, ((Polygon) o).getOffset());
+        polyOffset = Math.min(polyOffset, o.getOffset());
       }
     }
     if (polyOffset != Integer.MAX_VALUE) {

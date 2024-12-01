@@ -239,7 +239,7 @@ public class QuickSearch extends JPanel implements Runnable {
         item = cbSearch.getItemAt(0);
       }
 
-      if (item instanceof ResourceEntry) {
+      if (item != null) {
         if (result == Result.OPEN) {
           tree.select((ResourceEntry) item);
         } else if (result == Result.OPEN_NEW) {
@@ -306,10 +306,10 @@ public class QuickSearch extends JPanel implements Runnable {
       if (retVal.getValue() != null) {
         retVal.getValue().clear();
       } else {
-        retVal.setValue(new Vector<ResourceEntry>());
+        retVal.setValue(new Vector<>());
       }
     } else {
-      retVal = new MapTree<>(ch, new Vector<ResourceEntry>());
+      retVal = new MapTree<>(ch, new Vector<>());
     }
     node.addChild(retVal);
 

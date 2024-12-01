@@ -211,7 +211,7 @@ public class CharacterOldDecoder extends CharacterBaseDecoder {
 
   @Override
   public List<String> getAnimationFiles(boolean essential) {
-    ArrayList<String> retVal = null;
+    ArrayList<String> retVal;
     String resref = getAnimationResref();
 
     if (essential) {

@@ -273,7 +273,7 @@ public class PltResource
     } else if (e.getSource() == miExportPNG) {
       try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
-        boolean bRet = false;
+        boolean bRet;
         WindowBlocker.blockWindow(true);
         try {
           bRet = ImageIO.write(image, "png", os);
@@ -417,7 +417,7 @@ public class PltResource
           int v = buffer.getShort();
           int index = v & 0xff;
           int type = (v >> 8) & 0x7f; // ignore bit 8
-          int color = 0;
+          int color;
           if (type < cbColors.length) {
             // color
             color = getSelectedColorItem(type).getColorAt(index);

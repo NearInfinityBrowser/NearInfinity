@@ -125,12 +125,12 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     final Function<Integer, String> space = (i) -> new String(new char[i]).replace("\0", "&nbsp;");
     final String br = "<br/>";
     final String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
-    final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
-    sb.append("Width:").append(space.apply(7)).append(getInfo().getWidth()).append(br);
-    sb.append("Height:").append(space.apply(6)).append(getInfo().getHeight()).append(br);
-    sb.append("Bits/Pixel:").append(space.apply(2)).append(getInfo().getBitsPerPixel()).append(br);
-    sb.append("</div></html>");
+    String sb = "<html><div style='font-family:monospace'>" +
+        "Width:" + space.apply(7) + getInfo().getWidth() + br +
+        "Height:" + space.apply(6) + getInfo().getHeight() + br +
+        "Bits/Pixel:" + space.apply(2) + getInfo().getBitsPerPixel() + br +
+        "</div></html>";
 
-    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(panel, sb, "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 }

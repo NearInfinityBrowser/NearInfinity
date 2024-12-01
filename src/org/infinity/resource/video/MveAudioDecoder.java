@@ -218,7 +218,7 @@ public class MveAudioDecoder {
     }
     updateTimer(len);
 
-    short[] predictor = null;
+    short[] predictor;
     byte[] block = null;
     AudioQueue queue;
     for (int i = 0; i < MveInfo.AUDIOSTREAMS_MAX; i++) {

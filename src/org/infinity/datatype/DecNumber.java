@@ -162,7 +162,7 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric {
   }
 
   /** Attempts to parse the specified object into a decimal or, optionally, hexadecimal number. */
-  public static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) throws Exception {
+  public static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) {
     if (value == null) {
       throw new NullPointerException();
     }

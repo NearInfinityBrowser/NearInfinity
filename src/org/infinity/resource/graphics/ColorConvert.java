@@ -1248,10 +1248,10 @@ public class ColorConvert {
 
     public static final List<Comparator<Pixel>> PIXEL_COMPARATOR = new ArrayList<Comparator<Pixel>>(MAX_SIZE) {
       {
-        add((p1, p2) -> p1.getElement(0) - p2.getElement(0));
-        add((p1, p2) -> p1.getElement(1) - p2.getElement(1));
-        add((p1, p2) -> p1.getElement(2) - p2.getElement(2));
-        add((p1, p2) -> p1.getElement(3) - p2.getElement(3));
+        add(Comparator.comparingInt(p -> p.getElement(0)));
+        add(Comparator.comparingInt(p -> p.getElement(1)));
+        add(Comparator.comparingInt(p -> p.getElement(2)));
+        add(Comparator.comparingInt(p -> p.getElement(3)));
       }
     };
   }

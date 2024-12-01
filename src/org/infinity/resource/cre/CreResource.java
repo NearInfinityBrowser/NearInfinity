@@ -708,7 +708,7 @@ public final class CreResource extends AbstractStruct
   }
 
   public static String getSearchString(InputStream is) throws IOException {
-    String retVal = "";
+    String retVal;
     String sig = StreamUtils.readString(is, 4);
     is.skip(4);
     if (sig.equals("CHR ")) {
@@ -734,7 +734,7 @@ public final class CreResource extends AbstractStruct
    * @throws IOException If the buffer does not contain valid resource data.
    */
   public static String getScriptName(ByteBuffer buffer) throws IOException {
-    String retVal = "";
+    String retVal;
     String sig = StreamUtils.readString(buffer, 0, 4);
     String ver = StreamUtils.readString(buffer, 4, 4);
     int startOfs = 0;

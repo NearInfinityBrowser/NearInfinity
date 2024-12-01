@@ -63,7 +63,7 @@ public class StringTable {
      */
     final String format;
 
-    private Format(String format) {
+    Format(String format) {
       this.format = format;
     }
 
@@ -950,8 +950,8 @@ public class StringTable {
       return false;
     }
 
-    StringTable tableMale = null;
-    StringTable tableFemale = null;
+    StringTable tableMale;
+    StringTable tableFemale;
 
     try {
       tableMale = instance(Type.MALE);
@@ -1280,7 +1280,7 @@ public class StringTable {
       int ofsString = ofsStrings + headerData.getInt();
       int lenString = headerData.getInt();
       headerData.position(0);
-      String text = null;
+      String text;
       byte[] buffer = null;
       if (lenString > 0) {
         try {

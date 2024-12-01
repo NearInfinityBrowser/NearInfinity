@@ -256,7 +256,7 @@ public class FontChooser extends JComponent {
    * @see #setSelectedFontSize
    **/
   public int getSelectedFontSize() {
-    int fontSize = 1;
+    int fontSize;
     String fontSizeString = getFontSizeTextField().getText();
     while (true) {
       try {

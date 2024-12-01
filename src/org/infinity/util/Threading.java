@@ -55,7 +55,7 @@ public class Threading implements AutoCloseable {
 
     private final double factor;
 
-    private Priority(double factor) {
+    Priority(double factor) {
       this.factor = Math.max(-1.0, Math.min(1.0, factor));
     }
 
@@ -289,7 +289,6 @@ public class Threading implements AutoCloseable {
    * first. Unlike {@link #awaitTermination(long, TimeUnit)} this method does not depend on a shutdown request, which
    * allows to submit more tasks after completion.
    *
-   * @return {@code true} if all submitted tasks terminated and {@code false} if the timeout elapsed before termination.
    * @throws InterruptedException if interrupted while waiting.
    */
   public void waitForCompletion() throws InterruptedException {

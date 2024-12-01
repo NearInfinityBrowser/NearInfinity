@@ -23,7 +23,7 @@ public class DynamicArray {
   /**
    * Supported data type sizes.
    */
-  public static enum ElementType {
+  public enum ElementType {
     BYTE, SHORT, INTEGER24, INTEGER, LONG
   }
 

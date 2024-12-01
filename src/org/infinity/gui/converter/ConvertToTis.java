@@ -1092,7 +1092,7 @@ public class ConvertToTis extends ChildFrame
     public int x;
     public int y;
 
-    public static Comparator<TileEntry> CompareByIndex = (te1, te2) -> te1.tileIndex - te2.tileIndex;
+    public static Comparator<TileEntry> CompareByIndex = Comparator.comparingInt(te -> te.tileIndex);
 
     public TileEntry(int index, int page, int x, int y) {
       this.tileIndex = index;

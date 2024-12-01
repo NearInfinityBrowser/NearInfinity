@@ -191,7 +191,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener 
     /** Humanized name оf condition operator. */
     final String title;
 
-    private Condition(String title) {
+    Condition(String title) {
       this.title = title;
     }
   }
@@ -203,7 +203,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener 
     /** Quest taken by player but not yet completed, active quest. */
     ASSIGNED,
     /** Quest is finished. */
-    COMPLETED;
+    COMPLETED
   }
 
   public QuestsResource() throws Exception {

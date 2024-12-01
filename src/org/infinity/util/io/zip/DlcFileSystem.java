@@ -66,7 +66,7 @@ public class DlcFileSystem extends FileSystem {
   private static final String REGEX_SYNTAX = "regex";
 
   // the outstanding input streams that need to be closed
-  private final Set<InputStream> streams = Collections.synchronizedSet(new HashSet<InputStream>());
+  private final Set<InputStream> streams = Collections.synchronizedSet(new HashSet<>());
 
   // configurable by env map
   private final String nameEncoding; // default encoding for name/comment
@@ -237,7 +237,7 @@ public class DlcFileSystem extends FileSystem {
   }
 
   protected DlcFileAttributes getFileAttributes(byte[] path) {
-    ZipNode folder = null;
+    ZipNode folder;
     beginRead();
     try {
       ensureOpen();
@@ -643,11 +643,11 @@ public class DlcFileSystem extends FileSystem {
     }
   }
 
-  private final void beginRead() {
+  private void beginRead() {
     rwlock.readLock().lock();
   }
 
-  private final void endRead() {
+  private void endRead() {
     rwlock.readLock().unlock();
   }
 
@@ -658,7 +658,7 @@ public class DlcFileSystem extends FileSystem {
   }
 
   private InputStream getInputStream(ZipNode folder) throws IOException {
-    InputStream is = null;
+    InputStream is;
 
     if (folder == null) {
       throw new NullPointerException();

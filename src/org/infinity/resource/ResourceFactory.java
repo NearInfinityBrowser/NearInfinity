@@ -1269,7 +1269,7 @@ public final class ResourceFactory {
     // 3. checking override folders
     if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(true))) {
       entry = getResourceEntry(resource.getFileName().toString());
-      String folderName = null;
+      String folderName;
       if (entry instanceof BIFFResourceEntry) {
         final boolean overrideInOverride = (options.getOptions().getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride) {
@@ -1447,9 +1447,7 @@ public final class ResourceFactory {
     if (extraDirs == null) {
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
-    extraDirs.forEach(path -> {
-      fillResources(retList, path.getFileName().toString(), pattern);
-    });
+    extraDirs.forEach(path -> fillResources(retList, path.getFileName().toString(), pattern));
 
     // include override folders
     if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {

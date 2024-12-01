@@ -305,7 +305,7 @@ public class CreatureBrowser extends ChildFrame {
   }
 
   /** Represents a supplier of results. */
-  public static interface Task {
+  public interface Task {
     /** Gets a result. */
     Object get() throws Exception;
   }
@@ -314,7 +314,7 @@ public class CreatureBrowser extends ChildFrame {
    * Represents an operation that accepts two arguments: {@code Object} returned by and potential {@code Exception}
    * thrown in the previous {@code Task} operation.
    */
-  public static interface PostTask {
+  public interface PostTask {
     void accept(Object o, Exception e);
 
     default PostTask andThen(PostTask after) {

@@ -566,12 +566,12 @@ public final class DlgResource extends AbstractStruct
       writer.println("// source   : " + Profile.getGameRoot().relativize(getResourceEntry().getActualPath()));
 
       Path path = Profile.getGameRoot().relativize(Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE));
-      writer.println("// dialog   : " + path.toString());
+      writer.println("// dialog   : " + path);
 
       path = Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE);
       if (path != null) {
         path = Profile.getGameRoot().relativize(path);
-        writer.println("// dialogF  : " + path.toString());
+        writer.println("// dialogF  : " + path);
       } else {
         writer.println("// dialogF  : (none)");
       }

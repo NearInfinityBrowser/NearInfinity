@@ -80,11 +80,11 @@ public class PseudoBamDecoder extends BamDecoder {
   private PseudoBamControl defaultControl;
 
   public PseudoBamDecoder() {
-    this(null, (BufferedImage[]) null, (Point[]) null);
+    this(null, null, (Point[]) null);
   }
 
   public PseudoBamDecoder(List<PseudoBamFrameEntry> framesList) {
-    this(framesList, (BufferedImage[]) null, (Point[]) null);
+    this(framesList, null, (Point[]) null);
   }
 
   public PseudoBamDecoder(BufferedImage image) {
@@ -123,7 +123,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
   /** Returns all available options by name. */
   public String[] getOptionNames() {
-    String[] retVal = new String[mapOptions.keySet().size()];
+    String[] retVal = new String[mapOptions.size()];
     Iterator<String> iter = mapOptions.keySet().iterator();
     int idx = 0;
     while (iter.hasNext()) {
@@ -731,10 +731,10 @@ public class PseudoBamDecoder extends BamDecoder {
       byte rleIndex = (byte) (((o != null) ? (Integer) o : 0) & 0xff);
       byte[] dstData = new byte[maxImageSize];
 
-      for (int idx = 0; idx < listFrames.size(); idx++) {
-        o = listFrames.get(idx).getOption(OPTION_BOOL_COMPRESSED);
+      for (final PseudoBamFrameEntry listFrame : listFrames) {
+        o = listFrame.getOption(OPTION_BOOL_COMPRESSED);
         boolean frameCompressed = (o != null) ? ((Boolean) o) : false;
-        PseudoBamFrameEntry entry = listFrames.get(idx);
+        PseudoBamFrameEntry entry = listFrame;
         byte[] srcBuffer = ((DataBufferByte) entry.frame.getRaster().getDataBuffer()).getData();
 
         if (frameCompressed) {
@@ -779,9 +779,9 @@ public class PseudoBamDecoder extends BamDecoder {
       // creating cycles table and frame lookup table
       List<Integer> listFrameLookup = new ArrayList<>();
       int lookupSize = 0;
-      for (int i = 0; i < listCycles.size(); i++) {
+      for (final PseudoBamCycleEntry cycle : listCycles) {
         listFrameLookup.add(lookupSize);
-        lookupSize += listCycles.get(i).size();
+        lookupSize += cycle.size();
       }
 
       // putting it all together
@@ -1540,7 +1540,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
     /** Returns all available options by name. */
     public String[] getOptionNames() {
-      String[] retVal = new String[mapOptions.keySet().size()];
+      String[] retVal = new String[mapOptions.size()];
       Iterator<String> iter = mapOptions.keySet().iterator();
       int idx = 0;
       while (iter.hasNext()) {
@@ -2062,7 +2062,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
     /** Returns all available options by name. */
     public String[] getOptionNames() {
-      String[] retVal = new String[mapOptions.keySet().size()];
+      String[] retVal = new String[mapOptions.size()];
       Iterator<String> iter = mapOptions.keySet().iterator();
       int idx = 0;
       while (iter.hasNext()) {
@@ -2147,7 +2147,7 @@ public class PseudoBamDecoder extends BamDecoder {
     public String toString() {
       StringBuilder sb = new StringBuilder("[");
       for (int i = 0; i < frames.size(); i++) {
-        sb.append(Integer.toString(frames.get(i)));
+        sb.append(frames.get(i));
         if (i < frames.size() - 1) {
           sb.append(", ");
         }

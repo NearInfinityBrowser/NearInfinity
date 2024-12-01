@@ -616,7 +616,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
   // ----------------------------- INNER CLASSES -----------------------------
 
   private static class IndexedCellRenderer extends DefaultListCellRenderer {
-    private int startIndex;
+    private final int startIndex;
 
     public IndexedCellRenderer(int startIndex) {
       super();

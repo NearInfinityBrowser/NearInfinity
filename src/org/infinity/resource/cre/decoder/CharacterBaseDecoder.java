@@ -146,7 +146,7 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder {
       // include fake two-handed weapons (e.g. monk fists)
       isTwoHanded |= (itm.getFlags() & (1 << 12)) != 0;
     }
-    int abilType = -1;
+    int abilType;
     abilityIndex = Math.max(0, Math.min(itm.getAbilityCount() - 1, abilityIndex));
     abilType = itm.getAbility(abilityIndex).getAbilityType();
 

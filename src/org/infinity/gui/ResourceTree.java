@@ -304,7 +304,6 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error renaming file \"" + filename + "\"!", "Error",
           JOptionPane.ERROR_MESSAGE);
       Logger.error(e);
-      return;
     }
     // ResourceFactory.getResourceTreeModel().resourceEntryChanged(entry);
   }
@@ -312,7 +311,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   /** Attempts to delete the specified resource if it exists as a file in the game path. */
   public static void deleteResource(ResourceEntry entry) {
     if (entry instanceof FileResourceEntry) {
-      String options[] = { "Delete", "Cancel" };
+      String[] options = { "Delete", "Cancel" };
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), "Are you sure you want to delete " + entry + '?',
           "Delete file", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
         return;
@@ -531,7 +530,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   // -------------------------- INNER CLASSES --------------------------
 
-  private final class TreeExpandListener implements TreeExpansionListener, TreeWillExpandListener {
+  private static final class TreeExpandListener implements TreeExpansionListener, TreeWillExpandListener {
     private final JTree tree;
 
     private Cursor defaultCursor;
@@ -792,15 +791,15 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       miRestore.setEnabled(isBackupAvailable(entry));
       miZip.setEnabled(entry instanceof FileResourceEntry && Profile.isSaveGame(entry.getActualPath()));
 
-      String path = "";
+      final StringBuilder path = new StringBuilder();
       if (tree.getLastSelectedPathComponent() instanceof ResourceTreeFolder) {
         ResourceTreeFolder folder = (ResourceTreeFolder) tree.getLastSelectedPathComponent();
         while (folder != null && !folder.folderName().isEmpty()) {
-          path = folder.folderName() + "/" + path;
+          path.insert(0, folder.folderName() + "/");
           folder = folder.getParentFolder();
         }
       }
-      miZip.setEnabled(!path.isEmpty() && Profile.isSaveGame(FileManager.resolve(path)));
+      miZip.setEnabled((path.length() > 0) && Profile.isSaveGame(FileManager.resolve(path.toString())));
     }
 
     @Override

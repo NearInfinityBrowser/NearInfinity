@@ -27,7 +27,7 @@ public class TableBitmap extends Bitmap {
   }
 
   private static String[] generateList(String tableName, int column, boolean normalize) {
-    String[] retVal = null;
+    String[] retVal;
 
     Table2da table = Table2daCache.get(tableName);
     if (table != null) {

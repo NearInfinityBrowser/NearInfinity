@@ -269,7 +269,7 @@ public class DlcPath implements Path {
     if (o.isAbsolute()) {
       return o;
     }
-    byte[] resolved = null;
+    byte[] resolved;
     if (this.path[path.length - 1] == '/') {
       resolved = new byte[path.length + o.path.length];
       System.arraycopy(path, 0, resolved, 0, path.length);
@@ -363,7 +363,7 @@ public class DlcPath implements Path {
       byte[] defaultdir = dfs.getDefaultDir().path;
       int defaultlen = defaultdir.length;
       boolean endsWith = (defaultdir[defaultlen - 1] == '/');
-      byte[] t = null;
+      byte[] t;
       if (endsWith) {
         t = new byte[defaultlen + path.length];
       } else {
@@ -486,14 +486,14 @@ public class DlcPath implements Path {
 
   private boolean equalsNameAt(DlcPath other, int index) {
     int mbegin = offsets[index];
-    int mlen = 0;
+    int mlen;
     if (index == (offsets.length - 1)) {
       mlen = path.length - mbegin;
     } else {
       mlen = offsets[index + 1] - mbegin - 1;
     }
     int obegin = other.offsets[index];
-    int olen = 0;
+    int olen;
     if (index == (other.offsets.length - 1)) {
       olen = other.path.length - obegin;
     } else {
@@ -727,8 +727,8 @@ public class DlcPath implements Path {
   }
 
   protected Map<String, Object> readAttributes(String attributes, LinkOption... options) throws IOException {
-    String view = null;
-    String attrs = null;
+    String view;
+    String attrs;
     int colonPos = attributes.indexOf(':');
     if (colonPos == -1) {
       view = "basic";

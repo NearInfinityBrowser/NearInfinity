@@ -44,7 +44,7 @@ public final class DxtEncoder {
   /**
    * Supported DXT compression types
    */
-  public static enum DxtType {
+  public enum DxtType {
     DXT1, DXT3, DXT5
   }
 
@@ -209,7 +209,7 @@ public final class DxtEncoder {
     final ColorSet colors = new ColorSet(pixels, dxtType);
 
     // check the compression type and compress color
-    ColorFit fit = null;
+    ColorFit fit;
     if (colors.getCount() == 1) {
       // always do a single color fit
       fit = new SingleColorFit(colors, dxtType);

@@ -91,7 +91,7 @@ public class SpriteAnimationPanel extends JPanel
   private static final int DELAY_RELEASE_SPRITE_MAX = 90_000;
 
   /** Used for sorting sprites for rendering. */
-  private static final Comparator<SpriteInfo> SPRITE_COMPARATOR = (a, b) -> (a.y < b.y) ? -1 : (a.y > b.y) ? 1 : 0;
+  private static final Comparator<SpriteInfo> SPRITE_COMPARATOR = Comparator.comparingDouble(a -> a.y);
 
   /** Set of non-pst action sequences for use. */
   private static final Sequence[] DEF_SEQUENCES = {
@@ -246,6 +246,7 @@ public class SpriteAnimationPanel extends JPanel
       try {
         sprite.close();
       } catch (Exception e) {
+        Logger.debug(e);
       }
     }
   }
@@ -552,6 +553,7 @@ public class SpriteAnimationPanel extends JPanel
       }
       sprite.close();
     } catch (Exception e) {
+      Logger.debug(e);
     }
   }
 
@@ -722,6 +724,7 @@ public class SpriteAnimationPanel extends JPanel
             break;
           }
         } catch (Exception e) {
+          Logger.debug(e);
         }
       }
     }
@@ -786,7 +789,7 @@ public class SpriteAnimationPanel extends JPanel
         if (animSection != null) {
           final String resref = animSection.getAsString("walk");
           if (resref != null && resref.length() >= 4) {
-            if (!resref.substring(1, 4).toLowerCase().equals("wlk")) {
+            if (!resref.substring(1, 4).equalsIgnoreCase("wlk")) {
               // skip animation without dedicated walking sequence
               return false;
             }
@@ -798,12 +801,8 @@ public class SpriteAnimationPanel extends JPanel
       }
 
       final int allegiance = buffer.get(0x270) & 0xff;
-      if (allegiance <= 1) {
-        // possibly a meta creature
-        return false;
-      }
-
-      return true;
+      // possibly a meta creature
+      return allegiance > 1;
     }
 
     return false;
@@ -864,7 +863,7 @@ public class SpriteAnimationPanel extends JPanel
       if (animSection != null) {
         final String resref = animSection.getAsString("walk");
         if (resref != null && resref.length() >= 4) {
-          if (!resref.substring(1, 4).toLowerCase().equals("wlk")) {
+          if (!resref.substring(1, 4).equalsIgnoreCase("wlk")) {
             // skip animation without dedicated walking sequence
             return false;
           }
@@ -875,12 +874,8 @@ public class SpriteAnimationPanel extends JPanel
       }
 
       final int allegiance = buffer.get(0x314) & 0xff;
-      if (allegiance <= 1) {
-        // possibly a meta creature
-        return false;
-      }
-
-      return true;
+      // possibly a meta creature
+      return allegiance > 1;
     }
 
     return false;
@@ -931,10 +926,8 @@ public class SpriteAnimationPanel extends JPanel
       }
       final IniMapSection iniSection = ini.getSection("general");
       if (iniSection != null) {
-        if (iniSection.getAsDouble("move_scale", -1.0) <= 0.0) {
-          // non-moving creature
-          return false;
-        }
+        // possibly non-moving creature
+        return !(iniSection.getAsDouble("move_scale", -1.0) <= 0.0);
       }
 
       return true;
@@ -988,10 +981,8 @@ public class SpriteAnimationPanel extends JPanel
       }
       final IniMapSection iniSection = ini.getSection("general");
       if (iniSection != null) {
-        if (iniSection.getAsDouble("move_scale", -1.0) <= 0.0) {
-          // non-moving creature
-          return false;
-        }
+        // possibly non-moving creature
+        return !(iniSection.getAsDouble("move_scale", -1.0) <= 0.0);
       }
 
       return true;
@@ -1183,6 +1174,7 @@ public class SpriteAnimationPanel extends JPanel
         factor = 10;
       }
     } catch (Throwable t) {
+      Logger.debug(t);
     }
     return 5 * factor;
   }
@@ -1190,7 +1182,7 @@ public class SpriteAnimationPanel extends JPanel
   // -------------------------- INNER CLASSES --------------------------
 
   /** Stores the state of a single creature sprite. */
-  private static class SpriteInfo implements Closeable {
+  public static class SpriteInfo implements Closeable {
     /**
      * Name of a {@link PropertyChangeEvent} when the animation cycle of an action sequence ended.
      * <p>
@@ -1640,7 +1632,10 @@ public class SpriteAnimationPanel extends JPanel
      * </p>
      *
      * @return A {@link BitSet} containing all boundaries that are hit by the next sprite advancement.
-     * @see {@link #BOUNDS_TOP}, {@link #BOUNDS_LEFT}, {@link #BOUNDS_BOTTOM}, {@link #BOUNDS_RIGHT}
+     * @see #BOUNDS_TOP
+     * @see #BOUNDS_LEFT
+     * @see #BOUNDS_BOTTOM
+     * @see #BOUNDS_RIGHT
      */
     public BitSet boundsHit() {
       boundsHit.clear();
@@ -1716,13 +1711,11 @@ public class SpriteAnimationPanel extends JPanel
     }
 
     /** Returns all registered {@link PropertyChangeListener}s for this SpriteInfo object. */
-    @SuppressWarnings("unused")
     public PropertyChangeListener[] getPropertyChangeListeners() {
       return listenerList.getListeners(PropertyChangeListener.class);
     }
 
     /** Removes a {@link PropertyChangeListener} from the SpriteInfo object. */
-    @SuppressWarnings("unused")
     public void removePropertyChangeListener(PropertyChangeListener l) {
       if (l != null) {
         listenerList.remove(PropertyChangeListener.class, l);
@@ -1844,7 +1837,6 @@ public class SpriteAnimationPanel extends JPanel
     }
 
     /** Returns a list of available action sequences for the sprite. */
-    @SuppressWarnings("unused")
     public List<Sequence> getAvailableSequences() {
       final List<Sequence> retVal = new ArrayList<>();
 

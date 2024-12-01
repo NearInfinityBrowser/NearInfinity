@@ -237,7 +237,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     this.currentSequence = Sequence.NONE;
     init();
     if (!isMatchingAnimationType()) {
-      throw new IllegalArgumentException("Animation id is incompatible with animation type: " + type.toString());
+      throw new IllegalArgumentException("Animation id is incompatible with animation type: " + type);
     }
   }
 
@@ -1107,8 +1107,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
   protected void createAnimation(SeqDef definition, List<Direction> directions, BeforeSourceBam beforeSrcBam,
       BeforeSourceFrame beforeSrcFrame, AfterSourceFrame afterSrcFrame, AfterDestFrame afterDstFrame) {
     PseudoBamControl dstCtrl = createControl();
-    BamV1Control srcCtrl = null;
-    ResourceEntry entry = null;
+    BamV1Control srcCtrl;
+    ResourceEntry entry;
     Objects.requireNonNull(definition, "Sequence definition cannot be null");
 
     if (directions == null) {

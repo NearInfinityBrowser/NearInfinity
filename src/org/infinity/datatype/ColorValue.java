@@ -248,7 +248,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
 
   @Override
   public String toString() {
-    String retVal = "Color index " + Integer.toString(number);
+    String retVal = "Color index " + number;
     String name = getColorName(number);
     if (name != null) {
       retVal += " (" + name + ")";
@@ -409,7 +409,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
       // scanning range of colors
       int maxValue = 255; // default size
       if (colorValue.colorEntry != null) {
-        BufferedImage image = null;
+        BufferedImage image;
         try {
           image = new GraphicsResource(colorValue.colorEntry).getImage();
           maxValue = Math.max(maxValue, image.getHeight() - 1);
@@ -459,7 +459,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric {
 
     // Returns an image describing a random color or invalid color entry
     private BufferedImage getVirtualColor(int index, int width, int height) {
-      BufferedImage retVal = null;
+      BufferedImage retVal;
 
       Color invalidColor = new Color(0xe0e0e0);
       boolean isRandom = colorValue.randomColors.containsKey(index);

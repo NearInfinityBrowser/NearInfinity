@@ -157,7 +157,7 @@ public class NumberFormatterEx extends AbstractFormatter {
    * {@code ParseException} if the parameter can not be resolved into a number.
    */
   public long getNumericValue(Object value) throws ParseException {
-    Number n = null;
+    Number n;
     if (value instanceof DataString<?> && ((DataString<?>) value).getData() instanceof Number) {
       n = (Number) ((DataString<?>) value).getData();
     } else if (value instanceof Number) {

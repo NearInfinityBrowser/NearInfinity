@@ -135,7 +135,7 @@ final public class Window extends AbstractStruct { // implements AddRemovable
   public void writeControlsTable(OutputStream os) throws IOException {
     for (final StructEntry o : getFields()) {
       if (o instanceof Control) {
-        ((Control) o).write(os);
+        o.write(os);
       }
     }
   }

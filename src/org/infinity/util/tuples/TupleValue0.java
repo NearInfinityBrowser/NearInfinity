@@ -13,7 +13,7 @@ public interface TupleValue0<T> {
    *
    * @return first element of the tuple.
    */
-  public T getValue0();
+  T getValue0();
 
   /**
    * Assigns a new value to the first element of the tuple.
@@ -21,5 +21,5 @@ public interface TupleValue0<T> {
    * @param newValue the new value to assign.
    * @return the previously assigned value of the first tuple element.
    */
-  public T setValue0(T newValue);
+  T setValue0(T newValue);
 }

@@ -621,7 +621,7 @@ public class Compiler {
     Signatures.Function[] funcs = isTrigger ? triggers.getFunction(code) : actions.getFunction(code);
     if (funcs != null) {
       for (Signatures.Function func : funcs) {
-        char paramType = 0;
+        char paramType;
         if (isTrigger) {
           paramType = Signatures.Function.Parameter.TYPE_TRIGGER;
         } else {
@@ -816,16 +816,16 @@ public class Compiler {
 
     ArrayList<String> expected = new ArrayList<>();
     for (int[] element : e.expectedTokenSequences) {
-      String symbol = "";
+      final StringBuilder symbol = new StringBuilder();
       for (int offset : element) {
         String s = TOKEN_SYMBOL_TO_DESC_MAP.get(e.tokenImage[offset]);
         if (s == null) {
           s = e.tokenImage[offset];
         }
-        symbol += s + ' ';
+        symbol.append(s).append(' ');
       }
-      if (!expected.contains(symbol)) {
-        expected.add(symbol);
+      if (!expected.contains(symbol.toString())) {
+        expected.add(symbol.toString());
       }
     }
 

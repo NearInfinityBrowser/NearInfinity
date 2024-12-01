@@ -135,6 +135,7 @@ public class Viewer extends JPanel implements ActionListener, AudioStateListener
   public void close() {
     closed = true;
     resetPlayer();
+    elapsedTimer.close();
     try {
       musHandler.close();
     } catch (Exception e) {

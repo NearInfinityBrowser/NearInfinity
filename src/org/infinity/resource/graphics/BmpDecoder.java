@@ -239,7 +239,7 @@ public class BmpDecoder {
       private final int code;
       private final String label;
 
-      private Compression(int code, String label) {
+      Compression(int code, String label) {
         this.code = code;
         this.label = label;
       }

@@ -356,7 +356,7 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider {
     if (image != null) {
       if (isActive() || isActiveIgnored()) {
         // preparing frames
-        int[] frameIndices = null;
+        int[] frameIndices;
         if (isMultiPart()) {
           frameIndices = new int[control.cycleCount()];
           for (int i = 0, cCount = control.cycleCount(); i < cCount; i++) {
@@ -379,11 +379,7 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider {
             // fetching frame data
             int[] buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
             Arrays.fill(buffer, 0);
-            if (bam instanceof BamV1Decoder) {
-              ((BamV1Decoder) bam).frameGet(control, frameIndex, working);
-            } else {
-              bam.frameGet(control, frameIndex, working);
-            }
+            bam.frameGet(control, frameIndex, working);
 
             // post-processing frame
             buffer = ((DataBufferInt) working.getRaster().getDataBuffer()).getData();
@@ -411,11 +407,10 @@ public class BackgroundAnimationProvider extends AbstractAnimationProvider {
             if (isMirrored()) {
               left = -imageRect.x
                   - (bam.getFrameInfo(frameIndex).getWidth() - bam.getFrameInfo(frameIndex).getCenterX() - 1);
-              top = -imageRect.y - bam.getFrameInfo(frameIndex).getCenterY();
             } else {
               left = -imageRect.x - bam.getFrameInfo(frameIndex).getCenterX();
-              top = -imageRect.y - bam.getFrameInfo(frameIndex).getCenterY();
             }
+            top = -imageRect.y - bam.getFrameInfo(frameIndex).getCenterY();
 
             g.drawImage(working, left, top, left + frameWidth, top + frameHeight, 0, 0, frameWidth, frameHeight, null);
           }

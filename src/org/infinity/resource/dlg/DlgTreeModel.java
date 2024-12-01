@@ -29,7 +29,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.infinity.datatype.ResourceRef;
-import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.menu.OptionsMenuItem;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -428,7 +428,7 @@ public class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pr
 
   /**
    * Adds continuous range of tree items that represent transitions from specified state and notifies listeners. If
-   * state is not main state and option {@link BrowserMenuBar#breakCyclesInDialogs()} is enabled, do nothing.
+   * state is not main state and option {@link OptionsMenuItem#breakCyclesInDialogs()} is enabled, do nothing.
    *
    * @param parent          Parent state under which tree items must be added
    * @param startTransition First transition index that state has

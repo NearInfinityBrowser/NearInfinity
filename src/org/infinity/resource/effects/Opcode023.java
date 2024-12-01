@@ -114,7 +114,7 @@ public class Opcode023 extends BaseOpcode {
     if (Profile.isEnhancedEdition()) {
       final Bitmap bmp = new Bitmap(buffer, offset, 4, EFFECT_MODE, MODES_EE);
       list.add(bmp);
-      if (parent != null && parent instanceof UpdateListener) {
+      if (parent instanceof UpdateListener) {
         bmp.addUpdateListener((UpdateListener)parent);
       }
       return offset + 4;

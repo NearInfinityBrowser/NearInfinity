@@ -156,7 +156,7 @@ public class TisConvert {
     private final OverlayMapUpdater updater;
     private final OverlayTileConverter converter;
 
-    private OverlayConversion(String label, OverlayMapUpdater updater, OverlayTileConverter converter,
+    OverlayConversion(String label, OverlayMapUpdater updater, OverlayTileConverter converter,
         boolean implemented) {
       this.label = label;
       this.implemented = implemented;
@@ -220,7 +220,7 @@ public class TisConvert {
     }
 
     if (tileCols > 0 && tileRows > 0) {
-      BufferedImage image = null;
+      BufferedImage image;
       ProgressMonitor progress = null;
       if (showProgress) {
         progress = new ProgressMonitor(parent, "Exporting TIS to PNG...", "", 0, 2);

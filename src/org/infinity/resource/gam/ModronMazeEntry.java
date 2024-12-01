@@ -19,7 +19,7 @@ public final class ModronMazeEntry extends AbstractStruct {
   public static final String GAM_MAZE_ENTRY_IS_TRAPPED  = "Is trapped";
   public static final String GAM_MAZE_ENTRY_TRAP_TYPE   = "Trap type";
   public static final String GAM_MAZE_ENTRY_EXITS       = "Exits";
-  public static final String GAM_MAZE_ENTRY_POLULATED   = "Populated";
+  public static final String GAM_MAZE_ENTRY_POPULATED   = "Populated";
 
   private static final String[] TRAPS_ARRAY = { "TrapA", "TrapB", "TrapC" };
 
@@ -37,7 +37,7 @@ public final class ModronMazeEntry extends AbstractStruct {
     addField(new Bitmap(buffer, offset + 12, 4, GAM_MAZE_ENTRY_IS_TRAPPED, OPTION_NOYES));
     addField(new Bitmap(buffer, offset + 16, 4, GAM_MAZE_ENTRY_TRAP_TYPE, TRAPS_ARRAY));
     addField(new Flag(buffer, offset + 20, 2, GAM_MAZE_ENTRY_EXITS, WALLS_ARRAY));
-    addField(new Bitmap(buffer, offset + 22, 4, GAM_MAZE_ENTRY_POLULATED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 22, 4, GAM_MAZE_ENTRY_POPULATED, OPTION_NOYES));
     return offset + 26;
   }
 }

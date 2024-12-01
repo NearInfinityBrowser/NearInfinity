@@ -363,7 +363,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     if (isEditorActive() && tabbedPane.getSelectedIndex() == TAB_TEXT) {
       int row = editor.getCaretLineNumber() + 1;
       int col = editor.getCaretOffsetFromLineStart() + 1;
-      NearInfinity.getInstance().getStatusBar().setCursorText(Integer.toString(row) + ":" + Integer.toString(col));
+      NearInfinity.getInstance().getStatusBar().setCursorText(row + ":" + col);
     } else if (isRawActive() && tabbedPane.getSelectedIndex() == TAB_RAW) {
       hexViewer.updateStatusBar();
     } else {

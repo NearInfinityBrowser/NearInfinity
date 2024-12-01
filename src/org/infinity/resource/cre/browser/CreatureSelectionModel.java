@@ -130,7 +130,7 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
     removeAllElements();
     selectedItem = null;
 
-    ResourceFactory.getResources("CRE").stream().forEach(re -> creList.add(new CreatureItem(re)));
+    ResourceFactory.getResources("CRE").forEach(re -> creList.add(new CreatureItem(re)));
     Collections.sort(creList);
     creList.add(0, CreatureItem.getDefault());
     fireIntervalAdded(this, 0, creList.size() - 1);

@@ -97,9 +97,9 @@ public class DynamicByteArray implements Iterable<Byte> {
   }
 
   /**
-   * Returns {@code true} if, and only if, {@link length} is {@code null}.
+   * Returns {@code true} if, and only if, {@link #length} is {@code null}.
    *
-   * @return {@code true} if {@link length} is {@code 0}, otherwise {@code false}.
+   * @return {@code true} if {@link #length} is {@code 0}, otherwise {@code false}.
    */
   public boolean isEmpty() {
     return (length() == 0);
@@ -118,8 +118,7 @@ public class DynamicByteArray implements Iterable<Byte> {
    */
   public void compact() {
     if (buffer.length > size) {
-      final byte[] newBuffer = Arrays.copyOf(buffer, size);
-      buffer = newBuffer;
+      buffer = Arrays.copyOf(buffer, size);
     }
   }
 
@@ -539,7 +538,7 @@ public class DynamicByteArray implements Iterable<Byte> {
       // overflow
       throw new OutOfMemoryError();
     }
-    return (minCapacity > MAX_BUFFER_SIZE) ? minCapacity : MAX_BUFFER_SIZE;
+    return Math.max(minCapacity, MAX_BUFFER_SIZE);
   }
 
   // -------------------------- INNER CLASSES --------------------------

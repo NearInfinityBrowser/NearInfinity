@@ -88,7 +88,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener,
 
     private final String style;
 
-    private Language(String style) {
+    Language(String style) {
       this.style = style;
     }
 
@@ -125,7 +125,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener,
     // Stored as functional interface to react to dark/light UI theme changes
     private final Supplier<String> scheme;
 
-    private Scheme(String label, Supplier<String> scheme) {
+    Scheme(String label, Supplier<String> scheme) {
       this.label = label;
       this.scheme = scheme;
     }

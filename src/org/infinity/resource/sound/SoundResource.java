@@ -240,14 +240,14 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
 
     final String br = "<br />";
-    final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
-    sb.append("Format:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(format).append(br);
-    sb.append("Duration:&nbsp;&nbsp;&nbsp;&nbsp;").append(duration).append(br);
-    sb.append(extra).append(br);
-    sb.append("Sample Rate:&nbsp;").append(rate).append(" Hz").append(br);
-    sb.append("Channels:&nbsp;&nbsp;&nbsp;&nbsp;").append(channels).append(channelsDesc).append(br);
-    sb.append("</div></html>");
-    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
+    String sb = "<html><div style='font-family:monospace'>" +
+        "Format:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + format + br +
+        "Duration:&nbsp;&nbsp;&nbsp;&nbsp;" + duration + br +
+        extra + br +
+        "Sample Rate:&nbsp;" + rate + " Hz" + br +
+        "Channels:&nbsp;&nbsp;&nbsp;&nbsp;" + channels + channelsDesc + br +
+        "</div></html>";
+    JOptionPane.showMessageDialog(panel, sb, "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 
   // --------------------- End Interface Viewable ---------------------

@@ -51,12 +51,12 @@ public class ChildFrame extends JFrame {
 
   /** Closes all child windows except for child windows with {@code closeOnReset} set to {@code false}. */
   public static int closeWindows() {
-    return closeWindow((Class<ChildFrame>)null, false);
+    return closeWindow(null, false);
   }
 
   /** Closes all child windows. */
   public static int closeWindows(boolean forced) {
-    return closeWindow((Class<ChildFrame>)null, forced);
+    return closeWindow(null, forced);
   }
 
   /**
@@ -111,8 +111,7 @@ public class ChildFrame extends JFrame {
    * @param refreshOnly Specify {@code true} if the game has only been refreshed.
    */
   public static void fireGameReset(Class<ChildFrame> frameClass, boolean refreshOnly) {
-    for (Iterator<ChildFrame> iter = WINDOWS.iterator(); iter.hasNext(); ) {
-      final ChildFrame frame = iter.next();
+    for (final ChildFrame frame : WINDOWS) {
       if (!frame.isCloseOnReset() && (frameClass == null || frame.getClass() == frameClass)) {
         frame.gameReset(refreshOnly);
       }
@@ -435,7 +434,7 @@ public class ChildFrame extends JFrame {
         if (event == null) {
           event = new WindowEvent(NearInfinity.getInstance(), WindowEvent.WINDOW_CLOSING);
         }
-        WindowListener listeners[] = frame.getWindowListeners();
+        WindowListener[] listeners = frame.getWindowListeners();
         for (final WindowListener listener : listeners) {
           listener.windowClosing(event);
         }

@@ -319,7 +319,7 @@ public class UpdateInfo {
     }
     children = elemGitHub.getChildNodes();
     for (int idx = 0, size = children.getLength(); idx < size; idx++) {
-      Element elem = null;
+      Element elem;
       if (children.item(idx).getNodeType() == Node.ELEMENT_NODE) {
         elem = (Element) children.item(idx);
       } else {

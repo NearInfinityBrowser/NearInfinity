@@ -61,7 +61,7 @@ public class TextListPanel<E> extends JPanel
   private final JTextField tfield = new JTextField();
   private final JToggleButton tbFilter = new JToggleButton(Icons.ICON_FILTER_16.getIcon(), filterEnabled);
 
-  private boolean sortValues = true;
+  private final boolean sortValues;
 
   public TextListPanel(List<? extends E> values) {
     this(values, true, false);
@@ -299,7 +299,7 @@ public class TextListPanel<E> extends JPanel
       cw += c.getInsets().left;
       cw += c.getInsets().right;
       if (includeScrollBar) {
-        int sbWidth = 0;
+        int sbWidth;
         try {
           sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
         } catch (Exception ex) {

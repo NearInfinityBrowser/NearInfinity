@@ -579,7 +579,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         String inFileName = inFile.getFileName().toString();
 
         // generating output filename
-        String outFileName = null;
+        String outFileName;
         int n = inFileName.lastIndexOf('.');
         if (n > 0) {
           outFileName = inFileName.substring(0, n) + ".PVRZ";
@@ -606,7 +606,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         // loading source image data
         if (isPVR) {
           // handling PVR files
-          ByteBuffer bb = null;
+          ByteBuffer bb;
           try (SeekableByteChannel ch = Files.newByteChannel(inFile, StandardOpenOption.READ)) {
             bb = StreamUtils.getByteBuffer((int) ch.size());
             ch.read(bb);
@@ -664,8 +664,8 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           }
 
           // preparing output
-          DxtEncoder.DxtType dxtType = null;
-          byte[] header = null;
+          DxtEncoder.DxtType dxtType;
+          byte[] header;
           switch (dxt) {
             case 3:
               dxtType = DxtEncoder.DxtType.DXT3;

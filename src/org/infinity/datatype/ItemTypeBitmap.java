@@ -129,7 +129,7 @@ public class ItemTypeBitmap extends HashBitmap {
       for (int row = 0, count = table.getRowCount(); row < count; row++) {
         final String idxValue = table.get(row, 0);
         final int radix = idxValue.startsWith("0x") ? 16 : 10;
-        String catName = "";
+        String catName;
         try {
           int idx = Integer.parseInt(idxValue, radix);
           if (idx >= 0 && idx < CATEGORIES_ARRAY.length) {

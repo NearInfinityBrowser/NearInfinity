@@ -66,7 +66,7 @@ public class UpdateCheck extends JDialog {
 
   /** Shows update check dialog and returns the action selected by the user. */
   public static UpdateAction showDialog(Window owner, UpdateInfo updateInfo) {
-    UpdateCheck dlg = null;
+    UpdateCheck dlg;
     try {
       try {
         dlg = new UpdateCheck(owner, updateInfo);
@@ -367,7 +367,7 @@ public class UpdateCheck extends JDialog {
     // only changelog list entries are relevant for us
     final String[] lines = release.body.split("\r?\n");
     int indexStart = 0;
-    int indexEnd = 0;
+    int indexEnd;
     for (; indexStart < lines.length; indexStart++) {
       final String line = lines[indexStart].toLowerCase();
       if (line.contains("changelog:") || line.contains("changes:")) {

@@ -429,7 +429,7 @@ public class BamV1Decoder extends BamDecoder {
     @Override
     public String toString() {
       return "[width=" + getWidth() + ", height=" + getHeight() + ", centerX=" + getCenterX() + ", centerY="
-          + getCenterY() + ", compressed=" + Boolean.toString(isCompressed()) + "]";
+          + getCenterY() + ", compressed=" + isCompressed() + "]";
     }
 
     @Override

@@ -92,7 +92,7 @@ import org.infinity.util.io.StreamUtils;
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
 
-  private static final Set<String> TYPES_BLACKLIST = new HashSet<>(Arrays.asList(new String[] {"BIK", "LOG", "SAV"}));
+  private static final Set<String> TYPES_BLACKLIST = new HashSet<>(Arrays.asList("BIK", "LOG", "SAV"));
 
   private final JButton bExport = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
@@ -780,7 +780,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
             int bytesWritten = (int) StreamUtils.writeBytes(os, is, size);
             if (bytesWritten < size) {
-              throw new EOFException(entry.toString() + ": " + bytesWritten + " of " + size + " bytes written");
+              throw new EOFException(entry + ": " + bytesWritten + " of " + size + " bytes written");
             }
           }
         }

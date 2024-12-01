@@ -47,7 +47,7 @@ public class BamFilterColorSwap extends BamFilterBaseColor implements ChangeList
     private final String label;
     private final int[] shift;
 
-    private SwapType(String label, int[] shift) {
+    SwapType(String label, int[] shift) {
       this.label = label;
       this.shift = shift;
     }

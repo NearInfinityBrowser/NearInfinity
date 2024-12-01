@@ -110,23 +110,27 @@ public class IdsMapCache {
     }
 
     if (retVal == null) {
-      if (symbol.equals("ANYONE")) {
-        int p = idsRef.lastIndexOf('.');
-        if (p >= 0) {
-          idsRef = idsRef.substring(0, p);
-        }
-        idsRef = idsRef.toUpperCase(Locale.ENGLISH);
-        String[] ids = ScriptInfo.getInfo().getObjectIdsList();
-        for (final String s : ids) {
-          if (s.equals(idsRef)) {
-            retVal = 0L;
-            break;
+      switch (symbol) {
+        case "ANYONE":
+          int p = idsRef.lastIndexOf('.');
+          if (p >= 0) {
+            idsRef = idsRef.substring(0, p);
           }
-        }
-      } else if (symbol.equals("FALSE")) {
-        retVal = 0L;
-      } else if (symbol.equals("TRUE")) {
-        retVal = 1L;
+          idsRef = idsRef.toUpperCase(Locale.ENGLISH);
+          String[] ids = ScriptInfo.getInfo().getObjectIdsList();
+          for (final String s : ids) {
+            if (s.equals(idsRef)) {
+              retVal = 0L;
+              break;
+            }
+          }
+          break;
+        case "FALSE":
+          retVal = 0L;
+          break;
+        case "TRUE":
+          retVal = 1L;
+          break;
       }
     }
 

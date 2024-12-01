@@ -343,7 +343,7 @@ public final class StoResource extends AbstractStruct
   public void actionPerformed(ActionEvent e) {
     switch (e.getActionCommand()) {
       case SORT_ORDER_ASCENDING:
-        sortItems((a, b) -> a - b);
+        sortItems(Comparator.comparingInt(a -> a));
         break;
       case SORT_ORDER_DESCENDING:
         sortItems((a, b) -> b - a);
@@ -462,9 +462,9 @@ public final class StoResource extends AbstractStruct
       try {
         if (se instanceof ItemSale) {
           final ItemSale newItem = (ItemSale) ((ItemSale)se).clone();
-          itemList.add(new SortableItem<ItemSale>(newItem));
+          itemList.add(new SortableItem<>(newItem));
         } else if (se instanceof ItemSale11) {
-          itemList.add(new SortableItem<ItemSale11>(new ItemSale11(null, se.getDataBuffer(), 0, 0)));
+          itemList.add(new SortableItem<>(new ItemSale11(null, se.getDataBuffer(), 0, 0)));
         }
       } catch (Exception e) {
         Logger.error(e);

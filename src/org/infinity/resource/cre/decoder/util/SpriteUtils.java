@@ -143,8 +143,8 @@ public class SpriteUtils {
    */
   public static CreResource getPseudoCre(int animationId, HashMap<String, Integer> colors,
       HashMap<Integer, String> equipment) throws Exception {
-    CreResource entry = null;
-    ByteBuffer buffer = null;
+    CreResource entry;
+    ByteBuffer buffer;
     if ((Boolean) Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V90)) {
       // IWD
       int sizeBase = 0x33c;
@@ -922,7 +922,7 @@ public class SpriteUtils {
    * @return a {@code Color} object with the associated allegiance or status color.
    */
   public static Color getAllegianceColor(int value) {
-    Color c = null;
+    Color c;
     if (value < 0) {
       // treat as panic
       c = new Color(0xffff20, false);
@@ -948,7 +948,7 @@ public class SpriteUtils {
    * @return
    */
   public static Image getAllegianceImage(int value) {
-    Image retVal = null;
+    Image retVal;
     if (value < 0) {
       // treat as panic
       retVal = Icons.getImage(Icons.ICON_CIRCLE_YELLOW);
@@ -1482,14 +1482,12 @@ public class SpriteUtils {
 
     if (!tableEntries.isEmpty()) {
       for (final String line : tableEntries) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("2DA V1.0").append('\n');
-        sb.append("*").append('\n');
-        sb.append(
-            "  RESREF TYPE ELLIPSE SPACE BLENDING PALETTE PALETTE2 RESREF2 TRANSLUCENT CLOWN SPLIT HELMET WEAPON HEIGHT HEIGHT_SHIELD")
-            .append('\n');
-        sb.append(line).append('\n');
-        ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.toString().getBytes()),
+        String sb = "2DA V1.0" + '\n' +
+            "*" + '\n' +
+            "  RESREF TYPE ELLIPSE SPACE BLENDING PALETTE PALETTE2 RESREF2 TRANSLUCENT CLOWN SPLIT HELMET WEAPON HEIGHT HEIGHT_SHIELD" +
+            '\n' +
+            line + '\n';
+        ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.getBytes()),
             Integer.toString(animationId, 16) + ".2DA");
         Table2da table = new Table2da(entry);
         retVal.addAll(SpriteTables.processTable(Profile.getGame(), table, animationId));
@@ -1561,12 +1559,11 @@ public class SpriteUtils {
       int armor = iniSection.getAsInteger("armor", 0);
       int bestiary = iniSection.getAsInteger("bestiary", 0);
 
-      StringBuilder sb = new StringBuilder();
-      sb.append("2DA V1.0").append('\n');
-      sb.append("*").append('\n');
-      sb.append("         RESREF   RESREF2  TYPE     ELLIPSE  SPACE    CLOWN    ARMOR    BESTIARY").append('\n');
-      sb.append(String.format("0x%04x  %s  *  18  16  3  %d  %d  %d", id, resref, clown, armor, bestiary)).append('\n');
-      ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.toString().getBytes()),
+      String sb = "2DA V1.0" + '\n' +
+          "*" + '\n' +
+          "         RESREF   RESREF2  TYPE     ELLIPSE  SPACE    CLOWN    ARMOR    BESTIARY" + '\n' +
+          String.format("0x%04x  %s  *  18  16  3  %d  %d  %d", id, resref, clown, armor, bestiary) + '\n';
+      ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.getBytes()),
           Integer.toString(animationId, 16) + ".2DA");
       Table2da table = new Table2da(entry);
       retVal = SpriteTables.processTable(Profile.getGame(), table, animationId);

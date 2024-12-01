@@ -4,7 +4,6 @@
 
 package org.infinity.resource.cre.decoder.util;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -330,7 +329,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
    * @throws Exception if the ITM resource could not be loaded.
    */
   public static ItemInfo get(ResourceEntry itmEntry) throws Exception {
-    ItemInfo retVal = null;
+    ItemInfo retVal;
     if (itmEntry == null) {
       return EMPTY;
     }
@@ -353,7 +352,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
    * @throws Exception if the ITM resource could not be loaded.
    */
   public static ItemInfo getValidated(ResourceEntry itmEntry) throws Exception {
-    ItemInfo retVal = null;
+    ItemInfo retVal;
     if (itmEntry == null) {
       return EMPTY;
     }
@@ -701,7 +700,7 @@ public class ItemInfo implements Comparable<ItemInfo> {
   }
 
   /** Initializes relevant item attributes. */
-  private void init() throws IOException, Exception {
+  private void init() throws Exception {
     if (itmEntry == null) {
       initDefault();
       return;

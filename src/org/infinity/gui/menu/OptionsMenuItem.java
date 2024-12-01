@@ -68,7 +68,7 @@ public class OptionsMenuItem extends JMenuItem {
 
     private final String label;
 
-    private AutoAlign2da(String label) {
+    AutoAlign2da(String label) {
       this.label = label;
     }
 
@@ -225,8 +225,10 @@ public class OptionsMenuItem extends JMenuItem {
   /** This preferences key can be used internally to reset incorrectly set default values after a public release. */
   public static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
 
-  /** Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED). */
-  /** Bit for incorrect BCS Auto Indent default: {@code false} -> {@code true}. */
+  /**
+   * Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED).
+   * <p>Bit for incorrect BCS Auto Indent default: {@code false} -> {@code true}.</p>
+   */
   @Deprecated
   public static final int MASK_OPTION_FIXED_AUTO_INDENT = 0x00000001;
 

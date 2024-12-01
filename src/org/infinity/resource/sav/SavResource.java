@@ -262,7 +262,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
     GridBagConstraints gbc = new GridBagConstraints();
     centerpanel.setLayout(gbl);
 
-    JLabel label = new JLabel("Contents of " + entry.toString());
+    JLabel label = new JLabel("Contents of " + entry);
     JScrollPane scroll = new JScrollPane(filelist);
     Dimension size = scroll.getPreferredSize();
     scroll.setPreferredSize(new Dimension(2 * (int) size.getWidth(), 2 * (int) size.getHeight()));

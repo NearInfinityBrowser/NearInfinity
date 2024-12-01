@@ -452,7 +452,7 @@ public class StringValidationChecker extends AbstractSearcher
 
     repairWorker = new SwingWorker<Couple<Integer, Integer>, Void>() {
       @Override
-      protected Couple<Integer, Integer> doInBackground() throws Exception {
+      protected Couple<Integer, Integer> doInBackground() {
         return repairEntries(repairWorker);
       }
     };
@@ -710,7 +710,7 @@ public class StringValidationChecker extends AbstractSearcher
      * @param offset Byte offset of malformed characters.
      * @param length Number of malformed bytes.
      * @param errorDesc A short error description.
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if one or more of the given parameters are invalid.
      */
     public StringError(boolean isFemale, int strref, byte[] buffer, int offset, int length, String errorDesc)
         throws IllegalArgumentException {
@@ -762,7 +762,7 @@ public class StringValidationChecker extends AbstractSearcher
      * @return Repaired string representation of the malformed bytes if successful, an empty string otherwise.
      */
     public String getRepaired() {
-      String retVal = "";
+      StringBuilder retVal = new StringBuilder();
       final byte[] data = Arrays.copyOfRange(buffer, offset, offset + length);
       if (StringTable.getCharset().equals(StandardCharsets.UTF_8)) {
         // Fixing UTF-8 charset
@@ -782,7 +782,7 @@ public class StringValidationChecker extends AbstractSearcher
           final CharBuffer outBuf = CharBuffer.allocate(maxCharLength);
           final CoderResult cr = csd.decode(ByteBuffer.wrap(data), outBuf, true);
           if (!cr.isError()) {
-            retVal = outBuf.flip().toString();
+            retVal = new StringBuilder(outBuf.flip().toString());
             break;
           }
         }
@@ -831,7 +831,7 @@ public class StringValidationChecker extends AbstractSearcher
                 final CoderResult ecr = cse.encode(CharBuffer.wrap(chars), ByteBuffer.allocate(chars.length * 4), true);
                 if (!ecr.isError()) {
                   // Add only if utf-8 code point defines a valid character in the local charset of the string table
-                  retVal += new String(chars);
+                  retVal.append(new String(chars));
                 } else {
                   isUtf = false;
                 }
@@ -851,7 +851,7 @@ public class StringValidationChecker extends AbstractSearcher
                 if (!dcr.isError()) {
                   // Restoring original content
                   cb.flip();
-                  retVal += cb.toString();
+                  retVal.append(cb);
                 }
               }
             }
@@ -859,7 +859,7 @@ public class StringValidationChecker extends AbstractSearcher
         }
       }
 
-      return retVal;
+      return retVal.toString();
     }
 
     /** Returns the character set used for encoding bytes into string data. */

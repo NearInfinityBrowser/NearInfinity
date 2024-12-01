@@ -43,7 +43,7 @@ public enum Direction {
 
   private final int dir;
 
-  private Direction(int dir) {
+  Direction(int dir) {
     this.dir = dir;
   }
 

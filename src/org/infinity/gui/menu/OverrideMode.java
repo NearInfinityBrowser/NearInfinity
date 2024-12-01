@@ -23,7 +23,7 @@ public enum OverrideMode {
 
   private final String title;
 
-  private OverrideMode(String title) {
+  OverrideMode(String title) {
     this.title = title;
   }
 

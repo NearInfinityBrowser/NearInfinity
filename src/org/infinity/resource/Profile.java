@@ -132,7 +132,7 @@ public final class Profile {
     private final Engine engine;
     private final String title;
 
-    private Game(Engine engine, String title) {
+    Game(Engine engine, String title) {
       this.engine = Objects.requireNonNull(engine);
       this.title = Objects.requireNonNull(title);
     }
@@ -758,13 +758,12 @@ public final class Profile {
         return prop.getData();
       } else {
         // handling properties which require an additional parameter
-        EnumMap<?, T> map = null;
         switch (key) {
           case GET_GLOBAL_EXTRA_FOLDER_NAMES:
           case GET_GLOBAL_SAVE_FOLDER_NAMES:
           case GET_GLOBAL_HOME_FOLDER_NAME:
             if (param instanceof Game) {
-              map = prop.getData();
+              final EnumMap<?, T> map = prop.getData();
               return map.get(param);
             }
             break;
@@ -1752,7 +1751,7 @@ public final class Profile {
     if (keyFile == null) {
       throw new Exception("No chitin.key specified");
     } else if (!FileEx.create(keyFile).isFile()) {
-      throw new Exception(keyFile.toString() + " does not exist");
+      throw new Exception(keyFile + " does not exist");
     }
 
     if (desc != null) {
@@ -1802,7 +1801,7 @@ public final class Profile {
       gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
     }
 
-    boolean isForced = (Boolean) getProperty(Key.IS_FORCED_GAME);
+    boolean isForced = getProperty(Key.IS_FORCED_GAME);
     if (isForced) {
       game = getGame();
     }
@@ -2073,7 +2072,7 @@ public final class Profile {
     // process each root separately
     roots.forEach(root -> {
       // adding root of active language
-      Path langRoot = FileManager.query(root, (String) getProperty(Key.GET_GLOBAL_LANG_NAME), language);
+      Path langRoot = FileManager.query(root, getProperty(Key.GET_GLOBAL_LANG_NAME), language);
       if (langRoot != null && FileEx.create(langRoot).isDirectory()) {
         addEntry(Key.GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
         addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);

@@ -758,7 +758,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
         if (!interactive) {
           return;
         }
-        String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive."
+        String msg = "\"" + outFile + "\" is located within a write-protected archive."
             + "\nDo you want to export it to another location instead?";
         int result = JOptionPane.showConfirmDialog(this, msg, "Save resource", JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE);
@@ -784,7 +784,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
       ProgressTracker pt = null;
       if (interactive) {
         pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-            "Error writing " + outFile.getFileName().toString());
+            "Error writing " + outFile.getFileName());
       }
       if (!StringTable.write(StringTable.Type.MALE, outFile, pt)) {
         return;
@@ -794,7 +794,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
         outFile = outPath.resolve(StringTable.getPath(StringTable.Type.FEMALE).getFileName());
         if (interactive) {
           pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-              "Error writing " + outFile.getFileName().toString());
+              "Error writing " + outFile.getFileName());
         }
         if (!StringTable.write(StringTable.Type.FEMALE, outFile, pt)) {
           return;

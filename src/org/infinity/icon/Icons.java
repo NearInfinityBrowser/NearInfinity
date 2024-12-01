@@ -88,7 +88,7 @@ public enum Icons {
   private final String fileName;
   private ImageIcon icon;
 
-  private Icons(String fileName) {
+  Icons(String fileName) {
     this.fileName = fileName;
   }
 

@@ -103,7 +103,7 @@ public class DirDef implements Cloneable {
 
   @Override
   public String toString() {
-    return "direction=" + direction.toString() + ", mirrored=" + Boolean.toString(mirrored) + ", cycle={"
+    return "direction=" + direction.toString() + ", mirrored=" + mirrored + ", cycle={"
         + cycle.toString() + "}";
   }
 

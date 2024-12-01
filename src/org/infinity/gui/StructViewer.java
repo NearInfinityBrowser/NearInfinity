@@ -73,7 +73,6 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ProRef;
-import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -1248,7 +1247,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         if (newentry == null) {
           newentry = entry;
         } else {
-          ((Readable) newentry).read(bb, 0);
+          newentry.read(bb, 0);
         }
       } else {
         throw new NullPointerException();
@@ -1497,7 +1496,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                     shouldApply = !shouldApply;
                   }
                   if (shouldApply) {
-                    ((Readable) att).read(bb, 0);
+                    att.read(bb, 0);
                     as.setStructChanged(true);
                     as.getParent().fireTableDataChanged();
                     count++;
@@ -1565,7 +1564,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
 
     // setting search value
-    SearchOptions so = null;
+    SearchOptions so;
     if (entry instanceof Flag) {
       so = new SearchOptions();
       so.setValueBitfield(((Flag) entry).getValue(), SearchOptions.BitFieldMode.EXACT);

@@ -73,11 +73,11 @@ public class LuaEntry {
     }
     if (value != null) {
       if (value instanceof Boolean) {
-        sb.append(Boolean.toString((Boolean) value));
+        sb.append(value);
       } else if (value instanceof Integer) {
-        sb.append(Integer.toString((Integer) value));
+        sb.append(value);
       } else {
-        sb.append('"').append(value.toString()).append('"');
+        sb.append('"').append(value).append('"');
       }
     } else if (children != null) {
       sb.append("{\n");
