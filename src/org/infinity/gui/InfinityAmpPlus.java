@@ -1845,8 +1845,8 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
           addToPlayList(availableList.getSelectedIndex());
         }
       } else if (e.getSource() == playList) {
-        if (e.getClickCount() == 2) {
-          removeFromPlayList(playList.getSelectedIndex());
+        if (!isPlaying()) {
+          setPlaying(true);
         }
       }
     }
