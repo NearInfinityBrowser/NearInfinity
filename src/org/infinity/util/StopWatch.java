@@ -10,6 +10,8 @@ import java.awt.event.ActionListener;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
+import org.infinity.resource.Closeable;
+
 /**
  * A "Stopwatch" implementation that provides functionality for starting/stopping, pausing/resuming, and querying
  * elapsed time.
@@ -17,14 +19,14 @@ import javax.swing.event.EventListenerList;
  * <p>The class provides {@link ActionListener} support to fire in regular intervals. Time is measured in
  * milliseconds.</p>
  */
-public class StopWatch {
+public class StopWatch implements Closeable {
   /** Factor for converting between milliseconds and seconds. */
   private static final long SECONDS_MULTIPLIER = 1000L;
 
   private final EventListenerList listenerList = new EventListenerList();
 
   // Runner for triggering delayed action events.
-  private final Thread runner = new Thread(new Runner());
+  private final Runner runner = new Runner();
 
   // relative starting time of a timer session
   private long timeBase;
@@ -40,6 +42,9 @@ public class StopWatch {
 
   // indicates whether the timer is paused
   private boolean paused;
+
+  // indicates whether the StopWatch instance has been closed
+  private boolean closed;
 
   /**
    * Converts a measured time value from milliseconds to seconds.
@@ -67,7 +72,6 @@ public class StopWatch {
    * @param start Specify {@code true} to automatically start the timer.
    */
   public StopWatch(long delay, boolean start) {
-    runner.start();
     setDelay(delay);
     paused = !start;
     reset();
@@ -78,6 +82,10 @@ public class StopWatch {
 
   /** Starts a new timer session. Old timer session is discarded. */
   public synchronized void reset() {
+    if (isClosed()) {
+      return;
+    }
+
     timeBase = System.currentTimeMillis();
     if (hasDelay()) {
       calculateTimer(timeBase);
@@ -94,6 +102,10 @@ public class StopWatch {
 
   /** Pauses the current timer session. */
   public synchronized void pause() {
+    if (isClosed()) {
+      return;
+    }
+
     if (!paused) {
       paused = true;
       timePaused = System.currentTimeMillis();
@@ -102,11 +114,15 @@ public class StopWatch {
 
   /** Resumes a previously paused timer session. */
   public synchronized void resume() {
+    if (isClosed()) {
+      return;
+    }
+
     if (paused) {
       final long timeDiff = System.currentTimeMillis() - timePaused;
       timeBase += timeDiff;
       paused = false;
-      runner.interrupt();
+      runner.signal();
     }
   }
 
@@ -115,6 +131,10 @@ public class StopWatch {
    * ignored.
    */
   public long elapsed() {
+    if (isClosed()) {
+      return 0L;
+    }
+
     if (isPaused()) {
       return timePaused - timeBase;
     } else {
@@ -147,6 +167,27 @@ public class StopWatch {
       this.delay = delay;
       calculateTimer(System.currentTimeMillis());
     }
+  }
+
+  /**
+   * Returns whether this {@link StopWatch} instance has been closed. A closed instance cannot measure time
+   * further.
+   *
+   * @return {@code true} if the instance has been closed, {@code false} otherwise.
+   */
+  public boolean isClosed() {
+    return closed;
+  }
+
+  @Override
+  public void close() {
+    if (isClosed()) {
+      return;
+    }
+
+    pause();
+    closed = true;
+    runner.close();
   }
 
   /** Adds an {@link ActionListener} to the stopwatch. */
@@ -200,27 +241,55 @@ public class StopWatch {
     }
   }
 
+  // -------------------------- INNER CLASSES --------------------------
+
   /** Internal helper class for firing timed action events. */
-  private class Runner implements Runnable {
+  private class Runner implements Runnable, Closeable {
+    private final Thread thread;
+
+    private boolean running;
+
+    public Runner() {
+      running = true;
+      thread = new Thread(this);
+      thread.start();
+    }
+
+    /** Signals the thread to interrupt the current state. */
+    public void signal() {
+      if (isRunning()) {
+        thread.interrupt();
+      }
+    }
+
+    /** Returns whether this runner instance is active. */
+    public boolean isRunning() {
+      return running;
+    }
+
+    /**
+     * Signals the thread to terminate.
+     */
+    @Override
+    public void close() {
+      if (isRunning()) {
+        running = false;
+        thread.interrupt();
+      }
+    }
+
     @Override
     public void run() {
-//      Logger.debug("Runner started");
-      while (true) {
+      while (running) {
         if (StopWatch.this.isPaused()) {
           try {
-//            Logger.debug("Runner going to sleep");
             Thread.sleep(Long.MAX_VALUE);
           } catch (InterruptedException e) {
-//            Logger.debug("Runner awakened at: {}", System.currentTimeMillis());
-//            if (StopWatch.this.hasDelay()) {
-//              Logger.debug("Next event at: {}", StopWatch.this.timeDelay);
-//            }
           }
         } else {
           if (StopWatch.this.hasDelay() && !StopWatch.this.isPaused()) {
             final long curTime = System.currentTimeMillis();
             if (curTime >= StopWatch.this.timeDelay) {
-//              Logger.debug("Event triggered at: {}", curTime);
               StopWatch.this.calculateTimer(curTime);
               final ActionEvent actionEvent = new ActionEvent(StopWatch.this, 0, "", curTime, 0);
               SwingUtilities.invokeLater(() -> fireActionPerformed(actionEvent));
