@@ -135,7 +135,8 @@ public final class ResourceTreeModel implements TreeModel {
     List<BIFFResourceEntry> list = new ArrayList<>();
     for (int i = 0; i < root.getFolders().size(); i++) {
       List<ResourceEntry> entries = root.getFolders().get(i).getResourceEntries();
-      for (final ResourceEntry o : entries) {
+      for (int j = 0; j < entries.size(); j++) {
+        final ResourceEntry o = entries.get(j);
         if (o instanceof BIFFResourceEntry) {
           BIFFResourceEntry bre = (BIFFResourceEntry) o;
           if (keyFile == null || bre.getKeyfile().equals(keyFile)) {

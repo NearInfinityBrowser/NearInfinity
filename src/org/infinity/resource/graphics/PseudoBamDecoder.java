@@ -731,10 +731,10 @@ public class PseudoBamDecoder extends BamDecoder {
       byte rleIndex = (byte) (((o != null) ? (Integer) o : 0) & 0xff);
       byte[] dstData = new byte[maxImageSize];
 
-      for (final PseudoBamFrameEntry listFrame : listFrames) {
-        o = listFrame.getOption(OPTION_BOOL_COMPRESSED);
+      for (int idx = 0; idx < listFrames.size(); idx++) {
+        o = listFrames.get(idx).getOption(OPTION_BOOL_COMPRESSED);
         boolean frameCompressed = (o != null) ? ((Boolean) o) : false;
-        PseudoBamFrameEntry entry = listFrame;
+        PseudoBamFrameEntry entry = listFrames.get(idx);
         byte[] srcBuffer = ((DataBufferByte) entry.frame.getRaster().getDataBuffer()).getData();
 
         if (frameCompressed) {
@@ -779,9 +779,9 @@ public class PseudoBamDecoder extends BamDecoder {
       // creating cycles table and frame lookup table
       List<Integer> listFrameLookup = new ArrayList<>();
       int lookupSize = 0;
-      for (final PseudoBamCycleEntry cycle : listCycles) {
+      for (int i = 0; i < listCycles.size(); i++) {
         listFrameLookup.add(lookupSize);
-        lookupSize += cycle.size();
+        lookupSize += listCycles.get(i).size();
       }
 
       // putting it all together

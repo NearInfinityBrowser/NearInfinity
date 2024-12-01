@@ -4146,7 +4146,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
         // processing frames
         IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
-        for (final PseudoBamFrameEntry srcEntry : srcListFrames) {
+        for (int i = 0; i < srcListFrames.size(); i++) {
+          final PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
           BufferedImage srcImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           int[] srcBuf = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
           BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(), srcEntry.getHeight(),
