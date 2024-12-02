@@ -13,11 +13,15 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.LayoutManager;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.awt.geom.Point2D;
@@ -34,6 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.swing.JPanel;
@@ -67,7 +75,7 @@ import org.infinity.util.io.StreamUtils;
  * performing random actions.
  */
 public class SpriteAnimationPanel extends JPanel
-    implements Runnable, Closeable, ActionListener, PropertyChangeListener, WindowStateListener {
+    implements Runnable, Closeable, ActionListener, PropertyChangeListener, WindowStateListener, MouseMotionListener {
   /** Limit sprite updates to 15 fps. */
   private static final long FRAME_DELAY = 1000L / 15L;
 
@@ -524,6 +532,32 @@ public class SpriteAnimationPanel extends JPanel
     }
   }
 
+  @Override
+  public void mouseDragged(MouseEvent e) {
+    // nothing to do
+  }
+
+  @Override
+  public void mouseMoved(MouseEvent e) {
+    if (e.getSource() == this) {
+      final int x = e.getX();
+      final int y = e.getY();
+      synchronized (sprites) {
+        spritesWorking.clear();
+        spritesWorking.addAll(sprites);
+        final Rectangle rect = new Rectangle();
+        for (final SpriteInfo si : spritesWorking) {
+          si.getSpriteBounds((int)si.getX(), (int)si.getY(), rect);
+          if (rect.contains(x, y)) {
+            si.onSpriteBoundsEntered();
+          } else {
+            si.onSpriteBoundsExited();
+          }
+        }
+      }
+    }
+  }
+
   /** Handles a sprite when their animation cycle of the action sequence ended. */
   private void onSpriteSequenceEnded(SpriteInfo sprite, Sequence seq) {
     updateSprite(sprite, seq);
@@ -603,6 +637,10 @@ public class SpriteAnimationPanel extends JPanel
     final int centerX = frameEntry.getCenterX();
     final int centerY = frameEntry.getCenterY();
 
+    if (sprite.getDecoder().isSelectionCircleEnabled()) {
+      sprite.getControl().getVisualMarkers(g, new Point(x - centerX, y - centerY), sprite.getControl().cycleGetFrameIndex());
+    }
+
     g.setComposite(AlphaComposite.SrcOver);
     g.setColor(ColorConvert.TRANSPARENT_COLOR);
     final Image image = sprite.getControl().cycleGetFrame();
@@ -633,6 +671,8 @@ public class SpriteAnimationPanel extends JPanel
         }
       }
     });
+
+    addMouseMotionListener(this);
 
     cacheCreResources();
     maxSprites = MAX_SPRITES;
@@ -1247,6 +1287,12 @@ public class SpriteAnimationPanel extends JPanel
      */
     private static final EnumMap<Sequence, Double> SEQUENCE_MOVE_FACTOR = new EnumMap<>(Sequence.class);
 
+    /** A global threadpool with reusable threads for executing general purpose tasks. */
+    private static final ExecutorService CACHED_THREADPOOL = Executors.newCachedThreadPool();
+
+    /** Duration for displaying the selection circle of a sprite. */
+    private static final long DISPLAY_CIRCLE_DURATION = 3000L;
+
     static {
       // Normalized vectors for directions
       DIRECTION.put(Direction.S, getUnitVector(0.0, 2.0, true));
@@ -1351,6 +1397,22 @@ public class SpriteAnimationPanel extends JPanel
       }
     }
 
+    /** Task is fired after a set amount of time to disable the selection circle display. */
+    private final Callable<Boolean> circleEndedTask = () -> {
+      try {
+        Thread.sleep(DISPLAY_CIRCLE_DURATION);
+      } catch (InterruptedException e) {
+        // cancelled prematurely
+        return false;
+      }
+
+      if (!isClosed()) {
+        getDecoder().setSelectionCircleEnabled(false);
+        return true;
+      }
+      return false;
+    };
+
     /** List for storing event listener objects. */
     private final EventListenerList listenerList = new EventListenerList();
 
@@ -1392,6 +1454,11 @@ public class SpriteAnimationPanel extends JPanel
     /** Indicates that the SpriteInfo object has been released. */
     private boolean closed;
 
+    /** A future that provides access to the background task for delayed deactivation of selection circle display. */
+    private Future<Boolean> circleEndedTaskResult;
+    /** Tracks whether the mouse cursor has entered or left the bounds of the sprite. */
+    private boolean spriteBoundsEntered;
+
     /**
      * Initializes a new object for tracking the current state of a sprite.
      *
@@ -1408,10 +1475,11 @@ public class SpriteAnimationPanel extends JPanel
         Direction dir) throws Exception {
       this.panel = Objects.requireNonNull(animator);
       this.decoder = SpriteDecoder.importSprite(cre);
-      this.control = decoder.createControl();
+      this.decoder.setSelectionCircleBitmap(isPstAnimation());
+      this.control = this.decoder.createControl();
       this.control.setMode(BamControl.Mode.INDIVIDUAL);
-      this.speed = (int) decoder.getMoveScale();
-      this.space = decoder.getPersonalSpace() * 8;
+      this.speed = (int) this.decoder.getMoveScale();
+      this.space = this.decoder.getPersonalSpace() * 8;
       this.x = getAdjustedX(x);
       this.y = getAdjustedY(y);
       this.bounded = bounded;
@@ -1626,6 +1694,28 @@ public class SpriteAnimationPanel extends JPanel
     }
 
     /**
+     * Returns the bounds of the sprite relative to the given coordinates.
+     *
+     * @param x    x coordinate of the sprite center position.
+     * @param y    y coordinate of the sprite center position.
+     * @param rect A {@link Rectangle} object for reuse. Specify {@code null} to create a new {@code Rectangle}
+     *               instance.
+     * @return {@link Rectangle} with the bounds of the sprite.
+     */
+    public Rectangle getSpriteBounds(int x, int y, Rectangle rect) {
+      if (rect == null) {
+        rect = new Rectangle();
+      }
+
+      final PseudoBamFrameEntry info = getDecoder().getFrameInfo(getControl().cycleGetFrameIndexAbsolute());
+      rect.x = x - info.getCenterX();
+      rect.y = y - info.getCenterY();
+      rect.width = info.getWidth();
+      rect.height = info.getHeight();
+      return rect;
+    }
+
+    /**
      * Returns a {@link BitSet} with all boundaries that are hit by the next sprite advancement.
      * <p>
      * Note: {@link BitSet} instance of the return value is reused for every call of this method.
@@ -1813,6 +1903,46 @@ public class SpriteAnimationPanel extends JPanel
         }
       }
       return y;
+    }
+
+    /**
+     * Enables the selection circle of the sprite for a set amount of time.
+     * <p>
+     * This method should be called when the mouse cursor is inside the sprite bounds. Together with
+     * {@link #onSpriteBoundsExited()} it prevents redundant calls to enable the sprite selection circles while the
+     * mouse cursor is inside the sprite bounds.
+     * </p>
+     */
+    public void onSpriteBoundsEntered() {
+      if (!spriteBoundsEntered) {
+        spriteBoundsEntered = true;
+        fireCircleTimer();
+      }
+    }
+
+    /**
+     * Should be called when the mouse cursor is outside of the sprite bounds. This method is used together with
+     * {@link #onSpriteBoundsEntered()}.
+     */
+    public void onSpriteBoundsExited() {
+      if (spriteBoundsEntered) {
+        spriteBoundsEntered = false;
+      }
+    }
+
+    /**
+     * Enables display of the selection circle for the specified amount of time before it is disabled. It is called
+     * when the mouse cursor hovers over a creature sprite.
+     *
+     * @param millis Delay in milliseconds.
+     */
+    private void fireCircleTimer() {
+      if (circleEndedTaskResult != null) {
+        circleEndedTaskResult.cancel(true);
+        circleEndedTaskResult = null;
+      }
+      getDecoder().setSelectionCircleEnabled(true);
+      circleEndedTaskResult = CACHED_THREADPOOL.submit(circleEndedTask);
     }
 
     /** Returns whether the sprite animation is of the Planescape sprite type (Type F000). */
