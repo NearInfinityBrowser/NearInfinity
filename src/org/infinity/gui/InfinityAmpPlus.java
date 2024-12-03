@@ -129,6 +129,7 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
   private static final String PREFS_AVAILABLE_ENTRY_BASE    = "AvailableEntry";
   private static final String PREFS_PLAYLIST_INDEX_COUNT    = "PlaylistIndexCount";
   private static final String PREFS_PLAYLIST_INDEX_BASE     = "PlaylistIndex";
+  private static final String PREFS_PLAYLIST_SELECTED_INDEX = "PlaylistSelectedIndex";
   private static final String PREFS_FILTER_SOUND_COUNT      = "FilterSoundCount";
   private static final String PREFS_FILTER_SOUND_BASE       = "FilterSound";
   private static final String PREFS_FILTER_SOUND_ENABLED    = "FilterSoundEnabled";
@@ -1521,6 +1522,16 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
         playListModel.add(availableListModel.get(index));
       }
     }
+
+    // restoring selected playlist entry
+    if (!playListModel.isEmpty()) {
+      final int playListIndex =
+          Math.max(0, Math.min(playListModel.size() - 1, prefs.getInt(PREFS_PLAYLIST_SELECTED_INDEX, 0)));
+      SwingUtilities.invokeLater(() -> {
+        playList.setSelectedIndex(playListIndex);
+        playList.ensureIndexIsVisible(playListIndex);
+      });
+    }
   }
 
   /** Saves the current configuration to the preferences. */
@@ -1570,6 +1581,10 @@ public class InfinityAmpPlus extends ChildFrame implements Closeable {
       }
     }
     prefs.putInt(PREFS_PLAYLIST_INDEX_COUNT, numPlayList);
+
+    // storing selected playlist entry
+    final int playListIndex = playList.getSelectedIndex();
+    prefs.putInt(PREFS_PLAYLIST_SELECTED_INDEX, playListIndex);
 
     // clearing old sound exclusion filter
     final int oldNumSounds = prefs.getInt(PREFS_FILTER_SOUND_COUNT, 0);
