@@ -5,8 +5,12 @@
 package org.infinity.gui;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -25,6 +29,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
@@ -52,6 +57,7 @@ import javax.swing.event.EventListenerList;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
@@ -60,7 +66,6 @@ import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
-import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMapCache;
@@ -633,21 +638,69 @@ public class SpriteAnimationPanel extends JPanel
 
     final int x = (int) sprite.getX();
     final int y = (int) sprite.getY();
-    PseudoBamFrameEntry frameEntry = sprite.getDecoder().getFrameInfo(sprite.getControl().cycleGetFrameIndexAbsolute());
+    final PseudoBamFrameEntry frameEntry = sprite.getDecoder().getFrameInfo(sprite.getControl().cycleGetFrameIndexAbsolute());
     final int centerX = frameEntry.getCenterX();
     final int centerY = frameEntry.getCenterY();
-
-    if (sprite.getDecoder().isSelectionCircleEnabled()) {
-      sprite.getControl().getVisualMarkers(g, new Point(x - centerX, y - centerY), sprite.getControl().cycleGetFrameIndex());
-    }
-
-    g.setComposite(AlphaComposite.SrcOver);
-    g.setColor(ColorConvert.TRANSPARENT_COLOR);
-    final Image image = sprite.getControl().cycleGetFrame();
     final int dx = x - centerX;
     final int dy = y - centerY;
+
+    if (sprite.getDecoder().isSelectionCircleEnabled()) {
+      // drawing selection circle
+      sprite.getControl().getVisualMarkers(g, new Point(dx, dy), sprite.getControl().cycleGetFrameIndex());
+    }
+
+    // drawing current sprite animation frame
+    g.setComposite(AlphaComposite.SrcOver);
+    final Image image = sprite.getControl().cycleGetFrame();
     g.drawImage(image, dx, dy, null);
     image.flush();
+
+    if (sprite.isTooltipEnabled()) {
+      // drawing name plate
+      renderTooltip(g, sprite);
+    }
+  }
+
+  /**
+   * Renders a name plate of the creature above the sprite.
+   *
+   * @param g      The graphics context of the panel.
+   * @param sprite {@link SpriteInfo} instance of the sprite.
+   */
+  private void renderTooltip(Graphics2D g, SpriteInfo sprite) {
+    if (g == null || sprite == null) {
+      return;
+    }
+
+    final int maxLength = 30;     // max. length of name string
+    final double marginX = 8.0;   // horizontal margin between tooltip background border and text
+    final double marginY = 4.0;   // vertical margin between tooltip background border and text
+
+    String name = sprite.getTooltip();
+    if (name == null) {
+      name = '[' + sprite.getDecoder().getCreResource().getName() + ']';
+    }
+    name = name.replaceAll("\r?\n", " ");
+    if (name.length() > maxLength) {
+      name = name.substring(0, maxLength) + "...";
+    }
+
+    g.setFont(g.getFont().deriveFont(Font.BOLD));
+    final FontMetrics fm = g.getFontMetrics();
+    final Rectangle2D textRect = fm.getStringBounds(name, g);
+    final Dimension spriteDim = sprite.getControl().getSharedDimension();
+
+    final double bgWidth = textRect.getWidth() + marginX * 2.0;
+    final double bgHeight = textRect.getHeight() + marginY * 2.0;
+    final double bgX = sprite.getX() - (bgWidth / 2.0);
+    final double bgY = sprite.getY() - (bgHeight / 2.0) - spriteDim.height;
+    g.setColor(new Color(0x80000000, true));
+    g.fillRect((int)bgX, (int)bgY, (int)bgWidth, (int)bgHeight);
+
+    final double textX = bgX + marginX - textRect.getX();
+    final double textY = bgY + marginY - textRect.getY();
+    g.setColor(Color.WHITE);
+    g.drawString(name, (int)textX, (int)textY);
   }
 
   /** Resets the timer delays. */
@@ -1408,6 +1461,7 @@ public class SpriteAnimationPanel extends JPanel
 
       if (!isClosed()) {
         getDecoder().setSelectionCircleEnabled(false);
+        setTooltipEnabled(false);
         return true;
       }
       return false;
@@ -1453,6 +1507,9 @@ public class SpriteAnimationPanel extends JPanel
 
     /** Indicates that the SpriteInfo object has been released. */
     private boolean closed;
+
+    /** Indicates whether the tooltip of the creature should be displayed. */
+    private boolean tooltipEnabled;
 
     /** A future that provides access to the background task for delayed deactivation of selection circle display. */
     private Future<Boolean> circleEndedTaskResult;
@@ -1764,6 +1821,25 @@ public class SpriteAnimationPanel extends JPanel
       return retVal;
     }
 
+    /** Returns whether the tooltip of the creature should be displayed. */
+    public boolean isTooltipEnabled() {
+      return tooltipEnabled;
+    }
+
+    /** Specifies whether the tooltip of the creature should be displayed. */
+    public void setTooltipEnabled(boolean b) {
+      tooltipEnabled = b;
+    }
+
+    /** Returns the tooltip string of the creature. Returns {@code null} if the tooltip is unavailable. */
+    public String getTooltip() {
+      final StructEntry entry = decoder.getCreResource().getEffectiveNameEntry();
+      if (entry != null) {
+        return entry.toString();
+      }
+      return null;
+    }
+
     /**
      * Returns the mirrored direction based on the specified parameters.
      *
@@ -1942,6 +2018,7 @@ public class SpriteAnimationPanel extends JPanel
         circleEndedTaskResult = null;
       }
       getDecoder().setSelectionCircleEnabled(true);
+      setTooltipEnabled(true);
       circleEndedTaskResult = CACHED_THREADPOOL.submit(circleEndedTask);
     }
 
