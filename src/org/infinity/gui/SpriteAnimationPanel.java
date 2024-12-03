@@ -1488,6 +1488,9 @@ public class SpriteAnimationPanel extends JPanel
     /** A reusable {@link BitSet} object for storing the result of {@link #boundsHit()}. */
     private final BitSet boundsHit = new BitSet(4);
 
+    /** Tooltip/Name of the sprite */
+    private final String tooltip;
+
     /** x coordinate of cre location */
     private double x;
     /** y coordinate of cre location */
@@ -1544,6 +1547,10 @@ public class SpriteAnimationPanel extends JPanel
       setSequence(Objects.requireNonNull(seq));
       setDirection(Objects.requireNonNull(dir));
       this.closed = false;
+
+      // retrieving name or tooltip of the creature
+      final StructEntry nameEntry = decoder.getCreResource().getEffectiveNameEntry();
+      this.tooltip = (nameEntry != null) ? nameEntry.toString() : null;
     }
 
     /** Returns whether the {@link SpriteInfo} instance has been released. A released instance cannot be used again. */
@@ -1833,11 +1840,7 @@ public class SpriteAnimationPanel extends JPanel
 
     /** Returns the tooltip string of the creature. Returns {@code null} if the tooltip is unavailable. */
     public String getTooltip() {
-      final StructEntry entry = decoder.getCreResource().getEffectiveNameEntry();
-      if (entry != null) {
-        return entry.toString();
-      }
-      return null;
+      return tooltip;
     }
 
     /**
