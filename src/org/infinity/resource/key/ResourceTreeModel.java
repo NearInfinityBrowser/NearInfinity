@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.event.EventListenerList;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -28,7 +29,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
 
 public final class ResourceTreeModel implements TreeModel {
-  private final List<TreeModelListener> treeModelListeners = new ArrayList<>();
+  private final EventListenerList treeModelListeners = new EventListenerList();
   private final Map<String, ResourceEntry> entries = new HashMap<>(25000);
   private final Map<String, ResourceTreeFolder> folders = new TreeMap<>(Misc.getIgnoreCaseComparator());
   private final ResourceTreeFolder root = new ResourceTreeFolder(null, "");
@@ -79,12 +80,16 @@ public final class ResourceTreeModel implements TreeModel {
 
   @Override
   public void addTreeModelListener(TreeModelListener l) {
-    treeModelListeners.add(l);
+    if (l != null) {
+      treeModelListeners.add(TreeModelListener.class, l);
+    }
   }
 
   @Override
   public void removeTreeModelListener(TreeModelListener l) {
-    treeModelListeners.remove(l);
+    if (l != null) {
+      treeModelListeners.remove(TreeModelListener.class, l);
+    }
   }
 
   // --------------------- End Interface TreeModel ---------------------
@@ -277,32 +282,26 @@ public final class ResourceTreeModel implements TreeModel {
   }
 
   public void removeResourceEntry(ResourceEntry entry, String folder) {
-    ResourceTreeFolder parent = folders.get(folder);
+    final ResourceTreeFolder parent = folders.get(folder);
     if (parent == null) {
       return;
     }
-    TreePath path = getPathToNode(entry).getParentPath();
-    TreeModelEvent event = new TreeModelEvent(this, path, new int[] { getIndexOfChild(parent, entry) },
-        new Object[] { entry });
+    final TreePath path = getPathToNode(entry).getParentPath();
+    final int[] childIndices = { getIndexOfChild(parent, entry) };
+    final Object[] children = { entry };
     parent.removeResourceEntry(entry);
     entries.remove(entry.getResourceName().toUpperCase(Locale.ENGLISH));
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
       folders.remove(parent.folderName());
     }
-    for (TreeModelListener treeModelListener : treeModelListeners) {
-      treeModelListener.treeNodesRemoved(event);
-    }
+    fireTreeNodesRemoved(path, childIndices, children);
   }
 
   public void resourceEntryChanged(FileResourceEntry entry) {
-    TreePath parentPath = getPathToNode(entry).getParentPath();
-    ResourceTreeFolder parentFolder = (ResourceTreeFolder) parentPath.getLastPathComponent();
-    TreeModelEvent event = new TreeModelEvent(this, parentPath, new int[] { getIndexOfChild(parentFolder, entry) },
-        new Object[] { entry });
-    for (TreeModelListener treeModelListener : treeModelListeners) {
-      treeModelListener.treeNodesChanged(event);
-    }
+    final TreePath parentPath = getPathToNode(entry).getParentPath();
+    final ResourceTreeFolder parentFolder = (ResourceTreeFolder) parentPath.getLastPathComponent();
+    fireTreeNodesChanged(parentPath, new int[] { getIndexOfChild(parentFolder, entry) }, new Object[] { entry });
   }
 
   public int size() {
@@ -325,9 +324,50 @@ public final class ResourceTreeModel implements TreeModel {
   }
 
   private void fireTreeStructureChanged(TreePath changed) {
-    TreeModelEvent event = new TreeModelEvent(this, changed);
-    for (TreeModelListener treeModelListener : treeModelListeners) {
-      treeModelListener.treeStructureChanged(event);
+    if (changed != null) {
+      final Object[] listeners = treeModelListeners.getListenerList();
+      TreeModelEvent event = null;
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == TreeModelListener.class) {
+          // Event object is lazily created
+          if (event == null) {
+            event = new TreeModelEvent(this, changed);
+          }
+          ((TreeModelListener) listeners[i + 1]).treeStructureChanged(event);
+        }
+      }
+    }
+  }
+
+  private void fireTreeNodesChanged(TreePath path, int[] childIndices, Object[] children) {
+    if (path != null) {
+      final Object[] listeners = treeModelListeners.getListenerList();
+      TreeModelEvent event = null;
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == TreeModelListener.class) {
+          // Event object is lazily created
+          if (event == null) {
+            event = new TreeModelEvent(this, path, childIndices, children);
+          }
+          ((TreeModelListener) listeners[i + 1]).treeNodesChanged(event);
+        }
+      }
+    }
+  }
+
+  private void fireTreeNodesRemoved(TreePath path, int[] childIndices, Object[] children) {
+    if (path != null) {
+      final Object[] listeners = treeModelListeners.getListenerList();
+      TreeModelEvent event = null;
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == TreeModelListener.class) {
+          // Event object is lazily created
+          if (event == null) {
+            event = new TreeModelEvent(this, path, childIndices, children);
+          }
+          ((TreeModelListener) listeners[i + 1]).treeNodesRemoved(event);
+        }
+      }
     }
   }
 }
