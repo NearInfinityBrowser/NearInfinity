@@ -37,6 +37,8 @@ public final class Viewer extends JPanel {
     if (capacityEntry != null && ((IsNumeric) sto.getAttribute(StoResource.STO_STORAGE_CAPACITY)).getValue() > 0) {
       ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_STORAGE_CAPACITY), gbl, gbc, true);
     }
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_RUMORS_DRINKS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, sto.getAttribute(StoResource.STO_RUMORS_DONATIONS), gbl, gbc, true);
 
     return fieldPanel;
   }
