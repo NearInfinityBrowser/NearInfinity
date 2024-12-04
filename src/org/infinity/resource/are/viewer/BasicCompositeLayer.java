@@ -35,7 +35,7 @@ public abstract class BasicCompositeLayer<E extends LayerObject, R extends Abstr
   public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
 
-    getLayerObjects().stream().forEach(obj -> {
+    getLayerObjects().forEach(obj -> {
       AbstractLayerItem[] items = obj.getLayerItems();
       for (final AbstractLayerItem item : items) {
         final int id = item.getId();

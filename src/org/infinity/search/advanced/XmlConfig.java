@@ -148,7 +148,7 @@ public class XmlConfig {
 
     DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
     domFactory.setValidating(true);
-    DocumentBuilder builder = null;
+    DocumentBuilder builder;
     try {
       builder = domFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
@@ -401,7 +401,7 @@ public class XmlConfig {
       }
     });
 
-    Document document = null;
+    Document document;
     try (ByteArrayInputStream bais = new ByteArrayInputStream(sb.toString().getBytes())) {
       document = builder.parse(bais);
     }

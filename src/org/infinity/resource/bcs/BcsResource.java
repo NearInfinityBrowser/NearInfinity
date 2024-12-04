@@ -39,6 +39,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.BadLocationException;
 
+import org.infinity.exceptions.AbortException;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.DataMenuItem;
@@ -360,11 +361,11 @@ public final class BcsResource
       if (result == JOptionPane.YES_OPTION) {
         ((JButton) bpDecompile.getControlByType(CTRL_COMPILE)).doClick();
         if (bpDecompile.getControlByType(CTRL_ERRORS).isEnabled()) {
-          throw new Exception("Save aborted");
+          throw new AbortException("Save aborted");
         }
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
       } else if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
-        throw new Exception("Save aborted");
+        throw new AbortException("Save aborted");
       }
     } else if (codeChanged) {
       ResourceFactory.closeResource(this, entry, panel);
@@ -672,9 +673,9 @@ public final class BcsResource
   @Override
   public void write(OutputStream os) throws IOException {
     if (codeText == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      StreamUtils.writeString(os, codeText.getText(), codeText.getText().length());
+      StreamUtils.writeString(os, codeText.getText(), codeText.getText().length(), Profile.getDefaultCharset());
     }
   }
 
@@ -779,9 +780,9 @@ public final class BcsResource
     }
     final boolean result;
     if (interactive) {
-      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue();
     } else {
-      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue();
     }
     if (result) {
       bSave.setEnabled(false);

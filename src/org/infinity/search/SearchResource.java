@@ -5756,20 +5756,17 @@ public class SearchResource extends ChildFrame implements ActionListener, Proper
     private JTextComponent editor;
     private boolean selecting = false;
 
+    @SuppressWarnings("unchecked")
     public AutoDocument(final JComboBox<E> comboBox) {
       this.comboBox = comboBox;
       this.model = this.comboBox.getModel();
 
-      this.comboBox.addPropertyChangeListener(new PropertyChangeListener() {
-        @SuppressWarnings("unchecked")
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          if (evt.getPropertyName().equals("editor")) {
-            configureEditor((ComboBoxEditor) evt.getNewValue());
-          }
-          if (evt.getPropertyName().equals("model")) {
-            model = (ComboBoxModel<E>) evt.getNewValue();
-          }
+      this.comboBox.addPropertyChangeListener(evt -> {
+        if (evt.getPropertyName().equals("editor")) {
+          configureEditor((ComboBoxEditor) evt.getNewValue());
+        }
+        if (evt.getPropertyName().equals("model")) {
+          model = (ComboBoxModel<E>) evt.getNewValue();
         }
       });
 

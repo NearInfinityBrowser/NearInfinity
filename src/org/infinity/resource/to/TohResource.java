@@ -160,12 +160,11 @@ public final class TohResource extends AbstractStruct implements Resource {
    * @return String referenced by {@code strref} if found, {@code null} otherwise.
    */
   public static String getOverrideString(TohResource toh, TotResource tot, int strref) {
-    String retVal = null;
-
     if (strref < 0 || toh == null || (!Profile.isEnhancedEdition() && tot == null)) {
-      return retVal;
+      return null;
     }
 
+    String retVal = null;
     if (Profile.isEnhancedEdition()) {
       // Only TOH resource is needed
       IsNumeric so = (IsNumeric) toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);

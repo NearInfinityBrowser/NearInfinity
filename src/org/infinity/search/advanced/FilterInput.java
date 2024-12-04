@@ -835,7 +835,7 @@ public class FilterInput extends ChildFrame {
         Object node = path.getLastPathComponent();
         if (node instanceof MutableTreeNode && ((MutableTreeNode) node).getParent() != null) {
           if (!prompt || JOptionPane.showConfirmDialog(FilterInput.this,
-              String.format("Remove substructure \"%s\"?", node.toString()), "Confirm removal",
+              String.format("Remove substructure \"%s\"?", node), "Confirm removal",
               JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             TreePath parentPath = getParentTreePath(tree, (TreeNode) node);
             if (parentPath != null) {

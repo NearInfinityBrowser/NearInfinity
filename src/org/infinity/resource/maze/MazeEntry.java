@@ -28,7 +28,7 @@ public class MazeEntry extends AbstractStruct {
     addField(new Bitmap(buffer, offset + 12, 4, ModronMazeEntry.GAM_MAZE_ENTRY_IS_TRAPPED, OPTION_NOYES));
     addField(new Bitmap(buffer, offset + 16, 4, ModronMazeEntry.GAM_MAZE_ENTRY_TRAP_TYPE, TRAPS_ARRAY));
     addField(new Flag(buffer, offset + 20, 4, ModronMazeEntry.GAM_MAZE_ENTRY_EXITS, WALLS_ARRAY));
-    addField(new Bitmap(buffer, offset + 24, 4, ModronMazeEntry.GAM_MAZE_ENTRY_POLULATED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 24, 4, ModronMazeEntry.GAM_MAZE_ENTRY_POPULATED, OPTION_NOYES));
     return offset + 28;
   }
 }

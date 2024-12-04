@@ -119,7 +119,7 @@ public class PreferencesDialog extends JDialog {
 
     private final String label;
 
-    private Category(String label) {
+    Category(String label) {
       this.label = label;
     }
 
@@ -243,7 +243,13 @@ public class PreferencesDialog extends JDialog {
                   "With this option enabled Near Infinity remembers current size and position of child windows on the screen.<br/>"
                       + "This information is only remembered across the current session and will be discarded whenever "
                       + "Near Infinity is closed.",
-                  AppOption.REMEMBER_CHILD_FRAME_RECT)
+                  AppOption.REMEMBER_CHILD_FRAME_RECT),
+              OptionCheckBox.create(AppOption.SHOW_CREATURES_ON_PANEL.getName(), AppOption.SHOW_CREATURES_ON_PANEL.getLabel(),
+                  "With this option enabled creatures from the currently opened game will progressively populate the "
+                      + "main panel and perform all kinds of random actions. This option is primarily meant as a gimmick. ;)"
+                      + "<p><strong>Note:</strong> Changing this option requires to open a new game or use the command "
+                      + "\"Refresh Tree\" (Shortcut: <code>F5</code>)</p>",
+                  AppOption.SHOW_CREATURES_ON_PANEL)
           )
       ),
       OptionCategory.create(Category.SCRIPT_COMPILER,
@@ -1129,13 +1135,10 @@ public class PreferencesDialog extends JDialog {
       }
     });
 
-    cb.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        checkBox.setValue(cb.isSelected());
-        checkBox.fireOnAction();
-        setModified(true);
-      }
+    cb.addActionListener(e -> {
+      checkBox.setValue(cb.isSelected());
+      checkBox.fireOnAction();
+      setModified(true);
     });
 
     return checkBox;
@@ -1175,13 +1178,10 @@ public class PreferencesDialog extends JDialog {
     label.addMouseListener(adapter);
     comboBox.addMouseListener(adapter);
 
-    comboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        groupBox.setSelectedIndex(comboBox.getSelectedIndex());
-        groupBox.fireOnSelect();
-        setModified(true);
-      }
+    comboBox.addActionListener(e -> {
+      groupBox.setSelectedIndex(comboBox.getSelectedIndex());
+      groupBox.fireOnSelect();
+      setModified(true);
     });
 
     return groupBox;

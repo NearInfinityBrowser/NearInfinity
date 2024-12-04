@@ -15,27 +15,27 @@ public interface BasicAnimationProvider {
    * Returns the graphical data of the current frame. (Note: Subclasses have to make sure that this method always
    * returns a valid and up to date graphics object.)
    */
-  public Image getImage();
+  Image getImage();
 
   /**
    * Advances the animation by one frame. Does not wrap around after reaching the last frame.
    *
    * @return Whether the frame has been advanced successfully.
    */
-  public boolean advanceFrame();
+  boolean advanceFrame();
 
   /**
    * Selects the first frame of the animation.
    */
-  public void resetFrame();
+  void resetFrame();
 
   /**
    * Returns whether the animation should be played back continuously.
    */
-  public boolean isLooping();
+  boolean isLooping();
 
   /**
    * Returns the animation origin relative to the top-left corner of the image.
    */
-  public Point getLocationOffset();
+  Point getLocationOffset();
 }

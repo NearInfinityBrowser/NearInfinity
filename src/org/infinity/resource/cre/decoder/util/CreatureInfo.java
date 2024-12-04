@@ -200,7 +200,7 @@ public class CreatureInfo {
    *                    Specify {@code true} to return the highest level of all (active and inactive) classes.
    */
   public int getClassLevel(boolean highestOnly) {
-    int retVal = 0;
+    int retVal;
     int ofsBase = cre.getExtraOffset();
 
     String creVersion = getCreatureVersion();
@@ -670,7 +670,7 @@ public class CreatureInfo {
    * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
    */
   public boolean isEffectActive(SegmentDef.SpriteType type, Predicate<EffectInfo.Effect> pred) {
-    boolean retVal = false;
+    boolean retVal;
 
     // checking creature effects
     EffectInfo.Effect fx = getEffectInfo().getFirstEffect(this, type, pred);
@@ -964,7 +964,7 @@ public class CreatureInfo {
     }
 
     // loading referenced item
-    ItemInfo info = null;
+    ItemInfo info;
     int ofsItems = Objects.requireNonNull(cre).getExtraOffset()
         + ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
     try {

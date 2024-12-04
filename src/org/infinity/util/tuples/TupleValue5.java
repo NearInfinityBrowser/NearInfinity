@@ -13,7 +13,7 @@ public interface TupleValue5<T> {
    *
    * @return sixth element of the tuple.
    */
-  public T getValue5();
+  T getValue5();
 
   /**
    * Assigns a new value to the sixth element of the tuple.
@@ -21,5 +21,5 @@ public interface TupleValue5<T> {
    * @param newValue the new value to assign.
    * @return the previously assigned value of the sixth tuple element.
    */
-  public T setValue5(T newValue);
+  T setValue5(T newValue);
 }

@@ -16,7 +16,7 @@ public interface VideoBuffer {
    * @return The BufferedImage object of the currently visible image.
    * @see #backBuffer()
    */
-  public Image frontBuffer();
+  Image frontBuffer();
 
   /**
    * Returns the buffer that is prepared to be shown.
@@ -24,20 +24,20 @@ public interface VideoBuffer {
    * @return The BufferedImage object of the image in preparation.
    * @see #frontBuffer()
    */
-  public Image backBuffer();
+  Image backBuffer();
 
   /**
    * The buffer chain advances one step forward (e.g. in a double buffered chain, the front buffer becomes the back
    * buffer and vice versa). Optional data attached to the front buffer should be discarded.
    */
-  public void flipBuffers();
+  void flipBuffers();
 
   /**
    * Returns the number of video buffers in the buffer chain.
    *
    * @return Number of video buffers in the buffer chain.
    */
-  public int bufferCount();
+  int bufferCount();
 
   /**
    * Attaches the specified data object to the current back buffer. <b>Note:</b> The object's life time should be
@@ -46,7 +46,7 @@ public interface VideoBuffer {
    * @param data The data object that will be attached to the current back buffer.
    * @see #fetchData()
    */
-  public void attachData(Object data);
+  void attachData(Object data);
 
   /**
    * Returns the data object associated with the current front buffer. The data should be discarded automatically with
@@ -55,5 +55,5 @@ public interface VideoBuffer {
    * @return The data object associated with the current front buffer, or {@code null} if no data is available.
    * @see #attachData(Object)
    */
-  public Object fetchData();
+  Object fetchData();
 }

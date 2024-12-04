@@ -30,7 +30,7 @@ import org.infinity.util.io.StreamUtils;
 // Create different pre-initialized IE game resources from scratch and writes them to disk.
 public final class StructureFactory {
   // Supported resource types
-  public static enum ResType {
+  public enum ResType {
     RES_2DA, RES_ARE, RES_BAF, RES_BCS, RES_BIO, RES_CHR, RES_CRE, RES_EFF,
     RES_IDS, RES_INI, RES_ITM, RES_PRO, RES_RES, RES_SPL, RES_SRC, RES_STO,
     RES_VEF, RES_VVC, RES_WED, RES_WFX, RES_WMAP
@@ -73,7 +73,7 @@ public final class StructureFactory {
   // Write a new resource of specified type to disk
   public void newResource(ResType type, Window parent) {
     // use most appropriate initial folder for each file type
-    Path savePath = null;
+    Path savePath;
     switch (type) {
       case RES_BIO:
       case RES_CHR:
@@ -160,6 +160,7 @@ public final class StructureFactory {
       case RES_BCS:
         return createBCS();
       case RES_BIO:
+      case RES_RES:
         return createRES(parent);
       case RES_CHR:
         return createCHR(parent);
@@ -175,8 +176,6 @@ public final class StructureFactory {
         return createINI();
       case RES_PRO:
         return createPRO(parent);
-      case RES_RES:
-        return createRES(parent);
       case RES_SPL:
         return createSPL();
       case RES_SRC:
@@ -697,7 +696,7 @@ public final class StructureFactory {
   // -------------------------- INNER CLASSES --------------------------
 
   public static class StructureException extends Exception {
-    public static enum Reason {
+    public enum Reason {
       UNSPECIFIED, CANCELLED_OPERATION, UNSUPPORTED_TYPE, UNSUPPORTED_GAME
     }
 

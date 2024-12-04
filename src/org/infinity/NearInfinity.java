@@ -27,10 +27,12 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -43,13 +45,16 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -60,6 +65,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.LookAndFeel;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingConstants;
@@ -88,7 +94,9 @@ import org.infinity.gui.PopupWindowEvent;
 import org.infinity.gui.PopupWindowListener;
 import org.infinity.gui.QuickSearch;
 import org.infinity.gui.ResourceTree;
+import org.infinity.gui.SpriteAnimationPanel;
 import org.infinity.gui.StatusBar;
+import org.infinity.gui.StringEditor;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
@@ -136,12 +144,10 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
-  // the current Near Infinity version
-  private static final String VERSION = "v2.4-20240914";
+  private static final String PROPERTIES_FILENAME     = "nearinfinity.properties";
 
-  // the minimum supported Java version
-  private static final int JAVA_VERSION_MIN = 8;
-
+  private static final String PROP_APP_VERSION        = "app_version";
+  private static final String PROP_JAVA_VERSION_MIN   = "java_version_min";
 
   public static final String KEYFILENAME              = "chitin.key";
   public static final String WINDOW_SIZEX             = "WindowSizeX";
@@ -161,6 +167,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public static final String APP_LOG_LEVEL            = "AppLogLevel";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
+
+  // Input map key for triggering the quick search feature
+  private static final String ACTIONMAP_KEY_QUICK_SEARCH = "SHORTCUT_OPEN_QUICK_SEARCH";
 
   private static final List<Class<? extends LookAndFeel>> CUSTOM_LOOK_AND_FEELS = new ArrayList<>();
 
@@ -224,7 +233,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private static NearInfinity browser;
 
-  private final JPanel containerpanel;
+  private final SpriteAnimationPanel containerpanel;
   private final JSplitPane spSplitter;
   private final ResourceTree tree;
   private final StatusBar statusBar;
@@ -279,7 +288,35 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   /** Returns the current NearInfinity version. */
   public static String getVersion() {
-    return VERSION;
+    return getAppProperty(PROP_APP_VERSION, "v1.0-19700101");
+  }
+
+  /** Returns the minimum supported Java version. */
+  public static int getMinJavaVersion() {
+    try {
+      return Integer.parseInt(getAppProperty(PROP_JAVA_VERSION_MIN, "0"));
+    } catch (NumberFormatException e) {
+      Logger.error(e);
+    }
+    return 0;
+  }
+
+  /**
+   * Returns the value of the specified property from the app-specific properties resource.
+   *
+   * @param key      The property key.
+   * @param defValue Default value that is returned if the property could not be read.
+   * @return The value in the properties resource with the specified key value.
+   */
+  private static String getAppProperty(String key, String defValue) {
+    try (final InputStream is = ClassLoader.getSystemResourceAsStream(PROPERTIES_FILENAME)) {
+      final Properties prop = new Properties();
+      prop.load(is);
+      return prop.getProperty(key, defValue);
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+    return defValue;
   }
 
   public static void printHelp(String jarFile) {
@@ -378,8 +415,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     // Checking Java version
-    if (Platform.JAVA_VERSION < JAVA_VERSION_MIN) {
-      JOptionPane.showMessageDialog(null, String.format("Java %d or later is required to run Near Infinity!", JAVA_VERSION_MIN),
+    final int minJavaVersion = getMinJavaVersion();
+    if (Platform.JAVA_VERSION < minJavaVersion) {
+      JOptionPane.showMessageDialog(null, String.format("Java %d or later is required to run Near Infinity!", minJavaVersion),
           "Error", JOptionPane.ERROR_MESSAGE);
       System.exit(10);
     }
@@ -529,12 +567,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       b.setMargin(new Insets(0, 0, 0, 0));
       toolBar.add(b);
       toolBar.addSeparator(new Dimension(8, 24));
+
+      final String shortcutModifier =
+          Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() == KeyEvent.CTRL_MASK ? "Ctrl" : "⌘";
       bpwQuickSearch = new ButtonPopupWindow(Icons.ICON_MAGNIFY_16.getIcon());
-      bpwQuickSearch.setToolTipText("Find resource");
+      bpwQuickSearch.setToolTipText("Find resource (Shortcut: " + shortcutModifier + "-/)");
       bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
       toolBar.add(bpwQuickSearch);
       bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
-
         @Override
         public void popupWindowWillBecomeVisible(PopupWindowEvent event) {
           // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
@@ -558,6 +598,17 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         }
       });
 
+      // registering window-global shortcut for the quick search option
+      final int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+      getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+          .put(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ctrl), ACTIONMAP_KEY_QUICK_SEARCH);
+      getRootPane().getActionMap().put(ACTIONMAP_KEY_QUICK_SEARCH, new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          bpwQuickSearch.showPopupWindow();
+        }
+      });
+
       toolBar.add(Box.createHorizontalGlue());
       btnLaunchGame = new JButton(Icons.ICON_LAUNCH_24.getIcon());
       btnLaunchGame.setFocusable(false);
@@ -573,7 +624,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       leftPanel.add(tree, BorderLayout.CENTER);
       leftPanel.add(toolBar, BorderLayout.NORTH);
 
-      containerpanel = new JPanel(new BorderLayout());
+      containerpanel = new SpriteAnimationPanel(new BorderLayout());
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
       spSplitter.setBorder(BorderFactory.createEmptyBorder());
@@ -591,6 +642,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(AppOption.APP_WINDOW_POS_X.getIntValue(), AppOption.APP_WINDOW_POS_Y.getIntValue());
     setVisible(true);
     setExtendedState(AppOption.APP_WINDOW_STATE.getIntValue());
+
+    setSpriteAnimationPanelEnabled(true);
 
     // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
     if (Platform.IS_MACOS) {
@@ -662,11 +715,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         updateWindowTitle();
+        updateLauncher();
         final String msg = String.format(STATUSBAR_TEXT_FMT, Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), Objects.requireNonNull(treemodel).size());
         statusBar.setMessage(msg);
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
         tree.setModel(treemodel);
+        ChildFrame.fireGameReset(false);
+        resetSpriteAnimationPanel();
         containerpanel.removeAll();
         containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
         containerpanel.revalidate();
@@ -813,6 +869,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       statusBar.setMessage(resource.getResourceEntry().getActualPath().toString());
       containerpanel.removeAll();
       containerpanel.add(viewable.makeViewer(this), BorderLayout.CENTER);
+      setSpriteAnimationPanelEnabled(false);
       containerpanel.revalidate();
       containerpanel.repaint();
       toFront();
@@ -859,6 +916,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       statusBar.setMessage(msg);
       BrowserMenuBar.getInstance().gameLoaded(oldGame, Objects.requireNonNull(oldKeyFile).toString());
       tree.setModel(treemodel);
+      ChildFrame.fireGameReset(false);
+      resetSpriteAnimationPanel();
       containerpanel.removeAll();
       containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
       containerpanel.revalidate();
@@ -880,6 +939,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tree.select(null);
     containerpanel.removeAll();
     containerpanel.add(createJavaInfoPanel(), BorderLayout.CENTER);
+    setSpriteAnimationPanelEnabled(true);
     containerpanel.revalidate();
     containerpanel.repaint();
     return true;
@@ -895,7 +955,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public void quit() {
     if (removeViewable()) {
-      ChildFrame.closeWindows();
+      ChildFrame.closeWindows(true);
+      try { containerpanel.close(); } catch (Exception e) {}
       storePreferences();
       clearCache(false);
       System.exit(0);
@@ -924,6 +985,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         containerpanel.repaint();
       }
       cacheResourceIcons(true);
+      ChildFrame.fireGameReset(true);
+      resetSpriteAnimationPanel();
     } finally {
       blocker.setBlocked(false);
     }
@@ -1183,6 +1246,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     CreMapCache.clearCache();
     BaseOpcode.reset();
 //    SearchFrame.clearCache();
+    StringEditor.saveModified(null, true, true, NearInfinity.getInstance());
     StringTable.resetAll();
     ProRef.clearCache();
     Signatures.clearCache();
@@ -1322,6 +1386,32 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (path != null && !Files.isReadable(path)) {
       throw new IOException("Readable check failed: " + path);
     }
+  }
+
+  /** Controls enabled state of the creature animation panel. */
+  public void setSpriteAnimationPanelEnabled(boolean enable) {
+    if (BrowserMenuBar.getInstance().getOptions().showCreaturesOnPanel()) {
+      if (enable && !containerpanel.isRunning()) {
+        Logger.trace("Starting creature animation panel");
+        containerpanel.start();
+      } else if (!enable && containerpanel.isRunning()) {
+        Logger.trace("Stopping creature animation panel");
+        containerpanel.stop();
+      }
+    } else {
+      if (containerpanel.isRunning()) {
+        containerpanel.stop();
+      }
+    }
+  }
+
+  /** Resets the animation panel in a controlled manner. */
+  public void resetSpriteAnimationPanel() {
+    if (BrowserMenuBar.getInstance().getOptions().showCreaturesOnPanel()) {
+      Logger.trace("Resetting creature animation panel");
+      containerpanel.reset();
+    }
+    setSpriteAnimationPanelEnabled(true);
   }
 
   /**

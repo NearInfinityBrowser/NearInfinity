@@ -140,12 +140,12 @@ public enum Sequence {
   private final String desc;
 
   /** Creates a new {@code AnimationSequence} with an empty label. */
-  private Sequence() {
+  Sequence() {
     this(null);
   }
 
   /** Creates a new {@code AnimationSequence} with the specified label. */
-  private Sequence(String desc) {
+  Sequence(String desc) {
     this.desc = desc;
   }
 

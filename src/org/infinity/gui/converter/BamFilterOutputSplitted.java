@@ -338,7 +338,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
       List<List<Rectangle>> listSegments = new ArrayList<>(decoder.frameCount());
       int segmentCount = segmentsX * segmentsY;
       for (int frameIdx = 0; frameIdx < decoder.frameCount(); frameIdx++) {
-        listSegments.add(new ArrayList<Rectangle>(segmentCount));
+        listSegments.add(new ArrayList<>(segmentCount));
         final double fract = 0.499999; // fractions of .5 or less will be rounded down!
         int curHeight = decoder.getFrameInfo(frameIdx).getHeight(), y = 0;
         for (int curSegY = segmentsY; curSegY > 0; curSegY--) {
@@ -413,7 +413,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
     if (entry != null && rect != null) {
       // preparations
       BufferedImage srcImage = entry.getFrame();
-      BufferedImage dstImage = null;
+      BufferedImage dstImage;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
       Dimension dstDim = new Dimension(rect.width, rect.height);
@@ -447,7 +447,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput implements Acti
             System.arraycopy(srcI, srcOfs, dstI, dstOfs, rect.width);
           }
         }
-      } else {
+      } else if (dstB != null && dstB.length > 0) {
         dstB[0] = 0;
       }
 

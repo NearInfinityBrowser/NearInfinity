@@ -2,6 +2,8 @@
 *.xml text
 *.txt text
 *.md text
+*.2da text
+*.ids text
 *.flex text
 .project text
 .classpath text

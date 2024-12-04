@@ -115,7 +115,7 @@ public final class ViewerUtil {
       return;
     }
     JLabel label = new JLabel(entry.getName());
-    JComponent text = null;
+    JComponent text;
     if (entry instanceof ResourceRef) {
       text = new LinkButton((ResourceRef) entry, maxLength);
     } else {
@@ -149,13 +149,13 @@ public final class ViewerUtil {
       GridBagConstraints gbc, boolean endline, int maxLength) {
     if (name != null) {
       JLabel label = new JLabel(name);
-      String s = (field != null) ? field : "";
+      String labelText = (field != null) ? field : "";
       String help = null;
-      if (maxLength > 0 && s.length() > maxLength) {
-        help = s;
-        s = s.substring(0, maxLength) + "...";
+      if (maxLength > 0 && labelText.length() > maxLength) {
+        help = labelText;
+        labelText = labelText.substring(0, maxLength) + "...";
       }
-      JComponent text = new JLabel((field != null) ? field : "");
+      JComponent text = new JLabel(labelText);
       if (help != null) {
         text.setToolTipText(help);
       }
@@ -579,7 +579,7 @@ public final class ViewerUtil {
    * </ul>
    * </p>
    */
-  public static interface AttributeEntry extends Function<StructEntry, StructEntry> {
+  public interface AttributeEntry extends Function<StructEntry, StructEntry> {
   }
 
   public static final class StructListPanel extends JPanel implements TableModelListener, ActionListener {
@@ -704,7 +704,7 @@ public final class ViewerUtil {
    * Can be used to extend ListCellRenderer interfaces by a method that returns the textual representation of the
    * specified cell value.
    */
-  public static interface ListValueRenderer {
+  public interface ListValueRenderer {
     /** Returns the textual representation of the specified value. */
     String getListValue(Object value);
   }

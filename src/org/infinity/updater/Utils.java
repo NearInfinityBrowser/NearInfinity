@@ -207,6 +207,7 @@ public class Utils {
         new URL(url);
         return true;
       } catch (MalformedURLException e) {
+        Logger.debug(e);
       }
     }
     return false;
@@ -229,7 +230,7 @@ public class Utils {
       if (url.getProtocol().equalsIgnoreCase("http") || url.getProtocol().equalsIgnoreCase("https")) {
         // We only need to check header for HTTP protocol
         HttpURLConnection.setFollowRedirects(true);
-        HttpURLConnection conn = null;
+        HttpURLConnection conn;
         if (proxy != null) {
           conn = (HttpURLConnection) url.openConnection(proxy);
         } else {
@@ -250,7 +251,7 @@ public class Utils {
         }
       } else {
         // more generic method
-        URLConnection conn = null;
+        URLConnection conn;
         if (proxy != null) {
           conn = url.openConnection(proxy);
         } else {
@@ -483,7 +484,7 @@ public class Utils {
       List<ProgressListener> listeners)
       throws IOException, ProtocolException, UnknownServiceException, ZipException, FileNotFoundException {
     if (url != null && os != null) {
-      URLConnection conn = null;
+      URLConnection conn;
       if (proxy != null) {
         conn = url.openConnection(proxy);
       } else {
@@ -675,7 +676,7 @@ public class Utils {
 
   // -------------------------- INNER CLASSES --------------------------
 
-  public static interface ProgressListener extends EventListener {
+  public interface ProgressListener extends EventListener {
     void dataProgressed(ProgressEvent event);
   }
 

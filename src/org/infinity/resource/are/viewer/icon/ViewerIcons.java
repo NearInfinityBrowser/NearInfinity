@@ -100,7 +100,7 @@ public enum ViewerIcons {
   private final String fileName;
   private ImageIcon icon;
 
-  private ViewerIcons(String fileName) {
+  ViewerIcons(String fileName) {
     this.fileName = fileName;
   }
 

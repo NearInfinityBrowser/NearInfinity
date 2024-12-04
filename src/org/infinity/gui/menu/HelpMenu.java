@@ -197,7 +197,7 @@ public class HelpMenu extends JMenu implements BrowserSubMenu, ActionListener {
     } else if (event.getSource() == helpUpdateSettings) {
       UpdaterSettings.showDialog(NearInfinity.getInstance());
     } else if (event.getSource() == helpUpdateCheck) {
-      UpdateInfo info = null;
+      UpdateInfo info;
       try {
         WindowBlocker.blockWindow(NearInfinity.getInstance(), true);
         info = Updater.getInstance().loadUpdateInfo();

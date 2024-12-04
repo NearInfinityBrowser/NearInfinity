@@ -80,7 +80,7 @@ public class OpenResourceDialog extends JDialog implements ItemListener, ListSel
    */
   public static ResourceEntry[] showOpenDialog(Window owner, String title, String[] extensions,
       boolean multiSelection) {
-    ResourceEntry[] retVal = null;
+    ResourceEntry[] retVal;
     if (title == null) {
       title = "Select resource";
     }

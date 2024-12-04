@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.infinity.gui.SoundPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewFrame;
@@ -43,7 +44,6 @@ import org.infinity.resource.Closeable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.resource.sound.SoundResource;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
@@ -61,12 +61,11 @@ import org.infinity.util.io.StreamUtils;
  * </ul>
  */
 public class ResourceRef extends Datatype
-    implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener {
+    implements Editable, IsTextual, IsReference, Closeable, ActionListener, ListSelectionListener {
   private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
   /** List of resource types that are can be used to display associated icons.  */
-  private static final HashSet<String> ICON_EXTENSIONS = new HashSet<>(
-      Arrays.asList(new String[] { "BMP", "ITM", "SPL" }));
+  private static final HashSet<String> ICON_EXTENSIONS = new HashSet<>(Arrays.asList("BMP", "ITM", "SPL"));
 
   /** Special constant that represents absense of resource in the field. */
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
@@ -85,8 +84,8 @@ public class ResourceRef extends Datatype
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
 
-  /** Button that used to play sound of current selected element in the list. */
-  private JButton bPlay;
+  /** Handles playback of sound resources. */
+  private SoundPanel soundPanel;
 
   /**
    * GUI component that lists all available resources that can be set to this resource reference and have edit field for
@@ -127,15 +126,6 @@ public class ResourceRef extends Datatype
       final ResourceRefEntry selected = list.getSelectedValue();
       if (isEditable(selected)) {
         new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(selected.entry));
-      }
-    } else if (event.getSource() == bPlay) {
-      final ResourceRefEntry selected = list.getSelectedValue();
-      if (isSound(selected)) {
-        // prevent overlapping sound playback
-        closeResource(currentResource);
-        SoundResource res = (SoundResource) ResourceFactory.getResource(selected.entry);
-        res.playSound();
-        currentResource = res;
       }
     }
   }
@@ -200,11 +190,15 @@ public class ResourceRef extends Datatype
     JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
+
     bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
-    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
-    bPlay.addActionListener(this);
-    bPlay.setVisible(ResourceEntry.isSound(types));
+
+    soundPanel = new SoundPanel(SoundPanel.Option.COMPACT_CONTROLS, SoundPanel.Option.TIME_LABEL,
+        SoundPanel.Option.PROGRESS_BAR);
+    soundPanel.setDisplayFormat(SoundPanel.DisplayFormat.ELAPSED_TOTAL_PRECISE);
+    soundPanel.setVisible(ResourceEntry.isSound(types));
+
     list.addListSelectionListener(this);
     setResourceEntryUpdated(list.getSelectedValue());
 
@@ -223,14 +217,14 @@ public class ResourceRef extends Datatype
     panel.add(spacerTop, gbc);
 
     gbc = ViewerUtil.setGBC(gbc, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-        new Insets(3, 6, 3, 0), 0, 0);
+        new Insets(3, 6, 3, 6), 0, 0);
     panel.add(bUpdate, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-        new Insets(3, 6, 3, 0), 0, 0);
+        new Insets(3, 6, 3, 6), 0, 0);
     panel.add(bView, gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-            new Insets(24, 6, 3, 0), 0, 0);
-    panel.add(bPlay, gbc);
+            new Insets(24, 6, 3, 6), 0, 0);
+    panel.add(soundPanel, gbc);
 
     // spacer keeps controls in the center
     final JPanel spacerBottom = new JPanel();
@@ -379,6 +373,13 @@ public class ResourceRef extends Datatype
     return resname;
   }
 
+  @Override
+  public void close() throws Exception {
+    if (soundPanel != null) {
+      soundPanel.setPlaying(false);
+    }
+  }
+
   public boolean isEmpty() {
     return (resname.equals(NONE.name));// FIXME: use null instead of NONE.name
   }
@@ -418,14 +419,30 @@ public class ResourceRef extends Datatype
     closeResource(currentResource);
     if (entry != null) {
       bView.setEnabled(isEditable(entry));
-      bPlay.setEnabled(isSound(entry));
+      if (soundPanel != null && soundPanel.isVisible()) {
+        try {
+          soundPanel.loadSound(entry.getEntry());
+          soundPanel.setEnabled(isSound(entry));
+        } catch (NullPointerException e) {
+          // expected
+          soundPanel.setEnabled(false);
+        } catch (Exception e) {
+          Logger.error(e);
+          soundPanel.setEnabled(false);
+        }
+      }
     } else {
       bView.setEnabled(false);
-      bPlay.setEnabled(false);
+      if (soundPanel != null && soundPanel.isVisible()) {
+        soundPanel.setEnabled(false);
+      }
     }
   }
 
   private void closeResource(Resource resource) {
+    if (soundPanel != null) {
+      soundPanel.unload();
+    }
     if (resource instanceof Closeable) {
       try {
         ((Closeable) resource).close();
@@ -440,7 +457,7 @@ public class ResourceRef extends Datatype
   }
 
   private boolean isSound(ResourceRefEntry ref) {
-    return ref != null && ref != NONE && ref.entry != null && ref.entry.isSound();
+    return ref != null && ref.entry != null && ref.entry.isSound();
   }
 
   private void setValue(String newValue) {

@@ -11,14 +11,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -1065,7 +1058,7 @@ public abstract class AbstractStruct extends AbstractTableModel
     if (fieldList.isEmpty()) {
       return;
     }
-    fieldList.sort((f1, f2) -> f1.getOffset() - f2.getOffset());
+    fieldList.sort(Comparator.comparingInt(StructEntry::getOffset));
 
     int minIndex = Integer.MAX_VALUE;
     int maxIndex = Integer.MIN_VALUE;

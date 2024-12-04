@@ -110,23 +110,27 @@ public class IdsMapCache {
     }
 
     if (retVal == null) {
-      if (symbol.equals("ANYONE")) {
-        int p = idsRef.lastIndexOf('.');
-        if (p >= 0) {
-          idsRef = idsRef.substring(0, p);
-        }
-        idsRef = idsRef.toUpperCase(Locale.ENGLISH);
-        String[] ids = ScriptInfo.getInfo().getObjectIdsList();
-        for (final String s : ids) {
-          if (s.equals(idsRef)) {
-            retVal = 0L;
-            break;
+      switch (symbol) {
+        case "ANYONE":
+          int p = idsRef.lastIndexOf('.');
+          if (p >= 0) {
+            idsRef = idsRef.substring(0, p);
           }
-        }
-      } else if (symbol.equals("FALSE")) {
-        retVal = 0L;
-      } else if (symbol.equals("TRUE")) {
-        retVal = 1L;
+          idsRef = idsRef.toUpperCase(Locale.ENGLISH);
+          String[] ids = ScriptInfo.getInfo().getObjectIdsList();
+          for (final String s : ids) {
+            if (s.equals(idsRef)) {
+              retVal = 0L;
+              break;
+            }
+          }
+          break;
+        case "FALSE":
+          retVal = 0L;
+          break;
+        case "TRUE":
+          retVal = 1L;
+          break;
       }
     }
 
@@ -202,8 +206,8 @@ public class IdsMapCache {
    * @param overwrite If {@code true}, then static flag label will be overwritten with entries from the IDS resource. If
    *                  {@code false}, then entries from IDS resource will be used only for missing or empty entries in
    *                  the {@code flags} array.
-   * @param prettify  Indicates whether to improve readability of flag names. The operation includes: - a capitalized
-   *                  first letter - lowercased remaining letters - underscores are replaced by space
+   * @param prettify  Indicates whether to improve readability of flag names. The operation includes a capitalized
+   *                  first letter of each word, lowercased remaining letters, underscores are replaced by space.
    * @return The updated list of flag names.
    */
   public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite,
@@ -253,15 +257,21 @@ public class IdsMapCache {
   }
 
   /**
-   * Improves readability of given string by capitalizing first letter, lowercasing remaining characters and replacing
-   * underscores by space.
+   * Improves readability of given string by capitalizing first letter of each word, lowercasing remaining characters
+   * and replacing underscores by space.
    */
   private static String prettifyName(String name) {
     if (name == null || name.trim().isEmpty()) {
       return name;
     }
+
     String retVal = name.replace("_", " ").toLowerCase(Locale.ENGLISH);
-    retVal = Character.toUpperCase(retVal.charAt(0)) + retVal.substring(1);
+    final String[] items = retVal.split(" ");
+    for (int i = 0; i < items.length; i++) {
+      items[i] = Character.toUpperCase(items[i].charAt(0)) + items[i].substring(1);
+    }
+    retVal = String.join(" ", items);
+
     return retVal;
   }
 

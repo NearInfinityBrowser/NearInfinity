@@ -123,7 +123,7 @@ public class Signatures {
    * @return a {@code Signatures} instance. Returns {@code null} on error.
    */
   public static Signatures get(String resource, boolean isTrigger) {
-    Signatures retVal = null;
+    Signatures retVal;
 
     resource = normalizedName(resource);
     retVal = INSTANCES.get(resource);
@@ -195,7 +195,7 @@ public class Signatures {
 
   /** Full set of information about a single function definition. */
   public static class Function {
-    public static enum FunctionType {
+    public enum FunctionType {
       /** Function signature belongs to an action. */
       ACTION,
       /** Function signature belongs to a trigger. */
@@ -393,7 +393,7 @@ public class Signatures {
       final Pattern patIdentifier = Pattern.compile("[a-zA-Z_#][0-9a-zA-Z_#]*");
       final Pattern patBrackOpen = Pattern.compile("\\(");
       final Pattern patBrackClosed = Pattern.compile("\\)");
-      boolean success = false;
+      boolean success;
       int pos = 0;
 
       // getting function id

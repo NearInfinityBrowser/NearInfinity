@@ -152,7 +152,7 @@ public final class TotResource extends AbstractStruct implements Resource {
         String fileName = totPath.getName(totPath.getNameCount() - 1).toString();
         char ch = fileName.charAt(fileName.length() - 1); // last character of file extension (TOT)
         ch -= 12; // TOT -> TOH (considers case)
-        fileName = fileName.substring(0, fileName.length() - 1) + String.valueOf(ch);
+        fileName = fileName.substring(0, fileName.length() - 1) + ch;
         final Path tohPath = FileManager.queryExisting(totPath.getParent(), fileName);
         try {
           toh = new TohResource(new FileResourceEntry(tohPath));

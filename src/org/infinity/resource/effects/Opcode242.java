@@ -22,7 +22,7 @@ public class Opcode242 extends BaseOpcode {
 
   private static final String[] OVERLAY_TYPES_IWD = { "Globe of invulnerability", "Shroud of flame", "Antimagic shell",
       "Otiluke's resilient sphere", "Protection from normal missiles", "Cloak of fear", "Entropy shield", "Fire aura",
-      "Frost aura", "Insect plague", "Storm shell", "Shield of lathander", "Greater shield of lathander",
+      "Frost aura", "Insect plague", "Storm shell", "Shield of Lathander", "Greater shield of Lathander",
       "Seven eyes" };
 
   /** Returns the opcode name for the current game variant. */

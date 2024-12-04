@@ -15,7 +15,7 @@ public final class StringEntry extends AbstractStruct {
   // TOT/StringEntry-specific field labels
   public static final String TOT_STRING                     = "String entry";
   public static final String TOT_STRING_OFFSET_FREE_REGION  = "Offset to next free region";
-  public static final String TOT_STRING_OFFSET_PREV_ENTRY   = "Offset of preceeding entry";
+  public static final String TOT_STRING_OFFSET_PREV_ENTRY   = "Offset of preceding entry";
   public static final String TOT_STRING_TEXT                = "Text";
   public static final String TOT_STRING_OFFSET_NEXT_ENTRY   = "Offset of following entry";
 

@@ -16,5 +16,5 @@ public interface UpdateListener extends EventListener {
    * @param event Contains associated data
    * @return true if table data other than the current item has been changed, false otherwise.
    */
-  public boolean valueUpdated(UpdateEvent event);
+  boolean valueUpdated(UpdateEvent event);
 }

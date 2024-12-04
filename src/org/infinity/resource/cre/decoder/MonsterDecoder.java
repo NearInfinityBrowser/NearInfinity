@@ -321,24 +321,26 @@ public class MonsterDecoder extends SpriteDecoder {
       }
     }
 
+    final Direction[] dirs = isSmoothPath() ? SeqDef.DIR_FULL_W : SeqDef.DIR_FULL_LIMITED_W;
+    final Direction[] dirsE = isSmoothPath() ? SeqDef.DIR_FULL_E : SeqDef.DIR_FULL_LIMITED_E;
     retVal = new SeqDef(seq);
     for (final Couple<String, SegmentDef.SpriteType> creInfo : creResList) {
       ResourceEntry entry = ResourceFactory.getResourceEntry(creInfo.getValue0());
       SegmentDef.SpriteType type = creInfo.getValue1();
       if (SpriteUtils.bamCyclesExist(entry, ofs, SeqDef.DIR_FULL_W.length)) {
-        SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, ofs, type, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
-        tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, ofs + 1, type, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
+        SeqDef tmp = SeqDef.createSequence(seq, dirs, false, entry, ofs, type, behavior);
+        retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
+        tmp = SeqDef.createSequence(seq, dirsE, true, entry, ofs + 1, type, behavior);
+        retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
-        for (final Direction dir : SeqDef.DIR_FULL_W) {
+        for (final Direction dir : dirs) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, false, entry, 0, type, behavior);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
+          retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
         }
-        for (final Direction dir : SeqDef.DIR_FULL_E) {
+        for (final Direction dir : dirsE) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, true, entry, 0, type, behavior);
-          retVal.addDirections(tmp.getDirections().toArray(new DirDef[0]));
+          retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
         }
       }
     }

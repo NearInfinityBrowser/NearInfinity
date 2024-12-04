@@ -114,7 +114,7 @@ public class MvePlayer {
       }
 
       // waiting for the next frame to be displayed
-      sleepUntil(5000000L);
+      sleepUntil(5_000_000L);
       renderer.updateRenderer();
       audioQueue.skipNext();
     }
@@ -203,7 +203,7 @@ public class MvePlayer {
   }
 
   private long timeRemaining() {
-    long res = 0L;
+    long res;
     long curTime = System.nanoTime() & Long.MAX_VALUE;
     if (curTime < startTime) {
       res = delayTime - (Long.MAX_VALUE - startTime + curTime);
@@ -218,7 +218,7 @@ public class MvePlayer {
 
   // waits until only 'remaining' time (in ns) of the current timer remains
   private void sleepUntil(long remaining) {
-    if (timeRemaining() > 2000000L) {
+    if (timeRemaining() > 2_000_000L) {
       while (timeRemaining() > remaining) {
         // sleep as much as possible
         try {
@@ -228,7 +228,7 @@ public class MvePlayer {
         }
       }
     }
-    if (timeRemaining() <= 2000000L) {
+    if (timeRemaining() <= 2_000_000L) {
       while (timeRemaining() > remaining) {
         // waste remaining nanoseconds
         try {

@@ -314,7 +314,7 @@ public class ViewerMap extends JPanel {
 
               // printing label
               if (!mapCode.isEmpty()) {
-                String[] labels = null;
+                String[] labels;
                 if (mapName != null) {
                   labels = new String[2];
                   labels[0] = mapName;
@@ -859,7 +859,7 @@ public class ViewerMap extends JPanel {
 
         StringRef areaName = (StringRef) struct.getAttribute(AreaEntry.WMP_AREA_NAME);
         IsReference areaRef = (IsReference) struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
-        String text1 = null, text2 = null;
+        String text1, text2;
         if (areaName.getValue() >= 0) {
           StringTable.Format fmt = BrowserMenuBar.getInstance().getOptions().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
               : StringTable.Format.NONE;

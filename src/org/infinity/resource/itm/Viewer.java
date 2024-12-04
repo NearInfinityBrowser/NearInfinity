@@ -70,28 +70,28 @@ final class Viewer extends JPanel {
     kitUsabilityPanel.setLayout(new BoxLayout(kitUsabilityPanel, BoxLayout.Y_AXIS));
 
     int kitPanelCount = 0;
-    JPanel kitUsabilityPanel1 = null;
+    JPanel kitUsabilityPanel1;
     StructEntry unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_1);
     if (unusableEntry != null) {
       kitUsabilityPanel1 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
       kitUsabilityPanel.add(kitUsabilityPanel1);
       kitPanelCount++;
     }
-    JPanel kitUsabilityPanel2 = null;
+    JPanel kitUsabilityPanel2;
     unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_2);
     if (unusableEntry != null) {
       kitUsabilityPanel2 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
       kitUsabilityPanel.add(kitUsabilityPanel2);
       kitPanelCount++;
     }
-    JPanel kitUsabilityPanel3 = null;
+    JPanel kitUsabilityPanel3;
     unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_3);
     if (unusableEntry != null) {
       kitUsabilityPanel3 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);
       kitUsabilityPanel.add(kitUsabilityPanel3);
       kitPanelCount++;
     }
-    JPanel kitUsabilityPanel4 = null;
+    JPanel kitUsabilityPanel4;
     unusableEntry = itm.getAttribute(ItmResource.ITM_UNUSABLE_BY_4);
     if (unusableEntry != null) {
       kitUsabilityPanel4 = ViewerUtil.makeCheckPanel((Flag) unusableEntry, 1);

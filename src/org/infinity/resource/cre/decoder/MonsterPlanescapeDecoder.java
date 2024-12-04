@@ -346,7 +346,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder {
 
   /** Returns a list of all valid color locations. */
   private List<Integer> setColorLocations(IniMapSection section) {
-    List<Integer> retVal = null;
+    List<Integer> retVal;
     if (Profile.getGame() == Profile.Game.PST) {
       retVal = setColorLocationsCre();
       if (retVal.isEmpty()) {

@@ -195,7 +195,7 @@ public final class GameProperties extends ChildFrame implements ActionListener {
           if (sb.length() > 0) {
             sb.append("; ");
           }
-          sb.append(dlcPath.getFileSystem().toString());
+          sb.append(dlcPath.getFileSystem());
         }
         l = new JLabel("DLC archives:");
         tf = createReadOnlyField(sb.toString(), true);
@@ -226,6 +226,11 @@ public final class GameProperties extends ChildFrame implements ActionListener {
       tf = createReadOnlyField(s, true);
       listControls.add(Couple.with(l, tf));
     }
+
+    // Entry: Default charset
+    l = new JLabel("Default character set:");
+    tf = createReadOnlyField(Profile.getDefaultCharset().displayName(), true);
+    listControls.add(Couple.with(l,  tf));
 
     // Entry: Use female TLK file
     l = new JLabel("Uses female TLK file:");

@@ -30,9 +30,9 @@ import org.infinity.util.Table2da;
  */
 public class SpriteTables {
   // Number of non-PST table columns (id column included)
-  public static final int NUM_COLUMNS           = 16;
+  public static final int NUM_COLUMNS           = 17;
   // Number of PST table columns (id column included)
-  public static final int NUM_COLUMNS_PST       = 9;
+  public static final int NUM_COLUMNS_PST       = 10;
 
   // Header column index
   public static final int COLUMN_ID             = 0;    // int (hex/composite)
@@ -52,6 +52,7 @@ public class SpriteTables {
   public static final int COLUMN_WEAPON         = 13;   // bool
   public static final int COLUMN_HEIGHT         = 14;   // string
   public static final int COLUMN_HEIGHT_SHIELD  = 15;   // string
+  public static final int COLUMN_MOVE_SCALE     = 16;   // int
   // Column indices for PST-related sprite tables
   public static final int COLUMN_PST_RESREF     = 1;    // string
   public static final int COLUMN_PST_RESREF2    = 2;    // string
@@ -61,6 +62,7 @@ public class SpriteTables {
   public static final int COLUMN_PST_CLOWN      = 6;    // int
   public static final int COLUMN_PST_ARMOR      = 7;    // int
   public static final int COLUMN_PST_BESTIARY   = 8;    // int
+  public static final int COLUMN_PST_MOVE_SCALE = 9;    // decimal
 
   private static final EnumMap<Profile.Game, List<String>> TABLE_MAPS = new EnumMap<>(Profile.Game.class);
 
@@ -73,6 +75,7 @@ public class SpriteTables {
     TABLE_MAPS.put(Profile.Game.IWDHowTotLM, TABLE_MAPS.get(Profile.Game.IWDHoW));
 
     TABLE_MAPS.put(Profile.Game.IWD2, Collections.singletonList("avatars-iwd2.2da"));
+    TABLE_MAPS.put(Profile.Game.IWD2EE, Collections.singletonList("avatars-iwd2.2da"));
 
     TABLE_MAPS.put(Profile.Game.PST, Collections.singletonList("avatars-pst.2da"));
 
@@ -304,6 +307,22 @@ public class SpriteTables {
         retVal = Integer.parseInt(s.substring(2), 16);
       } else {
         retVal = Integer.parseInt(s);
+      }
+    } catch (NullPointerException | ArrayIndexOutOfBoundsException | NumberFormatException e) {
+      Logger.trace(e);
+    }
+    return retVal;
+  }
+
+  /** Convenience method: Converts an array item into a decimal value. */
+  public static double valueToDouble(String[] arr, int arrIdx, double defValue) {
+    double retVal = defValue;
+    try {
+      String s = arr[arrIdx];
+      if (s.startsWith("0x") || s.startsWith("0X")) {
+        retVal = valueToInt(arr, arrIdx, (int)defValue);
+      } else {
+        retVal = Double.parseDouble(s);
       }
     } catch (NullPointerException | ArrayIndexOutOfBoundsException | NumberFormatException e) {
       Logger.trace(e);

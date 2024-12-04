@@ -10,7 +10,7 @@ import java.util.List;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.Flag;
+import org.infinity.datatype.HashBitmap;
 import org.infinity.resource.StructEntry;
 
 /**
@@ -36,7 +36,7 @@ public class Opcode000 extends BaseOpcode {
   protected String makeEffectParamsGeneric(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_AC_VALUE));
-    list.add(new Flag(buffer, offset + 4, 4, EFFECT_BONUS_TO, AC_TYPES));
+    list.add(new HashBitmap(buffer, offset + 4, 4, EFFECT_BONUS_TO, AC_TYPES_MAP, false));
     return null;
   }
 

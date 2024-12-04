@@ -339,7 +339,7 @@ public class EffectDecoder extends SpriteDecoder {
     ResourceEntry resEntry = ResourceFactory.getResourceEntry(resref + ".BAM");
     BamControl ctrl = SpriteUtils.loadBamController(resEntry);
     if (ctrl != null) {
-      int cycle = 0;
+      int cycle;
       if (isRenderRandom()) {
         cycle = Math.abs(rnd.nextInt()) % ctrl.cycleCount();
       } else if (getCycle() >= 0) {

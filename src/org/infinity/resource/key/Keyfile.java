@@ -529,7 +529,7 @@ public class Keyfile {
         String sig = StreamUtils.readString(buffer, 0, 4);
         String ver = StreamUtils.readString(buffer, 4, 4);
         if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
-          throw new IOException("Unsupported key file: " + file.toString());
+          throw new IOException("Unsupported key file: " + file);
         }
 
         int numBif = buffer.getInt(0x08);

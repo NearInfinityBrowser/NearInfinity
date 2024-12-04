@@ -56,10 +56,4 @@ public class Opcode020 extends BaseOpcode {
       boolean isVersion1) {
     return makeEffectParamsBG1(parent, buffer, offset, list, isVersion1);
   }
-
-  @Override
-  protected String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
-      boolean isVersion1) {
-    return super.makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
-  }
 }

@@ -11,6 +11,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
@@ -49,9 +50,11 @@ import org.infinity.gui.menu.Bookmark;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.CharsetDetector;
 import org.infinity.util.DataString;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.Logger;
+import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -129,7 +132,7 @@ public final class Profile {
     private final Engine engine;
     private final String title;
 
-    private Game(Engine engine, String title) {
+    Game(Engine engine, String title) {
       this.engine = Objects.requireNonNull(engine);
       this.title = Objects.requireNonNull(title);
     }
@@ -162,7 +165,7 @@ public final class Profile {
     PST,
     /** Includes IWD, IWDHoW and IWDTotLM. */
     IWD,
-    /** Includes IWD2. */
+    /** Includes IWD2 and IWD2EE. */
     IWD2,
     /** Includes BG1EE, BG1SoD, BG2EE, IWDEE, PSTEE and EET. */
     EE,
@@ -288,6 +291,11 @@ public final class Profile {
      * generated on first call of {@code getEquippedAppearanceMap()}.
      */
     GET_GAME_EQUIPPED_APPEARANCES,
+    /**
+     * Property: ({@code String}) The autodetected character set used to encode or decode strings in the game.
+     * Can be overridden by NI's preferences.
+     */
+    GET_GAME_CHARSET,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
     /** Property: ({@code Boolean}) Has current game been enhanced by EEex? */
@@ -750,13 +758,12 @@ public final class Profile {
         return prop.getData();
       } else {
         // handling properties which require an additional parameter
-        EnumMap<?, T> map = null;
         switch (key) {
           case GET_GLOBAL_EXTRA_FOLDER_NAMES:
           case GET_GLOBAL_SAVE_FOLDER_NAMES:
           case GET_GLOBAL_HOME_FOLDER_NAME:
             if (param instanceof Game) {
-              map = prop.getData();
+              final EnumMap<?, T> map = prop.getData();
               return map.get(param);
             }
             break;
@@ -937,6 +944,21 @@ public final class Profile {
   public static Path getChitinKey() {
     Object ret = getProperty(Key.GET_GAME_CHITIN_KEY);
     return (ret instanceof Path) ? (Path) ret : null;
+  }
+
+  /**
+   * Returns the default character set used by the currently open game to encode or decode game strings.
+   *
+   * <p>
+   * <b>Note:</b> Charset detection uses heuristics for the original games and may not be fully accurate.
+   * It falls back to {@code windows-1252} if the charset could not be autodetected.
+   * </p>
+   *
+   * @return Character set as {@link Charset} object.
+   */
+  public static Charset getDefaultCharset() {
+    final String retVal = getProperty(Key.GET_GAME_CHARSET);
+    return Charset.forName((retVal != null) ? retVal : Misc.CHARSET_DEFAULT.name());
   }
 
   /**
@@ -1729,7 +1751,7 @@ public final class Profile {
     if (keyFile == null) {
       throw new Exception("No chitin.key specified");
     } else if (!FileEx.create(keyFile).isFile()) {
-      throw new Exception(keyFile.toString() + " does not exist");
+      throw new Exception(keyFile + " does not exist");
     }
 
     if (desc != null) {
@@ -1779,7 +1801,7 @@ public final class Profile {
       gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
     }
 
-    boolean isForced = (Boolean) getProperty(Key.IS_FORCED_GAME);
+    boolean isForced = getProperty(Key.IS_FORCED_GAME);
     if (isForced) {
       game = getGame();
     }
@@ -2050,7 +2072,7 @@ public final class Profile {
     // process each root separately
     roots.forEach(root -> {
       // adding root of active language
-      Path langRoot = FileManager.query(root, (String) getProperty(Key.GET_GLOBAL_LANG_NAME), language);
+      Path langRoot = FileManager.query(root, getProperty(Key.GET_GLOBAL_LANG_NAME), language);
       if (langRoot != null && FileEx.create(langRoot).isDirectory()) {
         addEntry(Key.GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
         addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);
@@ -2370,6 +2392,9 @@ public final class Profile {
   private void initFeatures() {
     Game game = getGame();
     Engine engine = getEngine();
+
+    // Autodetect default charset used by game strings
+    addEntry(Key.GET_GAME_CHARSET, Type.STRING, CharsetDetector.guessCharset(true));
 
     // Are Kits supported?
     addEntry(Key.IS_SUPPORTED_KITS, Type.BOOLEAN,

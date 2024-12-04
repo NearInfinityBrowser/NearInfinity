@@ -231,7 +231,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     buttonPanel.getControlByType(CTRL_STOP).setEnabled(false);
   }
 
-  // --------------------- End Interface Runable ---------------------
+  // --------------------- End Interface Runnable ---------------------
 
   // --------------------- Begin Interface Viewable ---------------------
 
@@ -402,7 +402,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         int trackVideo = writer.addTrack(videoFormat);
 
         // initializing audio track
-        Format audioFormat = null;
+        Format audioFormat;
         int channels = decoder.getAudioFormat().getChannels();
         int sampleRate = (int) decoder.getAudioFormat().getSampleRate();
         int sampleBits = decoder.getAudioFormat().getSampleSizeInBits();

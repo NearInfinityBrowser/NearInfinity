@@ -72,10 +72,11 @@ import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.Readable;
+import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TextBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
@@ -137,6 +138,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TORESLIST = "ToResList";
   public static final String CMD_RESET = "ResetType";
   public static final String CMD_GOTO_OFFSET = "GotoOffset";
+  public static final String CMD_APPLY_TO_ALL = "ApplyToAllRemovables";
+  public static final String CMD_APPLY_TO_NON_EMPTY = "ApplyToNonEmptyRemovables";
+  public static final String CMD_APPLY_TO_EMPTY = "ApplyToEmptyRemovables";
   public static final String CMD_ADD_ADV_SEARCH = "AddAdvSearch";
   public static final String CMD_SHOW_IN_TREE = "ShowInTree";
   public static final String CMD_SHOWVIEWER = "ShowView";
@@ -171,6 +175,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hexadecimal number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.ICON_REFRESH_16.getIcon(), this);
+  private final JMenuItem miApplyToAllRemovables = createMenuItem(CMD_APPLY_TO_ALL, "Apply value to all removable structures", Icons.ICON_COPY_16.getIcon(), this);
+  private final JMenuItem miApplyToNonEmptyRemovables = createMenuItem(CMD_APPLY_TO_NON_EMPTY, "Apply value to non-empty removable structures", Icons.ICON_COPY_16.getIcon(), this);
+  private final JMenuItem miApplyToEmptyRemovables = createMenuItem(CMD_APPLY_TO_EMPTY, "Apply value to empty removable structures", Icons.ICON_COPY_16.getIcon(), this);
   private final JMenuItem miAddToAdvSearch = createMenuItem(CMD_ADD_ADV_SEARCH, "Add to Advanced Search", Icons.ICON_FIND_16.getIcon(), this);
   private final JMenuItem miGotoOffset = createMenuItem(CMD_GOTO_OFFSET, "Go to offset", null, this);
   private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.ICON_SELECT_IN_TREE_16.getIcon(), this);
@@ -299,6 +306,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     popupmenu.addSeparator();
+    popupmenu.add(miApplyToAllRemovables);
+    popupmenu.add(miApplyToNonEmptyRemovables);
+    popupmenu.add(miApplyToEmptyRemovables);
+    popupmenu.addSeparator();
     popupmenu.add(miAddToAdvSearch);
     popupmenu.add(miGotoOffset);
     if (struct instanceof DlgResource) {
@@ -323,6 +334,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToResref.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
+    miApplyToAllRemovables.setEnabled(false);
+    miApplyToNonEmptyRemovables.setEnabled(false);
+    miApplyToEmptyRemovables.setEnabled(false);
     miAddToAdvSearch.setEnabled(false);
     miGotoOffset.setEnabled(false);
     miShowInTree.setEnabled(false);
@@ -537,11 +551,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           WindowBlocker.blockWindow(wnd, false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-        if (ResourceFactory.saveResource((Resource) struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResource((Resource) struct, getTopLevelAncestor()).isTrue()) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-        if (ResourceFactory.saveResourceAs((Resource) struct, getTopLevelAncestor())) {
+        if (ResourceFactory.saveResourceAs((Resource) struct, getTopLevelAncestor()).isTrue()) {
           struct.setStructChanged(false);
         }
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
@@ -629,6 +643,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (cls != null) {
         selectFirstEntryOfType(cls);
       }
+    } else if (CMD_APPLY_TO_ALL.equals(cmd)) {
+      applyToAllRemovables((StructEntry) table.getValueAt(min, 1), false, false);
+    } else if (CMD_APPLY_TO_NON_EMPTY.equals(cmd)) {
+      applyToAllRemovables((StructEntry) table.getValueAt(min, 1), true, true);
+    } else if (CMD_APPLY_TO_EMPTY.equals(cmd)) {
+      applyToAllRemovables((StructEntry) table.getValueAt(min, 1), true, false);
     } else if (CMD_ADD_ADV_SEARCH.equals(cmd)) {
       addToAdvancedSearch((StructEntry) table.getValueAt(min, 1));
     } else if (CMD_SHOW_IN_TREE.equals(cmd)) {
@@ -735,6 +755,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToResref.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
+      miApplyToAllRemovables.setEnabled(false);
+      miApplyToNonEmptyRemovables.setEnabled(false);
+      miApplyToEmptyRemovables.setEnabled(false);
       miAddToAdvSearch.setEnabled(false);
       miGotoOffset.setEnabled(false);
       miShowInTree.setEnabled(false);
@@ -799,6 +822,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           || selected instanceof TextBitmap));
       miReset.setEnabled(isDataType && getCachedStructEntry(((Datatype) selected).getOffset()) != null
           && !(selected instanceof AbstractCode));
+      miApplyToAllRemovables.setEnabled(!(selected instanceof AbstractStruct) && struct instanceof AddRemovable &&
+          struct.getParent() != null);
+      miApplyToNonEmptyRemovables.setEnabled(!(selected instanceof AbstractStruct) && struct instanceof AddRemovable &&
+          struct.getParent() != null);
+      miApplyToEmptyRemovables.setEnabled(!(selected instanceof AbstractStruct) && struct instanceof AddRemovable &&
+          struct.getParent() != null);
       miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset || selected instanceof SectionCount);
       final boolean isSpecialDlgTreeItem = (selected instanceof State || selected instanceof Transition);
@@ -982,6 +1011,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
       tabbedPane = null;
     }
+
+    closeEditor();
   }
 
   public StructEntry getSelectedEntry() {
@@ -1216,7 +1247,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         if (newentry == null) {
           newentry = entry;
         } else {
-          ((Readable) newentry).read(bb, 0);
+          newentry.read(bb, 0);
         }
       } else {
         throw new NullPointerException();
@@ -1320,6 +1351,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
    * @throws NullPointerException if {@code editable} is {@code null}
    */
   private void edit(Editable editable) {
+    closeEditor();
+
     // Save for handle UPDATE_VALUE events later
     this.editable = editable;
     editpanel.removeAll();
@@ -1341,6 +1374,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     editpanel.repaint();
     cards.show(lowerpanel, CARD_EDIT);
     editable.select();
+  }
+
+  private void closeEditor() {
+    if (this.editable instanceof Closeable) {
+      try {
+        ((Closeable)this.editable).close();
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
   }
 
   /**
@@ -1415,6 +1458,103 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   }
 
   /**
+   * Applies the value of the specified {@code StructEntry} instance to all {@link AddRemovable}s of the same type at
+   * the same level as the current structure.
+   *
+   * @param entry        The {@link StructEntry} instance to copy
+   * @param filterEmpty  Whether to apply only to empty or zero field data.
+   * @param invertFilter If {@code filterEmpty} is true then this parameter specifies whether the filter test result
+   *                       should be inverted.
+   */
+  private void applyToAllRemovables(StructEntry entry, boolean filterEmpty, boolean invertFilter) {
+    final AbstractStruct parentStruct = struct.getParent();
+    final List<StructEntry> removables = (parentStruct != null) ? parentStruct.getFields(struct.getClass()) : null;
+    if (removables != null && removables.size() > 1) {
+      final int retVal = JOptionPane.showConfirmDialog(getTopLevelAncestor(),
+          "Apply field value to " + (removables.size() - 1) + " more structure(s)?",
+          "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+      if (retVal == JOptionPane.YES_OPTION) {
+        try {
+          final ByteBuffer bb = StreamUtils.getByteBuffer(entry.getSize());
+          try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+            entry.write(bbos);
+          }
+          bb.position(0);
+
+          final int relOfs = entry.getOffset() - struct.getOffset();
+
+          int count = 0;
+          for (final StructEntry se : removables) {
+            final AbstractStruct as = (AbstractStruct) se;
+            if (as != struct) {
+              final StructEntry att = as.getAttribute(as.getOffset() + relOfs, false);
+              if (att != null) {
+                if (att.getSize() == entry.getSize() && att.getClass().equals(entry.getClass())) {
+                  // testing whether to apply data
+                  boolean shouldApply = !filterEmpty || isEmptyStructure(att);
+                  if (filterEmpty && invertFilter) {
+                    shouldApply = !shouldApply;
+                  }
+                  if (shouldApply) {
+                    att.read(bb, 0);
+                    as.setStructChanged(true);
+                    as.getParent().fireTableDataChanged();
+                    count++;
+                  }
+                }
+              }
+            }
+          }
+          JOptionPane.showMessageDialog(getTopLevelAncestor(), "Value applied to " + count + " more structure(s).");
+        } catch (Exception e) {
+          Logger.error(e);
+          JOptionPane.showMessageDialog(getTopLevelAncestor(), "Could not apply value.", "Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      } else {
+        JOptionPane.showMessageDialog(getTopLevelAncestor(), "Cancelled.");
+      }
+    } else {
+      // no more AddRemovables available
+      JOptionPane.showMessageDialog(getTopLevelAncestor(), "No further structures present.", "Information",
+          JOptionPane.INFORMATION_MESSAGE);
+    }
+  }
+
+  /**
+   * Tests if the specified structure is considered "empty", i.e. numeric fields are 0, textual fields contain empty
+   * strings and binary fields contain only zeroed bytes.
+   *
+   * @param entry {@link StructEntry} field to test.
+   * @return {@code true} if the structure is considered empty, {@code false} otherwise.
+   * @throws Exception if the structure data could not be evaluated.
+   */
+  private boolean isEmptyStructure(StructEntry entry) throws Exception {
+    boolean retVal = true;
+    if (entry != null) {
+      if (entry instanceof IsNumeric) {
+        retVal = ((IsNumeric) entry).getLongValue() == 0;
+      } else if (entry instanceof IsTextual) {
+        retVal = ((IsTextual) entry).getText().isEmpty();
+      } else if (entry instanceof IsReference) {
+        retVal = ((IsReference) entry).getResourceName().isEmpty();
+      } else {
+        final ByteBuffer data = StreamUtils.getByteBuffer(entry.getSize());
+        try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(data)) {
+          entry.write(bbos);
+        }
+        final byte[] ar = data.array();
+        byte result = 0;
+        for (int i = 0, size = ar.length; i < size && result == 0; i++) {
+          result |= ar[i];
+        }
+        retVal = (result == 0);
+      }
+    }
+    return retVal;
+  }
+
+  /**
    * Creates an Advanced Search filter out of the specified {@code StructEntry} instance and adds it to the Advanced
    * Search dialog.
    */
@@ -1424,10 +1564,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
 
     // setting search value
-    SearchOptions so = null;
+    SearchOptions so;
     if (entry instanceof Flag) {
       so = new SearchOptions();
       so.setValueBitfield(((Flag) entry).getValue(), SearchOptions.BitFieldMode.EXACT);
+    } else if (entry instanceof ProRef || entry instanceof Song2daBitmap) {
+      so = new SearchOptions();
+      so.setValueNumber(((IsNumeric) entry).getValue());
     } else if (entry instanceof IsReference) {
       so = new SearchOptions();
       so.setValueResource(((IsReference) entry).getResourceName());

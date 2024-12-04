@@ -10,5 +10,5 @@ import java.util.EventListener;
  * Used in AbstractLayerItem
  */
 public interface LayerItemListener extends EventListener {
-  public void layerItemChanged(LayerItemEvent e);
+  void layerItemChanged(LayerItemEvent e);
 }

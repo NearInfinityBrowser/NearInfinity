@@ -17,17 +17,17 @@ import org.infinity.util.Misc;
 
 public interface InlineEditable extends StructEntry {
   /** The background color used for table cells. */
-  static final Color GRID_BACKGROUND = (UIManager.getColor("Table.focusCellBackground") != null)
+  Color GRID_BACKGROUND = (UIManager.getColor("Table.focusCellBackground") != null)
       ? UIManager.getColor("Table.focusCellBackground")
       : Color.WHITE;
 
   /** The border color used for table cells. */
-  static final Color GRID_BORDER = (UIManager.getColor("Table.gridColor") != null)
+  Color GRID_BORDER = (UIManager.getColor("Table.gridColor") != null)
       ? UIManager.getColor("Table.gridColor")
       : Color.BLACK;
 
   /** The default component used for the inline editor. */
-  static final JTextField DEFAULT_EDITOR = new JTextField() {
+  JTextField DEFAULT_EDITOR = new JTextField() {
     {
       setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
       setBorder(new LineBorder(GRID_BORDER, 1));

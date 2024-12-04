@@ -18,6 +18,7 @@ import org.infinity.gui.ChildFrame;
 import org.infinity.gui.StringEditor;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.StringTable;
 
 /**
  * Handles Edit menu items for the {@link BrowserMenuBar}.
@@ -44,6 +45,11 @@ public class EditMenu extends JMenu implements BrowserSubMenu, ActionListener {
       editBIFF.setEnabled(false);
     }
     add(editBIFF);
+  }
+
+  public void gameLoaded() {
+    // String table may not be available
+    editString.setEnabled(StringTable.isAvailable());
   }
 
   @Override

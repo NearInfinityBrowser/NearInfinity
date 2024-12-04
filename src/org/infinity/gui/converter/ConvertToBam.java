@@ -572,7 +572,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     } else if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "BAM output file already exists. Overwrite?";
-        Path file = null;
+        Path file;
         do {
           file = setBamOutput();
           if (file != null) {
@@ -1004,6 +1004,18 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         // List is set to single selection mode
         doWithSelectedListItems(listFilters, list -> filterRemove(), true, "Remove selected filter?", null);
       }
+    } else if (e.getSource() == tfFrameCenterX) {
+      if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        // Accept current input value
+        framesValidateCenterValue(tfFrameCenterX);
+        tfFrameCenterY.requestFocusInWindow();
+      }
+    } else if (e.getSource() == tfFrameCenterY) {
+      if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        // Accept current input value
+        framesValidateCenterValue(tfFrameCenterY);
+        cbCompressFrame.requestFocusInWindow();
+      }
     }
   }
 
@@ -1226,9 +1238,11 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     tfFrameCenterX = new JTextField("0", 6);
     tfFrameCenterX.setToolTipText(tip);
     tfFrameCenterX.addFocusListener(this);
+    tfFrameCenterX.addKeyListener(this);
     tfFrameCenterY = new JTextField("0", 6);
     tfFrameCenterY.setToolTipText(tip);
     tfFrameCenterY.addFocusListener(this);
+    tfFrameCenterY.addKeyListener(this);
     cbCompressFrame = new JCheckBox("Compress frame");
     cbCompressFrame.setToolTipText("Selecting this option activates RLE compression for the current frame(s).");
     cbCompressFrame.addActionListener(this);
@@ -2072,7 +2086,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       }
 
       // setting frame info
-      String title = null;
+      String title;
       if (indices.length > 1) {
         title = String.format("%d frames selected ", indices.length);
       } else {
@@ -2115,7 +2129,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         if (indices != null && indices.length == 1 && indices[0] >= 0 && indices[0] < modelFrames.getSize()) {
 
           // drawing frame
-          int left = 0, top = 0;
+          int left, top;
           float ratio = 1.0f;
 
           int frameIdx = indices[0];
@@ -2540,7 +2554,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       boolean isCompressed;
       int rleIndex;
       BamDecoder.FrameEntry fe = decoder.getFrameInfo(frameIndex);
-      BufferedImage image = null;
+      BufferedImage image;
       if (cm != null) {
         if (fe.getWidth() > 0 && fe.getHeight() > 0) {
           image = new BufferedImage(fe.getWidth(), fe.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
@@ -2635,7 +2649,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
           // transparency detection for paletted images
           if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-            boolean hasAlpha = ((IndexColorModel) image.getColorModel()).hasAlpha();
+            boolean hasAlpha = image.getColorModel().hasAlpha();
             int[] cmap = new int[256];
             int transIndex = -1;
             IndexColorModel srcCm = (IndexColorModel) image.getColorModel();
@@ -3758,7 +3772,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     boolean accepted = !confirm;
     if (confirm) {
       String message = "Remove selected item(s)?";
-      String fmt = null;
+      String fmt;
       if (selectedCount == 1) {
         fmt = (msgPromptSingle != null) ? msgPromptSingle : msgPromptMultiple;
       } else {
@@ -4133,7 +4147,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         // processing frames
         IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
         for (int i = 0; i < srcListFrames.size(); i++) {
-          PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
+          final PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
           BufferedImage srcImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           int[] srcBuf = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
           BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(), srcEntry.getHeight(),
@@ -5306,7 +5320,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     }
 
     private boolean applyFramesData(boolean silent) throws Exception {
-      /** Storage for ResourceEntry and frame index for convenience. */
+      /* Storage for ResourceEntry and frame index for convenience. */
       class SourceFrame {
         public final ResourceEntry entry;
         public final int index;
@@ -5317,7 +5331,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
         }
       }
 
-      /** Primarily used for caching BAM decoder instances. */
+      /* Primarily used for caching BAM decoder instances. */
       class SourceData {
         public final boolean isBam;
         // bam-specific
@@ -5603,8 +5617,8 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
             String path = entry.getOption(BAM_FRAME_OPTION_PATH).toString();
             int index = ((Number) entry.getOption(BAM_FRAME_OPTION_SOURCE_INDEX)).intValue();
-            sb.append(Integer.toString(i)).append('=').append(path);
-            sb.append(SEPARATOR_FRAME).append(Integer.toString(index));
+            sb.append(i).append('=').append(path);
+            sb.append(SEPARATOR_FRAME).append(index);
             sb.append(Misc.LINE_SEPARATOR);
           }
           sb.append(Misc.LINE_SEPARATOR);
@@ -5615,7 +5629,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           sb.append('[').append(SECTION_CENTER).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelFrames.getSize(); i++) {
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
-            sb.append(Integer.toString(i)).append('=');
+            sb.append(i).append('=');
             sb.append(entry.getCenterX()).append(SEPARATOR_NUMBER).append(entry.getCenterY());
             sb.append(Misc.LINE_SEPARATOR);
           }
@@ -5627,7 +5641,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           sb.append('[').append(SECTION_CYCLES).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelCycles.getSize(); i++) {
             PseudoBamCycleEntry entry = bam.modelCycles.getElementAt(i);
-            sb.append(Integer.toString(i)).append('=');
+            sb.append(i).append('=');
             for (int j = 0; j < entry.size(); j++) {
               if (j > 0) {
                 sb.append(SEPARATOR_NUMBER);

@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.infinity.util.Logger;
@@ -146,7 +147,7 @@ public class BamFilterFactory {
       retVal.clear();
     }
 
-    retVal.sort((a, b) -> a.getName().compareTo(b.getName()));
+    retVal.sort(Comparator.comparing(FilterInfo::getName));
 
     return retVal;
   }

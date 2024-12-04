@@ -203,7 +203,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
   }
 
   private void showProperties() {
-    PvrDecoder decoder = null;
+    PvrDecoder decoder;
     try {
       decoder = PvrDecoder.loadPvr(entry);
       String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
@@ -213,12 +213,12 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
 
       String type;
       type = decoder.getInfo().getPixelFormat().toString();
-      StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
-      sb.append("Type:&nbsp;&nbsp;&nbsp;").append(type).append(br);
-      sb.append("Width:&nbsp;&nbsp;").append(width).append(br);
-      sb.append("Height:&nbsp;").append(height).append(br);
-      sb.append("</code></html>");
-      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
+      String sb = "<html><div style='font-family:monospace'>" +
+          "Type:&nbsp;&nbsp;&nbsp;" + type + br +
+          "Width:&nbsp;&nbsp;" + width + br +
+          "Height:&nbsp;" + height + br +
+          "</div></html>";
+      JOptionPane.showMessageDialog(panel, sb, "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {
       Logger.error(e);
     } finally {

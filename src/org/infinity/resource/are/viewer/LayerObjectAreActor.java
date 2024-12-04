@@ -152,7 +152,7 @@ public class LayerObjectAreActor extends LayerObjectActor {
 
   /** Tooltip for actor object. */
   private String getTooltip() {
-    String retVal = null;
+    String retVal;
     if (cre != null) {
       retVal = ((IsTextual) cre.getAttribute(CreResource.CRE_NAME)).getText();
     } else {

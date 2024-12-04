@@ -81,7 +81,7 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer {
     this.viewable = viewable;
     if (viewable instanceof Resource && ((Resource) viewable).getResourceEntry() != null) {
       ResourceEntry entry = ((Resource) viewable).getResourceEntry();
-      // setTitle(entry.toString());
+      setTitle(getViewableTitle(viewable));
       setIconImage(entry.getIcon().getImage());
       final String path;
       if (entry instanceof BIFFResourceEntry) {

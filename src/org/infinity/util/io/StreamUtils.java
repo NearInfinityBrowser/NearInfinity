@@ -225,7 +225,7 @@ public class StreamUtils {
    * Reads "length" number of bytes from the specified input stream and returns them as new {@link ByteBuffer} object.
    */
   public static ByteBuffer readBytes(InputStream is, int length) throws IOException {
-    ByteBuffer bb = null;
+    ByteBuffer bb;
     if (length > 0) {
       bb = getByteBuffer(length);
       readBytes(is, bb);

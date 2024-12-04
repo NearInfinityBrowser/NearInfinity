@@ -101,7 +101,7 @@ public class DlcFileSystemProvider extends FileSystemProvider {
           throw new FileSystemAlreadyExistsException();
         }
       }
-      DlcFileSystem dlcfs = null;
+      DlcFileSystem dlcfs;
       try {
         dlcfs = new DlcFileSystem(this, path, env);
       } catch (DlcError de) {

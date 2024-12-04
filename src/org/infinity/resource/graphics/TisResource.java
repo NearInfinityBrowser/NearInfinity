@@ -968,7 +968,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
      * @return A new {@link BufferedImage} object.
      */
     private BufferedImage createImage(int width, int height) {
-      BufferedImage retVal = null;
+      BufferedImage retVal;
 
       width = Math.max(1, width);
       height = Math.max(1, height);
@@ -984,7 +984,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         imageCache.addLast(entry);
       } else {
         retVal = ColorConvert.createCompatibleImage(imageWidth, imageHeight, true);
-        entry = new Couple<Dimension, BufferedImage>(dim, retVal);
+        entry = new Couple<>(dim, retVal);
         imageCache.addLast(entry);
         // trimming cache
         if (imageCache.size() > CACHE_SIZE_MAX) {
@@ -1530,9 +1530,9 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
 
       final Vector<DataString<Integer>> previewImageZoomValues = new Vector<>();
       for (final int zoom : new int[] {1, 2, 3, 4, 6, 8, 12, 16}) {
-        previewImageZoomValues.add(new DataString<Integer>(String.format("%dx", zoom), zoom));
+        previewImageZoomValues.add(new DataString<>(String.format("%dx", zoom), zoom));
       }
-      cbPreviewImageZoom = new JComboBox<DataString<Integer>>(previewImageZoomValues);
+      cbPreviewImageZoom = new JComboBox<>(previewImageZoomValues);
       cbPreviewImageZoom.setSelectedIndex(getPreviewZoomIndex(tisPreview.getTileSize(), 2));
       cbPreviewImageZoom.addMouseMotionListener(listeners.mouseMotion);
       cbPreviewImageZoom.addItemListener(listeners.itemPreviewImageZoom);
@@ -1732,7 +1732,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       final Vector<DataString<TisConvert.OverlayConversion>> overlayModes = new Vector<>();
       int overlayModeIndex = 0;
       for (final TisConvert.OverlayConversion mode : TisConvert.OverlayConversion.values()) {
-        boolean add = false;
+        boolean add;
         boolean select = false;
         switch (mode) {
           case BG1_TO_BGEE:
@@ -1778,7 +1778,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         if (mode.isImplemented() && add) {
           final String modeText = mode.toString();
           final DataString<TisConvert.OverlayConversion> entry =
-              new DataString<TisConvert.OverlayConversion>(modeText, mode, DataString.FMT_STRING_ONLY);
+              new DataString<>(modeText, mode, DataString.FMT_STRING_ONLY);
           overlayModes.add(entry);
           if (select) {
             overlayModeIndex = overlayModes.size() - 1;
@@ -2108,14 +2108,12 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       };
 
       /** ChangeListener: JSlider sSegmentSize */
-      private final ChangeListener changeSegmentSize = e -> {
-        lSegmentSize.setText(String.format(SEGMENT_SIZE_LABEL_FMT, getSegmentSize()));
-      };
+      private final ChangeListener changeSegmentSize =
+          e -> lSegmentSize.setText(String.format(SEGMENT_SIZE_LABEL_FMT, getSegmentSize()));
 
       /** ChangeListener: JSlider: sPvrzBaseIndex */
-      private final ChangeListener changePvrzBaseIndex = e -> {
-        lPvrzBaseIndex.setText(String.format(PVRZ_BASE_INDEX_LABEL_FMT, getPvrzBaseIndex()));
-      };
+      private final ChangeListener changePvrzBaseIndex =
+          e -> lPvrzBaseIndex.setText(String.format(PVRZ_BASE_INDEX_LABEL_FMT, getPvrzBaseIndex()));
 
       /** ChangeListener: JSlider sTilesPerRow */
       private final ChangeListener changeTilesPerRow = e -> {

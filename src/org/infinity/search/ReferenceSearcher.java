@@ -51,7 +51,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
         CreResource cre = new CreResource(targetEntry);
         StructEntry nameEntry = cre.getAttribute(CreResource.CRE_SCRIPT_NAME);
         if (nameEntry instanceof TextString) {
-          creDeathVar = ((TextString) nameEntry).toString().trim();
+          creDeathVar = nameEntry.toString().trim();
           // ignore specific script names
           if (creDeathVar.isEmpty() || creDeathVar.equalsIgnoreCase("None")) {
             creDeathVar = null;

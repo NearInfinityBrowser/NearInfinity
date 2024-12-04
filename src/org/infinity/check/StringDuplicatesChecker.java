@@ -12,10 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -247,7 +244,7 @@ public class StringDuplicatesChecker extends AbstractSearcher
       for (final Map.Entry<String, List<Integer>> entry : strings.entrySet()) {
         retVal.add(entry.getValue());
       }
-      retVal.sort((a, b) -> a.get(0) - b.get(0));
+      retVal.sort(Comparator.comparingInt(a -> a.get(0)));
 
       return retVal;
     }

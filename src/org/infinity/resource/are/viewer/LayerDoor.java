@@ -43,7 +43,7 @@ public class LayerDoor extends BasicCompositeLayer<LayerObjectDoor, AreResource>
   public void setLayerVisible(boolean visible) {
     setVisibilityState(visible);
 
-    getLayerObjects().stream().forEach(obj -> {
+    getLayerObjects().forEach(obj -> {
       AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN | ViewerConstants.LAYER_ITEM_POLY);
       for (final AbstractLayerItem item : items) {
         item.setVisible(isLayerVisible(LAYER_PRIMARY) && isLayerEnabled(LAYER_PRIMARY) && !doorClosed);

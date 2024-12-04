@@ -66,10 +66,7 @@ public class BamFilterOutputGif extends BamFilterBaseOutput implements ChangeLis
 
   @Override
   public String getConfiguration() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(spinnerFPS.getValue()).append(';');
-    sb.append(cbLoopAnim.isSelected());
-    return sb.toString();
+    return String.valueOf(spinnerFPS.getValue()) + ';' + cbLoopAnim.isSelected();
   }
 
   @Override

@@ -693,7 +693,7 @@ public final class Decompiler {
           break;
         }
         case Signatures.Function.Parameter.TYPE_OBJECT: {
-          BcsObject value = null;
+          BcsObject value;
           try {
             value = action.getObjectParam(curObj);
           } catch (IllegalArgumentException e) {
@@ -753,7 +753,7 @@ public final class Decompiler {
     if (object == null) {
       sb.append(decompileObjectTarget(null, true));
     } else {
-      String target = null;
+      String target;
       String rect = null;
 
       // getting target object
@@ -825,7 +825,7 @@ public final class Decompiler {
       }
 
       if (sbClosing != null) {
-        sb.append(sbClosing.toString());
+        sb.append(sbClosing);
       }
 
       if (rect != null) {
@@ -989,7 +989,7 @@ public final class Decompiler {
     StringBuilder sb = new StringBuilder();
 
     if (enable && (isGenerateComments() || isGenerateResourcesUsed())) {
-      ResourceEntry entry = null;
+      ResourceEntry entry;
       String[] types = param.getResourceType();
       for (String type : types) {
         if (type.equals("TLK")) {

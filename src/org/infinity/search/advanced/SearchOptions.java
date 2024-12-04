@@ -105,7 +105,7 @@ public class SearchOptions implements Cloneable {
   /** Initializes a SearchOptions instance with settings from the specified SearchOption argument. */
   public SearchOptions(SearchOptions so) {
     structure = new ArrayList<>();
-    emptyStructure = Collections.unmodifiableList(new ArrayList<String>(0));
+    emptyStructure = Collections.unmodifiableList(new ArrayList<>(0));
     init(so);
   }
 

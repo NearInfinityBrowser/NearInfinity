@@ -354,7 +354,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric {
         if (labels != null && i < labels.length && labels[i] != null) {
           data[ATTRIBUTE][i] = labels[i];
         } else {
-          data[ATTRIBUTE][i] = "Value " + Integer.toString(i + 1);
+          data[ATTRIBUTE][i] = "Value " + (i + 1);
         }
         data[VALUE][i] = bitRangeAsNumber(value, bits, i * bits, this.signed);
       }

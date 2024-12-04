@@ -67,7 +67,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     private final int shiftGreen;
     private final int shiftBlue;
 
-    private Format(int shiftRed, int shiftGreen, int shiftBlue) {
+    Format(int shiftRed, int shiftGreen, int shiftBlue) {
       this.shiftRed = shiftRed;
       this.shiftGreen = shiftGreen;
       this.shiftBlue = shiftBlue;

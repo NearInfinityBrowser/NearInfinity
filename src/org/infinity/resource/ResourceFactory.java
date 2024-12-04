@@ -37,6 +37,7 @@ import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.SecTypeBitmap;
 import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.Summon2daBitmap;
+import org.infinity.exceptions.AbortException;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.IdsBrowser;
 import org.infinity.gui.menu.BrowserMenuBar;
@@ -85,7 +86,14 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
-import org.infinity.util.*;
+import org.infinity.util.CreMapCache;
+import org.infinity.util.DynamicArray;
+import org.infinity.util.IdsMapCache;
+import org.infinity.util.Logger;
+import org.infinity.util.Misc;
+import org.infinity.util.Platform;
+import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.TriState;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -677,19 +685,27 @@ public final class ResourceFactory {
     }
   }
 
-  public static boolean saveResource(Resource resource, Component parent) {
+  public static TriState saveResource(Resource resource, Component parent) {
+    return saveResource(resource, parent, false);
+  }
+
+  public static TriState saveResource(Resource resource, Component parent, boolean overwrite) {
     if (getInstance() != null) {
-      return getInstance().saveResourceInternal(resource, parent);
+      return getInstance().saveResourceInternal(resource, parent, overwrite);
     } else {
-      return false;
+      return TriState.FALSE;
     }
   }
 
-  public static boolean saveResourceAs(Resource resource, Component parent) {
+  public static TriState saveResourceAs(Resource resource, Component parent) {
+    return saveResourceAs(resource, parent, false);
+  }
+
+  public static TriState saveResourceAs(Resource resource, Component parent, boolean overwrite) {
     if (getInstance() != null) {
-      return getInstance().saveResourceAsInternal(resource, parent);
+      return getInstance().saveResourceAsInternal(resource, parent, overwrite);
     } else {
-      return false;
+      return TriState.FALSE;
     }
   }
 
@@ -703,7 +719,7 @@ public final class ResourceFactory {
    *
    * @throws HeadlessException    if {@link GraphicsEnvironment#isHeadless} returns {@code true}
    * @throws NullPointerException If any argument is {@code null}
-   * @throws Exception            If save will be cancelled
+   * @throws AbortException       If save will be cancelled
    */
   public static void closeResource(Resource resource, ResourceEntry entry, JComponent parent) throws Exception {
     final Path output;
@@ -725,7 +741,7 @@ public final class ResourceFactory {
    *
    * @throws HeadlessException    if {@link GraphicsEnvironment#isHeadless} returns {@code true}
    * @throws NullPointerException If {@code resource} or {@code parent} is {@code null}
-   * @throws Exception            If save will be cancelled
+   * @throws AbortException       If save will be cancelled
    */
   public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
     if (output != null) {
@@ -733,9 +749,11 @@ public final class ResourceFactory {
       final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?', "Resource changed",
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
       if (result == JOptionPane.YES_OPTION) {
-        saveResource(resource, parent.getTopLevelAncestor());
+        if (saveResource(resource, parent.getTopLevelAncestor()) == TriState.UNDEFINED) {
+          throw new AbortException("Save aborted");
+        }
       } else if (result != JOptionPane.NO_OPTION) {
-        throw new Exception("Save aborted");
+        throw new AbortException("Save aborted");
       }
     }
   }
@@ -1251,7 +1269,7 @@ public final class ResourceFactory {
     // 3. checking override folders
     if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(true))) {
       entry = getResourceEntry(resource.getFileName().toString());
-      String folderName = null;
+      String folderName;
       if (entry instanceof BIFFResourceEntry) {
         final boolean overrideInOverride = (options.getOptions().getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride) {
@@ -1429,9 +1447,7 @@ public final class ResourceFactory {
     if (extraDirs == null) {
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
-    extraDirs.forEach(path -> {
-      fillResources(retList, path.getFileName().toString(), pattern);
-    });
+    extraDirs.forEach(path -> fillResources(retList, path.getFileName().toString(), pattern));
 
     // include override folders
     if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {
@@ -1539,27 +1555,27 @@ public final class ResourceFactory {
     }
   }
 
-  private boolean saveResourceAsInternal(Resource resource, Component parent) {
+  private TriState saveResourceAsInternal(Resource resource, Component parent, boolean overwrite) {
     final Path outFile = getExportFileDialogInternal(parent, resource.getResourceEntry().getResourceName(), true);
     if (outFile != null) {
-      return saveResourceInternal(resource, parent, outFile);
+      return saveResourceInternal(resource, parent, outFile, overwrite);
     } else {
-      return false;
+      return TriState.FALSE;
     }
   }
 
-  private boolean saveResourceInternal(Resource resource, Component parent) {
-    return saveResourceInternal(resource, parent, null);
+  private TriState saveResourceInternal(Resource resource, Component parent, boolean overwrite) {
+    return saveResourceInternal(resource, parent, null, overwrite);
   }
 
-  private boolean saveResourceInternal(Resource resource, Component parent, Path outFile) {
+  private TriState saveResourceInternal(Resource resource, Component parent, Path outFile, boolean overwrite) {
     if (!(resource instanceof Writeable)) {
       JOptionPane.showMessageDialog(parent, "Resource not savable", "Error", JOptionPane.ERROR_MESSAGE);
-      return false;
+      return TriState.FALSE;
     }
     final ResourceEntry entry = resource.getResourceEntry();
     if (entry == null) {
-      return false;
+      return TriState.FALSE;
     }
 
     Path outPath;
@@ -1575,7 +1591,7 @@ public final class ResourceFactory {
             JOptionPane.showMessageDialog(parent, "Unable to create override folder.", "Error",
                 JOptionPane.ERROR_MESSAGE);
             Logger.error(e);
-            return false;
+            return TriState.FALSE;
           }
         }
         outPath = FileManager.query(overridePath, entry.getResourceName());
@@ -1592,7 +1608,7 @@ public final class ResourceFactory {
               JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(), "Error",
                   JOptionPane.ERROR_MESSAGE);
               Logger.error(e);
-              return false;
+              return TriState.FALSE;
             }
           }
         }
@@ -1601,24 +1617,34 @@ public final class ResourceFactory {
 
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
-      String[] options = { "Overwrite", "Cancel" };
-      if (JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
-          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
-        if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
-          try {
-            Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
-            if (FileEx.create(bakPath).isFile()) {
-              Files.delete(bakPath);
-            }
-            if (!FileEx.create(bakPath).exists()) {
-              Files.move(outPath, bakPath);
-            }
-          } catch (IOException e) {
-            Logger.error(e);
-          }
-        }
+      final int result;
+      if (overwrite) {
+        result = JOptionPane.YES_OPTION;
       } else {
-        return false;
+        String[] options = { "Overwrite", "Discard", "Cancel" };
+        result = JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
+            JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      }
+      switch (result) {
+        case JOptionPane.YES_OPTION:  // Overwrite
+          if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
+            try {
+              Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
+              if (FileEx.create(bakPath).isFile()) {
+                Files.delete(bakPath);
+              }
+              if (!FileEx.create(bakPath).exists()) {
+                Files.move(outPath, bakPath);
+              }
+            } catch (IOException e) {
+              Logger.error(e);
+            }
+          }
+          break;
+        case JOptionPane.NO_OPTION: // Discard
+          return TriState.FALSE;
+        default:  // Cancel
+          return TriState.UNDEFINED;
       }
     }
 
@@ -1627,7 +1653,7 @@ public final class ResourceFactory {
     } catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Error while saving " + entry, "Error", JOptionPane.ERROR_MESSAGE);
       Logger.error(e);
-      return false;
+      return TriState.FALSE;
     }
 
     JOptionPane.showMessageDialog(parent, "File saved to \"" + outPath.toAbsolutePath() + '\"', "Save complete",
@@ -1649,6 +1675,6 @@ public final class ResourceFactory {
     } else if (entry.getResourceName().equalsIgnoreCase(SecTypeBitmap.getTableName())) {
       SecTypeBitmap.resetTypeTable();
     }
-    return true;
+    return TriState.TRUE;
   }
 }

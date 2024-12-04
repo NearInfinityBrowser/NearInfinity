@@ -210,7 +210,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) && !BrowserMenuBar.getInstance().getOptions().ignoreReadErrors()) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(), "Error",
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + this, "Error",
               JOptionPane.ERROR_MESSAGE);
         }
         searchString = "Error";

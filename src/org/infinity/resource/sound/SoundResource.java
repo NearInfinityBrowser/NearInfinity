@@ -15,24 +15,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingWorker;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.SoundPanel;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -48,59 +43,27 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Handles all kinds of supported single track audio files.
  */
-public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable {
-  /** Formatted string with 4 placeholders: elapsed minute, elapsed second, total minutes, total seconds */
-  private static final String FMT_PLAY_TIME         = "%02d:%02d / %02d:%02d";
-
+public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable {
   private static final ButtonPanel.Control PROPERTIES = ButtonPanel.Control.CUSTOM_1;
-
-  /** Provides quick access to the "play" and "pause" image icon. */
-  private static final HashMap<Boolean, Icon> PLAY_ICONS = new HashMap<>();
-
-  static {
-    PLAY_ICONS.put(true, Icons.ICON_PLAY_16.getIcon());
-    PLAY_ICONS.put(false, Icons.ICON_PAUSE_16.getIcon());
-  }
 
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
+  private final SoundPanel soundPanel = new SoundPanel(SoundPanel.Option.TIME_LABEL, SoundPanel.Option.PROGRESS_BAR,
+      SoundPanel.Option.PROGRESS_BAR_LABELS, SoundPanel.Option.LOOP_CHECKBOX);
 
-  private AudioPlayer player;
-  private AudioBuffer audioBuffer = null;
-  private JButton bPlay;
-  private JButton bStop;
-  private JLabel lTime;
   private JMenuItem miExport;
   private JMenuItem miConvert;
   private JPanel panel;
-  private boolean isWAV;
-  private boolean isReference;
-  private boolean isClosed;
 
   public SoundResource(ResourceEntry entry) throws Exception {
     this.entry = entry;
-    player = new AudioPlayer();
-    isWAV = false;
-    isReference = (entry.getExtension().equalsIgnoreCase("WAV"));
-    isClosed = false;
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bPlay) {
-      if (player == null || !player.isRunning()) {
-        new Thread(this).start();
-      } else if (player.isRunning()) {
-        bPlay.setIcon(PLAY_ICONS.get(!player.isPaused()));
-        player.setPaused(!player.isPaused());
-      }
-    } else if (event.getSource() == bStop) {
-      bStop.setEnabled(false);
-      player.stopPlay();
-      bPlay.setIcon(PLAY_ICONS.get(true));
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(PROPERTIES) == event.getSource()) {
       showProperties();
@@ -119,7 +82,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "WAV");
-        ByteBuffer buffer = StreamUtils.getByteBuffer(audioBuffer.getAudioData());
+        ByteBuffer buffer = StreamUtils.getByteBuffer(soundPanel.getAudioBuffer().getAudioData());
         ResourceFactory.exportResource(entry, buffer, fileName, panel.getTopLevelAncestor());
       }
     }
@@ -131,13 +94,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   @Override
   public void close() throws Exception {
-    setClosed(true);
-    if (player != null) {
-      player.stopPlay();
-      player = null;
-    }
-    audioBuffer = null;
-    panel = null;
+    soundPanel.close();
   }
 
   // --------------------- End Interface Closeable ---------------------
@@ -155,7 +112,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   @Override
   public boolean isReferenceable() {
-    return isReference;
+    return entry.getExtension().equalsIgnoreCase("WAV");
   }
 
   @Override
@@ -165,70 +122,19 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   // --------------------- End Interface Referenceable ---------------------
 
-  // --------------------- Begin Interface Runnable ---------------------
-
-  @Override
-  public void run() {
-    if (bPlay != null) {
-      bPlay.setIcon(PLAY_ICONS.get(false));
-      bStop.setEnabled(true);
-    }
-    if (audioBuffer != null) {
-      final TimerElapsedTask timerTask = new TimerElapsedTask(250L);
-      try {
-        timerTask.start();
-        player.play(audioBuffer);
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(panel, "Error during playback", "Error", JOptionPane.ERROR_MESSAGE);
-        Logger.error(e);
-      }
-      player.stopPlay();
-      timerTask.stop();
-    }
-    if (bPlay != null) {
-      bStop.setEnabled(false);
-      bPlay.setIcon(PLAY_ICONS.get(true));
-    }
-  }
-
-  // --------------------- End Interface Runnable ---------------------
-
   // --------------------- Begin Interface Viewable ---------------------
 
   @Override
   public JComponent makeViewer(ViewableContainer container) {
-    JPanel controlPanel = new JPanel(new GridBagLayout());
-
-    bPlay = new JButton(PLAY_ICONS.get(true));
-    bPlay.addActionListener(this);
-    GridBagConstraints c = new GridBagConstraints();
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
-        new Insets(4, 8, 4, 0), 0, 0);
-    controlPanel.add(bPlay, c);
-
-    bStop = new JButton(Icons.ICON_STOP_16.getIcon());
-    bStop.addActionListener(this);
-    bStop.setEnabled(false);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.REMAINDER,
-        new Insets(4, 8, 4, 8), 0, 0);
-    controlPanel.add(bStop, c);
-
-    lTime = new JLabel(String.format(FMT_PLAY_TIME, 0, 0, 0, 0));
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.REMAINDER,
-        new Insets(4, 8, 4, 8), 0, 0);
-    controlPanel.add(lTime, c);
-
-    JPanel centerPanel = new JPanel(new BorderLayout());
-    centerPanel.add(controlPanel, BorderLayout.CENTER);
-
-    if (isReference) {
+    if (isReferenceable()) {
       // only available for WAV resource types
       ((JButton) buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
 
+    soundPanel.setDisplayFormat(SoundPanel.DisplayFormat.ELAPSED_TOTAL_PRECISE);
     miExport = new JMenuItem("original");
     miConvert = new JMenuItem("as WAV");
-    miConvert.setEnabled(!isWAV);
+    miConvert.setEnabled(!soundPanel.isWavFile());
     ButtonPopupMenu bpmExport = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[] { miExport, miConvert });
     bpmExport.addItemListener(this);
@@ -238,42 +144,21 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     bProperties.addActionListener(this);
     buttonPanel.addControl(bProperties, PROPERTIES);
 
+    // wrapper panel prevents the sound panel from auto-scaling
+    final JPanel soundPanelWrapper = new JPanel(new GridBagLayout());
+    final GridBagConstraints gbc = new GridBagConstraints();
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+        new Insets(16, 16, 16, 16), 0, 0);
+    soundPanelWrapper.add(soundPanel, gbc);
+
     panel = new JPanel(new BorderLayout());
-    panel.add(centerPanel, BorderLayout.CENTER);
+    panel.add(soundPanelWrapper, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
-    centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+    soundPanelWrapper.setBorder(BorderFactory.createLoweredBevelBorder());
 
     loadSoundResource();
 
     return panel;
-  }
-
-  // Updates the time label with total duration and specified elapsed time (in milliseconds).
-  private synchronized void updateTimeLabel(long elapsed) {
-    long duration = (audioBuffer != null) ? audioBuffer.getDuration() : 0L;
-    long em = elapsed / 1000 / 60;
-    long es = (elapsed / 1000) - (em * 60);
-    long dm = duration / 1000 / 60;
-    long ds = (duration / 1000) - (dm * 60);
-    lTime.setText(String.format(FMT_PLAY_TIME, em, es, dm, ds));
-  }
-
-  /**
-   * Returns a formatted representation of the total duration of the sound clip.
-   *
-   * @param exact Whether the seconds part should contain the fractional amount.
-   * @return A formatted string representing the sound clip duration.
-   */
-  private String getTotalDurationString(boolean exact) {
-    long duration = (audioBuffer != null) ? audioBuffer.getDuration() : 0L;
-    long m = duration / 1000 / 60;
-    if (exact) {
-      double s = (duration / 1000.0) - (m * 60);
-      return String.format("%02d:%06.3f", m, s);
-    } else {
-      long s = (duration / 1000) - (m * 60);
-      return String.format("%02d:%02d", m, s);
-    }
   }
 
   // Returns the top level container associated with this viewer
@@ -287,74 +172,34 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
   private void loadSoundResource() {
     setLoaded(false);
-    (new SwingWorker<Boolean, Void>() {
-      @Override
-      public Boolean doInBackground() {
-        return loadAudio();
-      }
-    }).execute();
+    try {
+      soundPanel.loadSound(getResourceEntry(), this::setLoaded);
+    } catch (Exception e) {
+      Logger.error(e);
+      JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   private synchronized void setLoaded(boolean b) {
-    if (bPlay != null) {
-      bPlay.setEnabled(b);
-      bPlay.setIcon(PLAY_ICONS.get(true));
-
-      updateTimeLabel(0);
+    if (miConvert != null) {
       miConvert.setEnabled(b);
       buttonPanel.getControlByType(PROPERTIES).setEnabled(true);
     }
   }
 
-  private synchronized void setClosed(boolean b) {
-    if (b != isClosed) {
-      isClosed = b;
-    }
-  }
-
-  private synchronized boolean isClosed() {
-    return isClosed;
-  }
-
-  private boolean loadAudio() {
-    try {
-      AudioBuffer.AudioOverride override = null;
-      AudioBuffer buffer = null;
-      synchronized (entry) {
-        // ignore # channels in ACM headers
-        if (entry.getExtension().equalsIgnoreCase("ACM")) {
-          override = AudioBuffer.AudioOverride.overrideChannels(2);
-        }
-        buffer = AudioFactory.getAudioBuffer(entry, override);
-      }
-      if (buffer != null && !isClosed()) {
-        synchronized (this) {
-          audioBuffer = buffer;
-          isWAV = (audioBuffer instanceof WavBuffer);
-          isReference = (entry.getExtension().compareToIgnoreCase("WAV") == 0);
-        }
-        setLoaded(true);
-        return true;
-      }
-    } catch (Exception e) {
-      Logger.error(e);
-      JOptionPane.showMessageDialog(getContainer(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    return false;
-  }
-
   /** Shows a message dialog with basic properties of the current sound resource. */
   private void showProperties() {
-    if (audioBuffer == null) {
+    if (soundPanel.getAudioBuffer() == null) {
       return;
     }
 
+    final AudioBuffer audioBuffer = soundPanel.getAudioBuffer();
     final String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
     String format;
     int rate;
     int channels;
     String channelsDesc;
-    String duration = getTotalDurationString(true);
+    String duration = SoundPanel.DisplayFormat.ELAPSED_PRECISE.toString(audioBuffer.getDuration(), 0L);
     final String extra;
     if (audioBuffer instanceof OggBuffer) {
       format = "Ogg Vorbis";
@@ -395,80 +240,15 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     }
 
     final String br = "<br />";
-    final StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
-    sb.append("Format:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(format).append(br);
-    sb.append("Duration:&nbsp;&nbsp;&nbsp;&nbsp;").append(duration).append(br);
-    sb.append(extra).append(br);
-    sb.append("Sample Rate:&nbsp;").append(rate).append(" Hz").append(br);
-    sb.append("Channels:&nbsp;&nbsp;&nbsp;&nbsp;").append(channels).append(channelsDesc).append(br);
-    sb.append("</div></html>");
-    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
+    String sb = "<html><div style='font-family:monospace'>" +
+        "Format:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + format + br +
+        "Duration:&nbsp;&nbsp;&nbsp;&nbsp;" + duration + br +
+        extra + br +
+        "Sample Rate:&nbsp;" + rate + " Hz" + br +
+        "Channels:&nbsp;&nbsp;&nbsp;&nbsp;" + channels + channelsDesc + br +
+        "</div></html>";
+    JOptionPane.showMessageDialog(panel, sb, "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 
   // --------------------- End Interface Viewable ---------------------
-
-  // -------------------------- INNER CLASSES --------------------------
-
-  private class TimerElapsedTask extends TimerTask {
-    private final long delay;
-
-    private Timer timer;
-    private boolean paused;
-
-    /** Initializes a new timer task with the given delay, in milliseconds. */
-    public TimerElapsedTask(long delay) {
-      this.delay = Math.max(1L, delay);
-      this.timer = null;
-      this.paused = false;
-    }
-
-    /**
-     * Starts a new scheduled run.
-     */
-    public void start() {
-      if (timer == null) {
-        timer = new Timer();
-        timer.schedule(this, 0L, delay);
-      }
-    }
-
-//    /** Returns whether a task has been initialized via {@link #start()}. */
-//    public boolean isRunning() {
-//      return (timer != null);
-//    }
-
-//    /** Pauses or unpauses a scheduled run. */
-//    public void setPaused(boolean paused) {
-//      this.paused = paused;
-//    }
-
-//    /** Returns whether a scheduled run is in paused state. */
-//    public boolean isPaused() {
-//      return paused;
-//    }
-
-    /** Stops a scheduled run. */
-    public void stop() {
-      if (timer != null) {
-        timer.cancel();
-        timer = null;
-        paused = false;
-        if (bPlay != null) {
-          updateTimeLabel(0L);
-        }
-      }
-    }
-
-    @Override
-    public void run() {
-      if (!paused && timer != null && player != null && player.getDataLine() != null && bPlay != null) {
-        updateTimeLabel(player.getDataLine().getMicrosecondPosition() / 1000L);
-      }
-    }
-  }
-
-  public void playSound() {
-    loadAudio();
-    new Thread(this).start();
-  }
 }

@@ -51,7 +51,7 @@ public class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
     numActions = getAttribute(DlgResource.DLG_NUM_ACTIONS);
 
     final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
-    flags = entry instanceof Flag ? ((Flag) entry).toString() : null;
+    flags = entry instanceof Flag ? entry.toString() : null;
 
     final boolean alwaysShow = BrowserMenuBar.getInstance().getOptions().alwaysShowState0();
     // finding and storing initial states
@@ -167,11 +167,11 @@ public class DlgItem extends StateOwnerItem implements Iterable<StateItem> {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getDialogName());
-    sb.append(" (states: ").append(Integer.toString(numStates));
-    sb.append(", responses: ").append(Integer.toString(numTransitions));
-    sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));
-    sb.append(", response triggers: ").append(Integer.toString(numResponseTriggers));
-    sb.append(", actions: ").append(Integer.toString(numActions));
+    sb.append(" (states: ").append(numStates);
+    sb.append(", responses: ").append(numTransitions);
+    sb.append(", state triggers: ").append(numStateTriggers);
+    sb.append(", response triggers: ").append(numResponseTriggers);
+    sb.append(", actions: ").append(numActions);
     if (flags != null) {
       sb.append(", flags: ").append(flags);
     }

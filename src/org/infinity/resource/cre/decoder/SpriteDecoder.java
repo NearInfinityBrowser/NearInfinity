@@ -237,7 +237,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     this.currentSequence = Sequence.NONE;
     init();
     if (!isMatchingAnimationType()) {
-      throw new IllegalArgumentException("Animation id is incompatible with animation type: " + type.toString());
+      throw new IllegalArgumentException("Animation id is incompatible with animation type: " + type);
     }
   }
 
@@ -1012,7 +1012,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
     if (value != null) {
       retVal = value;
     }
-    directionMap.put(dir, cycleIndex);
+    directionMap.putIfAbsent(dir, cycleIndex);
 
     return retVal;
   }
@@ -1107,8 +1107,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
   protected void createAnimation(SeqDef definition, List<Direction> directions, BeforeSourceBam beforeSrcBam,
       BeforeSourceFrame beforeSrcFrame, AfterSourceFrame afterSrcFrame, AfterDestFrame afterDstFrame) {
     PseudoBamControl dstCtrl = createControl();
-    BamV1Control srcCtrl = null;
-    ResourceEntry entry = null;
+    BamV1Control srcCtrl;
+    ResourceEntry entry;
     Objects.requireNonNull(definition, "Sequence definition cannot be null");
 
     if (directions == null) {
@@ -1573,7 +1573,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       palette[3] = 0xFF000000;
     }
 
-    control.setExternalPalette(palette);
+    control.setExternalPalette(palette, control.getTransparencyIndex(true));
   }
 
   /**
@@ -1615,14 +1615,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
         }
       }
 
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     } else if (isBurnedEffect) {
       // isBurnedEffect: includes flame death status
       int opcode = 51;
       int color = 0x4b4b4b;
       int[] palette = control.getCurrentPalette();
       palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     }
 
   }
@@ -1692,7 +1692,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
       palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
     }
 
-    control.setExternalPalette(palette);
+    control.setExternalPalette(palette, control.getTransparencyIndex(true));
   }
 
   /**
@@ -1742,7 +1742,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder {
         palette[i] = alpha | (palette[i] & 0x00ffffff);
       }
 
-      control.setExternalPalette(palette);
+      control.setExternalPalette(palette, control.getTransparencyIndex(true));
     }
   }
 

@@ -25,7 +25,7 @@ public class BafNode extends SimpleNode {
     Token token1 = jjtGetFirstToken();
     Token token2 = jjtGetLastToken();
     while (token1 != null) {
-      sb.append(token1.toString());
+      sb.append(token1);
       if (token1 != token2) {
         token1 = token1.next;
       } else {

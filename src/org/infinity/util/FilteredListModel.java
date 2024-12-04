@@ -4,12 +4,7 @@
 
 package org.infinity.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListModel;
@@ -310,7 +305,7 @@ public class FilteredListModel<E> extends AbstractListModel<E> {
 
   /** Returns true if this list contains all of the elements in the specified Collection. */
   public boolean containsAll(Collection<? extends E> c) {
-    return filteredList.containsAll(c);
+    return new HashSet<>(filteredList).containsAll(c);
   }
 
   /**
