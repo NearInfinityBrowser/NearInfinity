@@ -34,6 +34,7 @@ jobs:
         id: ni-build
         run: |
           ant -noinput -buildfile build.xml
+          zip -r NearInfinity.zip NearInfinity.jar
           echo "NI_VERSION=$(java -jar "NearInfinity.jar" -version 2>/dev/null | grep -Eo '[0-9]{8}')" >> "$GITHUB_OUTPUT"
 
       # Required internally to build the installer packages
@@ -48,9 +49,9 @@ jobs:
         uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: NearInfinity.jar
+          file: NearInfinity.zip
           tag: ${{ github.ref || github.event.release.tag_name }}
-          asset_name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}.jar
+          asset_name: NearInfinity-${{ steps.ni-build.outputs.NI_VERSION }}.zip
           overwrite: true
 
   # Build and upload installer versions for Windows, macOS-x86_64 and macOS-arm64
