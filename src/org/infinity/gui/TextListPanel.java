@@ -141,7 +141,7 @@ public class TextListPanel<E> extends JPanel
   @Override
   public void valueChanged(ListSelectionEvent event) {
     if (list.hasFocus() && list.getSelectedValue() != null) {
-      if (!tfield.getText().equals(list.getSelectedValue().toString())) {
+      if (!filterEnabled && !tfield.getText().equals(list.getSelectedValue().toString())) {
         tfield.setText(list.getSelectedValue().toString());
         listmodel.setPattern(tfield.getText());
       }
@@ -170,7 +170,15 @@ public class TextListPanel<E> extends JPanel
       if (filterEnabled) {
         listmodel.setPattern(tfield.getText());
       }
+
+      final E selectedItem = list.getSelectedValue();
       listmodel.setFiltered(filterEnabled);
+      if (selectedItem != null) {
+        list.setSelectedValue(selectedItem, true);
+        if (!filterEnabled) {
+          tfield.setText(selectedItem.toString());
+        }
+      }
 
       ensurePreferredComponentWidth(list, true);
       ensurePreferredComponentWidth(tfield, false);
