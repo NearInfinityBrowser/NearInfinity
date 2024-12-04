@@ -32,6 +32,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -44,6 +45,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -142,12 +144,10 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer {
-  // the current Near Infinity version
-  private static final String VERSION = "v2.4-20240914";
+  private static final String PROPERTIES_FILENAME     = "nearinfinity.properties";
 
-  // the minimum supported Java version
-  private static final int JAVA_VERSION_MIN = 8;
-
+  private static final String PROP_APP_VERSION        = "app_version";
+  private static final String PROP_JAVA_VERSION_MIN   = "java_version_min";
 
   public static final String KEYFILENAME              = "chitin.key";
   public static final String WINDOW_SIZEX             = "WindowSizeX";
@@ -288,7 +288,35 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   /** Returns the current NearInfinity version. */
   public static String getVersion() {
-    return VERSION;
+    return getAppProperty(PROP_APP_VERSION, "v1.0-19700101");
+  }
+
+  /** Returns the minimum supported Java version. */
+  public static int getMinJavaVersion() {
+    try {
+      return Integer.parseInt(getAppProperty(PROP_JAVA_VERSION_MIN, "0"));
+    } catch (NumberFormatException e) {
+      Logger.error(e);
+    }
+    return 0;
+  }
+
+  /**
+   * Returns the value of the specified property from the app-specific properties resource.
+   *
+   * @param key      The property key.
+   * @param defValue Default value that is returned if the property could not be read.
+   * @return The value in the properties resource with the specified key value.
+   */
+  private static String getAppProperty(String key, String defValue) {
+    try (final InputStream is = ClassLoader.getSystemResourceAsStream(PROPERTIES_FILENAME)) {
+      final Properties prop = new Properties();
+      prop.load(is);
+      return prop.getProperty(key, defValue);
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+    return defValue;
   }
 
   public static void printHelp(String jarFile) {
@@ -387,8 +415,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
 
     // Checking Java version
-    if (Platform.JAVA_VERSION < JAVA_VERSION_MIN) {
-      JOptionPane.showMessageDialog(null, String.format("Java %d or later is required to run Near Infinity!", JAVA_VERSION_MIN),
+    final int minJavaVersion = getMinJavaVersion();
+    if (Platform.JAVA_VERSION < minJavaVersion) {
+      JOptionPane.showMessageDialog(null, String.format("Java %d or later is required to run Near Infinity!", minJavaVersion),
           "Error", JOptionPane.ERROR_MESSAGE);
       System.exit(10);
     }
