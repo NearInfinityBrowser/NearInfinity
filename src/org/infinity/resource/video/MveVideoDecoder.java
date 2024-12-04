@@ -31,10 +31,10 @@ public class MveVideoDecoder {
   private BufferedImage blackImage; // used when no video buffer has been updated in the current video chunk
   private MveSegment codeSegment;   // contains the code map of the last MVE_OC_CODE_MAP segment
   private boolean isVideoDrawn;     // set when the current video buffer has been updated
-  private boolean isVideoInit;      // set when video initialization occured in the current chunk
+  private boolean isVideoInit;      // set when video initialization occurred in the current chunk
 
   /**
-   * Returns a new MveVideoDecoder object, asociated with the specified MveDecoder.
+   * Returns a new MveVideoDecoder object, associated with the specified MveDecoder.
    *
    * @param info The parent MveDecoder object
    * @return A new MveVideoDecoder object associated with the specified MveDecoder or null on error.
@@ -186,7 +186,7 @@ public class MveVideoDecoder {
     if (info.videoOutput != null) {
       // image is drawn centered
       Image dstImage = info.videoOutput.backBuffer();
-      Image srcImage = null;
+      Image srcImage;
       if (isVideoDrawn) {
         srcImage = workingBuffer.frontBuffer();
       } else if (blackImage != null) {

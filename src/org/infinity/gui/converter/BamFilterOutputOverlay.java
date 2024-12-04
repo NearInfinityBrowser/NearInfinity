@@ -33,17 +33,7 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.BiFunction;
 
 import javax.swing.DefaultListCellRenderer;
@@ -83,10 +73,10 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Platform;
 import org.infinity.util.tuples.Couple;
-import org.tinylog.Logger;
 
 /**
  * Output filter: Overlay the current animation with multiple BAM files.
@@ -213,7 +203,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
         if (sb.length() > 0) {
           sb.append(';');
         }
-        sb.append(rp.toString()).append(';').append(mode.ordinal());
+        sb.append(rp).append(';').append(mode.ordinal());
       } catch (Exception e) {
         Logger.warn(e, "Invalid resource: " + entry);
       }
@@ -700,7 +690,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
           frames[i] = controls[i].cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);
         }
         final int newIndex = frameIndexCache.size();
-        frameIndexCache.computeIfAbsent(frames, key -> newIndex);
+        frameIndexCache.putIfAbsent(frames, newIndex);
         if (frameIndexCache.containsKey(frames)) {
           cycleFrameIndices[cycleIdx][frameIdx] = frameIndexCache.get(frames);
         } else {
@@ -711,7 +701,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
 
     // reversing mapping direction to get a sorted set of "frame index -> array of source frame indices" pairs
     // this set should contain no gaps between the frame indices
-    final TreeSet<Couple<Integer, int[]>> frameSet = new TreeSet<>((c1, c2) -> c1.getValue0() - c2.getValue0());
+    final TreeSet<Couple<Integer, int[]>> frameSet = new TreeSet<>(Comparator.comparingInt(Couple::getValue0));
     for (final Map.Entry<int[], Integer> entry : frameIndexCache.entrySet()) {
       frameSet.add(Couple.with(entry.getValue(), entry.getKey()));
     }
@@ -795,7 +785,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
       return srcFrameEntry;
     }
 
-    PseudoBamFrameEntry retVal = null;
+    PseudoBamFrameEntry retVal;
     // preparations
     final BamDecoder[] decoders = new BamDecoder[model.getRowCount()];
     final BamControl[] controls = new BamControl[decoders.length];
@@ -1004,10 +994,9 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
    *                                palette index 1. Magic color "green" is ignored.
    * @return {@link PseudoBamDecoder} instance with palette-based frames and the same cycle configuration as the source
    *         decoder.
-   * @throws Exception if an unrecoverable error occurs.
    */
   private static PseudoBamDecoder convertToPalettedBam(PseudoBamDecoder decoder, boolean useAlpha,
-      int transparencyThreshold, int... reservedColors) throws Exception {
+      int transparencyThreshold, int... reservedColors) {
     boolean isPalette = true;
     final List<PseudoBamFrameEntry> framesList = decoder.getFramesList();
     for (int i = 0, size = framesList.size(); isPalette && i < size; i++) {
@@ -1070,9 +1059,8 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
           final int srcColorIdx = srcBuf[ofs] & 0xff;
           final int color = srcColors[(srcColorIdx < srcColors.length) ? srcColorIdx : 0];
           if (!PseudoBamDecoder.isTransparentColor(color, transparencyThreshold)) {
-            final byte colorIdx = colorCache.computeIfAbsent(color, c -> {
-              return (byte) ColorConvert.getNearestColor(color, newPalette, alphaWeight, ColorConvert.COLOR_DISTANCE_CIE94);
-            });
+            final byte colorIdx = colorCache.computeIfAbsent(color,
+                c -> (byte) ColorConvert.getNearestColor(color, newPalette, alphaWeight, ColorConvert.COLOR_DISTANCE_CIE94));
             dstBuf[ofs] = colorIdx;
           }
         }
@@ -1082,9 +1070,8 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
         for (int ofs = 0; ofs < srcBuf.length; ofs++) {
           final int color = srcBuf[ofs];
           if (!PseudoBamDecoder.isTransparentColor(color, transparencyThreshold)) {
-            final byte colorIdx = colorCache.computeIfAbsent(color, c -> {
-              return (byte) ColorConvert.getNearestColor(color, newPalette, alphaWeight, ColorConvert.COLOR_DISTANCE_CIE94);
-            });
+            final byte colorIdx = colorCache.computeIfAbsent(color,
+                c -> (byte) ColorConvert.getNearestColor(color, newPalette, alphaWeight, ColorConvert.COLOR_DISTANCE_CIE94));
             dstBuf[ofs] = colorIdx;
           }
         }
@@ -1113,7 +1100,7 @@ public class BamFilterOutputOverlay extends BamFilterBaseOutput implements Actio
    * <p>Pixel format is {@code 0xAARRGGBB}.</p>
    */
   @FunctionalInterface
-  public static interface OverlayFunc extends BiFunction<Integer, Integer, Integer> {
+  public interface OverlayFunc extends BiFunction<Integer, Integer, Integer> {
   }
 
   /**

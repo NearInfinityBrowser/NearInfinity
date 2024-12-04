@@ -9,6 +9,7 @@ import java.awt.image.IndexColorModel;
 import java.nio.file.Path;
 import java.util.Arrays;
 
+import org.infinity.exceptions.AbortException;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.util.Logger;
@@ -84,8 +85,10 @@ public abstract class BamFilterBaseOutput extends BamFilterBase {
         DxtEncoder.DxtType dxtType = converter.getDxtType();
         int pvrzIndex = converter.getPvrzIndex();
         try {
-          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, converter.getProgressMonitor(),
-              converter.getProgressMonitorStage());
+          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, BamOptionsDialog.getOverwritePvrzIndices(),
+              converter.getProgressMonitor(), converter.getProgressMonitorStage());
+        } catch (AbortException e) {
+          Logger.debug(e);
         } catch (Exception e) {
           Logger.error(e);
           throw e;

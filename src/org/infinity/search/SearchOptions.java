@@ -440,7 +440,7 @@ public class SearchOptions {
    * @return A list of available option keys.
    */
   public String[] getOptionKeys() {
-    String[] retVal = new String[mapOptions.keySet().size()];
+    String[] retVal = new String[mapOptions.size()];
     Iterator<String> iter = mapOptions.keySet().iterator();
     int idx = 0;
     while (iter.hasNext()) {

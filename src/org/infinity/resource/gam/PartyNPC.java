@@ -420,7 +420,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   }
 
   protected static ByteBuffer createEmptyBuffer() {
-    int size = 0;
+    int size;
     if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.BG2
         || Profile.isEnhancedEdition()) {
       size = 352;

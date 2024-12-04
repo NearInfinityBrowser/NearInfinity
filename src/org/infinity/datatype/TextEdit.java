@@ -42,11 +42,11 @@ import org.infinity.util.io.StreamUtils;
  * </ul>
  */
 public final class TextEdit extends Datatype implements Editable, IsTextual {
-  public static enum EOLType {
+  public enum EOLType {
     UNIX, WINDOWS
   }
 
-  public static enum Align {
+  public enum Align {
     LEFT, RIGHT, TOP, BOTTOM
   }
 

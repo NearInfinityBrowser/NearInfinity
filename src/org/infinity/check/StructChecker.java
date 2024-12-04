@@ -244,9 +244,9 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     // Checking signature and version fields
     StructInfo info = FILE_INFO.get(entry.getExtension());
     if (info != null) {
-      String sig = ((TextString) struct.getAttribute(AbstractStruct.COMMON_SIGNATURE)).toString();
+      String sig = struct.getAttribute(AbstractStruct.COMMON_SIGNATURE).toString();
       if (info.isSignature(sig)) {
-        String ver = ((TextString) struct.getAttribute(AbstractStruct.COMMON_VERSION)).toString();
+        String ver = struct.getAttribute(AbstractStruct.COMMON_VERSION).toString();
         if (!info.isVersion(ver)) {
           // invalid version?
           synchronized (table) {
@@ -489,8 +489,8 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       return;
     }
 
+    final ResourceEntry entry = corruption.getResourceEntry();
     if (newWindow) {
-      final ResourceEntry entry = corruption.getResourceEntry();
       final Resource res = ResourceFactory.getResource(entry);
       final int offset = corruption.getOffset();
       new ViewFrame(resultFrame, res);
@@ -502,7 +502,6 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         }
       }
     } else {
-      final ResourceEntry entry = corruption.getResourceEntry();
       final int offset = corruption.getOffset();
       NearInfinity.getInstance().showResourceEntry(entry);
       if (parent instanceof ViewFrame && parent.isVisible()) {

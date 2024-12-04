@@ -29,7 +29,7 @@ public class DecoderAttribute implements Comparable<DecoderAttribute> {
 
     private final Object defValue;
 
-    private DataType(Object defValue) {
+    DataType(Object defValue) {
       this.defValue = defValue;
     }
   }

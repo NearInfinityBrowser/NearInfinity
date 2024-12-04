@@ -23,7 +23,7 @@ public class Opcode375 extends BaseOpcode {
   private static final String RES_TYPE = "BAM";
 
   private static final String[] EFFECTS = { "Cloak of warding", "Shield", "Black-barbed shield", "Pain mirror",
-      "Guardian mantle", "", "Enoll eva's duplication", "Armor", "Antimagic shell", "", "", "Flame walk",
+      "Guardian mantle", "", "Enoll Eva's duplication", "Armor", "Antimagic shell", "", "", "Flame walk",
       "Protection from evil", "Conflagration", "Infernal shield", "Submerge the will", "Balance in all things" };
 
   /** Returns the opcode name for the current game variant. */

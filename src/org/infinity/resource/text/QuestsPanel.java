@@ -163,7 +163,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener {
     }
   }
 
-  private class CompletedCellRenderer extends DefaultTableCellRenderer {
+  private static class CompletedCellRenderer extends DefaultTableCellRenderer {
     protected final Color defaultBackground = getBackground();
 
     @SuppressWarnings("unchecked")

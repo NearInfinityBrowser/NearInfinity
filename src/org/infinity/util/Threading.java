@@ -4,10 +4,14 @@
 
 package org.infinity.util;
 
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinTask;
@@ -16,6 +20,11 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import javax.swing.SwingUtilities;
 
 /**
  * A convenience class for performing multiple tasks in parallel.
@@ -46,7 +55,7 @@ public class Threading implements AutoCloseable {
 
     private final double factor;
 
-    private Priority(double factor) {
+    Priority(double factor) {
       this.factor = Math.max(-1.0, Math.min(1.0, factor));
     }
 
@@ -162,6 +171,15 @@ public class Threading implements AutoCloseable {
   }
 
   /**
+   * Returns the {@link ThreadPoolExecutor} object used to perform background tasks.
+   *
+   * @return {@link ThreadPoolExecutor}.
+   */
+  public ThreadPoolExecutor getExecutor() {
+    return executor;
+  }
+
+  /**
    * Returns {@code true} if this pool has been shut down.
    *
    * @return {@code true} if this pool has been shut down.
@@ -271,7 +289,6 @@ public class Threading implements AutoCloseable {
    * first. Unlike {@link #awaitTermination(long, TimeUnit)} this method does not depend on a shutdown request, which
    * allows to submit more tasks after completion.
    *
-   * @return {@code true} if all submitted tasks terminated and {@code false} if the timeout elapsed before termination.
    * @throws InterruptedException if interrupted while waiting.
    */
   public void waitForCompletion() throws InterruptedException {
@@ -424,6 +441,112 @@ public class Threading implements AutoCloseable {
       return true;
     }
     return false;
+  }
+
+  /**
+   * A helper method that invokes an operation in the event dispatching thread.
+   *
+   * @param operation The {@link Operation} to perform.
+   * @return {@code true} if the operation was completed successfully, {@code false} otherwise.
+   */
+  public static boolean invokeInEventThread(Operation operation) {
+    if (operation != null) {
+      try {
+        if (EventQueue.isDispatchThread()) {
+          operation.perform();
+        } else {
+          SwingUtilities.invokeAndWait(operation::perform);
+        }
+        return true;
+      } catch (InvocationTargetException | InterruptedException e) {
+        Logger.debug(e);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * A helper method that invokes a consumer in the event dispatching thread.
+   *
+   * @param consumer The {@link Consumer} operation to perform.
+   * @param arg      The consumer argument.
+   * @param <T>      Type of the argument.
+   * @return {@code true} if the operation was completed successfully, {@code false} otherwise.
+   */
+  public static <T> boolean invokeInEventThread(Consumer<T> consumer, T arg) {
+    if (consumer != null) {
+      try {
+        if (EventQueue.isDispatchThread()) {
+          consumer.accept(arg);
+        } else {
+          SwingUtilities.invokeAndWait(() -> consumer.accept(arg));
+        }
+        return true;
+      } catch (InvocationTargetException | InterruptedException e) {
+        Logger.debug(e);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * A helper method that invokes a function with return value in the event dispatching thread.
+   *
+   * @param supplier The {@link Supplier} operation to perform.
+   * @param defValue Used as return value if the specified operation could not be completed.
+   * @param <R>      Type of the return value.
+   * @return Return value of the {@code supplier} operation if successful, {@code defValue} otherwise.
+   */
+  public static <R> R invokeInEventThread(Supplier<R> supplier, R defValue) {
+    final BlockingQueue<R> queue = new ArrayBlockingQueue<>(1);
+    if (supplier != null) {
+      try {
+        if (EventQueue.isDispatchThread()) {
+          queue.add(supplier.get());
+        } else {
+          SwingUtilities.invokeAndWait(() -> queue.add(supplier.get()));
+        }
+      } catch (InvocationTargetException | InterruptedException e) {
+        Logger.debug(e);
+      }
+    }
+
+    if (queue.isEmpty()) {
+      return defValue;
+    } else {
+      return queue.poll();
+    }
+  }
+
+  /**
+   * A helper method that invokes a function with a single parameter and return value in the event dispatching thread.
+   *
+   * @param function The {@link Function} operation to perform.
+   * @param arg      The function argument.
+   * @param defValue Used as return value if the specified operation could not be completed.
+   * @param <T>      Type of the function parameter.
+   * @param <R>      Type of the return value.
+   * @return Return value of the {@code function} operation if successful, {@code defValue} otherwise.
+   */
+  public static <T, R> R invokeInEventThread(Function<T, R> function, T arg, R defValue) {
+    final BlockingQueue<R> queue = new ArrayBlockingQueue<>(1);
+    if (function != null) {
+      try {
+        if (EventQueue.isDispatchThread()) {
+          queue.add(function.apply(arg));
+        } else {
+          SwingUtilities.invokeAndWait(() -> queue.add(function.apply(arg)));
+        }
+      } catch (InvocationTargetException | InterruptedException e) {
+        Logger.debug(e);
+      }
+    }
+
+    if (queue.isEmpty()) {
+      return defValue;
+    } else {
+      return queue.poll();
+    }
   }
 
   /**

@@ -166,7 +166,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
     } else if (event.getSource() == miExportPNG) {
       try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
-        boolean bRet = false;
+        boolean bRet;
         WindowBlocker.blockWindow(true);
         try {
           BufferedImage image = getImage();
@@ -436,7 +436,7 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
       sb.append("Height:&nbsp;").append(height).append(br);
       if (decoder.getType() == MosDecoder.Type.MOSV2) {
         sb.append(br).append("Referenced PVRZ pages:").append(br);
-        sb.append(pageList.toString()).append(br);
+        sb.append(pageList).append(br);
       }
       sb.append("</div></html>");
       JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);

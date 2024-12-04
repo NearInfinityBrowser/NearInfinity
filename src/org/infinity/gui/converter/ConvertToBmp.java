@@ -653,7 +653,7 @@ public class ConvertToBmp extends ChildFrame implements ActionListener, FocusLis
       if (failed > 0) {
         result.add(null);
       }
-      String msg = null;
+      String msg;
       if (failed + skipped == 1) {
         msg = "1 input file has been skipped.";
       } else {

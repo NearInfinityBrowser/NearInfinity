@@ -615,15 +615,12 @@ public final class Bestiary extends Datatype implements Editable, TableModel {
       case 0:
         return Boolean.class;
       case 1:
-        return Integer.class;
-      case 2:
-        return String.class;
-      case 3:
-        return String.class;
-      case 4:
-        return String.class;
       case 5:
         return Integer.class;
+      case 2:
+      case 3:
+      case 4:
+        return String.class;
       default:
         return null;
     }

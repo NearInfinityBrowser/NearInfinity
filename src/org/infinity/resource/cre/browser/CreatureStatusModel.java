@@ -32,7 +32,7 @@ public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.S
 
     private final int id;
 
-    private Status(int id) {
+    Status(int id) {
       this.id = id;
     }
 

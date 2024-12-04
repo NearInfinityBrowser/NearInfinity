@@ -254,7 +254,7 @@ public class PlainTextResource
             }
           }
         }
-        newText.append(sb.toString()).append(newline);
+        newText.append(sb).append(newline);
       }
       retVal = newText.toString();
     }
@@ -369,11 +369,11 @@ public class PlainTextResource
   @Override
   public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue()) {
         resourceChanged = false;
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue()) {
         resourceChanged = false;
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
@@ -582,9 +582,9 @@ public class PlainTextResource
   @Override
   public void write(OutputStream os) throws IOException {
     if (editor == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      editor.write(new OutputStreamWriter(os));
+      editor.write(new OutputStreamWriter(os, Profile.getDefaultCharset()));
     }
   }
 
@@ -679,7 +679,7 @@ public class PlainTextResource
 
   private String applyTransformText(String data) {
     if (data == null) {
-      return data;
+      return null;
     }
 
     final String ext = (entry != null) ? entry.getExtension() : "";

@@ -19,8 +19,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -36,6 +34,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.EventListenerList;
 
 /**
  * Provides a button component that pops up an associated window when the button is pressed. It works similar to
@@ -54,7 +53,7 @@ public class ButtonPopupWindow extends JButton {
   }
 
   private final PopupWindow window = new PopupWindow(this);
-  private final List<PopupWindowListener> listeners = new ArrayList<>();
+  private final EventListenerList listenerList = new EventListenerList();
 
   private PopupWindow ignoredWindow; // used to determine whether to hide the current window on lost focus
   private Align windowAlign;
@@ -138,28 +137,19 @@ public class ButtonPopupWindow extends JButton {
   /** Adds a new PopupWindowListener to this component. */
   public void addPopupWindowListener(PopupWindowListener listener) {
     if (listener != null) {
-      if (!listeners.contains(listener)) {
-        listeners.add(listener);
-      }
+      listenerList.add(PopupWindowListener.class, listener);
     }
   }
 
   /** Returns all registered PopupWindowListener object. */
   public PopupWindowListener[] getPopupWindowListeners() {
-    PopupWindowListener[] retVal = new PopupWindowListener[listeners.size()];
-    for (int i = 0, size = listeners.size(); i < size; i++) {
-      retVal[i] = listeners.get(i);
-    }
-    return retVal;
+    return listenerList.getListeners(PopupWindowListener.class);
   }
 
   /** Removes a PopupWindowListener from this component. */
   public void removePopupWindowListener(PopupWindowListener listener) {
     if (listener != null) {
-      int idx = listeners.indexOf(listener);
-      if (idx >= 0) {
-        listeners.remove(idx);
-      }
+      listenerList.remove(PopupWindowListener.class, listener);
     }
   }
 
@@ -274,15 +264,18 @@ public class ButtonPopupWindow extends JButton {
   }
 
   protected void firePopupWindowListener(boolean becomeVisible) {
+    final Object[] listeners = listenerList.getListenerList();
     PopupWindowEvent event = null;
-    for (int i = 0, size = listeners.size(); i < size; i++) {
-      if (event == null) {
-        event = new PopupWindowEvent(this);
-      }
-      if (becomeVisible) {
-        listeners.get(i).popupWindowWillBecomeVisible(event);
-      } else {
-        listeners.get(i).popupWindowWillBecomeInvisible(event);
+    for (int i = listeners.length - 2; i >= 0; i -= 2) {
+      if (listeners[i] == PopupWindowListener.class) {
+        if (event == null) {
+          event = new PopupWindowEvent(this);
+        }
+        if (becomeVisible) {
+          ((PopupWindowListener)listeners[i + 1]).popupWindowWillBecomeVisible(event);
+        } else {
+          ((PopupWindowListener)listeners[i + 1]).popupWindowWillBecomeInvisible(event);
+        }
       }
     }
   }

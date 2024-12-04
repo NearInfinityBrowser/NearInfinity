@@ -183,8 +183,8 @@ public abstract class LayerObjectActor extends LayerObject {
    */
   protected static ActorAnimationProvider createAnimationProvider(CreResource cre) throws Exception {
     Objects.requireNonNull(cre);
-    ActorAnimationProvider retVal = null;
-    SpriteDecoder decoder = null;
+    ActorAnimationProvider retVal;
+    SpriteDecoder decoder;
 
     final int maskDeath = 0xf00; // actor uses regular death sequence?
     final int maskFrozenDeath = 0x40; // actor status is "frozen death"?

@@ -201,7 +201,7 @@ public class ResourceBitmap extends AbstractBitmap<ResourceBitmap.RefEntry> impl
         this.searchString = (search != null) ? search : "";
         this.name = ref;
       }
-      this.desc = String.format(FMT_REF_VALUE, getResourceName(), getSearchString(), Long.toString(value));
+      this.desc = String.format(FMT_REF_VALUE, getResourceName(), getSearchString(), value);
     }
 
     @Override

@@ -45,7 +45,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
 
     private final String label;
 
-    private Edge(String label) {
+    Edge(String label) {
       this.label = label;
     }
 
@@ -277,7 +277,7 @@ public class BamFilterTransformTrim extends BamFilterBaseTransform implements Ac
     if (entry != null && entry.getFrame() != null) {
       int width = entry.getFrame().getWidth();
       int height = entry.getFrame().getHeight();
-      BufferedImage dstImage = null;
+      BufferedImage dstImage;
       int newWidth, newHeight;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;

@@ -29,7 +29,7 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * This resource describes the top-level map structure of the game. It details the x/y coordinate location of areas, the
  * graphics used to represent the area on the map (both {@link MosResource MOS} and {@link BamResource BAM}) and stores
- * flag information used to decide how the map icon is displayed (visable, reachable, already visited etc.)
+ * flag information used to decide how the map icon is displayed (visible, reachable, already visited etc.)
  * <p>
  * Engine specific notes: Areas may be also displayed on the WorldMap in ToB using 2DA files:
  * <ul>

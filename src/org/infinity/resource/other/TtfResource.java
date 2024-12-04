@@ -194,7 +194,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
       // adding current text in different sizes
       int pos = 0;
       for (int element : FONT_SIZE) {
-        String label = Integer.toString(element) + "    ";
+        String label = element + "    ";
         SimpleAttributeSet as = new SimpleAttributeSet();
         StyleConstants.setFontFamily(as, "SansSerif");
         StyleConstants.setFontSize(as, FONT_SIZE[0]);
@@ -227,10 +227,10 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
     String fontName = font.getFontName();
     String fontFamily = font.getFamily();
 
-    StringBuilder sb = new StringBuilder("<html><table align=\"left\" border=\"0\">");
-    sb.append("<tr><td>Font name:</td><td>").append(fontName).append("</td></tr>");
-    sb.append("<tr><td>Font family:</td><td>").append(fontFamily).append("</td></tr>");
-    sb.append("</table></html>");
-    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
+    String sb = "<html><table align=\"left\" border=\"0\">" +
+        "<tr><td>Font name:</td><td>" + fontName + "</td></tr>" +
+        "<tr><td>Font family:</td><td>" + fontFamily + "</td></tr>" +
+        "</table></html>";
+    JOptionPane.showMessageDialog(panel, sb, "Properties of " + resName, JOptionPane.INFORMATION_MESSAGE);
   }
 }

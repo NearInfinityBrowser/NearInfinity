@@ -66,7 +66,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   @Override
   public void write(OutputStream os) throws IOException {
     if (text != null) {
-      byte[] buf = text.getBytes(Misc.CHARSET_DEFAULT);
+      byte[] buf = text.getBytes(charset);
       buffer.position(0);
       buffer.put(buf, 0, Math.min(buf.length, buffer.limit()));
       while (buffer.remaining() > 0) {

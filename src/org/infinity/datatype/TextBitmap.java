@@ -151,7 +151,7 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual {
       while (sb.length() < getSize() - text.length()) {
         sb.append(' ');
       }
-      text = text + sb.toString();
+      text = text + sb;
     }
 
     return offset + getSize();

@@ -163,7 +163,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
 
   /** Returns the palette resref for the specified BAM prefix. Falls back to "new_palette" if needed. */
   public String getPalette(int idx) {
-    String retVal = null;
+    String retVal;
     switch (idx) {
       case 1:
         retVal = getAttribute(KEY_PALETTE_1);
@@ -257,7 +257,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder {
 
   @Override
   protected int[] getNewPaletteData(ResourceEntry bamRes) {
-    int[] retVal = null;
+    int[] retVal;
 
     String bamResref = bamRes.getResourceRef();
     String resref = getAnimationResref();

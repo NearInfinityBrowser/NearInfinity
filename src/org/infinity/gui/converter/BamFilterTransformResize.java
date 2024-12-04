@@ -54,7 +54,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
     private final String label;
 
-    private ScalingType(String label) {
+    ScalingType(String label) {
       this.label = label;
     }
 
@@ -370,18 +370,6 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorY.setEnabled(individualEnabled);
         break;
       case Bilinear:
-        taInfo.setText(String.format(fmtSupport1, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
-        setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
-        setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
-        setFactor(spinnerFactorY, factorY, 0.01, 10.0, 0.05);
-        rbScaleIndividually.setEnabled(true);
-        lFactor.setEnabled(uniformEnabled);
-        lFactorX.setEnabled(individualEnabled);
-        lFactorY.setEnabled(individualEnabled);
-        spinnerFactor.setEnabled(uniformEnabled);
-        spinnerFactorX.setEnabled(individualEnabled);
-        spinnerFactorY.setEnabled(individualEnabled);
-        break;
       case Bicubic:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);

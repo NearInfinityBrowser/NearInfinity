@@ -34,6 +34,256 @@ public class Logger {
     return org.tinylog.Logger.tags(tags);
   }
 
+
+  /**
+   * Logs a message at the specified log level.
+   *
+   * @param message String or any other object with a meaningful {@link #toString()} method
+   */
+  public static void log(final Level logLevel, final Object message) {
+    switch (logLevel) {
+      case TRACE:
+        trace(message);
+        break;
+      case DEBUG:
+        debug(message);
+        break;
+      case INFO:
+        info(message);
+        break;
+      case WARN:
+        warn(message);
+        break;
+      case ERROR:
+        error(message);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs a lazy message at the specified log level. The message will be only evaluated if the log entry is
+   * really output.
+   *
+   * @param message Function that produces the message
+   */
+  public static void log(final Level logLevel, final Supplier<?> message) {
+    switch (logLevel) {
+      case TRACE:
+        trace(message);
+        break;
+      case DEBUG:
+        debug(message);
+        break;
+      case INFO:
+        info(message);
+        break;
+      case WARN:
+        warn(message);
+        break;
+      case ERROR:
+        error(message);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs a formatted message at the specified log level. "{}" placeholders will be replaced by given arguments.
+   *
+   * @param message   Formatted text message to log
+   * @param arguments Arguments for formatted text message
+   */
+  public static void log(final Level logLevel, final String message, final Object... arguments) {
+    switch (logLevel) {
+      case TRACE:
+        trace(message, arguments);
+        break;
+      case DEBUG:
+        debug(message, arguments);
+        break;
+      case INFO:
+        info(message, arguments);
+        break;
+      case WARN:
+        warn(message, arguments);
+        break;
+      case ERROR:
+        error(message, arguments);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs a formatted message at the specified log level. "{}" placeholders will be replaced by given lazy
+   * arguments. The arguments will be only evaluated if the log entry is really output.
+   *
+   * @param message   Formatted text message to log
+   * @param arguments Functions that produce the arguments for formatted text message
+   */
+  public static void log(final Level logLevel, final String message, final Supplier<?>... arguments) {
+    switch (logLevel) {
+      case TRACE:
+        trace(message, arguments);
+        break;
+      case DEBUG:
+        debug(message, arguments);
+        break;
+      case INFO:
+        info(message, arguments);
+        break;
+      case WARN:
+        warn(message, arguments);
+        break;
+      case ERROR:
+        error(message, arguments);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs an exception at the specified log level.
+   *
+   * @param exception Caught exception or any other throwable to log
+   */
+  public static void log(final Level logLevel, final Throwable exception) {
+    switch (logLevel) {
+      case TRACE:
+        trace(exception);
+        break;
+      case DEBUG:
+        debug(exception);
+        break;
+      case INFO:
+        info(exception);
+        break;
+      case WARN:
+        warn(exception);
+        break;
+      case ERROR:
+        error(exception);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs an exception with a custom message at the specified log level.
+   *
+   * @param exception Caught exception or any other throwable to log
+   * @param message   Text message to log
+   */
+  public static void log(final Level logLevel, final Throwable exception, final String message) {
+    switch (logLevel) {
+      case TRACE:
+        trace(exception, message);
+        break;
+      case DEBUG:
+        debug(exception, message);
+        break;
+      case INFO:
+        info(exception, message);
+        break;
+      case WARN:
+        warn(exception, message);
+        break;
+      case ERROR:
+        error(exception, message);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs an exception with a custom lazy message at the specified log level. The message will be only evaluated if the
+   * log entry is really output.
+   *
+   * @param exception Caught exception or any other throwable to log
+   * @param message   Function that produces the message
+   */
+  public static void log(final Level logLevel, final Throwable exception, final Supplier<String> message) {
+    switch (logLevel) {
+      case TRACE:
+        trace(exception, message);
+        break;
+      case DEBUG:
+        debug(exception, message);
+        break;
+      case INFO:
+        info(exception, message);
+        break;
+      case WARN:
+        warn(exception, message);
+        break;
+      case ERROR:
+        error(exception, message);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs an exception with a formatted custom message at the specified log level. "{}" placeholders will be replaced by
+   * given arguments.
+   *
+   * @param exception Caught exception or any other throwable to log
+   * @param message   Formatted text message to log
+   * @param arguments Arguments for formatted text message
+   */
+  public static void log(final Level logLevel, final Throwable exception, final String message,
+      final Object... arguments) {
+    switch (logLevel) {
+      case TRACE:
+        trace(exception, message, arguments);
+        break;
+      case DEBUG:
+        debug(exception, message, arguments);
+        break;
+      case INFO:
+        info(exception, message, arguments);
+        break;
+      case WARN:
+        warn(exception, message, arguments);
+        break;
+      case ERROR:
+        error(exception, message, arguments);
+        break;
+      default:
+    }
+  }
+
+  /**
+   * Logs an exception with a formatted message at the specified log level. "{}" placeholders will be replaced by given
+   * lazy arguments. The arguments will be only evaluated if the log entry is really output.
+   *
+   * @param exception Caught exception or any other throwable to log
+   * @param message   Formatted text message to log
+   * @param arguments Functions that produce the arguments for formatted text message
+   */
+  public static void log(final Level logLevel, final Throwable exception, final String message,
+      final Supplier<?>... arguments) {
+    switch (logLevel) {
+      case TRACE:
+        trace(exception, message, arguments);
+        break;
+      case DEBUG:
+        debug(exception, message, arguments);
+        break;
+      case INFO:
+        info(exception, message, arguments);
+        break;
+      case WARN:
+        warn(exception, message, arguments);
+        break;
+      case ERROR:
+        error(exception, message, arguments);
+        break;
+      default:
+    }
+  }
+
   /**
    * Checks whether log entries at {@link Level#TRACE TRACE} level will be output.
    *

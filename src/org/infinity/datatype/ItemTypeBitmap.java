@@ -43,6 +43,57 @@ public class ItemTypeBitmap extends HashBitmap {
       "Greatswords", "Halberds", "Bolts", "Cloaks and robes", "Copper commons", "Gems", "Wands", "Eyeballs",
       "Bracelets", "Earrings", "Tattoos", "Lenses", "Teeth" };
 
+  /** Category order map for non-PST item categories. */
+  public static final int[] SUGGESTED_CATEGORY_ORDER;
+
+  /** Category order map for PST item categories. */
+  public static final int[] SUGGESTED_CATEGORY_ORDER_PST;
+
+  // Creating inverse category index maps
+  static {
+    // non-PST item categories
+    final int[] items = {
+     // Weapons
+        25, 44, 17, 23, 22, 15, 16, 24, 30, 21, 18, 29, 26, 57, 69, 20, 19, 28, 27,
+        // Ammo
+        14, 31, 5,
+        // Armor
+        2, 60, 61, 66, 62, 68, 63, 64, 65, 67, 32, 12, 41, 53, 49, 47, 7, 72, 6, 70, 73, 3, 4,
+        // Jewelry
+        10, 1,
+        // Potions, scrolls, books, containers, ...
+        9, 56, 11, 37, 50, 35, 51, 36, 58,
+        // Misc. stuff
+        0, 13, 71, 34, 39, 55, 59, 74, 75, 76, 77,
+        // uncategorized
+        8, 33, 38, 40, 42, 43, 45, 46, 48, 52, 54,
+    };
+    SUGGESTED_CATEGORY_ORDER = new int[items.length];
+    for (int i = 0; i < items.length; i++) {
+      SUGGESTED_CATEGORY_ORDER[items[i]] = i;
+    }
+
+    // PST item categories
+    final int[] items11 = {
+        // Weapons
+        25, 17, 23, 22, 15, 16, 24, 30, 21, 18, 26, 29, 20, 19, 28, 27,
+        // Ammo
+        14, 31, 5,
+        // Armor
+        2, 32, 12, 7, 6, 3, 4, 36, 38, 40, 41,
+        // Misc and jewelry
+        0, 1, 37, 10,
+        // Potions, scrolls, wands, tattoos, ...
+        9, 11, 13, 35, 39,
+        // uncategorized
+        34, 8, 33,
+    };
+    SUGGESTED_CATEGORY_ORDER_PST = new int[items11.length];
+    for (int i = 0; i < items11.length; i++) {
+      SUGGESTED_CATEGORY_ORDER_PST[items11[i]] = i;
+    }
+  }
+
   private static TreeMap<Long, String> CATEGORIES = null;
 
   public ItemTypeBitmap(ByteBuffer buffer, int offset, int length, String name) {
@@ -78,7 +129,7 @@ public class ItemTypeBitmap extends HashBitmap {
       for (int row = 0, count = table.getRowCount(); row < count; row++) {
         final String idxValue = table.get(row, 0);
         final int radix = idxValue.startsWith("0x") ? 16 : 10;
-        String catName = "";
+        String catName;
         try {
           int idx = Integer.parseInt(idxValue, radix);
           if (idx >= 0 && idx < CATEGORIES_ARRAY.length) {

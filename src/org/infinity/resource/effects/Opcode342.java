@@ -65,7 +65,7 @@ public class Opcode342 extends BaseOpcode {
   protected boolean update(AbstractStruct struct) throws Exception {
     if (struct != null && Profile.isEnhancedEdition()) {
       int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
-      StructEntry newEntry = null;
+      StructEntry newEntry;
       switch (param2) {
         case 1:
           newEntry = new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, EFFECT_ENABLED,

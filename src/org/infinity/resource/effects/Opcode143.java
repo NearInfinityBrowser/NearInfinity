@@ -23,7 +23,7 @@ public class Opcode143 extends BaseOpcode {
   private static final String RES_TYPE = "ITM";
 
   private static final String[] SLOT_TYPES_PST = { "Hand", "Eyeball/Earring (left)", "Tattoo", "Bracelet",
-      "Ring (right)", "Tattoo (top left)", "Ring (left)", "Earring (right)/Lens", "Armor", "Tattoo (bottomr right)",
+      "Ring (right)", "Tattoo (top left)", "Ring (left)", "Earring (right)/Lens", "Armor", "Tattoo (bottom right)",
       "Temporary weapon", "Ammo 1", "Ammo 2", "Ammo 3", "Ammo 4", "Ammo 5", "Ammo 6", "Quick item 1", "Quick item 2",
       "Quick item 3", "Quick item 4", "Quick item 5", "Inventory 1", "Inventory 2", "Inventory 3", "Inventory 4",
       "Inventory 5", "Inventory 6", "Inventory 7", "Inventory 8", "Inventory 9", "Inventory 10", "Inventory 11",

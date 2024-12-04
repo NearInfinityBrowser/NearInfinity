@@ -76,7 +76,7 @@ public class LayerObjectAutomapPSTIni extends LayerObject {
   }
 
   private IconLayerItem initLayerItem() throws IllegalArgumentException {
-    IconLayerItem retVal = null;
+    IconLayerItem retVal;
 
     final int count = areData.getAsInteger("count", 0);
     if (noteIndex < 0 || noteIndex >= count) {

@@ -42,7 +42,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
 
     private final String label;
 
-    private Angle(String label) {
+    Angle(String label) {
       this.label = label;
     }
 
@@ -204,7 +204,7 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
     if (entry != null && entry.getFrame() != null) {
       int width = entry.getFrame().getWidth();
       int height = entry.getFrame().getHeight();
-      BufferedImage dstImage = null;
+      BufferedImage dstImage;
       int newWidth, newHeight;
       switch ((Angle) Objects.requireNonNull(cbAngle.getSelectedItem())) {
         case Angle90:

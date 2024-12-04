@@ -903,7 +903,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
 
   /** Defines an object which listens to MouseOverEvents. */
   public interface MouseOverListener extends EventListener {
-    public void mouseOver(MouseOverEvent event);
+    void mouseOver(MouseOverEvent event);
   }
 
   /** MouseOverEvent is used to notify listeners that the mouse has been placed over a specific color entry. */

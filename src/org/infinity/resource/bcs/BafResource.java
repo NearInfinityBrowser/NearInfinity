@@ -352,9 +352,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void write(OutputStream os) throws IOException {
     if (sourceText == null) {
-      StreamUtils.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length(), Profile.getDefaultCharset());
     } else {
-      sourceText.write(new OutputStreamWriter(os));
+      sourceText.write(new OutputStreamWriter(os, Profile.getDefaultCharset()));
     }
   }
 
@@ -467,9 +467,9 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     }
     final boolean result;
     if (interactive) {
-      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue();
     } else {
-      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
+      result = ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue();
     }
     if (result) {
       bSave.setEnabled(false);

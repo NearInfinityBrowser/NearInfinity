@@ -292,7 +292,7 @@ public class BookmarkEditor extends JDialog
     int platformIdx = Math.max(cbPlatformModel.getIndexOf(Platform.OS.getCurrentOS()), 0);
     cbPlatform.setSelectedIndex(platformIdx);
     for (int idx = 0; idx < cbPlatformModel.getSize(); idx++) {
-      listBinPathModels.put(cbPlatformModel.getElementAt(idx), new DefaultListModel<Path>());
+      listBinPathModels.put(cbPlatformModel.getElementAt(idx), new DefaultListModel<>());
     }
     listBinPaths.setModel(getBinPathModel());
     listBinPaths.addListSelectionListener(this);
@@ -496,7 +496,7 @@ public class BookmarkEditor extends JDialog
   private void addBinPathInteractive() {
     JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
     fc.setDialogTitle("Select game executable");
-    FileFilter exeFilter = null;
+    FileFilter exeFilter;
     fc.removeChoosableFileFilter(fc.getAcceptAllFileFilter());
     if (cbPlatform.getSelectedItem() == Platform.OS.WINDOWS) {
       exeFilter = new FileNameExtensionFilter("Executable Files", "exe", "lnk", "cmd", "bat", "ps1", "pif");

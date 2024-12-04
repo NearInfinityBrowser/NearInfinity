@@ -189,7 +189,7 @@ public class AnimationInfo {
      * @param sectionName INI section name
      * @param entries     list of games and their associated slot ranges.
      */
-    private Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
+    Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
         throws IllegalArgumentException {
       this(new int[] { type }, sectionName, entries, null);
     }
@@ -201,7 +201,7 @@ public class AnimationInfo {
      * @param infinityAnimationRanges
      * @throws IllegalArgumentException
      */
-    private Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
+    Type(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
         List<NumberRange> infinityAnimationRanges) throws IllegalArgumentException {
       this(new int[] { type }, sectionName, entries, infinityAnimationRanges);
     }
@@ -212,7 +212,7 @@ public class AnimationInfo {
      * @param entries
      * @throws IllegalArgumentException
      */
-    private Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
+    Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries)
         throws IllegalArgumentException {
       this(types, sectionName, entries, null);
     }
@@ -223,7 +223,7 @@ public class AnimationInfo {
      * @param entries     list of games and their associated slot ranges.
      * @throws IllegalArgumentException
      */
-    private Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
+    Type(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<NumberRange>>> entries,
         List<NumberRange> infinityAnimationRanges) throws IllegalArgumentException {
       try {
         Misc.requireCondition(types != null && types.length > 0, "Type cannot be empty",

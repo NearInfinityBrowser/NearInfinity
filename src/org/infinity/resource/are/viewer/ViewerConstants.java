@@ -13,7 +13,7 @@ public final class ViewerConstants {
   /**
    * Supported layer types.
    */
-  public static enum LayerType {
+  public enum LayerType {
     ACTOR("Actors", true),
     REGION("Regions", true),
     ENTRANCE("Entrances", true),
@@ -32,7 +32,7 @@ public final class ViewerConstants {
 
     private final boolean isAre;
     private final String label;
-    private LayerType(String label, boolean isAre) {
+    LayerType(String label, boolean isAre) {
       this.label = label;
       this.isAre = isAre;
     }
@@ -54,7 +54,7 @@ public final class ViewerConstants {
   }
 
   // Used for setting stacking order on map
-  public static enum LayerStackingType {
+  public enum LayerStackingType {
     ACTOR("Actors"),
     REGION_TARGET("Region targets"),
     CONTAINER_TARGET("Container targets"),
@@ -76,7 +76,7 @@ public final class ViewerConstants {
     ;
 
     private final String label;
-    private LayerStackingType(String label) {
+    LayerStackingType(String label) {
       this.label = label;
     }
 

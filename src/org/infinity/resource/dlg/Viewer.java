@@ -573,7 +573,6 @@ public class Viewer extends JPanel implements ActionListener, ItemListener, Tabl
   }
 
   private void showExternState(DlgResource newdlg, int state, boolean isUndo) {
-
     alive = false;
     Container window = getTopLevelAncestor();
     if (window instanceof ViewFrame && window.isVisible()) {

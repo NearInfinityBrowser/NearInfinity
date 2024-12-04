@@ -184,12 +184,12 @@ public final class MusResource
   @Override
   public void actionPerformed(ActionEvent event) {
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()).isTrue()) {
         setDocumentModified(false);
       }
       viewer.loadMusResource(this);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panel.getTopLevelAncestor()).isTrue()) {
         setDocumentModified(false);
       }
       viewer.loadMusResource(this);

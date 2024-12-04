@@ -558,13 +558,13 @@ public final class CreResource extends AbstractStruct
       if (signature.equalsIgnoreCase("CRE ")) {
         String version = StreamUtils.readString(buffer, offset + 4, 4);
         if (version.equalsIgnoreCase("V1.0")) {
-          scriptName = StreamUtils.readString(buffer, offset + 640, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 640, 32, Profile.getDefaultCharset());
         } else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2")) {
-          scriptName = StreamUtils.readString(buffer, offset + 804, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 804, 32, Profile.getDefaultCharset());
         } else if (version.equalsIgnoreCase("V2.2")) {
-          scriptName = StreamUtils.readString(buffer, offset + 916, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 916, 32, Profile.getDefaultCharset());
         } else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
-          scriptName = StreamUtils.readString(buffer, offset + 744, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 744, 32, Profile.getDefaultCharset());
         }
         if (scriptName.isEmpty() || scriptName.equalsIgnoreCase("None")) {
           return;
@@ -708,11 +708,11 @@ public final class CreResource extends AbstractStruct
   }
 
   public static String getSearchString(InputStream is) throws IOException {
-    String retVal = "";
+    String retVal;
     String sig = StreamUtils.readString(is, 4);
     is.skip(4);
     if (sig.equals("CHR ")) {
-      retVal = StreamUtils.readString(is, 32);
+      retVal = StreamUtils.readString(is, 32, Profile.getDefaultCharset());
     } else {
       final int strrefName = StreamUtils.readInt(is);
       final int strrefShortName = StreamUtils.readInt(is);
@@ -734,7 +734,7 @@ public final class CreResource extends AbstractStruct
    * @throws IOException If the buffer does not contain valid resource data.
    */
   public static String getScriptName(ByteBuffer buffer) throws IOException {
-    String retVal = "";
+    String retVal;
     String sig = StreamUtils.readString(buffer, 0, 4);
     String ver = StreamUtils.readString(buffer, 4, 4);
     int startOfs = 0;
@@ -1266,7 +1266,8 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 612, 1, CRE_MORALE));
     addField(new DecNumber(buffer, offset + 613, 1, CRE_MORALE_BREAK));
     addField(new DecNumber(buffer, offset + 614, 2, CRE_MORALE_RECOVERY));
-    addField(new KitIdsBitmap(buffer, offset + 616, CRE_KIT));
+    addField(new Flag(buffer, offset + 616, 4, CRE_KIT,
+        IdsMapCache.getUpdatedIdsFlags(new String[] { "No Kit", "" }, "KIT.IDS", 4, true, true)));
     addField(new ResourceRef(buffer, offset + 620, CRE_SCRIPT_OVERRIDE, "BCS"));
     addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));

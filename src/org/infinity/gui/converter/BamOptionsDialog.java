@@ -63,34 +63,37 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   private static final String PREFS_COMPRESSBAM     = "BCCompressBam";
   private static final String PREFS_COMPRESSTYPE    = "BCCompressionType";
   private static final String PREFS_PVRZINDEX       = "BCPvrzIndex";
+  private static final String PREFS_OVERWRITE_PVRZ_INDICES  = "BCOverwritePvrzIndices";
   private static final String PREFS_RECENT_SESSIONS = "RecentSessions";
 
   // Default settings
-  private static final int DEFAULT_BAM_VERSION            = ConvertToBam.VERSION_BAMV1;
-  private static final String DEFAULT_PATH                = "";
-  private static final boolean DEFAULT_AUTO_CLEAR         = true;
-  private static final boolean DEFAULT_CLOSE_ON_EXIT      = false;
-  private static final int DEFAULT_TRANSPARENCY_THRESHOLD = 5; // in percent
-  private static final int DEFAULT_USE_ALPHA              = ConvertToBam.ALPHA_AUTO;
-  private static final String DEFAULT_SORT_PALETTE        = ColorConvert.SortType.None.toString();
-  private static final boolean DEFAULT_COMPRESS_BAM       = false;
-  private static final int DEFAULT_COMPRESSION_TYPE       = ConvertToBam.COMPRESSION_AUTO;
-  private static final int DEFAULT_PVRZ_INDEX             = 1000;
-  private static final int DEFAULT_RECENT_SESSIONS_MAX    = 10;
+  private static final int DEFAULT_BAM_VERSION                = ConvertToBam.VERSION_BAMV1;
+  private static final String DEFAULT_PATH                    = "";
+  private static final boolean DEFAULT_AUTO_CLEAR             = true;
+  private static final boolean DEFAULT_CLOSE_ON_EXIT          = false;
+  private static final int DEFAULT_TRANSPARENCY_THRESHOLD     = 5; // in percent
+  private static final int DEFAULT_USE_ALPHA                  = ConvertToBam.ALPHA_AUTO;
+  private static final String DEFAULT_SORT_PALETTE            = ColorConvert.SortType.None.toString();
+  private static final boolean DEFAULT_COMPRESS_BAM           = false;
+  private static final int DEFAULT_COMPRESSION_TYPE           = ConvertToBam.COMPRESSION_AUTO;
+  private static final int DEFAULT_PVRZ_INDEX                 = 1000;
+  private static final boolean DEFAULT_OVERWRITE_PVRZ_INDICES  = false;
+  private static final int DEFAULT_RECENT_SESSIONS_MAX        = 10;
 
   // Current settings
   private static final List<Path> recentSessions  = new ArrayList<>();
-  private static boolean settingsLoaded = false;
-  private static int bamVersion             = DEFAULT_BAM_VERSION;
-  private static String path                = DEFAULT_PATH;
-  private static boolean autoClear          = DEFAULT_AUTO_CLEAR;
-  private static boolean closeOnExit        = DEFAULT_CLOSE_ON_EXIT;
-  private static int transparencyThreshold  = DEFAULT_TRANSPARENCY_THRESHOLD;
-  private static int useAlpha               = DEFAULT_USE_ALPHA;
-  private static String sortPalette         = DEFAULT_SORT_PALETTE;
-  private static boolean compressBam        = DEFAULT_COMPRESS_BAM;
-  private static int compressionType        = DEFAULT_COMPRESSION_TYPE;
-  private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
+  private static boolean settingsLoaded       = false;
+  private static int bamVersion               = DEFAULT_BAM_VERSION;
+  private static String path                  = DEFAULT_PATH;
+  private static boolean autoClear            = DEFAULT_AUTO_CLEAR;
+  private static boolean closeOnExit          = DEFAULT_CLOSE_ON_EXIT;
+  private static int transparencyThreshold    = DEFAULT_TRANSPARENCY_THRESHOLD;
+  private static int useAlpha                 = DEFAULT_USE_ALPHA;
+  private static String sortPalette           = DEFAULT_SORT_PALETTE;
+  private static boolean compressBam          = DEFAULT_COMPRESS_BAM;
+  private static int compressionType          = DEFAULT_COMPRESSION_TYPE;
+  private static int pvrzIndex                = DEFAULT_PVRZ_INDEX;
+  private static boolean overwritePvrzIndices = DEFAULT_OVERWRITE_PVRZ_INDICES;
 
   private final ConvertToBam converter;
 
@@ -105,6 +108,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   private JCheckBox cbCloseOnExit;
   private JCheckBox cbAutoClear;
   private JCheckBox cbCompressBam;
+  private JCheckBox cbOverwritePvrzIndices;
   private JSpinner sTransparency;
   private JSpinner sPvrzIndex;
   private JTextField tfPath;
@@ -127,6 +131,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
       compressBam = prefs.getBoolean(PREFS_COMPRESSBAM, DEFAULT_COMPRESS_BAM);
       compressionType = prefs.getInt(PREFS_COMPRESSTYPE, DEFAULT_COMPRESSION_TYPE);
       pvrzIndex = prefs.getInt(PREFS_PVRZINDEX, DEFAULT_PVRZ_INDEX);
+      overwritePvrzIndices = prefs.getBoolean(PREFS_OVERWRITE_PVRZ_INDICES, DEFAULT_OVERWRITE_PVRZ_INDICES);
       loadRecentSessions(prefs.node(PREFS_RECENT_SESSIONS));
 
       validateSettings();
@@ -161,6 +166,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     prefs.putBoolean(PREFS_COMPRESSBAM, compressBam);
     prefs.putInt(PREFS_COMPRESSTYPE, compressionType);
     prefs.putInt(PREFS_PVRZINDEX, pvrzIndex);
+    prefs.putBoolean(PREFS_OVERWRITE_PVRZ_INDICES, overwritePvrzIndices);
   }
 
   // Makes sure that all settings are valid.
@@ -244,6 +250,11 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   /** Returns the default PVRZ index (BAM v2). */
   public static int getPvrzIndex() {
     return pvrzIndex;
+  }
+
+  /** Returns whether to overwrite PVRZ indices of existing files in the target folder. */
+  public static boolean getOverwritePvrzIndices() {
+    return overwritePvrzIndices;
   }
 
   /** Returns list of recently accessed session paths. */
@@ -481,6 +492,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     cbCompressionType.setSelectedIndex(getCompressionType());
     model = new SpinnerNumberModel(getPvrzIndex(), 0, 99999, 1);
     sPvrzIndex = new JSpinner(model);
+    cbOverwritePvrzIndices = new JCheckBox("Overwrite existing PVRZ files", getOverwritePvrzIndices());
     JPanel pBamV2 = new JPanel(new GridBagLayout());
     pBamV2.setBorder(BorderFactory.createTitledBorder("PVRZ-based BAM "));
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
@@ -495,7 +507,10 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(4, 4, 4, 4), 0, 0);
     pBamV2.add(sPvrzIndex, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 4, 0, 0), 0, 0);
+    pBamV2.add(cbOverwritePvrzIndices, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
     pBamV2.add(new JPanel(), c); // filler component
 
@@ -565,6 +580,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     cbCompressBam.setSelected(DEFAULT_COMPRESS_BAM);
     cbCompressionType.setSelectedIndex(DEFAULT_COMPRESSION_TYPE);
     sPvrzIndex.setValue(DEFAULT_PVRZ_INDEX);
+    cbOverwritePvrzIndices.setSelected(DEFAULT_OVERWRITE_PVRZ_INDICES);
   }
 
   // Fetches the values from the dialog controls
@@ -579,6 +595,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     compressBam = cbCompressBam.isSelected();
     compressionType = cbCompressionType.getSelectedIndex();
     pvrzIndex = (Integer) sPvrzIndex.getValue();
+    overwritePvrzIndices = cbOverwritePvrzIndices.isSelected();
     validateSettings();
 
     // transparency options may have changed: force palette generation

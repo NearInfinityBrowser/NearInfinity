@@ -177,7 +177,7 @@ public class LuaParser {
           } else if (ch == ',' || ch == '}') {
             // special case: true/false cannot be correctly determined before fully parsed
             if (key.toString().equals("true") || key.toString().equals("false")) {
-              value.append(key.toString());
+              value.append(key);
               key.setLength(0);
               curToken = Token.VALUE_BOOLEAN;
               buffer.position(buffer.position() - 1);

@@ -48,7 +48,7 @@ public class Updater {
     private final String label;
     private final Duration interval;
 
-    private Interval(int id, String label, Duration interval) {
+    Interval(int id, String label, Duration interval) {
       this.id = id;
       this.label = label;
       this.interval = interval;

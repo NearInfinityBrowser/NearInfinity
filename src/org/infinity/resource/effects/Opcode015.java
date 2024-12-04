@@ -84,12 +84,11 @@ public class Opcode015 extends BaseOpcode {
         if ((isVersion1 || isTobEx()) && param2 == 3) {
           replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
               new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, AbstractStruct.COMMON_UNUSED));
-          retVal = true;
         } else {
           replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
               new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, EFFECT_VALUE));
-          retVal = true;
         }
+        retVal = true;
       }
     }
     return retVal;

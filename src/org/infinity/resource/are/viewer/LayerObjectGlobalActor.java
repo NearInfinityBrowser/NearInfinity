@@ -139,7 +139,7 @@ public class LayerObjectGlobalActor extends LayerObjectActor {
 
   /** Tooltip for actor object. */
   private String getTooltip() {
-    String retVal = null;
+    String retVal;
 
     retVal = ((IsTextual) npc.getAttribute(PartyNPC.GAM_NPC_NAME)).getText().trim();
     if (retVal.isEmpty()) {

@@ -122,7 +122,7 @@ public class Bookmark implements Cloneable {
     if (os == null) {
       os = Platform.OS.getCurrentOS();
     }
-    return Collections.unmodifiableList(binPaths.getOrDefault(os, new ArrayList<String>(1)));
+    return Collections.unmodifiableList(binPaths.getOrDefault(os, new ArrayList<>(1)));
   }
 
   /**

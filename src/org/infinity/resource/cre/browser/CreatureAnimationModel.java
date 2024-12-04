@@ -59,7 +59,7 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
     if (anItem instanceof AnimateEntry) {
       return animationList.indexOf(anItem);
     } else {
-      int idx = -1;
+      int idx;
       if (anItem instanceof Number) {
         idx = ((Number) anItem).intValue();
       } else {

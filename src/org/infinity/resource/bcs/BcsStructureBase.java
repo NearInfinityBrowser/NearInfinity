@@ -68,7 +68,7 @@ public abstract class BcsStructureBase {
   protected int[] parseNumberArray(StringBufferStream sbs, char tagOpen, char tagClose, char separator, int numItems)
       throws Exception {
     int[] retVal = new int[numItems];
-    boolean success = true;
+    boolean success;
     success = (sbs.get() == tagOpen);
     for (int i = 0; i < numItems && success; i++) {
       if (i > 0) {

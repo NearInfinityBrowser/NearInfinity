@@ -68,7 +68,7 @@ public class OptionsMenuItem extends JMenuItem {
 
     private final String label;
 
-    private AutoAlign2da(String label) {
+    AutoAlign2da(String label) {
       this.label = label;
     }
 
@@ -167,6 +167,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWMEMSTATUS             = "ShowMemStatus";
   public static final String OPTION_OPENBOOKMARKSPROMPT       = "OpenBookmarksPrompt";
   public static final String OPTION_REMEMBER_CHILDFRAME_RECT  = "RememberChildFrameRect";
+  public static final String OPTION_SHOW_CREATURES_ON_PANEL   = "ShowCreaturesOnPanel";
 
   public static final String OPTION_AUTOCHECK_BCS             = "AutocheckBCS";
   public static final String OPTION_AUTOGEN_BCS_COMMENTS      = "AutogenBCSComments";
@@ -224,8 +225,10 @@ public class OptionsMenuItem extends JMenuItem {
   /** This preferences key can be used internally to reset incorrectly set default values after a public release. */
   public static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
 
-  /** Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED). */
-  /** Bit for incorrect BCS Auto Indent default: {@code false} -> {@code true}. */
+  /**
+   * Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED).
+   * <p>Bit for incorrect BCS Auto Indent default: {@code false} -> {@code true}.</p>
+   */
   @Deprecated
   public static final int MASK_OPTION_FIXED_AUTO_INDENT = 0x00000001;
 
@@ -410,9 +413,9 @@ public class OptionsMenuItem extends JMenuItem {
   }
 
   /** Attempts to determine the correct charset for the current game. */
-  public String charsetName(String charset, boolean detect) {
+  public String charsetName(String charset) {
     if (DEFAULT_CHARSET.equalsIgnoreCase(charset)) {
-      charset = CharsetDetector.guessCharset(detect);
+      charset = Profile.getDefaultCharset().name();
     } else {
       charset = CharsetDetector.setCharset(charset);
     }
@@ -530,6 +533,11 @@ public class OptionsMenuItem extends JMenuItem {
   /** Returns whether the size and position of the last opened child frame should be reused for new child frames. */
   public boolean rememberChildFrameRect() {
     return AppOption.REMEMBER_CHILD_FRAME_RECT.getBoolValue();
+  }
+
+  /** Returns whether the main main panel should be progressively populated with creatures from the game. */
+  public boolean showCreaturesOnPanel() {
+    return AppOption.SHOW_CREATURES_ON_PANEL.getBoolValue();
   }
 
   /** Returns whether offset column is shown for structured resources. */
@@ -856,7 +864,7 @@ public class OptionsMenuItem extends JMenuItem {
 
   /** Returns the character encoding of the string table. */
   public String getSelectedCharset() {
-    return charsetName(AppOption.TLK_CHARSET_TYPE.getStringValue(), true);
+    return charsetName(AppOption.TLK_CHARSET_TYPE.getStringValue());
   }
 
   /** Returns the currently selected game language. Returns empty string on autodetect. */
@@ -941,7 +949,7 @@ public class OptionsMenuItem extends JMenuItem {
           final String csName = option.getStringValue();
           if (csName != null) {
             CharsetDetector.clearCache();
-            StringTable.setCharset(charsetName(csName, true));
+            StringTable.setCharset(charsetName(csName));
             messages.add("TLK Character Encoding: " + csName);
             // enforce re-reading strings
             refresh = true;

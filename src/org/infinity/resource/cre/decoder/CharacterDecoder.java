@@ -325,7 +325,7 @@ public class CharacterDecoder extends CharacterBaseDecoder {
 
   @Override
   public List<String> getAnimationFiles(boolean essential) {
-    ArrayList<String> retVal = null;
+    ArrayList<String> retVal;
     String resref1 = getAnimationResref();
     String resref2 = getArmorSpecificResref();
 

@@ -4,6 +4,7 @@
 
 package org.infinity.gui;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.ResourceRef;
@@ -27,10 +29,17 @@ import org.infinity.util.Logger;
 /**
  * A JLabel-based control which supports either internal game resources or external URLs.
  */
-final public class LinkButton extends JLabel implements MouseListener, ActionListener {
+public class LinkButton extends JLabel implements MouseListener, ActionListener {
   private static final String CMD_OPEN      = "OPEN"; // open resource in same window
   private static final String CMD_OPEN_NEW  = "OPEN_NEW"; // open resource in new window
   private static final String CMD_BROWSE    = "BROWSE"; // open URL in system-default browser
+
+  /** Tooltip text if an alternate resource reference is used for the link button. */
+  private static final String TOOLTIP_ALTERNATE_RESREF = "No resource assigned: Showing default resource.";
+
+  /** Color of the linked text if an alternate resource reference is used (for light and dark L&F themes). */
+  private static final Color LINK_COLOR_ALTERNATE_RESREF_LIGHT = new Color(0x800000);
+  private static final Color LINK_COLOR_ALTERNATE_RESREF_DARK = new Color(0xC04000);
 
   private final List<ActionListener> listeners = new ArrayList<>();
 
@@ -63,6 +72,20 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   /**
    * Creates a link button which points to an internal game resource as specified by the argument.
    *
+   * @param resourceRef The game resource as ResourceRef object.
+   * @param maxLength   Max. number of characters displayed in the label text. Full string is displayed as tooltip
+   *                      instead.
+   * @param isAlternate Specify {@code true} to change link color and tooltip to indicate that a fallback resource is
+   *                      used.
+   */
+  public LinkButton(ResourceRef resourceRef, int maxLength, boolean isAlternate) {
+    setHorizontalAlignment(SwingConstants.LEFT);
+    setResource(resourceRef, maxLength, isAlternate);
+  }
+
+  /**
+   * Creates a link button which points to an internal game resource as specified by the argument.
+   *
    * @param resourceName The game resource as string.
    */
   public LinkButton(String resourceName) {
@@ -77,9 +100,22 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
    *                     instead.
    */
   public LinkButton(String resourceName, int maxLength) {
+    this(resourceName, maxLength, false);
+  }
+
+  /**
+   * Creates a link button which points to an internal game resource as specified by the argument.
+   *
+   * @param resourceName The game resource as string.
+   * @param maxLength    Max. number of characters displayed in the label text. Full string is displayed as tooltip
+   *                       instead.
+   * @param isAlternate  Specify {@code true} to change link color and tooltip to indicate that a fallback resource is
+   *                       used.
+   */
+  public LinkButton(String resourceName, int maxLength, boolean isAlternate) {
     super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    setResource(resourceName, maxLength);
+    setResource(resourceName, maxLength, isAlternate);
   }
 
   /**
@@ -113,8 +149,14 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
 
   /** Creates a link from the specified resource reference. */
   public void setResource(ResourceRef resourceRef, int maxLength) {
+    setResource(resourceRef, maxLength, false);
+  }
+
+  /** Creates a link from the specified resource reference. */
+  public void setResource(ResourceRef resourceRef, int maxLength, boolean isAlternate) {
     if (resourceRef != null) {
-      setResource(ResourceFactory.getResourceEntry(resourceRef.getResourceName()), resourceRef.toString(), maxLength);
+      setResource(ResourceFactory.getResourceEntry(resourceRef.getResourceName()), resourceRef.toString(), maxLength,
+          isAlternate);
     } else {
       setResource(null, null, maxLength);
     }
@@ -127,16 +169,28 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
 
   /** Attempts to create a link from the specified resource name. */
   public void setResource(String resourceName, int maxLength) {
-    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName, maxLength);
+    setResource(resourceName, maxLength, false);
+  }
+
+  /**
+   * Attempts to create a link from the specified resource name. Link color and tooltip are changed if
+   * {@code isAlternate} is {@code true}.
+   */
+  public void setResource(String resourceName, int maxLength, boolean isAlternate) {
+    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName, maxLength, isAlternate);
   }
 
   private void setResource(ResourceEntry entry, String resourceName, int maxLength) {
+    setResource(entry, resourceName, maxLength, false);
+  }
+
+  private void setResource(ResourceEntry entry, String resourceName, int maxLength, boolean isAlternate) {
     isResource = true;
     removeActionListener(this);
     this.entry = entry;
     if (entry != null) {
       addActionListener(this);
-      setLink(resourceName, entry.getResourceName(), true, maxLength);
+      setLink(resourceName, entry.getResourceName(), true, maxLength, isAlternate);
       setEnabled(true);
       // setToolTipText(null);
     } else {
@@ -148,22 +202,40 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
 
   /** Sets link or label text, depending on arguments. */
   private void setLink(String text, String resource, boolean asLink, int maxLength) {
+    setLink(text, resource, asLink, maxLength, false);
+  }
+
+  /** Sets link or label text, depending on arguments. */
+  private void setLink(String text, String resource, boolean asLink, int maxLength, boolean isAlternate) {
     removeMouseListener(this);
     setCursor(null);
 
     if (text == null) {
       text = resource;
     }
-    String toolTip = null;
+
+    String toolTip = isAlternate ? TOOLTIP_ALTERNATE_RESREF : null;
+    Color color = isAlternate ? getAlternateLinkColor() : null;
+
     if (maxLength > 0 && text != null && text.length() > maxLength) {
-      toolTip = text;
+      if (toolTip == null || toolTip.isEmpty()) {
+        toolTip = text;
+      } else {
+        toolTip = text + " - " + toolTip;
+      }
       text = text.substring(0, maxLength) + "...";
     }
 
     if (!asLink) {
       setText(text);
     } else if (resource != null && !resource.isEmpty()) {
-      setText("<html><a href=\"" + resource + "\">" + text + "</a></html");
+      final String colorAttr;
+      if (color != null) {
+        colorAttr = String.format(" style=\"color: #%02X%02X%02X\"", color.getRed(), color.getGreen(), color.getBlue());
+      } else {
+        colorAttr = "";
+      }
+      setText("<html><a" + colorAttr + " href=\"" + resource + "\">" + text + "</a></html");
       addMouseListener(this);
       setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     } else {
@@ -172,6 +244,17 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
 
     if (toolTip != null) {
       setToolTipText(toolTip);
+    }
+  }
+
+  /** Returns a color value that is suitable for the current L&F UI scheme. */
+  private static Color getAlternateLinkColor() {
+    final Color color = UIManager.getColor("Panel.background");
+    final int brightness = Math.max(Math.max(color.getRed(), color.getGreen()), color.getBlue());
+    if (brightness >= 0xa0) {
+      return LINK_COLOR_ALTERNATE_RESREF_LIGHT;
+    } else {
+      return LINK_COLOR_ALTERNATE_RESREF_DARK;
     }
   }
 

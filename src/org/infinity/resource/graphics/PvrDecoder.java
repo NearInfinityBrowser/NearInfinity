@@ -46,7 +46,7 @@ public class PvrDecoder {
     }
     final String key;
     if (entry instanceof FileResourceEntry) {
-      key = ((FileResourceEntry) entry).getActualPath().toString();
+      key = entry.getActualPath().toString();
     } else {
       key = entry.getResourceName();
     }

@@ -23,7 +23,7 @@ import org.infinity.util.DynamicArray;
 public class PvrtcDecoder implements Decodable {
   // The local cache list for decoded PVR textures. The "key" has to be a unique PvrInfo structure.
   private static final Map<PvrInfo, BufferedImage> TEXTURE_CACHE = Collections
-      .synchronizedMap(new LinkedHashMap<PvrInfo, BufferedImage>());
+      .synchronizedMap(new LinkedHashMap<>());
 
   // The max. number of cache entries to hold
   private static final int MAX_CACHE_ENTRIES = 8;
@@ -86,15 +86,15 @@ public class PvrtcDecoder implements Decodable {
 
     int imgWidth = image.getWidth();
     int imgHeight = image.getHeight();
-    int[] imgData = null;
+    int[] imgData;
 
     // bounds checking
     if (region.x < 0) {
-      region.width += -region.x;
+      region.width -= region.x;
       region.x = 0;
     }
     if (region.y < 0) {
-      region.height += -region.y;
+      region.height -= region.y;
       region.y = 0;
     }
     if (region.x + region.width > info.width)

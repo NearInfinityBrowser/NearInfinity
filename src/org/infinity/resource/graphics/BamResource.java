@@ -242,11 +242,11 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       searchReferences(panelMain.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE_AS) == event.getSource()) {
-      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor())) {
+      if (ResourceFactory.saveResourceAs(this, panelMain.getTopLevelAncestor()).isTrue()) {
         setRawModified(false);
       }
     } else if (event.getSource() == timer) {
@@ -318,7 +318,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       if (fc.showSaveDialog(panelMain.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
         Path filePath = fc.getSelectedFile().toPath().getParent();
         String fileName = fc.getSelectedFile().getName();
-        String fileExt = null;
+        String fileExt;
         String format = ((FileNameExtensionFilter) fc.getFileFilter()).getExtensions()[0].toLowerCase(Locale.ENGLISH);
         int extIdx = fileName.lastIndexOf('.');
         if (extIdx > 0) {
@@ -694,7 +694,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
         bamControl.cycleGetFrame(image);
       } else {
         if (decoder instanceof BamV1Decoder && bamControl instanceof BamV1Decoder.BamV1Control) {
-          ((BamV1Decoder) decoder).frameGet(bamControl, curFrame, image);
+          decoder.frameGet(bamControl, curFrame, image);
         } else {
           decoder.frameGet(null, curFrame, image);
         }
@@ -746,7 +746,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     sb.append("# cycles:&nbsp;").append(cycleCount).append(br);
     if (decoder.getType() == BamDecoder.Type.BAMV2) {
       sb.append(br).append("Referenced PVRZ pages:").append(br);
-      sb.append(pageList.toString()).append(br);
+      sb.append(pageList).append(br);
     }
     sb.append("</div></html>");
     JOptionPane.showMessageDialog(panelMain, sb.toString(), "Properties of " + resName,
@@ -861,7 +861,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     }
 
     // displaying results
-    String msg = null;
+    String msg;
     if (failCounter == 0 && counter == max) {
       msg = String.format("All %d frames exported successfully.", max);
     } else {
@@ -896,7 +896,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
   /** Exports frames as graphics, specified by "format". */
   private void exportFrames(Path filePath, String fileBase, String fileExt, String format) {
-    String msg = null;
+    String msg;
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     try {
       blocker.setBlocked(true);

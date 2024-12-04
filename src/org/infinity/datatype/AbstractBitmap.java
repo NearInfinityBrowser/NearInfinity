@@ -41,7 +41,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   public final BiFunction<Long, T, String> formatterDefault = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
     if (item != null) {
-      return item.toString() + " - " + number;
+      return item + " - " + number;
     } else {
       return "Unknown - " + number;
     }
@@ -54,7 +54,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   public final BiFunction<Long, T, String> formatterBitmap = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
     if (item != null) {
-      return item.toString() + " (" + number + ")";
+      return item + " (" + number + ")";
     } else {
       return "Unknown (" + number + ")";
     }
@@ -67,7 +67,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   public final BiFunction<Long, T, String> formatterHashBitmapReverse = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
     if (item != null) {
-      return number + " - " + item.toString();
+      return number + " - " + item;
     } else {
       return number + " - Unknown - ";
     }
@@ -80,7 +80,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   public final BiFunction<Long, T, String> formatterBitmapReverse = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
     if (item != null) {
-      return "(" + number + ") " + item.toString();
+      return "(" + number + ") " + item;
     } else {
       return "(" + number + ") Unknown";
     }

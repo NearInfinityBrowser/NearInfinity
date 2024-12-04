@@ -471,7 +471,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
             Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
             if (value != null) {
               retVal = new InteractiveToken(token.getOffset(), token.length(),
-                  idsRef + ": " + value.toString() + " (0x" + Long.toHexString(value) + ")",
+                  idsRef + ": " + value + " (0x" + Long.toHexString(value) + ")",
                   ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
             }
           }
@@ -530,7 +530,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           }
         } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST)) {
           // list of spell codes
-          String text = "";
+          final StringBuilder text = new StringBuilder();
           ArrayList<ResourceEntry> resList = new ArrayList<>();
           for (int i = 0, cnt = value.length() / 4; i < cnt; i++) {
             String snum = value.substring(i * 4, i * 4 + 4);
@@ -547,12 +547,12 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
             }
             if (res != null) {
               if (i > 0) {
-                text += ", ";
+                text.append(", ");
               }
-              text += res;
+              text.append(res);
             }
           }
-          retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, null,
+          retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text.toString(), null,
               getForegroundForToken(token));
           retVal.resourceEntries.addAll(resList);
           retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
@@ -718,13 +718,9 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     }
 
     public void clearResEntries() {
-      itemsOpen.forEach(item -> {
-        item.removeActionListener(this);
-      });
+      itemsOpen.forEach(item -> item.removeActionListener(this));
       itemsOpen.clear();
-      itemsOpenNew.forEach(item -> {
-        item.removeActionListener(this);
-      });
+      itemsOpenNew.forEach(item -> item.removeActionListener(this));
       itemsOpenNew.clear();
       removeAll();
     }

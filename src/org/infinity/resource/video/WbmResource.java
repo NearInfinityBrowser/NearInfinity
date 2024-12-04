@@ -154,10 +154,10 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
 
   // Returns a (temporary) file based on the current WBM resource
   private Path getVideoFile() {
-    Path retVal = null;
+    Path retVal;
     if (entry instanceof FileResourceEntry
-        && FileManager.isDefaultFileSystem(((FileResourceEntry) entry).getActualPath())) {
-      retVal = ((FileResourceEntry) entry).getActualPath();
+        && FileManager.isDefaultFileSystem(entry.getActualPath())) {
+      retVal = entry.getActualPath();
       isTempFile = false;
     } else {
       String fileBase = entry.getResourceRef();

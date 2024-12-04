@@ -10,7 +10,7 @@ public enum ViewMode {
 
   private final String title;
 
-  private ViewMode(String title) {
+  ViewMode(String title) {
     this.title = title;
   }
 

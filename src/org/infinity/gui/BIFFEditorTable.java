@@ -56,7 +56,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener {
 
     private final ImageIcon icon;
 
-    private State(Icons icon) {
+    State(Icons icon) {
       this.icon = icon.getIcon();
     }
   }

@@ -214,19 +214,19 @@ public abstract class BamDecoder {
    * Interface for basic BAM frame properties
    */
   public interface FrameEntry {
-    public int getWidth();
+    int getWidth();
 
-    public int getHeight();
+    int getHeight();
 
-    public int getCenterX();
+    int getCenterX();
 
-    public int getCenterY();
+    int getCenterY();
 
-    public void setCenterX(int x);
+    void setCenterX(int x);
 
-    public void setCenterY(int y);
+    void setCenterY(int y);
 
-    public void resetCenter();
+    void resetCenter();
   }
 
   /**

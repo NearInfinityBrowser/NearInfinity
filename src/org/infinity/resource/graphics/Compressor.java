@@ -121,7 +121,7 @@ public final class Compressor {
 
       byte[] buffer = new byte[Math.min(65536, len)];
       final DeflaterInputStream dis = new DeflaterInputStream(is);
-      int bufLen = 0;
+      int bufLen;
       while ((bufLen = dis.read(buffer)) > 0) {
         os.write(buffer, 0, bufLen);
         result += bufLen;

@@ -109,7 +109,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
   public int[] getResourceInfo(int locator) throws IOException {
     Entry entry = getEntry(locator);
     if (entry != null) {
-      int[] retVal = null;
+      int[] retVal;
       if (entry.isTile) {
         retVal = new int[] { entry.count, entry.size };
       } else {

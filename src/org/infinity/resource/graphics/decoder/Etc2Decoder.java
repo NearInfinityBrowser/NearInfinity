@@ -148,15 +148,15 @@ public class Etc2Decoder implements Decodable {
 
     final int imgWidth = image.getWidth();
     final int imgHeight = image.getHeight();
-    int[] imgData = null;
+    int[] imgData;
 
     // checking region bounds and alignment
     if (region.x < 0) {
-      region.width += -region.x;
+      region.width -= region.x;
       region.x = 0;
     }
     if (region.y < 0) {
-      region.height += -region.y;
+      region.height -= region.y;
       region.y = 0;
     }
     if (region.x + region.width > info.width)
@@ -241,7 +241,7 @@ public class Etc2Decoder implements Decodable {
     // X and Y coordinates are transposed later when copying pixels to target image.
     int[] pixels = new int[4 * 4 * 4];
 
-    long colorWord = 0, alphaWord = 0;
+    long colorWord, alphaWord = 0;
     int pvrOfs = (wordPosY * wordImageWidth + wordPosX) * wordSize;
     final LongBuffer longBuf = ByteBuffer.wrap(info.data).order(ByteOrder.BIG_ENDIAN).asLongBuffer();
     for (int y = 0; y < wordRectHeight; y++) {

@@ -4,14 +4,26 @@
 
 package org.infinity.resource.sto;
 
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 
+import org.infinity.NearInfinity;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -23,6 +35,9 @@ import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.gui.ButtonPanel;
+import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.ItemCategoryOrderDialog;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
@@ -32,11 +47,15 @@ import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.Logger;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -46,7 +65,8 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sto_v1.htm">
  *      https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sto_v1.htm</a>
  */
-public final class StoResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs {
+public final class StoResource extends AbstractStruct
+    implements Resource, HasChildStructs, HasViewerTabs, ActionListener {
   // STO-specific field labels
   public static final String STO_TYPE                   = "Type";
   public static final String STO_NAME                   = "Name";
@@ -74,6 +94,11 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
   public static final String STO_OFFSET_CURES           = "Cures for sale offset";
   public static final String STO_NUM_CURES              = "# cures for sale";
 
+  private static final String SORT_ORDER_SUGGESTED      = "sortOrderSuggested";
+  private static final String SORT_ORDER_ASCENDING      = "sortOrderAscending";
+  private static final String SORT_ORDER_DESCENDING     = "sortOrderDescending";
+  private static final String SORT_ORDER_CUSTOMIZE      = "sortOrderCustomize";
+
   // private static final String[] TYPE_ARRAY = {"Store", "Tavern", "Inn", "Temple"};
   public static final String[] TYPE9_ARRAY = { "Store", "Tavern", "Inn", "Temple", "Container" };
 
@@ -100,6 +125,16 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
 
   public StoResource(ResourceEntry entry) throws Exception {
     super(entry);
+  }
+
+  @Override
+  public JComponent makeViewer(ViewableContainer container) {
+    final JComponent c = super.makeViewer(container);
+    if (c instanceof StructViewer) {
+      final StructViewer viewer = (StructViewer) c;
+      addSortItemsButton(viewer);
+    }
+    return c;
   }
 
   @Override
@@ -304,6 +339,158 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
     }
   }
 
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    switch (e.getActionCommand()) {
+      case SORT_ORDER_ASCENDING:
+        sortItems(Comparator.comparingInt(a -> a));
+        break;
+      case SORT_ORDER_DESCENDING:
+        sortItems((a, b) -> b - a);
+        break;
+      case SORT_ORDER_SUGGESTED:
+      case SORT_ORDER_CUSTOMIZE:
+      {
+        final int[] indexMap;
+        if (SORT_ORDER_SUGGESTED.equals(e.getActionCommand())) {
+          indexMap = ItemCategoryOrderDialog.getDefaultCategoryIndices(isPstStore());
+        } else {
+          final boolean interactive = (e.getModifiers() & KeyEvent.CTRL_MASK) == 0;
+          indexMap = getCustomSortOrder(interactive);
+        }
+        sortItems((a, b) -> {
+          final int a1 = (a >= 0 && a < indexMap.length) ? indexMap[a] : a;
+          final int b1 = (b >= 0 && b < indexMap.length) ? indexMap[b] : b;
+          return a1 - b1;
+        });
+        break;
+      }
+    }
+  }
+
+  /** Returns {@code true} if the current resource is a STOR V1.1 resource. */
+  private boolean isPstStore() {
+    boolean retVal = false;
+    final StructEntry se = getAttribute(COMMON_VERSION);
+    if (se instanceof TextString) {
+      retVal = ((TextString)se).getText().equals("V1.1");
+    }
+    return retVal;
+  }
+
+  /**
+   * Returns a custom load order to use by the sort operation.
+   *
+   * @param interactive Indicates whether to open a dialog where the user can further customize the sort order.
+   * @return An index map for item categories. Returns {@code null} if the user cancelled the operation.
+   */
+  private int[] getCustomSortOrder(boolean interactive) {
+    final boolean isPST = isPstStore();
+    int[] indexMap = null;
+    if (interactive) {
+      final Window wnd;
+      if (getViewer().getTopLevelAncestor() instanceof Window) {
+        wnd = (Window)getViewer().getTopLevelAncestor();
+      } else {
+        wnd = NearInfinity.getInstance();
+      }
+      final ItemCategoryOrderDialog dlg = new ItemCategoryOrderDialog(wnd, isPST);
+      if (dlg.isAccepted()) {
+        indexMap = dlg.getCategoryIndices();
+      }
+    } else {
+      indexMap = ItemCategoryOrderDialog.loadCategoryIndices(ItemCategoryOrderDialog.getPreferencesKey(isPST));
+      if (indexMap == null) {
+        indexMap = ItemCategoryOrderDialog.getDefaultCategoryIndices(isPST);
+      }
+    }
+
+    return indexMap;
+  }
+
+  /**
+   * Adds a new menu button to the button bar that allows the user to sort items for sale.
+   *
+   * @param viewer {@link StructViewer} instance of the STO resource.
+   */
+  private void addSortItemsButton(StructViewer viewer) {
+    if (viewer != null) {
+      final ButtonPanel buttons = viewer.getButtonPanel();
+      final ButtonPopupMenu bpmSort = new ButtonPopupMenu("Sort items...");
+      final JMenuItem miSuggested = new JMenuItem("In suggested order");
+      miSuggested.setToolTipText("Sort order: weapons, armor, jewelry, potions, scrolls, wands, ...");
+      miSuggested.setActionCommand(SORT_ORDER_SUGGESTED);
+      miSuggested.addActionListener(this);
+      final JMenuItem miAscending = new JMenuItem("In ascending order");
+      miAscending.setToolTipText("Sort by item category number in ascending order.");
+      miAscending.setActionCommand(SORT_ORDER_ASCENDING);
+      miAscending.addActionListener(this);
+      final JMenuItem miDescending = new JMenuItem("In descending order");
+      miDescending.setToolTipText("Sort by item category number in descending order.");
+      miDescending.setActionCommand(SORT_ORDER_DESCENDING);
+      miDescending.addActionListener(this);
+      final JMenuItem miCustomize = new JMenuItem("In user-defined order...");
+      final String keyName = (Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() == KeyEvent.CTRL_MASK) ? "CTRL" : "COMMAND";
+      miCustomize.setToolTipText("Specify sort order manually. Press " + keyName + " key to auto-apply last used item category order.");
+      miCustomize.setActionCommand(SORT_ORDER_CUSTOMIZE);
+      miCustomize.addActionListener(this);
+      bpmSort.addItem(miSuggested);
+      bpmSort.addItem(miAscending);
+      bpmSort.addItem(miDescending);
+      bpmSort.addItem(miCustomize);
+      buttons.addControl(0, bpmSort, ButtonPanel.Control.CUSTOM_1);
+    }
+  }
+
+  /**
+   * Sorts {@link ItemSale} or{@link ItemSale11} structures by their item category index.
+   * Category index of non-existing items is treated as 0.
+   *
+   * @param cmp A {@link Comparator} object that compares item category indices.
+   */
+  private void sortItems(Comparator<Integer> cmp) {
+    // assembling item list
+    final SectionOffset soItemsForSale = (SectionOffset) getAttribute(STO_OFFSET_ITEMS_FOR_SALE);
+    if (soItemsForSale == null) {
+      return;
+    }
+    final Class<? extends StructEntry> itemClass = soItemsForSale.getSection();
+    final List<StructEntry> fieldList = getFields(itemClass);
+
+    final ArrayList<SortableItem<? extends AbstractStruct>> itemList = new ArrayList<>();
+    for (final StructEntry se : fieldList) {
+      try {
+        if (se instanceof ItemSale) {
+          final ItemSale newItem = (ItemSale) ((ItemSale)se).clone();
+          itemList.add(new SortableItem<>(newItem));
+        } else if (se instanceof ItemSale11) {
+          itemList.add(new SortableItem<>(new ItemSale11(null, se.getDataBuffer(), 0, 0)));
+        }
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
+
+    // sorting item list
+    itemList.sort((a, b) -> cmp.compare(a.getCategory(), b.getCategory()));
+
+    // replacing existing item list
+    for (int i = 0, size = Math.min(itemList.size(), fieldList.size()); i < size; i++) {
+      final AbstractStruct curItem = (AbstractStruct) fieldList.get(i);
+      final AbstractStruct newItem = itemList.get(i).getItem();
+      newItem.setOffset(curItem.getOffset());
+      // TODO: externalize name generation to separate function
+      if (newItem instanceof ItemSale11) {
+        newItem.setName(ItemSale11.STO_SALE + " " + i);
+      } else {
+        newItem.setName(ItemSale.STO_SALE + " " + i);
+      }
+      replaceField(newItem);
+    }
+    fireTableDataChanged();
+    setStructChanged(!fieldList.isEmpty());
+  }
+
   /**
    * Checks whether the specified resource entry matches all available search options. Called by "Extended Search"
    */
@@ -450,5 +637,86 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
       }
     }
     return false;
+  }
+
+  // -------------------------- INNER CLASSES --------------------------
+
+  /** Helper class that associates an {@link ItemSale} or {@link ItemSale11} instance with the related item category. */
+  private static class SortableItem<T extends AbstractStruct> {
+    private final T item;
+    private final int category;
+
+    public SortableItem(T item) {
+      this.item = Objects.requireNonNull(item);
+      this.category = readItemCategory(this.item, Integer.MAX_VALUE);
+    }
+
+    /** Returns the wrapped item instance ({@link ItemSale} or {@link ItemSale11}). */
+    public T getItem() {
+      return item;
+    }
+
+    /** Returns the category index of the item. Returns {@link Integer#MAX_VALUE} if not available. */
+    public int getCategory() {
+      return category;
+    }
+
+    /**
+     * Fetches the item category from the ITM resref stored in the item's resref field. Returns a default category if
+     * not available.
+     *
+     * @param item   The {@link ItemSale} or {@link ItemSale11} object.
+     * @param defCat A default category to return if ITM resource is not available.
+     * @return Item category index.
+     */
+    private int readItemCategory(T item, int defCat) {
+      if (item != null) {
+        final StructEntry se = item.getAttribute(ItemSale.STO_SALE_ITEM);
+        if (se instanceof ResourceRef) {
+          final String itemResref = resolveRandomItem(((ResourceRef)se).getText());
+          if (itemResref != null && !itemResref.isEmpty()) {
+            final ResourceEntry re = ResourceFactory.getResourceEntry(itemResref + ".ITM");
+            if (re != null) {
+              try {
+                final ByteBuffer bb = re.getResourceBuffer();
+                return bb.order(ByteOrder.LITTLE_ENDIAN).getShort(0x1c);
+              } catch (Exception e) {
+                Logger.info("Could not read item category from {}: {}", re, e.getMessage());
+              }
+            }
+          }
+        }
+      }
+      return defCat;
+    }
+
+    /**
+     * Attempts to resolve random treasure to actual items.
+     * This is currently only performed for IWD2.
+     * Random treasure in other games doesn't appear to be resolved in stores.
+     */
+    private String resolveRandomItem(String itmResref) {
+      if (itmResref == null || itmResref.isEmpty()) {
+        return itmResref;
+      }
+
+      String retVal = itmResref;
+      if (Profile.getGame() == Profile.Game.IWD2) {
+        final Table2da table = Table2daCache.get("rt_norm.2da");
+        if (table != null) {
+          for (int row = 0, numRows = table.getRowCount(); row < numRows; ++row) {
+            final String s = table.get(row, 0);
+            if (itmResref.equalsIgnoreCase(s)) {
+              if (table.getColCount(row) > 1) {
+                retVal = table.get(row, 1);
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      return retVal;
+    }
   }
 }

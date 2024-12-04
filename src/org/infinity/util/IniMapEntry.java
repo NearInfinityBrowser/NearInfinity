@@ -85,7 +85,7 @@ public class IniMapEntry {
 
   /** Helper routine: Splits values and returns them as array of individual values. */
   public static String[] splitValues(String value, char separator) {
-    String[] retVal = null;
+    String[] retVal;
     if (value != null) {
       retVal = value.split(Character.toString(separator));
     } else {
@@ -99,7 +99,7 @@ public class IniMapEntry {
    * individual values.
    */
   public static String[] splitValues(String value, String pattern) {
-    String[] retVal = null;
+    String[] retVal;
     if (value != null) {
       List<String> results = new ArrayList<>();
       try {

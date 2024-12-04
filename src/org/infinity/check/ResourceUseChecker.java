@@ -345,7 +345,7 @@ public final class ResourceUseChecker extends AbstractChecker
    * <p>
    * This method can be called from several threads
    *
-   * @param ref Reference to entry in string table that contains sound file name
+   * @param strref Reference to entry in string table that contains sound file name
    */
   private void checkSound(int strref) {
     if (strref >= 0) {

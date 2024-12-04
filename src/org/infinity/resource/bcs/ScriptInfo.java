@@ -429,9 +429,8 @@ public class ScriptInfo {
    * Internally used: Create a correctly formatted string for use as key for {@code FUNCTION_RESTYPE}.
    */
   private static String key(Function.FunctionType ftype, int id, char type, int index) {
-    String s = String.valueOf(ftype == Function.FunctionType.TRIGGER ? 'T' : 'A') + ':' + id + ':' +
+    return String.valueOf(ftype == Function.FunctionType.TRIGGER ? 'T' : 'A') + ':' + id + ':' +
         Character.toUpperCase(type) + ':' + index;
-    return s;
   }
 
   /**

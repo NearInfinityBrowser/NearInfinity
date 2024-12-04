@@ -1845,7 +1845,7 @@ final public class Viewer extends JPanel
                   int srcHeight = textImage.getHeight(null);
                   int dstWidth = image.getWidth();
                   int dstHeight = image.getHeight();
-                  int x = 0, y = 0;
+                  int x, y;
                   if (flags.isFlagSet(3)) { // left
                     x = 0;
                   } else if (flags.isFlagSet(4)) { // right

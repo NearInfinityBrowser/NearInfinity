@@ -23,7 +23,7 @@ public class Opcode413 extends BaseOpcode {
   private static final String[] ANIMATIONS_IWD2 = { "Sanctuary", "Entangle", "Wisp", "Shield", "Grease", "Web",
       "Minor globe of invulnerability", "Globe of invulnerability", "Shroud of flame", "Antimagic shell",
       "Otiluke's resilient sphere", "Protection from normal missiles", "Cloak of fear", "Entrophy shield", "Fire aura",
-      "Frost aura", "Insect plague", "Storm shell", "Shield of lathander", "", "Greater shield of lathander", "",
+      "Frost aura", "Insect plague", "Storm shell", "Shield of Lathander", "", "Greater shield of Lathander", "",
       "Seven eyes", "", "Blur", "Invisibility", "Fire shield (red)", "Fire shield (blue)", "", "", "Tortoise shell",
       "Death armor" };
 

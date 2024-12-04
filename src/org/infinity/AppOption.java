@@ -80,7 +80,7 @@ public class AppOption {
       lang = Arrays
           .stream(Profile.Game.values())
           .filter(Profile::isEnhancedEdition)
-          .map(g -> g.toString() + "=" + OptionsMenuItem.getDefaultGameLanguage())
+          .map(g -> g + "=" + OptionsMenuItem.getDefaultGameLanguage())
           .collect(Collectors.joining(";"));
     }
     return lang;
@@ -140,6 +140,9 @@ public class AppOption {
   /** Menu Options: RememberChildFrameRect (Boolean, Default: false) */
   public static final AppOption REMEMBER_CHILD_FRAME_RECT = new AppOption(OptionsMenuItem.OPTION_REMEMBER_CHILDFRAME_RECT,
       "Remember Last Child Frame Size and Position", false);
+  /** Menu Options: ShowCreaturesOnPanel (Boolean, Default: false) */
+  public static final AppOption SHOW_CREATURES_ON_PANEL = new AppOption(OptionsMenuItem.OPTION_SHOW_CREATURES_ON_PANEL,
+      "Show creatures on main panel", false);
   /**
    * Menu Options: OptionFixedInternal (Integer, Default: 0).
    * Note: Used internally to fix incorrect default values after the public release.
@@ -428,7 +431,7 @@ public class AppOption {
 
   /** Discards any changes made to the options and resets them to their initial values. */
   public static void revertAll() {
-    AppOption.getInstances().stream().forEach(AppOption::revert);
+    AppOption.getInstances().forEach(AppOption::revert);
   }
 
   /** Writes all options of this enum back to the persistent Preferences storage. */
@@ -446,7 +449,7 @@ public class AppOption {
     if (collection == null) {
       collection = AppOption.getInstances();
     }
-    collection.stream().forEach(AppOption::storeValue);
+    collection.forEach(AppOption::storeValue);
   }
 
   // /** Used internally to allow only supported types for the generic argument. */

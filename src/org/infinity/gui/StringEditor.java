@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -34,6 +35,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -59,7 +61,9 @@ import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
+import org.infinity.util.Operation;
 import org.infinity.util.StringTable;
+import org.infinity.util.StringTable.ProgressCallback;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
@@ -115,24 +119,58 @@ public class StringEditor extends ChildFrame implements SearchClient {
     showEntry(0);
   }
 
-  @Override
-  protected boolean windowClosing(boolean forced) throws Exception {
+  /**
+   * Performs the chosen operation on the string table.
+   * <p>
+   * In non-interactive mode it will execute the code specified by the {@code saveOperation} parameter.
+   * </p>
+   * <p>
+   * In interactive mode it depends on the user choice: {@code YES} executes the code specified by the
+   * {@code saveOperation} parameter. {@code NO} resets the modified content of the string table. {@code CANCEL} skips
+   * all operations.
+   * </p>
+   *
+   * @param saveOperation {@code Operation} that performs the actual string table save operation. If {@code null} is
+   *                        specified then a simple {@link StringTable#write(ProgressCallback)} is performed.
+   * @param interactive   Specify {@code true} to provide a confirmation dialog before proceeding with the save
+   *                        operation.
+   * @param forced        Specify {@code true} to prevent the user from cancelling the save operation. This parameter is
+   *                        only considered in interactive mode.
+   * @param parent        Parent {@code Component} used for the confirmation dialog. Can be {@code null} if
+   *                        {@code interactive} is {@code false}.
+   * @return {@code true} if the save operation was completed as per request, {@code false} if the operation was
+   *         cancelled.
+   */
+  public static boolean saveModified(Operation saveOperation, boolean interactive, boolean forced, Component parent) {
     boolean retVal = true;
-    updateEntry(getSelectedEntry());
     if (StringTable.isModified()) {
-      setVisible(true);
-      int optionType = forced ? JOptionPane.YES_NO_OPTION : JOptionPane.YES_NO_CANCEL_OPTION;
-      int result = JOptionPane.showConfirmDialog(this, "String table has been modified. Save changes to disk?",
-          "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
+      boolean shouldSave = true;
+      boolean shouldClear = false;
 
-      if (result == JOptionPane.YES_OPTION) {
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+      if (interactive) {
+        int optionType = forced ? JOptionPane.YES_NO_OPTION : JOptionPane.YES_NO_CANCEL_OPTION;
+        if (parent == null) {
+          parent = NearInfinity.getInstance();
+        }
+        int result = JOptionPane.showConfirmDialog(parent, "String table has been modified. Save changes to disk?",
+            "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
+        shouldSave = (result == JOptionPane.YES_OPTION);
+        shouldClear = (result == JOptionPane.NO_OPTION);
+        retVal = (result != JOptionPane.CANCEL_OPTION);
+      }
+
+      if (shouldSave) {
+        // performing specified save operation
+        final Operation op = (saveOperation != null) ? saveOperation : () -> StringTable.write(null);
+        final RootPaneContainer pane =
+            (parent instanceof RootPaneContainer) ? (RootPaneContainer)parent : NearInfinity.getInstance();
+        final SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
           @Override
           protected Void doInBackground() throws Exception {
-            WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+            WindowBlocker blocker = new WindowBlocker(pane);
             try {
               blocker.setBlocked(true);
-              save(false);
+              op.perform();
             } finally {
               blocker.setBlocked(false);
             }
@@ -148,7 +186,25 @@ public class StringEditor extends ChildFrame implements SearchClient {
         }
       }
 
-      retVal = (result != JOptionPane.CANCEL_OPTION);
+      if (shouldClear) {
+        // removing "modified" flag from string table
+        StringTable.resetModified(StringTable.Type.MALE);
+        if (StringTable.hasFemaleTable()) {
+          StringTable.resetModified(StringTable.Type.FEMALE);
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  @Override
+  protected boolean windowClosing(boolean forced) throws Exception {
+    boolean retVal = true;
+    updateEntry(getSelectedEntry());
+    if (StringTable.isModified()) {
+      setVisible(true);
+      retVal = saveModified(() -> save(false), true, forced, this);
     }
     return retVal;
   }
@@ -702,7 +758,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
         if (!interactive) {
           return;
         }
-        String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive."
+        String msg = "\"" + outFile + "\" is located within a write-protected archive."
             + "\nDo you want to export it to another location instead?";
         int result = JOptionPane.showConfirmDialog(this, msg, "Save resource", JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE);
@@ -728,7 +784,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
       ProgressTracker pt = null;
       if (interactive) {
         pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-            "Error writing " + outFile.getFileName().toString());
+            "Error writing " + outFile.getFileName());
       }
       if (!StringTable.write(StringTable.Type.MALE, outFile, pt)) {
         return;
@@ -738,7 +794,7 @@ public class StringEditor extends ChildFrame implements SearchClient {
         outFile = outPath.resolve(StringTable.getPath(StringTable.Type.FEMALE).getFileName());
         if (interactive) {
           pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
-              "Error writing " + outFile.getFileName().toString());
+              "Error writing " + outFile.getFileName());
         }
         if (!StringTable.write(StringTable.Type.FEMALE, outFile, pt)) {
           return;

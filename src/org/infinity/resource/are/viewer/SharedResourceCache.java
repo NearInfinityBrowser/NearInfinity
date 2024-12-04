@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class SharedResourceCache {
   // Identifies the type of cache object to retrieve
-  public static enum Type {
+  public enum Type {
     ICON, ANIMATION, ACTOR
   }
 
@@ -20,7 +20,7 @@ public class SharedResourceCache {
 
   static {
     for (final Type type : Type.values()) {
-      TABLES.put(type, new HashMap<Object, DataWrapper>());
+      TABLES.put(type, new HashMap<>());
     }
   }
 

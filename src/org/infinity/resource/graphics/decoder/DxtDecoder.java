@@ -45,15 +45,15 @@ public class DxtDecoder implements Decodable {
 
     int imgWidth = image.getWidth();
     int imgHeight = image.getHeight();
-    int[] imgData = null;
+    int[] imgData;
 
     // checking region bounds and alignment
     if (region.x < 0) {
-      region.width += -region.x;
+      region.width -= region.x;
       region.x = 0;
     }
     if (region.y < 0) {
-      region.height += -region.y;
+      region.height -= region.y;
       region.y = 0;
     }
     if (region.x + region.width > info.width)

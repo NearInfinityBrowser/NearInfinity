@@ -843,7 +843,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
       } else if (event.getSource() instanceof JMenuItem) {
         // process menu items from filter popup menu
         JMenuItem mi = (JMenuItem) event.getSource();
-        List<Component> list = Arrays.asList(menuFilters.getComponents()).stream().filter(c -> c instanceof JMenuItem)
+        List<Component> list = Arrays.stream(menuFilters.getComponents()).filter(c -> c instanceof JMenuItem)
             .collect(Collectors.toList());
         switch (list.indexOf(mi)) {
           case MENU_FILTER_ADD:

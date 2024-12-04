@@ -68,7 +68,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
       throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resref (" + creName + ")");
     }
 
-    CreResource cre = null;
+    CreResource cre;
     try {
       cre = new CreResource(creEntry);
     } catch (Exception e) {
