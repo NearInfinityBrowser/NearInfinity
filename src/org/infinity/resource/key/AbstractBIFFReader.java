@@ -43,7 +43,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
    * @return A BIFFReader object for accessing the BIFF archive.
    * @throws IOException On error.
    */
-  public static synchronized AbstractBIFFReader open(Path file) throws Exception {
+  public static AbstractBIFFReader open(Path file) throws Exception {
     return queryBIFFReader(file);
   }
 
