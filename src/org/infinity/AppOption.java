@@ -93,30 +93,6 @@ public class AppOption {
   /** Menu Options: LaunchGameAllowed (Boolean, Default: true) */
   public static final AppOption LAUNCH_GAME_ALLOWED = new AppOption(OptionsMenuItem.OPTION_LAUNCHGAMEALLOWED,
       "Allow launching games", true);
-  /** Menu Options: IgnoreOverride (Boolean, Default: false) */
-  public static final AppOption IGNORE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_IGNOREOVERRIDE, "Ignore Override",
-      false);
-  /** Menu Options: IgnoreReadErrors (Boolean, Default: false) */
-  public static final AppOption IGNORE_READ_ERRORS = new AppOption(OptionsMenuItem.OPTION_IGNOREREADERRORS,
-      "Ignore Read Errors", false);
-  /** Menu Options: ShowUnknownResources (Boolean, Default: true) */
-  public static final AppOption SHOW_UNKNOWN_RESOURCES = new AppOption(OptionsMenuItem.OPTION_SHOWUNKNOWNRESOURCES,
-      "Show Unknown Resource Types", true);
-  /** Menu Options: ShowTreeSearchNames (Boolean, Default: true) */
-  public static final AppOption SHOW_TREE_SEARCH_NAMES = new AppOption(OptionsMenuItem.OPTION_SHOWTREESEARCHNAMES,
-      "Show Search Names in Resource Tree", true);
-  /** Menu Options: Show Icons in Resource List (Boolean, Default: false) */
-  public static final AppOption SHOW_RESOURCE_LIST_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_LIST_ICONS,
-      "Show Icons in Resource List", false);
-  /** Menu Options: Show Icons in Resource Tree (Boolean, Default: false) */
-  public static final AppOption SHOW_RESOURCE_TREE_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_TREE_ICONS,
-      "Show Icons in Resource Tree", false);
-  /** Menu Options: HighlightOverridden (Boolean, Default: true) */
-  public static final AppOption HIGHLIGHT_OVERRIDDEN = new AppOption(OptionsMenuItem.OPTION_HIGHLIGHT_OVERRIDDEN,
-      "Show Overridden Files in Bold in Resource Tree", true);
-  /** Menu Options: CacheOverride (Boolean, Default: true) */
-  public static final AppOption CACHE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_CACHEOVERRIDE,
-      "Autocheck for Overrides", true);
   /** Menu Options: UpdateTreeOnCopy (Boolean, Default: false) */
   public static final AppOption KEEP_VIEW_ON_COPY = new AppOption(OptionsMenuItem.OPTION_KEEPVIEWONCOPY,
       "Keep View after Copy Operations", false);
@@ -150,7 +126,36 @@ public class AppOption {
   public static final AppOption OPTION_FIXED_INTERNAL = new AppOption(OptionsMenuItem.OPTION_OPTION_FIXED,
       "Internal fixes", 0);
 
-  // Category: Show Table Columns
+  // Category: Resources
+  /** Menu Options: IgnoreOverride (Boolean, Default: false) */
+  public static final AppOption IGNORE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_IGNOREOVERRIDE, "Ignore Override",
+      false);
+  /** Menu Options: IgnoreReadErrors (Boolean, Default: false) */
+  public static final AppOption IGNORE_READ_ERRORS = new AppOption(OptionsMenuItem.OPTION_IGNOREREADERRORS,
+      "Ignore Read Errors", false);
+  /** Menu Options: ShowUnknownResources (Boolean, Default: true) */
+  public static final AppOption SHOW_UNKNOWN_RESOURCES = new AppOption(OptionsMenuItem.OPTION_SHOWUNKNOWNRESOURCES,
+      "Show Unknown Resource Types", true);
+  /** Menu Options: ShowTreeSearchNames (Boolean, Default: true) */
+  public static final AppOption SHOW_TREE_SEARCH_NAMES = new AppOption(OptionsMenuItem.OPTION_SHOWTREESEARCHNAMES,
+      "Show Search Names in Resource Tree", true);
+  /** Menu Options: Show Icons in Resource List (Boolean, Default: false) */
+  public static final AppOption SHOW_RESOURCE_LIST_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_LIST_ICONS,
+      "Show Icons in Resource List", false);
+  /** Menu Options: Show Icons in Resource Tree (Boolean, Default: false) */
+  public static final AppOption SHOW_RESOURCE_TREE_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_TREE_ICONS,
+      "Show Icons in Resource Tree", false);
+  /** Menu Options: HighlightOverridden (Boolean, Default: true) */
+  public static final AppOption HIGHLIGHT_OVERRIDDEN = new AppOption(OptionsMenuItem.OPTION_HIGHLIGHT_OVERRIDDEN,
+      "Show Overridden Files in Bold in Resource Tree", true);
+  /** Menu Options: CacheOverride (Boolean, Default: true) */
+  public static final AppOption CACHE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_CACHEOVERRIDE,
+      "Autocheck for Overrides", true);
+  /** Menu Options: ShowLastIdsSymbol (Boolean, Default: true) */
+  public static final AppOption IDS_SYMBOL_DISPLAY = new AppOption(OptionsMenuItem.OPTION_IDS_SYMBOL_DISPLAY,
+      "Use last available IDS symbol for display", true);
+
+  // Category: Table Columns
   /** Menu Options > Show Table Columns: ShowOffsets (Boolean, Default: true) */
   public static final AppOption TABLE_SHOW_OFFSETS = new AppOption(OptionsMenuItem.OPTION_SHOWOFFSETS,
       "Show Field Offsets", true);

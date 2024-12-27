@@ -109,6 +109,7 @@ public class PreferencesDialog extends JDialog {
   public enum Category {
     DEFAULT(""),
     GENERAL_OPTIONS("General"),
+    RESOURCES("Resources"),
     TABLE_COLUMNS("Table Columns"),
     SCRIPT_COMPILER("Script Compiler"),
     TEXT_EDITOR("Text Editor"),
@@ -137,6 +138,57 @@ public class PreferencesDialog extends JDialog {
   /** Root element of the options definition tree. */
   private final OptionCategory optionRoot = OptionCategory.createDefault(
       OptionCategory.create(Category.GENERAL_OPTIONS,
+          OptionCategory.create(Category.RESOURCES,
+              OptionGroup.createDefault(
+                  OptionCheckBox.create(AppOption.IGNORE_OVERRIDE.getName(), AppOption.IGNORE_OVERRIDE.getLabel(),
+                      "With this option enabled Near Infinity ignores resources in the override folder if they are also "
+                          + "present in biff archives.",
+                      AppOption.IGNORE_OVERRIDE),
+                  OptionCheckBox.create(AppOption.IGNORE_READ_ERRORS.getName(), AppOption.IGNORE_READ_ERRORS.getLabel(),
+                      "With this option enabled Near Infinity shows a message box when a resource cannot be read. "
+                          + "Otherwise, a message is printed to the status bar and debug console.",
+                      AppOption.IGNORE_READ_ERRORS),
+                  OptionCheckBox.create(AppOption.SHOW_UNKNOWN_RESOURCES.getName(), AppOption.SHOW_UNKNOWN_RESOURCES.getLabel(),
+                      "With this option enabled Near Infinity shows unknown or unsupported resources in their own type "
+                          + "folder in the resource tree.",
+                      AppOption.SHOW_UNKNOWN_RESOURCES),
+                  OptionCheckBox.create(AppOption.SHOW_TREE_SEARCH_NAMES.getName(), AppOption.SHOW_TREE_SEARCH_NAMES.getLabel(),
+                      "With this option enabled Near Infinity shows the search name of resources in the resource tree "
+                          + "in parentheses if available, such as creature, item or spell names.",
+                      AppOption.SHOW_TREE_SEARCH_NAMES),
+                  OptionCheckBox.create(AppOption.SHOW_RESOURCE_TREE_ICONS.getName(), AppOption.SHOW_RESOURCE_TREE_ICONS.getLabel(),
+                      "With this option enabled Near Infinity shows icons alongside names in the resource tree for BMP, ITM "
+                          + "and SPL resources."
+                          + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
+                          + "noticeable lags on slower systems.</p>",
+                          AppOption.SHOW_RESOURCE_TREE_ICONS),
+                  OptionCheckBox.create(AppOption.SHOW_RESOURCE_LIST_ICONS.getName(), AppOption.SHOW_RESOURCE_LIST_ICONS.getLabel(),
+                      "With this option enabled Near Infinity shows icons alongside names in resource selection lists and "
+                          + "tables for BMP, ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
+                          + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
+                          + "noticeable lags on slower systems.</p>",
+                      AppOption.SHOW_RESOURCE_LIST_ICONS),
+                  OptionCheckBox.create(AppOption.HIGHLIGHT_OVERRIDDEN.getName(), AppOption.HIGHLIGHT_OVERRIDDEN.getLabel(),
+                      "If checked, files that are listed in the <em>chitin.key</em> and are also available in the "
+                          + "Override folder, will be shown in <strong>bold</strong> in the resource tree."
+                          + "<p><strong>Note:</strong> This setting has no effect if overridden files are only shown in "
+                          + "the override folder (see <code>" + Category.VISUAL_OPTIONS.getLabel() + "</code> &gt; <code>"
+                          + AppOption.SHOW_OVERRIDES_IN.getLabel() + "</code>.)",
+                      AppOption.HIGHLIGHT_OVERRIDDEN),
+                  OptionCheckBox.create(AppOption.CACHE_OVERRIDE.getName(), AppOption.CACHE_OVERRIDE.getLabel(),
+                      "With this option enabled Near Infinity checks whether resources have been overridden every time a "
+                      + "resource has been requested."
+                      + "<p>If this option is disabled then Near Infinity will only check for the existence of overridden "
+                      + "resources after opening a new game or using the command \"Refresh Tree\" (Shortcut: <code>F5</code>).</p>",
+                      AppOption.CACHE_OVERRIDE),
+                  OptionCheckBox.create(AppOption.IDS_SYMBOL_DISPLAY.getName(), AppOption.IDS_SYMBOL_DISPLAY.getLabel(),
+                      "With this option enabled IDS entries with multiple symbolic names will display the last available "
+                      + "symbol in scripts, effects, and other resources."
+                      + "<p>Disable this option to show the first available symbolic name instead.</p>"
+                      + "<p>You may need to refresh the game (Shortcut: <code>F5</code>) for the option to take effect.</p>",
+                      AppOption.IDS_SYMBOL_DISPLAY)
+              )
+          ),
           OptionCategory.create(Category.TABLE_COLUMNS,
               OptionGroup.createDefault(
                   OptionCheckBox.create(AppOption.TABLE_SHOW_OFFSETS.getName(), AppOption.TABLE_SHOW_OFFSETS.getLabel(),
@@ -167,47 +219,6 @@ public class PreferencesDialog extends JDialog {
                       + "from within Near Infinity.",
                   AppOption.LAUNCH_GAME_ALLOWED)
               .setOnCreated(this::launchGameAllowedOnCreated),
-              OptionCheckBox.create(AppOption.IGNORE_OVERRIDE.getName(), AppOption.IGNORE_OVERRIDE.getLabel(),
-                  "With this option enabled Near Infinity ignores resources in the override folder if they are also "
-                      + "present in biff archives.",
-                  AppOption.IGNORE_OVERRIDE),
-              OptionCheckBox.create(AppOption.IGNORE_READ_ERRORS.getName(), AppOption.IGNORE_READ_ERRORS.getLabel(),
-                  "With this option enabled Near Infinity shows a message box when a resource cannot be read. "
-                      + "Otherwise, a message is printed to the status bar and debug console.",
-                  AppOption.IGNORE_READ_ERRORS),
-              OptionCheckBox.create(AppOption.SHOW_UNKNOWN_RESOURCES.getName(), AppOption.SHOW_UNKNOWN_RESOURCES.getLabel(),
-                  "With this option enabled Near Infinity shows unknown or unsupported resources in their own type "
-                      + "folder in the resource tree.",
-                  AppOption.SHOW_UNKNOWN_RESOURCES),
-              OptionCheckBox.create(AppOption.SHOW_TREE_SEARCH_NAMES.getName(), AppOption.SHOW_TREE_SEARCH_NAMES.getLabel(),
-                  "With this option enabled Near Infinity shows the search name of resources in the resource tree "
-                      + "in parentheses if available, such as creature, item or spell names.",
-                  AppOption.SHOW_TREE_SEARCH_NAMES),
-              OptionCheckBox.create(AppOption.SHOW_RESOURCE_TREE_ICONS.getName(), AppOption.SHOW_RESOURCE_TREE_ICONS.getLabel(),
-                  "With this option enabled Near Infinity shows icons alongside names in the resource tree for BMP, ITM "
-                      + "and SPL resources."
-                      + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
-                      + "noticeable lags on slower systems.</p>",
-                      AppOption.SHOW_RESOURCE_TREE_ICONS),
-              OptionCheckBox.create(AppOption.SHOW_RESOURCE_LIST_ICONS.getName(), AppOption.SHOW_RESOURCE_LIST_ICONS.getLabel(),
-                  "With this option enabled Near Infinity shows icons alongside names in resource selection lists and "
-                      + "tables for BMP, ITM and SPL resources as well as portrait thumbnails for characters in GAM resources."
-                      + "<p><strong>Caution:</strong> Enabling this option may result in increased memory usage and "
-                      + "noticeable lags on slower systems.</p>",
-                  AppOption.SHOW_RESOURCE_LIST_ICONS),
-              OptionCheckBox.create(AppOption.HIGHLIGHT_OVERRIDDEN.getName(), AppOption.HIGHLIGHT_OVERRIDDEN.getLabel(),
-                  "If checked, files that are listed in the <em>chitin.key</em> and are also available in the "
-                      + "Override folder, will be shown in <strong>bold</strong> in the resource tree."
-                      + "<p><strong>Note:</strong> This setting has no effect if overridden files are only shown in "
-                      + "the override folder (see <code>" + Category.VISUAL_OPTIONS.getLabel() + "</code> &gt; <code>"
-                      + AppOption.SHOW_OVERRIDES_IN.getLabel() + "</code>.)",
-                  AppOption.HIGHLIGHT_OVERRIDDEN),
-              OptionCheckBox.create(AppOption.CACHE_OVERRIDE.getName(), AppOption.CACHE_OVERRIDE.getLabel(),
-                  "With this option enabled Near Infinity checks whether resources have been overridden every time a "
-                  + "resource has been requested."
-                  + "<p>If this option is disabled then Near Infinity will only check for the existence of overridden "
-                  + "resources after opening a new game or using the command \"Refresh Tree\" (Shortcut: <code>F5</code>).</p>",
-                  AppOption.CACHE_OVERRIDE),
               OptionCheckBox.create(AppOption.KEEP_VIEW_ON_COPY.getName(), AppOption.KEEP_VIEW_ON_COPY.getLabel(),
                   "With this option enabled the resource tree will keep the original resource selected after performing "
                       + "the \"Add Copy Of\" operation on the resource. Otherwise, the new resource is selected instead.",

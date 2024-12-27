@@ -159,6 +159,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOW_RESOURCE_TREE_ICONS  = "ShowResourceTreeIcons";
   public static final String OPTION_HIGHLIGHT_OVERRIDDEN      = "HighlightOverridden";
   public static final String OPTION_CACHEOVERRIDE             = "CacheOverride";
+  public static final String OPTION_IDS_SYMBOL_DISPLAY        = "IdsSymbolDisplay";
   public static final String OPTION_KEEPVIEWONCOPY            = "UpdateTreeOnCopy";
   public static final String OPTION_SHOWSTRREFS               = "ShowStrrefs";
   public static final String OPTION_SHOWCOLOREDSTRUCTURES     = "ShowColoredStructures";
@@ -484,6 +485,14 @@ public class OptionsMenuItem extends JMenuItem {
   /** Returns whether the "Autocheck for Overrides" option is enabled. */
   public boolean cacheOverride() {
     return AppOption.CACHE_OVERRIDE.getBoolValue();
+  }
+
+  /**
+   * Returns whether the last available symbolic name of an IDS entry is used for display if multiple definitions are
+   * available.
+   */
+  public boolean showLastIdsSymbol() {
+    return AppOption.IDS_SYMBOL_DISPLAY.getBoolValue();
   }
 
   /** Returns whether the "Add copy of" operation keeps the original resource selected. */
