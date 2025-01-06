@@ -547,6 +547,19 @@ public final class ViewerUtil {
     return l;
   }
 
+  /** Returns a specialized JLabel control containing a clickable link for opening help about regular expressions. */
+  public static JLabel createRegexpHelpLabel() {
+    final String text = "Help";
+    final String url = "https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html#sum";
+    JLabel l = new JLabel("<html>(<a href=\"" + url + "\">" + text + "</a>)</html>", SwingConstants.LEADING);
+    l.addMouseListener(new UrlBrowser(url));
+    l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    l.setToolTipText(url);
+    final Font f = l.getFont();
+    l.setFont(f.deriveFont(f.getSize2D() * 0.8f));
+    return l;
+  }
+
   /**
    * Creates a functional object that derives a {@link StructEntry} instance with the specified {@code attrName}
    * from a given {@link StructEntry} input object.

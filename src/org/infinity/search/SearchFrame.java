@@ -44,6 +44,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
@@ -70,6 +71,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JTextField tfield = new JTextField(10);
   private final JCheckBox cbCaseSensitive = new JCheckBox("Match case");
   private final JCheckBox cbRegex = new JCheckBox("Use regular expressions");
+  private final JLabel lRegexHelp = ViewerUtil.createRegexpHelpLabel();
   private final JCheckBox cbInvert = new JCheckBox("Invert match");
 
   public SearchFrame() {
@@ -144,16 +146,21 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     rbpanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Find:"),
         BorderFactory.createEmptyBorder(3, 6, 3, 3)));
 
-    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
-    optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
     cbCaseSensitive.setMnemonic('m');
     cbCaseSensitive.setToolTipText("Search text is matched case-sensitive. Can be used in combination with regular expressions.");
     cbRegex.setMnemonic('r');
     cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
     cbInvert.setMnemonic('v');
     cbInvert.setToolTipText("Add to results list on mismatch.");
+
+    JPanel regexpPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    regexpPanel.add(cbRegex);
+    regexpPanel.add(lRegexHelp);
+
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 4));
+    optionsPanel.setBorder(BorderFactory.createTitledBorder("Options:"));
     optionsPanel.add(cbCaseSensitive);
-    optionsPanel.add(cbRegex);
+    optionsPanel.add(regexpPanel);
     optionsPanel.add(cbInvert);
 
     JPanel pane = (JPanel) getContentPane();

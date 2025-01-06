@@ -108,6 +108,7 @@ public class FilterInput extends ChildFrame {
   private JCheckBox cbStructureRecursive;
   private JCheckBox cbStructureRegex;
   private JCheckBox cbStructureGroup;
+  private JLabel lStructureRegexHelp;
 
   private JPanel pFieldInput;
   private CardLayout clFieldInput;
@@ -118,6 +119,7 @@ public class FilterInput extends ChildFrame {
   private JFormattedTextField ftfFieldOffsetInput;
   private JCheckBox cbFieldNameCase;
   private JCheckBox cbFieldNameRegex;
+  private JLabel lFieldNameRegexHelp;
   private JPopupMenu menuFieldOffset;
 
   private JPanel pValueInput;
@@ -130,6 +132,7 @@ public class FilterInput extends ChildFrame {
   private ButtonPopupWindow bpwValueBitfield;
   private JCheckBox cbValueStringCase;
   private JCheckBox cbValueStringRegex;
+  private JLabel lValueStringRegexHelp;
   private JCheckBox cbValueNumberRange;
   private JPopupMenu menuValueNumberMin;
   private JPopupMenu menuValueNumberMax;
@@ -310,7 +313,8 @@ public class FilterInput extends ChildFrame {
     bStructureEdit.addActionListener(listeners);
     cbStructureRecursive = new JCheckBox("Recursive");
     cbStructureRecursive.setToolTipText("Search in substructures as well (only available if field is searched by name");
-    cbStructureRegex = new JCheckBox("Use regular expression");
+    cbStructureRegex = new JCheckBox("Use regular expressions");
+    lStructureRegexHelp = ViewerUtil.createRegexpHelpLabel();
     cbStructureGroup = new JCheckBox("Group filters");
     cbStructureGroup
         .setToolTipText("Restrict matches of filters with identical structure levels to the same substructure.");
@@ -320,9 +324,13 @@ public class FilterInput extends ChildFrame {
     pStructureButtons.add(bStructureEdit);
     pStructureButtons.add(bStructureRemove);
 
+    JPanel pStructureRegex = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    pStructureRegex.add(cbStructureRegex);
+    pStructureRegex.add(lStructureRegexHelp);
+
     JPanel pStructureOptionsPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 0, 4));
     pStructureOptionsPanel.add(cbStructureRecursive);
-    pStructureOptionsPanel.add(cbStructureRegex);
+    pStructureOptionsPanel.add(pStructureRegex);
     pStructureOptionsPanel.add(cbStructureGroup);
 
     JPanel pStructureButtonPanel = new JPanel(new GridBagLayout());
@@ -370,12 +378,13 @@ public class FilterInput extends ChildFrame {
     JLabel lFieldName = new JLabel("Field name:");
     tfFieldName = new JTextField();
     cbFieldNameCase = new JCheckBox("Match case");
-    cbFieldNameRegex = new JCheckBox("Use regular expression");
+    cbFieldNameRegex = new JCheckBox("Use regular expressions");
+    lFieldNameRegexHelp = ViewerUtil.createRegexpHelpLabel();
     JPanel pFieldName = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
     pFieldName.add(lFieldName, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+    c = ViewerUtil.setGBC(c, 0, 1, 3, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(4, 0, 0, 0), 0, 0);
     pFieldName.add(tfFieldName, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
@@ -384,6 +393,9 @@ public class FilterInput extends ChildFrame {
     c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(4, 4, 0, 0), 0, 0);
     pFieldName.add(cbFieldNameRegex, c);
+    c = ViewerUtil.setGBC(c, 2, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+        new Insets(4, 0, 0, 0), 0, 0);
+    pFieldName.add(lFieldNameRegexHelp, c);
 
     JLabel lFieldOffset = new JLabel("Field offset:");
     ftfFieldOffsetInput = new JFormattedTextField(
@@ -442,9 +454,10 @@ public class FilterInput extends ChildFrame {
     // text input
     tfValueStringInput = new JTextField();
     cbValueStringCase = new JCheckBox("Match case");
-    cbValueStringRegex = new JCheckBox("Use regular expression");
+    cbValueStringRegex = new JCheckBox("Use regular expressions");
+    lValueStringRegexHelp = ViewerUtil.createRegexpHelpLabel();
     JPanel pValueString = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+    c = ViewerUtil.setGBC(c, 0, 0, 3, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
     pValueString.add(tfValueStringInput, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
@@ -453,9 +466,11 @@ public class FilterInput extends ChildFrame {
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(8, 4, 0, 0), 0, 0);
     pValueString.add(cbValueStringRegex, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+    c = ViewerUtil.setGBC(c, 2, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 0, 0, 0), 0, 0);
+    pValueString.add(lValueStringRegexHelp, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 3, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
-    pValueString.add(new JPanel(), c);
 
     // numeric input
     ftfValueInputMin = new JFormattedTextField(
