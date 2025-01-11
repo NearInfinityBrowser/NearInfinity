@@ -325,7 +325,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, 0, 4, COMMON_SIGNATURE));
-    TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);
+    final TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);
     boolean isV10 = version.getText().equalsIgnoreCase("V1  ");
     boolean isV11 = version.getText().equalsIgnoreCase("V1.1");
     boolean isV20 = version.getText().equalsIgnoreCase("V2.0");
@@ -397,14 +397,15 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
     }
     addField(new DecNumber(buffer, 96, 4, ITM_ENCHANTMENT));
-    SectionOffset abilOffset = new SectionOffset(buffer, 100, ITM_OFFSET_ABILITIES, Ability.class);
+    final SectionOffset abilOffset = new SectionOffset(buffer, 100, ITM_OFFSET_ABILITIES, Ability.class);
     addField(abilOffset);
-    SectionCount abilCount = new SectionCount(buffer, 104, 2, ITM_NUM_ABILITIES, Ability.class);
+    final SectionCount abilCount = new SectionCount(buffer, 104, 2, ITM_NUM_ABILITIES, Ability.class);
     addField(abilCount);
-    SectionOffset globalOffset = new SectionOffset(buffer, 106, ITM_OFFSET_EFFECTS, Effect.class);
+    final SectionOffset globalOffset = new SectionOffset(buffer, 106, ITM_OFFSET_EFFECTS, Effect.class);
     addField(globalOffset);
-    addField(new DecNumber(buffer, 110, 2, ITM_FIRST_EFFECT_INDEX));
-    SectionCount globalCount = new SectionCount(buffer, 112, 2, ITM_NUM_GLOBAL_EFFECTS, Effect.class);
+    final DecNumber globalIndex = new DecNumber(buffer, 110, 2, ITM_FIRST_EFFECT_INDEX);
+    addField(globalIndex);
+    final SectionCount globalCount = new SectionCount(buffer, 112, 2, ITM_NUM_GLOBAL_EFFECTS, Effect.class);
     addField(globalCount);
 
     if (isV11) {
@@ -423,19 +424,25 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       offset = abilities[i].getEndOffset();
       addField(abilities[i]);
     }
+    int endOffset = offset;
 
-    int offset2 = globalOffset.getValue();
+    final int effectSize = (new Effect()).getSize();
+    offset = globalOffset.getValue() + effectSize * globalIndex.getValue();
     for (int i = 0; i < globalCount.getValue(); i++) {
-      Effect eff = new Effect(this, buffer, offset2, i);
-      offset2 = eff.getEndOffset();
+      Effect eff = new Effect(this, buffer, offset, i);
+      offset = eff.getEndOffset();
       addField(eff);
     }
+    endOffset = Math.max(endOffset, offset);
 
     for (final Ability ability : abilities) {
-      offset2 = ability.readEffects(buffer, offset2);
+      final IsNumeric abilIndex = (IsNumeric) ability.getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX);
+      offset = globalOffset.getValue() + effectSize * abilIndex.getValue();
+      offset = ability.readEffects(buffer, offset);
+      endOffset = Math.max(endOffset, offset);
     }
 
-    return Math.max(offset, offset2);
+    return endOffset;
   }
 
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value) {
