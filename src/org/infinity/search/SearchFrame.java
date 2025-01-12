@@ -37,6 +37,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -45,6 +46,7 @@ import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
@@ -274,18 +276,13 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
   @Override
   public void run() {
-    list.setEnabled(false);
-    tfield.setEnabled(false);
-    list.clearSelection();
-    bsearch.setEnabled(false);
-    bopen.setEnabled(false);
-    bopennew.setEnabled(false);
-    binsert.setEnabled(false);
-    list.setListData(new ResourceWrapper[] {});
-    rbcre.setEnabled(false);
-    rbitm.setEnabled(false);
-    rbspl.setEnabled(false);
-    rbsto.setEnabled(false);
+    final WindowBlocker blocker = new WindowBlocker(this);
+    SwingUtilities.invokeLater(() -> {
+      blocker.setBlocked(true);
+      list.clearSelection();
+      list.setListData(new ResourceWrapper[0]);
+      bsearch.setEnabled(false);
+    });
 
     try {
       if (tfield.getText().isEmpty()) {
@@ -325,8 +322,10 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
       List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
       List<ResourceWrapper> found = new ArrayList<>();
-      cards.show(bpanel, "Progress");
-      progress.setMaximum(resources.size());
+      SwingUtilities.invokeLater(() -> {
+        cards.show(bpanel, "Progress");
+        progress.setMaximum(resources.size());
+      });
       for (int i = 0, size = resources.size(); i < size; i++) {
         final ResourceEntry entry = resources.get(i);
         final String string = entry.getSearchString();
@@ -348,24 +347,25 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
           found.add(new ResourceWrapper(entry));
         }
 
-        progress.setValue(i + 1);
+        final int index = i + 1;
+        SwingUtilities.invokeLater(() -> progress.setValue(index));
       }
-      cards.show(bpanel, "Button");
-      progress.setValue(0);
+      SwingUtilities.invokeLater(() -> {
+        cards.show(bpanel, "Button");
+        progress.setValue(0);
 
-      list.ensureIndexIsVisible(0);
-      if (!found.isEmpty()) {
-        Collections.sort(found);
-        list.setListData(found.toArray(new ResourceWrapper[0]));
-        list.setEnabled(true);
-      }
+        list.ensureIndexIsVisible(0);
+        if (!found.isEmpty()) {
+          Collections.sort(found);
+          list.setListData(found.toArray(new ResourceWrapper[0]));
+          list.setEnabled(true);
+        }
+      });
     } finally {
-      rbcre.setEnabled(true);
-      rbitm.setEnabled(true);
-      rbspl.setEnabled(true);
-      rbsto.setEnabled(true);
-      tfield.setEnabled(true);
-      bsearch.setEnabled(true);
+      SwingUtilities.invokeLater(() -> {
+        bsearch.setEnabled(true);
+        blocker.setBlocked(false);
+      });
     }
   }
 
