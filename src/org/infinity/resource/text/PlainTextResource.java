@@ -482,7 +482,7 @@ public class PlainTextResource
       int endOfs = editor.getLineEndOffset(linenr - 1);
       if (highlightText != null) {
         String text = editor.getText(startOfs, endOfs - startOfs);
-        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE);
+        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
         Matcher m = p.matcher(text);
         if (m.find()) {
           startOfs += m.start();

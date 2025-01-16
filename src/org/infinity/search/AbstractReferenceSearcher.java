@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -124,6 +126,31 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
       }
       advanceProgress();
     };
+  }
+
+  /**
+   * Registers all matches of a variable number of regular expression patterns in a string.
+   *
+   * @param entry    Resource in which match is found.
+   * @param content  Text content of the resource.
+   * @param patterns A variable number of {@link Pattern} objects that are used to find matches in {@code content}.
+   */
+  void registerTextHits(ResourceEntry entry, String content, Pattern... patterns) {
+    if (entry == null || content == null || patterns.length == 0) {
+      return;
+    }
+
+    final String[] lines = content.split("\r?\n");
+    for (int i = 0; i < lines.length; i++) {
+      for (final Pattern p : patterns) {
+        if (p != null) {
+          final Matcher m = p.matcher(lines[i]);
+          if (m.find()) {
+            addHit(entry, lines[i].trim(), i + 1);
+          }
+        }
+      }
+    }
   }
 
   /**

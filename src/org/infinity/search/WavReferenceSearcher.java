@@ -5,7 +5,6 @@
 package org.infinity.search;
 
 import java.awt.Component;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.infinity.datatype.ResourceRef;
@@ -13,9 +12,12 @@ import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.bcs.BcsResource;
+import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.StringTable;
+import org.tinylog.Logger;
 
 public final class WavReferenceSearcher extends AbstractReferenceSearcher {
   public WavReferenceSearcher(ResourceEntry targetEntry, Component parent) {
@@ -26,6 +28,8 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher {
   protected void search(ResourceEntry entry, Resource resource) {
     if (resource instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct) resource);
+    } else if (resource instanceof BcsResource) {
+      searchScript(entry, (BcsResource) resource);
     } else if (resource instanceof PlainTextResource) {
       searchText(entry, (PlainTextResource) resource);
     }
@@ -47,11 +51,22 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher {
   }
 
   private void searchText(ResourceEntry entry, PlainTextResource text) {
-    String nameBase = getTargetEntry().getResourceRef();
-    Pattern p = Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE);
-    Matcher m = p.matcher(text.getText());
-    if (m.find()) {
-      addHit(entry, null, null);
+    final String nameBase = getTargetEntry().getResourceRef();
+    registerTextHits(entry, text.getText(), Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE));
+  }
+
+  private void searchScript(ResourceEntry entry, BcsResource bcsFile) {
+    final Decompiler decompiler = new Decompiler(bcsFile.getCode(), true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      final String script = decompiler.decompile();
+      if (decompiler.getResourcesUsed().contains(targetEntry)) {
+        registerTextHits(entry, script,
+            Pattern.compile('"' + targetEntry.getResourceRef() + '"', Pattern.CASE_INSENSITIVE));
+      }
+    } catch (Exception e) {
+      Logger.error(e);
     }
   }
 }

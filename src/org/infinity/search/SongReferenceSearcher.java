@@ -102,7 +102,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher {
     decompiler.setGenerateResourcesUsed(false);
     try {
       String text = decompiler.decompile();
-      searchText(entry, null, text);
+      registerTextHits(entry, text, pattern);
     } catch (Exception e) {
       Logger.error(e);
     }
