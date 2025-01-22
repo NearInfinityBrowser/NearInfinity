@@ -19,8 +19,10 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
+import org.infinity.resource.wmp.viewer.ViewerMap;
+import org.tinylog.Logger;
 
-final public class MapEntry extends AbstractStruct implements HasViewerTabs {
+public class MapEntry extends AbstractStruct implements HasViewerTabs {
   // WMP/MapEntry-specific field labels
   public static final String WMP_MAP                    = "Map";
   public static final String WMP_MAP_RESREF             = "Map";
@@ -38,7 +40,7 @@ final public class MapEntry extends AbstractStruct implements HasViewerTabs {
 
   private static final String[] FLAGS_ARRAY = { "No flags set", "Colored icon", "Ignore palette" };
 
-  MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
+  public MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, WMP_MAP + " " + nr, buffer, offset);
   }
 
@@ -56,7 +58,12 @@ final public class MapEntry extends AbstractStruct implements HasViewerTabs {
 
   @Override
   public JComponent getViewerTab(int index) {
-    return new ViewerMap(this);
+    try {
+      return new ViewerMap(this);
+    } catch (Exception e) {
+      Logger.error(e);
+    }
+    return null;
   }
 
   @Override

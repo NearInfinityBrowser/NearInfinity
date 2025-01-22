@@ -8,15 +8,15 @@ import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
 
-class AreaLinkEast extends AreaLink {
+public class AreaLinkEast extends AreaLink {
   // WMP/AreaLinkEast-specific field labels
   public static final String WMP_LINK_EAST = "East link";
 
-  AreaLinkEast() throws Exception {
+  public AreaLinkEast() throws Exception {
     super(WMP_LINK_EAST);
   }
 
-  AreaLinkEast(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
+  public AreaLinkEast(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception {
     super(superStruct, buffer, offset, WMP_LINK_EAST + " " + number);
   }
 }

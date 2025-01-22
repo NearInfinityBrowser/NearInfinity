@@ -14,7 +14,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.io.StreamUtils;
 
-abstract class AreaLink extends AbstractStruct {
+public abstract class AreaLink extends AbstractStruct {
   // WMP/AreaLink-specific field labels
   public static final String WMP_LINK_TARGET_AREA                   = "Target area";
   public static final String WMP_LINK_TARGET_ENTRANCE               = "Target entrance";
@@ -25,11 +25,11 @@ abstract class AreaLink extends AbstractStruct {
 
   public static final String[] ENTRANCE_ARRAY = { "No default set", "North", "East", "South", "West" };
 
-  AreaLink(String name) throws Exception {
+  public AreaLink(String name) throws Exception {
     super(null, name, StreamUtils.getByteBuffer(216), 0);
   }
 
-  AreaLink(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception {
+  public AreaLink(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception {
     super(superStruct, name, buffer, offset);
   }
 

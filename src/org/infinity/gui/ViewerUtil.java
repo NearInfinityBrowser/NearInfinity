@@ -668,6 +668,11 @@ public final class ViewerUtil {
       return list;
     }
 
+    /** Provides access to the model of the list component. */
+    public SimpleListModel<StructEntry> getListModel() {
+      return listModel;
+    }
+
     @Override
     public void actionPerformed(ActionEvent event) {
       new ViewFrame(getTopLevelAncestor(), (Viewable) list.getSelectedValue());

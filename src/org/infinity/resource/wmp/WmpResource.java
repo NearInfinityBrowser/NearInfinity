@@ -39,7 +39,7 @@ import org.infinity.resource.key.ResourceEntry;
  * <p>
  * A WMP resource must have at least one area entry, and one area link to be considered valid.
  */
-public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs {
+public class WmpResource extends AbstractStruct implements Resource, HasViewerTabs {
   // WMP-specific field labels
   public static final String WMP_NUM_MAPS     = "# maps";
   public static final String WMP_OFFSET_MAPS  = "Maps offset";

@@ -25,7 +25,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Viewable;
 
-final class ViewerArea extends JPanel implements ActionListener {
+class ViewerArea extends JPanel implements ActionListener {
   private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
 
   private JList<Object> list;
@@ -41,7 +41,7 @@ final class ViewerArea extends JPanel implements ActionListener {
     return panel;
   }
 
-  ViewerArea(AreaEntry areaEntry) {
+  public ViewerArea(AreaEntry areaEntry) {
     JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag) areaEntry.getAttribute(AreaEntry.WMP_AREA_FLAGS), 1);
     JPanel infoPane = makeInfoPanel(areaEntry);
     JComponent icon = ViewerUtil.makeBamPanel((ResourceRef) areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),

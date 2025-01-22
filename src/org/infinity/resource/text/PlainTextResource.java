@@ -63,8 +63,7 @@ public class PlainTextResource
 
   protected final String text;
 
-  private final ButtonPanel buttonPanel = new ButtonPanel();
-
+  private ButtonPanel buttonPanel;
   private JMenuItem iFindAll;
   private JMenuItem iFindThis;
   private JMenuItem miFormatTrim;
@@ -528,6 +527,7 @@ public class PlainTextResource
       editor.setWrapStyleWord(true);
     }
 
+    buttonPanel = new ButtonPanel();
     iFindAll = new JMenuItem("in all " + ext + " files");
     iFindThis = new JMenuItem("in this file only");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
