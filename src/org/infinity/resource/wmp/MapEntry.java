@@ -5,6 +5,9 @@
 package org.infinity.resource.wmp;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -39,6 +42,8 @@ public class MapEntry extends AbstractStruct implements HasViewerTabs {
   public static final String WMP_MAP_ICONS              = "Map icons";
 
   private static final String[] FLAGS_ARRAY = { "No flags set", "Colored icon", "Ignore palette" };
+
+  private List<AreaEntry> areaCache;
 
   public MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, WMP_MAP + " " + nr, buffer, offset);
@@ -103,9 +108,29 @@ public class MapEntry extends AbstractStruct implements HasViewerTabs {
       AreaEntry areaEntry = new AreaEntry(this, buffer, curOfs, i);
       curOfs = areaEntry.getEndOffset();
       addField(areaEntry);
+      addCachedArea(areaEntry);
       areaEntry.readLinks(buffer, linkOffset);
     }
 
     return offset + 128 + 56;
+  }
+
+  /** Provides quick read access to available {@link AreaEntry} instances. */
+  public List<AreaEntry> getCachedAreas() {
+    ensureCachedArea();
+    return Collections.unmodifiableList(areaCache);
+  }
+
+  private void addCachedArea(AreaEntry areaEntry) {
+    ensureCachedArea();
+    if (areaEntry != null) {
+      areaCache.add(areaEntry);
+    }
+  }
+
+  private void ensureCachedArea() {
+    if (areaCache == null) {
+      areaCache = new ArrayList<>();
+    }
   }
 }

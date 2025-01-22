@@ -11,6 +11,7 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
+import org.infinity.datatype.WmpLinkBitmap;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.io.StreamUtils;
 
@@ -35,7 +36,8 @@ public abstract class AreaLink extends AbstractStruct {
 
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
-    addField(new DecNumber(buffer, offset, 4, WMP_LINK_TARGET_AREA));
+//    addField(new DecNumber(buffer, offset, 4, WMP_LINK_TARGET_AREA));
+    addField(new WmpLinkBitmap(buffer, offset, 4, WMP_LINK_TARGET_AREA));
     addField(new TextString(buffer, offset + 4, 32, WMP_LINK_TARGET_ENTRANCE));
     addField(new DecNumber(buffer, offset + 36, 4, WMP_LINK_DISTANCE_SCALE));
     addField(new Flag(buffer, offset + 40, 4, WMP_LINK_DEFAULT_ENTRANCE, ENTRANCE_ARRAY));
