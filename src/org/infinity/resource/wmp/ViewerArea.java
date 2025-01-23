@@ -47,13 +47,13 @@ class ViewerArea extends JPanel implements ActionListener {
     JComponent icon = ViewerUtil.makeBamPanel((ResourceRef) areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),
         ((IsNumeric) areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(), 0);
     JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class,
-        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+        AreaLink.WMP_LINK_TARGET_AREA);
     JPanel linkPanelS = ViewerUtil.makeListPanel("South links", areaEntry, AreaLinkSouth.class,
-        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+        AreaLink.WMP_LINK_TARGET_AREA);
     JPanel linkPanelW = ViewerUtil.makeListPanel("West links", areaEntry, AreaLinkWest.class,
-        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+        AreaLink.WMP_LINK_TARGET_AREA);
     JPanel linkPanelE = ViewerUtil.makeListPanel("East links", areaEntry, AreaLinkEast.class,
-        AreaLink.WMP_LINK_TARGET_ENTRANCE);
+        AreaLink.WMP_LINK_TARGET_AREA);
 
     JPanel linkPanel = new JPanel(new GridLayout(2, 2, 6, 6));
     linkPanel.add(linkPanelN);
