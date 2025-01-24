@@ -28,6 +28,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.JTextComponent;
 
@@ -369,7 +370,7 @@ public class QuickSearch extends JPanel implements Runnable {
             keyword = keyword.toUpperCase(Locale.ENGLISH);
             MapTree<Character, List<ResourceEntry>> node = resourceTree;
             for (int i = 0, size = keyword.length(); i < size; i++) {
-              MapTree<Character, List<ResourceEntry>> newNode = node.getChild(keyword.charAt(i));
+              final MapTree<Character, List<ResourceEntry>> newNode = node.getChild(keyword.charAt(i));
               if (newNode == null) {
                 node = generateNode(node, keyword.charAt(i));
               } else {
@@ -378,42 +379,33 @@ public class QuickSearch extends JPanel implements Runnable {
             }
 
             // setting matching resource entries
-            DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>) cbSearch.getModel();
+            final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
 
             // Deactivating listeners to prevent autoselecting items
-            ListDataListener[] listeners = cbModel.getListDataListeners();
+            final ListDataListener[] listeners = cbModel.getListDataListeners();
             for (int i = listeners.length - 1; i >= 0; i--) {
               cbModel.removeListDataListener(listeners[i]);
             }
 
-            cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
-            cbModel.removeAllElements();
-            if (!keyword.isEmpty() && node.getValue() != null) {
-              List<ResourceEntry> list = node.getValue();
-              for (ResourceEntry resourceEntry : list) {
-                cbModel.addElement(resourceEntry);
+            final MapTree<Character, List<ResourceEntry>> curNode = node;
+            SwingUtilities.invokeLater(() -> {
+              cbModel.removeAllElements();
+              if (!keyword.isEmpty() && curNode.getValue() != null) {
+                final List<ResourceEntry> list = curNode.getValue();
+                for (final ResourceEntry resourceEntry : list) {
+                  cbModel.addElement(resourceEntry);
+                }
               }
-            }
 
-            // Reactivating listeners
-            for (ListDataListener listener : listeners) {
-              cbModel.addListDataListener(listener);
-            }
+              // Reactivating listeners
+              for (final ListDataListener listener : listeners) {
+                cbModel.addListDataListener(listener);
+              }
 
-            cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
-            if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
-              cbSearch.showPopup();
-            } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
-              cbSearch.hidePopup();
-            }
+              cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
+              cbSearch.setPopupVisible(cbModel.getSize() != 0);
+            });
           }
-          // } else if (command == Command.Clear) {
-          // // reset data
-          // synchronized(monitor) {
-          // command = Command.Idle;
-          // clearResourceTree(resourceTree);
-          // ((DefaultComboBoxModel)cbSearch.getModel()).removeAllElements();
-          // ((JTextComponent)cbSearch.getEditor().getEditorComponent()).setText("");
         }
       } else {
         // nothing else to do?
