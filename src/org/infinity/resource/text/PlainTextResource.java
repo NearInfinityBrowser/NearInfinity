@@ -520,6 +520,8 @@ public class PlainTextResource
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
+    editor.setOpenResrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenResourceMenuEnabled());
+    editor.setOpenStrrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenStrrefMenuEnabled());
 
     final String ext = entry.getExtension();
     if ("BIO".equals(ext) || "RES".equals(ext)) {

@@ -160,6 +160,8 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_HIGHLIGHT_OVERRIDDEN      = "HighlightOverridden";
   public static final String OPTION_CACHEOVERRIDE             = "CacheOverride";
   public static final String OPTION_IDS_SYMBOL_DISPLAY        = "IdsSymbolDisplay";
+  public static final String OPTION_OPEN_RESOURCE_TEXT_MENU   = "OpenResourceTextMenu";
+  public static final String OPTION_OPEN_STRREF_TEXT_MENU     = "OpenStrrefTextMenu";
   public static final String OPTION_KEEPVIEWONCOPY            = "UpdateTreeOnCopy";
   public static final String OPTION_SHOWSTRREFS               = "ShowStrrefs";
   public static final String OPTION_SHOWCOLOREDSTRUCTURES     = "ShowColoredStructures";
@@ -493,6 +495,22 @@ public class OptionsMenuItem extends JMenuItem {
    */
   public boolean showLastIdsSymbol() {
     return AppOption.IDS_SYMBOL_DISPLAY.getBoolValue();
+  }
+
+  /**
+   * Returns whether text resources should provide a context menu entry for opening resources based on the current
+   * text selection or cursor position.
+   */
+  public boolean getOpenResourceMenuEnabled() {
+    return AppOption.OPEN_RESOURCE_TEXT_MENU.getBoolValue();
+  }
+
+  /**
+   * Returns whether text resources should provide a context menu entry for opening string references based on the
+   * current text selection or cursor position.
+   */
+  public boolean getOpenStrrefMenuEnabled() {
+    return AppOption.OPEN_STRREF_TEXT_MENU.getBoolValue();
   }
 
   /** Returns whether the "Add copy of" operation keeps the original resource selected. */

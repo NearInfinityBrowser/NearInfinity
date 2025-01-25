@@ -154,6 +154,10 @@ public class AppOption {
   /** Menu Options: ShowLastIdsSymbol (Boolean, Default: true) */
   public static final AppOption IDS_SYMBOL_DISPLAY = new AppOption(OptionsMenuItem.OPTION_IDS_SYMBOL_DISPLAY,
       "Use last available IDS symbol for display", true);
+  public static final AppOption OPEN_RESOURCE_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_RESOURCE_TEXT_MENU,
+      "Add \"Open resource\" option to text resource context menus", true);
+  public static final AppOption OPEN_STRREF_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_STRREF_TEXT_MENU,
+      "Add \"Open strref\" option to text resource context menus", true);
 
   // Category: Table Columns
   /** Menu Options > Show Table Columns: ShowOffsets (Boolean, Default: true) */

@@ -186,7 +186,17 @@ public class PreferencesDialog extends JDialog {
                       + "symbol in scripts, effects, and other resources."
                       + "<p>Disable this option to show the first available symbolic name instead.</p>"
                       + "<p>You may need to refresh the game (Shortcut: <code>F5</code>) for the option to take effect.</p>",
-                      AppOption.IDS_SYMBOL_DISPLAY)
+                      AppOption.IDS_SYMBOL_DISPLAY),
+                  OptionCheckBox.create(AppOption.OPEN_RESOURCE_TEXT_MENU.getName(), AppOption.OPEN_RESOURCE_TEXT_MENU.getLabel(),
+                      "With this option enabled text resources will provide an \"Open resource\" entry in the context menu "
+                      + "that allows you to opens a game resource matching the current text selection or the word under "
+                      + "the cursor position.",
+                      AppOption.OPEN_RESOURCE_TEXT_MENU),
+                  OptionCheckBox.create(AppOption.OPEN_STRREF_TEXT_MENU.getName(), AppOption.OPEN_STRREF_TEXT_MENU.getLabel(),
+                      "With this option enabled text resources will provide an \"Open strref\" entry in the context menu "
+                      + "that allows you to opens a string reference matching the current text selection or the word under "
+                      + "the cursor position.",
+                      AppOption.OPEN_STRREF_TEXT_MENU)
               )
           ),
           OptionCategory.create(Category.TABLE_COLUMNS,
