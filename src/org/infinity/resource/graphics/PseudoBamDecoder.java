@@ -1259,6 +1259,11 @@ public class PseudoBamDecoder extends BamDecoder {
       final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
       for (PseudoBamFrameEntry listFrame : listFrames) {
+        // TODO: fix frame images of >=1024 pixels not being correctly laid out by the binpacking algorithm
+        if (listFrame.frame.getWidth() >= 1024 || listFrame.frame.getHeight() >= 1024) {
+          throw new Exception("Frame sizes of 1024 pixel or higher are currently not supported.");
+        }
+
         int imgWidth = listFrame.frame.getWidth() + 2;
         int imgHeight = listFrame.frame.getHeight() + 2;
 
