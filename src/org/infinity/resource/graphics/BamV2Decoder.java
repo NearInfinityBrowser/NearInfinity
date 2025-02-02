@@ -454,6 +454,23 @@ public class BamV2Decoder extends BamDecoder {
 
           PvrDecoder decoder = getPVR(page);
           if (decoder != null) {
+            // sanity checks
+            if (srcX + w > decoder.getInfo().getWidth()) {
+              Logger.warn("Texture width definition is out of bounds: definition: (x1={}, x2={}), texture width: {} pixels, texture: {}",
+                  srcX, srcX + w, decoder.getInfo().getWidth(), String.format("MOS%04d.PVRZ", page));
+              w = decoder.getInfo().getWidth() - srcX;
+            }
+
+            if (srcY + h > decoder.getInfo().getHeight()) {
+              Logger.warn("Texture height definition is out of bounds: definition: (y1={}, y2={}), texture height: {} pixels, , texture: {}",
+                  srcY, srcY + h, decoder.getInfo().getHeight(), String.format("MOS%04d.PVRZ", page));
+              h = decoder.getInfo().getHeight() - srcY;
+            }
+
+            if (w <= 0 || h <= 0) {
+              continue;
+            }
+
             try {
               BufferedImage srcImage = decoder.decode(srcX, srcY, w, h);
               Graphics2D g = (Graphics2D) frame.getGraphics();
