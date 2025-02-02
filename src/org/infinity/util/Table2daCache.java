@@ -74,15 +74,10 @@ public class Table2daCache {
   public static synchronized Table2da get(ResourceEntry entry, boolean strict) {
     Table2da table = null;
     if (entry != null) {
-      table = MAP.get(entry);
-      if (table == null) {
-        table = new Table2da(entry, strict);
-        if (!table.isEmpty()) {
-          MAP.put(table.getResourceEntry(), table);
-        } else {
-          table = null;
-        }
-      }
+      table = MAP.computeIfAbsent(entry, e -> {
+        final Table2da t = new Table2da(e, strict);
+        return !t.isEmpty() ? t : null;
+      });
     }
     return table;
   }

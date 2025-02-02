@@ -132,6 +132,51 @@ public class Table2da {
     return defaultValue;
   }
 
+  /**
+   * Returns the whole 2DA table definition as a single text string.
+   *
+   * @return 2DA table as {@code String}.
+   * @see PlainTextResource#alignTableColumnsCompact(String)
+   * @see PlainTextResource#alignTableColumnsUniform(String)
+   */
+  public String assemble() {
+    final String nl = "\r\n";
+    final String space = Misc.generate(4, ' ');
+    final StringBuilder sb = new StringBuilder(256);
+
+    // signature
+    sb.append("2DA V1.0").append(nl);
+
+    // default value
+    sb.append(defaultValue.getValue()).append(nl);
+
+    // table header
+    for (final Entry entry : header) {
+      sb.append(space).append(entry.getValue());
+    }
+    sb.append(nl);
+
+    // table data
+    for (final List<Entry> rowList : table) {
+      for (int col = 0, colCount = rowList.size(); col < colCount; col++) {
+        if (col > 0) {
+          sb.append(space);
+        }
+        sb.append(rowList.get(col).getValue());
+      }
+      sb.append(nl);
+    }
+    sb.append(nl);
+
+    return sb.toString();
+  }
+
+  @Override
+  public String toString() {
+    return "2DA V1.0 [columnCount=" + columnCount + ", rowCount=" + getRowCount() + ", defaultValue="
+        + defaultValue.getValue() + "]";
+  }
+
   private void init(ResourceEntry entry) {
     table.clear();
 
