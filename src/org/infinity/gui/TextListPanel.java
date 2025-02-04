@@ -325,18 +325,25 @@ public class TextListPanel<E> extends JPanel
       return (int) (w1 - w2);
     }).orElse(null);
     if (item != null) {
-      int cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
-      cw += c.getInsets().left;
-      cw += c.getInsets().right;
-      if (includeScrollBar) {
-        int sbWidth;
-        try {
-          sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
-        } catch (Exception ex) {
-          // not all l&f styles provide UIManager value
-          sbWidth = (new JScrollBar(Adjustable.VERTICAL)).getWidth();
+      int cw = 0;
+      final Component comp = list.getCellRenderer().getListCellRendererComponent(list, item, 0, false, false);
+      if (comp != null) {
+        cw = comp.getPreferredSize().width;
+      }
+      if (cw <= 0) {
+        cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
+        cw += c.getInsets().left;
+        cw += c.getInsets().right;
+        if (includeScrollBar) {
+          int sbWidth;
+          try {
+            sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
+          } catch (Exception ex) {
+            // not all l&f styles provide UIManager value
+            sbWidth = (new JScrollBar(Adjustable.VERTICAL)).getWidth();
+          }
+          cw += sbWidth;
         }
-        cw += sbWidth;
       }
       Dimension d = c.getPreferredSize();
       d.width = cw;
