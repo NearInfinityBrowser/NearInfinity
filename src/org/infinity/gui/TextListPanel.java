@@ -44,15 +44,27 @@ import org.infinity.datatype.IwdRef;
 import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.IconCache;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
+import org.infinity.util.PortraitIconCache;
 
 public class TextListPanel<E> extends JPanel
     implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener {
+  /** Supported icon types that can be used by text list panels. */
+  public enum IconType {
+    /** Indicates that no icon should be rendered in list item labels. */
+    NONE,
+    /** Indicates that resource-specific icons should be rendered in list item labels. */
+    RESOURCE,
+    /** Indicates that portrait icons should be rendered in list item labels. */
+    PORTRAIT,
+  }
+
   private static boolean filterEnabled = false;
 
   private final FilteredListModel<E> listmodel = new FilteredListModel<>(filterEnabled);
@@ -64,20 +76,30 @@ public class TextListPanel<E> extends JPanel
   private final boolean sortValues;
 
   public TextListPanel(List<? extends E> values) {
-    this(values, true, false);
+    this(values, true, IconType.NONE);
   }
 
   public TextListPanel(List<? extends E> values, boolean sortValues) {
-    this(values, sortValues, false);
+    this(values, sortValues, IconType.NONE);
   }
 
-  public TextListPanel(List<? extends E> values, boolean sortValues, boolean showIcons) {
+  public TextListPanel(List<? extends E> values, boolean sortValues, IconType iconType) {
     super(new BorderLayout());
     this.sortValues = sortValues;
     setValues(values);
-    if (showIcons) {
-      list.setCellRenderer(new IconCellRenderer());
+
+    if (iconType != null) {
+      switch (iconType) {
+        case RESOURCE:
+          list.setCellRenderer(new IconCellRenderer());
+          break;
+        case PORTRAIT:
+          list.setCellRenderer(new PortraitIconCellRenderer());
+          break;
+        default:
+      }
     }
+
     list.setModel(listmodel);
     list.setSelectedIndex(0);
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -339,6 +361,10 @@ public class TextListPanel<E> extends JPanel
 
   // -------------------------- INNER CLASSES --------------------------
 
+  /**
+   * Specialization of the {@link DefaultListCellRenderer} that fetches and displays a BMP or BAM icon associated with
+   * the specified list entry.
+   */
   private static class IconCellRenderer extends DefaultListCellRenderer {
     public IconCellRenderer() {
       super();
@@ -371,6 +397,31 @@ public class TextListPanel<E> extends JPanel
             setIcon(IconCache.getIcon(iconEntry, IconCache.getDefaultListIconSize(), defIcon));
           }
         }
+      }
+      return this;
+    }
+  }
+
+  /**
+   * Specialization of the {@link DefaultListCellRenderer} that fetches and displays a portrait icon associated with the
+   * specified list entry.
+   */
+  private static class PortraitIconCellRenderer extends DefaultListCellRenderer {
+    public PortraitIconCellRenderer() {
+      super();
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      if (PortraitIconCache.isIconsAvailable()) {
+        setIcon(PortraitIconCache.get(index, true));
+        final int gap = (Profile.getEngine() == Profile.Engine.IWD2) ? 2 : 6;
+        setIconTextGap(gap);
+      } else {
+        setIcon(null);
+        setIconTextGap(0);
       }
       return this;
     }
