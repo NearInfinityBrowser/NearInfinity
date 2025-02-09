@@ -57,30 +57,53 @@ public final class ProRef extends ResourceBitmap {
   private static synchronized List<RefEntry> createProMissileRefList() {
     if (PRO_MISSILE_LIST.isEmpty()) {
       // preparing cached list
-      IdsMap mslMap = IdsMapCache.get("MISSILE.IDS");
-      IdsMap proMap = IdsMapCache.get("PROJECTL.IDS");
+      final IdsMap mslMap;  // Note: file may not exist
+      if (ResourceFactory.resourceExists("MISSILE.IDS")) {
+        mslMap = IdsMapCache.get("MISSILE.IDS");
+      } else {
+        mslMap = null;
+      }
+      final IdsMap proMap = IdsMapCache.get("PROJECTL.IDS");
 
-      int maxSize = Math.max(mslMap.size(), proMap.size());
+      int maxSize = proMap.size();
+      if (mslMap != null) {
+        maxSize = Math.max(maxSize, mslMap.size());
+      }
       PRO_MISSILE_LIST.ensureCapacity(2 + maxSize);
 
-      if (mslMap.get(0L) == null) {
+      if (mslMap == null || mslMap.get(0L) == null) {
         PRO_MISSILE_LIST.add(new RefEntry(0L, "None", "Default"));
       }
-      if (mslMap.get(1L) == null) {
+
+      if (mslMap == null || mslMap.get(1L) == null) {
         PRO_MISSILE_LIST.add(new RefEntry(1L, "None", "None"));
       }
 
-      for (final Long key : mslMap.getKeys()) {
-        long k = key;
-        IdsMapEntry mslEntry = mslMap.get(k);
-        IdsMapEntry proEntry = proMap.get(k - 1L);
-        final RefEntry entry;
-        if (proEntry != null) {
-          entry = new RefEntry(k, proEntry.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO", mslEntry.getSymbol());
-        } else {
-          entry = new RefEntry(key, "None", mslEntry.getSymbol());
+      if (mslMap != null) {
+        for (final Long key : mslMap.getKeys()) {
+          final long k = key;
+          final IdsMapEntry mslEntry = mslMap.get(k);
+          final IdsMapEntry proEntry = proMap.get(k - 1L);
+          final RefEntry entry;
+          if (proEntry != null) {
+            entry = new RefEntry(k, proEntry.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO", mslEntry.getSymbol());
+          } else {
+            entry = new RefEntry(key, "None", mslEntry.getSymbol());
+          }
+          PRO_MISSILE_LIST.add(entry);
         }
-        PRO_MISSILE_LIST.add(entry);
+      } else {
+        for (final Long key : proMap.getKeys()) {
+          final long k = key;
+          final IdsMapEntry proEntry = proMap.get(k);
+          final RefEntry entry;
+          if (proEntry != null) {
+            entry = new RefEntry(k + 1, proEntry.getSymbol().toUpperCase(Locale.ROOT) + ".PRO", proEntry.getSymbol());
+          } else {
+            entry = new RefEntry(k + 1, "None", "None");
+          }
+          PRO_MISSILE_LIST.add(entry);
+        }
       }
     }
     return PRO_MISSILE_LIST;
