@@ -93,7 +93,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
    * @return a {@link List} containing (optional) header, stat, value and relation entries.
    * @throws Exception if the parse operation failed.
    */
-  public static List<SplProtEntry> decodeFilter(String filter, boolean includeHeader) throws Exception {
+  private static List<SplProtEntry> decodeFilter(String filter, boolean includeHeader) throws Exception {
     if (filter == null) {
       return null;
     }
@@ -106,7 +106,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
       String token = tokens[i].toLowerCase();
       final int radix = (token.contains("0x")) ? 16 : 10;
       token = token.replace("0x", "");
-      SplProtEntry entry = null;
+      SplProtEntry entry;
       try {
         entry = new SplProtEntry(Long.parseLong(token, radix));
       } catch (NumberFormatException e) {
@@ -165,14 +165,14 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
   /**
    * Creates a splprot filter definition from the specified parameters.
    *
-   * @param autoLabel Specify {@code true} to auto-generate a descriptive label for the filter definition. Specify
-   *                    {@code false} to add a simple numeric index instead.
-   * @param stat      stat or extended stat index.
-   * @param value     {@code VALUE} parameter of the given stat.
-   * @param relation  {@code RELATION} parameter of the given stat.
+   * @param autoLabel     Specify {@code true} to auto-generate a descriptive label for the filter definition. Specify
+   *                        {@code false} to add a simple numeric index instead.
+   * @param statEntry     stat or extended stat index.
+   * @param valueEntry    {@code VALUE} parameter of the given stat.
+   * @param relationEntry {@code RELATION} parameter of the given stat.
    * @return Filter definition string if successful, {@code null} otherwise.
    */
-  public static String encodeFilter(boolean autoLabel, SplProtEntry statEntry, SplProtEntry valueEntry,
+  private static String encodeFilter(boolean autoLabel, SplProtEntry statEntry, SplProtEntry valueEntry,
       SplProtEntry relationEntry) {
     // filter label
     final Table2da table = Table2daCache.get(SPLPROT_NAME);
@@ -211,7 +211,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
    * @return Descriptive label as string.
    */
   private static String getAutoLabel(int index, long stat, long value, long relation) {
-    String label = Integer.toString(index) + "_";
+    String label = index + "_";
     switch ((int)stat) {
       case 0x100: // Source is target
         label += "SOURCE";
@@ -383,22 +383,23 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
   }
 
   /** Returns the {@link SplProtStatControls} instance. */
-  public SplProtStatControls getStatControls() {
+  @SuppressWarnings("unused")
+  private SplProtStatControls getStatControls() {
     return statControls;
   }
 
   /** Returns the {@link SplProtValueControls} instance. */
-  public SplProtValueControls getValueControls() {
+  private SplProtValueControls getValueControls() {
     return (SplProtValueControls)statControls.getParameter(SplProtStatControls.ParameterType.VALUE, true);
   }
 
   /** Returns the {@link SplProtRelationControls} instance. */
-  public SplProtRelationControls getRelationControls() {
+  private SplProtRelationControls getRelationControls() {
     return (SplProtRelationControls)statControls.getParameter(SplProtStatControls.ParameterType.RELATION, true);
   }
 
   /** Displays a message in the status bar until for a duration based on the message length. */
-  public void setMessage(String message) {
+  private void setMessage(String message) {
     final int delay = 2000 + (Objects.nonNull(message) ? message.length() * 100 : 0);
     setMessage(message, delay);
   }
@@ -410,7 +411,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
    * @param delayMs Delay, in milliseconds, until the message is cleared. Specify 0 or a negative value for permanent
    *                  display.
    */
-  public void setMessage(String message, int delayMs) {
+  private void setMessage(String message, int delayMs) {
     if (messageTimer != null) {
       messageTimer.stop();
       messageTimer = null;
@@ -593,7 +594,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
               JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
           switch (choice) {
             case JOptionPane.YES_OPTION:  // Adjust
-              label = Long.toString(rowIndex) + label.substring(match.length());
+              label = rowIndex + label.substring(match.length());
               break;
             case JOptionPane.NO_OPTION:   // Keep
               break;
@@ -601,7 +602,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
               return false;
           }
         }
-      } catch (NumberFormatException ex) {
+      } catch (NumberFormatException ignored) {
       }
     }
 
@@ -699,7 +700,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
     filterInput.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
     // force TAB and SHIFT+TAB as regular input
     filterInput.setFocusTraversalKeysEnabled(false);
-    filterInput.getDocument().putProperty(PlainDocument.tabSizeAttribute, Integer.valueOf(4));
+    filterInput.getDocument().putProperty(PlainDocument.tabSizeAttribute, 4);
     filterInput.getDocument().addDocumentListener(this);
     filterInput.addKeyListener(new KeyAdapter() {
       @Override
@@ -845,16 +846,15 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
             // remove "tab size" space characters
             pos -= tabSize;
             doc.remove(pos, tabSize);
-            processed = true;
           }
         }
-      } catch (BadLocationException | IndexOutOfBoundsException e1) {
+      } catch (BadLocationException | IndexOutOfBoundsException ignored) {
       }
     } else {
       // Tab
       try {
         doc.insertString(pos, "\t", null);
-      } catch (BadLocationException e1) {
+      } catch (BadLocationException ignored) {
       }
     }
   }
@@ -1109,8 +1109,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
 
     @Override
     protected JTextField createEditorComponent() {
-      final JTextField retVal = new JTextField("", 9);
-      return retVal;
+      return new JTextField("", 9);
     }
 
     @Override
@@ -1372,7 +1371,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      * @see SplProtEntry#isValid()
      */
     public SplProtEntry getParameter() {
-      SplProtEntry retVal = null;
+      SplProtEntry retVal;
 
       Object item = getParameterBox().getSelectedItem();
       if (item instanceof SplProtEntry) {
@@ -1524,15 +1523,14 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      */
     public static List<SplProtEntry> createList(Number[] items, boolean showAsHex, int minDigits) {
       if (items != null) {
-        final String key = Integer.toHexString(items.hashCode());
-        final List<SplProtEntry> list = LIST_CACHE.computeIfAbsent(key, s -> {
+        final String key = Integer.toHexString(Arrays.hashCode(items));
+        return LIST_CACHE.computeIfAbsent(key, s -> {
           final List<SplProtEntry> retVal = new ArrayList<>(items.length);
           for (final Number item : items) {
             retVal.add(new SplProtEntry(item.longValue(), showAsHex, minDigits));
           }
           return retVal;
         });
-        return list;
       }
       return Collections.emptyList();
     }
@@ -1562,7 +1560,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
       final IdsMap idsMap = IdsMapCache.get(idsFile);
       if (idsMap != null) {
         final String key = idsFile.toLowerCase();
-        final List<SplProtEntry> list = LIST_CACHE.computeIfAbsent(key, s -> {
+        return LIST_CACHE.computeIfAbsent(key, s -> {
           final List<SplProtEntry> retVal = new ArrayList<>(idsMap.size());
           for (final long value : idsMap.getKeys()) {
             final IdsMapEntry entry = idsMap.get(value);
@@ -1572,7 +1570,6 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
           }
           return retVal;
         });
-        return list;
       }
       return Collections.emptyList();
     }
@@ -1599,7 +1596,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      */
     public static List<SplProtEntry> createSplProtTableList() {
       final String key = SPLPROT_NAME.toLowerCase();
-      final List<SplProtEntry> list = LIST_CACHE.computeIfAbsent(key, s -> {
+      return LIST_CACHE.computeIfAbsent(key, s -> {
         final String[] types = SpellProtType.getTypeTable();
         final List<SplProtEntry> retVal = new ArrayList<>(types.length);
         for (int i = 0; i < types.length; i++) {
@@ -1607,7 +1604,6 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
         }
         return retVal;
       });
-      return list;
     }
 
     /**
@@ -1629,7 +1625,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      */
     public static List<SplProtEntry> createRelationList(boolean equalOnly) {
       final String key = equalOnly ? "equalrelations" : "allrelations";
-      final List<SplProtEntry> list = LIST_CACHE.computeIfAbsent(key, s -> {
+      return LIST_CACHE.computeIfAbsent(key, s -> {
         final List<SplProtEntry> retVal = new ArrayList<>(equalOnly ? 2 : SpellProtType.RELATION_ARRAY.length);
         if (equalOnly) {
           retVal.add(new SplProtEntry(1, SpellProtType.RELATION_ARRAY[1]));
@@ -1641,7 +1637,6 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
         }
         return retVal;
       });
-      return list;
     }
   }
 
@@ -1657,7 +1652,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      * @return {@link SplProtEntry} instance if match is found, {@code null} otherwise.
      */
     public static SplProtEntry getValueOf(int stat, long value) {
-      SplProtEntry retVal = null;
+      SplProtEntry retVal;
 
       switch (stat) {
         case 0x100: // Source is target
@@ -1712,7 +1707,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
 
     /** Used internally to fetch a matching {@link SplProtEntry} from the given list. */
     private static SplProtEntry findValueOf(List<SplProtEntry> entryList, long value) {
-      SplProtEntry retVal = null;
+      SplProtEntry retVal;
 
       if (entryList != null && !entryList.isEmpty()) {
         // shortcut: we only need the general format parameters
@@ -1849,7 +1844,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
      * @return {@link SplProtEntry} instance if match is found, {@code null} otherwise.
      */
     public static SplProtEntry getRelationOf(int stat, long relation) {
-      SplProtEntry retVal = null;
+      SplProtEntry retVal;
 
       switch (stat) {
         case 0x100: // Source is target
@@ -2018,7 +2013,7 @@ public class SplProtFrame extends ChildFrame implements ActionListener, Document
             pos2++;
           }
           input = input.substring(0, pos1) + input.substring(pos2);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
         }
       }
 
