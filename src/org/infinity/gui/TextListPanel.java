@@ -21,6 +21,7 @@ import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -414,8 +415,16 @@ public class TextListPanel<E> extends JPanel
    * specified list entry.
    */
   private static class PortraitIconCellRenderer extends DefaultListCellRenderer {
+    /** Max. icon height for using magnified icon version. */
+    private final int maxIconHeight;
+    /** Space between icon and text in list item labels. */
+    private final int iconGap;
+
     public PortraitIconCellRenderer() {
       super();
+      final boolean isIWD2 = (Profile.getEngine() == Profile.Engine.IWD2);
+      this.maxIconHeight = isIWD2 ? 10 + 5 : 13 + 6;  // using 150 percent of default icon height
+      this.iconGap = isIWD2 ? 2 : 6;
     }
 
     @Override
@@ -423,9 +432,12 @@ public class TextListPanel<E> extends JPanel
         boolean cellHasFocus) {
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       if (PortraitIconCache.isIconsAvailable()) {
-        setIcon(PortraitIconCache.get(index, true));
-        final int gap = (Profile.getEngine() == Profile.Engine.IWD2) ? 2 : 6;
-        setIconTextGap(gap);
+        ImageIcon icon = PortraitIconCache.get(index, true);
+        if (icon != null && icon.getIconHeight() > 2 * maxIconHeight) {
+          icon = PortraitIconCache.get(index, false);
+        }
+        setIcon(icon);
+        setIconTextGap(iconGap);
       } else {
         setIcon(null);
         setIconTextGap(0);
