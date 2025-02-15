@@ -175,27 +175,27 @@ public class BamV2Decoder extends BamDecoder {
         // evaluating header data
         int framesCount = bamBuffer.getInt(8);
         if (framesCount <= 0) {
-          throw new Exception("Invalid number of frames");
+          throw new Exception("Invalid number of frames: " + framesCount);
         }
         int cyclesCount = bamBuffer.getInt(0x0c);
         if (cyclesCount <= 0) {
-          throw new Exception("Invalid number of cycles");
+          throw new Exception("Invalid number of cycles: " + cyclesCount);
         }
         numDataBlocks = bamBuffer.getInt(0x10);
         if (numDataBlocks <= 0) {
-          throw new Exception("Invalid number of data blocks");
+          throw new Exception("Invalid number of data blocks: " + numDataBlocks);
         }
         int ofsFrames = bamBuffer.getInt(0x14);
         if (ofsFrames < 0x20) {
-          throw new Exception("Invalid frames offset");
+          throw new Exception("Invalid frames offset: " + Integer.toHexString(ofsFrames) + " h");
         }
         int ofsCycles = bamBuffer.getInt(0x18);
         if (ofsCycles < 0x20) {
-          throw new Exception("Invalid cycles offset");
+          throw new Exception("Invalid cycles offset: " + Integer.toHexString(ofsCycles) + " h");
         }
         int ofsBlocks = bamBuffer.getInt(0x1c);
         if (ofsBlocks < 0x20) {
-          throw new Exception("Invalid data blocks offset");
+          throw new Exception("Invalid data blocks offset: " + Integer.toHexString(ofsBlocks) + " h");
         }
 
         int ofs = ofsFrames;
