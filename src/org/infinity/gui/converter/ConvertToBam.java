@@ -30,10 +30,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
@@ -48,6 +50,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +116,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
@@ -4005,54 +4007,61 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
   /** Attempts to find the most appropriate DXT compression type based on the source frames. */
   private DxtEncoder.DxtType getAutoDxtType() {
-    DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-
-    PseudoBamControl control = bamDecoder.createControl();
-    control.setMode(BamControl.Mode.SHARED);
-    control.setSharedPerCycle(false);
-    Dimension dim = control.getSharedDimension();
-    control.setMode(BamControl.Mode.INDIVIDUAL);
-    BufferedImage canvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-    boolean typeFound = false;
-    for (int i = 0; i < bamDecoder.frameCount(); i++) {
-      Graphics2D g = canvas.createGraphics();
-      try {
-        g.setComposite(AlphaComposite.Src);
-        g.setColor(ColorConvert.TRANSPARENT_COLOR);
-        g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-      } finally {
-        g.dispose();
-        g = null;
+    // collecting referenced source frames
+    final HashSet<Integer> framesSet = new HashSet<>();
+    final PseudoBamControl control = bamDecoder.createControl();
+    for (int cycleIdx = 0, cycleCount = control.cycleCount(); cycleIdx < cycleCount; cycleIdx++) {
+      for (int frameIdx = 0, frameCount = control.cycleFrameCount(cycleIdx); frameIdx < frameCount; frameIdx++) {
+        final int frameIdxAbs = control.cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);
+        if (frameIdxAbs >= 0) {
+          framesSet.add(frameIdxAbs);
+        }
       }
-      bamDecoder.frameGet(control, i, canvas);
-      dim.width = bamDecoder.getFrameInfo(i).getWidth();
-      dim.height = bamDecoder.getFrameInfo(i).getHeight();
-      int[] buffer = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
-      if (buffer != null) {
-        for (int y = 0; y < dim.height; y++) {
-          int ofs = y * canvas.getWidth();
-          for (int x = 0; x < dim.width; x++, ofs++) {
-            if ((buffer[ofs] & 0xff000000) != 0xff000000 && (buffer[ofs] & 0xff000000) != 0) {
-              dxtType = DxtEncoder.DxtType.DXT5;
-              typeFound = true;
-              break;
+    }
+
+    // scanning frames
+    for (final int frameIdx : framesSet) {
+      final PseudoBamFrameEntry frameEntry = bamDecoder.getFramesList().get(frameIdx);
+      final BufferedImage image = frameEntry.getFrame();
+      final WritableRaster raster = image.getRaster();
+      final Object pixBuf;
+      switch (raster.getTransferType()) {
+        case DataBuffer.TYPE_BYTE:
+          pixBuf = new byte[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+          pixBuf = new short[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_INT:
+          pixBuf = new int[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_FLOAT:
+          pixBuf = new float[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_DOUBLE:
+          pixBuf = new double[raster.getNumDataElements()];
+          break;
+        default:
+          pixBuf = null;
+          Logger.warn("Could not determine color format of frame: " + frameEntry);
+      }
+
+      if (pixBuf != null) {
+        final ColorModel model = image.getColorModel();
+        for (int y = 0, height = image.getHeight(); y < height; y++) {
+          for (int x = 0, width = image.getWidth(); x < width; x++) {
+            raster.getDataElements(x, y, pixBuf);
+            final int alpha = model.getAlpha(pixBuf);
+            if (alpha != 0 && alpha != 255) {
+              return DxtEncoder.DxtType.DXT5;
             }
-          }
-          if (typeFound) {
-            break;
           }
         }
       }
-      buffer = null;
-      if (typeFound) {
-        break;
-      }
     }
-    canvas.flush();
-    canvas = null;
-    control = null;
 
-    return dxtType;
+    return DxtEncoder.DxtType.DXT1;
   }
 
   private List<String> convert() {
