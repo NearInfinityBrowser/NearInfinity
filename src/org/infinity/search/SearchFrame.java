@@ -13,6 +13,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -53,9 +55,9 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Logger;
-import org.infinity.util.Misc;
 
-public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable {
+public final class SearchFrame extends ChildFrame
+    implements ActionListener, ItemListener, ListSelectionListener, Runnable {
 //  private static final SearchFrame SEARCH_FRAME = null;
 
   private final CardLayout cards = new CardLayout();
@@ -75,6 +77,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   private final JCheckBox cbRegex = new JCheckBox("Use regular expressions");
   private final JLabel lRegexHelp = ViewerUtil.createRegexpHelpLabel();
   private final JCheckBox cbInvert = new JCheckBox("Invert match");
+  private final JCheckBox cbIncludeSymbols = new JCheckBox("Include symbols", true);
 
   public SearchFrame() {
     super("Find");
@@ -86,6 +89,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     rbcre.setMnemonic('c');
     rbitm.setMnemonic('i');
     rbspl.setMnemonic('s');
+    rbspl.addItemListener(this);
     rbsto.setMnemonic('t');
     ButtonGroup bg = new ButtonGroup();
     bg.add(rbcre);
@@ -154,6 +158,9 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     cbRegex.setToolTipText("Search text is treated as a regular expression. Use backslash (\\) to escape special characters.");
     cbInvert.setMnemonic('v');
     cbInvert.setToolTipText("Add to results list on mismatch.");
+    cbIncludeSymbols.setMnemonic('y');
+    cbIncludeSymbols.setToolTipText("Include symbolic names of SPL resources in the search.");
+    cbIncludeSymbols.setEnabled(false);
 
     JPanel regexpPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
     regexpPanel.add(cbRegex);
@@ -164,6 +171,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     optionsPanel.add(cbCaseSensitive);
     optionsPanel.add(regexpPanel);
     optionsPanel.add(cbInvert);
+    optionsPanel.add(cbIncludeSymbols);
 
     JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
@@ -228,7 +236,8 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(bpanel, gbc);
     pane.add(bpanel);
 
-    setSize(Misc.getScaledValue(500), Misc.getScaledValue(500));
+    pack();
+    setSize(getSize().width, getSize().height * 3 / 2);
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
@@ -260,6 +269,17 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   }
 
   // --------------------- End Interface ActionListener ---------------------
+
+  // --------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent e) {
+    if (e.getSource() == rbspl) {
+      cbIncludeSymbols.setEnabled(e.getStateChange() == ItemEvent.SELECTED);
+    }
+  }
+
+  // --------------------- End Interface ItemListener ---------------------
 
   // --------------------- Begin Interface ListSelectionListener ---------------------
 
@@ -302,6 +322,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
       final boolean isCase = cbCaseSensitive.isSelected();
       final boolean isInverted = cbInvert.isSelected();
+      final boolean includeSymbols = rbspl.isSelected() && cbIncludeSymbols.isSelected();
       Pattern regex = null;
       if (cbRegex.isSelected()) {
         try {
@@ -317,7 +338,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
       String expr = tfield.getText();
       if (!isCase) {
-        expr = expr.toLowerCase(Locale.ENGLISH);
+        expr = expr.toLowerCase(Locale.ROOT);
       }
 
       List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
@@ -334,8 +355,21 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
           if (regex != null) {
             isMatch = regex.matcher(string).find();
           } else {
-            String text = isCase ? string : string.toLowerCase(Locale.ENGLISH);
+            String text = isCase ? string : string.toLowerCase(Locale.ROOT);
             isMatch = text.contains(expr);
+          }
+        }
+
+        // check symbolic names of spell resources
+        if (!isMatch && includeSymbols) {
+          final String symbol = org.infinity.resource.spl.Viewer.getSymbolicName(entry, false);
+          if (symbol != null) {
+            if (regex != null) {
+              isMatch = regex.matcher(symbol).find();
+            } else {
+              String text = isCase ? symbol : symbol.toLowerCase(Locale.ROOT);
+              isMatch = text.contains(expr);
+            }
           }
         }
 
@@ -409,9 +443,15 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
       String resName = entry.getResourceName();
       String descName = entry.getSearchString();
+      String symbolName = (entry.getExtension().equalsIgnoreCase("SPL"))
+          ? org.infinity.resource.spl.Viewer.getSymbolicName(entry, false)
+          : null;
       String text = resName;
       if (descName != null && !descName.isEmpty()) {
         text += " - " + descName;
+      }
+      if (symbolName != null) {
+        text += " [" + symbolName + "]";
       }
       return text;
     }
