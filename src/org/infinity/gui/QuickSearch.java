@@ -28,7 +28,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.JTextComponent;
 
@@ -387,24 +386,26 @@ public class QuickSearch extends JPanel implements Runnable {
               cbModel.removeListDataListener(listeners[i]);
             }
 
-            final MapTree<Character, List<ResourceEntry>> curNode = node;
-            SwingUtilities.invokeLater(() -> {
-              cbModel.removeAllElements();
-              if (!keyword.isEmpty() && curNode.getValue() != null) {
-                final List<ResourceEntry> list = curNode.getValue();
-                for (final ResourceEntry resourceEntry : list) {
-                  cbModel.addElement(resourceEntry);
-                }
+            cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
+            cbModel.removeAllElements();
+            if (!keyword.isEmpty() && node.getValue() != null) {
+              final List<ResourceEntry> list = node.getValue();
+              for (final ResourceEntry resourceEntry : list) {
+                cbModel.addElement(resourceEntry);
               }
+            }
 
-              // Reactivating listeners
-              for (final ListDataListener listener : listeners) {
-                cbModel.addListDataListener(listener);
-              }
+            // Reactivating listeners
+            for (final ListDataListener listener : listeners) {
+              cbModel.addListDataListener(listener);
+            }
 
-              cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
-              cbSearch.setPopupVisible(cbModel.getSize() != 0);
-            });
+            cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
+            if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
+              cbSearch.showPopup();
+            } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
+              cbSearch.hidePopup();
+            }
           }
         }
       } else {
