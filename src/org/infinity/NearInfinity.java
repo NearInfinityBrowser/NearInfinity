@@ -136,6 +136,7 @@ import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.Operation;
 import org.infinity.util.Platform;
+import org.infinity.util.PortraitIconCache;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
@@ -1239,6 +1240,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (!refreshOnly) {
       CharsetDetector.clearCache();
     }
+    PortraitIconCache.clearCache();
     IconCache.clearCache();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();

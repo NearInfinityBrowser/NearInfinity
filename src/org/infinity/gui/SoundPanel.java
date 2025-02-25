@@ -680,14 +680,22 @@ public class SoundPanel extends JPanel implements Closeable {
     if (runner.isAvailable()) {
       final int duration = (int) runner.getTotalLength();
       progressSlider.setMaximum(duration);
-      if (duration < 45_000) {
+      if (duration < 45_000) {  // 45 seconds or less
         // major: per ten seconds, minor: per second
         progressSlider.setMajorTickSpacing(10_000);
-        progressSlider.setMinorTickSpacing(1000);
-      } else {
-        // major: per minute, minor: per ten seconds
+        progressSlider.setMinorTickSpacing(1_000);
+      } else if (duration < 240_000) {  // 4 minutes or less
+        // major: per 30 seconds, minor: per 3 seconds
         progressSlider.setMajorTickSpacing(30_000);
-        progressSlider.setMinorTickSpacing(5000);
+        progressSlider.setMinorTickSpacing(3_000);
+      } else if (duration < 900_000) {  // 15 minutes or less
+        // major: per 2 minutes, minor: per 12 seconds
+        progressSlider.setMajorTickSpacing(120_000);
+        progressSlider.setMinorTickSpacing(12_000);
+      } else {
+        // major: per 5 minutes, minor: per 30 seconds
+        progressSlider.setMajorTickSpacing(300_000);
+        progressSlider.setMinorTickSpacing(30_000);
       }
       initSliderTickLabels();
     } else {
@@ -717,8 +725,10 @@ public class SoundPanel extends JPanel implements Closeable {
       minSpace = 0;
     } else if (progressSlider.getMaximum() < 45_000) {
       minSpace = spacing * 2 / 3;
-    } else {
+    } else if (progressSlider.getMaximum() < 240_000) {
       minSpace = spacing / 2;
+    } else {
+      minSpace = spacing / 4;
     }
     final int remainingSpace = (progressSlider.getMaximum() - progressSlider.getMinimum()) % spacing;
     if (remainingSpace > minSpace) {

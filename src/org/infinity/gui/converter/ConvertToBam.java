@@ -24,15 +24,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
@@ -47,6 +50,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +65,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DropMode;
+import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -91,12 +96,15 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.DataMenuItem;
 import org.infinity.gui.FixedFocusTraversalPolicy;
@@ -108,7 +116,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
@@ -240,10 +247,16 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   private JButton bMacroReverseFrames;
   private JButton bMacroRemoveAll;
   private JButton bMacroReverseCycles;
+  private JButton bPreviewCycleFirst;
   private JButton bPreviewCyclePrev;
   private JButton bPreviewCycleNext;
+  private JButton bPreviewCycleLast;
+  private ButtonPopupWindow bpwPreviewCycleGoto;
+  private PreviewGotoCyclePanel previewGotoCyclePanel;
+  private JButton bPreviewFrameFirst;
   private JButton bPreviewFramePrev;
   private JButton bPreviewFrameNext;
+  private JButton bPreviewFrameLast;
   private JButton bPreviewPlay;
   private JButton bPreviewStop;
   private JButton bFiltersAdd;
@@ -713,14 +726,29 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       currentCycleMoveUp();
     } else if (event.getSource() == bCurCycleDown) {
       currentCycleMoveDown();
+    } else if (event.getSource() == bPreviewCycleFirst) {
+      previewCycleStart();
     } else if (event.getSource() == bPreviewCyclePrev) {
       previewCycleDown();
     } else if (event.getSource() == bPreviewCycleNext) {
       previewCycleUp();
+    } else if (event.getSource() == bPreviewCycleLast) {
+      previewCycleEnd();
+    } else if (event.getSource() == previewGotoCyclePanel) {
+      if (PreviewGotoCyclePanel.ACTION_ACCEPT.equals(event.getActionCommand())) {
+        previewSetCycle(previewGotoCyclePanel.getValue());
+      }
+      bpwPreviewCycleGoto.hidePopupWindow();
+    } else if (event.getSource() == bpwPreviewCycleGoto) {
+      previewCycleGotoInit();
+    } else if (event.getSource() == bPreviewFrameFirst) {
+      previewFrameStart();
     } else if (event.getSource() == bPreviewFramePrev) {
       previewFrameDown();
     } else if (event.getSource() == bPreviewFrameNext) {
       previewFrameUp();
+    } else if (event.getSource() == bPreviewFrameLast) {
+      previewFrameEnd();
     } else if (event.getSource() == bPreviewPlay) {
       previewPlay();
     } else if (event.getSource() == bPreviewStop) {
@@ -1604,24 +1632,50 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
     // create bottom control bar
     lPreviewCycle = new JLabel("Cycle: X/Y");
+    bPreviewCycleFirst = new JButton(Icons.ICON_FIRST_16.getIcon());
+    bPreviewCycleFirst
+        .setMargin(new Insets(bPreviewCycleFirst.getMargin().top, 8, bPreviewCycleFirst.getMargin().bottom, 8));
+    bPreviewCycleFirst.addActionListener(this);
     bPreviewCyclePrev = new JButton(Icons.ICON_BACK_16.getIcon());
     bPreviewCyclePrev
-        .setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 2, bPreviewCyclePrev.getMargin().bottom, 2));
+        .setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 8, bPreviewCyclePrev.getMargin().bottom, 8));
     bPreviewCyclePrev.addActionListener(this);
     bPreviewCycleNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bPreviewCycleNext
-        .setMargin(new Insets(bPreviewCycleNext.getMargin().top, 2, bPreviewCycleNext.getMargin().bottom, 2));
+        .setMargin(new Insets(bPreviewCycleNext.getMargin().top, 8, bPreviewCycleNext.getMargin().bottom, 8));
     bPreviewCycleNext.addActionListener(this);
+    bPreviewCycleLast = new JButton(Icons.ICON_LAST_16.getIcon());
+    bPreviewCycleLast
+        .setMargin(new Insets(bPreviewCycleLast.getMargin().top, 8, bPreviewCycleLast.getMargin().bottom, 8));
+    bPreviewCycleLast.addActionListener(this);
+
+    // TODO: replace JPanel by a custom "Goto index" input mask
+    previewGotoCyclePanel = new PreviewGotoCyclePanel();
+    previewGotoCyclePanel.addActionListener(this);
+    bpwPreviewCycleGoto = new ButtonPopupWindow("", Icons.ICON_GOTO_24.getIcon(), previewGotoCyclePanel,
+        ButtonPopupWindow.Align.TOP);
+    bpwPreviewCycleGoto
+        .setMargin(new Insets(bpwPreviewCycleGoto.getMargin().top, 4, bpwPreviewCycleGoto.getMargin().bottom, 4));
+    bpwPreviewCycleGoto.setToolTipText("Jump to a specific cycle.");
+    bpwPreviewCycleGoto.addActionListener(this);
 
     lPreviewFrame = new JLabel("Frame: X/Y");
+    bPreviewFrameFirst = new JButton(Icons.ICON_FIRST_16.getIcon());
+    bPreviewFrameFirst
+        .setMargin(new Insets(bPreviewFrameFirst.getMargin().top, 8, bPreviewFrameFirst.getMargin().bottom, 8));
+    bPreviewFrameFirst.addActionListener(this);
     bPreviewFramePrev = new JButton(Icons.ICON_BACK_16.getIcon());
     bPreviewFramePrev
-        .setMargin(new Insets(bPreviewFramePrev.getMargin().top, 2, bPreviewFramePrev.getMargin().bottom, 2));
+        .setMargin(new Insets(bPreviewFramePrev.getMargin().top, 8, bPreviewFramePrev.getMargin().bottom, 8));
     bPreviewFramePrev.addActionListener(this);
     bPreviewFrameNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bPreviewFrameNext
-        .setMargin(new Insets(bPreviewFrameNext.getMargin().top, 2, bPreviewFrameNext.getMargin().bottom, 2));
+        .setMargin(new Insets(bPreviewFrameNext.getMargin().top, 8, bPreviewFrameNext.getMargin().bottom, 8));
     bPreviewFrameNext.addActionListener(this);
+    bPreviewFrameLast = new JButton(Icons.ICON_LAST_16.getIcon());
+    bPreviewFrameLast
+        .setMargin(new Insets(bPreviewFrameLast.getMargin().top, 8, bPreviewFrameLast.getMargin().bottom, 8));
+    bPreviewFrameLast.addActionListener(this);
 
     bPreviewPlay = new JButton("Pause", Icons.ICON_PLAY_16.getIcon());
     bPreviewPlay.setMinimumSize(bPreviewPlay.getPreferredSize());
@@ -1633,25 +1687,40 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 0, 0), 0, 0);
     pControls.add(lPreviewCycle, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
         new Insets(0, 4, 0, 0), 0, 0);
+    pControls.add(bPreviewCycleFirst, c);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewCyclePrev, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
         new Insets(0, 2, 0, 0), 0, 0);
     pControls.add(bPreviewCycleNext, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
-        new Insets(0, 16, 0, 0), 0, 0);
-    pControls.add(lPreviewFrame, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
-        new Insets(0, 4, 0, 0), 0, 0);
-    pControls.add(bPreviewFramePrev, c);
-    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
         new Insets(0, 2, 0, 0), 0, 0);
-    pControls.add(bPreviewFrameNext, c);
+    pControls.add(bPreviewCycleLast, c);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
+    pControls.add(bpwPreviewCycleGoto, c);
     c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 16, 0, 0), 0, 0);
+    pControls.add(lPreviewFrame, c);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 4, 0, 0), 0, 0);
+    pControls.add(bPreviewFrameFirst, c);
+    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 2, 0, 0), 0, 0);
+    pControls.add(bPreviewFramePrev, c);
+    c = ViewerUtil.setGBC(c, 9, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 2, 0, 0), 0, 0);
+    pControls.add(bPreviewFrameNext, c);
+    c = ViewerUtil.setGBC(c, 10, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 2, 0, 0), 0, 0);
+    pControls.add(bPreviewFrameLast, c);
+    c = ViewerUtil.setGBC(c, 11, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+        new Insets(0, 16, 0, 0), 0, 0);
     pControls.add(bPreviewPlay, c);
-    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+    c = ViewerUtil.setGBC(c, 12, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
         new Insets(0, 4, 0, 0), 0, 0);
     pControls.add(bPreviewStop, c);
 
@@ -2191,10 +2260,14 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     previewDisplay();
 
     // updating buttons
+    bPreviewCycleFirst.setEnabled(bamControlPreview.cycleGet() != 0);
     bPreviewCyclePrev.setEnabled(bamControlPreview.cycleGet() > 0);
     bPreviewCycleNext.setEnabled(bamControlPreview.cycleGet() < bamControlPreview.cycleCount() - 1);
+    bPreviewCycleLast.setEnabled(bamControlPreview.cycleGet() != bamControlPreview.cycleCount() - 1);
+    bPreviewFrameFirst.setEnabled(bamControlPreview.cycleGetFrameIndex() != 0);
     bPreviewFramePrev.setEnabled(bamControlPreview.cycleGetFrameIndex() > 0);
     bPreviewFrameNext.setEnabled(bamControlPreview.cycleGetFrameIndex() < bamControlPreview.cycleFrameCount() - 1);
+    bPreviewFrameLast.setEnabled(bamControlPreview.cycleGetFrameIndex() != bamControlPreview.cycleFrameCount() - 1);
     lPreviewCycle
         .setText(String.format("Cycle: %d/%d", bamControlPreview.cycleGet(), bamControlPreview.cycleCount() - 1));
     lPreviewFrame.setText(
@@ -3302,6 +3375,40 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     }
   }
 
+  /** Action for "First cycle" button: selects first cycle index if available. */
+  private void previewCycleStart() {
+    if (bamControlPreview.cycleGet() != 0) {
+      bamControlPreview.cycleSet(0);
+      bamControlPreview.cycleSetFrameIndex(0);
+      updatePreview();
+    }
+  }
+
+  /** Action for "Last cycle" button: selects last cycle index if available. */
+  private void previewCycleEnd() {
+    if (bamControlPreview.cycleGet() != bamControlPreview.cycleCount() - 1) {
+      bamControlPreview.cycleSet(bamControlPreview.cycleCount() - 1);
+      bamControlPreview.cycleSetFrameIndex(0);
+      updatePreview();
+    }
+  }
+
+  /** Initializes the "Goto cycle" panel with the current cycle index. */
+  private void previewCycleGotoInit() {
+    previewGotoCyclePanel.setDefaultValue(bamControlPreview.cycleGet());
+    previewGotoCyclePanel.setValue(previewGotoCyclePanel.getDefaultValue());
+    previewGotoCyclePanel.activate();
+  }
+
+  /** Action for "Goto cycle" button: sets the specified cycle index if available. */
+  private void previewSetCycle(int cycleIdx) {
+    if (cycleIdx != bamControlPreview.cycleGet() && cycleIdx >= 0 && cycleIdx < bamControlPreview.cycleCount()) {
+      bamControlPreview.cycleSet(cycleIdx);
+      bamControlPreview.cycleSetFrameIndex(0);
+      updatePreview();
+    }
+  }
+
   /** Action for "Next frame" button: selects next frame index if available. */
   private void previewFrameUp() {
     if (bamControlPreview.cycleGetFrameIndex() < bamControlPreview.cycleFrameCount() - 1) {
@@ -3314,6 +3421,22 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
   private void previewFrameDown() {
     if (bamControlPreview.cycleGetFrameIndex() > 0) {
       bamControlPreview.cycleSetFrameIndex(bamControlPreview.cycleGetFrameIndex() - 1);
+      updatePreview();
+    }
+  }
+
+  /** Action for "First frame" button: selects first frame index if available. */
+  private void previewFrameStart() {
+    if (bamControlPreview.cycleGetFrameIndex() != 0) {
+      bamControlPreview.cycleSetFrameIndex(0);
+      updatePreview();
+    }
+  }
+
+  /** Action for "Last frame" button: selects last frame index if available. */
+  private void previewFrameEnd() {
+    if (bamControlPreview.cycleGetFrameIndex() != bamControlPreview.cycleFrameCount() - 1) {
+      bamControlPreview.cycleSetFrameIndex(bamControlPreview.cycleFrameCount() - 1);
       updatePreview();
     }
   }
@@ -3884,54 +4007,61 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
   /** Attempts to find the most appropriate DXT compression type based on the source frames. */
   private DxtEncoder.DxtType getAutoDxtType() {
-    DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-
-    PseudoBamControl control = bamDecoder.createControl();
-    control.setMode(BamControl.Mode.SHARED);
-    control.setSharedPerCycle(false);
-    Dimension dim = control.getSharedDimension();
-    control.setMode(BamControl.Mode.INDIVIDUAL);
-    BufferedImage canvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-    boolean typeFound = false;
-    for (int i = 0; i < bamDecoder.frameCount(); i++) {
-      Graphics2D g = canvas.createGraphics();
-      try {
-        g.setComposite(AlphaComposite.Src);
-        g.setColor(ColorConvert.TRANSPARENT_COLOR);
-        g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-      } finally {
-        g.dispose();
-        g = null;
+    // collecting referenced source frames
+    final HashSet<Integer> framesSet = new HashSet<>();
+    final PseudoBamControl control = bamDecoder.createControl();
+    for (int cycleIdx = 0, cycleCount = control.cycleCount(); cycleIdx < cycleCount; cycleIdx++) {
+      for (int frameIdx = 0, frameCount = control.cycleFrameCount(cycleIdx); frameIdx < frameCount; frameIdx++) {
+        final int frameIdxAbs = control.cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);
+        if (frameIdxAbs >= 0) {
+          framesSet.add(frameIdxAbs);
+        }
       }
-      bamDecoder.frameGet(control, i, canvas);
-      dim.width = bamDecoder.getFrameInfo(i).getWidth();
-      dim.height = bamDecoder.getFrameInfo(i).getHeight();
-      int[] buffer = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
-      if (buffer != null) {
-        for (int y = 0; y < dim.height; y++) {
-          int ofs = y * canvas.getWidth();
-          for (int x = 0; x < dim.width; x++, ofs++) {
-            if ((buffer[ofs] & 0xff000000) != 0xff000000 && (buffer[ofs] & 0xff000000) != 0) {
-              dxtType = DxtEncoder.DxtType.DXT5;
-              typeFound = true;
-              break;
+    }
+
+    // scanning frames
+    for (final int frameIdx : framesSet) {
+      final PseudoBamFrameEntry frameEntry = bamDecoder.getFramesList().get(frameIdx);
+      final BufferedImage image = frameEntry.getFrame();
+      final WritableRaster raster = image.getRaster();
+      final Object pixBuf;
+      switch (raster.getTransferType()) {
+        case DataBuffer.TYPE_BYTE:
+          pixBuf = new byte[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+          pixBuf = new short[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_INT:
+          pixBuf = new int[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_FLOAT:
+          pixBuf = new float[raster.getNumDataElements()];
+          break;
+        case DataBuffer.TYPE_DOUBLE:
+          pixBuf = new double[raster.getNumDataElements()];
+          break;
+        default:
+          pixBuf = null;
+          Logger.warn("Could not determine color format of frame: " + frameEntry);
+      }
+
+      if (pixBuf != null) {
+        final ColorModel model = image.getColorModel();
+        for (int y = 0, height = image.getHeight(); y < height; y++) {
+          for (int x = 0, width = image.getWidth(); x < width; x++) {
+            raster.getDataElements(x, y, pixBuf);
+            final int alpha = model.getAlpha(pixBuf);
+            if (alpha != 0 && alpha != 255) {
+              return DxtEncoder.DxtType.DXT5;
             }
-          }
-          if (typeFound) {
-            break;
           }
         }
       }
-      buffer = null;
-      if (typeFound) {
-        break;
-      }
     }
-    canvas.flush();
-    canvas = null;
-    control = null;
 
-    return dxtType;
+    return DxtEncoder.DxtType.DXT1;
   }
 
   private List<String> convert() {
@@ -5848,6 +5978,166 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       pack();
       setMinimumSize(getPreferredSize());
       setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+    }
+  }
+
+  /**
+   * A custom panel for jumping directly to a specific cycle index in the preview tab.
+   */
+  // TODO
+  private static class PreviewGotoCyclePanel extends JPanel {
+    public static final String ACTION_ACCEPT = "VALUE_ACCEPTED";
+    public static final String ACTION_DISCARD = "VALUE_DISCARDED";
+
+    private final InputVerifier inputVerifier = new InputVerifier() {
+      @Override
+      public boolean verify(JComponent input) {
+        if (input instanceof JTextComponent) {
+          final JTextComponent tc = (JTextComponent)input;
+          if (!tc.getText().isEmpty()) {
+            try {
+              Integer.parseInt(tc.getText());
+            } catch (NumberFormatException e) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    };
+
+    private final EventListenerList listenerList = new EventListenerList();
+    private final JLabel label = new JLabel("Go to:");
+    private final JTextField cycleInput = new JTextField(5);
+
+    private int defValue;
+
+    public PreviewGotoCyclePanel() {
+      super(new GridBagLayout());
+      init();
+    }
+
+    /** Returns the default value that is used if the user entered an invalid number. */
+    public int getDefaultValue() {
+      return defValue;
+    }
+
+    /** Assigns a new default value to the panel that is used if the user entered an invalid number. */
+    public void setDefaultValue(int defaultValue) {
+      defValue = defaultValue;
+    }
+
+    /**
+     * Returns the numeric representation of the input field content. Returns the assigned default value if content
+     * could not be parsed.
+     */
+    public int getValue() {
+      return getValue(getDefaultValue());
+    }
+
+    /**
+     * Returns the numeric representation of the input field content. Returns {@code defValue} if content could not be
+     * parsed.
+     */
+    public int getValue(int defValue) {
+      try {
+        return Integer.parseInt(cycleInput.getText());
+      } catch (NumberFormatException e) {
+        return defValue;
+      }
+    }
+
+    /** Assigns a new value to the input field. */
+    public void setValue(int newValue) {
+      cycleInput.setText(Integer.toString(newValue));
+    }
+
+    /** Sets focus to the input field and selects all content. */
+    public void activate() {
+      cycleInput.selectAll();
+      cycleInput.requestFocusInWindow();
+    }
+
+    /**
+     * Registers the specified action listener. An action event is fired if the user presses {@code ENTER} while the
+     * input field has the focus.
+     */
+    public void addActionListener(ActionListener l) {
+      if (l != null) {
+        listenerList.add(ActionListener.class, l);
+      }
+    }
+
+    /**
+     * Unregisters the specified action listener. An action event is fired if the user presses {@code ENTER} while the
+     * input field has the focus.
+     */
+    @SuppressWarnings("unused")
+    public void removeActionListener(ActionListener l) {
+      if ((l != null)) {
+        listenerList.remove(ActionListener.class, l);
+      }
+    }
+
+    /** Returns a list of all registered action listeners. */
+    @SuppressWarnings("unused")
+    public ActionListener[] getActionListeners() {
+      return listenerList.getListeners(ActionListener.class);
+    }
+
+    /** Fires an action event to all registered listeners. */
+    protected void fireActionPerformed(String actionCommand) {
+      Object[] listeners = listenerList.getListenerList();
+      ActionEvent e = null;
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == ActionListener.class) {
+          if (e == null) {
+            e = new ActionEvent(PreviewGotoCyclePanel.this, ActionEvent.ACTION_PERFORMED, actionCommand,
+                System.currentTimeMillis(), 0);
+          }
+          ((ActionListener)listeners[i + 1]).actionPerformed(e);
+        }
+      }
+    }
+
+    /** Initializes UI components. */
+    private void init() {
+      cycleInput.setToolTipText("Change value with UP/DOWN keys. Press SHIFT key to increase step size.");
+      cycleInput.setInputVerifier(inputVerifier);
+      cycleInput.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          switch (e.getKeyCode()) {
+            case KeyEvent.VK_ENTER:
+              fireActionPerformed(ACTION_ACCEPT);
+              break;
+            case KeyEvent.VK_ESCAPE:
+              fireActionPerformed(ACTION_DISCARD);
+              break;
+            case KeyEvent.VK_UP:
+            {
+              final int step = (e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) != 0 ? 10 : 1;
+              setValue(getValue() + step);
+              activate();
+              break;
+            }
+            case KeyEvent.VK_DOWN:
+              final int step = (e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) != 0 ? 10 : 1;
+              setValue(Math.max(0, getValue() - step));
+              activate();
+              break;
+            default:
+          }
+        }
+      });
+
+      GridBagConstraints c = new GridBagConstraints();
+      ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 4, 4, 0), 0, 0);
+      add(label, c);
+      ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+          new Insets(4, 4, 4, 4), 0, 0);
+      add(cycleInput, c);
     }
   }
 }

@@ -48,7 +48,15 @@ public class BufferedResourceEntry extends ResourceEntry {
 
   @Override
   public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception {
-    return buffer;
+    // returns a deep copy
+    final ByteBuffer retVal =
+        buffer.isDirect() ? ByteBuffer.allocateDirect(buffer.capacity()) : ByteBuffer.allocate(buffer.capacity());
+    retVal.order(buffer.order());
+    final ByteBuffer bbRead = buffer.asReadOnlyBuffer();
+    bbRead.position(0);
+    retVal.put(bbRead);
+    retVal.flip();
+    return retVal;
   }
 
   @Override

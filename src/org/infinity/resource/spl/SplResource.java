@@ -68,7 +68,7 @@ public final class SplResource extends AbstractStruct
     implements Resource, HasChildStructs, HasViewerTabs, UpdateListener {
   // SPL-specific field labels
   public static final String SPL_NAME                             = "Spell name";
-  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED + SUFFIX_UNUSED;
+  public static final String SPL_NAME_IDENTIFIED                  = ItmResource.ITM_NAME_IDENTIFIED + SUFFIX_UNUSED;
   public static final String SPL_CASTING_SOUND                    = "Casting sound";
   public static final String SPL_FLAGS                            = "Flags";
   public static final String SPL_TYPE                             = "Spell type";
@@ -81,13 +81,13 @@ public final class SplResource extends AbstractStruct
   public static final String SPL_ICON                             = "Spell icon";
   public static final String SPL_ICON_GROUND                      = "Ground icon";
   public static final String SPL_DESCRIPTION                      = "Spell description";
-  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED + SUFFIX_UNUSED;
-  public static final String SPL_DESCRIPTION_IMAGE                = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IMAGE;
-  public static final String SPL_OFFSET_ABILITIES                 = org.infinity.resource.itm.ItmResource.ITM_OFFSET_ABILITIES;
-  public static final String SPL_NUM_ABILITIES                    = org.infinity.resource.itm.ItmResource.ITM_NUM_ABILITIES;
-  public static final String SPL_OFFSET_EFFECTS                   = org.infinity.resource.itm.ItmResource.ITM_OFFSET_EFFECTS;
-  public static final String SPL_FIRST_EFFECT_INDEX               = org.infinity.resource.itm.ItmResource.ITM_FIRST_EFFECT_INDEX;
-  public static final String SPL_NUM_GLOBAL_EFFECTS               = org.infinity.resource.itm.ItmResource.ITM_NUM_GLOBAL_EFFECTS;
+  public static final String SPL_DESCRIPTION_IDENTIFIED           = ItmResource.ITM_DESCRIPTION_IDENTIFIED + SUFFIX_UNUSED;
+  public static final String SPL_DESCRIPTION_IMAGE                = ItmResource.ITM_DESCRIPTION_IMAGE;
+  public static final String SPL_OFFSET_ABILITIES                 = ItmResource.ITM_OFFSET_ABILITIES;
+  public static final String SPL_NUM_ABILITIES                    = ItmResource.ITM_NUM_ABILITIES;
+  public static final String SPL_OFFSET_EFFECTS                   = ItmResource.ITM_OFFSET_EFFECTS;
+  public static final String SPL_FIRST_EFFECT_INDEX               = ItmResource.ITM_FIRST_EFFECT_INDEX;
+  public static final String SPL_NUM_GLOBAL_EFFECTS               = ItmResource.ITM_NUM_GLOBAL_EFFECTS;
   public static final String SPL_SPELL_DURATION_ROUNDS_PER_LEVEL  = "Spell duration rounds/level";
   public static final String SPL_SPELL_DURATION_BASE              = "Spell duration rounds base";
 
@@ -291,7 +291,7 @@ public final class SplResource extends AbstractStruct
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
-    TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
+    final TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
     addField(new StringRef(buffer, offset + 8, SPL_NAME));
     addField(new StringRef(buffer, offset + 12, SPL_NAME_IDENTIFIED));
@@ -301,7 +301,7 @@ public final class SplResource extends AbstractStruct
     } else {
       addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, SPELL_FLAGS_ARRAY));
     }
-    Bitmap spellType = new Bitmap(buffer, offset + 28, 2, SPL_TYPE, SPELL_TYPE_ARRAY); // 0x1c
+    final Bitmap spellType = new Bitmap(buffer, offset + 28, 2, SPL_TYPE, SPELL_TYPE_ARRAY); // 0x1c
     spellType.addUpdateListener(this);
     addField(spellType);
     addField(new Flag(buffer, offset + 30, 4, SPL_EXCLUSION_FLAGS,
@@ -326,14 +326,15 @@ public final class SplResource extends AbstractStruct
     addField(new StringRef(buffer, offset + 84, SPL_DESCRIPTION_IDENTIFIED));
     addField(new ResourceRef(buffer, offset + 88, SPL_DESCRIPTION_IMAGE, "BAM"));
     addField(new Unknown(buffer, offset + 96, 4, COMMON_UNUSED));
-    SectionOffset abilOffset = new SectionOffset(buffer, offset + 100, SPL_OFFSET_ABILITIES, Ability.class);
+    final SectionOffset abilOffset = new SectionOffset(buffer, offset + 100, SPL_OFFSET_ABILITIES, Ability.class);
     addField(abilOffset);
-    SectionCount abilCount = new SectionCount(buffer, offset + 104, 2, SPL_NUM_ABILITIES, Ability.class);
+    final SectionCount abilCount = new SectionCount(buffer, offset + 104, 2, SPL_NUM_ABILITIES, Ability.class);
     addField(abilCount);
-    SectionOffset globalOffset = new SectionOffset(buffer, offset + 106, SPL_OFFSET_EFFECTS, Effect.class);
+    final SectionOffset globalOffset = new SectionOffset(buffer, offset + 106, SPL_OFFSET_EFFECTS, Effect.class);
     addField(globalOffset);
-    addField(new DecNumber(buffer, offset + 110, 2, SPL_FIRST_EFFECT_INDEX));
-    SectionCount globalCount = new SectionCount(buffer, offset + 112, 2, SPL_NUM_GLOBAL_EFFECTS, Effect.class);
+    final DecNumber globalIndex = new DecNumber(buffer, offset + 110, 2, SPL_FIRST_EFFECT_INDEX);
+    addField(globalIndex);
+    final SectionCount globalCount = new SectionCount(buffer, offset + 112, 2, SPL_NUM_GLOBAL_EFFECTS, Effect.class);
     addField(globalCount);
 
     if (version.toString().equalsIgnoreCase("V2.0")) {
@@ -349,18 +350,25 @@ public final class SplResource extends AbstractStruct
       addField(abilities[i]);
       offset = abilities[i].getEndOffset();
     }
+    int endOffset = offset;
 
-    int offset2 = globalOffset.getValue();
+    final int effectSize = (new Effect()).getSize();
+    offset = globalOffset.getValue() + effectSize * globalIndex.getValue();
     for (int i = 0; i < globalCount.getValue(); i++) {
-      Effect eff = new Effect(this, buffer, offset2, i);
-      offset2 = eff.getEndOffset();
+      Effect eff = new Effect(this, buffer, offset, i);
+      offset = eff.getEndOffset();
       addField(eff);
     }
+    endOffset = Math.max(endOffset, offset);
 
-    for (final Ability ability : abilities)
-      offset2 = ability.readEffects(buffer, offset2);
+    for (final Ability ability : abilities) {
+      final IsNumeric abilIndex = (IsNumeric) ability.getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX);
+      offset = globalOffset.getValue() + effectSize * abilIndex.getValue();
+      offset = ability.readEffects(buffer, offset);
+      endOffset = Math.max(endOffset, offset);
+    }
 
-    return Math.max(offset, offset2);
+    return endOffset;
   }
 
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value) {

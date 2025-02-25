@@ -5,6 +5,9 @@
 package org.infinity.resource.wmp;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -19,8 +22,10 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
+import org.infinity.resource.wmp.viewer.ViewerMap;
+import org.tinylog.Logger;
 
-final public class MapEntry extends AbstractStruct implements HasViewerTabs {
+public class MapEntry extends AbstractStruct implements HasViewerTabs {
   // WMP/MapEntry-specific field labels
   public static final String WMP_MAP                    = "Map";
   public static final String WMP_MAP_RESREF             = "Map";
@@ -38,7 +43,9 @@ final public class MapEntry extends AbstractStruct implements HasViewerTabs {
 
   private static final String[] FLAGS_ARRAY = { "No flags set", "Colored icon", "Ignore palette" };
 
-  MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
+  private List<AreaEntry> areaCache;
+
+  public MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, WMP_MAP + " " + nr, buffer, offset);
   }
 
@@ -56,7 +63,12 @@ final public class MapEntry extends AbstractStruct implements HasViewerTabs {
 
   @Override
   public JComponent getViewerTab(int index) {
-    return new ViewerMap(this);
+    try {
+      return new ViewerMap(this);
+    } catch (Exception e) {
+      Logger.error(e);
+    }
+    return null;
   }
 
   @Override
@@ -96,9 +108,29 @@ final public class MapEntry extends AbstractStruct implements HasViewerTabs {
       AreaEntry areaEntry = new AreaEntry(this, buffer, curOfs, i);
       curOfs = areaEntry.getEndOffset();
       addField(areaEntry);
+      addCachedArea(areaEntry);
       areaEntry.readLinks(buffer, linkOffset);
     }
 
     return offset + 128 + 56;
+  }
+
+  /** Provides quick read access to available {@link AreaEntry} instances. */
+  public List<AreaEntry> getCachedAreas() {
+    ensureCachedArea();
+    return Collections.unmodifiableList(areaCache);
+  }
+
+  private void addCachedArea(AreaEntry areaEntry) {
+    ensureCachedArea();
+    if (areaEntry != null) {
+      areaCache.add(areaEntry);
+    }
+  }
+
+  private void ensureCachedArea() {
+    if (areaCache == null) {
+      areaCache = new ArrayList<>();
+    }
   }
 }

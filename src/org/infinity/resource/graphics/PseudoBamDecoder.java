@@ -882,6 +882,7 @@ public class PseudoBamDecoder extends BamDecoder {
    * @param fileName    The BAM filename. Path is also used for associated PVRZ files.
    * @param dxtType     The desired DXTn compression type to use.
    * @param pvrzIndex   The start index of PVRZ files.
+   * @param overwrite   Specifies whether to overwrite existing pvrz files in the target path.
    * @param progress    An optional progress monitor to display the state of the export progress.
    * @param curProgress The current progress state of the progress monitor.
    * @return {@code true} if the export was successful, {@code false} otherwise.
@@ -889,162 +890,171 @@ public class PseudoBamDecoder extends BamDecoder {
    */
   public boolean exportBamV2(Path fileName, DxtEncoder.DxtType dxtType, int pvrzIndex, boolean overwrite,
       ProgressMonitor progress, int curProgress) throws Exception {
-    final int FrameEntrySize = 12;
-    final int CycleEntrySize = 4;
-    final int BlockEntrySize = 28;
+    if (listFrames.isEmpty() || listCycles.isEmpty()) {
+      return false;
+    }
 
-    if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
-      // sanity checks
-      if (fileName == null) {
-        throw new Exception("Invalid filename specified.");
-      }
-      if (dxtType != DxtEncoder.DxtType.DXT1 && dxtType != DxtEncoder.DxtType.DXT5) {
-        dxtType = DxtEncoder.DxtType.DXT5;
-      }
-      if (pvrzIndex < 0 || pvrzIndex > 99999) {
-        throw new Exception("PVRZ start index is out of range [0..99999].");
-      }
+    final int frameEntrySize = 12;
+    final int cycleEntrySize = 4;
+    final int blockEntrySize = 28;
 
-      // preparing output path for PVRZ files
-      Path pvrzFilePath = fileName.toAbsolutePath().getParent();
-      List<FrameDataV2> listFrameData = new ArrayList<>(listFrames.size());
-      List<BinPack2D> listGrid = new ArrayList<>();
+    // sanity checks
+    if (fileName == null) {
+      throw new Exception("Invalid filename specified.");
+    }
 
-      // initializing progress monitor
-      if (progress != null) {
-        if (curProgress < 0) {
-          curProgress = 0;
-        }
-        progress.setMaximum(progress.getMaximum() + 5);
-        progress.setProgress(curProgress++);
-        progress.setNote("Calculating PVRZ layout");
+    if (dxtType != DxtEncoder.DxtType.DXT1 && dxtType != DxtEncoder.DxtType.DXT5) {
+      dxtType = DxtEncoder.DxtType.DXT5;
+    }
+
+    if (pvrzIndex < 0 || pvrzIndex > 99999) {
+      throw new Exception("PVRZ start index is out of range [0, 99999].");
+    }
+
+    // preparing output path for PVRZ files
+    final Path pvrzFilePath = fileName.toAbsolutePath().getParent();
+    final List<FrameDataV2> listFrameData = new ArrayList<>(listFrames.size());
+    final List<BinPack2D> listGrid = new ArrayList<>();
+
+    // initializing progress monitor
+    if (progress != null) {
+      if (curProgress < 0) {
+        curProgress = 0;
       }
+      progress.setMaximum(progress.getMaximum() + 5);
+      progress.setProgress(curProgress++);
+      progress.setNote("Calculating PVRZ layout");
+    }
 
-      // preparations
-      // generating block data list
-      if (!buildFrameDataList(listFrameData, listGrid, pvrzIndex)) {
-        return false;
-      }
+    // preparations
+    // generating block data list
+    if (!buildFrameDataList(listFrameData, listGrid, pvrzIndex)) {
+      return false;
+    }
 
-      if (!overwrite) {
-        // adjusting pvrz indices
-        final HashMap<Integer, Integer> indexMap = new HashMap<>(Math.max(4, listGrid.size() + listGrid.size() / 2));
-        for (final FrameDataV2 frame : listFrameData) {
-          final int newIndex = indexMap.computeIfAbsent(frame.page, index -> {
-            for (int i = index; i < 100_000; i++) {
-              if (!indexMap.containsValue(i)) {
-                final Path pvrzPath = pvrzFilePath.resolve(getPvrzFileName(i));
-                if (!Files.exists(pvrzPath)) {
-                  return i;
-                }
+    if (!overwrite) {
+      // adjusting pvrz indices
+      final HashMap<Integer, Integer> indexMap = new HashMap<>(Math.max(4, listGrid.size() + listGrid.size() / 2));
+      for (final FrameDataV2 frame : listFrameData) {
+        final int newIndex = indexMap.computeIfAbsent(frame.page, index -> {
+          for (int i = index; i < 100_000; i++) {
+            if (!indexMap.containsValue(i)) {
+              final Path pvrzPath = pvrzFilePath.resolve(getPvrzFileName(i));
+              if (!Files.exists(pvrzPath)) {
+                return i;
               }
             }
-            return -1;
-          });
-          if (newIndex < 0) {
-            throw new Exception("Effective PVRZ index is out of range [0..99999].");
           }
-          frame.page = newIndex;
+          return -1;
+        });
+        if (newIndex < 0) {
+          throw new Exception("Effective PVRZ index is out of range [0..99999].");
         }
+        frame.page = newIndex;
       }
-
-      // generating remaining info blocks
-      List<FrameDataV2> listFrameDataBlocks = new ArrayList<>();
-      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<>();
-      List<Couple<Short, Short>> listCycleData = new ArrayList<>(listCycles.size());
-      int frameStartIndex = 0; // keeps track of current start index of frame entries
-      int blockStartIndex = 0; // keeps track of current start index of frame data blocks
-      for (int i = 0; i < listCycles.size(); i++) {
-        List<Integer> cycleFrames = listCycles.get(i).frames;
-
-        // generating cycle entries
-        Couple<Short, Short> cycle = Couple.with((short) cycleFrames.size(), (short) frameStartIndex);
-        listCycleData.add(cycle);
-
-        for (int idx : cycleFrames) {
-          try {
-            FrameDataV2 frame = listFrameData.get(idx);
-            PseudoBamFrameEntry bfe = listFrames.get(idx);
-
-            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.getCenterX(), bfe.getCenterY());
-            entry.setOption(OPTION_INT_BLOCKINDEX, blockStartIndex);
-            entry.setOption(OPTION_INT_BLOCKCOUNT, 1);
-            listFrameEntries.add(entry);
-            blockStartIndex++;
-            listFrameDataBlocks.add(frame);
-          } catch (IndexOutOfBoundsException e) {
-            throw new IndexOutOfBoundsException(String.format("Invalid frame index %d found in cycle %d", idx, i));
-          }
-        }
-        frameStartIndex += cycleFrames.size();
-      }
-
-      // putting it all together
-      int ofsFrameEntries = 0x20;
-      int ofsCycleEntries = ofsFrameEntries + listFrameEntries.size() * FrameEntrySize;
-      int ofsFrameData = ofsCycleEntries + listCycleData.size() * CycleEntrySize;
-      int bamSize = ofsFrameData + listFrameDataBlocks.size() * BlockEntrySize;
-      byte[] bamData = new byte[bamSize];
-
-      // writing main header
-      System.arraycopy("BAM V2  ".getBytes(), 0, bamData, 0, 8);
-      DynamicArray.putInt(bamData, 0x08, listFrameEntries.size());
-      DynamicArray.putInt(bamData, 0x0c, listCycleData.size());
-      DynamicArray.putInt(bamData, 0x10, listFrameDataBlocks.size());
-      DynamicArray.putInt(bamData, 0x14, ofsFrameEntries);
-      DynamicArray.putInt(bamData, 0x18, ofsCycleEntries);
-      DynamicArray.putInt(bamData, 0x1c, ofsFrameData);
-
-      // writing frame entries
-      int ofs = ofsFrameEntries;
-      Object o;
-      short v;
-      for (PseudoBamFrameEntry fe : listFrameEntries) {
-        DynamicArray.putShort(bamData, ofs, (short) fe.getWidth());
-        DynamicArray.putShort(bamData, ofs + 2, (short) fe.getHeight());
-        DynamicArray.putShort(bamData, ofs + 4, (short) fe.getCenterX());
-        DynamicArray.putShort(bamData, ofs + 6, (short) fe.getCenterY());
-        o = fe.getOption(OPTION_INT_BLOCKINDEX);
-        v = (o != null) ? ((Integer) o).shortValue() : 0;
-        DynamicArray.putShort(bamData, ofs + 8, v);
-        o = fe.getOption(OPTION_INT_BLOCKCOUNT);
-        v = (o != null) ? ((Integer) o).shortValue() : 0;
-        DynamicArray.putShort(bamData, ofs + 10, v);
-        ofs += FrameEntrySize;
-      }
-
-      // writing cycle entries
-      for (Couple<Short, Short> entry : listCycleData) {
-        DynamicArray.putShort(bamData, ofs, entry.getValue0());
-        DynamicArray.putShort(bamData, ofs + 2, entry.getValue1());
-        ofs += CycleEntrySize;
-      }
-
-      // writing frame data blocks
-      for (FrameDataV2 entry : listFrameDataBlocks) {
-        DynamicArray.putInt(bamData, ofs, entry.page);
-        DynamicArray.putInt(bamData, ofs + 4, entry.sx);
-        DynamicArray.putInt(bamData, ofs + 8, entry.sy);
-        DynamicArray.putInt(bamData, ofs + 12, entry.width);
-        DynamicArray.putInt(bamData, ofs + 16, entry.height);
-        DynamicArray.putInt(bamData, ofs + 20, entry.dx);
-        DynamicArray.putInt(bamData, ofs + 24, entry.dy);
-        ofs += BlockEntrySize;
-      }
-
-      // writing BAM to disk
-      try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
-        os.write(bamData);
-      } catch (Exception e) {
-        Logger.error(e);
-        throw e;
-      }
-      bamData = null;
-
-      // generating PVRZ files
-      return createPvrzPages(pvrzFilePath, dxtType, listGrid, listFrameData, progress, curProgress);
     }
-    return false;
+
+    // generating remaining info blocks
+    final List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<>();
+    final List<Couple<Short, Short>> listCycleData = new ArrayList<>(listCycles.size());
+    int frameStartIndex = 0; // keeps track of current start index of frame entries
+    for (int cycleIdx = 0; cycleIdx < listCycles.size(); cycleIdx++) {
+      List<Integer> cycleFrames = listCycles.get(cycleIdx).frames;
+
+      // generating cycle entries
+      final Couple<Short, Short> cycle = Couple.with((short) cycleFrames.size(), (short) frameStartIndex);
+      listCycleData.add(cycle);
+
+      for (int cycleFrame : cycleFrames) {
+        try {
+          final PseudoBamFrameEntry frameEntryAbs = listFrames.get(cycleFrame);
+          final PseudoBamFrameEntry frameEntryRel = new PseudoBamFrameEntry(frameEntryAbs.frame, frameEntryAbs.centerX,
+              frameEntryAbs.centerY);
+          int startBlockIdx = -1;
+          int numBlocks = 0;
+          for (int dataIdx = 0, dataCount = listFrameData.size(); dataIdx < dataCount; dataIdx++) {
+            final FrameDataV2 frameData = listFrameData.get(dataIdx);
+            if (cycleFrame == frameData.frameIdx) {
+              if (startBlockIdx < 0) {
+                startBlockIdx = dataIdx;
+              }
+              numBlocks++;
+            }
+          }
+          frameEntryRel.setOption(OPTION_INT_BLOCKINDEX, startBlockIdx);
+          frameEntryRel.setOption(OPTION_INT_BLOCKCOUNT, numBlocks);
+          listFrameEntries.add(frameEntryRel);
+        } catch (IndexOutOfBoundsException e) {
+          throw new IndexOutOfBoundsException(String.format("Invalid frame index %d found in cycle %d", cycleFrame,
+              cycleIdx));
+        }
+      }
+      frameStartIndex += cycleFrames.size();
+    }
+
+    // putting it all together
+    int ofsFrameEntries = 0x20;
+    int ofsCycleEntries = ofsFrameEntries + listFrameEntries.size() * frameEntrySize;
+    int ofsFrameData = ofsCycleEntries + listCycleData.size() * cycleEntrySize;
+    int bamSize = ofsFrameData + listFrameData.size() * blockEntrySize;
+    final byte[] bamData = new byte[bamSize];
+
+    // writing main header
+    System.arraycopy("BAM V2  ".getBytes(), 0, bamData, 0, 8);
+    DynamicArray.putInt(bamData, 0x08, listFrameEntries.size());
+    DynamicArray.putInt(bamData, 0x0c, listCycleData.size());
+    DynamicArray.putInt(bamData, 0x10, listFrameData.size());
+    DynamicArray.putInt(bamData, 0x14, ofsFrameEntries);
+    DynamicArray.putInt(bamData, 0x18, ofsCycleEntries);
+    DynamicArray.putInt(bamData, 0x1c, ofsFrameData);
+
+    // writing frame entries
+    int ofs = ofsFrameEntries;
+    Object o;
+    short v;
+    for (PseudoBamFrameEntry fe : listFrameEntries) {
+      DynamicArray.putShort(bamData, ofs, (short) fe.getWidth());
+      DynamicArray.putShort(bamData, ofs + 2, (short) fe.getHeight());
+      DynamicArray.putShort(bamData, ofs + 4, (short) fe.getCenterX());
+      DynamicArray.putShort(bamData, ofs + 6, (short) fe.getCenterY());
+      o = fe.getOption(OPTION_INT_BLOCKINDEX);
+      v = (o != null) ? ((Integer) o).shortValue() : 0;
+      DynamicArray.putShort(bamData, ofs + 8, v);
+      o = fe.getOption(OPTION_INT_BLOCKCOUNT);
+      v = (o != null) ? ((Integer) o).shortValue() : 0;
+      DynamicArray.putShort(bamData, ofs + 10, v);
+      ofs += frameEntrySize;
+    }
+
+    // writing cycle entries
+    for (Couple<Short, Short> entry : listCycleData) {
+      DynamicArray.putShort(bamData, ofs, entry.getValue0());
+      DynamicArray.putShort(bamData, ofs + 2, entry.getValue1());
+      ofs += cycleEntrySize;
+    }
+
+    // writing frame data blocks
+    for (FrameDataV2 entry : listFrameData) {
+      DynamicArray.putInt(bamData, ofs, entry.page);
+      DynamicArray.putInt(bamData, ofs + 4, entry.sx);
+      DynamicArray.putInt(bamData, ofs + 8, entry.sy);
+      DynamicArray.putInt(bamData, ofs + 12, entry.width);
+      DynamicArray.putInt(bamData, ofs + 16, entry.height);
+      DynamicArray.putInt(bamData, ofs + 20, entry.dx);
+      DynamicArray.putInt(bamData, ofs + 24, entry.dy);
+      ofs += blockEntrySize;
+    }
+
+    // writing BAM to disk
+    try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
+      os.write(bamData);
+    } catch (Exception e) {
+      Logger.error(e);
+      throw e;
+    }
+
+    // generating PVRZ files
+    return createPvrzPages(pvrzFilePath, dxtType, listGrid, listFrameData, progress, curProgress);
   }
 
   /**
@@ -1254,16 +1264,24 @@ public class PseudoBamDecoder extends BamDecoder {
   // Calculates the locations of all frames on PVRZ textures and stores the results in framesList and gridList.
   private boolean buildFrameDataList(List<FrameDataV2> framesList, List<BinPack2D> gridList, int pvrzPageIndex)
       throws Exception {
-    if (framesList != null && gridList != null && pvrzPageIndex >= 0 && pvrzPageIndex < 99999) {
-      final int pageDim = 1024;
-      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
+    if (framesList == null || gridList == null || pvrzPageIndex < 0 || pvrzPageIndex > 99999) {
+      return false;
+    }
 
-      for (PseudoBamFrameEntry listFrame : listFrames) {
-        int imgWidth = listFrame.frame.getWidth() + 2;
-        int imgHeight = listFrame.frame.getHeight() + 2;
+    final int pageDim = 1024;
+    final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
+    for (int frameIdx = 0, frameCount = listFrames.size(); frameIdx < frameCount; frameIdx++) {
+      final PseudoBamFrameEntry listFrame = listFrames.get(frameIdx);
+      int imgWidth = listFrame.frame.getWidth();
+      int imgHeight = listFrame.frame.getHeight();
+
+      int x = 0, y = 0, pOfs = 0;
+      while (pOfs < imgWidth * imgHeight) {
+        int w = Math.min(pageDim, imgWidth - x);
+        int h = Math.min(pageDim, imgHeight - y);
         // use multiple of 4 to take advantage of texture compression algorithm
-        Dimension space = new Dimension((imgWidth + 3) & ~3, (imgHeight + 3) & ~3);
+        final Dimension space = new Dimension((w + 3) & ~3, (w + 3) & ~3);
         int pageIdx = -1;
         Rectangle rectMatch = null;
         for (int i = 0; i < gridList.size(); i++) {
@@ -1283,19 +1301,26 @@ public class PseudoBamDecoder extends BamDecoder {
           rectMatch = packer.insert(space.width, space.height, binPackRule);
         }
 
-        // registering page entry (centering frame in padded region)
-        FrameDataV2 entry = new FrameDataV2(pvrzPageIndex + pageIdx, rectMatch.x + 1, rectMatch.y + 1, imgWidth - 2,
-            imgHeight - 2, 0, 0);
+        // registering page entry
+        final FrameDataV2 entry = new FrameDataV2(frameIdx, pvrzPageIndex + pageIdx, rectMatch.x, rectMatch.y, w, h, x, y);
         framesList.add(entry);
-      }
 
-      if (pvrzPageIndex + gridList.size() > 100000) {
-        throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n"
-            + "Please choose a PVRZ start index smaller than or equal to %d.", 100000 - gridList.size()));
+        // advance scanning
+        if (x + pageDim >= imgWidth) {
+          x = 0;
+          y += pageDim;
+        } else {
+          x += pageDim;
+        }
+        pOfs = y * imgWidth + x;
       }
-      return true;
     }
-    return false;
+
+    if (pvrzPageIndex + gridList.size() > 100_000) {
+      throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n"
+          + "Please choose a PVRZ start index smaller than or equal to %d.", 100_000 - gridList.size()));
+    }
+    return true;
   }
 
   // Creates all PVRZ files defined in the method arguments.
@@ -1305,15 +1330,15 @@ public class PseudoBamDecoder extends BamDecoder {
       path = FileManager.resolve("");
     }
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
-    byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
+    final byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
     final HashSet<Integer> pageSet = new HashSet<>();
-    for (FrameDataV2 entry : framesList) {
+    for (final FrameDataV2 entry : framesList) {
       pageSet.add(entry.page);
     }
     final List<Integer> pageList = new ArrayList<>(pageSet);
     pageList.sort(null);
 
-    String note = "Generating PVRZ file %s / %s";
+    final String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
       if (curProgress < 0) {
         curProgress = 0;
@@ -1335,7 +1360,12 @@ public class PseudoBamDecoder extends BamDecoder {
 
       final int pageIndex = pageList.get(i);
       final Path pvrzName = path.resolve(getPvrzFileName(pageIndex));
-      final BinPack2D packer = gridList.get(i);
+      final BinPack2D packer;
+      try {
+        packer = gridList.get(i);
+      } catch (IndexOutOfBoundsException e) {
+        throw new IndexOutOfBoundsException("Binpack item index out of range: " + i + " / " + gridList.size());
+      }
       packer.shrinkBin(true);
 
       // generating texture image
@@ -1347,15 +1377,19 @@ public class PseudoBamDecoder extends BamDecoder {
         g.setComposite(AlphaComposite.Src);
         g.setColor(ColorConvert.TRANSPARENT_COLOR);
         g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-        for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
-          final BufferedImage image = listFrames.get(frameIdx).frame;
-          final FrameDataV2 frame = framesList.get(frameIdx);
+        for (final FrameDataV2 frame : framesList) {
           if (frame.page == pageIndex) {
-            int sx = frame.dx, sy = frame.dy;
-            int dx = frame.sx, dy = frame.sy;
-            int w = frame.width, h = frame.height;
-            g.fillRect(dx - 1, dy - 1, w + 2, h + 2); // compensating for padding done in buildFrameDataList()
-            g.drawImage(image, dx, dy, dx + w, dy + h, sx, sy, sx + w, sy + h, null);
+            try {
+              final BufferedImage image = listFrames.get(frame.frameIdx).frame;
+              int sx = frame.dx, sy = frame.dy;
+              int dx = frame.sx, dy = frame.sy;
+              int w = frame.width, h = frame.height;
+              g.fillRect(dx - 1, dy - 1, w + 2, h + 2); // compensating for padding done in buildFrameDataList()
+              g.drawImage(image, dx, dy, dx + w, dy + h, sx, sy, sx + w, sy + h, null);
+            } catch (IndexOutOfBoundsException e) {
+              throw new IndexOutOfBoundsException("Pvrz page index out of range: " + frame.frameIdx + " / " +
+                  listFrames.size());
+            }
           }
         }
       } finally {
@@ -1365,7 +1399,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
       // compressing PVRZ
       String errorMsg = null;
-      int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
+      final int[] textureData = ((DataBufferInt) texture.getRaster().getDataBuffer()).getData();
       try {
         int outSize = DxtEncoder.calcImageSize(texture.getWidth(), texture.getHeight(), dxtType);
         DxtEncoder.encodeImage(textureData, texture.getWidth(), texture.getHeight(), output, dxtType);
@@ -1377,13 +1411,12 @@ public class PseudoBamDecoder extends BamDecoder {
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
 
         // writing PVRZ to disk
-        try (OutputStream os = StreamUtils.getOutputStream(pvrzName, true)) {
+        try (final OutputStream os = StreamUtils.getOutputStream(pvrzName, true)) {
           os.write(pvrz);
         } catch (Exception e) {
           errorMsg = String.format("Error writing PVRZ file \"%s\" to disk.", pvrzName);
           Logger.error(e);
         }
-        textureData = null;
         pvrz = null;
       } catch (Exception e) {
         Logger.error(e);
@@ -1394,7 +1427,6 @@ public class PseudoBamDecoder extends BamDecoder {
         throw new Exception(errorMsg);
       }
     }
-    output = null;
     return true;
   }
 
@@ -2179,6 +2211,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
   // Storage for BAM v2 frame data blocks
   private static class FrameDataV2 {
+    public int frameIdx;
     public int page;
     public int sx;
     public int sy;
@@ -2187,7 +2220,8 @@ public class PseudoBamDecoder extends BamDecoder {
     public int dx;
     public int dy;
 
-    public FrameDataV2(int page, int sx, int sy, int width, int height, int dx, int dy) {
+    public FrameDataV2(int frameIdx, int page, int sx, int sy, int width, int height, int dx, int dy) {
+      this.frameIdx = frameIdx;
       this.page = page;
       this.sx = sx;
       this.sy = sy;
@@ -2199,7 +2233,7 @@ public class PseudoBamDecoder extends BamDecoder {
 
     @Override
     public int hashCode() {
-      return Objects.hash(dx, dy, height, page, sx, sy, width);
+      return Objects.hash(dx, dy, frameIdx, height, page, sx, sy, width);
     }
 
     @Override
@@ -2220,8 +2254,8 @@ public class PseudoBamDecoder extends BamDecoder {
 
     @Override
     public String toString() {
-      return "FrameDataV2 [page=" + page + ", sx=" + sx + ", sy=" + sy + ", width=" + width + ", height=" + height
-          + ", dx=" + dx + ", dy=" + dy + "]";
+      return "FrameDataV2 [frameIdx=" + frameIdx + ", page=" + page + ", sx=" + sx + ", sy=" + sy + ", width="
+          + width + ", height=" + height + ", dx=" + dx + ", dy=" + dy + "]";
     }
   }
 }

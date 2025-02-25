@@ -84,7 +84,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
     addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, TYPE_ARRAY));
-    addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, TYPE_FLAGS_ARRAY));
+    addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, getTypeFlags()));
     addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, org.infinity.resource.itm.Ability.ABILITY_USE_ARRAY));
     addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
     addField(new Bitmap(buffer, offset + 12, 1, ABILITY_TARGET, TARGET_TYPE_ARRAY));

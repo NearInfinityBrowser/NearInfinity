@@ -109,7 +109,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public int read(ByteBuffer buffer, int offset) throws Exception {
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, TYPE_ARRAY));
-      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, TYPE_FLAGS_ARRAY));
+      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, getTypeFlags()));
       addField(new Bitmap(buffer, offset + 2, 1, ABILITY_LOCATION, ABILITY_USE_ARRAY));
       addField(new DecNumber(buffer, offset + 3, 1, ITM_ABIL_DICE_SIZE_ALT));
       addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
@@ -127,7 +127,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
       addField(new SecTypeBitmap(buffer, offset + 25, 1, ITM_ABIL_SECONDARY_TYPE));
     } else {
       addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, TYPE_ARRAY));
-      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, TYPE_FLAGS_ARRAY));
+      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, getTypeFlags()));
       addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, ABILITY_USE_ARRAY));
       addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
       addField(new Bitmap(buffer, offset + 12, 2, ABILITY_TARGET, TARGET_TYPE_ARRAY));
@@ -151,7 +151,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     } else {
       addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, RECHARGE_ARRAY));
     }
-    if (ResourceFactory.resourceExists("PROJECTL.IDS") && ResourceFactory.resourceExists("MISSILE.IDS")) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 42, 2, ABILITY_PROJECTILE, PROJ_PST_ARRAY));

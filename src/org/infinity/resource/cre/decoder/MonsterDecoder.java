@@ -329,18 +329,18 @@ public class MonsterDecoder extends SpriteDecoder {
       SegmentDef.SpriteType type = creInfo.getValue1();
       if (SpriteUtils.bamCyclesExist(entry, ofs, SeqDef.DIR_FULL_W.length)) {
         SeqDef tmp = SeqDef.createSequence(seq, dirs, false, entry, ofs, type, behavior);
-        retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
+        retVal.addDirections(isSmoothPath(), tmp.getDirections().toArray(new DirDef[0]));
         tmp = SeqDef.createSequence(seq, dirsE, true, entry, ofs + 1, type, behavior);
-        retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
+        retVal.addDirections(isSmoothPath(), tmp.getDirections().toArray(new DirDef[0]));
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
         for (final Direction dir : dirs) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, false, entry, 0, type, behavior);
-          retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
+          retVal.addDirections(isSmoothPath(), tmp.getDirections().toArray(new DirDef[0]));
         }
         for (final Direction dir : dirsE) {
           SeqDef tmp = SeqDef.createSequence(seq, new Direction[] { dir }, true, entry, 0, type, behavior);
-          retVal.addDirections(false, tmp.getDirections().toArray(new DirDef[0]));
+          retVal.addDirections(isSmoothPath(), tmp.getDirections().toArray(new DirDef[0]));
         }
       }
     }

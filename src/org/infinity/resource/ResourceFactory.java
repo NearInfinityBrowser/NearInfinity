@@ -142,6 +142,30 @@ public final class ResourceFactory {
     return getInstance().getExportFilePathInternal();
   }
 
+  /**
+   * Returns the default path for saving the specified resource.
+   *
+   * @param entry {@link ResourceEntry} instance of a resource.
+   * @return Output {@link Path} for the specified resource. Returns a directory path if {@code entry} is {@code null}.
+   */
+  public static Path getDefaultSavePath(ResourceEntry entry) {
+    Path retVal;
+
+    if (entry instanceof FileResourceEntry) {
+      retVal = entry.getActualPath();
+      if (!FileManager.isDefaultFileSystem(retVal)) {
+        retVal = Profile.getGameRoot().resolve(retVal.subpath(0, retVal.getNameCount()));
+      }
+    } else if (entry != null) {
+      retVal = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName(), entry.getResourceName());
+    } else {
+      retVal = Profile.getGameRoot().resolve(Profile.getOverrideFolderName());
+    }
+
+    return retVal;
+  }
+
+
   public static Class<? extends Resource> getResourceType(ResourceEntry entry) {
     return getResourceType(entry, null);
   }

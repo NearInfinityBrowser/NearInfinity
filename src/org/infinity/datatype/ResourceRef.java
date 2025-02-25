@@ -154,9 +154,10 @@ public class ResourceRef extends Datatype
     }
     addExtraEntries(values);
     values.sort(IGNORE_CASE_EXT_COMPARATOR);
-    boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
+    final boolean showIcons = BrowserMenuBar.getInstance().getOptions().showResourceListIcons() &&
         Arrays.stream(types).anyMatch(s -> ICON_EXTENSIONS.contains(s.toUpperCase()));
-    list = new TextListPanel<>(values, false, showIcons);
+    final TextListPanel.IconType iconType = showIcons ? TextListPanel.IconType.RESOURCE : TextListPanel.IconType.NONE;
+    list = new TextListPanel<>(values, false, iconType);
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event) {

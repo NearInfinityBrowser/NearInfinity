@@ -10,7 +10,12 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+import org.infinity.util.Operation;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -26,6 +31,9 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
     /** Block-compressed BIFC V1.0 */
     BIFC,
   }
+
+  // Synchronization object for static members
+  private static final ReentrantLock LOCK = new ReentrantLock();
 
   // A cache for AbstractBIFFReader instances
   private static final LinkedHashMap<Path, AbstractBIFFReader> BIFF_CACHE = new LinkedHashMap<>();
@@ -43,7 +51,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
    * @return A BIFFReader object for accessing the BIFF archive.
    * @throws IOException On error.
    */
-  public static synchronized AbstractBIFFReader open(Path file) throws Exception {
+  public static AbstractBIFFReader open(Path file) throws Exception {
     return queryBIFFReader(file);
   }
 
@@ -61,7 +69,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
 
   /** Removes all {@code AbstractBIFFReader} entries from the cache. */
   public static void resetCache() {
-    BIFF_CACHE.clear();
+    performSynced(BIFF_CACHE::clear);
   }
 
   // Fetches a cached AbstractBIFFReader associated of the specified path or creates a new one
@@ -69,7 +77,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
     AbstractBIFFReader retVal = null;
     if (file != null) {
       // get and remove an available cached entry
-      retVal = BIFF_CACHE.get(file);
+      retVal = performSynced(BIFF_CACHE::get, file);
       if (retVal == null) {
         Type type = detectBiffType(file);
         switch (type) {
@@ -85,7 +93,7 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
           default:
             throw new IOException("Unsupported BIFF type");
         }
-        BIFF_CACHE.put(file, retVal);
+        performSynced(BIFF_CACHE::put, file, retVal);
       }
     }
     return retVal;
@@ -196,6 +204,57 @@ public abstract class AbstractBIFFReader {  // implements AutoCloseable
           throw new IOException("Unsupported BIFF file: " + file);
       }
     }
+  }
+
+  // Performs the given synchronized static operation without parameters or return value.
+  protected static void performSynced(Operation operation) {
+    if (operation != null) {
+      LOCK.lock();
+      try {
+        operation.perform();
+      } finally {
+        LOCK.unlock();
+      }
+    }
+  }
+
+  // Performs the given synchronized static operation with return value.
+  protected static <R> R performSynced(Supplier<R> supplier) {
+    if (supplier != null) {
+      LOCK.lock();
+      try {
+        return supplier.get();
+      } finally {
+        LOCK.unlock();
+      }
+    }
+    return null;
+  }
+
+  // Performs the given synchronized static operation with a single argument and a return value.
+  protected static <T, R> R performSynced(Function<T, R> func, T arg) {
+    if (func != null) {
+      LOCK.lock();
+      try {
+        return func.apply(arg);
+      } finally {
+        LOCK.unlock();
+      }
+    }
+    return null;
+  }
+
+  // Performs the given synchronized static operation with two arguments and a return value.
+  protected static <T, U, R> R performSynced(BiFunction<T, U, R> func, T arg1, U arg2) {
+    if (func != null) {
+      LOCK.lock();
+      try {
+        return func.apply(arg1, arg2);
+      } finally {
+        LOCK.unlock();
+      }
+    }
+    return null;
   }
 
   // -------------------------- INNER CLASSES --------------------------

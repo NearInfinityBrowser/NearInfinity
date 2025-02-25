@@ -57,6 +57,22 @@ public final class StringLookup extends ChildFrame implements SearchClient {
     new Thread(StringTable::ensureFullyLoaded).start();
   }
 
+  /**
+   * Returns the index of the currently selected string.
+   */
+  public int getStrref() {
+    return strref.getValue();
+  }
+
+  /**
+   * Selects the string associated with the specified index.
+   *
+   * @param index String reference to select.
+   */
+  public void setStrref(int index) {
+    strref.setValue(index);
+  }
+
   // --------------------- Begin Interface SearchClient ---------------------
 
   @Override

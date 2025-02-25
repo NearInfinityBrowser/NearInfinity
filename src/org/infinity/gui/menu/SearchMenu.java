@@ -7,6 +7,7 @@ package org.infinity.gui.menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.regex.Pattern;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -115,8 +116,12 @@ public class SearchMenu extends JMenu implements BrowserSubMenu, ActionListener 
     } else {
       for (final String type : TEXTSEARCH) {
         if (event.getActionCommand().equals(type)) {
-          if (event.getActionCommand().equals("DLG")) {
+          if (type.equals("DLG")) {
             new DialogSearcher(ResourceFactory.getResources(type), getTopLevelAncestor());
+          } else if (type.equals("BCS")) {
+            // include party scripts
+            final Pattern pattern = Pattern.compile("^.*\\.BC?S$", Pattern.CASE_INSENSITIVE);
+            new TextResourceSearcher(ResourceFactory.getResources(pattern), getTopLevelAncestor());
           } else {
             new TextResourceSearcher(ResourceFactory.getResources(type), getTopLevelAncestor());
           }

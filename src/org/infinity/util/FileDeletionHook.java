@@ -6,10 +6,10 @@ package org.infinity.util;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.infinity.util.io.FileEx;
+import java.util.function.Consumer;
 
 /**
  * Attempts to delete all registered files when the JVM terminates.
@@ -30,27 +30,28 @@ public class FileDeletionHook extends Thread {
   @Override
   public void run() {
     synchronized (listFilesToDelete) {
-      for (final Path file : listFilesToDelete) {
-        if (file != null && FileEx.create(file).exists()) {
+      final Consumer<Path> op = path -> {
+        if (path != null) {
           try {
-            Files.delete(file);
+            Files.deleteIfExists(path);
           } catch (Throwable t) {
             Logger.trace(t);
           }
         }
-      }
+      };
+      processReversed(listFilesToDelete.iterator(), op);
     }
   }
 
   /** Registers a file or (empty) directory for deletion. */
-  public void registerFile(Path file) {
+  public synchronized void registerFile(Path file) {
     if (file != null) {
       listFilesToDelete.add(file);
     }
   }
 
   /** Removes the specified file or directory from the list for deletion. */
-  public boolean unregisterFile(Path file) {
+  public synchronized boolean unregisterFile(Path file) {
     if (file != null) {
       return listFilesToDelete.remove(file);
     }
@@ -58,7 +59,7 @@ public class FileDeletionHook extends Thread {
   }
 
   /** Returns whether the specified file or directory has been registered for deletion. */
-  public boolean isFileRegistered(Path file) {
+  public synchronized boolean isFileRegistered(Path file) {
     if (file != null) {
       return listFilesToDelete.contains(file);
     }
@@ -67,5 +68,21 @@ public class FileDeletionHook extends Thread {
 
   private FileDeletionHook() {
     this.listFilesToDelete = new LinkedHashSet<>();
+  }
+
+  /**
+   * Performs the specified operation on all elements referenced by the specified iterator in reversed order.
+   *
+   * @param iter {@link Iterator} over {@link Path} elements.
+   * @param op   {@link Consumer} object to process for each path element.
+   */
+  private void processReversed(Iterator<Path> iter, Consumer<Path> op) {
+    if (iter != null && iter.hasNext()) {
+      final Path path = iter.next();
+      processReversed(iter, op);
+      if (op != null) {
+        op.accept(path);
+      }
+    }
   }
 }

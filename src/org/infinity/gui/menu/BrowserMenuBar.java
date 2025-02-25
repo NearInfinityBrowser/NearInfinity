@@ -175,6 +175,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     fileMenu.gameLoaded();
     editMenu.gameLoaded();
     searchMenu.gameLoaded();
+    toolsMenu.gameLoaded();
   }
 
   public void storePreferences() {

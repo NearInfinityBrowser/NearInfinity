@@ -21,6 +21,7 @@ import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -44,15 +45,27 @@ import org.infinity.datatype.IwdRef;
 import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FilteredListModel;
 import org.infinity.util.IconCache;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
+import org.infinity.util.PortraitIconCache;
 
 public class TextListPanel<E> extends JPanel
     implements DocumentListener, ListSelectionListener, ActionListener, ChangeListener {
+  /** Supported icon types that can be used by text list panels. */
+  public enum IconType {
+    /** Indicates that no icon should be rendered in list item labels. */
+    NONE,
+    /** Indicates that resource-specific icons should be rendered in list item labels. */
+    RESOURCE,
+    /** Indicates that portrait icons should be rendered in list item labels. */
+    PORTRAIT,
+  }
+
   private static boolean filterEnabled = false;
 
   private final FilteredListModel<E> listmodel = new FilteredListModel<>(filterEnabled);
@@ -64,20 +77,30 @@ public class TextListPanel<E> extends JPanel
   private final boolean sortValues;
 
   public TextListPanel(List<? extends E> values) {
-    this(values, true, false);
+    this(values, true, IconType.NONE);
   }
 
   public TextListPanel(List<? extends E> values, boolean sortValues) {
-    this(values, sortValues, false);
+    this(values, sortValues, IconType.NONE);
   }
 
-  public TextListPanel(List<? extends E> values, boolean sortValues, boolean showIcons) {
+  public TextListPanel(List<? extends E> values, boolean sortValues, IconType iconType) {
     super(new BorderLayout());
     this.sortValues = sortValues;
     setValues(values);
-    if (showIcons) {
-      list.setCellRenderer(new IconCellRenderer());
+
+    if (iconType != null) {
+      switch (iconType) {
+        case RESOURCE:
+          list.setCellRenderer(new IconCellRenderer());
+          break;
+        case PORTRAIT:
+          list.setCellRenderer(new PortraitIconCellRenderer());
+          break;
+        default:
+      }
     }
+
     list.setModel(listmodel);
     list.setSelectedIndex(0);
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -141,7 +164,7 @@ public class TextListPanel<E> extends JPanel
   @Override
   public void valueChanged(ListSelectionEvent event) {
     if (list.hasFocus() && list.getSelectedValue() != null) {
-      if (!tfield.getText().equals(list.getSelectedValue().toString())) {
+      if (!filterEnabled && !tfield.getText().equals(list.getSelectedValue().toString())) {
         tfield.setText(list.getSelectedValue().toString());
         listmodel.setPattern(tfield.getText());
       }
@@ -170,7 +193,15 @@ public class TextListPanel<E> extends JPanel
       if (filterEnabled) {
         listmodel.setPattern(tfield.getText());
       }
+
+      final E selectedItem = list.getSelectedValue();
       listmodel.setFiltered(filterEnabled);
+      if (selectedItem != null) {
+        list.setSelectedValue(selectedItem, true);
+        if (!filterEnabled) {
+          tfield.setText(selectedItem.toString());
+        }
+      }
 
       ensurePreferredComponentWidth(list, true);
       ensurePreferredComponentWidth(tfield, false);
@@ -295,18 +326,25 @@ public class TextListPanel<E> extends JPanel
       return (int) (w1 - w2);
     }).orElse(null);
     if (item != null) {
-      int cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
-      cw += c.getInsets().left;
-      cw += c.getInsets().right;
-      if (includeScrollBar) {
-        int sbWidth;
-        try {
-          sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
-        } catch (Exception ex) {
-          // not all l&f styles provide UIManager value
-          sbWidth = (new JScrollBar(Adjustable.VERTICAL)).getWidth();
+      int cw = 0;
+      final Component comp = list.getCellRenderer().getListCellRendererComponent(list, item, 0, false, false);
+      if (comp != null) {
+        cw = comp.getPreferredSize().width;
+      }
+      if (cw <= 0) {
+        cw = (int) fm.getStringBounds(item.toString(), g).getWidth();
+        cw += c.getInsets().left;
+        cw += c.getInsets().right;
+        if (includeScrollBar) {
+          int sbWidth;
+          try {
+            sbWidth = ((Integer) UIManager.get("ScrollBar.width"));
+          } catch (Exception ex) {
+            // not all l&f styles provide UIManager value
+            sbWidth = (new JScrollBar(Adjustable.VERTICAL)).getWidth();
+          }
+          cw += sbWidth;
         }
-        cw += sbWidth;
       }
       Dimension d = c.getPreferredSize();
       d.width = cw;
@@ -331,6 +369,10 @@ public class TextListPanel<E> extends JPanel
 
   // -------------------------- INNER CLASSES --------------------------
 
+  /**
+   * Specialization of the {@link DefaultListCellRenderer} that fetches and displays a BMP or BAM icon associated with
+   * the specified list entry.
+   */
   private static class IconCellRenderer extends DefaultListCellRenderer {
     public IconCellRenderer() {
       super();
@@ -363,6 +405,42 @@ public class TextListPanel<E> extends JPanel
             setIcon(IconCache.getIcon(iconEntry, IconCache.getDefaultListIconSize(), defIcon));
           }
         }
+      }
+      return this;
+    }
+  }
+
+  /**
+   * Specialization of the {@link DefaultListCellRenderer} that fetches and displays a portrait icon associated with the
+   * specified list entry.
+   */
+  private static class PortraitIconCellRenderer extends DefaultListCellRenderer {
+    /** Max. icon height for using magnified icon version. */
+    private final int maxIconHeight;
+    /** Space between icon and text in list item labels. */
+    private final int iconGap;
+
+    public PortraitIconCellRenderer() {
+      super();
+      final boolean isIWD2 = (Profile.getEngine() == Profile.Engine.IWD2);
+      this.maxIconHeight = isIWD2 ? 10 + 5 : 13 + 6;  // using 150 percent of default icon height
+      this.iconGap = isIWD2 ? 2 : 6;
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+        boolean cellHasFocus) {
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      if (PortraitIconCache.isIconsAvailable()) {
+        ImageIcon icon = PortraitIconCache.get(index, true);
+        if (icon != null && icon.getIconHeight() > 2 * maxIconHeight) {
+          icon = PortraitIconCache.get(index, false);
+        }
+        setIcon(icon);
+        setIconTextGap(iconGap);
+      } else {
+        setIcon(null);
+        setIconTextGap(0);
       }
       return this;
     }

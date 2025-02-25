@@ -32,33 +32,43 @@ public final class StatusBar extends JPanel implements CaretListener, ActionList
   private final Timer updateTimer = new Timer(2000, this);
 
   public StatusBar() {
+    this(true, BrowserMenuBar.getInstance().getOptions().showMemStatus());
+  }
+
+  public StatusBar(boolean showCursorLabel, boolean showMemStatus) {
     super(new GridBagLayout());
     setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
     messageLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
         BorderFactory.createLineBorder(UIManager.getColor("controlShadow"))));
-    cursorLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
-        BorderFactory.createLineBorder(UIManager.getColor("controlShadow"))));
-    cursorLabel.setPreferredSize(new Dimension(120, cursorLabel.getPreferredSize().height));
-    cursorLabel.setMinimumSize(cursorLabel.getPreferredSize());
+    if (showCursorLabel) {
+      cursorLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
+          BorderFactory.createLineBorder(UIManager.getColor("controlShadow"))));
+      cursorLabel.setPreferredSize(new Dimension(120, cursorLabel.getPreferredSize().height));
+      cursorLabel.setMinimumSize(cursorLabel.getPreferredSize());
+    }
 
-    if (BrowserMenuBar.getInstance().getOptions().showMemStatus()) {
+    if (showMemStatus) {
       memoryProgress.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1),
           BorderFactory.createLineBorder(UIManager.getColor("controlShadow"))));
       memoryProgress.setStringPainted(true);
       memoryProgress.setMinimumSize(memoryProgress.getPreferredSize());
     }
 
+    int col = 0;
     final GridBagConstraints c = new GridBagConstraints();
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
+    ViewerUtil.setGBC(c, col++, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH,
         new Insets(0, 0, 0, 0), 0, 0);
     add(messageLabel, c);
-    ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
-        new Insets(0, 3, 0, 0), 0, 0);
-    add(cursorLabel, c);
 
-    if (BrowserMenuBar.getInstance().getOptions().showMemStatus()) {
-      ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+    if (showCursorLabel) {
+      ViewerUtil.setGBC(c, col++, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
+          new Insets(0, 3, 0, 0), 0, 0);
+      add(cursorLabel, c);
+    }
+
+    if (showMemStatus) {
+      ViewerUtil.setGBC(c, col++, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START, GridBagConstraints.VERTICAL,
           new Insets(0, 3, 0, 0), 0, 0);
       add(memoryProgress, c);
 

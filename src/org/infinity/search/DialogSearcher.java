@@ -6,6 +6,7 @@ package org.infinity.search;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -30,6 +31,7 @@ import javax.swing.JTextField;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -50,6 +52,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbsearchcode = new JCheckBox("Include trigger & action scripts", true);
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
+  private final JLabel lregexHelp = ViewerUtil.createRegexpHelpLabel();
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
@@ -69,6 +72,10 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     bsearch.addActionListener(this);
     tfinput.addActionListener(this);
 
+    JPanel regexpPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    regexpPanel.add(cbregex);
+    regexpPanel.add(lregexHelp);
+
     Container pane = inputFrame.getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -76,12 +83,13 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     JLabel label = new JLabel("Find what:");
     label.setLabelFor(tfinput);
     label.setDisplayedMnemonic('f');
+
     JPanel matchpanel = new JPanel();
     matchpanel.setLayout(new GridLayout(2, 2));
     matchpanel.add(cbwhole);
     matchpanel.add(cbsearchcode);
     matchpanel.add(cbcase);
-    matchpanel.add(cbregex);
+    matchpanel.add(regexpPanel);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
     cbregex.setMnemonic('r');

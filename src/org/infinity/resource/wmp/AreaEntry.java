@@ -20,7 +20,7 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 
-final public class AreaEntry extends AbstractStruct implements HasViewerTabs {
+public class AreaEntry extends AbstractStruct implements HasViewerTabs {
   // WMP/AreaEntry-specific field labels
   public static final String WMP_AREA                   = "Area";
   public static final String WMP_AREA_CURRENT           = "Current area";
@@ -45,7 +45,7 @@ final public class AreaEntry extends AbstractStruct implements HasViewerTabs {
   private static final String[] FLAGS_ARRAY = { "No flags set", "Visible", "Reveal from linked area", "Can be visited",
       "Has been visited" };
 
-  AreaEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
+  public AreaEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception {
     super(superStruct, WMP_AREA + " " + nr, buffer, offset);
   }
 

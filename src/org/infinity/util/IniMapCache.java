@@ -48,11 +48,7 @@ public class IniMapCache {
   public static synchronized IniMap get(ResourceEntry entry, boolean ignoreComments) {
     IniMap retVal = null;
     if (entry != null) {
-      retVal = MAP.get(entry);
-      if (retVal == null) {
-        retVal = new IniMap(entry, ignoreComments);
-        MAP.put(entry, retVal);
-      }
+      retVal = MAP.computeIfAbsent(entry, e -> new IniMap(e, ignoreComments));
     }
     return retVal;
   }

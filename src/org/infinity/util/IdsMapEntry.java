@@ -7,6 +7,8 @@ package org.infinity.util;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
+import org.infinity.gui.menu.BrowserMenuBar;
+
 /**
  * Mapping from several symbolic names to an integer and vice versa. Used for script purposes and for mapping the file
  * index to filename.
@@ -33,8 +35,13 @@ public class IdsMapEntry implements Comparable<IdsMapEntry>, Iterable<String> {
     return symbols.size();
   }
 
-  /** Returns the first available symbolic name. */
+  /** Returns the symbolic name depending on the current global option. */
   public String getSymbol() {
+    return BrowserMenuBar.getInstance().getOptions().showLastIdsSymbol() ? getLastSymbol() : getFirstSymbol();
+  }
+
+  /** Returns the first available symbolic name. */
+  public String getFirstSymbol() {
     return symbols.peekFirst();
   }
 

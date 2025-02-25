@@ -90,6 +90,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
   private final List<JButton> buttonList;
   private final JButton bUpdate;
 
+  private TextListPanel.IconType iconType;
   private BiFunction<Long, T, String> formatter;
   private TextListPanel<FormattedData<T>> list;
   private long value;
@@ -148,6 +149,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
     this.buttonList = new ArrayList<>();
     this.bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     this.buttonList.add(this.bUpdate);
+    setIconType();
 
     read(buffer, offset);
   }
@@ -213,7 +215,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
       }
     }
 
-    list = new TextListPanel<>(items, sortByName, BrowserMenuBar.getInstance().getOptions().showResourceListIcons());
+    list = new TextListPanel<>(items, sortByName, getIconType());
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event) {
@@ -377,6 +379,35 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
       formatter = formatterDefault;
     }
     this.formatter = formatter;
+  }
+
+  /** Returns the {@link TextListPanel.IconType} to use for the bitmap list presentation. */
+  public TextListPanel.IconType getIconType() {
+    return iconType;
+  }
+
+  /**
+   * A convenience method that enables resource icons based on current preferences settings. This method must be called
+   * before {@link #edit(ActionListener)} is invoked to have any effect.
+   */
+  public void setIconType() {
+    setIconType(null);
+  }
+
+  /**
+   * Specifies if or which icon types to enable. This method must be called before {@link #edit(ActionListener)} is
+   * invoked to have any effect.
+   *
+   * @param iconType {@link TextListPanel.IconType} to use for bitmap list presentation.
+   */
+  public void setIconType(TextListPanel.IconType iconType) {
+    if (iconType != null) {
+      this.iconType = iconType;
+    } else {
+      this.iconType = BrowserMenuBar.getInstance().getOptions().showResourceListIcons()
+          ? TextListPanel.IconType.RESOURCE
+          : TextListPanel.IconType.NONE;
+    }
   }
 
   /** Returns whether the value is treated as a signed number. */

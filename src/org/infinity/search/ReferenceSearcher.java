@@ -5,8 +5,6 @@
 package org.infinity.search;
 
 import java.awt.Component;
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -162,35 +160,33 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
     try {
-      String code = decompiler.decompile();
-      boolean resourceExists = decompiler.getResourcesUsed().contains(targetEntry);
-      try (final BufferedReader br = new BufferedReader(new StringReader(code))) {
-        // resref match
-        Pattern regName = Pattern.compile("\"" + Pattern.quote(targetEntry.getResourceRef()) + "\"",
-            Pattern.CASE_INSENSITIVE);
-        // script name match
-        Pattern regVar = null;
-        if (creDeathVar != null && !creDeathVar.equalsIgnoreCase(targetEntry.getResourceRef())) {
-          regVar = Pattern.compile("\"" + Pattern.quote(creDeathVar) + "\"", Pattern.CASE_INSENSITIVE);
-        }
-        // symbolic spell name match
-        Pattern regSymbol = null;
-        if (targetEntry.getExtension().equalsIgnoreCase("SPL")) {
-          String symbol = org.infinity.resource.spl.Viewer.getSymbolicName(targetEntry, false);
-          if (symbol != null && !symbol.isEmpty()) {
-            regSymbol = Pattern.compile("\\b" + Pattern.quote(symbol) + "\\b");
-          }
-        }
+      final String code = decompiler.decompile();
+      final boolean resourceExists = decompiler.getResourcesUsed().contains(targetEntry);
 
-        String line;
-        int lineNr = 0;
-        while ((line = br.readLine()) != null) {
-          lineNr++;
-          if (resourceExists && regName.matcher(line).find() || regVar != null && regVar.matcher(line).find()
-              || regSymbol != null && regSymbol.matcher(line).find()) {
-            addHit(entry, line.trim(), lineNr);
-          }
+      // resref match
+      Pattern pattern1 = null;
+      if (resourceExists) {
+        pattern1 = Pattern.compile("\"" + Pattern.quote(targetEntry.getResourceRef()) + "\"",
+          Pattern.CASE_INSENSITIVE);
+      }
+
+      // script name match
+      Pattern pattern2 = null;
+      if (creDeathVar != null && !creDeathVar.equalsIgnoreCase(targetEntry.getResourceRef())) {
+        pattern2 = Pattern.compile("\"" + Pattern.quote(creDeathVar) + "\"", Pattern.CASE_INSENSITIVE);
+      }
+
+      // symbolic spell name match
+      Pattern pattern3 = null;
+      if (targetEntry.getExtension().equalsIgnoreCase("SPL")) {
+        final String symbol = org.infinity.resource.spl.Viewer.getSymbolicName(targetEntry, false);
+        if (symbol != null && !symbol.isEmpty()) {
+          pattern3 = Pattern.compile("\\b" + Pattern.quote(symbol) + "\\b");
         }
+      }
+
+      if (pattern1 != null || pattern2 != null || pattern3 != null) {
+        registerTextHits(entry, code, pattern1, pattern2, pattern3);
       }
     } catch (Exception e) {
       Logger.error(e);
@@ -299,23 +295,12 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher {
 
   private void searchText(ResourceEntry entry, PlainTextResource text) {
     String name = getTargetEntry().getResourceRef();
-    Pattern regName = Pattern.compile("\\b(AP_|GA_)?" + name + "\\b", Pattern.CASE_INSENSITIVE);
-    Pattern regVar = null;
-    if (creDeathVar != null && !creDeathVar.equalsIgnoreCase(name)) {
-      regVar = Pattern.compile("\\b" + creDeathVar + "\\b", Pattern.CASE_INSENSITIVE);
-    }
 
-    try (final BufferedReader br = new BufferedReader(new StringReader(text.getText()))) {
-      String line;
-      int lineNr = 0;
-      while ((line = br.readLine()) != null) {
-        lineNr++;
-        if (regName.matcher(line).find() || regVar != null && regVar.matcher(line).find()) {
-          addHit(entry, line.trim(), lineNr);
-        }
-      }
-    } catch (Exception e) {
-      Logger.error(e);
+    final Pattern pattern1 = Pattern.compile("\\b(AP_|GA_)?" + Pattern.quote(name) + "\\b", Pattern.CASE_INSENSITIVE);
+    Pattern pattern2 = null;
+    if (creDeathVar != null && !creDeathVar.equalsIgnoreCase(name)) {
+      pattern2 = Pattern.compile("\\b" + Pattern.quote(creDeathVar) + "\\b", Pattern.CASE_INSENSITIVE);
     }
+    registerTextHits(entry, text.getText(), pattern1, pattern2);
   }
 }
