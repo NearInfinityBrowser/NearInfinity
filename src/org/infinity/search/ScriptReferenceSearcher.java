@@ -19,11 +19,13 @@ import org.infinity.resource.are.Container;
 import org.infinity.resource.are.Door;
 import org.infinity.resource.are.ITEPoint;
 import org.infinity.resource.bcs.BcsResource;
+import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
+import org.tinylog.Logger;
 
 /**
  * Performs search usages of the specified script in the {@link AreResource area}, {@link BcsResource script},
@@ -37,8 +39,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
   @Override
   protected void search(ResourceEntry entry, Resource resource) {
     if (resource instanceof BcsResource) {
-      // passing raw bytecode to improve performance
-      searchScript(entry, ((BcsResource) resource).getCode(), null);
+      searchScript(entry, (BcsResource) resource);
     } else if (resource instanceof PlainTextResource) {
       searchText(entry, ((PlainTextResource) resource).getText());
     } else if (resource instanceof AbstractStruct) {
@@ -67,12 +68,8 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
   }
 
   private void searchText(ResourceEntry entry, String text) {
-    String name = targetEntry.getResourceRef();
-    final Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
-    final Matcher m = p.matcher(text);
-    if (m.find()) {
-      addHit(entry, entry.getSearchString(), null);
-    }
+    final String name = targetEntry.getResourceRef();
+    registerTextHits(entry, text, Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE));
   }
 
   private void searchScript(ResourceEntry entry, String script, StructEntry ref) {
@@ -81,6 +78,21 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
     final Matcher m = p.matcher(script);
     if (m.find()) {
       addHit(entry, entry.getSearchString(), ref);
+    }
+  }
+
+  private void searchScript(ResourceEntry entry, BcsResource bcsFile) {
+    final Decompiler decompiler = new Decompiler(bcsFile.getCode(), true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      final String script = decompiler.decompile();
+      if (decompiler.getResourcesUsed().contains(targetEntry)) {
+        registerTextHits(entry, script,
+            Pattern.compile('"' + targetEntry.getResourceRef() + '"', Pattern.CASE_INSENSITIVE));
+      }
+    } catch (Exception e) {
+      Logger.error(e);
     }
   }
 }

@@ -22,7 +22,7 @@ import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 
 public final class ViewFrame extends ChildFrame implements ViewableContainer {
-  private final StatusBar statusBar = new StatusBar();
+  private final StatusBar statusBar = new StatusBar(true, false);
 
   private Viewable viewable;
 

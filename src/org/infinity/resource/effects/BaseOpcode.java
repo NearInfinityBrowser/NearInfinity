@@ -333,8 +333,8 @@ public class BaseOpcode {
   };
 
   public static final String[] SUMMON_CONTROLS = {
-      "Match target", "Match target", "From CRE file", "Match target", "From CRE file", "Hostile", "From CRE file", "",
-      "From CRE file"
+      "Match target (position=effect)", "Match target (position=effect)", "From CRE file (position=effect)",
+      "Match target (position=target)", "From CRE file (position=target)", "Opposite of target (position=effect)"
   };
 
   public static final String[] REGEN_TYPES = {

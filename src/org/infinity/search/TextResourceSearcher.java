@@ -5,6 +5,7 @@
 package org.infinity.search;
 
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -27,6 +28,7 @@ import javax.swing.JTextField;
 
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -40,6 +42,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
+  private final JLabel lregexHelp = ViewerUtil.createRegexpHelpLabel();
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
@@ -70,11 +73,16 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
     JLabel label = new JLabel("Find what:");
     label.setLabelFor(tfinput);
     label.setDisplayedMnemonic('f');
+
+    JPanel regexPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    regexPanel.add(cbregex);
+    regexPanel.add(lregexHelp);
+
     JPanel matchpanel = new JPanel();
     matchpanel.setLayout(new GridLayout(0, 2));
     matchpanel.add(cbwhole);
     matchpanel.add(cbcase);
-    matchpanel.add(cbregex);
+    matchpanel.add(regexPanel);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
     cbregex.setMnemonic('r');

@@ -98,6 +98,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
   private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbPattern = new JCheckBox("Use regular expressions", false);
+  private final JLabel lPatternHelp = ViewerUtil.createRegexpHelpLabel();
   private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
   private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts and dialogs", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);
@@ -158,11 +159,15 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     topRightPanel.add(tfDirectory, BorderLayout.CENTER);
     topRightPanel.add(bDirectory, BorderLayout.EAST);
 
+    JPanel patternSubPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    patternSubPanel.add(cbPattern);
+    patternSubPanel.add(lPatternHelp);
+
     JPanel patternPanel = new JPanel(new BorderLayout());
     JLabel lPattern = new JLabel("Resource name filter:");
     patternPanel.add(lPattern, BorderLayout.NORTH);
     patternPanel.add(tfPattern, BorderLayout.CENTER);
-    patternPanel.add(cbPattern, BorderLayout.SOUTH);
+    patternPanel.add(patternSubPanel, BorderLayout.SOUTH);
 
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel bottomRightPanel = new JPanel(new GridBagLayout());

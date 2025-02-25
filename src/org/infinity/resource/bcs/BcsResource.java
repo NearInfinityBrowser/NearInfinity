@@ -540,6 +540,7 @@ public final class BcsResource
   @Override
   public void highlightText(int linenr, String highlightText) {
     try {
+      linenr = Math.max(1, linenr);
       int startOfs = sourceText.getLineStartOffset(linenr - 1);
       int endOfs = sourceText.getLineEndOffset(linenr - 1);
       if (highlightText != null) {
@@ -560,6 +561,8 @@ public final class BcsResource
   @Override
   public void highlightText(int startOfs, int endOfs) {
     try {
+      startOfs = Math.max(0, startOfs);
+      endOfs = Math.max(1, endOfs);
       sourceText.setCaretPosition(startOfs);
       sourceText.moveCaretPosition(endOfs - 1);
       sourceText.getCaret().setSelectionVisible(true);

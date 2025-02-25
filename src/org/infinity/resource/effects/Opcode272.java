@@ -10,6 +10,7 @@ import java.util.List;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.gui.TextListPanel;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -69,7 +70,9 @@ public class Opcode272 extends BaseOpcode {
   protected int makeEffectSpecial(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       String resType, int param1, int param2) {
     if (Profile.isEnhancedEdition()) {
-      list.add(new Bitmap(buffer, offset, 4, EFFECT_ICON, getPortraitIconNames(STRING_DEFAULT)));
+      final Bitmap bitmap = new Bitmap(buffer, offset, 4, EFFECT_ICON, getPortraitIconNames(STRING_DEFAULT));
+      bitmap.setIconType(TextListPanel.IconType.PORTRAIT);
+      list.add(bitmap);
       return offset + 4;
     } else {
       return super.makeEffectSpecial(parent, buffer, offset, list, resType, param1, param2);

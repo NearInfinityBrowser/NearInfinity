@@ -63,8 +63,7 @@ public class PlainTextResource
 
   protected final String text;
 
-  private final ButtonPanel buttonPanel = new ButtonPanel();
-
+  private ButtonPanel buttonPanel;
   private JMenuItem iFindAll;
   private JMenuItem iFindThis;
   private JMenuItem miFormatTrim;
@@ -482,7 +481,7 @@ public class PlainTextResource
       int endOfs = editor.getLineEndOffset(linenr - 1);
       if (highlightText != null) {
         String text = editor.getText(startOfs, endOfs - startOfs);
-        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE);
+        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
         Matcher m = p.matcher(text);
         if (m.find()) {
           startOfs += m.start();
@@ -521,6 +520,9 @@ public class PlainTextResource
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
+    editor.setOpenResrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenResourceMenuEnabled());
+    editor.setOpenIdsEnabled(BrowserMenuBar.getInstance().getOptions().getOpenIdsMenuEnabled());
+    editor.setOpenStrrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenStrrefMenuEnabled());
 
     final String ext = entry.getExtension();
     if ("BIO".equals(ext) || "RES".equals(ext)) {
@@ -528,6 +530,7 @@ public class PlainTextResource
       editor.setWrapStyleWord(true);
     }
 
+    buttonPanel = new ButtonPanel();
     iFindAll = new JMenuItem("in all " + ext + " files");
     iFindThis = new JMenuItem("in this file only");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu) buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);

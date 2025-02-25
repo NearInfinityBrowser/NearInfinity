@@ -7,6 +7,7 @@ package org.infinity.search;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -29,6 +30,7 @@ import javax.swing.JTextField;
 
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.util.Logger;
@@ -39,6 +41,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbregex = new JCheckBox("Use regular expressions");
+  private final JLabel lregexHelp = ViewerUtil.createRegexpHelpLabel();
   private final JFrame container;
   private final JRadioButton rbup = new JRadioButton("Up");
   private final JRadioButton rbdown = new JRadioButton("Down");
@@ -94,16 +97,22 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     label.setDisplayedMnemonic('f');
     tfinput.setMinimumSize(new Dimension(tfinput.getMinimumSize().width, bnext.getMinimumSize().height));
     tfinput.setPreferredSize(new Dimension(tfinput.getPreferredSize().width, bnext.getPreferredSize().height));
+
     JPanel dirpanel = new JPanel();
     dirpanel.add(new JPanel());
     dirpanel.add(rbup);
     dirpanel.add(rbdown);
     dirpanel.setBorder(BorderFactory.createTitledBorder("Direction"));
+
+    JPanel regexPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    regexPanel.add(cbregex);
+    regexPanel.add(lregexHelp);
+
     JPanel matchpanel = new JPanel();
     matchpanel.setLayout(new GridLayout(3, 1));
     matchpanel.add(cbwhole);
     matchpanel.add(cbcase);
-    matchpanel.add(cbregex);
+    matchpanel.add(regexPanel);
     cbwhole.setMnemonic('w');
     cbcase.setMnemonic('m');
     cbregex.setMnemonic('r');

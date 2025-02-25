@@ -130,15 +130,13 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
   }
 
   private void searchScript(ResourceEntry entry, BcsResource bcsfile) {
-    Decompiler decompiler = new Decompiler(bcsfile.getCode(), true);
+    final Decompiler decompiler = new Decompiler(bcsfile.getCode(), true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
     try {
-      decompiler.decompile();
-      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-        if (stringRef == searchvalue) {
-          addHit(entry, null, null);
-        }
+      final String script = decompiler.decompile();
+      if (decompiler.getStringRefsUsed().contains(searchvalue)) {
+        registerTextHits(entry, script, Pattern.compile("\\b" + searchvalue + "\\b"));
       }
     } catch (Exception e) {
       Logger.error(e);
@@ -163,11 +161,15 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher {
   }
 
   private void searchText(ResourceEntry entry, PlainTextResource text) {
-    final Matcher m = NUMBER_PATTERN.matcher(text.getText());
-    while (m.find()) {
-      long nr = Long.parseLong(m.group());
-      if (nr == searchvalue) {
-        addHit(entry, null, null);
+    final String[] lines = text.getText().split("\r?\n");
+    for (int i = 0; i < lines.length; i++) {
+      final Matcher m = NUMBER_PATTERN.matcher(lines[i]);
+      while (m.find()) {
+        long nr = Long.parseLong(m.group());
+        if (nr == searchvalue) {
+          addHit(entry, lines[i].trim(), i + 1);
+          break;
+        }
       }
     }
   }

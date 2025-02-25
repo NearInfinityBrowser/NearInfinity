@@ -118,6 +118,10 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
   private static final ButtonPanel.Control CTRL_FRAME_LABEL = ButtonPanel.Control.CUSTOM_7;
   private static final ButtonPanel.Control PROPERTIES       = ButtonPanel.Control.CUSTOM_8;
   private static final ButtonPanel.Control BAM_EDIT         = ButtonPanel.Control.CUSTOM_9;
+  private static final ButtonPanel.Control CTRL_FIRST_CYCLE = ButtonPanel.Control.CUSTOM_10;
+  private static final ButtonPanel.Control CTRL_LAST_CYCLE  = ButtonPanel.Control.CUSTOM_11;
+  private static final ButtonPanel.Control CTRL_FIRST_FRAME = ButtonPanel.Control.CUSTOM_12;
+  private static final ButtonPanel.Control CTRL_LAST_FRAME  = ButtonPanel.Control.CUSTOM_13;
 
   private static boolean transparencyEnabled = true;
 
@@ -200,26 +204,15 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (buttonControlPanel.getControlByType(CTRL_PREV_CYCLE) == event.getSource()) {
-      curCycle--;
-      bamControl.setSharedPerCycle(curCycle >= 0);
-      bamControl.cycleSet(curCycle);
-      updateCanvasSize();
-      if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
-        timer.stop();
-        ((JToggleButton) buttonControlPanel.getControlByType(CTRL_PLAY)).setSelected(false);
-      }
-      curFrame = 0;
-      showFrame();
+    if (buttonControlPanel.getControlByType(CTRL_FIRST_CYCLE) == event.getSource()) {
+      setCycleIndex(0);
+    } else if (buttonControlPanel.getControlByType(CTRL_PREV_CYCLE) == event.getSource()) {
+      setCycleIndex(curCycle - 1);
     } else if (buttonControlPanel.getControlByType(CTRL_NEXT_CYCLE) == event.getSource()) {
-      curCycle++;
-      bamControl.setSharedPerCycle(curCycle >= 0);
-      bamControl.cycleSet(curCycle);
-      updateCanvasSize();
-      if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
-        timer.stop();
-        ((JToggleButton) buttonControlPanel.getControlByType(CTRL_PLAY)).setSelected(false);
-      }
+      setCycleIndex(curCycle + 1);
+    } else if (buttonControlPanel.getControlByType(CTRL_LAST_CYCLE) == event.getSource()) {
+      setCycleIndex(bamControl.cycleCount() - 1);
+    } else if (buttonControlPanel.getControlByType(CTRL_FIRST_FRAME) == event.getSource()) {
       curFrame = 0;
       showFrame();
     } else if (buttonControlPanel.getControlByType(CTRL_PREV_FRAME) == event.getSource()) {
@@ -227,6 +220,13 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       showFrame();
     } else if (buttonControlPanel.getControlByType(CTRL_NEXT_FRAME) == event.getSource()) {
       curFrame++;
+      showFrame();
+    } else if (buttonControlPanel.getControlByType(CTRL_LAST_FRAME) == event.getSource()) {
+      if (curCycle >= 0) {
+        curFrame = bamControl.cycleFrameCount() - 1;
+      } else {
+        curFrame = decoder.frameCount() - 1;
+      }
       showFrame();
     } else if (buttonControlPanel.getControlByType(CTRL_PLAY) == event.getSource()) {
       if (((JToggleButton) buttonControlPanel.getControlByType(CTRL_PLAY)).isSelected()) {
@@ -469,20 +469,32 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     bPlay.addActionListener(this);
 
     JLabel lCycle = new JLabel("", SwingConstants.CENTER);
+    JButton bFirstCycle = new JButton(Icons.ICON_FIRST_16.getIcon());
+    bFirstCycle.setMargin(new Insets(bFirstCycle.getMargin().top, 2, bFirstCycle.getMargin().bottom, 2));
+    bFirstCycle.addActionListener(this);
     JButton bPrevCycle = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
     JButton bNextCycle = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
+    JButton bLastCycle = new JButton(Icons.ICON_LAST_16.getIcon());
+    bLastCycle.setMargin(new Insets(bLastCycle.getMargin().top, 2, bLastCycle.getMargin().bottom, 2));
+    bLastCycle.addActionListener(this);
 
     JLabel lFrame = new JLabel("", SwingConstants.CENTER);
+    JButton bFirstFrame = new JButton(Icons.ICON_FIRST_16.getIcon());
+    bFirstFrame.setMargin(bPrevCycle.getMargin());
+    bFirstFrame.addActionListener(this);
     JButton bPrevFrame = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevFrame.setMargin(bPrevCycle.getMargin());
     bPrevFrame.addActionListener(this);
     JButton bNextFrame = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
+    JButton bLastFrame = new JButton(Icons.ICON_LAST_16.getIcon());
+    bLastFrame.setMargin(bPrevCycle.getMargin());
+    bLastFrame.addActionListener(this);
 
     cbTransparency = new JCheckBox("Enable transparency", transparencyEnabled);
     if (decoder != null) {
@@ -496,11 +508,17 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     optionsPanel.add(cbTransparency);
 
     buttonControlPanel.addControl(lCycle, CTRL_CYCLE_LABEL);
+    buttonControlPanel.addControl(bFirstCycle, CTRL_FIRST_CYCLE);
     buttonControlPanel.addControl(bPrevCycle, CTRL_PREV_CYCLE);
     buttonControlPanel.addControl(bNextCycle, CTRL_NEXT_CYCLE);
+    buttonControlPanel.addControl(bLastCycle, CTRL_LAST_CYCLE);
+    buttonControlPanel.addControl(new JPanel());
     buttonControlPanel.addControl(lFrame, CTRL_FRAME_LABEL);
+    buttonControlPanel.addControl(bFirstFrame, CTRL_FIRST_FRAME);
     buttonControlPanel.addControl(bPrevFrame, CTRL_PREV_FRAME);
     buttonControlPanel.addControl(bNextFrame, CTRL_NEXT_FRAME);
+    buttonControlPanel.addControl(bLastFrame, CTRL_LAST_FRAME);
+    buttonControlPanel.addControl(new JPanel());
     buttonControlPanel.addControl(bPlay, CTRL_PLAY);
     buttonControlPanel.add(optionsPanel);
     buttonControlPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
@@ -777,25 +795,52 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
               .setText("Frame: " + curFrame + "/" + (decoder.frameCount() - 1));
         }
 
+        buttonControlPanel.getControlByType(CTRL_FIRST_CYCLE).setEnabled(curCycle != 0);
         buttonControlPanel.getControlByType(CTRL_PREV_CYCLE).setEnabled(curCycle > -1);
         buttonControlPanel.getControlByType(CTRL_NEXT_CYCLE).setEnabled(curCycle + 1 < bamControl.cycleCount());
+        buttonControlPanel.getControlByType(CTRL_LAST_CYCLE).setEnabled(curCycle + 1 != bamControl.cycleCount());
+        buttonControlPanel.getControlByType(CTRL_FIRST_FRAME).setEnabled(curFrame != 0);
         buttonControlPanel.getControlByType(CTRL_PREV_FRAME).setEnabled(curFrame > 0);
         if (curCycle >= 0) {
           buttonControlPanel.getControlByType(CTRL_NEXT_FRAME).setEnabled(curFrame + 1 < bamControl.cycleFrameCount());
+          buttonControlPanel.getControlByType(CTRL_LAST_FRAME).setEnabled(curFrame + 1 != bamControl.cycleFrameCount());
           buttonControlPanel.getControlByType(CTRL_PLAY).setEnabled(bamControl.cycleFrameCount() > 1);
         } else {
           buttonControlPanel.getControlByType(CTRL_NEXT_FRAME).setEnabled(curFrame + 1 < decoder.frameCount());
+          buttonControlPanel.getControlByType(CTRL_LAST_FRAME).setEnabled(curFrame + 1 != decoder.frameCount());
           buttonControlPanel.getControlByType(CTRL_PLAY).setEnabled(decoder.frameCount() > 1);
         }
 
       } else {
         buttonControlPanel.getControlByType(CTRL_PLAY).setEnabled(false);
+        buttonControlPanel.getControlByType(CTRL_FIRST_CYCLE).setEnabled(false);
         buttonControlPanel.getControlByType(CTRL_PREV_CYCLE).setEnabled(false);
         buttonControlPanel.getControlByType(CTRL_NEXT_CYCLE).setEnabled(false);
+        buttonControlPanel.getControlByType(CTRL_LAST_CYCLE).setEnabled(false);
+        buttonControlPanel.getControlByType(CTRL_FIRST_FRAME).setEnabled(false);
         buttonControlPanel.getControlByType(CTRL_PREV_FRAME).setEnabled(false);
         buttonControlPanel.getControlByType(CTRL_NEXT_FRAME).setEnabled(false);
+        buttonControlPanel.getControlByType(CTRL_LAST_FRAME).setEnabled(false);
       }
     }
+  }
+
+  /**
+   * Sets the specified BAM cycle.
+   *
+   * @param cycleIdx Cycle index. Negative values are allows and indicate to show all available frames.
+   */
+  private void setCycleIndex(int cycleIdx) {
+    curCycle = cycleIdx;
+    bamControl.setSharedPerCycle(curCycle >= 0);
+    bamControl.cycleSet(curCycle);
+    updateCanvasSize();
+    if (timer != null && timer.isRunning() && bamControl.cycleFrameCount() == 0) {
+      timer.stop();
+      ((JToggleButton) buttonControlPanel.getControlByType(CTRL_PLAY)).setSelected(false);
+    }
+    curFrame = 0;
+    showFrame();
   }
 
   /**

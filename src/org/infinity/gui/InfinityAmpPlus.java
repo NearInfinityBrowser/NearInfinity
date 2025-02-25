@@ -100,7 +100,7 @@ import org.infinity.util.io.FileManager;
 import org.infinity.util.tuples.Couple;
 
 /**
- * A global music player for MUS files found in all supported IE games. It supersedes the original {@link InfinityAmp}
+ * A global music player for MUS files found in all supported IE games. It supersedes the original {@code InfinityAmp}
  * music player.
  */
 public class InfinityAmpPlus extends ChildFrame implements Closeable {

@@ -17,7 +17,7 @@ import org.infinity.resource.StructEntry;
  */
 public class Opcode108 extends BaseOpcode {
   private static final String[] INC_TYPES_EE = { INC_TYPES[0], INC_TYPES[1], INC_TYPES[2], "Increment (party)",
-      "Reset (party)" };
+      "Set (party)", "Set % of (party)" };
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {

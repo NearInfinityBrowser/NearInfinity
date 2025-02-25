@@ -369,7 +369,7 @@ public class QuickSearch extends JPanel implements Runnable {
             keyword = keyword.toUpperCase(Locale.ENGLISH);
             MapTree<Character, List<ResourceEntry>> node = resourceTree;
             for (int i = 0, size = keyword.length(); i < size; i++) {
-              MapTree<Character, List<ResourceEntry>> newNode = node.getChild(keyword.charAt(i));
+              final MapTree<Character, List<ResourceEntry>> newNode = node.getChild(keyword.charAt(i));
               if (newNode == null) {
                 node = generateNode(node, keyword.charAt(i));
               } else {
@@ -378,10 +378,10 @@ public class QuickSearch extends JPanel implements Runnable {
             }
 
             // setting matching resource entries
-            DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>) cbSearch.getModel();
+            final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
 
             // Deactivating listeners to prevent autoselecting items
-            ListDataListener[] listeners = cbModel.getListDataListeners();
+            final ListDataListener[] listeners = cbModel.getListDataListeners();
             for (int i = listeners.length - 1; i >= 0; i--) {
               cbModel.removeListDataListener(listeners[i]);
             }
@@ -389,14 +389,14 @@ public class QuickSearch extends JPanel implements Runnable {
             cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
             cbModel.removeAllElements();
             if (!keyword.isEmpty() && node.getValue() != null) {
-              List<ResourceEntry> list = node.getValue();
-              for (ResourceEntry resourceEntry : list) {
+              final List<ResourceEntry> list = node.getValue();
+              for (final ResourceEntry resourceEntry : list) {
                 cbModel.addElement(resourceEntry);
               }
             }
 
             // Reactivating listeners
-            for (ListDataListener listener : listeners) {
+            for (final ListDataListener listener : listeners) {
               cbModel.addListDataListener(listener);
             }
 
@@ -407,13 +407,6 @@ public class QuickSearch extends JPanel implements Runnable {
               cbSearch.hidePopup();
             }
           }
-          // } else if (command == Command.Clear) {
-          // // reset data
-          // synchronized(monitor) {
-          // command = Command.Idle;
-          // clearResourceTree(resourceTree);
-          // ((DefaultComboBoxModel)cbSearch.getModel()).removeAllElements();
-          // ((JTextComponent)cbSearch.getEditor().getEditorComponent()).setText("");
         }
       } else {
         // nothing else to do?

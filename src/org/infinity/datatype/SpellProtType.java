@@ -342,7 +342,7 @@ public class SpellProtType extends Bitmap {
             case 0x101: // source is not target
               label = "Not source";
               break;
-            case 0x102: // circle size
+            case 0x102: // personal space
               if (isBitwiseRelation(rel) && value != -1) {
                 label = String.format("Personal space %s %d [0x%x]", getRelation(rel), value, value);
               } else {

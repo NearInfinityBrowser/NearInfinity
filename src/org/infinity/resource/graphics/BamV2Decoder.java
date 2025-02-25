@@ -175,27 +175,27 @@ public class BamV2Decoder extends BamDecoder {
         // evaluating header data
         int framesCount = bamBuffer.getInt(8);
         if (framesCount <= 0) {
-          throw new Exception("Invalid number of frames");
+          throw new Exception("Invalid number of frames: " + framesCount);
         }
         int cyclesCount = bamBuffer.getInt(0x0c);
         if (cyclesCount <= 0) {
-          throw new Exception("Invalid number of cycles");
+          throw new Exception("Invalid number of cycles: " + cyclesCount);
         }
         numDataBlocks = bamBuffer.getInt(0x10);
         if (numDataBlocks <= 0) {
-          throw new Exception("Invalid number of data blocks");
+          throw new Exception("Invalid number of data blocks: " + numDataBlocks);
         }
         int ofsFrames = bamBuffer.getInt(0x14);
         if (ofsFrames < 0x20) {
-          throw new Exception("Invalid frames offset");
+          throw new Exception("Invalid frames offset: " + Integer.toHexString(ofsFrames) + " h");
         }
         int ofsCycles = bamBuffer.getInt(0x18);
         if (ofsCycles < 0x20) {
-          throw new Exception("Invalid cycles offset");
+          throw new Exception("Invalid cycles offset: " + Integer.toHexString(ofsCycles) + " h");
         }
         int ofsBlocks = bamBuffer.getInt(0x1c);
         if (ofsBlocks < 0x20) {
-          throw new Exception("Invalid data blocks offset");
+          throw new Exception("Invalid data blocks offset: " + Integer.toHexString(ofsBlocks) + " h");
         }
 
         int ofs = ofsFrames;
@@ -454,6 +454,23 @@ public class BamV2Decoder extends BamDecoder {
 
           PvrDecoder decoder = getPVR(page);
           if (decoder != null) {
+            // sanity checks
+            if (srcX + w > decoder.getInfo().getWidth()) {
+              Logger.warn("Texture width definition is out of bounds: definition: (x1={}, x2={}), texture width: {} pixels, texture: {}",
+                  srcX, srcX + w, decoder.getInfo().getWidth(), String.format("MOS%04d.PVRZ", page));
+              w = decoder.getInfo().getWidth() - srcX;
+            }
+
+            if (srcY + h > decoder.getInfo().getHeight()) {
+              Logger.warn("Texture height definition is out of bounds: definition: (y1={}, y2={}), texture height: {} pixels, , texture: {}",
+                  srcY, srcY + h, decoder.getInfo().getHeight(), String.format("MOS%04d.PVRZ", page));
+              h = decoder.getInfo().getHeight() - srcY;
+            }
+
+            if (w <= 0 || h <= 0) {
+              continue;
+            }
+
             try {
               BufferedImage srcImage = decoder.decode(srcX, srcY, w, h);
               Graphics2D g = (Graphics2D) frame.getGraphics();

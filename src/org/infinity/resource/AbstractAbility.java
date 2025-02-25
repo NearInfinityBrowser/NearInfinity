@@ -7,6 +7,7 @@ package org.infinity.resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
@@ -36,7 +37,7 @@ public abstract class AbstractAbility extends AbstractStruct
   public static final String[] TYPE_ARRAY = { "None", "Melee", "Ranged", "Magical", "Launcher" };
 
   public static final String[] TYPE_FLAGS_ARRAY = { "None", "Usable after ID;Only relevant for item abilities",
-      "Usable before ID;Only relevant for item abilities", "Exclusive effects" };
+      "Usable before ID;Only relevant for item abilities" };
 
   public static final String[] TARGET_TYPE_ARRAY = { "", "Living actor", "Inventory", "Dead actor",
       "Any point within range", "Caster", "", "Caster (keep spell, no animation)" };
@@ -292,5 +293,37 @@ public abstract class AbstractAbility extends AbstractStruct
         w.write(os);
       }
     }
+  }
+
+  /**
+   * Returns the ability types flags configured for the current game.
+   *
+   * @return Array of string labels.
+   */
+  protected String[] getTypeFlags() {
+    return getTypeFlags(null);
+  }
+
+  /**
+   * Returns the ability types flags configured for the specified game.
+   *
+   * @param game {@link Profile.Game} to match for the type flags.
+   * @return Array of string labels.
+   */
+  protected String[] getTypeFlags(Profile.Game game) {
+    if (game == null) {
+      game = Profile.getGame();
+    }
+
+    final String[] retVal = Arrays.copyOf(TYPE_FLAGS_ARRAY, TYPE_FLAGS_ARRAY.length + 1);
+    switch (game) {
+      case PST:
+      case PSTEE:
+        retVal[3] = "Non-hostile projectile";
+        break;
+      default:
+    }
+
+    return retVal;
   }
 }

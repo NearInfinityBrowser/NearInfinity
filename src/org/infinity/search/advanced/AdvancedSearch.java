@@ -49,6 +49,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -534,26 +535,30 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
 
   @Override
   public void run() {
-    listResults.clear();
-    listResults.setEnabled(false);
-    bOpen.setEnabled(false);
-    bOpenNew.setEnabled(false);
-    bSave.setEnabled(false);
-    lResultsStatus.setText("");
+    SwingUtilities.invokeLater(() -> {
+      listResults.clear();
+      listResults.setEnabled(false);
+      bOpen.setEnabled(false);
+      bOpenNew.setEnabled(false);
+      bSave.setEnabled(false);
+      lResultsStatus.setText("");
+    });
 
     FilterMode filterOp = getCurrentFilterMode();
     if (filterOp != null) {
       // initializations
       String resType = cbResourceTypes.getSelectedItem().toString();
-      List<ResourceEntry> resources = ResourceFactory.getResources(resType);
+      final List<ResourceEntry> resources = ResourceFactory.getResources(resType);
       final Vector<ReferenceHitFrame.ReferenceHit> found = new Vector<>();
-      bSearch.setEnabled(false);
-      pbProgress.setMinimum(0);
-      pbProgress.setMaximum(resources.size());
-      pbProgress.setValue(0);
-      clBottomBar.show(pBottomBar, STATUS_PROGRESS);
-      WindowBlocker blocker = new WindowBlocker(this);
-      blocker.setBlocked(true);
+      final WindowBlocker blocker = new WindowBlocker(this);
+      SwingUtilities.invokeLater(() -> {
+        bSearch.setEnabled(false);
+        pbProgress.setMinimum(0);
+        pbProgress.setMaximum(resources.size());
+        pbProgress.setValue(0);
+        clBottomBar.show(pBottomBar, STATUS_PROGRESS);
+        blocker.setBlocked(true);
+      });
 
       // executing search
       try {
@@ -578,29 +583,33 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
         }
 
         // preparing results for output
-        int resourceCount = 0;
-        if (!found.isEmpty()) {
-          Collections.sort(found);
-          for (ReferenceHitFrame.ReferenceHit hit : found) {
-            listResults.addTableItem(hit);
+        SwingUtilities.invokeLater(() -> {
+          int resourceCount = 0;
+          if (!found.isEmpty()) {
+            Collections.sort(found);
+            for (ReferenceHitFrame.ReferenceHit hit : found) {
+              listResults.addTableItem(hit);
+            }
+            listResults.tableComplete();
+            listResults.setEnabled(true);
+            listResults.getSelectionModel().setSelectionInterval(0, 0);
+            listResults.ensureIndexIsVisible(listResults.getSelectedRow());
+
+            // determine number of unique resource entries in the results list
+            HashSet<ResourceEntry> entrySet = new HashSet<>();
+            resourceCount = (int) found.stream().filter(e -> entrySet.add(e.getResource())).count();
           }
-          listResults.tableComplete();
-          listResults.setEnabled(true);
-          listResults.getSelectionModel().setSelectionInterval(0, 0);
-          listResults.ensureIndexIsVisible(listResults.getSelectedRow());
 
-          // determine number of unique resource entries in the results list
-          HashSet<ResourceEntry> entrySet = new HashSet<>();
-          resourceCount = (int) found.stream().filter(e -> entrySet.add(e.getResource())).count();
-        }
-
-        lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
-            found.size() == 1 ? "" : "es", resourceCount, resourceCount == 1 ? "" : "s"));
+          lResultsStatus.setText(String.format("(%d match%s in %d resource%s found)", found.size(),
+              found.size() == 1 ? "" : "es", resourceCount, resourceCount == 1 ? "" : "s"));
+        });
       } finally {
         Logger.info(DebugTimer.getInstance().getTimerFormatted("Advanced Search"));
-        blocker.setBlocked(false);
-        bSearch.setEnabled(true);
-        clBottomBar.show(pBottomBar, STATUS_BUTTONS);
+        SwingUtilities.invokeLater(() -> {
+          blocker.setBlocked(false);
+          bSearch.setEnabled(true);
+          clBottomBar.show(pBottomBar, STATUS_BUTTONS);
+        });
       }
     }
   }

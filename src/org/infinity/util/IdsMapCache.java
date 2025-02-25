@@ -46,25 +46,24 @@ public class IdsMapCache {
 
     if (name != null) {
       name = name.trim().toUpperCase(Locale.ENGLISH);
-      retVal = CACHE.get(name);
-      if (retVal == null) {
-        ResourceEntry entry = ResourceFactory.getResourceEntry(name);
-        if (entry == null) {
-          if (name.equals("ATTSTYLE.IDS")) {
-            entry = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
+      retVal = CACHE.computeIfAbsent(name, n -> {
+        ResourceEntry re = ResourceFactory.getResourceEntry(n);
+        if (re == null) {
+          if ("ATTSTYLE.IDS".equalsIgnoreCase(n)) {
+            re = ResourceFactory.getResourceEntry("ATTSTYL.IDS");
           } else {
-            Logger.warn("Could not find {}", name);
+            Logger.warn("Could not find {}", n);
           }
         }
-        if (entry != null) {
+        if (re != null) {
           try {
-            retVal = new IdsMap(entry);
-            CACHE.put(name, retVal);
+            return new IdsMap(re);
           } catch (Exception e) {
             Logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
           }
         }
-      }
+        return null;
+      });
     }
     return retVal;
   }

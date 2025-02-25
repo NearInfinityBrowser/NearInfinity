@@ -38,12 +38,15 @@ import org.infinity.gui.ClipboardViewer;
 import org.infinity.gui.DebugConsole;
 import org.infinity.gui.IdsBrowser;
 import org.infinity.gui.InfinityAmpPlus;
+import org.infinity.gui.SplProtFrame;
 import org.infinity.gui.converter.ConvertToBam;
 import org.infinity.gui.converter.ConvertToBmp;
 import org.infinity.gui.converter.ConvertToMos;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.browser.CreatureBrowser;
 import org.infinity.util.MassExporter;
 
@@ -65,6 +68,7 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
   private final JMenuItem toolIDSBrowser;
   private final JMenuItem toolDropZone;
   private final JMenuItem toolCheckCREInv;
+  private final JMenuItem toolSplProtEncoder;
 
   private final JMenuItem toolCheckIDSRef;
   private final JMenuItem toolCheckIDSBCSRef;
@@ -234,6 +238,10 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
     toolDropZone = BrowserMenuBar.makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.ICON_HISTORY_16.getIcon(),
         KeyEvent.VK_Z, this);
     add(toolDropZone);
+    toolSplProtEncoder = BrowserMenuBar.makeMenuItem("SPLPROT Converter", KeyEvent.VK_S,
+        Icons.ICON_HISTORY_16.getIcon(), -1, this);
+    toolSplProtEncoder.setToolTipText("Encodes or decodes SPLPROT.2DA filter definitions.");
+    add(toolSplProtEncoder);
 
     addSeparator();
 
@@ -286,6 +294,10 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
 //      }
 //    }
 //  }
+
+  public void gameLoaded() {
+    toolSplProtEncoder.setEnabled(Profile.isEnhancedEdition() && ResourceFactory.resourceExists("SPLPROT.2DA"));
+  }
 
   public JMenuItem getDumpDebugInfoItem() {
     return dumpDebugInfo;
@@ -345,6 +357,8 @@ public class ToolsMenu extends JMenu implements BrowserSubMenu, ActionListener {
 //       cleanKeyfile();
     } else if (event.getSource() == toolDropZone) {
       ChildFrame.show(BcsDropFrame.class, BcsDropFrame::new);
+    } else if (event.getSource() == toolSplProtEncoder) {
+      ChildFrame.show(SplProtFrame.class, SplProtFrame::new);
     } else if (event.getSource() == toolCheckAllDialog) {
       new DialogChecker(false, NearInfinity.getInstance());
     } else if (event.getSource() == toolCheckOverrideDialog) {

@@ -22,9 +22,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.prefs.Preferences;
@@ -589,6 +591,39 @@ public class Misc {
       return (start > 0 || len < s.length()) ? s.substring(start, len) : s;
     }
     return s;
+  }
+
+  /**
+   * Generates a string with {@code count} instances of {@code ch}.
+   *
+   * @param count Number of character instances in the resulting string.
+   * @param ch    The character to be duplicated.
+   * @return {@code String} of {@code count} instances of {@code ch}. Empty string if count is negative.
+   */
+  public static String generate(int count, char ch) {
+    final char[] buf = new char[Math.max(0, count)];
+    Arrays.fill(buf, ch);
+    return new String(buf);
+  }
+
+  /**
+   * Generates a string with {@code count} instances of computed characters.
+   *
+   * @param count Number of character instances in the resulting string.
+   * @param fn    A functional interface that is executed to produce characters. It takes the character position as
+   *                parameter.
+   * @return {@code String} of {@code count} instances. Empty string if count is negative.
+   */
+  public static String generate(int count, Function<Integer, Character> fn) {
+    if (fn == null) {
+      throw new NullPointerException("Function argument is null");
+    }
+
+    final char[] buf = new char[Math.max(0, count)];
+    for (int i = 0; i < buf.length; i++) {
+      buf[i] = fn.apply(i);
+    }
+    return new String(buf);
   }
 
   /**
