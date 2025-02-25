@@ -521,6 +521,7 @@ public class PlainTextResource
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
     editor.setOpenResrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenResourceMenuEnabled());
+    editor.setOpenIdsEnabled(BrowserMenuBar.getInstance().getOptions().getOpenIdsMenuEnabled());
     editor.setOpenStrrefEnabled(BrowserMenuBar.getInstance().getOptions().getOpenStrrefMenuEnabled());
 
     final String ext = entry.getExtension();

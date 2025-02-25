@@ -161,6 +161,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_CACHEOVERRIDE             = "CacheOverride";
   public static final String OPTION_IDS_SYMBOL_DISPLAY        = "IdsSymbolDisplay";
   public static final String OPTION_OPEN_RESOURCE_TEXT_MENU   = "OpenResourceTextMenu";
+  public static final String OPTION_OPEN_IDS_TEXT_MENU        = "OpenIdsTextMenu";
   public static final String OPTION_OPEN_STRREF_TEXT_MENU     = "OpenStrrefTextMenu";
   public static final String OPTION_KEEPVIEWONCOPY            = "UpdateTreeOnCopy";
   public static final String OPTION_SHOWSTRREFS               = "ShowStrrefs";
@@ -503,6 +504,14 @@ public class OptionsMenuItem extends JMenuItem {
    */
   public boolean getOpenResourceMenuEnabled() {
     return AppOption.OPEN_RESOURCE_TEXT_MENU.getBoolValue();
+  }
+
+  /**
+   * Returns whether text resources should provide a context menu entry for opening IDS references based on the
+   * current text selection or cursor position.
+   */
+  public boolean getOpenIdsMenuEnabled() {
+    return AppOption.OPEN_IDS_TEXT_MENU.getBoolValue();
   }
 
   /**

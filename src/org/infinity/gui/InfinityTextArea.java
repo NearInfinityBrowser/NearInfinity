@@ -5,7 +5,6 @@
 package org.infinity.gui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -18,9 +17,12 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -61,7 +63,9 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.TextResource;
 import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.modes.BCSFoldParser;
@@ -71,6 +75,8 @@ import org.infinity.resource.text.modes.INITokenMaker;
 import org.infinity.resource.text.modes.MenuTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
+import org.infinity.util.IdsMap;
+import org.infinity.util.IdsMapCache;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
@@ -166,6 +172,8 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /** Identifies a menu item from the "open resource" menu. */
   private static final String CMD_OPEN_RESOURCE = "OpenResource";
+  /** Identifies a menu item from the "open ids" menu. */
+  private static final String CMD_OPEN_IDS      = "OpenIds";
   /** Identifies a menu item from the "open strref" menu. */
   private static final String CMD_OPEN_STRREF   = "OpenStrref";
 
@@ -173,6 +181,11 @@ public class InfinityTextArea extends RSyntaxTextArea
   private static final String OPEN_RESOURCE_LABEL_FMT     = "Open \"%s\" as resource...";
   /** Default string for "open resource" menu item label. */
   private static final String OPEN_RESOURCE_LABEL_DEFAULT = "Open as resource...";
+
+  /** Format string for an "open ids reference" menu item label. */
+  private static final String OPEN_IDS_LABEL_FMT        = "Open \"%d\" as IDS reference...";
+  /** Default string for "open ids reference" menu item label. */
+  private static final String OPEN_IDS_LABEL_DEFAULT    = "Open as IDS reference...";
 
   /** Format string for an "open strref" menu item label. */
   private static final String OPEN_STRREF_LABEL_FMT     = "Open string reference %d ...";
@@ -200,6 +213,11 @@ public class InfinityTextArea extends RSyntaxTextArea
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
   private static final String SCHEME_BCS        = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
+  /** IDS resources to ignore when building the IDS reference list. */
+  private static final HashSet<String> IDS_BLACKLIST = new HashSet<>(Arrays.asList(
+      "ACTION.IDS", "ACTSLEEP.IDS", "ANISND.IDS", "CHASE.IDS", "DLGINST.IDS", "INSTANT.IDS", "NODECODE.IDS",
+      "PREFAB.IDS", "SCRINST.IDS", "SVTRIOBJ.IDS", "TRIGGER.IDS"));
+
   static {
     // adding custom code folding definitions
     FoldParserManager.get().addFoldParserMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, new BCSFoldParser());
@@ -225,11 +243,14 @@ public class InfinityTextArea extends RSyntaxTextArea
   private final HashMap<KeyStroke, Action> inputActionMap = new HashMap<>();
   private final JPopupMenu.Separator menuOpenEntrySeparator = new JPopupMenu.Separator();
   private final JMenu menuOpenResource = new JMenu(OPEN_RESOURCE_LABEL_DEFAULT);
+  private final JMenu menuOpenIds = new JMenu(OPEN_IDS_LABEL_DEFAULT);
   private final JMenuItem menuOpenStrref = new JMenuItem(OPEN_STRREF_LABEL_DEFAULT);
 
   private RTextScrollPane scrollPane;
   private List<JMenuItem> resourceTypeItems;
+  private List<JMenuItem> idsFileItems;
   private boolean openResrefEnabled;
+  private boolean openIdsEnabled;
   private boolean openStrrefEnabled;
 
   /**
@@ -531,6 +552,23 @@ public class InfinityTextArea extends RSyntaxTextArea
     }
   }
 
+  /** Returns whether the context menu should display an option to open selected text as an IDS reference. */
+  public boolean isOpenIdsEnabled() {
+    return openIdsEnabled;
+  }
+
+  /** Specifies whether the context menu should display an option to open selected text as an IDS reference. */
+  public void setOpenIdsEnabled(boolean b) {
+    if (b != openIdsEnabled) {
+      openIdsEnabled = b;
+      if (openIdsEnabled) {
+        initOpenIds();
+      }
+      menuOpenEntrySeparator.setVisible(isOpenEntryEnabled());
+      menuOpenIds.setVisible(openIdsEnabled);
+    }
+  }
+
   /** Returns whether the context menu should display an option to open selected text as a string reference. */
   public boolean isOpenStrrefEnabled() {
     return openStrrefEnabled;
@@ -576,8 +614,20 @@ public class InfinityTextArea extends RSyntaxTextArea
           new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
         }
       }
+    } else if (CMD_OPEN_IDS.equals(e.getActionCommand())) {
+      final JMenuItem item = (JMenuItem)e.getSource();
+      final int ids = getNumberFromText(false);
+      final String idsName = item.getText();
+      final ResourceEntry entry = ResourceFactory.getResourceEntry(idsName);
+      if (entry != null) {
+        final Resource res = ResourceFactory.getResource(entry);
+        new ViewFrame(getTopLevelAncestor(), res);
+        if (res instanceof TextResource) {
+          highlightIdsEntry((TextResource) res, ids);
+        }
+      }
     } else if (CMD_OPEN_STRREF.equals(e.getActionCommand())) {
-      final int strref = getStrrefFromText();
+      final int strref = getNumberFromText(true);
       if (strref >= 0) {
         final StringLookup lookup = ChildFrame.show(StringLookup.class, StringLookup::new);
         if (lookup != null) {
@@ -669,6 +719,10 @@ public class InfinityTextArea extends RSyntaxTextArea
       initResrefPopupMenu();
     }
 
+    if (isOpenIdsEnabled()) {
+      initIdsPopupMenu();
+    }
+
     if (isOpenStrrefEnabled()) {
       initStrrefPopupMenu();
     }
@@ -676,6 +730,13 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   @Override
   public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+    if (isOpenResrefEnabled()) {
+      clearResrefPopupMenu();
+    }
+
+    if (isOpenIdsEnabled()) {
+      clearIdsPopupMenu();
+    }
   }
 
   @Override
@@ -856,12 +917,15 @@ public class InfinityTextArea extends RSyntaxTextArea
     menuOpenStrref.setActionCommand(CMD_OPEN_STRREF);
     menuOpenStrref.setVisible(openStrrefEnabled);
 
+    menuOpenIds.setVisible(openIdsEnabled);
+
     menuOpenResource.setVisible(openResrefEnabled);
 
     final JPopupMenu popup = getPopupMenu();
     if (popup != null) {
       popup.add(menuOpenEntrySeparator);
       popup.add(menuOpenStrref);
+      popup.add(menuOpenIds);
       popup.add(menuOpenResource);
       popup.addPopupMenuListener(this);
     }
@@ -886,9 +950,57 @@ public class InfinityTextArea extends RSyntaxTextArea
     }
   }
 
+  // Called lazily to initialize list of potential IDS resources
+  private void initOpenIds() {
+    if (idsFileItems == null) {
+      idsFileItems = new ArrayList<>();
+    }
+
+    if (idsFileItems.isEmpty() && Profile.isGameOpen()) {
+      final List<ResourceEntry> idsFiles = ResourceFactory.getResources("IDS");
+      for (final ResourceEntry entry : idsFiles) {
+        if (!IDS_BLACKLIST.contains(entry.getResourceName().toUpperCase(Locale.ROOT))) {
+          IdsMapCache.get(entry.getResourceName()); // pre-caching IDS resource
+          final JMenuItem item = new JMenuItem(entry.getResourceName());
+          item.addActionListener(this);
+          item.setActionCommand(CMD_OPEN_IDS);
+          idsFileItems.add(item);
+        }
+      }
+    }
+  }
+
   /** Returns whether any of the "open xxx" menu entries have been enabled. */
   private boolean isOpenEntryEnabled() {
-    return openResrefEnabled || openStrrefEnabled;
+    return openResrefEnabled || openIdsEnabled || openStrrefEnabled;
+  }
+
+  /**
+   * Selects the line in the IDS text resource that corresponds with the specified number.
+   *
+   * @param text   {@link TextResource} of the IDS resource.
+   * @param number IDS value.
+   * @return {@code true} if a matching line was found and highlighted, {@code false} otherwise.
+   */
+  private boolean highlightIdsEntry(TextResource text, int number) {
+    final long value = number & 0xffffffffL;
+    final Pattern patDec = Pattern.compile("^[ \t]*0*" + value + "[ \t]+.+", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final Pattern patHex = Pattern.compile("^[ \t]*0x0*" + Long.toHexString(value) + "[ \t]+.+",
+        Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final String[] lines = text.getText().split("\r?\n");
+    for (int i = 0; i < lines.length; i++) {
+      Matcher m = patDec.matcher(lines[i]);
+      if (m.matches()) {
+        text.highlightText(i + 1, null);
+        return true;
+      }
+      m = patHex.matcher(lines[i]);
+      if (m.matches()) {
+        text.highlightText(i + 1, null);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -943,46 +1055,50 @@ public class InfinityTextArea extends RSyntaxTextArea
   }
 
   /**
-   * Captures the currently selected text or determines the word under the caret and transforms it into a valid strref
+   * Captures the currently selected text or determines the word under the caret and transforms it into a valid numeric
    * value if possible.
    *
+   * @param includeVirtual Whether to consider virtual strref values.
    * @return String reference if available, -1 otherwise.
    */
-  private int getStrrefFromText() {
-    return getStrrefFromText(getTextWord());
+  private int getNumberFromText(boolean includeVirtual) {
+    return getNumberFromText(getTextWord(), includeVirtual);
   }
 
   /**
-   * Attempts to convert the given string into a valid string reference.
+   * Attempts to convert the given string into a valid numeric value.
    *
-   * @param text Text to convert.
+   * @param text           Text to convert.
+   * @param includeVirtual Whether to consider virtual strref values.
    * @return String reference if available, -1 otherwise.
    */
-  private int getStrrefFromText(String text) {
-    int retVal = -1;
+  private int getNumberFromText(String text, boolean includeVirtual) {
+    long retVal = -1L;
     if (text != null) {
       final Matcher m = Pattern.compile("-?\\b((0x[0-9a-fA-F]+)|(\\d+))\\b").matcher(text);
       if (m.find()) {
         final String group = m.group();
         try {
           if (group.contains("0x")) {
-            retVal = Integer.parseInt(group.replace("0x", ""), 16);
+            retVal = Long.parseLong(group.replace("0x", ""), 16);
           } else {
-            retVal = Integer.parseInt(group);
+            retVal = Long.parseLong(group);
           }
-          final Table2da vtable = Table2daCache.get("ENGINEST.2DA");
-          final int numVirtual = (vtable != null) ? vtable.getRowCount() : 0;
-          boolean valid = (retVal >= StringTable.STRREF_VIRTUAL && retVal < StringTable.STRREF_VIRTUAL + numVirtual)
-              || (retVal >= 0 && retVal < StringTable.getNumEntries());
-          if (!valid) {
-            retVal = -1;
+          if (includeVirtual) {
+            final Table2da vtable = Table2daCache.get("ENGINEST.2DA");
+            final int numVirtual = (vtable != null) ? vtable.getRowCount() : 0;
+            boolean valid = (retVal >= StringTable.STRREF_VIRTUAL && retVal < StringTable.STRREF_VIRTUAL + numVirtual)
+                || (retVal >= 0 && retVal < StringTable.getNumEntries());
+            if (!valid) {
+              retVal = -1L;
+            }
           }
         } catch (NumberFormatException e) {
         }
       }
     }
 
-    return retVal;
+    return (int)retVal;
   }
 
   /**
@@ -1014,17 +1130,16 @@ public class InfinityTextArea extends RSyntaxTextArea
     return retVal;
   }
 
-  /** Updates the "open resref" popup menu to the current state. */
-  private void initResrefPopupMenu() {
-    // removing old resource type entries
-    for (int i = menuOpenResource.getMenuComponentCount() - 1; i >= 0; i--) {
-      final Component c = menuOpenResource.getMenuComponent(i);
-      if (c instanceof JMenuItem) {
-        menuOpenResource.remove(i);
-      }
-    }
+  /** Clears the current state of the "open resref" popup menu. */
+  private void clearResrefPopupMenu() {
+    menuOpenResource.removeAll();
     menuOpenResource.setEnabled(false);
     menuOpenResource.setText(OPEN_RESOURCE_LABEL_DEFAULT);
+  }
+
+  /** Updates the "open resref" popup menu to the current state. */
+  private void initResrefPopupMenu() {
+    clearResrefPopupMenu();
 
     // populating menu with available resource types
     final String resref = getResrefFromText();
@@ -1047,13 +1162,44 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /** Updates the "open strref" popup menu to the current state. */
   private void initStrrefPopupMenu() {
-    final int strref = getStrrefFromText();
+    final int strref = getNumberFromText(true);
     if (strref >= 0) {
       menuOpenStrref.setEnabled(true);
       menuOpenStrref.setText(String.format(OPEN_STRREF_LABEL_FMT, strref));
     } else {
       menuOpenStrref.setEnabled(false);
       menuOpenStrref.setText(OPEN_STRREF_LABEL_DEFAULT);
+    }
+  }
+
+  /** Clears the current state of the "open ids reference" popup menu. */
+  private void clearIdsPopupMenu() {
+    menuOpenIds.removeAll();
+    menuOpenIds.setEnabled(false);
+    menuOpenIds.setText(OPEN_IDS_LABEL_DEFAULT);
+  }
+
+  /** Updates the "open ids reference" popup menu to the current state. */
+  private void initIdsPopupMenu() {
+    clearIdsPopupMenu();
+
+    // populating menu with available ids entries
+    long ids = getNumberFromText(false) & 0xffffffffL;
+    int count = 0;
+    for (final JMenuItem item : idsFileItems) {
+      final IdsMap idsMap = IdsMapCache.get(item.getText());
+      if (idsMap != null) {
+        final boolean available = idsMap.get(ids) != null;
+        if (available) {
+          menuOpenIds.add(item);
+          count++;
+        }
+      }
+    }
+
+    if (count > 0) {
+      menuOpenIds.setEnabled(true);
+      menuOpenIds.setText(String.format(OPEN_IDS_LABEL_FMT, ids));
     }
   }
 

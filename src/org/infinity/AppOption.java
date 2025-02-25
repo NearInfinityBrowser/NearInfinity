@@ -156,6 +156,8 @@ public class AppOption {
       "Use last available IDS symbol for display", true);
   public static final AppOption OPEN_RESOURCE_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_RESOURCE_TEXT_MENU,
       "Add \"Open resource\" option to text resource context menus", true);
+  public static final AppOption OPEN_IDS_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_IDS_TEXT_MENU,
+      "Add \"Open IDS symbol\" option to text resource context menus", true);
   public static final AppOption OPEN_STRREF_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_STRREF_TEXT_MENU,
       "Add \"Open strref\" option to text resource context menus", true);
 

@@ -189,9 +189,14 @@ public class PreferencesDialog extends JDialog {
                       AppOption.IDS_SYMBOL_DISPLAY),
                   OptionCheckBox.create(AppOption.OPEN_RESOURCE_TEXT_MENU.getName(), AppOption.OPEN_RESOURCE_TEXT_MENU.getLabel(),
                       "With this option enabled text resources will provide an \"Open resource\" entry in the context menu "
-                      + "that allows you to opens a game resource matching the current text selection or the word under "
+                      + "that allows you to open a game resource matching the current text selection or the word under "
                       + "the cursor position.",
                       AppOption.OPEN_RESOURCE_TEXT_MENU),
+                  OptionCheckBox.create(AppOption.OPEN_IDS_TEXT_MENU.getName(), AppOption.OPEN_IDS_TEXT_MENU.getLabel(),
+                      "With this option enabled text resources will provide an \"Open IDS reference\" entry in the context "
+                      + "menu that allows you to open an IDS resource and highlight the entry matching the current text "
+                      + "selection or the word under the cursor position.",
+                      AppOption.OPEN_IDS_TEXT_MENU),
                   OptionCheckBox.create(AppOption.OPEN_STRREF_TEXT_MENU.getName(), AppOption.OPEN_STRREF_TEXT_MENU.getLabel(),
                       "With this option enabled text resources will provide an \"Open strref\" entry in the context menu "
                       + "that allows you to opens a string reference matching the current text selection or the word under "
