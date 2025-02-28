@@ -312,6 +312,8 @@ public final class Profile {
      * </pre>
      */
     GET_INFINITY_ANIMATIONS,
+    /** Property: ({@code String}) Returns a unique session hash code for the current game. */
+    GET_GAME_SESSION_ID,
 
     /** Property: ({@code Boolean}) Are {@code 2DA} resources supported? */
     IS_SUPPORTED_2DA,
@@ -1424,6 +1426,15 @@ public final class Profile {
     return game;
   }
 
+  /**
+   * Returns the unique session id for this game.
+   *
+   * @return Session id as {@code String}.
+   */
+  public static String getSessionId() {
+    return getProperty(Key.GET_GAME_SESSION_ID);
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(Key key) {
     return PROPERTIES.get(key);
@@ -2014,6 +2025,9 @@ public final class Profile {
 
     // initializing engine-specific traits
     initFeatures();
+
+    // generating a unique id for the current game session
+    initSession();
   }
 
   // Initializes the first available of the specified ini files
@@ -2491,6 +2505,12 @@ public final class Profile {
 
     // Add campaign-specific extra folders
     initCampaigns();
+  }
+
+  // Generates a unique session id for this game
+  private void initSession() {
+    final String id = Long.toHexString(System.currentTimeMillis());
+    addEntry(Key.GET_GAME_SESSION_ID, Type.STRING, id);
   }
 
   // Adds any campaign-specific save folders to the resource tree (EE only)

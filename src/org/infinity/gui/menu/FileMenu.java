@@ -27,6 +27,8 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Logger;
+import org.infinity.util.Weidu;
+import org.infinity.util.tuples.Couple;
 
 /**
  * Handles File menu items for the {@link BrowserMenuBar}.
@@ -87,6 +89,7 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
   private final JMenuItem fileRename;
   private final JMenuItem fileDelete;
   private final JMenuItem fileRestore;
+  private final JMenuItem fileChangelog;
 
   public FileMenu(BrowserMenuBar parent) {
     super("File");
@@ -123,6 +126,10 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
     fileRestore = BrowserMenuBar.makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.ICON_UNDO_16.getIcon(), -1, this);
     fileRestore.setEnabled(false);
     add(fileRestore);
+    fileChangelog = BrowserMenuBar.makeMenuItem("Generate WeiDU changelog", KeyEvent.VK_G, Icons.ICON_FIND_16.getIcon(),
+        -1, this);
+    fileChangelog.setEnabled(false);
+    add(fileChangelog);
   }
 
   public void gameLoaded() {
@@ -159,6 +166,10 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
     fileRename.setEnabled(entry instanceof FileResourceEntry);
     fileDelete.setEnabled((entry != null && entry.hasOverride()) || entry instanceof FileResourceEntry);
     fileRestore.setEnabled(ResourceTree.isBackupAvailable(entry));
+
+    final Couple<Boolean, String> canChangeLog = Weidu.isChangelogAvailable();
+    fileChangelog.setEnabled(entry != null && canChangeLog.getValue0());
+    fileChangelog.setToolTipText(canChangeLog.getValue1());
   }
 
   @Override
@@ -212,6 +223,8 @@ public class FileMenu extends JMenu implements BrowserSubMenu, ActionListener {
       ResourceTree.deleteResource(NearInfinity.getInstance().getResourceTree().getSelected());
     } else if (event.getSource() == fileRestore) {
       ResourceTree.restoreResource(NearInfinity.getInstance().getResourceTree().getSelected());
+    } else if (event.getSource() == fileChangelog) {
+      ResourceTree.performChangelog(NearInfinity.getInstance().getResourceTree().getSelected());
     } else {
       for (final FileMenu.ResInfo res : RESOURCE) {
         if (event.getActionCommand().equals(res.label)) {

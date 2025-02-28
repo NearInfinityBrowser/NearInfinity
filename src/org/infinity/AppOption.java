@@ -29,6 +29,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.are.viewer.AreaViewer;
 import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.Misc;
+import org.infinity.util.Weidu;
 
 /** This enum class manages a predefined set of options. */
 public class AppOption {
@@ -127,39 +128,45 @@ public class AppOption {
       "Internal fixes", 0);
 
   // Category: Resources
-  /** Menu Options: IgnoreOverride (Boolean, Default: false) */
+  /** Menu Options > Resources: IgnoreOverride (Boolean, Default: false) */
   public static final AppOption IGNORE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_IGNOREOVERRIDE, "Ignore Override",
       false);
-  /** Menu Options: IgnoreReadErrors (Boolean, Default: false) */
+  /** Menu Options > Resources: IgnoreReadErrors (Boolean, Default: false) */
   public static final AppOption IGNORE_READ_ERRORS = new AppOption(OptionsMenuItem.OPTION_IGNOREREADERRORS,
       "Ignore Read Errors", false);
-  /** Menu Options: ShowUnknownResources (Boolean, Default: true) */
+  /** Menu Options > Resources: ShowUnknownResources (Boolean, Default: true) */
   public static final AppOption SHOW_UNKNOWN_RESOURCES = new AppOption(OptionsMenuItem.OPTION_SHOWUNKNOWNRESOURCES,
       "Show Unknown Resource Types", true);
-  /** Menu Options: ShowTreeSearchNames (Boolean, Default: true) */
+  /** Menu Options > Resources: ShowTreeSearchNames (Boolean, Default: true) */
   public static final AppOption SHOW_TREE_SEARCH_NAMES = new AppOption(OptionsMenuItem.OPTION_SHOWTREESEARCHNAMES,
       "Show Search Names in Resource Tree", true);
-  /** Menu Options: Show Icons in Resource List (Boolean, Default: false) */
+  /** Menu Options > Resources: Show Icons in Resource List (Boolean, Default: false) */
   public static final AppOption SHOW_RESOURCE_LIST_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_LIST_ICONS,
       "Show Icons in Resource List", false);
-  /** Menu Options: Show Icons in Resource Tree (Boolean, Default: false) */
+  /** Menu Options > Resources: Show Icons in Resource Tree (Boolean, Default: false) */
   public static final AppOption SHOW_RESOURCE_TREE_ICONS = new AppOption(OptionsMenuItem.OPTION_SHOW_RESOURCE_TREE_ICONS,
       "Show Icons in Resource Tree", false);
-  /** Menu Options: HighlightOverridden (Boolean, Default: true) */
+  /** Menu Options > Resources: HighlightOverridden (Boolean, Default: true) */
   public static final AppOption HIGHLIGHT_OVERRIDDEN = new AppOption(OptionsMenuItem.OPTION_HIGHLIGHT_OVERRIDDEN,
       "Show Overridden Files in Bold in Resource Tree", true);
-  /** Menu Options: CacheOverride (Boolean, Default: true) */
+  /** Menu Options > Resources: CacheOverride (Boolean, Default: true) */
   public static final AppOption CACHE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_CACHEOVERRIDE,
       "Autocheck for Overrides", true);
-  /** Menu Options: ShowLastIdsSymbol (Boolean, Default: true) */
+  /** Menu Options > Resources: ShowLastIdsSymbol (Boolean, Default: true) */
   public static final AppOption IDS_SYMBOL_DISPLAY = new AppOption(OptionsMenuItem.OPTION_IDS_SYMBOL_DISPLAY,
       "Use last available IDS symbol for display", true);
+  /** Menu Options > Resources: getOpenResourceMenuEnabled (Boolean, Default: true) */
   public static final AppOption OPEN_RESOURCE_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_RESOURCE_TEXT_MENU,
       "Add \"Open resource\" option to text resource context menus", true);
+  /** Menu Options > Resources: getOpenIdsMenuEnabled (Boolean, Default: true) */
   public static final AppOption OPEN_IDS_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_IDS_TEXT_MENU,
       "Add \"Open IDS symbol\" option to text resource context menus", true);
+  /** Menu Options > Resources: getOpenStrrefMenuEnabled (Boolean, Default: true) */
   public static final AppOption OPEN_STRREF_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_STRREF_TEXT_MENU,
       "Add \"Open strref\" option to text resource context menus", true);
+  /** Menu Options > Resources: getWeiduPath (Path, Default: weidu binary of the system if available) */
+  public static final AppOption WEIDU_PATH = new AppOption(OptionsMenuItem.OPTION_WEIDU_PATH, "WeiDU path",
+      Objects.toString(Weidu.getWeiduPath(), ""));
 
   // Category: Table Columns
   /** Menu Options > Show Table Columns: ShowOffsets (Boolean, Default: true) */
