@@ -240,14 +240,14 @@ public class Weidu {
     final Process p = pb.start();
     boolean terminated = false;
     try {
-      terminated = p.waitFor(10L, TimeUnit.SECONDS);
+      terminated = p.waitFor(30L, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Logger.warn(e);
     }
 
     if (!terminated && p.isAlive()) {
       p.destroyForcibly();
-      return false;
+      throw new Exception("WeiDU process terminated because of timeout.");
     }
 
     if (p.exitValue() != 0) {
