@@ -249,6 +249,7 @@ public class InfinityTextArea extends RSyntaxTextArea
   private RTextScrollPane scrollPane;
   private List<JMenuItem> resourceTypeItems;
   private List<JMenuItem> idsFileItems;
+  private JPopupMenu popupMenu;
   private boolean openResrefEnabled;
   private boolean openIdsEnabled;
   private boolean openStrrefEnabled;
@@ -264,7 +265,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -279,7 +280,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -294,7 +295,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -309,7 +310,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -326,7 +327,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -344,7 +345,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -363,7 +364,7 @@ public class InfinityTextArea extends RSyntaxTextArea
       applySettings(true);
       applyExtendedSettings(null, null);
     }
-    initTextArea();
+    setFont(getGlobalFont());
   }
 
   /**
@@ -843,6 +844,31 @@ public class InfinityTextArea extends RSyntaxTextArea
     return range;
   }
 
+  @Override
+  protected JPopupMenu createPopupMenu() {
+    if (popupMenu == null) {
+      popupMenu = super.createPopupMenu();
+
+      // initializing "Open ... as" menu additions
+      menuOpenEntrySeparator.setVisible(isOpenEntryEnabled());
+
+      menuOpenStrref.addActionListener(this);
+      menuOpenStrref.setActionCommand(CMD_OPEN_STRREF);
+      menuOpenStrref.setVisible(openStrrefEnabled);
+
+      menuOpenIds.setVisible(openIdsEnabled);
+
+      menuOpenResource.setVisible(openResrefEnabled);
+
+      popupMenu.add(menuOpenEntrySeparator);
+      popupMenu.add(menuOpenStrref);
+      popupMenu.add(menuOpenIds);
+      popupMenu.add(menuOpenResource);
+      popupMenu.addPopupMenuListener(this);
+    }
+    return popupMenu;
+  }
+
   private void refreshGutterIcon(int line) {
     if (getScrollPane() != null) {
       Integer key = line;
@@ -905,30 +931,6 @@ public class InfinityTextArea extends RSyntaxTextArea
       f = Misc.getScaledFont(f);
     }
     return f;
-  }
-
-  // First-time initializations
-  private void initTextArea() {
-    setFont(getGlobalFont());
-
-    menuOpenEntrySeparator.setVisible(isOpenEntryEnabled());
-
-    menuOpenStrref.addActionListener(this);
-    menuOpenStrref.setActionCommand(CMD_OPEN_STRREF);
-    menuOpenStrref.setVisible(openStrrefEnabled);
-
-    menuOpenIds.setVisible(openIdsEnabled);
-
-    menuOpenResource.setVisible(openResrefEnabled);
-
-    final JPopupMenu popup = getPopupMenu();
-    if (popup != null) {
-      popup.add(menuOpenEntrySeparator);
-      popup.add(menuOpenStrref);
-      popup.add(menuOpenIds);
-      popup.add(menuOpenResource);
-      popup.addPopupMenuListener(this);
-    }
   }
 
   // Called lazily to initialize list of potential game resource types
