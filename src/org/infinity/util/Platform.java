@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.PatternSyntaxException;
 
@@ -241,6 +243,44 @@ public class Platform {
     }
 
     return retVal;
+  }
+
+  /**
+   * Ensures that the specified file path can be executed.
+   *
+   * @param file The file {@link Path}.
+   * @return {@code true} if {@code file} exists and is executable, {@code false} otherwise. On Windows system returns
+   *         {@code true} only if the specified path is a file with the {@code .exe} file extension.
+   */
+  public static boolean makeExecutable(Path file) {
+    if (file == null || !Files.exists(file)) {
+      return false;
+    }
+
+    if (Platform.IS_WINDOWS) {
+      return (file.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".exe"));
+    } else if (!Files.isExecutable(file)) {
+      final PosixFilePermission[] xperms = {
+          PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE,
+          PosixFilePermission.OWNER_READ, PosixFilePermission.GROUP_READ, PosixFilePermission.OTHERS_READ
+      };
+      boolean setPerms = false;
+      try {
+        HashSet<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(file));
+        for (final PosixFilePermission xperm : xperms) {
+          if (!perms.contains(xperm)) {
+            perms.add(xperm);
+            setPerms = true;
+          }
+        }
+        if (setPerms) {
+          Files.setPosixFilePermissions(file, perms);
+        }
+        return true;
+      } catch (UnsupportedOperationException | IOException e) {
+      }
+    }
+    return false;
   }
 
   private Platform() {

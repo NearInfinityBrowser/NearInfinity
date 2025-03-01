@@ -430,20 +430,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   /** Performs a WeiDU changelog operation on the specified resource and presents the result. */
   public static void performChangelog(ResourceEntry entry) {
-    if (entry == null) {
-      return;
-    }
-
-    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
-    try {
-      blocker.setBlocked(true);
+    if (entry != null) {
       Weidu.performChangelog(entry);
-    } catch (Exception e) {
-      Logger.error(e);
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Failed to perform a WeiDU changelog on " + entry,
-          "Error", JOptionPane.ERROR_MESSAGE);
-    } finally {
-      blocker.setBlocked(false);
     }
   }
 

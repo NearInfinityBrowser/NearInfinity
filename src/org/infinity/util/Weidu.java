@@ -8,21 +8,27 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +43,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ProgressMonitor;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
@@ -63,6 +70,67 @@ public class Weidu {
 
   /** Name of the platform-specific WeiDU executable. */
   public static final String WEIDU_BIN = WEIDU_NAME + Platform.EXECUTABLE_EXT;
+
+  /**
+   * Returns the version of the specified WeiDU binary.
+   *
+   * @param weiduBin {@link Path} of the WeiDU binary.
+   * @return Version {@code String} as <code>MAJOR_VERSION * 100</code> + <code>MINOR_VERSION</code>. A minor version of
+   *         nonzero indicates a beta version. Returns -1 if the version cannot be determined.
+   */
+  public static int getWeiduVersion(Path weiduBin) {
+    int retVal = -1;
+    if (weiduBin == null || !Files.isRegularFile(weiduBin)) {
+      return retVal;
+    }
+
+    final ProcessBuilder pb = new ProcessBuilder(weiduBin.toString(), "--exit");
+    final Path parentPath = weiduBin.getParent();
+    if (parentPath != null) {
+      pb.directory(parentPath.toFile());
+    }
+    pb.redirectOutput(Redirect.PIPE);
+
+    final List<String> lines = new ArrayList<>();
+    try {
+      final Process process = pb.start();
+
+      // ensure that our process doesn't stall
+      new Thread(() -> {
+        try {
+          Thread.sleep(250L);
+        } catch (InterruptedException e) {
+        }
+        if (process.isAlive()) {
+          process.destroyForcibly();
+        }
+      }).start();
+
+      try (final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+          line = line.trim();
+          if (!line.isEmpty()) {
+            lines.add(line);
+          }
+        }
+      }
+      process.waitFor();
+    } catch (Throwable t) {
+      Logger.debug(t);
+    }
+
+    if (!lines.isEmpty()) {
+      final String line = lines.get(0);
+      final String[] tokens = line.split("\\s+");
+      if (tokens.length > 3) {
+        final String verString = tokens[tokens.length - 1];
+        retVal = Misc.toNumber(verString, -1);
+      }
+    }
+
+    return retVal;
+  }
 
   /**
    * Returns the absolute path of the WeiDU binary.
@@ -188,9 +256,158 @@ public class Weidu {
     return retVal;
   }
 
-  public static boolean performChangelog(ResourceEntry entry) throws Exception {
+  /**
+   * Public method to invoke the WeiDU changelog operation. The actual changelog operation is performed in a separate
+   * background task. This method does not block. It returns instantly after starting the background task.
+   *
+   * @param entry {@link ResourceEntry} of the game resource to perform the changelog on.
+   */
+  public static void performChangelog(ResourceEntry entry) {
+    new Thread(() -> performChangeLogTask(entry)).start();
+  }
+
+  /**
+   * Performs the changelog operation and displays a results table.
+   *
+   * @param entry {@link ResourceEntry} of the game resource to perform the changelog on.
+   */
+  private static void performChangeLogTask(ResourceEntry entry) {
+    try {
+      List<ChangeLogEntry> resultList = null;
+
+      final ProgressMonitor progress = new ProgressMonitor(NearInfinity.getInstance(),
+          "Generating WeiDU changelog: " + entry.getResourceName(), "Please wait...", 0, 2);
+
+      try (final Threading thread = new Threading()) {
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(0);
+        Threading.invokeInEventThread(() -> progress.setProgress(1));
+
+        final Callable<List<ChangeLogEntry>> task = () -> {
+          return getChangeLogEntries(entry);
+        };
+
+        final Future<List<ChangeLogEntry>> result = thread.submit(task);
+        while (!result.isDone()) {
+          try {
+            resultList = result.get();
+          } catch (InterruptedException e) {
+            result.cancel(true);
+          } catch (ExecutionException e) {
+            if (e.getCause() instanceof Exception) {
+              throw (Exception)e.getCause();
+            } else {
+              throw e;
+            }
+          }
+        }
+      } finally {
+        progress.close();
+      }
+
+      if (resultList == null || resultList.isEmpty()) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No changelog entries found.", "Information",
+            JOptionPane.INFORMATION_MESSAGE);
+        return;
+      }
+
+      final String resFile = entry.getResourceName().toUpperCase(Locale.ROOT);
+
+      final JButton openButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+      openButton.setMnemonic('o');
+      openButton.setEnabled(false);
+
+      final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+      saveButton.setMnemonic('s');
+
+      final JLabel countLabel = new JLabel(resultList.size() + (resultList.size() == 1 ? " entry" : " entries") + " found");
+
+      final ChildFrame resultFrame = new ChildFrame("Mods affecting " + resFile, true);
+      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+      resultFrame.getRootPane().setDefaultButton(openButton);
+
+      final String[] columns = { "Index", "Tp2 file", "Language id", "Component id", "Component name", "Comment" };
+      final Class<?>[] classes = { DataNumber.class, String.class, Integer.class, Integer.class, String.class, String.class };
+      final Integer[] columnWidths = { 75, 250, 75, 75, 350, 150 };
+      final SortableTable table = new SortableTable(columns, classes, columnWidths);
+      for (final ChangeLogEntry changeLogEntry : resultList) {
+        table.addTableItem(new ChangeLogTableItem(changeLogEntry));
+      }
+      table.tableComplete();
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
+      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
+
+      // returns whether the specified table row is associated with a resource
+      final Predicate<Integer> predCanOpenEntry = index -> {
+        if (index >= 0) {
+          final Object o = table.getModel().getValueAt(index, 0);
+          return (o instanceof DataNumber<?>) && ((DataNumber<?>)o).hasData();
+        }
+        return false;
+      };
+
+      // opens the resource associated with the specified table row
+      final Predicate<Integer> predOpenEntry = rowIndex -> {
+        if (rowIndex >= 0) {
+          showResourceInViewer(resultFrame, table.getModel().getValueAt(rowIndex, 0));
+          return true;
+        }
+        return false;
+      };
+
+      table.getSelectionModel().addListSelectionListener(e -> {
+        if (!e.getValueIsAdjusting()) {
+          openButton.setEnabled(predCanOpenEntry.test(table.getSelectedRow()));
+        }
+      });
+      table.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          if (e.getClickCount() == 2) {
+            predOpenEntry.test(table.getSelectedRow());
+          }
+        }
+      });
+
+      openButton.addActionListener(e -> predOpenEntry.test(table.getSelectedRow()));
+      saveButton.addActionListener(e -> table.saveCheckResult(resultFrame, "Changelog results for " + resFile));
+
+      final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+      buttonPanel.add(openButton);
+      buttonPanel.add(saveButton);
+
+      final JScrollPane scrollTable = new JScrollPane(table);
+      scrollTable.getViewport().setBackground(table.getBackground());
+
+      final JComponent contentPane = (JComponent)resultFrame.getContentPane();
+      contentPane.setLayout(new BorderLayout(0, 3));
+      contentPane.add(countLabel, BorderLayout.NORTH);
+      contentPane.add(scrollTable, BorderLayout.CENTER);
+      contentPane.add(buttonPanel, BorderLayout.SOUTH);
+      contentPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      final int height = Math.max(400, Math.min(1000, 100 + table.getRowHeight() * table.getRowCount()));
+      resultFrame.setSize(1000, height);
+      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+      resultFrame.setVisible(true);
+    } catch (Exception e) {
+      Logger.error(e);
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Failed to perform a WeiDU changelog on " + entry,
+          "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+  }
+
+  /**
+   * Performs the actual WeiDU changelog operation and returns a list with changelog entries if successful.
+   *
+   * @param entry {@link ResourceEntry} of the game resource to perform the changelog on.
+   * @return {@code List} of {@link ChangeLogEntry} instances.
+   * @throws Exception if the operation could not be completed successfully.
+   */
+  private static List<ChangeLogEntry> getChangeLogEntries(ResourceEntry entry) throws Exception {
     if (entry == null) {
-      return false;
+      throw new NullPointerException("entry is null");
     }
 
     // preparations
@@ -199,23 +416,25 @@ public class Weidu {
 
     final Path weiduBin = getWeiduPath();
     if (weiduBin == null) {
-      return false;
+      throw new FileNotFoundException("WeiDU binary not found");
     }
 
     // ensure binary is executable
-    if (!Platform.IS_WINDOWS && !Files.isExecutable(weiduBin)) {
-      try {
-        Files.setPosixFilePermissions(weiduBin, PosixFilePermissions.fromString("rwxr-xr-x"));
-      } catch (UnsupportedOperationException e) {
-        Logger.debug(e);
-      }
+    if (!Platform.makeExecutable(weiduBin)) {
+      Logger.debug("WeiDU binary may not be executable");
+    }
+
+    final int weiduVersion = getWeiduVersion(weiduBin);
+    if (weiduVersion < 24600) {
+      throw new IllegalArgumentException("WeiDU version too old or not a WeiDU binary: " + weiduBin);
+    } else if (weiduVersion % 100 != 0) {
+      Logger.warn("WeiDU binary appears to be a beta or work-in-progress version: " + weiduBin);
     }
 
     final Path tempDir = Platform.createTempDirectory("ni-" + Profile.getSessionId());
     final Path gameRoot = Profile.getGameRoot();
 
     final String resFile = entry.getResourceName().toLowerCase(Locale.ROOT);
-    final String resFileUpper = resFile.toUpperCase(Locale.ROOT);
     final String resName = entry.getResourceRef().toLowerCase(Locale.ROOT);
     final String resExt = entry.getExtension().toLowerCase(Locale.ROOT);
 
@@ -238,20 +457,15 @@ public class Weidu {
     pb.directory(gameRoot.toFile());
     pb.redirectOutput(Platform.NULL_FILE);  // discard output
     final Process p = pb.start();
-    boolean terminated = false;
     try {
-      terminated = p.waitFor(30L, TimeUnit.SECONDS);
+      p.waitFor();
     } catch (InterruptedException e) {
-      Logger.warn(e);
-    }
-
-    if (!terminated && p.isAlive()) {
       p.destroyForcibly();
-      throw new Exception("WeiDU process terminated because of timeout.");
+      throw new CancellationException();
     }
 
     if (p.exitValue() != 0) {
-      return false;
+      throw new RuntimeException("WeiDU changelog operation failed");
     }
 
     // parsing and presenting results
@@ -259,93 +473,10 @@ public class Weidu {
     if (changelogFile != null) {
       FileDeletionHook.getInstance().registerFile(changelogFile);
     } else {
-      return false;
+      throw new NoSuchFileException(changelogName);
     }
 
-    final List<ChangeLogEntry> resultList = parseChangeLog(resFile, changelogFile);
-    if (resultList.isEmpty()) {
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No changelog entries found.", "Information",
-          JOptionPane.INFORMATION_MESSAGE);
-      return false;
-    }
-
-    final JButton openButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-    openButton.setMnemonic('o');
-    openButton.setEnabled(false);
-
-    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-    saveButton.setMnemonic('s');
-
-    final JLabel countLabel = new JLabel(resultList.size() + (resultList.size() == 1 ? " entry" : " entries") + " found");
-
-    final ChildFrame resultFrame = new ChildFrame("Mods affecting " + resFileUpper, true);
-    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-    resultFrame.getRootPane().setDefaultButton(openButton);
-
-    final String[] columns = { "Index", "Tp2 file", "Language id", "Component id", "Component name", "Comment" };
-    final Class<?>[] classes = { DataNumber.class, String.class, Integer.class, Integer.class, String.class, String.class };
-    final Integer[] columnWidths = { 40, 250, 40, 40, 350, 150 };
-    final SortableTable table = new SortableTable(columns, classes, columnWidths);
-    for (final ChangeLogEntry changeLogEntry : resultList) {
-      table.addTableItem(new ChangeLogTableItem(changeLogEntry));
-    }
-    table.tableComplete();
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-
-    // returns whether the specified table row is associated with a resource
-    final Predicate<Integer> predCanOpenEntry = index -> {
-      if (index >= 0) {
-        final Object o = table.getModel().getValueAt(index, 0);
-        return (o instanceof DataNumber<?>) && ((DataNumber<?>)o).hasData();
-      }
-      return false;
-    };
-
-    // opens the resource associated with the specified table row
-    final Predicate<Integer> predOpenEntry = rowIndex -> {
-      if (rowIndex >= 0) {
-        showResourceInViewer(resultFrame, table.getModel().getValueAt(rowIndex, 0));
-        return true;
-      }
-      return false;
-    };
-
-    table.getSelectionModel().addListSelectionListener(e -> {
-      if (!e.getValueIsAdjusting()) {
-        openButton.setEnabled(predCanOpenEntry.test(table.getSelectedRow()));
-      }
-    });
-    table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          predOpenEntry.test(table.getSelectedRow());
-        }
-      }
-    });
-
-    openButton.addActionListener(e -> predOpenEntry.test(table.getSelectedRow()));
-    saveButton.addActionListener(e -> table.saveCheckResult(resultFrame, "Changelog results for " + resFileUpper));
-
-    final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(openButton);
-    buttonPanel.add(saveButton);
-
-    final JScrollPane scrollTable = new JScrollPane(table);
-    scrollTable.getViewport().setBackground(table.getBackground());
-
-    final JComponent contentPane = (JComponent)resultFrame.getContentPane();
-    contentPane.setLayout(new BorderLayout(0, 3));
-    contentPane.add(countLabel, BorderLayout.NORTH);
-    contentPane.add(scrollTable, BorderLayout.CENTER);
-    contentPane.add(buttonPanel, BorderLayout.SOUTH);
-    contentPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-    resultFrame.setSize(1000, 500);
-    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-    resultFrame.setVisible(true);
-
-    return true;
+    return parseChangeLog(resFile, changelogFile);
   }
 
   /**
