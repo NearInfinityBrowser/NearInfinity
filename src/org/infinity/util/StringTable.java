@@ -1359,6 +1359,7 @@ public class StringTable {
     synchronized (entries) {
       entries.remove(index);
     }
+    _setModified();
   }
 
   // Loads all remaining string entries from file
