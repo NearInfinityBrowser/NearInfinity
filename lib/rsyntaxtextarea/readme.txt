@@ -11,12 +11,12 @@ robert -at- fifesoft dot com.
   It allows applications to easily embed syntax highlighting for most common
   programming languages.  Most other standard programmer's editor features are
   built-in: auto-indent, bracket matching, undo/redo, etc.  Auto-completion
-  is available as an add-on library (see http://fifesoft.com/autocomplete).
+  is available as an add-on library (see https://github.com/bobbylight/AutoComplete).
 
 * License
 
   RSyntaxTextArea is licensed under a modified BSD license.  Please see the
-  included RSyntaxTextArea.License.txt file.
+  included src/main/resources/META-INF/LICENSE file.
 
 * Compiling
 
@@ -29,11 +29,8 @@ robert -at- fifesoft dot com.
 * Feedback
 
   I hope you find RSyntaxTextArea useful.  Bug reports, feature requests, and
-  just general questions are always welcome.  Ways you can submit feedback:
-  
-    * http://forum.fifesoft.com (preferred)
-         Has a forum for RSyntaxTextArea and related projects, where you can
-         ask questions and get feedback quickly.
+  just general questions are always welcome. You can submit feedback via the
+  GitHub site:
 
     * https://github.com/bobbylight/RSyntaxTextArea
          Add a bug or enhancement request, peruse the Wiki, etc.
