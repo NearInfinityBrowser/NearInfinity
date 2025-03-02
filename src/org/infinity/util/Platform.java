@@ -276,11 +276,12 @@ public class Platform {
         if (setPerms) {
           Files.setPosixFilePermissions(file, perms);
         }
-        return true;
       } catch (UnsupportedOperationException | IOException e) {
+        Logger.debug(e);
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   private Platform() {
