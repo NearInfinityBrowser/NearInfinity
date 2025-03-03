@@ -49,14 +49,15 @@ public class OptionGroupBox extends OptionElementBase {
   /**
    * Creates a new OptionGroupBox with the specified parameters.
    *
-   * @param id An identifier for this option element.
-   * @param label A short descriptive string used as label for the combobox with group box elements.
-   * @param desc A more detailed description string for display in an info panel.
-   * @param selectedIndex Initial selected item index. This value can be updated by a specified onInit function if available,
-   * or is automatically updated by the specified {@code AppOption} value, otherwise.
-   * <b>Note:</b> You have to use the {@code onInit} function if the AppOption value cannot be directly mapped to an item index.
-   * @param items List of group box items for use as elements in the associated combobox.
-   * @param option An {@code AppOption} instance for retrieving and storing the option value.
+   * @param id            An identifier for this option element.
+   * @param label         A short descriptive string used as label for the combobox with group box elements.
+   * @param desc          A more detailed description string for display in an info panel.
+   * @param selectedIndex Initial selected item index. This value can be updated by a specified onInit function if
+   *                        available, or is automatically updated by the specified {@code AppOption} value, otherwise.
+   *                        <b>Note:</b> You have to use the {@code onInit} function if the AppOption value cannot be
+   *                        directly mapped to an item index.
+   * @param items         List of group box items for use as elements in the associated combobox.
+   * @param option        An {@code AppOption} instance for retrieving and storing the option value.
    */
   protected OptionGroupBox(Object id, String label, String desc, int selectedIndex, Object[] items, AppOption option) {
     super(id, label, desc, option);
@@ -221,9 +222,9 @@ public class OptionGroupBox extends OptionElementBase {
   /**
    * Specifies a function that will be executed whenever the user changed the selected item of the associated combobox.
    *
-   * @param select {@link Function} instance which is called with this {@code OptionGroupBox} instance as parameter.
-   * The function should return {@code true} if the current combobox selection state should be retained and
-   * {@code false} if the selection state should be reverted to the previous value.
+   * @param select {@link Function} instance which is called with this {@code OptionGroupBox} instance as parameter. The
+   *                 function should return {@code true} if the current combobox selection state should be retained and
+   *                 {@code false} if the selection state should be reverted to the previous value.
    */
   public OptionGroupBox setOnSelect(Function<OptionGroupBox, Boolean> select) {
     this.onSelect = select;

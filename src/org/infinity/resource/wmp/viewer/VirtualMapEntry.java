@@ -59,7 +59,8 @@ public class VirtualMapEntry extends VirtualStructEntry {
     final int colCount = 15;
     for (int row = 0, rowCount = mapTable.getRowCount(); row < rowCount; row++) {
       if (mapTable.getColCount(row) < colCount) {
-        throw new Exception("Incomplete definition at row " + row);
+        // XXX: can be triggered in EET which installs a faulty XNEWAREA.2DA
+        continue;
       }
 
       for (int col = 0; col < colCount; col++) {

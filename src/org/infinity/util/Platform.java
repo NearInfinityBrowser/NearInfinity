@@ -5,8 +5,17 @@
 package org.infinity.util;
 
 import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * This class provides information about the current architecture and operating system.
@@ -112,6 +121,12 @@ public class Platform {
   /** Returns the system-dependent name-separator character as string for the current platform. */
   public final static String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
+  /** Returns the default file extension for executables on the current system. */
+  public final static String EXECUTABLE_EXT = OS.WINDOWS.isOS() ? ".exe" : "";
+
+  /** Returns the "null" file that can be used to discard I/O output of external processes. */
+  public final static File NULL_FILE = new File(System.getProperty("os.name").startsWith("Windows") ? "NUL" : "/dev/null");
+
   /** Returns the major version number of the active Java Runtime. */
   public final static int JAVA_VERSION = getJavaVersion();
 
@@ -133,6 +148,140 @@ public class Platform {
     }
 
     return retVal;
+  }
+
+  /**
+   * Resolves the full path of the given binary based on the environment variable {@code PATH}.
+   *
+   * @param binary Name of the binary.
+   * @return Absolute {@link Path} of the binary if available, {@code null} otherwise.
+   */
+  public static Path resolveSystemPath(String binary) {
+    if (binary == null || binary.trim().isEmpty()) {
+      return null;
+    }
+
+    try {
+      final String sysPath = System.getenv("PATH");
+      if (sysPath != null) {
+        final String[] paths = sysPath.split(Platform.PATH_SEPARATOR);
+        for (final String path : paths) {
+          if (!path.trim().isEmpty()) {
+            try {
+              Path p = Paths.get(path, binary);
+              if (Files.isRegularFile(p)) {
+                if (!p.isAbsolute()) {
+                  p = p.toAbsolutePath();
+                }
+                return p;
+              }
+            } catch (InvalidPathException | IOError e) {
+              Logger.debug(e);
+            }
+          }
+        }
+      }
+    } catch (PatternSyntaxException e) {
+      Logger.debug(e);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the path of the system's temporary directory.
+   *
+   * @return Absolute {@link Path} of the temporary directory.
+   * @throws UnsupportedOperationException if the temporary directory does not exist.
+   */
+  public static Path getTempDirectory() {
+    Path retVal = Paths.get(System.getProperty("java.io.tmpdir"));
+    if (retVal == null) {
+      throw new NullPointerException("Temp directory is null");
+    }
+
+    if (!retVal.isAbsolute()) {
+      try {
+        retVal = retVal.toAbsolutePath();
+      } catch (IOError e) {
+        Logger.debug(e);
+      }
+    }
+
+    if (!Files.isDirectory(retVal)) {
+      throw new UnsupportedOperationException("Temporary directory does not exist");
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Creates the specified subfolders in the system's temporary directory and adds them to the {@link FileDeletionHook}
+   * for automatic removal.
+   *
+   * @param folders one or more subfolders that are recursively created in the temporary directory.
+   * @return Absolute {@link Path} of the temporary directory.
+   * @throws IOException if the directory could not be created.
+   */
+  public static Path createTempDirectory(String... folders) throws IOException {
+    Path retVal = getTempDirectory();
+
+    if (folders.length > 0) {
+      for (final String folder : folders) {
+        if (folder != null && !folder.trim().isEmpty()) {
+          retVal = retVal.resolve(folder);
+          if (!Files.isDirectory(retVal)) {
+            try {
+              Files.createDirectory(retVal);
+              FileDeletionHook.getInstance().registerFile(retVal);
+            } catch (UnsupportedOperationException e) {
+              throw new IOException(e);
+            }
+          }
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Ensures that the specified file path can be executed.
+   *
+   * @param file The file {@link Path}.
+   * @return {@code true} if {@code file} exists and is executable, {@code false} otherwise. On Windows system returns
+   *         {@code true} only if the specified path is a file with the {@code .exe} file extension.
+   */
+  public static boolean makeExecutable(Path file) {
+    if (file == null || !Files.exists(file)) {
+      return false;
+    }
+
+    if (Platform.IS_WINDOWS) {
+      return (file.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".exe"));
+    } else if (!Files.isExecutable(file)) {
+      final PosixFilePermission[] xperms = {
+          PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE,
+          PosixFilePermission.OWNER_READ, PosixFilePermission.GROUP_READ, PosixFilePermission.OTHERS_READ
+      };
+      boolean setPerms = false;
+      try {
+        HashSet<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(file));
+        for (final PosixFilePermission xperm : xperms) {
+          if (!perms.contains(xperm)) {
+            perms.add(xperm);
+            setPerms = true;
+          }
+        }
+        if (setPerms) {
+          Files.setPosixFilePermissions(file, perms);
+        }
+      } catch (UnsupportedOperationException | IOException e) {
+        Logger.debug(e);
+        return false;
+      }
+    }
+    return true;
   }
 
   private Platform() {

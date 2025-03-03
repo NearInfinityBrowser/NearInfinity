@@ -38,6 +38,7 @@ import org.infinity.gui.ClipboardViewer;
 import org.infinity.gui.DebugConsole;
 import org.infinity.gui.IdsBrowser;
 import org.infinity.gui.InfinityAmpPlus;
+import org.infinity.gui.MassExporter;
 import org.infinity.gui.SplProtFrame;
 import org.infinity.gui.converter.ConvertToBam;
 import org.infinity.gui.converter.ConvertToBmp;
@@ -48,7 +49,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.browser.CreatureBrowser;
-import org.infinity.util.MassExporter;
 
 /**
  * Handles Game menu items for the {@link BrowserMenuBar}.
