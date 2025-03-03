@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -1102,6 +1104,7 @@ public class StringTable {
   private int entriesPending;
   // private boolean fullyLoaded;
 
+  private FileTime lastModified;
   private short langId;
   private boolean initialized;
   private boolean modified;
@@ -1210,6 +1213,7 @@ public class StringTable {
 
   private void _init() {
     if (!_initialized()) {
+      _updateTableModified();
       synchronized (entries) {
         try (FileChannel ch = _open()) {
           // parsing header
@@ -1241,6 +1245,24 @@ public class StringTable {
           Logger.error(e);
         }
       }
+    }
+  }
+
+  private boolean _isTableModified() {
+    try {
+      return !lastModified.equals(Files.getLastModifiedTime(_getPath()));
+    } catch (IOException e) {
+      Logger.warn(e);
+    }
+    return false;
+  }
+
+  private void _updateTableModified() {
+    try {
+      lastModified = Files.getLastModifiedTime(_getPath());
+    } catch (IOException e) {
+      lastModified = FileTime.from(Instant.now());
+      Logger.warn(e);
     }
   }
 
@@ -1337,10 +1359,15 @@ public class StringTable {
     synchronized (entries) {
       entries.remove(index);
     }
+    _setModified();
   }
 
   // Loads all remaining string entries from file
   private void _ensureFullyLoaded() {
+    if (_isTableModified()) {
+      _reset();
+    }
+
     if (entriesPending > 0) {
       synchronized (entries) {
         try (FileChannel ch = _open()) {
@@ -1364,6 +1391,10 @@ public class StringTable {
 
   // Makes sure the specified string entry is loaded into memory
   private void _ensureIndexIsLoaded(int index) {
+    if (_isTableModified()) {
+      _reset();
+    }
+
     index = _getTranslatedIndex(index);
     if (entriesPending > 0 && index >= 0 && index < _getNumEntries() && entries.get(index) == null) {
       synchronized (entries) {

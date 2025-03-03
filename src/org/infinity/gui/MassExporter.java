@@ -2,7 +2,7 @@
 // Copyright (C) 2001 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.util;
+package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -56,9 +56,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.Center;
-import org.infinity.gui.ChildFrame;
-import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
@@ -85,6 +82,11 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.resource.video.MveResource;
+import org.infinity.util.DebugTimer;
+import org.infinity.util.Logger;
+import org.infinity.util.Misc;
+import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.Threading;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;

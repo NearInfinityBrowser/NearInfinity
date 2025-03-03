@@ -20,6 +20,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wmp.AreaEntry;
 import org.infinity.resource.wmp.MapEntry;
 import org.infinity.resource.wmp.WmpResource;
+import org.tinylog.Logger;
 
 public class WmpMapInfo implements Closeable {
   private final List<WmpAreaInfo> areasList = new ArrayList<>();
@@ -77,8 +78,12 @@ public class WmpMapInfo implements Closeable {
     if (vme != null && virtualMapEntry == null) {
       virtualMapEntry = vme;
       for (int i = 0, count = vme.getAreaCount(); i < count; i++) {
-        final WmpAreaInfo wai = new WmpAreaInfo(this, vme.getAreaEntry(i));
-        areasList.add(wai);
+        try {
+          final WmpAreaInfo wai = new WmpAreaInfo(this, vme.getAreaEntry(i));
+          areasList.add(wai);
+        } catch (Exception e) {
+          Logger.warn("Invalid virtual area definition #{}: skipping", i);
+        }
       }
     }
   }

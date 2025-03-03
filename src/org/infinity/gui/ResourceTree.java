@@ -70,9 +70,11 @@ import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.IconCache;
 import org.infinity.util.Logger;
 import org.infinity.util.Operation;
+import org.infinity.util.Weidu;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener {
   private final JButton bnext = new JButton("Forward", Icons.ICON_FORWARD_16.getIcon());
@@ -426,6 +428,13 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
+  /** Performs a WeiDU changelog operation on the specified resource and presents the result. */
+  public static void performChangelog(ResourceEntry entry) {
+    if (entry != null) {
+      Weidu.performChangelog(entry);
+    }
+  }
+
   public static void createZipFile(Path path) {
     if (path != null && FileEx.create(path).isDirectory()) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
@@ -673,6 +682,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     private final JMenuItem miRename = new JMenuItem("Rename");
     private final JMenuItem miDelete = new JMenuItem("Delete");
     private final JMenuItem miRestore = new JMenuItem("Restore backup");
+    private final JMenuItem miChangelog = new JMenuItem("Generate WeiDU changelog");
     private final JMenuItem miZip = new JMenuItem("Create zip archive");
 
     TreePopupMenu() {
@@ -680,7 +690,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       miZip.setToolTipText("Create a zip archive out of the selected saved game.");
       Font fnt = miOpen.getFont().deriveFont(Font.PLAIN);
       for (JMenuItem mi : new JMenuItem[] { miOpen, miOpenNew, miOpenBiffedNew, miReference, miExport,
-          miZip, miAddCopy, miRename, miDelete, miRestore }) {
+          miZip, miAddCopy, miRename, miDelete, miRestore, miChangelog }) {
         add(mi);
         mi.addActionListener(this);
         mi.setFont(fnt);
@@ -748,6 +758,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         deleteResource(node);
       } else if (event.getSource() == miRestore && node != null) {
         restoreResource(node);
+      } else if (event.getSource() == miChangelog && node != null) {
+        performChangelog(node);
       } else if (event.getSource() == miZip) {
         Path saveFolder = null;
         Object o = tree.getLastSelectedPathComponent();
@@ -789,6 +801,11 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
       miDelete.setEnabled(entry != null && entry.hasOverride() || entry instanceof FileResourceEntry);
       miRestore.setEnabled(isBackupAvailable(entry));
+
+      final Couple<Boolean, String> canChangeLog = Weidu.isChangelogAvailable();
+      miChangelog.setEnabled(entry != null && canChangeLog.getValue0());
+      miChangelog.setToolTipText(canChangeLog.getValue1());
+
       miZip.setEnabled(entry instanceof FileResourceEntry && Profile.isSaveGame(entry.getActualPath()));
 
       final StringBuilder path = new StringBuilder();

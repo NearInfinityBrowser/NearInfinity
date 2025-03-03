@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -87,10 +88,14 @@ import org.infinity.gui.options.OptionContainerBase;
 import org.infinity.gui.options.OptionElementBase;
 import org.infinity.gui.options.OptionGroup;
 import org.infinity.gui.options.OptionGroupBox;
+import org.infinity.gui.options.OptionPathBox;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
+import org.infinity.util.Platform;
+import org.infinity.util.Weidu;
+import org.infinity.util.io.FileNameFilter;
 
 /**
  * This modal dialog provides access to application-wide options and preferences
@@ -202,6 +207,15 @@ public class PreferencesDialog extends JDialog {
                       + "that allows you to opens a string reference matching the current text selection or the word under "
                       + "the cursor position.",
                       AppOption.OPEN_STRREF_TEXT_MENU)
+              ),
+              OptionGroup.create("WeiDU",
+                  OptionPathBox.fileCreate(AppOption.WEIDU_PATH.getName(), AppOption.WEIDU_PATH.getLabel(),
+                      "Choose a WeiDU binary to enable WeiDU-specific operations. Near Infinity will also check the "
+                      + "current game directory as well as <b><code>./weidu_external/tools/weidu</code></b> and various "
+                      + "system-specific subfolders if the WeiDU binary has not been defined or does not exist.", null,
+                      new FileNameFilter("WeiDU executables", Weidu.WEIDU_NAME + ".*" + Pattern.quote(Platform.EXECUTABLE_EXT)),
+                      true, AppOption.WEIDU_PATH)
+                  .setOnChanged(this::weiduPathOnChanged)
               )
           ),
           OptionCategory.create(Category.TABLE_COLUMNS,
@@ -1123,6 +1137,33 @@ public class PreferencesDialog extends JDialog {
         gbc.gridx = 1;
         panel.add(childGroupBox.getUiComboBox(), gbc);
         gbc.gridy++;
+      } else if (child instanceof OptionPathBox) {
+        final OptionPathBox childPathBox = (OptionPathBox) child;
+        parsePathBox(childPathBox);
+
+        // subpanel is needed for multi-components panel
+        final JPanel subPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc2 = ViewerUtil.setGBC(null, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        subPanel.add(childPathBox.getUiTextField(), gbc2);
+        ViewerUtil.setGBC(gbc2, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+            new Insets(0, 4, 0, 0), 0, 0);
+        subPanel.add(childPathBox.getUiSelectButton(), gbc2);
+        if (childPathBox.getUiClearButton() != null) {
+          ViewerUtil.setGBC(gbc2, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
+              new Insets(0, 4, 0, 0), 0, 0);
+          subPanel.add(childPathBox.getUiClearButton(), gbc2);
+        }
+
+        // adding elements
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        gbc.gridx = 0;
+        panel.add(childPathBox.getUiLabel(), gbc);
+        gbc.weightx = 1.0;
+        gbc.gridx = 1;
+        panel.add(subPanel, gbc);
+        gbc.gridy++;
       } else {
         throw new IllegalArgumentException("Not an option element: " + child.getClass().getSimpleName());
       }
@@ -1213,6 +1254,48 @@ public class PreferencesDialog extends JDialog {
     return groupBox;
   }
 
+  private OptionPathBox parsePathBox(OptionPathBox pathBox) {
+    pathBox.fireOnInit();
+
+    pathBox.updateUi();
+
+    final FocusListener focus = new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        setDefaultInfo(pathBox.getDescription());
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        setDefaultInfo(null);
+      }
+    };
+
+    final MouseAdapter adapter = new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        setInfo(pathBox.getDescription());
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        setInfo(null);
+      }
+    };
+
+    pathBox.getUiLabel().addMouseListener(adapter);
+    pathBox.getUiTextField().addMouseListener(adapter);
+    pathBox.getUiTextField().addFocusListener(focus);
+    pathBox.getUiSelectButton().addMouseListener(adapter);
+    pathBox.getUiSelectButton().addFocusListener(focus);
+    if (pathBox.getUiClearButton() != null) {
+      pathBox.getUiClearButton().addMouseListener(adapter);
+      pathBox.getUiClearButton().addFocusListener(focus);
+    }
+
+    return pathBox;
+  }
+
   /**
    * Scans the option tree recursively and performs the given operation for each node.
    *
@@ -1228,6 +1311,12 @@ public class PreferencesDialog extends JDialog {
         forEachOption(child, proc);
       }
     }
+  }
+
+  /** onChanged() function for {@link AppOption#WEIDU_PATH}. */
+  private boolean weiduPathOnChanged(OptionPathBox pb) {
+    setModified(true);
+    return true;
   }
 
   /** onCreated() function for {@link AppOption#TABLE_SHOW_OFFSETS}. */

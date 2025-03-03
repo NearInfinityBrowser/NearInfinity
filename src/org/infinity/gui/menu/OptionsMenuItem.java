@@ -11,7 +11,12 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
+import java.io.IOError;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -163,6 +168,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_OPEN_RESOURCE_TEXT_MENU   = "OpenResourceTextMenu";
   public static final String OPTION_OPEN_IDS_TEXT_MENU        = "OpenIdsTextMenu";
   public static final String OPTION_OPEN_STRREF_TEXT_MENU     = "OpenStrrefTextMenu";
+  public static final String OPTION_WEIDU_PATH                = "WeiduPath";
   public static final String OPTION_KEEPVIEWONCOPY            = "UpdateTreeOnCopy";
   public static final String OPTION_SHOWSTRREFS               = "ShowStrrefs";
   public static final String OPTION_SHOWCOLOREDSTRUCTURES     = "ShowColoredStructures";
@@ -520,6 +526,32 @@ public class OptionsMenuItem extends JMenuItem {
    */
   public boolean getOpenStrrefMenuEnabled() {
     return AppOption.OPEN_STRREF_TEXT_MENU.getBoolValue();
+  }
+
+  /**
+   * Returns the path string to the WeiDU executable on the system.
+   *
+   * @return {@link Path} of the WeiDU executable. Returns {@code null} if no WeiDU executable has been defined or the
+   *         path does not exist.
+   */
+  public Path getWeiduPath() {
+    final String pathString = AppOption.WEIDU_PATH.getStringValue();
+    if (pathString != null && !pathString.isEmpty()) {
+      try {
+        Path retVal = Paths.get(pathString);
+        if (retVal != null) {
+          if (!retVal.isAbsolute()) {
+            retVal = retVal.toAbsolutePath();
+          }
+          if (Files.exists(retVal)) {
+            return retVal;
+          }
+        }
+      } catch (InvalidPathException | IOError e) {
+        Logger.debug(e);
+      }
+    }
+    return null;
   }
 
   /** Returns whether the "Add copy of" operation keeps the original resource selected. */
