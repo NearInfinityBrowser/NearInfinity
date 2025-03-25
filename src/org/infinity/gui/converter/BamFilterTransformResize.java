@@ -36,6 +36,7 @@ import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.FastMath;
 import org.infinity.util.Misc;
 
 /**
@@ -849,10 +850,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   // Calculates the sample value at the specified image position
   private static int scaleLanczosSample(BufferedImage image, double x, double y, int kernelSize) {
-    int a = 0;
-    int r = 0;
-    int g = 0;
-    int b = 0;
+    double a = 0.0;
+    double r = 0.0;
+    double g = 0.0;
+    double b = 0.0;
     double sum = 0.0;
 
     final int width = image.getWidth();
@@ -877,12 +878,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       }
     }
 
-    a = Math.min(Math.max((int)(a / sum), 0), 255);
-    r = Math.min(Math.max((int)(r / sum), 0), 255);
-    g = Math.min(Math.max((int)(g / sum), 0), 255);
-    b = Math.min(Math.max((int)(b / sum), 0), 255);
+    final int alpha = Math.min(Math.max((int)(a / sum), 0), 255);
+    final int red = Math.min(Math.max((int)(r / sum), 0), 255);
+    final int green = Math.min(Math.max((int)(g / sum), 0), 255);
+    final int blue = Math.min(Math.max((int)(b / sum), 0), 255);
 
-    return (a << 24) | (r << 16) | (g << 8) | b;
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 
   // Calculates the Lanczos weight
@@ -896,7 +897,6 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     }
 
     x *= Math.PI;
-    return (kernelSize * Math.sin(x) * Math.sin(x / kernelSize)) / (x * x);
+    return (kernelSize * FastMath.sin(x) * FastMath.sin(x / kernelSize)) / (x * x);
   }
-
 }
