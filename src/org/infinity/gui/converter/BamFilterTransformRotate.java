@@ -21,6 +21,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
+import java.util.HashMap;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -366,13 +367,19 @@ public class BamFilterTransformRotate extends BamFilterBaseTransform implements 
     final int[] palette = new int[colors.getMapSize()];
     colors.getRGBs(palette);
 
+    // speed up conversion by caching color mappings
+    final HashMap<Integer, Integer> colorMap = new HashMap<>(350);
+
     final int[] srcPixels = ((DataBufferInt)image.getData().getDataBuffer()).getData();
     final Raster dstRaster = outImage.getData();
     final byte[] dstPixels = ((DataBufferByte)dstRaster.getDataBuffer()).getData();
     for (int i = 0; i < srcPixels.length; i++) {
-      final int index = ColorConvert.getNearestColor(srcPixels[i], palette, 0.0, ColorConvert.COLOR_DISTANCE_ARGB);
-      if (index >= 0) {
-        dstPixels[i] = (byte)index;
+      final Integer index = colorMap.computeIfAbsent(srcPixels[i], color -> {
+        final int result = ColorConvert.getNearestColor(color, palette, 1.0, ColorConvert.COLOR_DISTANCE_ARGB);
+        return (result >= 0) ? result : null;
+      });
+      if (index != null) {
+        dstPixels[i] = index.byteValue();
       }
     }
     outImage.setData(dstRaster);
