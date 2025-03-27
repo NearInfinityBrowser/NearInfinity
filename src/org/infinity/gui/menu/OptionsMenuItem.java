@@ -54,6 +54,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.util.CharsetDetector;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
+import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.tuples.Couple;
 
@@ -224,6 +225,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWOVERRIDES             = "ShowOverridesIn";
   public static final String OPTION_SHOWRESREF                = "ShowResRef";
   public static final String OPTION_LOOKANDFEELCLASS          = "LookAndFeelClass";
+  public static final String OPTION_LOOKANDFEEL_AUTOMODE      = "LookAndFeelAutoMode";
   public static final String OPTION_VIEWOREDITSHOWN           = "ViewOrEditShown";
   public static final String OPTION_FONT                      = "Font";
   public static final String OPTION_FONT_NAME                 = "FontName";
@@ -339,6 +341,113 @@ public class OptionsMenuItem extends JMenuItem {
       return createGameLanguages(list);
     }
     return "";
+  }
+
+  /**
+   * Returns whether the specified Look & Feel theme is available as both light and dark mode variants.
+   *
+   * @param info   {@link LookAndFeelInfo} instance of the theme to check.
+   * @param themes Optional array of available L&F themes. Specify {@code null} to retrieve the list dynamically.
+   * @return {@code true} if the specified L&F theme is available in both light and dark mode variants, {@code false}
+   *         otherwise.
+   */
+  public static boolean isLookAndFeelAutoModeReady(LookAndFeelInfo info, LookAndFeelInfo[] themes) {
+    if (info == null) {
+      return false;
+    }
+
+    final String name = getSimpleClassName(info.getClassName()).toLowerCase(Locale.ROOT);
+    final String nameBase;
+    final String term;
+    if (name.contains("light")) {
+      nameBase = name.replace("light", "");
+      term = "dark";
+    } else if (name.contains("dark")) {
+      nameBase = name.replace("dark", "");
+      term = "light";
+    } else {
+      return false;
+    }
+
+    if (themes == null) {
+      themes = UIManager.getInstalledLookAndFeels();
+    }
+
+    for (final LookAndFeelInfo theme : themes) {
+      if (theme != null && !PreferencesDialog.IsLookAndFeelBlacklisted(theme.getClassName())) {
+        final String themeName = getSimpleClassName(theme.getClassName()).toLowerCase(Locale.ROOT);
+        if (themeName.contains(term)) {
+          final String themeNameBase = themeName.replace(term, "");
+          if (themeNameBase.equals(nameBase)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns a {@code LookAndFeelInfo} instance based on the system color scheme (light or dark) that matches the
+   * specified L&F theme.
+   *
+   * @param info   {@link LookAndFeelInfo} instance of the theme to find a matching light/dark mode counterpart for.
+   * @param themes Optional array of available L&F themes. Specify {@code null} to retrieve the list dynamically.
+   * @return {@link LookAndFeelInfo} instance of a matching light or dark mode theme.
+   */
+  public static LookAndFeelInfo getAutomaticLookAndFeel(LookAndFeelInfo info, LookAndFeelInfo[] themes) {
+    if (info == null) {
+      info = BrowserMenuBar.getDefaultLookAndFeel();
+    }
+
+    final String[] terms = { "light", "dark" };
+    final int index = Platform.isSystemDarkMode() ? 1 : 0;
+    final String termTo = terms[index];
+    final String termFrom = terms[(index + 1) & 1];
+
+    final String nameFrom = getSimpleClassName(info.getClassName()).toLowerCase(Locale.ROOT);
+    if (!nameFrom.contains(termFrom)) {
+      return info;
+    }
+
+    if (themes == null) {
+      themes = UIManager.getInstalledLookAndFeels();
+    }
+
+    final String nameBaseFrom = nameFrom.replace(termFrom, "");
+    for (final LookAndFeelInfo theme : themes) {
+      if (theme != null && !PreferencesDialog.IsLookAndFeelBlacklisted(theme.getClassName())) {
+        final String nameTo = getSimpleClassName(theme.getClassName()).toLowerCase(Locale.ROOT);
+        if (nameTo.contains(termTo)) {
+          final String nameBaseTo = nameTo.replace(termTo, "");
+          if (nameBaseTo.equals(nameBaseFrom)) {
+            return theme;
+          }
+        }
+      }
+    }
+
+    return info;
+  }
+
+  /**
+   * A helper method that returns the short name of a fully qualified class without any package qualifiers.
+   *
+   * @param className Class name to process.
+   * @return Short name of the class. {@code null} if {@code className} is null.
+   */
+  private static String getSimpleClassName(String className) {
+    if (className == null) {
+      return null;
+    }
+
+    final int idx = className.lastIndexOf('.');
+    if (idx >= 0) {
+      return className.substring(idx + 1);
+    }
+
+    return className;
   }
 
   /** Extracts entries of Game/Language pairs from the given argument. */
@@ -877,8 +986,18 @@ public class OptionsMenuItem extends JMenuItem {
     return AppOption.GLOBAL_FONT_SIZE.getIntValue();
   }
 
+  /** Returns whether Look&Feel theme should auto-select light or dark mode according to the system color scheme. */
+  public boolean isLookAndFeelAutoMode() {
+    return AppOption.LOOK_AND_FEEL_AUTO_MODE.getBoolValue();
+  }
+
   /** Returns the selected Look&Feel theme. */
   public LookAndFeelInfo getLookAndFeel() {
+    return getLookAndFeel(isLookAndFeelAutoMode());
+  }
+
+  /** Returns the selected Look&Feel theme, optionally adjusted to light or dark mode. */
+  public LookAndFeelInfo getLookAndFeel(boolean autoMode) {
     String value = AppOption.LOOK_AND_FEEL_CLASS.getStringValue();
     LookAndFeelInfo info = null;
     try {
@@ -891,6 +1010,10 @@ public class OptionsMenuItem extends JMenuItem {
 
     if (info == null) {
       info = BrowserMenuBar.getDefaultLookAndFeel();
+    }
+
+    if (autoMode) {
+      info = getAutomaticLookAndFeel(info, null);
     }
 
     return info;
@@ -1007,7 +1130,8 @@ public class OptionsMenuItem extends JMenuItem {
           messages.add(String.format("%s: %s", option.getLabel(), option.getValue()));
         } else if (option.equals(AppOption.UI_SCALE_ENABLED) ||
             option.equals(AppOption.UI_SCALE_FACTOR) ||
-            option.equals(AppOption.GLOBAL_FONT_SIZE)) {
+            option.equals(AppOption.GLOBAL_FONT_SIZE) ||
+            option.equals(AppOption.LOOK_AND_FEEL_AUTO_MODE)) {
           restart = true;
           messages.add(String.format("%s: %s", option.getLabel(), option.getValue()));
         } else if (option.equals(AppOption.LAUNCH_GAME_ALLOWED)) {
@@ -1041,9 +1165,12 @@ public class OptionsMenuItem extends JMenuItem {
             } catch (Exception e) {
               Logger.trace(e);
             }
-            final LookAndFeelInfo info = new LookAndFeelInfo(lfName, className);
-            NearInfinity.getInstance().updateLookAndFeel(info, false);
+            LookAndFeelInfo info = new LookAndFeelInfo(lfName, className);
             messages.add("Look and Feel UI: " + info.getName());
+            if (isLookAndFeelAutoMode()) {
+              info = getAutomaticLookAndFeel(info, null);
+            }
+            NearInfinity.getInstance().updateLookAndFeel(info, false);
             refresh = true;
             restart = true;
           } catch (Exception e) {

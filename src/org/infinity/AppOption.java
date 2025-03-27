@@ -330,6 +330,9 @@ public class AppOption {
   /** Menu Options > Visual Options: LookAndFeelClass (String, Default: "javax.swing.plaf.metal.MetalLookAndFeel") */
   public static final AppOption LOOK_AND_FEEL_CLASS = new AppOption(OptionsMenuItem.OPTION_LOOKANDFEELCLASS,
       "Look and Feel UI", BrowserMenuBar.getDefaultLookAndFeel().getClassName());
+  /** Menu Options > Visual Options: LookAndFeelAutoMode (Boolean, Default: false) */
+  public static final AppOption LOOK_AND_FEEL_AUTO_MODE = new AppOption(OptionsMenuItem.OPTION_LOOKANDFEEL_AUTOMODE,
+      "Follow system color scheme", false);
   /** Menu Options > Visual Options: Font (Integer, Default: 0) */
   public static final AppOption TEXT_FONT = new AppOption(OptionsMenuItem.OPTION_FONT, "Text Font", 0);
   /** Menu Options > Visual Options: FontName (String, Default: "") */

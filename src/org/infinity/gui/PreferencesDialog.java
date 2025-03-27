@@ -565,12 +565,6 @@ public class PreferencesDialog extends JDialog {
                       + "</code> set to 100%.</p>",
                   0, new DataItem<?>[0], AppOption.GLOBAL_FONT_SIZE)
               .setOnInit(this::globalFontSizeOnInit).setOnAccept(this::globalFontSizeOnAccept).setOnSelect(this::globalFontSizeOnSelect),
-              OptionGroupBox.create(AppOption.LOOK_AND_FEEL_CLASS.getName(), AppOption.LOOK_AND_FEEL_CLASS.getLabel(),
-                  "Choose a Look & Feel theme for the GUI."
-                      + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
-                      + "It is available on all platforms.</p>",
-                  0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
-              .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
               OptionGroupBox.create(AppOption.TEXT_FONT.getName(), AppOption.TEXT_FONT.getLabel(),
                   "Choose a default text font for the display of text in game resources.", 0, new String[0],
                   AppOption.TEXT_FONT)
@@ -605,6 +599,21 @@ public class PreferencesDialog extends JDialog {
                       + "<p><strong>Note:</strong> This option is only available for the Enhanced Edition games.</p>",
                   0, new String[0], AppOption.GAME_LANGUAGES)
               .setOnInit(this::gameLanguagesOnInit).setOnCreated(this::gameLanguagesOnCreated).setOnAccept(this::gameLanguagesOnAccept)
+          ),
+          OptionGroup.create("Look and Feel",
+              OptionGroupBox.create(AppOption.LOOK_AND_FEEL_CLASS.getName(), AppOption.LOOK_AND_FEEL_CLASS.getLabel(),
+                  "Choose a Look & Feel theme for the GUI."
+                      + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
+                      + "It is available on all platforms.</p>",
+                  0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
+              .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
+              OptionCheckBox.create(AppOption.LOOK_AND_FEEL_AUTO_MODE.getName(), AppOption.LOOK_AND_FEEL_AUTO_MODE.getLabel(),
+                  "With this option enabled a light or dark mode theme will be automatically chosen based on the system's "
+                      + "color scheme."
+                      + "<p><strong>Note:</strong> Only Look & Feel themes marked with an asterisk are compatible with "
+                      + "this feature.</p>",
+                  AppOption.LOOK_AND_FEEL_AUTO_MODE)
+              .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction)
           ),
           OptionGroup.create("Override UI Scaling",
               OptionCheckBox.create(AppOption.UI_SCALE_ENABLED.getName(), AppOption.UI_SCALE_ENABLED.getLabel(),
@@ -653,6 +662,19 @@ public class PreferencesDialog extends JDialog {
   public static boolean showDialog(Window owner) {
     PreferencesDialog dlg = new PreferencesDialog(owner);
     return !dlg.isCancelled();
+  }
+
+  /**
+   * Returns whether the specified Look&Feel theme is blacklisted.
+   *
+   * @param themeClassName Fully qualified class name of the L&F theme to check.
+   * @return {@code true} if the theme has been blacklisted, {@code false} otherwise.
+   */
+  public static boolean IsLookAndFeelBlacklisted(String themeClassName) {
+    if (themeClassName != null) {
+      return LOOK_AND_FEEL_BLACKLIST.contains(themeClassName);
+    }
+    return false;
   }
 
   protected PreferencesDialog(Window owner) {
@@ -1583,7 +1605,7 @@ public class PreferencesDialog extends JDialog {
       final LookAndFeelInfo lf = info[i];
 
       // check if theme is black-listed
-      if (lf != null && LOOK_AND_FEEL_BLACKLIST.contains(lf.getClassName())) {
+      if (lf != null && IsLookAndFeelBlacklisted(lf.getClassName())) {
         continue;
       }
 
@@ -1609,6 +1631,11 @@ public class PreferencesDialog extends JDialog {
             label = label.substring(0, idx);
             label = label.replaceAll("([A-Z][^A-Z])", " $1").trim();
           }
+        }
+
+        // Marking themes that are compatible with automatic light/dark mode selection
+        if (OptionsMenuItem.isLookAndFeelAutoModeReady(lf, info)) {
+          label = label + " (*)";
         }
 
         gb.addItem(new DataItem<>(label, lf));
