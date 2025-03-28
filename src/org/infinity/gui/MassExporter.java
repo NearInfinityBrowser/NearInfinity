@@ -1072,10 +1072,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     final JPanel bottomRightPanel = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(optionsPanel, c);
+    bottomRightPanel.add(conversionPanel, c);
     ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.BOTH, new Insets(0, 4, 0, 0), 0, 0);
-    bottomRightPanel.add(conversionPanel, c);
+    bottomRightPanel.add(optionsPanel, c);
 
     // button panel
     final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
