@@ -606,7 +606,7 @@ public class PreferencesDialog extends JDialog {
                       + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
                       + "It is available on all platforms.</p>"
                       + "<p>Look & Feel themes marked with an asterisk are compatible with the \"Follow system color scheme\" "
-                      + "option.</>",
+                      + "option.</p>",
                   0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
               .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
               OptionCheckBox.create(AppOption.LOOK_AND_FEEL_AUTO_MODE.getName(), AppOption.LOOK_AND_FEEL_AUTO_MODE.getLabel(),
