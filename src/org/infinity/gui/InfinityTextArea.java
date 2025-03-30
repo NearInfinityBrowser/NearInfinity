@@ -144,6 +144,8 @@ public class InfinityTextArea extends RSyntaxTextArea
     VS("Visual Studio", () -> SCHEME_VS),
     /** Color scheme loosely based on the WeiDU Syntax Highlighter for Notepad++. */
     BCS("BCS Light", () -> SCHEME_BCS),
+    /** Color scheme loosely based on the WeiDU Syntax Highlighter for Notepad++. */
+    BCS_DARK("BCS Dark", () -> SCHEME_BCS_DARK),
     ;
 
     private final String label;
@@ -212,6 +214,8 @@ public class InfinityTextArea extends RSyntaxTextArea
   private static final String SCHEME_VS         = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
   private static final String SCHEME_BCS        = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
+  /** BCS color scheme based on the dark WeiDU Highlighter for Notepad++ */
+  private static final String SCHEME_BCS_DARK   = "org/infinity/resource/text/modes/ThemeBCSDark.xml";
 
   /** IDS resources to ignore when building the IDS reference list. */
   private static final HashSet<String> IDS_BLACKLIST = new HashSet<>(Arrays.asList(

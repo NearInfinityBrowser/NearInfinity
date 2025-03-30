@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -112,7 +113,8 @@ public class OptionsMenuItem extends JMenuItem {
       new ColorScheme(InfinityTextArea.Scheme.IDEA.getLabel(), InfinityTextArea.Scheme.IDEA.getScheme()),
       new ColorScheme(InfinityTextArea.Scheme.MONOKAI.getLabel(), InfinityTextArea.Scheme.MONOKAI.getScheme()),
       new ColorScheme(InfinityTextArea.Scheme.VS.getLabel(), InfinityTextArea.Scheme.VS.getScheme()),
-      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme())
+      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.BCS_DARK.getLabel(), InfinityTextArea.Scheme.BCS_DARK.getScheme())
   );
 
   /**
@@ -124,11 +126,13 @@ public class OptionsMenuItem extends JMenuItem {
       new ColorScheme(InfinityTextArea.Scheme.ECLIPSE.getLabel(), InfinityTextArea.Scheme.ECLIPSE.getScheme()),
       new ColorScheme(InfinityTextArea.Scheme.IDEA.getLabel(), InfinityTextArea.Scheme.IDEA.getScheme()),
       new ColorScheme(InfinityTextArea.Scheme.VS.getLabel(), InfinityTextArea.Scheme.VS.getScheme()),
-      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme())
+      new ColorScheme(InfinityTextArea.Scheme.BCS.getLabel(), InfinityTextArea.Scheme.BCS.getScheme()),
+      new ColorScheme(InfinityTextArea.Scheme.BCS_DARK.getLabel(), InfinityTextArea.Scheme.BCS_DARK.getScheme())
   );
 
   /** Available color schemes for remaining highlighted formats (scheme, title, description). */
-  private static final List<ColorScheme> COLOR_SCHEME = BCS_COLOR_SCHEME.subList(0, BCS_COLOR_SCHEME.size() - 1);
+  private static final List<ColorScheme> COLOR_SCHEME =
+      BCS_COLOR_SCHEME.stream().filter(scheme -> !scheme.getLabel().contains("BCS")).collect(Collectors.toList());
 
   // List of predefined script text fonts
   private static final List<Font> FONTS = Arrays.asList(
