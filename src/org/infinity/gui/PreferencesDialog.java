@@ -324,6 +324,8 @@ public class PreferencesDialog extends JDialog {
                           + "<strong>Monokai:</strong> A dark color scheme inspired by \"Monokai\".<br/>"
                           + "<strong>Visual Studio:</strong> Mimics the default color scheme of Microsoft Visual Studio.<br/>"
                           + "<strong>BCS Light:</strong> A color scheme that is based on the WeiDU Syntax Highlighter "
+                          + "for Notepad++.<br/>"
+                          + "<strong>BCS Dark:</strong> A dark color scheme that is based on the WeiDU Syntax Highlighter "
                           + "for Notepad++.</p>",
                       0, OptionsMenuItem.getBcsColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
                       AppOption.BCS_COLOR_SCHEME),
@@ -493,7 +495,9 @@ public class PreferencesDialog extends JDialog {
                       + "<strong>Eclipse:</strong> Mimics the default color scheme of the Eclipse IDE.<br/>"
                       + "<strong>IntelliJ IDEA:</strong> Mimics the default color scheme of IntelliJ IDEA.<br/>"
                       + "<strong>Visual Studio:</strong> Mimics the default color scheme of Microsoft Visual Studio.<br/>"
-                      + "<strong>BCS Light:</strong> A color scheme that is based on the WeiDU Syntax Highlighter "
+                      + "<strong>BCS Light:</strong> A color scheme that is based on the WeiDU Syntax Highlighter for "
+                      + "Notepad++.<br/>"
+                      + "<strong>BCS Dark:</strong> A dark color scheme that is based on the WeiDU Syntax Highlighter "
                       + "for Notepad++.</p>",
                   0, OptionsMenuItem.getDlgColorSchemes().toArray(new OptionsMenuItem.ColorScheme[0]),
                   AppOption.DLG_COLOR_SCHEME),
