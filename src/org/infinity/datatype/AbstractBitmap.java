@@ -37,6 +37,11 @@ import org.infinity.util.Misc;
  * @param <T> type of the symbolic representation of the numeric value
  */
 public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric {
+  /** Default string for unlabeled list entries. */
+  protected static final String TEXT_UNLABELED = "(Unlabeled)";
+  /** Default string for unlisted entries. */
+  protected static final String TEXT_UNKNOWN = "Unknown";
+
   /** Default formatter object if none are specified as constructor arguments. */
   public final BiFunction<Long, T, String> formatterDefault = (value, item) -> {
     String number = isShowAsHex() ? getHexValue(value) : value.toString();
