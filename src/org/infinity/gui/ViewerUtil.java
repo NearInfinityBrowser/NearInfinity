@@ -9,10 +9,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -64,6 +66,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
+import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
@@ -191,6 +194,62 @@ public final class ViewerUtil {
     }
   }
 
+  /**
+   * Creates a component that lists all available BAM frames and the field name of the {@link ResourceRef} instance.
+   */
+  public static JComponent makeBamPanel(ResourceRef iconRef) {
+    final JPanel panel = new JPanel(new GridBagLayout());
+    final GridBagConstraints gbc = new GridBagConstraints();
+
+    final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
+    if (iconEntry != null) {
+      try {
+        final BamDecoder decoder = BamDecoder.loadBam(iconEntry);
+        final BamControl ctrl = Objects.requireNonNull(decoder).createControl();
+
+        // collecting BAM frame indices
+        final List<Integer> frameIndices = new ArrayList<>();
+        for (int i = 0; i < ctrl.cycleCount(); i++) {
+          for (int j = 0; j < ctrl.cycleFrameCount(i); j++) {
+            int index = ctrl.cycleGetFrameIndexAbsolute(i, j);
+            if (!frameIndices.contains(index)) {
+              frameIndices.add(index);
+            }
+          }
+        }
+
+        // adding frame images to panel
+        final JPanel subPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
+        for (final int index : frameIndices) {
+          final FrameEntry frameInfo = decoder.getFrameInfo(index);
+          if (frameInfo.getWidth() > 1 && frameInfo.getHeight() > 1) {
+            final Image image = decoder.frameGet(ctrl, index);
+            subPanel.add(new JLabel(new ImageIcon(image), SwingConstants.CENTER));
+          }
+        }
+
+        ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+            new Insets(0, 0, 0, 0), 0, 0);
+        panel.add(subPanel, gbc);
+        ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+            new Insets(4, 0, 0, 0), 0, 0);
+        panel.add(new JLabel(iconRef.getName(), SwingConstants.CENTER), gbc);
+
+        return panel;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
+
+    ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(new JLabel("No " + iconRef.getName().toLowerCase(Locale.ROOT), SwingConstants.CENTER), gbc);
+    return panel;
+  }
+
+  /**
+   * Creates a component that shows the specified BAM frame and the field name of the {@link ResourceRef} instance.
+   */
   public static JLabel makeBamPanel(ResourceRef iconRef, int frameNr) {
     final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
@@ -207,9 +266,12 @@ public final class ViewerUtil {
         Logger.error(e);
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ROOT), SwingConstants.CENTER);
   }
 
+  /**
+   * Creates a component that shows the specified BAM cycle frame and the field name of the {@link ResourceRef} instance.
+   */
   public static JLabel makeBamPanel(ResourceRef iconRef, int animNr, int frameNr) {
     final ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
@@ -232,10 +294,10 @@ public final class ViewerUtil {
         Logger.error(e);
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ROOT), SwingConstants.CENTER);
   }
 
-  // Creates a panel with the biggest graphics (by area) available in the specified BAM resource
+  /** Creates a panel with the biggest graphics (by area) available in the specified BAM resource. */
   public static JLabel makeMaxBamPanel(ResourceRef iconRef) {
     ResourceEntry iconEntry = ResourceFactory.getResourceEntry(iconRef.getResourceName());
     if (iconEntry != null) {
@@ -264,7 +326,7 @@ public final class ViewerUtil {
         Logger.error(e);
       }
     }
-    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+    return new JLabel("No " + iconRef.getName().toLowerCase(Locale.ROOT), SwingConstants.CENTER);
   }
 
   public static JLabel makeCheckLabel(StructEntry entry, String yes) {
@@ -318,7 +380,7 @@ public final class ViewerUtil {
         return label;
       }
     }
-    return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ENGLISH), SwingConstants.CENTER);
+    return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ROOT), SwingConstants.CENTER);
   }
 
   /**

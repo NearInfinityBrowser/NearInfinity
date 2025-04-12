@@ -43,7 +43,7 @@ final class Viewer extends JPanel {
     JPanel propertiesPanel = makeFieldPanel(itm);
 
     // Icons panel
-    JComponent itemIconPanel = ViewerUtil.makeMaxBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON));
+    JComponent itemIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON));
     JComponent groundIconPanel = ViewerUtil.makeBamPanel((ResourceRef) itm.getAttribute(ItmResource.ITM_ICON_GROUND), 1);
     JPanel iconsPanel = new JPanel(new GridLayout(2, 1, 0, 6));
     iconsPanel.add(itemIconPanel);
