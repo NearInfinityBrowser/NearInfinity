@@ -159,16 +159,17 @@ public final class StringRef extends Datatype
 
   @Override
   public void actionPerformed(ActionEvent event) {
+    final int newValue = getValueFromEditor();
     if (event.getSource() == bUpdate) {
-      taRefText.setText(getStringRef(value));
-      updateButtonStates(value);
+      taRefText.setText(getStringRef(newValue));
+      updateButtonStates(newValue);
     } else if (event.getSource() == bEdit) {
-      StringEditor.edit(value);
+      StringEditor.edit(newValue);
     } else if (event.getSource() == bPlay) {
-      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(value) + ".WAV", true);
+      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newValue) + ".WAV", true);
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     } else if (event.getSource() == bSearch) {
-      new StringReferenceSearcher(value, bSearch.getTopLevelAncestor());
+      new StringReferenceSearcher(newValue, bSearch.getTopLevelAncestor());
     }
   }
 
@@ -178,9 +179,10 @@ public final class StringRef extends Datatype
 
   @Override
   public void stateChanged(ChangeEvent e) {
-    value = getValueFromEditor();
-    taRefText.setText(getStringRef(value));
-    updateButtonStates(value);
+    // updating text area only
+    final int newValue = getValueFromEditor();
+    taRefText.setText(getStringRef(newValue));
+    updateButtonStates(newValue);
   }
 
   // --------------------- End Interface ChangeListener ---------------------
