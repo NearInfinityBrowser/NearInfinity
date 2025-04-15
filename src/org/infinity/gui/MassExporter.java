@@ -36,10 +36,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
@@ -65,6 +68,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -94,6 +99,7 @@ import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.resource.ui.CheckBoxResourceCellRenderer;
 import org.infinity.resource.ui.ResourceCellRenderer;
 import org.infinity.resource.video.MveResource;
 import org.infinity.util.DebugTimer;
@@ -104,17 +110,19 @@ import org.infinity.util.Threading;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
+  private static final String LABEL_EXPORT_DEFAULT  = "Export";
+  private static final String LABEL_EXPORT_FILTER   = "Export...";
 
   private static final Set<String> TYPES_BLACKLIST = new HashSet<>(Arrays.asList("BIK", "LOG", "SAV"));
 
   private final JButton bPreview = new JButton("Preview", Icons.ICON_ZOOM_16.getIcon());
-  private final JButton bExport = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
+  private final JButton bExport = new JButton(LABEL_EXPORT_DEFAULT, Icons.ICON_EXPORT_16.getIcon());
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
   private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
-  private final JCheckBox cbCloseDialogOnExport = new JCheckBox("Close dialog after export", true);
   private final JCheckBox cbPattern = new JCheckBox("Use regular expressions", false);
   private final JLabel lPatternHelp = ViewerUtil.createRegexpHelpLabel();
   private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
@@ -132,6 +140,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
+  private final JCheckBox cbCloseDialogOnExport = new JCheckBox("Close dialog after export", true);
+  private final JCheckBox cbPreselectFilter = new JCheckBox("Preselect exported files", false);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JComboBox<String> cbExtractFramesBAMFormat = new JComboBox<>(new String[] { "PNG", "BMP" });
   private final JList<String> listTypes = new JList<>(getAvailableResourceTypes());
@@ -202,6 +212,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       final boolean exportEnabled = listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty();
       bPreview.setEnabled(exportEnabled);
       bExport.setEnabled(exportEnabled);
+    } else if (event.getSource() == cbPreselectFilter) {
+      final String label = cbPreselectFilter.isSelected() ? LABEL_EXPORT_FILTER : LABEL_EXPORT_DEFAULT;
+      bExport.setText(label);
     }
   }
 
@@ -244,10 +257,15 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     try {
       final Component parentComponent = isVisible() ? this : NearInfinity.getInstance();
 
-      selectedFiles = getSelectedResources();
+      selectedFiles = getSelectedResources(cbPreselectFilter.isSelected());
+
       if (selectedFiles.isEmpty()) {
-        JOptionPane.showMessageDialog(parentComponent, "No files to export.", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parentComponent, "No files to export.", "Info", JOptionPane.INFORMATION_MESSAGE);
+        return;
+      }
+
+      if (selectedFiles.get(0) == null) {
+        JOptionPane.showMessageDialog(parentComponent, "Operation cancelled.", "Info", JOptionPane.INFORMATION_MESSAGE);
         return;
       }
 
@@ -318,7 +336,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     SwingUtilities.invokeLater(() -> {
       setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
       try {
-        final List<ResourceEntry> resourceList = getSelectedResources();
+        final List<ResourceEntry> resourceList = getSelectedResources(false);
         if (resourceList == null || resourceList.isEmpty()) {
           JOptionPane.showMessageDialog(this, "No files to export found.");
           return;
@@ -351,6 +369,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
             JOptionPane.DEFAULT_OPTION);
         final JDialog dialog = optionPane.createDialog(this, "Resource List Preview");
         dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.setResizable(true);
 
         // double-clicking entry opens the selected resource in a new window
         resources.addMouseListener(new MouseAdapter() {
@@ -365,11 +384,141 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           }
         });
 
-        dialog.setVisible(true);
+        try {
+          dialog.setVisible(true);
+        } finally {
+          dialog.dispose();
+        }
       } finally {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       }
     });
+  }
+
+  /** Allows the user to further refine the list of resources for export. */
+  private List<ResourceEntry> preselectFilterEntries(List<ResourceEntry> resources) {
+    final Function<List<ResourceEntry>, List<ResourceEntry>> fnFilterEntries = resList -> {
+      final List<ResourceEntry> result = new ArrayList<>(resList.size());
+
+      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      try {
+        if (resList == null || resList.isEmpty()) {
+          return null;
+        }
+
+        final JLabel label = new JLabel("Resource list (" + resList.size() + " entries)");
+
+        final CheckBoxListModel<ResourceEntry> resourceModel = new CheckBoxListModel<>(resList, true);
+        final CheckBoxList<ResourceEntry> resourceList = new CheckBoxList<>(resourceModel);
+        resourceList.setCellRenderer(new CheckBoxResourceCellRenderer());
+        final Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont());
+        resourceList.setFont(f.deriveFont(Font.BOLD));
+        resourceList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        final int numRows = Math.min(16, Math.max(4, resList.size() + 1));
+        resourceList.setVisibleRowCount(numRows);
+
+        final JScrollPane scroll = new JScrollPane(resourceList);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        // unified item selection operation: b == null indicates to invert current selection state
+        final Consumer<Boolean> selectOperation = b -> {
+          final int[] indices = resourceList.getSelectedIndices();
+          for (final int idx : indices) {
+            final boolean state = (b != null) ? b : !resourceModel.isSelected(idx);
+            resourceModel.setSelected(idx, state);
+          }
+        };
+
+        final JButton selectButton = new JButton("Select");
+        selectButton.addActionListener(event -> selectOperation.accept(true));
+        selectButton.setEnabled(false);
+
+        final JButton unselectButton = new JButton("Unselect");
+        unselectButton.addActionListener(event -> selectOperation.accept(false));
+        unselectButton.setEnabled(false);
+
+        final JButton invertButton = new JButton("Invert");
+        invertButton.addActionListener(event -> selectOperation.accept(null));
+        invertButton.setEnabled(false);
+
+        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 8));
+        buttonPanel.add(selectButton);
+        buttonPanel.add(unselectButton);
+        buttonPanel.add(invertButton);
+
+        // controls enabled state of selection buttons
+        resourceList.addListSelectionListener(event -> {
+          final boolean isSelected = (resourceList.getSelectedIndex() >= 0);
+          selectButton.setEnabled(isSelected);
+          unselectButton.setEnabled(isSelected);
+          invertButton.setEnabled(isSelected);
+        });
+
+        final JPanel mainPanel = new JPanel(new BorderLayout(8, 8));
+        mainPanel.add(label, BorderLayout.NORTH);
+        mainPanel.add(scroll, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        final JButton exportButton = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
+        final JButton cancelButton = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
+        final JOptionPane optionPane = new JOptionPane(mainPanel, JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.OK_CANCEL_OPTION, null, new JButton[] { exportButton, cancelButton }, exportButton);
+
+        // dialog button behavior has to be implemented manually
+        exportButton.setEnabled(!resourceModel.isEmpty());
+        exportButton.addActionListener(e -> optionPane.setValue(e.getSource()));
+        cancelButton.addActionListener(e -> optionPane.setValue(e.getSource()));
+
+        // controls enabled state of the Export button
+        resourceModel.addListDataListener(new ListDataListener() {
+          @Override
+          public void intervalRemoved(ListDataEvent e) {}
+
+          @Override
+          public void intervalAdded(ListDataEvent e) {}
+
+          @Override
+          public void contentsChanged(ListDataEvent e) {
+            for (int i = 0, size = resourceModel.size(); i < size; i++) {
+              if (resourceModel.isSelected(i)) {
+                exportButton.setEnabled(true);
+                return;
+              }
+            }
+            exportButton.setEnabled(false);
+          }
+        });
+
+        final JDialog dialog = optionPane.createDialog(MassExporter.this, "Select resources for export");
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.setResizable(true);
+
+        try {
+          dialog.setVisible(true);
+          if (optionPane.getValue() == exportButton) {
+            for (final Iterator<Couple<ResourceEntry, Boolean>> iter = resourceModel.iterator(); iter.hasNext();) {
+              final Couple<ResourceEntry, Boolean> value = iter.next();
+              if (value.getValue1()) {
+                result.add(value.getValue0());
+              }
+            }
+          } else {
+            // Special "null" entry indicates cancelled operation
+            result.add(null);
+          }
+        } finally {
+          dialog.dispose();
+        }
+      } finally {
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+      }
+
+      return result;
+    };
+
+    return Threading.invokeInEventThread(fnFilterEntries, resources, null);
   }
 
   /**
@@ -386,9 +535,14 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     return (selectedFiles != null) ? selectedFiles.size() : 0;
   }
 
-  /** Returns a list of resource entries to export matching the current export settings. */
-  private List<ResourceEntry> getSelectedResources() {
-    final List<ResourceEntry> resourceEntries = new ArrayList<>(1000);
+  /**
+   * Returns a list of resource entries to export matching the current export settings.
+   *
+   * @param interactive Specify {@code true} to show a selection dialog where the user can further refine the resource
+   *                      selection.
+   */
+  private List<ResourceEntry> getSelectedResources(boolean interactive) {
+    List<ResourceEntry> resourceEntries = new ArrayList<>(1000);
 
     final List<Path> extraDirs = new ArrayList<>();
     if (cbIncludeExtraDirs.isSelected()) {
@@ -416,6 +570,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       } else {
         resourceEntries.addAll(ResourceFactory.getResources(newVar, extraDirs));
       }
+    }
+
+    // open preselection dialog if requested
+    if (interactive) {
+      resourceEntries = preselectFilterEntries(resourceEntries);
     }
 
     return resourceEntries;
@@ -957,6 +1116,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         "Caution: Conversion may take a long time. Files may be renamed to conform to naming scheme for PVRZ-based TIS files.");
     cbIncludeExtraDirs
         .setToolTipText("Include extra folders, such as \"Characters\" or \"Portraits\", except savegames.");
+    cbPreselectFilter.addActionListener(this);
 
     final JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
@@ -1017,9 +1177,17 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     optionsSubPanel.add(textAlignPanel, c);
     row++;
-    ViewerUtil.setGBC(c, 0, row, 1, GridBagConstraints.REMAINDER, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
         GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     optionsSubPanel.add(cbOverwrite, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbPreselectFilter, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, GridBagConstraints.REMAINDER, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbCloseDialogOnExport, c);
 
     final JPanel optionsPanel = new JPanel(new GridBagLayout());
     optionsPanel.setBorder(BorderFactory.createTitledBorder("Options"));
@@ -1079,7 +1247,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
     // button panel
     final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    bottomPanel.add(cbCloseDialogOnExport);
     bottomPanel.add(bPreview);
     bottomPanel.add(bExport);
     bottomPanel.add(bCancel);
