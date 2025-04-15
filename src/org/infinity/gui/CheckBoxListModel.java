@@ -413,5 +413,4 @@ public class CheckBoxListModel<E> extends AbstractListModel<E> {
       }
     }
   }
-
 }
