@@ -14,6 +14,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -54,6 +55,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.key.ResourceEntry;
@@ -572,6 +574,39 @@ public class ViewerMap extends JPanel {
     return null;
   }
 
+  /** Returns the bounding rectangle of the specified area icon. */
+  private Rectangle getMapIconBounds(int areaIndex, boolean byPanel) {
+    final Rectangle retVal = new Rectangle();
+    final WmpAreaInfo wai = getAreaInfo(areaIndex, byPanel);
+    if (wai != null) {
+      final Point p = getAreaEntryPosition(wai);
+      int iconIndex = wai.getIconIndex();
+      int frameIndex = mapInfo.getMapIconsControl().cycleGetFrameIndexAbsolute(iconIndex, 0);
+      if (frameIndex >= 0) {
+        final BamDecoder.FrameEntry info = mapInfo.getMapIcons().getFrameInfo(frameIndex);
+        retVal.x = p.x - info.getCenterX();
+        retVal.y = p.y - info.getCenterY();
+        retVal.width = info.getWidth();
+        retVal.height = info.getHeight();
+      }
+    }
+    return retVal;
+  }
+
+  /** Converts the map coordinate to the index of the first matching worldmap icon. */
+  private int locationToMapIconIndex(int x, int y, boolean byPanel) {
+    int retVal = -1;
+    final int count = byPanel ? listPanel.getListModel().size() : mapInfo.getAreaList().size();
+    for (int i = 0; i < count; i++) {
+      final Rectangle bounds = getMapIconBounds(i, byPanel);
+      if (bounds.contains(x, y)) {
+        retVal = i;
+        break;
+      }
+    }
+    return retVal;
+  }
+
   /** Returns area info structure of specified item index. */
   private WmpAreaInfo getAreaInfo(int index, boolean byPanel) {
     WmpAreaInfo retVal = null;
@@ -828,8 +863,19 @@ public class ViewerMap extends JPanel {
 
     @Override
     public void mousePressed(MouseEvent e) {
-      if (e.isPopupTrigger() && e.getComponent() == rcMap) {
-        showPopup(e.getComponent(), e.getX(), e.getY());
+      if (e.getComponent() == rcMap) {
+        if (e.isPopupTrigger()) {
+          showPopup(e.getComponent(), e.getX(), e.getY());
+        } else if (e.getButton() == MouseEvent.BUTTON1) {
+          if (miShowIcons.isSelected()) {
+            final Rectangle rect = rcMap.getCanvasBounds();
+            final int index = locationToMapIconIndex(e.getX() - rect.x, e.getY() - rect.y, true);
+            if (index >= 0) {
+              listPanel.getList().setSelectedIndex(index);
+              listPanel.getList().ensureIndexIsVisible(index);
+            }
+          }
+        }
       }
     }
 
