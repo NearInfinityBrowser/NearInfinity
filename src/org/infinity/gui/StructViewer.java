@@ -383,6 +383,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     lowerpanel.addComponentListener(this);
     cards.show(lowerpanel, CARD_EMPTY);
 
+    if (struct.getParent() == null) {
+      buttonPanel.addControl(ViewerUtil.createViewerSyncButton(this, struct.getResourceEntry()));
+    }
+
     if (struct instanceof HasChildStructs && !struct.getFields().isEmpty()) {
       try {
         final AddRemovable[] prototypes = ((HasChildStructs) struct).getPrototypes();

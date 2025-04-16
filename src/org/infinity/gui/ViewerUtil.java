@@ -538,6 +538,29 @@ public final class ViewerUtil {
   }
 
   /**
+   * Creates and initializes a button that synchronizes the current view with the associated resource tree item.
+   *
+   * @param container Parent container of the sync button, as {@link JComponent} object.
+   * @param entry     {@link ResourceEntry} instance of the opened resource.
+   * @return Fully configured {@link JButton} control that can be added to the container.
+   */
+  public static JButton createViewerSyncButton(JComponent container, ResourceEntry entry) {
+    // XXX: Setting zero-width space as button label to enforce correct component height
+    final JButton button = new JButton("\u200b", Icons.ICON_REFRESH_16.getIcon());
+    button.setIconTextGap(0);
+    button.setToolTipText("Synchronizes current view with resource tree.");
+    if (entry != null) {
+      button.addActionListener(event -> NearInfinity.getInstance().getResourceTree().select(entry, true));
+    }
+    if (container != null) {
+      // button is only available if viewer is embedded in NI's main window
+      button.addHierarchyListener(
+          event -> button.setEnabled(container.getTopLevelAncestor() == NearInfinity.getInstance()));
+    }
+    return button;
+  }
+
+  /**
    * Initializes a {@link GridBagConstraints} instance.
    *
    * @param gbc        Specifies a reusable {@link GridBagConstraints} instance. A new instance is created if the

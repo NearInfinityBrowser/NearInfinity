@@ -48,6 +48,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -361,6 +362,8 @@ public class MosResource implements Resource, Closeable, Referenceable, ActionLi
     panel.add(scroll, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
 
     return panel;
   }

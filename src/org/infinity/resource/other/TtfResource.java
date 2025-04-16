@@ -124,6 +124,8 @@ public class TtfResource implements Resource, DocumentListener, ActionListener {
     panel.add(scroll, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+
     return panel;
   }
 

@@ -147,6 +147,8 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
     panel.add(subPanel, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+
     return panel;
   }
 
