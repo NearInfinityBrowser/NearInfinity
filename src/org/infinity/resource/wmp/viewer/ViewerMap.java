@@ -52,6 +52,7 @@ import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -867,12 +868,16 @@ public class ViewerMap extends JPanel {
         if (e.isPopupTrigger()) {
           showPopup(e.getComponent(), e.getX(), e.getY());
         } else if (e.getButton() == MouseEvent.BUTTON1) {
-          if (miShowIcons.isSelected()) {
-            final Rectangle rect = rcMap.getCanvasBounds();
-            final int index = locationToMapIconIndex(e.getX() - rect.x, e.getY() - rect.y, true);
-            if (index >= 0) {
-              listPanel.getList().setSelectedIndex(index);
-              listPanel.getList().ensureIndexIsVisible(index);
+          if ((e.getModifiers() & BrowserMenuBar.getCtrlMask()) != 0) {
+            listPanel.getList().clearSelection();
+          } else {
+            if (miShowIcons.isSelected()) {
+              final Rectangle rect = rcMap.getCanvasBounds();
+              final int index = locationToMapIconIndex(e.getX() - rect.x, e.getY() - rect.y, true);
+              if (index >= 0) {
+                listPanel.getList().setSelectedIndex(index);
+                listPanel.getList().ensureIndexIsVisible(index);
+              }
             }
           }
         }
