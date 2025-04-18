@@ -129,8 +129,8 @@ public class AppOption {
 
   // Category: Resources
   /** Menu Options > Resources: IgnoreOverride (Boolean, Default: false) */
-  public static final AppOption IGNORE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_IGNOREOVERRIDE, "Ignore Override",
-      false);
+  public static final AppOption IGNORE_OVERRIDE = new AppOption(OptionsMenuItem.OPTION_IGNOREOVERRIDE,
+      "Ignore Override (deprecated)", false);
   /** Menu Options > Resources: IgnoreReadErrors (Boolean, Default: false) */
   public static final AppOption IGNORE_READ_ERRORS = new AppOption(OptionsMenuItem.OPTION_IGNOREREADERRORS,
       "Ignore Read Errors", false);

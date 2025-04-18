@@ -147,7 +147,9 @@ public class PreferencesDialog extends JDialog {
               OptionGroup.createDefault(
                   OptionCheckBox.create(AppOption.IGNORE_OVERRIDE.getName(), AppOption.IGNORE_OVERRIDE.getLabel(),
                       "With this option enabled Near Infinity ignores resources in the override folder if they are also "
-                          + "present in biff archives.",
+                          + "present in biff archives."
+                          + "<p><strong>Note:</strong> This option has been largely superceded by the resource option "
+                          + "\"Open biffed resource in new window\" and will be removed in a future release.</p>",
                       AppOption.IGNORE_OVERRIDE),
                   OptionCheckBox.create(AppOption.IGNORE_READ_ERRORS.getName(), AppOption.IGNORE_READ_ERRORS.getLabel(),
                       "With this option enabled Near Infinity shows a message box when a resource cannot be read. "
