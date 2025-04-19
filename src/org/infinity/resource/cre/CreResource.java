@@ -827,6 +827,29 @@ public final class CreResource extends AbstractStruct
     return field;
   }
 
+  /**
+   * Adjusts CRE status field flags depending on the current game engine.
+   *
+   * @param field The {@link IdsFlag} instance to adjust.
+   * @return Updated {@link IdsFlag} instance.
+   */
+  private static IdsFlag fixStatus(IdsFlag field) {
+    if (field == null) {
+      return field;
+    }
+
+    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.getEngine() == Profile.Engine.EE) {
+      final String[] table = new String[field.getSize() * 8];
+      for (int i = 0; i < table.length; i++) {
+        table[i] = field.getString(i);
+      }
+      table[19] = "Deactivated by script;Flag is set if the creature has been deactivated by the Deactivate() script action.";
+      field.setFlagDescriptions(field.getSize(), table, 0);
+    }
+
+    return field;
+  }
+
   public CreResource(String name) throws Exception {
     super(null, name,
         StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE, null, null).getBuffer(), 0);
@@ -1532,7 +1555,9 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
-    addField(uniqueIdsFlag(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"), "STATE.IDS", '_'));
+    IdsFlag status = new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS");
+    status = fixStatus(uniqueIdsFlag(status, "STATE.IDS", '_'));
+    addField(status);
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     final AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION);
