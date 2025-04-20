@@ -644,6 +644,7 @@ public class ViewerMap extends JPanel {
       y = (int) (y * getScaleFactorY());
     } else if (entry instanceof VirtualAreaEntry) {
       final VirtualAreaEntry vae = (VirtualAreaEntry)entry;
+      storeDot(vae);
       x = (int) (vae.getAreaLocationX() * getScaleFactorX());
       y = (int) (vae.getAreaLocationY() * getScaleFactorY());
     }
