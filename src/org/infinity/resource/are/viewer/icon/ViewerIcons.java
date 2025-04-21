@@ -96,6 +96,8 @@ public enum ViewerIcons {
   ICON_ITM_REGION_TARGET_S_2("itm_RegionSpeaker2.png", 13, 29),
   ICON_ITM_SPAWN_POINT_1("itm_SpawnPoint1.png", 22, 22),
   ICON_ITM_SPAWN_POINT_2("itm_SpawnPoint2.png", 22, 22),
+  ICON_ITM_TABLE_ENTRANCE_1("itm_TableEntrance1.png", 11, 18),
+  ICON_ITM_TABLE_ENTRANCE_2("itm_TableEntrance2.png", 11, 18),
   ICON_ITM_VERTEX_1("itm_Vertex1.png", 3, 3),
   ICON_ITM_VERTEX_2("itm_Vertex2.png", 3, 3);
 
