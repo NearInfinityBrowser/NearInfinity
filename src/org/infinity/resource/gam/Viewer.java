@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
@@ -24,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
@@ -32,8 +35,15 @@ import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AbstractVariable;
+import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
+import org.infinity.util.tuples.Couple;
+import org.tinylog.Logger;
 
 final class Viewer extends JPanel {
   /** A function that determines the name of (non-)player characters in GAM resources. */
@@ -71,7 +81,12 @@ final class Viewer extends JPanel {
 
     gbc.insets = new Insets(2, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_WORLD_AREA), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_GAME_TIME), gbl, gbc, true);
+
+    final int gameSeconds = ((IsNumeric)gam.getAttribute(GamResource.GAM_GAME_TIME)).getValue();
+    final String date =
+        getFormattedGameDate(gameSeconds, "<GAME_TIME> (<HOUR12> <AM_PM>, on <DAY> <MONTHNAME> <YEAR> <EPOCH>)");
+    ViewerUtil.addLabelFieldPair(panel, GamResource.GAM_GAME_TIME, date, gbl, gbc, true);
+
     StructEntry se = gam.getAttribute(GamResource.GAM_REAL_TIME);
     if (se != null) {
       ViewerUtil.addLabelFieldPair(panel, se, gbl, gbc, true);
@@ -120,6 +135,179 @@ final class Viewer extends JPanel {
     add(var1Panel);
     add(stats1Panel);
     setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+  }
+
+  /**
+   * Returns a formatted string containing the current in-game time and date.
+   * <p>
+   * Supported format tokens:
+   * <table>
+   * <tr>
+   * <td>&lt;GAME_TIME&gt;</td>
+   * <td>Current game time, in seconds</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;GAME_TIME_ABS&gt;</td>
+   * <td>Current absolute game time, including implicit starting time, in seconds</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;MINUTE&gt;</td>
+   * <td>Minute of the current hour, without leading zero</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;MINUTE_FILL&gt;</td>
+   * <td>Minute of the current hour, with leading zero if needed</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;HOUR&gt;</td>
+   * <td>Current hour of the day, 24 hours format, without leading zero</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;HOUR_FILL&gt;</td>
+   * <td>Current hour of the day, 24 hours format, with leading zero if needed</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;HOUR12&gt;</td>
+   * <td>Current hour of the day, 12 hours format, without leading zero</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;HOUR12_FILL&gt;</td>
+   * <td>Current hour of the day, 12 hours format, with leading zero if needed</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;AM_PM&gt;</td>
+   * <td>"a.m." or "p.m." depending on current time of day</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;DAY&gt;</td>
+   * <td>Current day of the month, without leading zero</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;DAY_FILL&gt;</td>
+   * <td>Current day of the month, with leading zero if needed</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;MONTH&gt;</td>
+   * <td>Current month as number, without leading zero</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;MONTH_FILL&gt;</td>
+   * <td>Current month as number, with leading zero if needed</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;MONTHNAME&gt;</td>
+   * <td>Current month as name</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;YEAR&gt;</td>
+   * <td>Current year</td>
+   * </tr>
+   * <tr>
+   * <td>&lt;EPOCH&gt;</td>
+   * <td>"DR" (Dale Reckoning)</td>
+   * </tr>
+   * </table>
+   * </p>
+   *
+   * @param timeSeconds  Time progress since the game's starting time, in seconds.
+   * @param formatString A format string where tokens are replaced by the actual time elements.
+   * @return Formatted date/time string if successful, {@code null} otherwise.
+   */
+  public static String getFormattedGameDate(int timeSeconds, String formatString) {
+    final boolean isPst = Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE;
+    if (formatString == null || isPst) {
+      formatString = "<GAME_TIME>";
+    }
+
+    // initializing output string
+    String retVal = formatString.replace("<GAME_TIME>", Integer.toString(timeSeconds));
+
+    // PST does not specify valid dates
+    if (isPst) {
+      return retVal;
+    }
+
+    try {
+      // preparing starting time
+      final Table2da years = Table2daCache.get("YEARS.2DA");
+      if (years == null || years.getRowCount() < 3) {
+        throw new Exception();
+      }
+      final int startTime = Misc.toNumber(years.get(0, 1), -1);
+      final int startYear = Misc.toNumber(years.get(1, 1), -1);
+      if (startTime < 0 || startYear < 0) {
+        throw new Exception();
+      }
+
+      // preparing months table
+      final Table2da months = Table2daCache.get("MONTHS.2DA");
+      final List<Couple<Integer, String>> monthList = new ArrayList<>(17);
+      int numDays = 0;
+      for (int row = 0, count = months.getRowCount(); row < count; row++) {
+        final int days = Misc.toNumber(months.get(row, 1), -1);
+        final int nameStrref = Misc.toNumber(months.get(row, 2), -1);
+        if (nameStrref < 0) {
+          throw new Exception();
+        }
+        final String name = StringTable.getStringRef(nameStrref);
+        monthList.add(new Couple<>(days, name));
+        numDays += days;
+      }
+
+      // calculating date and time
+      final int minute = 5;
+      final int hour = 60 * minute;
+      final int day = 24 * hour;
+      final int year = numDays * day;
+      final int totalTime = startTime + timeSeconds;
+      final int curYear = startYear + (totalTime / year);
+      final int curDay = (totalTime % year) / day;
+      final int curHour = (totalTime % day) / hour;
+      final int curMinute = totalTime % hour;
+      // calculating current month
+      int monthNumber = 0;
+      String monthName = null;
+      int monthDay = curDay;
+      for (int i = 0, count = monthList.size(); i < count; i++) {
+        final Couple<Integer, String> month = monthList.get(i);
+        if (monthDay < month.getValue0()) {
+          monthNumber = i + 1;
+          monthName = month.getValue1();
+          monthDay += 1;
+          break;
+        }
+        monthDay -= month.getValue0();
+      }
+
+      if (monthNumber == 0) {
+        throw new Exception();
+      }
+
+      // populating output string
+      retVal = retVal.replace("<GAME_TIME_ABS>", Integer.toString(totalTime));
+      retVal = retVal.replace("<MINUTE>", Integer.toString(curMinute));
+      retVal = retVal.replace("<MINUTE_FILL>", String.format("%02d", curMinute));
+      retVal = retVal.replace("<HOUR>", Integer.toString(curHour));
+      retVal = retVal.replace("<HOUR_FILL>", String.format("%02d", curHour));
+      int hour12 = (curHour % 12);
+      if (hour12 == 0) {
+        hour12 = 12;
+      }
+      retVal = retVal.replace("<HOUR12>", Integer.toString(hour12));
+      retVal = retVal.replace("<HOUR12_FILL>", String.format("%02d", hour12));
+      retVal = retVal.replace("<AM_PM>", curHour < 12 ? "a.m." : "p.m.");
+      retVal = retVal.replace("<DAY>", Integer.toString(monthDay));
+      retVal = retVal.replace("<DAY_FILL>", String.format("%02d", monthDay));
+      retVal = retVal.replace("<MONTH>", Integer.toString(monthNumber));
+      retVal = retVal.replace("<MONTH_FILL>", String.format("%02d", monthNumber));
+      retVal = retVal.replace("<MONTHNAME>", monthName);
+      retVal = retVal.replace("<YEAR>", Integer.toString(curYear));
+      retVal = retVal.replace("<EPOCH>", "DR");
+    } catch (Exception e) {
+      Logger.debug(e);
+    }
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------
