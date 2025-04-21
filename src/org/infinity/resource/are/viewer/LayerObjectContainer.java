@@ -33,7 +33,7 @@ public class LayerObjectContainer extends LayerObject {
   private static final Image[] ICONS_LAUNCH = { ViewerIcons.ICON_ITM_CONTAINER_TARGET_L_1.getIcon().getImage(),
                                                 ViewerIcons.ICON_ITM_CONTAINER_TARGET_L_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(13, 29);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_CONTAINER_TARGET_1.getCenter();
 
   private static final Color[] COLOR = { new Color(0xFF004040, true), new Color(0xFF004040, true),
                                          new Color(0xC0008080, true), new Color(0xC000C0C0, true) };

@@ -23,7 +23,7 @@ public class LayerObjectProTrap extends LayerObject {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_PRO_TRAP_1.getIcon().getImage(),
                                          ViewerIcons.ICON_ITM_PRO_TRAP_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(14, 14);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_PRO_TRAP_1.getCenter();
 
   private final ProTrap trap;
   private final Point location = new Point();

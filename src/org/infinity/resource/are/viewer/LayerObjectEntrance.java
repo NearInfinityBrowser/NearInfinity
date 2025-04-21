@@ -24,7 +24,7 @@ public class LayerObjectEntrance extends LayerObject {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_ENTRANCE_1.getIcon().getImage(),
                                          ViewerIcons.ICON_ITM_ENTRANCE_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(11, 18);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_ENTRANCE_1.getCenter();
 
   private final Entrance entrance;
   private final Point location = new Point();

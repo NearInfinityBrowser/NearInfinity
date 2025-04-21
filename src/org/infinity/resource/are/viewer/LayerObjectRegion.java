@@ -39,7 +39,7 @@ public class LayerObjectRegion extends LayerObject {
   private static final Image[] ICONS_SPEAKER = { ViewerIcons.ICON_ITM_REGION_TARGET_S_1.getIcon().getImage(),
                                                  ViewerIcons.ICON_ITM_REGION_TARGET_S_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(13, 29);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_REGION_TARGET_1.getCenter();
 
   private static final Color[][] COLOR = {
       { new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800000, true), new Color(0xC0C00000, true) },

@@ -36,7 +36,8 @@ public class LayerObjectAmbient extends LayerObject {
   private static final Image[] ICONS_LOCAL = { ViewerIcons.ICON_ITM_AMBIENT_L_1.getIcon().getImage(),
                                                ViewerIcons.ICON_ITM_AMBIENT_L_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(16, 16);
+  private static final Point CENTER_GLOBAL = ViewerIcons.ICON_ITM_AMBIENT_G_1.getCenter();
+  private static final Point CENTER_LOCAL = ViewerIcons.ICON_ITM_AMBIENT_L_1.getCenter();
 
   private static final Color[] COLOR_RANGE = { new Color(0xA0000080, true), new Color(0xA0000080, true),
                                                new Color(0x00204080, true), new Color(0x004060C0, true) };
@@ -77,9 +78,10 @@ public class LayerObjectAmbient extends LayerObject {
 
     // Using cached icons
     final Image[] icons = getIcons(isLocal ? ICONS_LOCAL : ICONS_GLOBAL);
+    final Point center = isLocal ? CENTER_LOCAL : CENTER_GLOBAL;
 
     // creating sound item
-    itemIcon = new IconLayerItem(ambient, msg, icons[0], CENTER);
+    itemIcon = new IconLayerItem(ambient, msg, icons[0], center);
     itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
     itemIcon.setName(getCategory());
     itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

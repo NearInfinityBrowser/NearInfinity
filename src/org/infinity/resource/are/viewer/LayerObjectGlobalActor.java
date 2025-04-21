@@ -31,7 +31,7 @@ import org.infinity.util.Logger;
 public class LayerObjectGlobalActor extends LayerObjectActor {
   private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<>(Allegiance.class);
 
-  private static final Point CENTER = new Point(12, 40);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_GAM_ACTOR_G_1.getCenter();
 
   static {
     ICONS.put(Allegiance.GOOD, new Image[] { ViewerIcons.ICON_ITM_GAM_ACTOR_G_1.getIcon().getImage(),

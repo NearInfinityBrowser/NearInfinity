@@ -27,7 +27,7 @@ public class LayerObjectAutomap extends LayerObject {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_AUTOMAP_1.getIcon().getImage(),
                                          ViewerIcons.ICON_ITM_AUTOMAP_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(26, 26);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_AUTOMAP_1.getCenter();
 
   private final AutomapNote note;
   private final Point location = new Point();
