@@ -61,7 +61,7 @@ public class LayerObjectDoor extends LayerObject {
   private final Point launchPoint = new Point();
 
   public LayerObjectDoor(AreResource parent, Door door) {
-    super("Door", Door.class, parent);
+    super("Door", parent);
     this.door = door;
     final DoorInfo doorOpen = new DoorInfo();
     doorMap.put(ViewerConstants.DOOR_OPEN, doorOpen);

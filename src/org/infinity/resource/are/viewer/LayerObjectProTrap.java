@@ -31,7 +31,7 @@ public class LayerObjectProTrap extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectProTrap(AreResource parent, ProTrap trap) {
-    super("Trap", ProTrap.class, parent);
+    super("Trap", parent);
     this.trap = trap;
     String msg = null;
     try {

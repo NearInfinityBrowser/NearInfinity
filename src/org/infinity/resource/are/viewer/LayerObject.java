@@ -28,14 +28,12 @@ import org.infinity.resource.vertex.Vertex;
  */
 public abstract class LayerObject {
   private final String category;
-  private final Class<? extends AbstractStruct> classType;
   private final AbstractStruct parent; // base structure (e.g. AreResource or WedResource)
 
   private boolean visible;
 
-  protected LayerObject(String category, Class<? extends AbstractStruct> classType, AbstractStruct parent) {
+  protected LayerObject(String category, AbstractStruct parent) {
     this.category = (category != null && !category.isEmpty()) ? category : "Layer object";
-    this.classType = (classType != null) ? classType : AbstractStruct.class;
     this.parent = parent;
     visible = false;
   }
@@ -83,13 +81,6 @@ public abstract class LayerObject {
    */
   public String getCategory() {
     return category;
-  }
-
-  /**
-   * Returns the specific class type of the structure associated with the layer object for identification purposes.
-   */
-  public Class<? extends AbstractStruct> getClassType() {
-    return classType;
   }
 
   /**

@@ -35,7 +35,7 @@ public class LayerObjectAutomap extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectAutomap(AreResource parent, AutomapNote note) {
-    super("Automap", AutomapNote.class, parent);
+    super("Automap", parent);
     this.note = note;
     String msg = null;
     try {

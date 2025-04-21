@@ -69,7 +69,7 @@ public class LayerObjectRegion extends LayerObject {
   private boolean alternateEnabled;
 
   public LayerObjectRegion(AreResource parent, ITEPoint region) {
-    super("Region", ITEPoint.class, parent);
+    super("Region", parent);
     this.region = region;
     String label = null;
     String msg = null;

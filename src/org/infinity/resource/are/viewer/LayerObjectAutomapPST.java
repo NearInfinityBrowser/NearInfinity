@@ -33,7 +33,7 @@ public class LayerObjectAutomapPST extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectAutomapPST(AreResource parent, AutomapNotePST note) {
-    super("Automap", AutomapNotePST.class, parent);
+    super("Automap", parent);
     this.note = note;
     String msg = null;
     try {

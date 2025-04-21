@@ -12,7 +12,6 @@ import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
-import org.infinity.resource.are.AutomapNotePST;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.IniMapEntry;
@@ -40,7 +39,7 @@ public class LayerObjectAutomapPSTIni extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectAutomapPSTIni(IniMapSection areData, int noteIndex) throws IllegalArgumentException {
-    super("Automap", AutomapNotePST.class, null);
+    super("Automap", null);
     try {
       this.ini = new PlainTextResource(ResourceFactory.getResourceEntry(AUTONOTE_INI));
     } catch (Exception e) {

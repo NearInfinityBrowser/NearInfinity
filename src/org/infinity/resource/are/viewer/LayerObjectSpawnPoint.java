@@ -33,7 +33,7 @@ public class LayerObjectSpawnPoint extends LayerObject {
   private Flag scheduleFlags;
 
   public LayerObjectSpawnPoint(AreResource parent, SpawnPoint sp) {
-    super("Spawn Point", SpawnPoint.class, parent);
+    super("Spawn Point", parent);
     this.sp = sp;
     String msg = null;
     try {

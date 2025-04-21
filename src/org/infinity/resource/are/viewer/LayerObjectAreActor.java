@@ -49,7 +49,7 @@ public class LayerObjectAreActor extends LayerObjectActor {
   private Flag scheduleFlags;
 
   public LayerObjectAreActor(AreResource parent, Actor actor) {
-    super(Actor.class, parent);
+    super(parent);
     this.actor = actor;
 
     int ea = 128; // default: neutral

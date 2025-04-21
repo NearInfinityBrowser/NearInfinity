@@ -32,7 +32,7 @@ public class LayerObjectEntrance extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectEntrance(AreResource parent, Entrance entrance) {
-    super("Entrance", Entrance.class, parent);
+    super("Entrance", parent);
     this.entrance = entrance;
     String msg = null;
     try {

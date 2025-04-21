@@ -51,7 +51,7 @@ public class LayerObjectContainer extends LayerObject {
   private final Point launchPoint = new Point();
 
   public LayerObjectContainer(AreResource parent, Container container) {
-    super("Container", Container.class, parent);
+    super("Container", parent);
     this.container = container;
     String label = null;
     String msg = null;

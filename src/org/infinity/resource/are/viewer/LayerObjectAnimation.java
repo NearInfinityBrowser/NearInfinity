@@ -55,7 +55,7 @@ public class LayerObjectAnimation extends LayerObject {
   private Flag scheduleFlags;
 
   public LayerObjectAnimation(AreResource parent, Animation anim) {
-    super("Animation", Animation.class, parent);
+    super("Animation", parent);
     this.anim = anim;
     String keyAnim = "";
     String msg = "";

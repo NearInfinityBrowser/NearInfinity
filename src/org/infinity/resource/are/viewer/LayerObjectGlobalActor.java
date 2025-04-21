@@ -47,7 +47,7 @@ public class LayerObjectGlobalActor extends LayerObjectActor {
   private CreResource cre;
 
   public LayerObjectGlobalActor(GamResource parent, PartyNPC npc) {
-    super(PartyNPC.class, parent);
+    super(parent);
     this.npc = Objects.requireNonNull(npc);
 
     int creOfs = ((IsNumeric) this.npc.getAttribute(PartyNPC.GAM_NPC_OFFSET_CRE)).getValue();

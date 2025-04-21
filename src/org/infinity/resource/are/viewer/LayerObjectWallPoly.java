@@ -33,7 +33,7 @@ public class LayerObjectWallPoly extends LayerObject {
   private Point[] shapeCoords;
 
   public LayerObjectWallPoly(WedResource parent, WallPolygon wall) {
-    super("Wall Poly", WallPolygon.class, parent);
+    super("Wall Poly", parent);
     this.wall = wall;
     String msg = null;
     try {

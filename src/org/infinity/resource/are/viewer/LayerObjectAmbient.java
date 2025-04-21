@@ -56,7 +56,7 @@ public class LayerObjectAmbient extends LayerObject {
   private Flag scheduleFlags;
 
   public LayerObjectAmbient(AreResource parent, Ambient ambient) {
-    super("Sound", Ambient.class, parent);
+    super("Sound", parent);
     this.ambient = ambient;
     String msg = null;
     boolean isLocal = false;

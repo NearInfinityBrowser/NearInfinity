@@ -55,7 +55,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
    */
   public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData, int creIndex)
       throws IllegalArgumentException {
-    super(CreResource.class, null);
+    super(null);
     this.ini = Objects.requireNonNull(ini);
     this.creData = Objects.requireNonNull(creData);
     this.creIndex = creIndex;
