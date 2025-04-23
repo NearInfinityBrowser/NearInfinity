@@ -23,6 +23,7 @@ public class Opcode206 extends BaseOpcode {
   private static final String EFFECT_CREATURE_TYPE  = "Creature type";
 
   private static final String RES_TYPE = "SPL";
+  private static final String RES_TYPE_IWD = "ITM:SPL";
 
   private static final String[] EMBALMING_TYPES_PST = { "Normal", "Greater" };
 
@@ -55,7 +56,7 @@ public class Opcode206 extends BaseOpcode {
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CREATURE_TYPE, CRE_TYPES_IWD));
-    return RES_TYPE;
+    return RES_TYPE_IWD;
   }
 
   @Override
@@ -63,7 +64,7 @@ public class Opcode206 extends BaseOpcode {
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, EFFECT_VALUE));
     list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CREATURE_TYPE, CRE_TYPES_IWD));
-    return RES_TYPE;
+    return RES_TYPE_IWD;
   }
 
   @Override
