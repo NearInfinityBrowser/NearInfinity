@@ -1004,12 +1004,12 @@ public final class Profile {
    */
   public static boolean isResourceTypeSupported(String extension) {
     if (SUPPORTED_RESOURCE_TYPES.isEmpty()) {
-      String[] types = getAvailableResourceTypes(false);
+      String[] types = getAvailableResourceTypes(true);
       Collections.addAll(SUPPORTED_RESOURCE_TYPES, types);
     }
 
     if (extension != null) {
-      extension = extension.trim().toUpperCase(Locale.ROOT);
+      extension = extension.trim().toUpperCase(Locale.ENGLISH);
       if (!extension.isEmpty()) {
         if (extension.charAt(0) == '.') {
           extension = extension.substring(1);
@@ -1220,14 +1220,14 @@ public final class Profile {
       List<ResourceEntry> entries = ResourceFactory
           .getResources(Pattern.compile(".[DHEIO][FM][BCFTW][^1]G1\\.BAM", Pattern.CASE_INSENSITIVE));
       for (final ResourceEntry entry : entries) {
-        String code = entry.getResourceName().substring(4, 5).toUpperCase(Locale.ROOT);
+        String code = entry.getResourceName().substring(4, 5).toUpperCase(Locale.ENGLISH);
         codes.add(code + "A");
         codes.add(code + "W");
       }
       // determine weapon types
       entries = ResourceFactory.getResources(Pattern.compile("W[PQ][LMS]..G1\\.BAM", Pattern.CASE_INSENSITIVE));
       for (final ResourceEntry entry : entries) {
-        codes.add(entry.getResourceName().substring(3, 5).toUpperCase(Locale.ROOT));
+        codes.add(entry.getResourceName().substring(3, 5).toUpperCase(Locale.ENGLISH));
       }
 
       // fall back to fixed list if needed
@@ -1337,7 +1337,7 @@ public final class Profile {
     for (String name : listNames) {
       Path path = FileManager.queryExisting(root, name);
       if (path != null) {
-        if (os == Platform.OS.MAC_OS && path.toString().toLowerCase(Locale.ROOT).endsWith(".app")
+        if (os == Platform.OS.MAC_OS && path.toString().toLowerCase(Locale.ENGLISH).endsWith(".app")
             && Files.isDirectory(path)) {
           if (!list.contains(path)) {
             list.add(path);
@@ -2151,9 +2151,9 @@ public final class Profile {
       List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
 
       // create default override folder if it doesn't exist yet
-      if (FileManager.queryExisting(gameRoot, getOverrideFolderName().toLowerCase(Locale.ROOT)) == null) {
+      if (FileManager.queryExisting(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)) == null) {
         try {
-          Files.createDirectory(FileManager.query(gameRoot, getOverrideFolderName().toLowerCase(Locale.ROOT)));
+          Files.createDirectory(FileManager.query(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)));
         } catch (Throwable t) {
           Logger.trace(t);
         }
@@ -2542,7 +2542,7 @@ public final class Profile {
       for (int row = 0; row < table.getRowCount(); row++) {
         String save = table.get(row, col);
         if (save != null && !save.isEmpty()) {
-          save = Character.toUpperCase(save.charAt(0)) + save.substring(1).toLowerCase(Locale.ROOT);
+          save = Character.toUpperCase(save.charAt(0)) + save.substring(1).toLowerCase(Locale.ENGLISH);
           String mpsave = "MP" + save;
           boolean checkSave = false, checkMPSave = false;
           for (final String s : extraNames) {
@@ -2666,8 +2666,8 @@ public final class Profile {
     }
 
     // has correct file extension?
-    String fileName = file.getFileName().toString().toLowerCase(Locale.ROOT);
-    if (!fileName.endsWith('.' + ext.toLowerCase(Locale.ROOT))) {
+    String fileName = file.getFileName().toString().toLowerCase(Locale.ENGLISH);
+    if (!fileName.endsWith('.' + ext.toLowerCase(Locale.ENGLISH))) {
       return null;
     }
 

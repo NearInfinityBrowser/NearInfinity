@@ -25,6 +25,7 @@ import org.infinity.resource.Effect;
 import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.StreamUtils;
 
 public final class Ability extends AbstractAbility implements AddRemovable, HasChildStructs, HasViewerTabs {
@@ -150,7 +151,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     } else {
       addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, RECHARGE_ARRAY));
     }
-    if ((boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_PRO)) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 42, 2, ABILITY_PROJECTILE, PROJ_PST_ARRAY));
