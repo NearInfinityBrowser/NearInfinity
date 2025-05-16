@@ -31,6 +31,8 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   private final Charset charset;
   private final ByteBuffer buffer;
   private String text;
+  private boolean textChanged; // Re-encode only if the value changes. Prevents altering the data of text fields
+                               // on disk unless they were explicitly modified by the user.
 
   public TextString(ByteBuffer buffer, int offset, int length, String name) {
     super(offset, length, name);
@@ -65,7 +67,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
 
   @Override
   public void write(OutputStream os) throws IOException {
-    if (text != null) {
+    if (text != null && textChanged) {
       byte[] buf = text.getBytes(charset);
       buffer.position(0);
       buffer.put(buf, 0, Math.min(buf.length, buffer.limit()));
@@ -85,6 +87,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   public int read(ByteBuffer buffer, int offset) {
     StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     text = null;
+    textChanged = false;
 
     return offset + getSize();
   }
@@ -136,6 +139,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
     final String oldValue = getText();
     text = newValue;
     if (!Objects.equals(oldValue, newValue)) {
+      textChanged = true;
       firePropertyChange(oldValue, newValue);
     }
   }
