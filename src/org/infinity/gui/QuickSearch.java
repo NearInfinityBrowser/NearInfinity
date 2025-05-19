@@ -29,6 +29,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.JTextComponent;
 
@@ -417,35 +418,9 @@ public class QuickSearch extends JPanel implements Runnable {
               }
             }
 
-            // setting matching resource entries
-            final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
-
-            // Deactivating listeners to prevent autoselecting items
-            final ListDataListener[] listeners = cbModel.getListDataListeners();
-            for (int i = listeners.length - 1; i >= 0; i--) {
-              cbModel.removeListDataListener(listeners[i]);
-            }
-
-            cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
-            cbModel.removeAllElements();
-            if (!keyword.isEmpty() && node.getValue() != null) {
-              final List<ResourceEntry> list = node.getValue();
-              for (final ResourceEntry resourceEntry : list) {
-                cbModel.addElement(resourceEntry);
-              }
-            }
-
-            // Reactivating listeners
-            for (final ListDataListener listener : listeners) {
-              cbModel.addListDataListener(listener);
-            }
-
-            cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
-            if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
-              cbSearch.showPopup();
-            } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
-              cbSearch.hidePopup();
-            }
+            // UI code should be invoked from the AWT thread
+            final List<ResourceEntry> nodeList = node.getValue();
+            SwingUtilities.invokeLater(() -> updateComboList(nodeList));
           }
         }
       } else {
@@ -458,6 +433,39 @@ public class QuickSearch extends JPanel implements Runnable {
           }
         }
       }
+    }
+  }
+
+  // Updates the content of the combobox list element with the specified resource list
+  private void updateComboList(List<ResourceEntry> nodeList) {
+
+    // setting matching resource entries
+    final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
+
+    // Deactivating listeners to prevent autoselecting items
+    final ListDataListener[] listeners = cbModel.getListDataListeners();
+    for (int i = listeners.length - 1; i >= 0; i--) {
+      cbModel.removeListDataListener(listeners[i]);
+    }
+
+    cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
+    cbModel.removeAllElements();
+    if (!keyword.isEmpty() && nodeList != null) {
+      for (final ResourceEntry resourceEntry : nodeList) {
+        cbModel.addElement(resourceEntry);
+      }
+    }
+
+    // Reactivating listeners
+    for (final ListDataListener listener : listeners) {
+      cbModel.addListDataListener(listener);
+    }
+
+    cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
+    if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
+      cbSearch.showPopup();
+    } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
+      cbSearch.hidePopup();
     }
   }
 
