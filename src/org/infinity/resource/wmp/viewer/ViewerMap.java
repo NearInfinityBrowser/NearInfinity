@@ -26,6 +26,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -59,6 +60,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
+import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wmp.AreaEntry;
 import org.infinity.resource.wmp.MapEntry;
@@ -109,7 +111,9 @@ public class ViewerMap extends JPanel {
     super();
     WindowBlocker.blockWindow(true);
     try {
-      mapInfo = new WmpMapInfo(wmpMap);
+      boolean includeVirtualMap = wmpMap != null && wmpMap.getParent() != null
+          && isGameResource(wmpMap.getParent().getResourceEntry());
+      mapInfo = new WmpMapInfo(wmpMap, includeVirtualMap);
 
       // creating marker for selected map icon
       iconDot = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
@@ -799,6 +803,28 @@ public class ViewerMap extends JPanel {
         Logger.error(e);
       }
     });
+  }
+
+  /**
+   * Returns {@code true} only if the specified {@code ResourceEntry} object exists and is found in a BIFF archive or a
+   * valid override folder.
+   */
+  private static boolean isGameResource(ResourceEntry entry) {
+    boolean retVal = false;
+    if (entry != null) {
+      retVal = entry instanceof BIFFResourceEntry;
+      if (!retVal && entry.getActualPath() != null) {
+        final Path path = entry.getActualPath();
+        if (path.getParent() != null) {
+          final String folder = path.getParent().getFileName().toString();
+          retVal = Profile
+              .getOverrideFolders(true)
+              .stream()
+              .anyMatch(p -> folder.equalsIgnoreCase(p.getFileName().toString()));
+        }
+      }
+    }
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------
