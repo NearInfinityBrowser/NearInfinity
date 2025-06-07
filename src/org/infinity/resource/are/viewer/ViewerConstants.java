@@ -5,6 +5,9 @@
 package org.infinity.resource.are.viewer;
 
 import java.awt.RenderingHints;
+import java.util.Objects;
+
+import org.infinity.resource.Profile;
 
 /**
  * Definitions of constants and custom types used throughout the area viewer classes.
@@ -85,6 +88,27 @@ public final class ViewerConstants {
       return label;
     }
   }
+
+  /** Array of search map information objects. One entry per type. */
+  public static final SearchMapInfo[] SEARCH_MAP_INFO = {
+      // Parameters:    DescBG, DescIWD, DescPST,                           SoundBG,  SoundIWD,     Walkable, SeeThrough
+      new SearchMapInfo("Obstacle", "Obstacle", "Obstacle",                 null,     null,         false,    false),  //  0
+      new SearchMapInfo("Dirt", "Dirt", "Dirt",                             "WAL_04", "FS_DIRT*",   true,     true),   //  1
+      new SearchMapInfo("Metal", "Snowy Wood", "Clutter",                   "WAL_MT", "FS_WDSN*",   true,     true),   //  2
+      new SearchMapInfo("Wood", "Wood", "Wood",                             "WAL_02", "FS_WOOD*",   true,     true),   //  3
+      new SearchMapInfo("Stone (echo)", "Stone (light)", "Stone (light)",   "WAL_05", "FS_TOMB*",   true,     true),   //  4
+      new SearchMapInfo("Carpet", "Carpet", "Metal",                        "WAL_06", null,         true,     true),   //  5
+      new SearchMapInfo("Water", "Snow", "Water",                           "WAL_01", null,         true,     true),   //  6
+      new SearchMapInfo("Stone", "Stone", "Stone",                          "WAL_03", "FS_STON*",   true,     true),   //  7
+      new SearchMapInfo("Obstacle", "Obstacle", "Obstacle",                 null,     null,         false,    true),   //  8
+      new SearchMapInfo("Wood", "Wood", "Wood",                             "WAL_02", "FS_WOOD*",   true,     true),   //  9
+      new SearchMapInfo("Wall", "Wall", "Wall",                             null,     null,         false,    false),  // 10
+      new SearchMapInfo("Water", "Snow", "Water",                           "WAL_01", "FS_SNOW*",   true,     true),   // 11
+      new SearchMapInfo("Water", "Water", "Water",                          null,     null,         false,    true),   // 12
+      new SearchMapInfo("Roof/Wall", "Roof/Wall", "Roof/Wall",              null,     null,         false,    false),  // 13
+      new SearchMapInfo("Worldmap Exit", "Worldmap Exit", "Worldmap Exit",  null,     null,         true,     true),   // 14
+      new SearchMapInfo("Grass", "Grass", "Carpet",                         "WAL_04", "FS_GRAS*",   true,     true),   // 15
+  };
 
   // Flags that identify the different control sections in the sidebar
   public static final int SIDEBAR_VISUALSTATE = 1;
@@ -231,6 +255,169 @@ public final class ViewerConstants {
         return TIME_NIGHT;
       default:
         return TIME_DAY;
+    }
+  }
+
+  // ----------------------------- INNER CLASSES -----------------------------
+
+  /**
+   * A helper class that provides detailed information about a specific search map type.
+   */
+  public static class SearchMapInfo {
+    private final String[] description;   // 0=BG, 1=IWD, 2=PST
+    private final String[] walkSound;     // 0=BG, 1=IWD
+    private final boolean walkable;
+    private final boolean seeThrough;
+
+    /**
+     * Creates a new search map info structure.
+     *
+     * @param descBG       Description string for BG/BG2/EE.
+     * @param descIWD      Description string for IWD/IWD2. Specify {@code null} to inherit the BG description.
+     * @param descPST      Description string for PST/PSTEE. Specify {@code null} to inherit the BG description.
+     * @param walkSoundBG  Walk sound resref for BG/BG2/EE.
+     * @param walkSoundIWD Walk sound resref for IWD/IWD2.
+     * @param walkable     Whether the search map type can be passed by walking creatures.
+     * @param seeThrough   Whether the search map type blocks sight nor not.
+     */
+    private SearchMapInfo(String descBG, String descIWD, String descPST, String walkSoundBG, String walkSoundIWD,
+        boolean walkable, boolean seeThrough) {
+      this.description = new String[3];
+      this.description[0] = (descBG != null) ? descBG : "n/a";
+      this.description[1] = (descIWD != null) ? descIWD : "n/a";
+      this.description[2] = (descPST != null) ? descPST : "n/a";
+
+      this.walkSound = new String[2];
+      this.walkSound[0] = (walkSoundBG != null) ? walkSoundBG + ".WAV" : null;
+      this.walkSound[1] = (walkSoundIWD != null) ? walkSoundIWD + ".WAV" : null;
+
+      this.walkable = walkable;
+      this.seeThrough = seeThrough;
+    }
+
+    /** Returns a short description for this search map type. */
+    public String getDescription() {
+      switch (Profile.getGame()) {
+        case PST:
+        case PSTEE:
+          return description[2];
+        case IWD:
+        case IWDHoW:
+        case IWDHowTotLM:
+        case IWD2:
+        case IWD2EE:
+        case IWDEE:
+          return description[1];
+        default:
+          return description[0];
+      }
+    }
+
+    /**
+     * Returns the filename of the walk sound resource associated with this search map type. Return {@code null} if no
+     * sound is associated.
+     */
+    public String getWalkSound() {
+      switch (Profile.getEngine()) {
+        case PST:
+          return null;
+        case IWD:
+        case IWD2:
+          return walkSound[1];
+        default:
+          return (Profile.getGame() == Profile.Game.PSTEE) ? null : walkSound[0];
+      }
+    }
+
+    /** Returns whether walking creatures can pass this search map type. */
+    public boolean canWalk() {
+      return walkable;
+    }
+
+    /** Returns whether this search map type blocks sight or not. */
+    public boolean canSeeThrough() {
+      return seeThrough;
+    }
+
+    /** Returns a formated string with all available attributes for this search map type. */
+    public String getText() {
+      return getText(true, true, true, true);
+    }
+
+    /**
+     * Returns a formated string with the specified attributes for this search map type.
+     *
+     * @param desc          Whether to include the search index description in the output string.
+     * @param walkSound     Whether to include the associated walk sound in the output string.
+     * @param canWalk       Whether to include the {@code walkable} attribute in the output string.
+     * @param canSeeThrough Whether to include the {@code seeThrough} attribute in the output string.
+     * @return a formatted string.
+     */
+    public String getText(boolean desc, boolean walkSound, boolean canWalk, boolean canSeeThrough) {
+      final StringBuilder sb = new StringBuilder();
+      if (desc) {
+        sb.append(getDescription());
+      }
+
+      if (walkSound && getWalkSound() != null) {
+        if (sb.length() > 0) {
+          sb.append(' ');
+        }
+        sb.append('[').append(getWalkSound()).append(']');
+      }
+
+      int flags = 0;
+      if (canWalk) {
+        if (sb.length() > 0) {
+          sb.append(' ');
+        }
+        sb.append('(').append("can walk: ").append(Boolean.toString(canWalk()));
+        flags++;
+      }
+      if (canSeeThrough) {
+        if (flags == 0 && sb.length() > 0) {
+          sb.append(' ');
+        }
+        if (flags > 0) {
+          sb.append(", ");
+        } else {
+          sb.append('(');
+        }
+        sb.append("can see through: ").append(Boolean.toString(canSeeThrough()));
+        flags++;
+      }
+      if (flags > 0) {
+        sb.append(')');
+      }
+
+      return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(description, seeThrough, walkSound, walkable);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      SearchMapInfo other = (SearchMapInfo)obj;
+      return Objects.equals(description, other.description) && seeThrough == other.seeThrough
+          && Objects.equals(walkSound, other.walkSound) && walkable == other.walkable;
+    }
+
+    @Override
+    public String toString() {
+      return "SearchMapInfo [description=" + description + ", walkSound=" + walkSound + ", walkable=" + walkable
+          + ", seeThrough=" + seeThrough + "]";
     }
   }
 }

@@ -1005,7 +1005,7 @@ public class TilesetRenderer extends RenderCanvas {
 
       // drawing mini map if available
       if (miniMap != null && miniMapType != -1) {
-        BufferedImage miniMapImage = miniMap.getImage();
+        BufferedImage miniMapImage = ColorConvert.toBufferedImage(miniMap.getImage(), true, true);
         int miniMapWidth = miniMapImage.getWidth();
         int miniMapHeight = miniMapImage.getHeight();
         int[] map = ((DataBufferInt) miniMapImage.getRaster().getDataBuffer()).getData();
