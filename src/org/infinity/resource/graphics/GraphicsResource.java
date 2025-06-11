@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
@@ -103,6 +104,9 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
     panel.add(scroll, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+
     return panel;
   }
 

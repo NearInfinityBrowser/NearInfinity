@@ -22,6 +22,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -239,6 +241,20 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener {
       JOptionPane.showMessageDialog(parent, '\"' + file.toString() + "\" not found", "Error",
           JOptionPane.ERROR_MESSAGE);
     } else {
+      try {
+        final long sizeLimit = 1_000_000_000L;  // 1 GB
+        final long fileSize = Files.size(file);
+        if (fileSize > sizeLimit) {
+          final int result = JOptionPane.showConfirmDialog(parent,
+              String.format("Selected file is %.1f GB big. Open anyway?", (double)fileSize / sizeLimit),
+              "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+          if (result != JOptionPane.YES_OPTION) {
+            return;
+          }
+        }
+      } catch (IOException e) {
+        Logger.error(e);
+      }
       new ViewFrame(parent, ResourceFactory.getResource(new FileResourceEntry(file)));
     }
   }

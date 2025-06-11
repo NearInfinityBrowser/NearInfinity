@@ -39,6 +39,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ResourceChooser;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -297,6 +298,8 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
     panel.add(centerpanel, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
     centerpanel.setBorder(BorderFactory.createLoweredBevelBorder());
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
 
     return panel;
   }

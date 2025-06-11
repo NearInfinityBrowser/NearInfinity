@@ -6,7 +6,12 @@ package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -14,6 +19,8 @@ import java.awt.Insets;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.EOFException;
@@ -29,18 +36,24 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -48,10 +61,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -81,6 +99,8 @@ import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.resource.ui.CheckBoxResourceCellRenderer;
+import org.infinity.resource.ui.ResourceCellRenderer;
 import org.infinity.resource.video.MveResource;
 import org.infinity.util.DebugTimer;
 import org.infinity.util.Logger;
@@ -90,13 +110,17 @@ import org.infinity.util.Threading;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener, DocumentListener, Runnable {
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
+  private static final String LABEL_EXPORT_DEFAULT  = "Export";
+  private static final String LABEL_EXPORT_FILTER   = "Export...";
 
   private static final Set<String> TYPES_BLACKLIST = new HashSet<>(Arrays.asList("BIK", "LOG", "SAV"));
 
-  private final JButton bExport = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
+  private final JButton bPreview = new JButton("Preview", Icons.ICON_ZOOM_16.getIcon());
+  private final JButton bExport = new JButton(LABEL_EXPORT_DEFAULT, Icons.ICON_EXPORT_16.getIcon());
   private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
   private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbPattern = new JCheckBox("Use regular expressions", false);
@@ -116,6 +140,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
+  private final JCheckBox cbCloseDialogOnExport = new JCheckBox("Close dialog after export", true);
+  private final JCheckBox cbPreselectFilter = new JCheckBox("Preselect exported files", false);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JComboBox<String> cbExtractFramesBAMFormat = new JComboBox<>(new String[] { "PNG", "BMP" });
   private final JList<String> listTypes = new JList<>(getAvailableResourceTypes());
@@ -131,165 +157,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   public MassExporter() {
     super("Mass Exporter", true);
-
-    bExport.addActionListener(this);
-    bCancel.addActionListener(this);
-    bDirectory.addActionListener(this);
-    bExport.setEnabled(false);
-    tfDirectory.setEditable(false);
-    tfPattern.getDocument().addDocumentListener(this);
-    updateTextFieldColor(tfPattern);
-    listTypes.addListSelectionListener(this);
-    fc.setDialogTitle("Mass export: Select directory");
-    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    getRootPane().setDefaultButton(bExport);
-    bExport.setMnemonic('e');
-    bCancel.setMnemonic('d');
-    cbConvertToPNG.setToolTipText("Caution: Selecting both MOS and TIS may overwrite or skip some files!");
-    cbExtractFramesBAM.setToolTipText("Note: Frames of each BAM resource are exported into separate subfolders.");
-    cbConvertTisVersion.setToolTipText(
-        "Caution: Conversion may take a long time. Files may be renamed to conform to naming scheme for PVRZ-based TIS files.");
-    cbIncludeExtraDirs
-        .setToolTipText("Include extra folders, such as \"Characters\" or \"Portraits\", except savegames.");
-
-    JPanel leftPanel = new JPanel(new BorderLayout());
-    leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
-    leftPanel.add(new JScrollPane(listTypes), BorderLayout.CENTER);
-
-    JPanel topRightPanel = new JPanel(new BorderLayout());
-    topRightPanel.add(new JLabel("Output directory:"), BorderLayout.NORTH);
-    topRightPanel.add(tfDirectory, BorderLayout.CENTER);
-    topRightPanel.add(bDirectory, BorderLayout.EAST);
-
-    JPanel patternSubPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
-    patternSubPanel.add(cbPattern);
-    patternSubPanel.add(lPatternHelp);
-
-    JPanel patternPanel = new JPanel(new BorderLayout());
-    JLabel lPattern = new JLabel("Resource name filter:");
-    patternPanel.add(lPattern, BorderLayout.NORTH);
-    patternPanel.add(tfPattern, BorderLayout.CENTER);
-    patternPanel.add(patternSubPanel, BorderLayout.SOUTH);
-
-    GridBagConstraints gbc = new GridBagConstraints();
-    JPanel bottomRightPanel = new JPanel(new GridBagLayout());
-
-    JPanel pBamFrames = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    pBamFrames.add(cbExtractFramesBAM);
-    pBamFrames.add(cbExtractFramesBAMFormat);
-
-    JPanel pTisConvert = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    pTisConvert.add(cbConvertTisVersion);
-    pTisConvert.add(cbConvertTisList);
-
-    JPanel pTextAlign = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    pTextAlign.add(cbFormatAlign);
-    pTextAlign.add(cbFormatAlignList);
-    cbFormatAlign.setToolTipText("<html>Align table columns to improve readability:<ul>"
-        + "<li>Compact: Column width is calculated individually.</li>"
-        + "<li>Uniform: Column width is calculated evenly, comparable to WeiDU's PRETTY_PRINT_2DA.</li>"
-        + "</ul></html>");
-
-    int row = 0;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(new JLabel("Options:"), gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbIncludeExtraDirs, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertWAV, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertCRE, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecompile, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecrypt, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbTrimText, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pTextAlign, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecompress, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertToPNG, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pTisConvert, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pBamFrames, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbExportMVEasAVI, gbc);
-    row++;
-    gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-        GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbOverwrite, gbc);
-    row++;
-
-    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    bottomPanel.add(bExport);
-    bottomPanel.add(bCancel);
-
-    JPanel pane = (JPanel) getContentPane();
-    GridBagLayout gbl = new GridBagLayout();
-    // GridBagConstraints gbc = new GridBagConstraints();
-    gbc = new GridBagConstraints();
-    pane.setLayout(gbl);
-
-    gbc.weightx = 0.0;
-    gbc.weighty = 1.0;
-    gbc.gridheight = 3;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.insets = new Insets(6, 6, 6, 6);
-    gbl.setConstraints(leftPanel, gbc);
-    pane.add(leftPanel);
-
-    gbc.gridheight = 1;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.weighty = 0.0;
-    gbc.weightx = 1.0;
-    gbl.setConstraints(topRightPanel, gbc);
-    pane.add(topRightPanel);
-
-    gbl.setConstraints(patternPanel, gbc);
-    pane.add(patternPanel);
-
-    gbc.weighty = 1.0;
-    gbl.setConstraints(bottomRightPanel, gbc);
-    pane.add(bottomRightPanel);
-
-    gbc.insets = new Insets(0, 0, 0, 0);
-    gbc.weighty = 0.0;
-    gbc.weightx = 1.0;
-    gbl.setConstraints(bottomPanel, gbc);
-    pane.add(bottomPanel);
-
-    pack();
-    setMinimumSize(getPreferredSize());
-    Center.center(this, NearInfinity.getInstance().getBounds());
-    setVisible(true);
+    init();
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
@@ -303,24 +171,22 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       } else {
         tfPattern.setBackground(UIManager.getColor("TextField.background"));
       }
-    } else
-    if (event.getSource() == bExport) {
+    } else if (event.getSource() == bPreview) {
+      selectedTypes = listTypes.getSelectedValuesList();
+      try {
+        pattern = getPatternInteractive();
+      } catch (IllegalArgumentException e) {
+        Logger.error(e);
+        return;
+      }
+      showPreview();
+    } else if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValuesList();
       outputPath = FileManager.resolve(tfDirectory.getText());
       try {
-        pattern = getPattern();
+        pattern = getPatternInteractive();
       } catch (IllegalArgumentException e) {
         Logger.error(e);
-        JOptionPane.showMessageDialog(this, e.getMessage(), "Pattern syntax error", JOptionPane.ERROR_MESSAGE);
-        if (e instanceof PatternSyntaxException) {
-          final int index = ((PatternSyntaxException)e).getIndex();
-          if (index >= 0) {
-            tfPattern.setCaretPosition(index);
-          } else {
-            tfPattern.setCaretPosition(tfPattern.getText().length());
-          }
-        }
-        tfPattern.requestFocusInWindow();
         return;
       }
 
@@ -331,7 +197,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         Logger.error(e);
         return;
       }
-      setVisible(false);
+
+      if (cbCloseDialogOnExport.isSelected()) {
+        setVisible(false);
+      }
+
       new Thread(this).start();
     } else if (event.getSource() == bCancel) {
       setVisible(false);
@@ -339,7 +209,12 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION) {
         tfDirectory.setText(fc.getSelectedFile().toString());
       }
-      bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
+      final boolean exportEnabled = listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty();
+      bPreview.setEnabled(exportEnabled);
+      bExport.setEnabled(exportEnabled);
+    } else if (event.getSource() == cbPreselectFilter) {
+      final String label = cbPreselectFilter.isSelected() ? LABEL_EXPORT_FILTER : LABEL_EXPORT_DEFAULT;
+      bExport.setText(label);
     }
   }
 
@@ -349,7 +224,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty());
+    final boolean exportEnabled = listTypes.getSelectedIndices().length > 0 && !tfDirectory.getText().isEmpty();
+    bPreview.setEnabled(exportEnabled);
+    bExport.setEnabled(exportEnabled);
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -378,45 +255,24 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   @Override
   public void run() {
     try {
-      List<Path> extraDirs = new ArrayList<>();
-      if (cbIncludeExtraDirs.isSelected()) {
-        // do not include savegame folders
-        extraDirs.addAll(Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS));
-        int idx = 0;
-        while (idx < extraDirs.size()) {
-          String s = extraDirs.get(idx).getFileName().toString().toUpperCase(Locale.ENGLISH);
-          if (s.contains("SAVE")) {
-            extraDirs.remove(idx);
-          } else {
-            idx++;
-          }
-        }
-      }
+      final Component parentComponent = isVisible() ? this : NearInfinity.getInstance();
 
-      selectedFiles = new ArrayList<>(1000);
-      for (final String newVar : selectedTypes) {
-        if (pattern != null) {
-          selectedFiles.addAll(
-              ResourceFactory.getResources(newVar, extraDirs)
-                .stream()
-                .filter(e -> pattern.matcher(e.getResourceRef()).find())
-                .collect(Collectors.toList())
-              );
-        } else {
-          selectedFiles.addAll(ResourceFactory.getResources(newVar, extraDirs));
-        }
-      }
+      selectedFiles = getSelectedResources(cbPreselectFilter.isSelected());
 
       if (selectedFiles.isEmpty()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No files to export.", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parentComponent, "No files to export.", "Info", JOptionPane.INFORMATION_MESSAGE);
+        return;
+      }
+
+      if (selectedFiles.get(0) == null) {
+        JOptionPane.showMessageDialog(parentComponent, "Operation cancelled.", "Info", JOptionPane.INFORMATION_MESSAGE);
         return;
       }
 
       // executing multithreaded search
       boolean isCancelled = false;
       try (final Threading threadPool = new Threading()) {
-        progress = new ProgressMonitor(NearInfinity.getInstance(), "Exporting...",
+        progress = new ProgressMonitor(parentComponent, "Exporting...",
             String.format(FMT_PROGRESS, getResourceCount(), getResourceCount()), 0, selectedFiles.size());
         progress.setMillisToDecideToPopup(0);
         progress.setMillisToPopup(0);
@@ -455,10 +311,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
 
       if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted.", "Info",
+        JOptionPane.showMessageDialog(parentComponent, "Mass export aborted.", "Info",
             JOptionPane.INFORMATION_MESSAGE);
       } else {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+        JOptionPane.showMessageDialog(parentComponent,
             String.format("Mass export completed.\n%d file(s) exported.", selectedFiles.size()), "Info",
             JOptionPane.INFORMATION_MESSAGE);
       }
@@ -474,6 +330,197 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
   // --------------------- End Interface Runnable ---------------------
 
+  /** Shows a dialog with a list of all game resources that would be exported with the current settings. */
+  private void showPreview() {
+    // calling indirectly to provide visual feedback if preparation of the preview list takes a while
+    SwingUtilities.invokeLater(() -> {
+      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      try {
+        final List<ResourceEntry> resourceList = getSelectedResources(false);
+        if (resourceList == null || resourceList.isEmpty()) {
+          JOptionPane.showMessageDialog(this, "No files to export found.");
+          return;
+        }
+
+        final JLabel summaryLabel = new JLabel("Number of resources to export: " + resourceList.size());
+        final DefaultListModel<ResourceEntry> model = new DefaultListModel<>();
+        for (final ResourceEntry entry : resourceList) {
+          model.addElement(entry);
+        }
+
+        final JList<ResourceEntry> resources = new JList<>(model);
+        resources.setCellRenderer(new ResourceCellRenderer());
+        final Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont());
+        resources.setFont(f.deriveFont(Font.BOLD));
+        resources.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        final int numRows = Math.min(16, Math.max(4, resourceList.size() + 1));
+        resources.setVisibleRowCount(numRows);
+
+        final JScrollPane scroll = new JScrollPane(resources);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        final JPanel mainPanel = new JPanel(new BorderLayout(8, 8));
+        mainPanel.add(summaryLabel, BorderLayout.NORTH);
+        mainPanel.add(scroll, BorderLayout.CENTER);
+
+        final JOptionPane optionPane = new JOptionPane(mainPanel, JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.DEFAULT_OPTION);
+        final JDialog dialog = optionPane.createDialog(this, "Resource List Preview");
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.setResizable(true);
+
+        // double-clicking entry opens the selected resource in a new window
+        resources.addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+              final ResourceEntry entry = resources.getSelectedValue();
+              if (entry != null) {
+                new ViewFrame(NearInfinity.getInstance(), ResourceFactory.getResource(entry));
+              }
+            }
+          }
+        });
+
+        try {
+          dialog.setVisible(true);
+        } finally {
+          dialog.dispose();
+        }
+      } finally {
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+      }
+    });
+  }
+
+  /** Allows the user to further refine the list of resources for export. */
+  private List<ResourceEntry> preselectFilterEntries(List<ResourceEntry> resources) {
+    final Function<List<ResourceEntry>, List<ResourceEntry>> fnFilterEntries = resList -> {
+      final List<ResourceEntry> result = new ArrayList<>(resList.size());
+
+      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      try {
+        if (resList == null || resList.isEmpty()) {
+          return null;
+        }
+
+        final JLabel label = new JLabel("Resource list (" + resList.size() + " entries)");
+
+        final CheckBoxListModel<ResourceEntry> resourceModel = new CheckBoxListModel<>(resList, true);
+        final CheckBoxList<ResourceEntry> resourceList = new CheckBoxList<>(resourceModel);
+        resourceList.setCellRenderer(new CheckBoxResourceCellRenderer());
+        final Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont());
+        resourceList.setFont(f.deriveFont(Font.BOLD));
+        resourceList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        final int numRows = Math.min(16, Math.max(4, resList.size() + 1));
+        resourceList.setVisibleRowCount(numRows);
+
+        final JScrollPane scroll = new JScrollPane(resourceList);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        // unified item selection operation: b == null indicates to invert current selection state
+        final Consumer<Boolean> selectOperation = b -> {
+          final int[] indices = resourceList.getSelectedIndices();
+          for (final int idx : indices) {
+            final boolean state = (b != null) ? b : !resourceModel.isSelected(idx);
+            resourceModel.setSelected(idx, state);
+          }
+        };
+
+        final JButton selectButton = new JButton("Select");
+        selectButton.addActionListener(event -> selectOperation.accept(true));
+        selectButton.setEnabled(false);
+
+        final JButton unselectButton = new JButton("Unselect");
+        unselectButton.addActionListener(event -> selectOperation.accept(false));
+        unselectButton.setEnabled(false);
+
+        final JButton invertButton = new JButton("Invert");
+        invertButton.addActionListener(event -> selectOperation.accept(null));
+        invertButton.setEnabled(false);
+
+        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 8));
+        buttonPanel.add(selectButton);
+        buttonPanel.add(unselectButton);
+        buttonPanel.add(invertButton);
+
+        // controls enabled state of selection buttons
+        resourceList.addListSelectionListener(event -> {
+          final boolean isSelected = (resourceList.getSelectedIndex() >= 0);
+          selectButton.setEnabled(isSelected);
+          unselectButton.setEnabled(isSelected);
+          invertButton.setEnabled(isSelected);
+        });
+
+        final JPanel mainPanel = new JPanel(new BorderLayout(8, 8));
+        mainPanel.add(label, BorderLayout.NORTH);
+        mainPanel.add(scroll, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        final JButton exportButton = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
+        final JButton cancelButton = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
+        final JOptionPane optionPane = new JOptionPane(mainPanel, JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.OK_CANCEL_OPTION, null, new JButton[] { exportButton, cancelButton }, exportButton);
+
+        // dialog button behavior has to be implemented manually
+        exportButton.setEnabled(!resourceModel.isEmpty());
+        exportButton.addActionListener(e -> optionPane.setValue(e.getSource()));
+        cancelButton.addActionListener(e -> optionPane.setValue(e.getSource()));
+
+        // controls enabled state of the Export button
+        resourceModel.addListDataListener(new ListDataListener() {
+          @Override
+          public void intervalRemoved(ListDataEvent e) {}
+
+          @Override
+          public void intervalAdded(ListDataEvent e) {}
+
+          @Override
+          public void contentsChanged(ListDataEvent e) {
+            for (int i = 0, size = resourceModel.size(); i < size; i++) {
+              if (resourceModel.isSelected(i)) {
+                exportButton.setEnabled(true);
+                return;
+              }
+            }
+            exportButton.setEnabled(false);
+          }
+        });
+
+        final JDialog dialog = optionPane.createDialog(MassExporter.this, "Select resources for export");
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.setResizable(true);
+
+        try {
+          dialog.setVisible(true);
+          if (optionPane.getValue() == exportButton) {
+            for (final Iterator<Couple<ResourceEntry, Boolean>> iter = resourceModel.iterator(); iter.hasNext();) {
+              final Couple<ResourceEntry, Boolean> value = iter.next();
+              if (value.getValue1()) {
+                result.add(value.getValue0());
+              }
+            }
+          } else {
+            // Special "null" entry indicates cancelled operation
+            result.add(null);
+          }
+        } finally {
+          dialog.dispose();
+        }
+      } finally {
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+      }
+
+      return result;
+    };
+
+    return Threading.invokeInEventThread(fnFilterEntries, resources, null);
+  }
+
   /**
    * Returns an array with all resource types available for the current game.
    */
@@ -488,6 +535,51 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     return (selectedFiles != null) ? selectedFiles.size() : 0;
   }
 
+  /**
+   * Returns a list of resource entries to export matching the current export settings.
+   *
+   * @param interactive Specify {@code true} to show a selection dialog where the user can further refine the resource
+   *                      selection.
+   */
+  private List<ResourceEntry> getSelectedResources(boolean interactive) {
+    List<ResourceEntry> resourceEntries = new ArrayList<>(1000);
+
+    final List<Path> extraDirs = new ArrayList<>();
+    if (cbIncludeExtraDirs.isSelected()) {
+      // do not include savegame folders
+      extraDirs.addAll(Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS));
+      int idx = 0;
+      while (idx < extraDirs.size()) {
+        String s = extraDirs.get(idx).getFileName().toString().toUpperCase(Locale.ENGLISH);
+        if (s.contains("SAVE")) {
+          extraDirs.remove(idx);
+        } else {
+          idx++;
+        }
+      }
+    }
+
+    for (final String newVar : selectedTypes) {
+      if (pattern != null) {
+        resourceEntries.addAll(
+            ResourceFactory.getResources(newVar, extraDirs)
+              .stream()
+              .filter(e -> pattern.matcher(e.getResourceRef()).find())
+              .collect(Collectors.toList())
+            );
+      } else {
+        resourceEntries.addAll(ResourceFactory.getResources(newVar, extraDirs));
+      }
+    }
+
+    // open preselection dialog if requested
+    if (interactive) {
+      resourceEntries = preselectFilterEntries(resourceEntries);
+    }
+
+    return resourceEntries;
+  }
+
   /** Returns {@link Pattern} object from the current regular expression pattern. */
   private Pattern getPattern() throws IllegalArgumentException {
     if (!tfPattern.getText().isEmpty()) {
@@ -495,6 +587,28 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
     return null;
+  }
+
+  /**
+   * Returns {@link Pattern} object from the current regular expression pattern. Returns {@code null} if no pattern
+   * is defined. Throws an {@link IllegalArgumentException} if an error was handled.
+   */
+  private Pattern getPatternInteractive() throws IllegalArgumentException {
+    try {
+      return getPattern();
+    } catch (IllegalArgumentException e) {
+      JOptionPane.showMessageDialog(this, e.getMessage(), "Pattern syntax error", JOptionPane.ERROR_MESSAGE);
+      if (e instanceof PatternSyntaxException) {
+        final int index = ((PatternSyntaxException)e).getIndex();
+        if (index >= 0) {
+          tfPattern.setCaretPosition(index);
+        } else {
+          tfPattern.setCaretPosition(tfPattern.getText().length());
+        }
+      }
+      tfPattern.requestFocusInWindow();
+      throw e;
+    }
   }
 
   /**
@@ -976,6 +1090,195 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 //    }
 //    return null;
 //  }
+
+  // Initializes the GUI.
+  private void init() {
+    bPreview.setToolTipText("Preview list of resources to export.");
+    bPreview.addActionListener(this);
+    bPreview.setEnabled(false);
+    bPreview.setMnemonic('p');
+    bExport.addActionListener(this);
+    bExport.setEnabled(false);
+    bExport.setMnemonic('e');
+    getRootPane().setDefaultButton(bExport);
+    bCancel.addActionListener(this);
+    bCancel.setMnemonic('d');
+    bDirectory.addActionListener(this);
+    tfDirectory.setEditable(false);
+    tfPattern.getDocument().addDocumentListener(this);
+    updateTextFieldColor(tfPattern);
+    listTypes.addListSelectionListener(this);
+    fc.setDialogTitle("Mass export: Select directory");
+    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    cbConvertToPNG.setToolTipText("Caution: Selecting both MOS and TIS may overwrite or skip some files!");
+    cbExtractFramesBAM.setToolTipText("Note: Frames of each BAM resource are exported into separate subfolders.");
+    cbConvertTisVersion.setToolTipText(
+        "Caution: Conversion may take a long time. Files may be renamed to conform to naming scheme for PVRZ-based TIS files.");
+    cbIncludeExtraDirs
+        .setToolTipText("Include extra folders, such as \"Characters\" or \"Portraits\", except savegames.");
+    cbPreselectFilter.addActionListener(this);
+
+    final JPanel leftPanel = new JPanel(new BorderLayout());
+    leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
+    leftPanel.add(new JScrollPane(listTypes), BorderLayout.CENTER);
+
+    final JPanel topRightPanel = new JPanel(new BorderLayout());
+    topRightPanel.add(new JLabel("Output directory:"), BorderLayout.NORTH);
+    topRightPanel.add(tfDirectory, BorderLayout.CENTER);
+    topRightPanel.add(bDirectory, BorderLayout.EAST);
+
+    final JPanel patternSubPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+    patternSubPanel.add(cbPattern);
+    patternSubPanel.add(lPatternHelp);
+
+    final JPanel patternPanel = new JPanel(new BorderLayout());
+    final JLabel lPattern = new JLabel("Resource name filter:");
+    patternPanel.add(lPattern, BorderLayout.NORTH);
+    patternPanel.add(tfPattern, BorderLayout.CENTER);
+    patternPanel.add(patternSubPanel, BorderLayout.SOUTH);
+
+    // "Export BAM frames as..." panel
+    final JPanel bamFramesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    bamFramesPanel.add(cbExtractFramesBAM);
+    bamFramesPanel.add(cbExtractFramesBAMFormat);
+
+    // "Convert TIS to..." panel
+    final JPanel tisConvertPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    tisConvertPanel.add(cbConvertTisVersion);
+    tisConvertPanel.add(cbConvertTisList);
+
+    // "Align 2DA table data" panel
+    final JPanel textAlignPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    textAlignPanel.add(cbFormatAlign);
+    textAlignPanel.add(cbFormatAlignList);
+    cbFormatAlign.setToolTipText("<html>Align table columns to improve readability:<ul>"
+        + "<li>Compact: Column width is calculated individually.</li>"
+        + "<li>Uniform: Column width is calculated evenly, comparable to WeiDU's PRETTY_PRINT_2DA.</li>"
+        + "</ul></html>");
+
+    final GridBagConstraints c = new GridBagConstraints();
+
+    // Options
+    int row = 0;
+    final JPanel optionsSubPanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbIncludeExtraDirs, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbDecrypt, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbTrimText, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(textAlignPanel, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbOverwrite, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbPreselectFilter, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, GridBagConstraints.REMAINDER, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    optionsSubPanel.add(cbCloseDialogOnExport, c);
+
+    final JPanel optionsPanel = new JPanel(new GridBagLayout());
+    optionsPanel.setBorder(BorderFactory.createTitledBorder("Options"));
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    optionsPanel.add(optionsSubPanel, c);
+
+    // Conversions
+    row = 0;
+    final JPanel conversionSubPanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 4, 4);
+    conversionSubPanel.add(cbConvertWAV, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(cbConvertCRE, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(cbDecompile, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(cbDecompress, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(cbConvertToPNG, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(tisConvertPanel, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(bamFramesPanel, c);
+    row++;
+    ViewerUtil.setGBC(c, 0, row, 1, GridBagConstraints.REMAINDER, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    conversionSubPanel.add(cbExportMVEasAVI, c);
+
+    final JPanel conversionPanel = new JPanel(new GridBagLayout());
+    conversionPanel.setBorder(BorderFactory.createTitledBorder("Conversions"));
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    conversionPanel.add(conversionSubPanel, c);
+
+    // combining option panels
+    final JPanel bottomRightPanel = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(conversionPanel, c);
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(0, 4, 0, 0), 0, 0);
+    bottomRightPanel.add(optionsPanel, c);
+
+    // button panel
+    final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    bottomPanel.add(bPreview);
+    bottomPanel.add(bExport);
+    bottomPanel.add(bCancel);
+
+    final Container contentPane = getContentPane();
+    contentPane.setLayout(new GridBagLayout());
+
+    ViewerUtil.setGBC(c, 0, 0, 1, 3, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(6, 6, 6, 6), 0, 0);
+    contentPane.add(leftPanel, c);
+
+    ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(6, 6, 6, 6), 0, 0);
+    contentPane.add(topRightPanel, c);
+
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(6, 6, 6, 6), 0, 0);
+    contentPane.add(patternPanel, c);
+
+    ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.BOTH, new Insets(6, 6, 6, 6), 0, 0);
+    contentPane.add(bottomRightPanel, c);
+
+    ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(6, 6, 6, 6), 0, 0);
+    contentPane.add(bottomPanel, c);
+
+    pack();
+    setMinimumSize(getPreferredSize());
+    Center.center(this, NearInfinity.getInstance().getBounds());
+    setVisible(true);
+  }
 
   // -------------------------- INNER CLASSES --------------------------
 

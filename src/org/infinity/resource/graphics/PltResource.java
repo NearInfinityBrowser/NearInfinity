@@ -51,6 +51,7 @@ import javax.swing.event.ChangeListener;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.WrapLayout;
 import org.infinity.gui.hexview.GenericHexViewer;
@@ -230,6 +231,8 @@ public class PltResource
     panelMain = new JPanel(new BorderLayout());
     panelMain.add(tabbedPane, BorderLayout.CENTER);
     panelMain.add(buttonPanel, BorderLayout.SOUTH);
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panelMain, getResourceEntry()));
 
     return panelMain;
   }

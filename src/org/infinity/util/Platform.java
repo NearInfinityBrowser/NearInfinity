@@ -4,9 +4,11 @@
 
 package org.infinity.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -282,6 +284,141 @@ public class Platform {
       }
     }
     return true;
+  }
+
+  /** Returns {@code true} if the system theme is considered a dark theme by the current operating system. */
+  public static boolean isSystemDarkMode() {
+    if (IS_WINDOWS) {
+      return isWindowsDarkMode();
+    } else if (IS_MACOS) {
+      return isMacDarkMode();
+    } else if (IS_UNIX) {
+      return isLinuxDarkMode();
+    }
+    return false;
+  }
+
+  /** Checks dark mode on Windows. */
+  private static boolean isWindowsDarkMode() {
+    try {
+      final Process p = Runtime.getRuntime()
+          .exec("reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize /v AppsUseLightTheme");
+      try (final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          if (line.contains("AppsUseLightTheme")) {
+            return line.trim().endsWith("0");
+          }
+        }
+      }
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+    return false;
+  }
+
+  /** Checks dark mode on macOS. */
+  private static boolean isMacDarkMode() {
+    try {
+      final Process p = Runtime.getRuntime().exec(new String[] { "osascript", "-e",
+          "tell application \"System Events\" to tell appearance preferences to return dark mode" });
+      try (final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+        final String result = reader.readLine();
+        return "true".equalsIgnoreCase(result);
+      }
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+    return false;
+  }
+
+  /** Checks dark mode in the most common Linux Desktop Environments. */
+  private static boolean isLinuxDarkMode() {
+    String desktopEnv = System.getenv("XDG_CURRENT_DESKTOP");
+    if (desktopEnv == null) {
+      return false;
+    }
+
+    desktopEnv = desktopEnv.toLowerCase(Locale.ROOT);
+    if (desktopEnv.contains("gnome")
+        || desktopEnv.contains("budgie")
+        || desktopEnv.contains("cinnamon")
+        || desktopEnv.contains("deepin")) {
+      return isLinuxGnomeDarkMode();
+    } else if (desktopEnv.contains("kde")) {
+      return isLinuxKdeDarkMode();
+    } else if (desktopEnv.contains("xfce")) {
+      return isLinuxXfceDarkMode();
+    } else if (desktopEnv.contains("lxqt")) {
+      return isLinuxLxqtDarkMode();
+    }
+
+    return false;
+  }
+
+  /** Checks dark mode in GNOME, Budgie, Cinnamon and Deepin. */
+  private static boolean isLinuxGnomeDarkMode() {
+    final String[] params = {
+        "gsettings get org.gnome.desktop.interface color-scheme",
+        "gsettings get org.cinnamon.desktop.interface gtk-theme",
+        "gsettings get com.deepin.xsettings gtk-theme",
+    };
+    for (final String param : params) {
+      if (evaluateLinuxCommand(param, "dark")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Checks dark mode in KDE. */
+  private static boolean isLinuxKdeDarkMode() {
+    return evaluateLinuxFile(System.getProperty("user.home") + "/.config/kdeglobals", "colorscheme=", "dark");
+  }
+
+  /** Checks dark mode in Xfce. */
+  private static boolean isLinuxXfceDarkMode() {
+    return evaluateLinuxCommand("xfconf-query -c xsettings -p /Net/ThemeName", "dark");
+  }
+
+  /** Checks dark mode in LXQt. */
+  private static boolean isLinuxLxqtDarkMode() {
+    return evaluateLinuxFile(System.getProperty("user.home") + "/.config/lxqt/session.conf", "theme=", "dark");
+  }
+
+  /** Helper method: evaluates the output of the given {@code command} for the occurence of {@code keyword}. */
+  private static boolean evaluateLinuxCommand(String command, String keyword) {
+    try {
+      final Process p = Runtime.getRuntime().exec(new String[] { "sh", "-c", command });
+      try (final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          if (line.toLowerCase(Locale.ROOT).contains(keyword)) {
+            return true;
+          }
+        }
+      }
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+    return false;
+  }
+
+  /** Helper method: evaluates the content of the given {@code file} for a {@code key} / {@code value} pair. */
+  private static boolean evaluateLinuxFile(String file, String key, String value) {
+    if (Files.exists(Paths.get(file))) {
+      try {
+        for (final String line : Files.readAllLines(Paths.get(file))) {
+          if (line.trim().toLowerCase(Locale.ROOT).startsWith(key)
+              && line.toLowerCase(Locale.ROOT).contains(value)) {
+            return true;
+          }
+        }
+      } catch (IOException e) {
+        Logger.error(e);
+      }
+    }
+    return false;
   }
 
   private Platform() {

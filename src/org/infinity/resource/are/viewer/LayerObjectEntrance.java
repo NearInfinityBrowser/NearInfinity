@@ -20,11 +20,11 @@ import org.infinity.util.Logger;
 /**
  * Handles specific layer type: ARE/Entrance
  */
-public class LayerObjectEntrance extends LayerObject {
+public class LayerObjectEntrance extends LayerObjectEntranceBase {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_ENTRANCE_1.getIcon().getImage(),
                                          ViewerIcons.ICON_ITM_ENTRANCE_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(11, 18);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_ENTRANCE_1.getCenter();
 
   private final Entrance entrance;
   private final Point location = new Point();
@@ -32,7 +32,7 @@ public class LayerObjectEntrance extends LayerObject {
   private final IconLayerItem item;
 
   public LayerObjectEntrance(AreResource parent, Entrance entrance) {
-    super("Entrance", Entrance.class, parent);
+    super(parent);
     this.entrance = entrance;
     String msg = null;
     try {
@@ -66,23 +66,12 @@ public class LayerObjectEntrance extends LayerObject {
   }
 
   @Override
-  public AbstractLayerItem[] getLayerItems(int type) {
-    if (type == 0 && item != null) {
-      return new AbstractLayerItem[] { item };
-    }
-    return new AbstractLayerItem[0];
+  protected IconLayerItem getLayerItem() {
+    return item;
   }
 
   @Override
-  public AbstractLayerItem[] getLayerItems() {
-    return new AbstractLayerItem[] { item };
-  }
-
-  @Override
-  public void update(double zoomFactor) {
-    if (item != null) {
-      item.setItemLocation((int) (location.x * zoomFactor + (zoomFactor / 2.0)),
-          (int) (location.y * zoomFactor + (zoomFactor / 2.0)));
-    }
+  protected Point getLocation() {
+    return location;
   }
 }

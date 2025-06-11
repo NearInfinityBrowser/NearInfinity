@@ -147,7 +147,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
         showEntryInViewer(row, res);
       }
     } else if (event.getSource() == bsave) {
-      table.saveSearchResult(this, query.toString());
+      table.saveSearchResult(this, getFilteredQuery(query));
     }
   }
 
@@ -165,6 +165,17 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     } else if (viewable instanceof TextResource) {
       ((TextResource) viewable).highlightText(hit.getLineNr(), hit.getLine());
     }
+  }
+
+  /** Removes regular expression quotation markers if they enclose the whole string. */
+  private static String getFilteredQuery(Object query) {
+    if (query == null) {
+      return "(null)";
+    }
+    String retVal = query.toString();
+    retVal = retVal.replaceFirst("^\\\\Q", "");
+    retVal = retVal.replaceFirst("\\\\E$", "");
+    return retVal;
   }
 
   // --------------------- End Interface ActionListener ---------------------

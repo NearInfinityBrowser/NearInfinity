@@ -121,69 +121,82 @@ public class BmpDecoder {
   private void init(ByteBuffer buffer) throws Exception {
     Objects.requireNonNull(buffer);
 
-    // Checking signature
-    boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
-
     image = null;
     palette = null;
-    if (isBMP) {
-      int rasteroff = buffer.getInt(10);
+    info = null;
 
-      int width = buffer.getInt(18);
-      int height = buffer.getInt(22);
-      int bitcount = buffer.getShort(28);
-      int compression = buffer.getInt(30);
-      if ((compression == 0 || compression == 3) && bitcount <= 32) {
-        int colsUsed = buffer.getInt(46); // Colorsused
-
-        if (bitcount <= 8) {
-          if (colsUsed == 0) {
-            colsUsed = 1 << bitcount;
-          }
-          int palSize = 4 * colsUsed;
-          palette = new Palette(buffer, rasteroff - palSize, palSize);
+    buffer.rewind();
+    try (final ByteBufferInputStream bbis = new ByteBufferInputStream(buffer)) {
+      image = ImageIO.read(bbis);
+      // extracting palette
+      if (image.getColorModel() instanceof IndexColorModel) {
+        final IndexColorModel icm = (IndexColorModel) image.getColorModel();
+        final int numColors = icm.getMapSize();
+        final int[] colors = new int[numColors];
+        icm.getRGBs(colors);
+        final ByteBuffer pb = StreamUtils.getByteBuffer(colors.length * 4);
+        for (final int color : colors) {
+          pb.putInt(color);
         }
-
-        int bytesprline = bitcount * width / 8;
-        int padded = 4 - bytesprline % 4;
-        if (padded == 4) {
-          padded = 0;
-        }
-
-        image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
-        int offset = rasteroff;
-        for (int y = height - 1; y >= 0; y--) {
-          setPixels(buffer, offset, bitcount, bytesprline, y, palette);
-          offset += bytesprline + padded;
-        }
-
-        info = new Info(image, compression, bitcount);
+        pb.rewind();
+        palette = new Palette(pb, 0, pb.capacity());
       }
+      info = new Info(image);
+    } catch (Exception e) {
+      image = null;
+      palette = null;
+      info = null;
     }
 
     if (image == null) {
       buffer.rewind();
-      try (ByteBufferInputStream bbis = new ByteBufferInputStream(buffer)) {
-        image = ImageIO.read(bbis);
-        // extracting palette
-        if (image.getColorModel() instanceof IndexColorModel) {
-          final IndexColorModel icm = (IndexColorModel) image.getColorModel();
-          int numColors = icm.getMapSize();
-          final int[] colors = new int[numColors];
-          icm.getRGBs(colors);
-          final ByteBuffer pb = StreamUtils.getByteBuffer(colors.length * 4);
-          for (int color : colors) {
-            pb.putInt(color);
-          }
-          pb.rewind();
-          palette = new Palette(pb, 0, pb.capacity());
+      // Checking signature
+      final boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
+      if (isBMP) {
+        final int size = buffer.getInt(2);
+        if (buffer.limit() < size) {
+          throw new Exception("Unexpected end of file: " + buffer.limit() + " (expected: " + size + " )");
         }
-        info = new Info(image);
-      } catch (Exception e) {
-        image = null;
-        palette = null;
-        throw new Exception("Unsupported graphics format");
+
+        final int rasterOffset = buffer.getInt(10);
+        final int headerSize = buffer.getInt(14);
+        if (headerSize < 40) {   // not Windows Bitmap V1 or later
+          throw new Exception("Unsupported BMP format");
+        }
+
+        final int width = buffer.getInt(18);
+        final int height = buffer.getInt(22);
+        final int bitCount = buffer.getShort(28);
+        final int compression = buffer.getInt(30);
+        if ((compression == 0 || compression == 3) && bitCount <= 32) {
+          int colorsUsed = buffer.getInt(46);
+
+          if (bitCount <= 8) {
+            if (colorsUsed == 0) {
+              colorsUsed = 1 << bitCount;
+            }
+            final int palSize = 4 * colorsUsed;
+            final int palOffset = rasterOffset - palSize;
+            palette = new Palette(buffer, palOffset, palSize);
+          }
+
+          final int bytesPerLine = bitCount * width / 8;
+          final int padded = (4 - bytesPerLine % 4) % 4;
+
+          image = ColorConvert.createCompatibleImage(width, height, bitCount >= 32);
+          int offset = rasterOffset;
+          for (int y = height - 1; y >= 0; y--) {
+            setPixels(buffer, offset, bitCount, bytesPerLine, y, palette);
+            offset += bytesPerLine + padded;
+          }
+
+          info = new Info(image, compression, bitCount);
+        }
       }
+    }
+
+    if (image == null) {
+      throw new Exception("Unsupported graphics format");
     }
   }
 

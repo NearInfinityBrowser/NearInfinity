@@ -38,6 +38,7 @@ import javax.swing.SwingConstants;
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -297,6 +298,8 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     panel.setLayout(new BorderLayout());
     panel.add(scroll, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
 
     return panel;
   }

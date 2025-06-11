@@ -24,7 +24,7 @@ public class LayerObjectSpawnPoint extends LayerObject {
   private static final Image[] ICONS = { ViewerIcons.ICON_ITM_SPAWN_POINT_1.getIcon().getImage(),
                                          ViewerIcons.ICON_ITM_SPAWN_POINT_2.getIcon().getImage() };
 
-  private static final Point CENTER = new Point(22, 22);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_SPAWN_POINT_1.getCenter();
 
   private final SpawnPoint sp;
   private final Point location = new Point();
@@ -33,7 +33,7 @@ public class LayerObjectSpawnPoint extends LayerObject {
   private Flag scheduleFlags;
 
   public LayerObjectSpawnPoint(AreResource parent, SpawnPoint sp) {
-    super("Spawn Point", SpawnPoint.class, parent);
+    super("Spawn Point", parent);
     this.sp = sp;
     String msg = null;
     try {

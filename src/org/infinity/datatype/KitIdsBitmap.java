@@ -19,9 +19,6 @@ public class KitIdsBitmap extends IdsBitmap {
     setShowAsHex(true);
     // adding "No Kit" value if needed
     addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT"));
-
-    // fixing word order of kit id value
-    setValue(swapWords(getValue()));
   }
 
   // --------------------- Begin Interface Writeable ---------------------
@@ -32,6 +29,22 @@ public class KitIdsBitmap extends IdsBitmap {
   }
 
   // --------------------- End Interface Writeable ---------------------
+
+  // --------------------- Begin Interface Readable ---------------------
+
+  @Override
+  public int read(ByteBuffer buffer, int offset) {
+    buffer.position(offset);
+    if (getSize() == 4) {
+      final long value = buffer.getInt() & 0xffffffffL;
+      setValue(swapWords(value));
+    } else {
+      throw new IllegalArgumentException();
+    }
+    return offset + getSize();
+  }
+
+  // --------------------- End Interface Readable ---------------------
 
   @Override
   protected String getHexValue(long value) {

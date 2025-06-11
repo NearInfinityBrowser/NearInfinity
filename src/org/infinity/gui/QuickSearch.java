@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.SortedSet;
@@ -28,11 +29,13 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import javax.swing.text.JTextComponent;
 
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -73,6 +76,7 @@ public class QuickSearch extends JPanel implements Runnable {
   private JButton bCancel;
   private String keyword;
   private Command command;
+  private TreeSet<String> saveFolderSet;
 
   public QuickSearch(ButtonPopupWindow parent, ResourceTree tree) {
     super();
@@ -273,6 +277,37 @@ public class QuickSearch extends JPanel implements Runnable {
     }
   }
 
+  /**
+   * Returns whether the specified folder is a potential savegame folder.
+   *
+   * @param folder    {@link ResourceTreeFolder} to check.
+   * @param recursive Specifies whether parent folders should also be checked recursively.
+   * @return {@code true} if {@code folder} is a potential savegame folder, {@code false} otherwise.
+   */
+  private boolean isSaveFolder(ResourceTreeFolder folder, boolean recursive) {
+    if (folder == null) {
+      return false;
+    }
+
+    if (saveFolderSet == null) {
+      final Comparator<String> cmp = (s1, s2) -> (s1 != null) ? s1.compareToIgnoreCase(s2) : (s2 != null) ? 1 : 0;
+      saveFolderSet = new TreeSet<>(cmp);
+      saveFolderSet.addAll(Profile.getProperty(Profile.Key.GET_GAME_SAVE_FOLDER_NAMES));
+    }
+
+    if (recursive) {
+      while (folder != null) {
+        if (saveFolderSet.contains(folder.folderName())) {
+          return true;
+        }
+        folder = folder.getParentFolder();
+      }
+      return false;
+    } else {
+      return saveFolderSet.contains(folder.folderName());
+    }
+  }
+
   // Returns a set of resource entries from the resource tree
   private SortedSet<ResourceEntry> generateResourceList(ResourceTreeFolder folder, SortedSet<ResourceEntry> set) {
     if (set == null) {
@@ -280,7 +315,13 @@ public class QuickSearch extends JPanel implements Runnable {
     }
 
     if (folder != null) {
-      set.addAll(folder.getResourceEntries());
+      for (final ResourceEntry entry : folder.getResourceEntries()) {
+        if (!set.add(entry) && !isSaveFolder(folder, true)) {
+          // non-savegame folders take precedence
+          set.remove(entry);
+          set.add(entry);
+        }
+      }
       for (final ResourceTreeFolder subFolder : folder.getFolders()) {
         generateResourceList(subFolder, set);
       }
@@ -377,35 +418,9 @@ public class QuickSearch extends JPanel implements Runnable {
               }
             }
 
-            // setting matching resource entries
-            final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
-
-            // Deactivating listeners to prevent autoselecting items
-            final ListDataListener[] listeners = cbModel.getListDataListeners();
-            for (int i = listeners.length - 1; i >= 0; i--) {
-              cbModel.removeListDataListener(listeners[i]);
-            }
-
-            cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
-            cbModel.removeAllElements();
-            if (!keyword.isEmpty() && node.getValue() != null) {
-              final List<ResourceEntry> list = node.getValue();
-              for (final ResourceEntry resourceEntry : list) {
-                cbModel.addElement(resourceEntry);
-              }
-            }
-
-            // Reactivating listeners
-            for (final ListDataListener listener : listeners) {
-              cbModel.addListDataListener(listener);
-            }
-
-            cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
-            if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
-              cbSearch.showPopup();
-            } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
-              cbSearch.hidePopup();
-            }
+            // UI code should be invoked from the AWT thread
+            final List<ResourceEntry> nodeList = node.getValue();
+            SwingUtilities.invokeLater(() -> updateComboList(nodeList));
           }
         }
       } else {
@@ -418,6 +433,39 @@ public class QuickSearch extends JPanel implements Runnable {
           }
         }
       }
+    }
+  }
+
+  // Updates the content of the combobox list element with the specified resource list
+  private void updateComboList(List<ResourceEntry> nodeList) {
+
+    // setting matching resource entries
+    final DefaultComboBoxModel<ResourceEntry> cbModel = (DefaultComboBoxModel<ResourceEntry>)cbSearch.getModel();
+
+    // Deactivating listeners to prevent autoselecting items
+    final ListDataListener[] listeners = cbModel.getListDataListeners();
+    for (int i = listeners.length - 1; i >= 0; i--) {
+      cbModel.removeListDataListener(listeners[i]);
+    }
+
+    cbSearch.hidePopup(); // XXX: work-around to force visual update of file list
+    cbModel.removeAllElements();
+    if (!keyword.isEmpty() && nodeList != null) {
+      for (final ResourceEntry resourceEntry : nodeList) {
+        cbModel.addElement(resourceEntry);
+      }
+    }
+
+    // Reactivating listeners
+    for (final ListDataListener listener : listeners) {
+      cbModel.addListDataListener(listener);
+    }
+
+    cbSearch.setMaximumRowCount(Math.min(MAX_ROW_COUNT, cbModel.getSize()));
+    if (cbModel.getSize() > 0 && !cbSearch.isPopupVisible()) {
+      cbSearch.showPopup();
+    } else if (cbModel.getSize() == 0 && cbSearch.isPopupVisible()) {
+      cbSearch.hidePopup();
     }
   }
 

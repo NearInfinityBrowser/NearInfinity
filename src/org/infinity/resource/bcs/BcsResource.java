@@ -47,6 +47,7 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.ViewFrame;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
@@ -652,6 +653,8 @@ public final class BcsResource
     panel.setLayout(new BorderLayout());
     panel.add(tabbedPane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
 
     decompile();
     if (BrowserMenuBar.getInstance().getOptions().autocheckBCS()) {

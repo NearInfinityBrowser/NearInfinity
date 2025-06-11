@@ -36,6 +36,7 @@ import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.FastMath;
 import org.infinity.util.Misc;
 
 /**
@@ -45,11 +46,14 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   private static final String FILTER_NAME = "Resize BAM frames";
   private static final String FILTER_DESC = "This filter allows you to adjust the size of each BAM frame.";
 
+  private static final int LANCZOS_KERNEL_SIZE = 3;
+
   private enum ScalingType {
-    Nearest("Nearest Neighbor"),
-    Bilinear("Bilinear"),
-    Bicubic("Bicubic"),
-    ScaleX("Scale2x/3x/4x"),
+    NEAREST("Nearest Neighbor"),
+    BILINEAR("Bilinear"),
+    BICUBIC("Bicubic"),
+    SCALE_X("Scale2x/3x/4x"),
+    LANCZOS("Lanczos"),
     ;
 
     private final String label;
@@ -122,7 +126,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     if (config != null) {
       config = config.trim();
       if (!config.isEmpty()) {
-        String[] params = config.split(";");
+        final String[] params = config.split(";");
         int type = -1;
         double factor = Double.MIN_VALUE;
         double factorX = Double.MIN_VALUE;
@@ -138,23 +142,17 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
           }
         }
         if (params.length > 1) {
-          int index = (params.length >= 6) ? 2 : 1;
-          double min = ((Number) ((SpinnerNumberModel) spinnerFactor.getModel()).getMinimum()).doubleValue();
-          double max = ((Number) ((SpinnerNumberModel) spinnerFactor.getModel()).getMaximum()).doubleValue();
+          final int index = (params.length >= 6) ? 2 : 1;
+          final double min = ((Number) ((SpinnerNumberModel) spinnerFactor.getModel()).getMinimum()).doubleValue();
+          final double max = ((Number) ((SpinnerNumberModel) spinnerFactor.getModel()).getMaximum()).doubleValue();
           factor = decodeDouble(params[index], min, max, Double.MIN_VALUE);
           if (factor == Double.MIN_VALUE) {
             return false;
           }
         }
         if (params.length > 2) {
-          int index = (params.length >= 6) ? 5 : 2;
-          if (params[index].equalsIgnoreCase("true")) {
-            adjust = true;
-          } else if (params[index].equalsIgnoreCase("false")) {
-            adjust = false;
-          } else {
-            return false;
-          }
+          final int index = (params.length >= 6) ? 5 : 2;
+          adjust = Misc.toBoolean(params[index], true);
         }
 
         // loading revised options
@@ -210,12 +208,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
      * - bilinear (BamV2) -> use Java's internal filters
      * - bicubic (BamV2) -> use Java's internal filters
      * - scale2x/scale3x (BamV1, BamV2) -> http://en.wikipedia.org/wiki/Image_scaling
-     * - [?] lanczos (BamV2) -> http://en.wikipedia.org/wiki/Lanczos_resampling
+     * - lanczos (BamV2) -> http://en.wikipedia.org/wiki/Lanczos_resampling
      * - [?] xBR (BamV1, BamV2) -> http://board.byuu.org/viewtopic.php?f=10&t=2248
      */
-    GridBagConstraints c = new GridBagConstraints();
+    final GridBagConstraints c = new GridBagConstraints();
 
-    JLabel l1 = new JLabel("Type:");
+    final JLabel labelType = new JLabel("Type:");
     lFactor = new JLabel("Factor:");
     lFactorX = new JLabel("Factor X:");
     lFactorX.setEnabled(false);
@@ -225,7 +223,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     cbType.addActionListener(this);
     rbScaleBoth = new JRadioButton("Scale uniformly");
     rbScaleIndividually = new JRadioButton("Scale individually");
-    ButtonGroup bg = new ButtonGroup();
+    final ButtonGroup bg = new ButtonGroup();
     bg.add(rbScaleBoth);
     bg.add(rbScaleIndividually);
     rbScaleBoth.setSelected(true);
@@ -253,63 +251,63 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
     cbAdjustCenter.addActionListener(this);
 
-    JPanel p1 = new JPanel(new GridBagLayout());
+    final JPanel panelType = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 0, 0), 0, 0);
-    p1.add(l1, c);
+    panelType.add(labelType, c);
     ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 4, 0, 0), 0, 0);
-    p1.add(cbType, c);
+    panelType.add(cbType, c);
     ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(8, 0, 0, 0), 0, 0);
-    p1.add(taInfo, c);
+    panelType.add(taInfo, c);
 
-    JPanel p2 = new JPanel(new GridBagLayout());
+    final JPanel panelFactorAll = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
-    p2.add(rbScaleBoth, c);
+    panelFactorAll.add(rbScaleBoth, c);
     ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 24, 0, 0), 0, 0);
-    p2.add(lFactor, c);
+    panelFactorAll.add(lFactor, c);
     ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 4, 0, 0), 0, 0);
-    p2.add(spinnerFactor, c);
+    panelFactorAll.add(spinnerFactor, c);
 
-    JPanel p3 = new JPanel(new GridBagLayout());
+    final JPanel panelFactors = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
-    p3.add(rbScaleIndividually, c);
+    panelFactors.add(rbScaleIndividually, c);
     ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 24, 0, 0), 0, 0);
-    p3.add(lFactorX, c);
+    panelFactors.add(lFactorX, c);
     ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 4, 0, 0), 0, 0);
-    p3.add(spinnerFactorX, c);
+    panelFactors.add(spinnerFactorX, c);
     ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 8, 0, 0), 0, 0);
-    p3.add(lFactorY, c);
+    panelFactors.add(lFactorY, c);
     ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 4, 0, 0), 0, 0);
-    p3.add(spinnerFactorY, c);
+    panelFactors.add(spinnerFactorY, c);
 
-    JPanel p4 = new JPanel(new GridBagLayout());
+    final JPanel panelAdjustCenter = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 1, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
-    p4.add(cbAdjustCenter, c);
+    panelAdjustCenter.add(cbAdjustCenter, c);
 
-    JPanel panel = new JPanel(new GridBagLayout());
+    final JPanel panel = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 0, 0), 0, 0);
-    panel.add(p1, c);
+    panel.add(panelType, c);
     ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(4, 0, 0, 0), 0, 0);
-    panel.add(p2, c);
+    panel.add(panelFactorAll, c);
     ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(0, 0, 0, 0), 0, 0);
-    panel.add(p3, c);
+    panel.add(panelFactors, c);
     ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,
         new Insets(12, 0, 0, 0), 0, 0);
-    panel.add(p4, c);
+    panel.add(panelAdjustCenter, c);
 
     updateStatus();
 
@@ -348,14 +346,14 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     final String fmtSupport2 = "Supported targets: %s, %s";
 
     final ScalingType type = (ScalingType) cbType.getSelectedItem();
-    double factor = getFactor(spinnerFactor);
-    double factorX = getFactor(spinnerFactorX);
-    double factorY = getFactor(spinnerFactorY);
+    final double factor = getFactor(spinnerFactor);
+    final double factorX = getFactor(spinnerFactorX);
+    final double factorY = getFactor(spinnerFactorY);
 
-    boolean uniformEnabled = rbScaleBoth.isSelected() && isTypeSupported(type);
-    boolean individualEnabled = rbScaleIndividually.isSelected() && isTypeSupported(type);
+    final boolean uniformEnabled = rbScaleBoth.isSelected() && isTypeSupported(type);
+    final boolean individualEnabled = rbScaleIndividually.isSelected() && isTypeSupported(type);
     switch (type) {
-      case Nearest:
+      case NEAREST:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV1],
             ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
@@ -369,8 +367,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorX.setEnabled(individualEnabled);
         spinnerFactorY.setEnabled(individualEnabled);
         break;
-      case Bilinear:
-      case Bicubic:
+      case BILINEAR:
+      case BICUBIC:
+      case LANCZOS:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
         setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
@@ -383,7 +382,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
         spinnerFactorX.setEnabled(individualEnabled);
         spinnerFactorY.setEnabled(individualEnabled);
         break;
-      case ScaleX:
+      case SCALE_X:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV1],
             ConvertToBam.BAM_VERSION_ITEMS[ConvertToBam.VERSION_BAMV2]));
         setFactor(spinnerFactor, (int) factor, 2, 4, 1);
@@ -408,8 +407,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   private boolean isTypeSupported(ScalingType type) {
     switch (type) {
-      case Bilinear:
-      case Bicubic:
+      case BILINEAR:
+      case BICUBIC:
+      case LANCZOS:
         return !getConverter().isBamV1Selected();
       default:
         return true;
@@ -418,8 +418,8 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   private void setFactor(JSpinner spinner, Number current, Number min, Number max, Number step) {
     if (spinner != null && spinner.getModel() instanceof SpinnerNumberModel) {
-      SpinnerNumberModel snm = (SpinnerNumberModel) spinner.getModel();
-      boolean isDouble = ((current instanceof Double) || (min instanceof Double) || (max instanceof Double)
+      final SpinnerNumberModel snm = (SpinnerNumberModel) spinner.getModel();
+      final boolean isDouble = ((current instanceof Double) || (min instanceof Double) || (max instanceof Double)
           || (step instanceof Double));
       int curI = 0, minI = 0, maxI = 0, stepI = 0;
       double curD = 0, minD = 0, maxD = 0, stepD = 0;
@@ -463,7 +463,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   private double getFactor(JSpinner spinner) {
     if (spinner != null) {
-      SpinnerNumberModel snm = (SpinnerNumberModel) spinner.getModel();
+      final SpinnerNumberModel snm = (SpinnerNumberModel) spinner.getModel();
       return ((Number) snm.getValue()).doubleValue();
     } else {
       return 1.0;
@@ -472,22 +472,25 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
   private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry) {
     if (entry != null && entry.getFrame() != null) {
-      BufferedImage dstImage;
-      double factorX = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorX);
-      double factorY = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorY);
+      final BufferedImage dstImage;
+      final double factorX = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorX);
+      final double factorY = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorY);
       final ScalingType type = (ScalingType) cbType.getSelectedItem();
       switch (type) {
-        case Nearest:
+        case NEAREST:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_NEAREST_NEIGHBOR, true);
           break;
-        case Bilinear:
+        case BILINEAR:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BILINEAR, false);
           break;
-        case Bicubic:
+        case BICUBIC:
           dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BICUBIC, false);
           break;
-        case ScaleX:
+        case SCALE_X:
           dstImage = scaleScaleX(entry.getFrame(), (int) factorX);
+          break;
+        case LANCZOS:
+          dstImage = scaleLanczos(entry.getFrame(), factorX, factorY, LANCZOS_KERNEL_SIZE);
           break;
         default:
           dstImage = entry.getFrame();
@@ -496,8 +499,8 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       if (dstImage != null) {
         // adjusting center
         if (cbAdjustCenter.isSelected()) {
-          double fx = (double) dstImage.getWidth() / (double) entry.getFrame().getWidth();
-          double fy = (double) dstImage.getHeight() / (double) entry.getFrame().getHeight();
+          final double fx = (double) dstImage.getWidth() / (double) entry.getFrame().getWidth();
+          final double fy = (double) dstImage.getHeight() / (double) entry.getFrame().getHeight();
           entry.setCenterX((int) (entry.getCenterX() * fx));
           entry.setCenterY((int) (entry.getCenterY() * fy));
         }
@@ -509,13 +512,13 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   }
 
   // Scales the specified image using Java's native scalers
-  private BufferedImage scaleNative(BufferedImage srcImage, double factorX, double factorY, int scaleType,
+  private static BufferedImage scaleNative(BufferedImage srcImage, double factorX, double factorY, int scaleType,
       boolean paletteSupported) {
     BufferedImage dstImage = srcImage;
-    boolean isValid = paletteSupported || srcImage.getType() != BufferedImage.TYPE_BYTE_INDEXED;
+    final boolean isValid = paletteSupported || srcImage.getType() != BufferedImage.TYPE_BYTE_INDEXED;
     if (isValid && srcImage != null && factorX > 0.0 && factorY > 0.0 && (factorX != 1.0 || factorY != 1.0)) {
-      int width = srcImage.getWidth();
-      int height = srcImage.getHeight();
+      final int width = srcImage.getWidth();
+      final int height = srcImage.getHeight();
       int newWidth = (int) (width * factorX);
       if (newWidth < 1) {
         newWidth = 1;
@@ -527,10 +530,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
 
       // preparing target image
       if (paletteSupported && srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
-        int[] colors = new int[1 << cm.getPixelSize()];
+        final IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
+        final int[] colors = new int[1 << cm.getPixelSize()];
         cm.getRGBs(colors);
-        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
+        final IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
             cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_BYTE_INDEXED, cm2);
       } else if (srcImage.getType() != BufferedImage.TYPE_BYTE_INDEXED) {
@@ -541,21 +544,20 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
       }
 
       // scaling image
-      Graphics2D g = dstImage.createGraphics();
+      final Graphics2D g = dstImage.createGraphics();
       try {
         g.setComposite(AlphaComposite.Src);
         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(factorX, factorY), scaleType);
         g.drawImage(srcImage, op, 0, 0);
       } finally {
         g.dispose();
-        g = null;
       }
     }
     return dstImage;
   }
 
   // Uses the Scale2x/Scale3x algorithm
-  private BufferedImage scaleScaleX(BufferedImage srcImage, int factor) {
+  private static BufferedImage scaleScaleX(BufferedImage srcImage, int factor) {
     BufferedImage dstImage = srcImage;
     if (srcImage != null) {
       switch (factor) {
@@ -574,22 +576,22 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   }
 
   // Applies the Scale2x algorithm
-  private BufferedImage scaleScale2X(BufferedImage srcImage) {
+  private static BufferedImage scaleScale2X(BufferedImage srcImage) {
     BufferedImage dstImage = srcImage;
     if (srcImage != null) {
-      int srcWidth = srcImage.getWidth();
-      int srcHeight = srcImage.getHeight();
-      int dstWidth = 2 * srcWidth;
-      int dstHeight = 2 * srcHeight;
+      final int srcWidth = srcImage.getWidth();
+      final int srcHeight = srcImage.getHeight();
+      final int dstWidth = 2 * srcWidth;
+      final int dstHeight = 2 * srcHeight;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
       byte transIndex = -1;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         srcB = ((DataBufferByte) srcImage.getRaster().getDataBuffer()).getData();
-        IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
+        final IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
         int[] colors = new int[1 << cm.getPixelSize()];
         cm.getRGBs(colors);
-        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
+        final IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
             cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(dstWidth, dstHeight, BufferedImage.TYPE_BYTE_INDEXED, cm2);
         dstB = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
@@ -671,23 +673,23 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   }
 
   // Applies the Scale3x algorithm
-  private BufferedImage scaleScale3X(BufferedImage srcImage) {
+  private static BufferedImage scaleScale3X(BufferedImage srcImage) {
     BufferedImage dstImage = srcImage;
     if (srcImage != null) {
-      int srcWidth = srcImage.getWidth();
-      int srcHeight = srcImage.getHeight();
-      int dstWidth = 3 * srcWidth;
-      int dstWidth2 = dstWidth + dstWidth; // for optimization purposes
-      int dstHeight = 3 * srcHeight;
+      final int srcWidth = srcImage.getWidth();
+      final int srcHeight = srcImage.getHeight();
+      final int dstWidth = 3 * srcWidth;
+      final int dstWidth2 = dstWidth + dstWidth; // for optimization purposes
+      final int dstHeight = 3 * srcHeight;
       byte[] srcB = null, dstB = null;
       int[] srcI = null, dstI = null;
       byte transIndex = -1;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         srcB = ((DataBufferByte) srcImage.getRaster().getDataBuffer()).getData();
-        IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
+        final IndexColorModel cm = (IndexColorModel) srcImage.getColorModel();
         int[] colors = new int[1 << cm.getPixelSize()];
         cm.getRGBs(colors);
-        IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
+        final IndexColorModel cm2 = new IndexColorModel(cm.getPixelSize(), colors.length, colors, 0, cm.hasAlpha(),
             cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
         dstImage = new BufferedImage(dstWidth, dstHeight, BufferedImage.TYPE_BYTE_INDEXED, cm2);
         dstB = ((DataBufferByte) dstImage.getRaster().getDataBuffer()).getData();
@@ -810,7 +812,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
   }
 
   // Applies Scale2x algorithm twice
-  private BufferedImage scaleScale4X(BufferedImage srcImage) {
+  private static BufferedImage scaleScale4X(BufferedImage srcImage) {
     BufferedImage dstImage = srcImage;
 
     if (srcImage != null) {
@@ -819,5 +821,82 @@ public class BamFilterTransformResize extends BamFilterBaseTransform implements 
     }
 
     return dstImage;
+  }
+
+  // Performs Lanczos resampling
+  private static BufferedImage scaleLanczos(BufferedImage srcImage, double factorX, double factorY, int kernelSize) {
+    if (srcImage == null || srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED ||
+        factorX <= 0.0 || factorY <= 0.0 || kernelSize < 1) {
+      return srcImage;
+    }
+
+    final int newWidth = Math.max(1, (int)(srcImage.getWidth() * factorX));
+    final int newHeight = Math.max(1, (int)(srcImage.getHeight() * factorY));
+    final double scaleX = (double)srcImage.getWidth() / newWidth;
+    final double scaleY = (double)srcImage.getHeight() / newHeight;
+    final BufferedImage outImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+
+    for (int y = 0; y < newHeight; y++) {
+      final double srcY = y * scaleY;
+      for (int x = 0; x < newWidth; x++) {
+        final double srcX = x * scaleX;
+        final int color = scaleLanczosSample(srcImage, srcX, srcY, kernelSize);
+        outImage.setRGB(x, y, color);
+      }
+    }
+
+    return outImage;
+  }
+
+  // Calculates the sample value at the specified image position
+  private static int scaleLanczosSample(BufferedImage image, double x, double y, int kernelSize) {
+    double a = 0.0;
+    double r = 0.0;
+    double g = 0.0;
+    double b = 0.0;
+    double sum = 0.0;
+
+    final int width = image.getWidth();
+    final int height = image.getHeight();
+    final int centerX = (int)Math.floor(x);
+    final int centerY = (int)Math.floor(y);
+
+    for (int j = -kernelSize + 1; j <= kernelSize; j++) {
+      final int srcY = Math.min(Math.max(centerY + j, 0), height - 1);
+      final double lanczosWeightY = lanczos(y - srcY, kernelSize);
+      for (int i = -kernelSize + 1; i <= kernelSize; i++) {
+        final int srcX = Math.min(Math.max(centerX + i, 0), width - 1);
+        final int color = image.getRGB(srcX, srcY);
+        final double lanczosWeightX = lanczos(x - srcX, kernelSize);
+        final double lanczosWeight = lanczosWeightX * lanczosWeightY;
+
+        a += ((color >> 24) & 0xff) * lanczosWeight;
+        r += ((color >> 16) & 0xff) * lanczosWeight;
+        g += ((color >> 8) & 0xff) * lanczosWeight;
+        b += (color & 0xff) * lanczosWeight;
+        sum += lanczosWeight;
+      }
+    }
+
+    final int alpha = Math.min(Math.max((int)(a / sum), 0), 255);
+    final int red = Math.min(Math.max((int)(r / sum), 0), 255);
+    final int green = Math.min(Math.max((int)(g / sum), 0), 255);
+    final int blue = Math.min(Math.max((int)(b / sum), 0), 255);
+
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+  }
+
+  // Calculates the Lanczos weight
+  private static double lanczos(double x, int kernelSize) {
+    if (x == 0.0) {
+      return 1.0;
+    }
+
+    if (x <= -kernelSize || x > kernelSize) {
+      return 0.0;
+    }
+
+    x *= Math.PI;
+    return (kernelSize * FastMath.sin(x) * FastMath.sin(x / kernelSize)) / (x * x);
   }
 }

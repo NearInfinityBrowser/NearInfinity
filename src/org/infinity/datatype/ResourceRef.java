@@ -80,6 +80,8 @@ public class ResourceRef extends Datatype
 
   /** Name of the resource, called {@code ResRef}, 8 bytes usually, as stored in the resource. */
   private String resname;
+  private boolean resnameChanged; // Re-encode only if the value changes. Prevents altering the data of resref fields
+                                  // on disk unless they were explicitly modified by the user.
 
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
@@ -292,17 +294,22 @@ public class ResourceRef extends Datatype
 
   @Override
   public void write(OutputStream os) throws IOException {
-    if (resname.equalsIgnoreCase(NONE.name)) {// FIXME: use null instead of NONE.name
-      buffer.position(0);
-      String s = StreamUtils.readString(buffer, buffer.limit());
-      buffer.position(0);
-      if (s.equalsIgnoreCase(NONE.name)) {// TODO: What this check do?
-        StreamUtils.writeBytes(os, buffer);
+    if (resnameChanged) {
+      if (resname.equalsIgnoreCase(NONE.name)) {// FIXME: use null instead of NONE.name
+        buffer.position(0);
+        String s = StreamUtils.readString(buffer, buffer.limit());
+        buffer.position(0);
+        if (s.equalsIgnoreCase(NONE.name)) {// TODO: What this check do?
+          StreamUtils.writeBytes(os, buffer);
+        } else {
+          StreamUtils.writeBytes(os, (byte) 0, buffer.limit());
+        }
       } else {
-        StreamUtils.writeBytes(os, (byte) 0, buffer.limit());
+        StreamUtils.writeString(os, resname, getSize());
       }
     } else {
-      StreamUtils.writeString(os, resname, getSize());
+      buffer.position(0);
+      StreamUtils.writeBytes(os, buffer);
     }
   }
 
@@ -312,6 +319,7 @@ public class ResourceRef extends Datatype
     this.buffer.position(0);
     final String s = StreamUtils.readString(this.buffer, this.buffer.limit()).toUpperCase(Locale.ENGLISH);
     resname = s.isEmpty() || s.equalsIgnoreCase(NONE.name) ? NONE.name : s;// FIXME: use null instead of NONE.name
+    resnameChanged = false;
 
     // determine the correct file extension
     if (!resname.equals(NONE.name)) { // FIXME: use null instead of NONE.name
@@ -469,6 +477,7 @@ public class ResourceRef extends Datatype
       newValue = null;
     }
     if (!Objects.equals(oldValue, newValue)) {
+      resnameChanged = true;
       firePropertyChange(oldValue, newValue);
     }
   }

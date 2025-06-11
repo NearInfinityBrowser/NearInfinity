@@ -29,7 +29,7 @@ import org.infinity.util.Logger;
 public class LayerObjectIniActor extends LayerObjectActor {
   private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<>(Allegiance.class);
 
-  private static final Point CENTER = new Point(12, 40);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_INI_ACTOR_G_1.getCenter();
 
   static {
     ICONS.put(Allegiance.GOOD, new Image[] { ViewerIcons.ICON_ITM_INI_ACTOR_G_1.getIcon().getImage(),
@@ -55,7 +55,7 @@ public class LayerObjectIniActor extends LayerObjectActor {
    */
   public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData, int creIndex)
       throws IllegalArgumentException {
-    super(CreResource.class, null);
+    super(null);
     this.ini = Objects.requireNonNull(ini);
     this.creData = Objects.requireNonNull(creData);
     this.creIndex = creIndex;

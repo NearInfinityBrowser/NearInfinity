@@ -109,6 +109,7 @@ import org.infinity.resource.are.Song;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
+import org.infinity.resource.graphics.BmpDecoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.BIFFResourceEntry;
@@ -173,6 +174,7 @@ public class AreaViewer extends ChildFrame {
   private JCheckBox cbLayerDoorTarget;
   private JLabel lPosX;
   private JLabel lPosY;
+  private JTextArea taMiniMapInfo;
   private JTextArea taInfo;
   private boolean bMapDragging;
   private Point mapDraggingPosStart;
@@ -502,7 +504,18 @@ public class AreaViewer extends ChildFrame {
     JLabel lPosYLabel = new JLabel(LABEL_INFO_Y);
     lPosX = new JLabel("0");
     lPosY = new JLabel("0");
-    taInfo = new JTextArea(4, 15);
+
+    taMiniMapInfo = new JTextArea();
+    taMiniMapInfo.setEditable(false);
+    taMiniMapInfo.setFont(lPosX.getFont());
+    taMiniMapInfo.setBackground(lPosX.getBackground());
+    taMiniMapInfo.setSelectionColor(lPosX.getBackground());
+    taMiniMapInfo.setSelectedTextColor(lPosX.getBackground());
+    taMiniMapInfo.setWrapStyleWord(true);
+    taMiniMapInfo.setLineWrap(true);
+    taMiniMapInfo.setVisible(false);
+
+    taInfo = new JTextArea(5, 15);
     taInfo.setEditable(false);
     taInfo.setFont(lPosX.getFont());
     taInfo.setBackground(lPosX.getBackground());
@@ -526,6 +539,9 @@ public class AreaViewer extends ChildFrame {
         new Insets(4, 8, 0, 0), 0, 0);
     pInfoBox.add(lPosY, c);
     c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+        new Insets(4, 0, 0, 0), 0, 0);
+    pInfoBox.add(taMiniMapInfo, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
         new Insets(4, 0, 0, 0), 0, 0);
     pInfoBox.add(taInfo, c);
     pInfoBox.setMinimumSize(pInfoBox.getPreferredSize());
@@ -1317,6 +1333,7 @@ public class AreaViewer extends ChildFrame {
         mapCoordinates.y = coords.y;
         lPosY.setText(Integer.toString(mapCoordinates.y));
       }
+      setMiniMapText(coords);
     }
   }
 
@@ -1329,6 +1346,113 @@ public class AreaViewer extends ChildFrame {
         taInfo.setText("");
       }
     }
+  }
+
+  /** Updates information about the selected minimap overlay at the current cursor position. */
+  private void setMiniMapText(Point mapCoords) {
+    final GraphicsResource minimap = map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT);
+    if (minimap != null && mapCoords != null) {
+      final int x = mapCoords.x / 16;
+      final int y = mapCoords.y / 12;
+      switch (Settings.MiniMap) {
+        case ViewerConstants.MAP_SEARCH:
+          setSearchMapText(x, y, minimap);
+          break;
+        case ViewerConstants.MAP_LIGHT:
+          setLightMapText(x, y, minimap);
+          break;
+        case ViewerConstants.MAP_HEIGHT:
+          setHeightMapText(x, y, minimap);
+          break;
+        default:
+          taMiniMapInfo.setText("");
+      }
+    }
+  }
+
+  /** Updates search map information for the specified position on the given search map. */
+  private void setSearchMapText(int x, int y, GraphicsResource map) {
+    if (map == null) {
+      return;
+    }
+
+    final BmpDecoder.Info mapInfo = map.getInfo();
+    if (mapInfo == null) {
+      return;
+    }
+
+    if (x < 0 || x >= mapInfo.getWidth() || y < 0 || y >= mapInfo.getHeight()) {
+      return;
+    }
+
+    if (mapInfo.getBitsPerPixel() <= 8) {
+      try {
+        final int index = Math.max(0,
+            Math.min(ViewerConstants.SEARCH_MAP_INFO.length - 1, map.getImage().getData().getSample(x, y, 0)));
+        final String text = "Search index #" + index + ": " + ViewerConstants.SEARCH_MAP_INFO[index].getText();
+        taMiniMapInfo.setText(text);
+        return;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
+    taMiniMapInfo.setText("Search index: n/a");
+  }
+
+  /** Updates light map information for the specified position on the given light map. */
+  private void setLightMapText(int x, int y, GraphicsResource map) {
+    if (map == null) {
+      return;
+    }
+
+    final BmpDecoder.Info mapInfo = map.getInfo();
+    if (mapInfo == null) {
+      return;
+    }
+
+    if (x < 0 || x >= mapInfo.getWidth() || y < 0 || y >= mapInfo.getHeight()) {
+      return;
+    }
+
+    if (mapInfo.getBitsPerPixel() <= 8) {
+      final int color = map.getImage().getRGB(x, y);
+      final int red = (color >> 16) & 0xff;
+      final int green = (color >> 8) & 0xff;
+      final int blue = color & 0xff;
+      final String text = "Light: RGB(" + red + ", " + green + ", " + blue + ")";
+      taMiniMapInfo.setText(text);
+    } else {
+      taMiniMapInfo.setText("Light: n/a");
+    }
+  }
+
+  /** Updates height map information for the specified position on the given height map. */
+  private void setHeightMapText(int x, int y, GraphicsResource map) {
+    if (map == null) {
+      return;
+    }
+
+    final BmpDecoder.Info mapInfo = map.getInfo();
+    if (mapInfo == null) {
+      return;
+    }
+
+    if (x < 0 || x >= mapInfo.getWidth() || y < 0 || y >= mapInfo.getHeight()) {
+      return;
+    }
+
+    if (mapInfo.getBitsPerPixel() <= 8) {
+      try {
+        final int index = Math.max(0, Math.min(15, map.getImage().getData().getSample(x, y, 0)));
+        final int height = index - 8;
+        final String text = "Height: " + height;
+        taMiniMapInfo.setText(text);
+        return;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    }
+    taMiniMapInfo.setText("Height: n/a");
   }
 
   /** Creates and displays a popup menu containing the items located at the specified location. */
@@ -1611,13 +1735,18 @@ public class AreaViewer extends ChildFrame {
     final int type;
     if (cbMiniMaps[ViewerConstants.MAP_SEARCH].isSelected()) {
       type = ViewerConstants.MAP_SEARCH;
+      taMiniMapInfo.setVisible(true);
     } else if (cbMiniMaps[ViewerConstants.MAP_LIGHT].isSelected()) {
       type = ViewerConstants.MAP_LIGHT;
+      taMiniMapInfo.setVisible(true);
     } else if (cbMiniMaps[ViewerConstants.MAP_HEIGHT].isSelected()) {
       type = ViewerConstants.MAP_HEIGHT;
+      taMiniMapInfo.setVisible(true);
     } else {
       type = ViewerConstants.MAP_NONE;
+      taMiniMapInfo.setVisible(false);
     }
+    taMiniMapInfo.setText("");
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_SEARCH]);
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_LIGHT]);
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_HEIGHT]);
