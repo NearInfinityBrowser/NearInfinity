@@ -87,8 +87,8 @@ public abstract class LayerObjectActor extends LayerObject {
   protected final Point location = new Point();
   protected final AbstractLayerItem[] items = new AbstractLayerItem[2];
 
-  protected LayerObjectActor(Class<? extends AbstractStruct> classType, AbstractStruct parent) {
-    super("Actor", classType, parent);
+  protected LayerObjectActor(AbstractStruct parent) {
+    super("Actor", parent);
   }
 
   @Override

@@ -43,7 +43,7 @@ public class LayerObjectDoorPoly extends LayerObject {
   private int openCount;
 
   public LayerObjectDoorPoly(WedResource parent, Door doorPoly) {
-    super("Door Poly", Door.class, parent);
+    super("Door Poly", parent);
     this.door = doorPoly;
     location = null;
     String[] info = null;

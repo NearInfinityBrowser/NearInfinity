@@ -36,7 +36,7 @@ public class LayerObjectTransition extends LayerObject {
   private final ShapedLayerItem item;
 
   public LayerObjectTransition(AreResource parent, AreResource destination, int edge, TilesetRenderer renderer) {
-    super("Transition", AreResource.class, parent);
+    super("Transition", parent);
     this.destination = destination;
     this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;

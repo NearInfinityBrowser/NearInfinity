@@ -532,7 +532,7 @@ public final class Profile {
     GAME_EXTRA_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
 
     final String[] BG_SAVE_FOLDERS = { "MPSave", "Save" };
-    final String[] EE_SAVE_FOLDERS = { "BPSave", "MPBPSave", "MPSave", "Save" };
+    final String[] EE_SAVE_FOLDERS = { "BPSave", "CloudSave", "ImportBPSave", "ImportSave", "MPBPSave", "MPSave", "Save" };
     GAME_SAVE_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
     GAME_SAVE_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));

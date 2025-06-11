@@ -34,6 +34,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.ViewMode;
@@ -359,6 +360,8 @@ public final class MusResource
     panel2.setLayout(new BorderLayout());
     panel2.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
     panel2.add(lowerpanel, BorderLayout.SOUTH);
+
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel2, getResourceEntry()));
 
     return panel2;
   }

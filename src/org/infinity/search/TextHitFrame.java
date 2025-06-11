@@ -137,7 +137,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
         }
       }
     } else if (event.getSource() == bsave) {
-      table.saveSearchResult(this, query);
+      table.saveSearchResult(this, getFilteredQuery(query));
     }
   }
 
@@ -166,6 +166,17 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
   public void addHit(ResourceEntry entry, String line, int lineNr) {
     table.addTableItem(new TextHit(entry, line.trim(), lineNr));
+  }
+
+  /** Removes regular expression quotation markers if they enclose the whole string. */
+  private static String getFilteredQuery(String query) {
+    if (query == null) {
+      return "(null)";
+    }
+    String retVal = query;
+    retVal = retVal.replaceFirst("^\\\\Q", "");
+    retVal = retVal.replaceFirst("\\\\E$", "");
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------

@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -40,6 +41,7 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.gui.ViewerUtil;
@@ -66,6 +68,10 @@ public class MediaPanel extends JPanel {
   static {
     isLoop = true;
   }
+
+  // Available export file filters
+  private final FileNameExtensionFilter fileFilterAnim = new FileNameExtensionFilter("Animated PNG files (*.png)", "png");
+  private final FileNameExtensionFilter fileFilterFrames = new FileNameExtensionFilter("Frames as PNG images (*.png)", "png");
 
   // mapping of slider value to direction
   private final HashMap<Integer, Direction> directionMap = new HashMap<>();
@@ -742,9 +748,13 @@ public class MediaPanel extends JPanel {
       fileChooser.setDialogTitle("Export animation sequence");
       fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
       fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("APNG files (*.png)", "png");
-      fileChooser.addChoosableFileFilter(filter);
-      fileChooser.setFileFilter(filter);
+      final FileFilter[] defFilters = fileChooser.getChoosableFileFilters();
+      for (final FileFilter ff : defFilters) {
+        fileChooser.removeChoosableFileFilter(ff);
+      }
+      fileChooser.addChoosableFileFilter(fileFilterAnim);
+      fileChooser.addChoosableFileFilter(fileFilterFrames);
+      fileChooser.setFileFilter(fileFilterAnim);
     }
 
     // Generating preselected filename
@@ -764,65 +774,151 @@ public class MediaPanel extends JPanel {
     fileChooser.setSelectedFile(new File(fileChooser.getCurrentDirectory(), fileName));
 
     if (fileChooser.showSaveDialog(browser) == JFileChooser.APPROVE_OPTION) {
-      // TODO: The export operation is executed nearly instantaneously.
-      // However, for cleaner code it should be performed in a separate background task.
-      File saveFile = fileChooser.getSelectedFile();
-      if (saveFile.exists() &&
-          JOptionPane.showConfirmDialog(browser, "File already exists: " + saveFile.getName() +"\nOverwrite?", "Question",
-              JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
-        return;
-      }
-
-      try (APNGSeqWriter writer = new APNGSeqWriter(saveFile, 0)) {
-        final RenderPanel renderer = browser.getRenderPanel();
-        final SpriteBamControl ctrl = controller.getDecoder().createControl();
-        ctrl.setMode(controller.getMode());
-        ctrl.setSharedPerCycle(controller.isSharedPerCycle());
-        ctrl.cycleSet(controller.cycleGet());
-        ctrl.cycleSetFrameIndex(0);
-
-        final Color color = renderer.getBackgroundColor();
-        Rectangle frameBounds = null;
-        BufferedImage frame = null;
-        BufferedImage outputFrame = null;
-
-        WindowBlocker blocker = new WindowBlocker(browser);
-        blocker.setBlocked(true);
-        try {
-          for (int i = 0; i < ctrl.cycleFrameCount(); i++) {
-            ctrl.cycleSetFrameIndex(i);
-            Couple<Image, Rectangle> result = renderer.setFrame(ctrl, frame, frameBounds, color);
-            frame = (BufferedImage) result.getValue0();
-            frameBounds = result.getValue1();
-
-            // APNG writer doesn't support alpha -> manually composing output frame
-            if (outputFrame == null) {
-              outputFrame = ColorConvert.createCompatibleImage(frame.getWidth(), frame.getHeight(), false);
-            }
-            Graphics2D g = (Graphics2D) outputFrame.getGraphics();
-            try {
-              g.setComposite(AlphaComposite.Src);
-              g.setColor(color);
-              g.fillRect(0, 0, outputFrame.getWidth(), outputFrame.getHeight());
-              g.setComposite(AlphaComposite.SrcOver);
-              g.drawImage(frame, 0, 0, null);
-            } finally {
-              g.dispose();
-            }
-
-            writer.writeImage(outputFrame, 1, 15);
-          }
-        } finally {
-          blocker.setBlocked(false);
+      try {
+        // TODO: The export operation is executed nearly instantaneously.
+        // However, for cleaner code it should be performed in a separate background task.
+        if (fileChooser.getFileFilter() == fileFilterFrames) {
+          // export sequence of frames as images
+          exportAsFrames(fileChooser.getSelectedFile());
+        } else {
+          // export animation file
+          exportAsAnimation(fileChooser.getSelectedFile());
         }
-        String message = "Animation sequence exported to" + ((saveFile.toString().length() > 30) ? "\n" : " ") + saveFile;
-        JOptionPane.showMessageDialog(browser, message, "Export animation sequence",
-            JOptionPane.INFORMATION_MESSAGE);
-      } catch (IOException e) {
+      } catch (Exception e) {
         Logger.error(e);
         JOptionPane.showMessageDialog(browser, "Unable to export animation sequence.", "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
+  }
+
+  /** Exports the current creature animation sequence as APNG to the specified output file. */
+  private void exportAsAnimation(File outFile) throws Exception {
+    if (outFile == null) {
+      throw new NullPointerException("outFile is null");
+    }
+
+    if (outFile.exists() &&
+        JOptionPane.showConfirmDialog(browser, "File already exists: " + outFile.getName() +"\nOverwrite?", "Question",
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.YES_OPTION) {
+      return;
+    }
+
+    WindowBlocker blocker = new WindowBlocker(browser);
+    blocker.setBlocked(true);
+    try (APNGSeqWriter writer = new APNGSeqWriter(outFile, 0)) {
+      final RenderPanel renderer = browser.getRenderPanel();
+      final SpriteBamControl ctrl = controller.getDecoder().createControl();
+      ctrl.setMode(controller.getMode());
+      ctrl.setSharedPerCycle(controller.isSharedPerCycle());
+      ctrl.cycleSet(controller.cycleGet());
+      ctrl.cycleSetFrameIndex(0);
+
+      final Color color = renderer.getBackgroundColor();
+      Rectangle frameBounds = null;
+      BufferedImage frame = null;
+      BufferedImage outputFrame = null;
+
+      for (int i = 0; i < ctrl.cycleFrameCount(); i++) {
+        ctrl.cycleSetFrameIndex(i);
+        Couple<Image, Rectangle> result = renderer.setFrame(ctrl, frame, frameBounds, color);
+        frame = (BufferedImage) result.getValue0();
+        frameBounds = result.getValue1();
+
+        // APNG writer doesn't support alpha -> manually composing output frame
+        if (outputFrame == null) {
+          outputFrame = ColorConvert.createCompatibleImage(frame.getWidth(), frame.getHeight(), false);
+        }
+        Graphics2D g = outputFrame.createGraphics();
+        try {
+          g.setComposite(AlphaComposite.Src);
+          g.setColor(color);
+          g.fillRect(0, 0, outputFrame.getWidth(), outputFrame.getHeight());
+          g.setComposite(AlphaComposite.SrcOver);
+          g.drawImage(frame, 0, 0, null);
+        } finally {
+          g.dispose();
+        }
+
+        writer.writeImage(outputFrame, 1, 15);
+      }
+    } finally {
+      blocker.setBlocked(false);
+    }
+    String message = "Animation sequence exported to" + ((outFile.toString().length() > 30) ? "\n" : " ") + outFile;
+    JOptionPane.showMessageDialog(browser, message, "Export animation sequence", JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  /**
+   * Exports the current creature animation sequence as a sequence of PNG images using the specified output file as
+   * base.
+   */
+  private void exportAsFrames(File outFile) throws Exception {
+    if (outFile == null) {
+      throw new NullPointerException("outFile is null");
+    }
+
+    File outDir = outFile.getParentFile();
+    if (outDir == null) {
+      outDir = new File(".");
+    }
+
+    // preparing filename prefix
+    String ext = ".png";
+    String fileBase = outFile.getName();
+    if (fileBase != null) {
+      int p = fileBase.lastIndexOf('.');
+      if (p >= 0) {
+        ext = fileBase.substring(p);
+        fileBase = fileBase.substring(0, p);
+      }
+    } else {
+      fileBase = "frame";
+    }
+    if (!fileBase.isEmpty()) {
+      fileBase += '-';
+    }
+
+    WindowBlocker blocker = new WindowBlocker(browser);
+    blocker.setBlocked(true);
+    final SpriteBamControl ctrl = controller.getDecoder().createControl();
+    ctrl.setMode(controller.getMode());
+    ctrl.setSharedPerCycle(controller.isSharedPerCycle());
+    ctrl.cycleSet(controller.cycleGet());
+    ctrl.cycleSetFrameIndex(0);
+    int failCounter = 0;
+    try {
+      for (int i = 0; i < ctrl.cycleFrameCount(); i++) {
+        ctrl.cycleSetFrameIndex(i);
+        final BufferedImage image = ColorConvert.toBufferedImage(ctrl.cycleGetFrame(), true, false);
+        final File file = new File(outDir, fileBase + String.format("%03d", i) + ext);
+        try {
+          if (!ImageIO.write(image, "png", file)) {
+            failCounter++;
+          }
+        } catch (IOException e) {
+          failCounter++;
+          Logger.warn("Error writing frame #{}", i);
+        }
+      }
+    } finally {
+      blocker.setBlocked(false);
+    }
+
+    int type = JOptionPane.INFORMATION_MESSAGE;
+    String message;
+    if (failCounter < ctrl.cycleFrameCount()) {
+      message = ctrl.cycleFrameCount() + " animation frame(s) exported to";
+      message += (outDir.toString().length() > 30 ? "\n" : " ") + outDir;
+      if (failCounter > 0) {
+        message += "\n\n" + failCounter + " frame(s) could not be exported.";
+        type = JOptionPane.WARNING_MESSAGE;
+      }
+    } else {
+      message = "Could not export animation frames to";
+      message += (outDir.toString().length() > 30 ? "\n" : " ") + outDir;
+      type = JOptionPane.ERROR_MESSAGE;
+    }
+    JOptionPane.showMessageDialog(browser, message, "Export animation frames", type);
   }
 
   // -------------------------- INNER CLASSES --------------------------

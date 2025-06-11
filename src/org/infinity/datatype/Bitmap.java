@@ -45,7 +45,7 @@ public class Bitmap extends AbstractBitmap<String> {
   @Override
   public JComponent edit(ActionListener container) {
     if (getDataOf(getLongValue()) == null) {
-      putItem(getLongValue(), "Unknown");
+      putItem(getLongValue(), TEXT_UNKNOWN);
     }
 
     return super.edit(container);
@@ -56,7 +56,7 @@ public class Bitmap extends AbstractBitmap<String> {
   private static TreeMap<Long, String> createMap(String[] symbols) {
     TreeMap<Long, String> retVal = new TreeMap<>();
     for (int i = 0; i < symbols.length; i++) {
-      String symbol = (symbols[i] != null) ? symbols[i] : "(Unlabeled)";
+      String symbol = (symbols[i] != null) ? symbols[i] : TEXT_UNLABELED;
       retVal.put((long) i, symbol);
     }
 

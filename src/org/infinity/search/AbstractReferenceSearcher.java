@@ -210,46 +210,45 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
     if ("2DA".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "BCS", "CRE", "DLG", "EFF", "ITM", "SPL" };
     } else if ("ARE".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "BCS", "DLG", "GAM", "WMP" };
+      selectedExt = new String[] { "2DA", "BCS", "DLG", "WMP" };
     } else if ("BAM".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM", "INI", "ITM", "MENU", "PRO",
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "INI", "ITM", "MENU", "PRO",
           "SPL", "VEF", "VVC", "WMP" };
     } else if ("BMP".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM", "INI", "ITM", "PRO", "SPL",
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "INI", "ITM", "PRO", "SPL",
           "VEF", "VVC" };
     } else if ("CRE".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "DLG", "EFF", "GAM", "INI", "ITM", "SPL" };
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "DLG", "EFF", "INI", "ITM", "SPL" };
     } else if ("DLG".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "BCS", "CRE", "DLG", "GAM" };
+      selectedExt = new String[] { "2DA", "BCS", "CRE", "DLG" };
     } else if ("EFF".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "CRE", "EFF", "GAM", "ITM", "SPL" };
+      selectedExt = new String[] { "CRE", "EFF", "ITM", "SPL" };
     } else if ("FNT".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "CHU" };
     } else if ("ITM".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM", "SPL", "STO" };
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "SPL", "STO" };
     } else if ("MOS".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "DLG", "MENU", "WMP" };
     } else if ("MVE".equalsIgnoreCase(ext) || "WBM".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM", "SPL" };
+      selectedExt = new String[] { "ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "SPL" };
     } else if ("PNG".equalsIgnoreCase(ext)) {
       // TODO: confirm!
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM", "INI", "ITM", "MENU", "PRO",
-          "SPL", "VEF", "VVC" };
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "INI", "ITM", "MENU", "PRO", "SPL",
+          "VEF", "VVC" };
     } else if ("PRO".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "ARE", "CRE", "EFF", "GAM", "ITM", "SPL" };
+      selectedExt = new String[] { "ARE", "CRE", "EFF", "ITM", "SPL" };
     } else if ("PVRZ".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "BAM", "MOS", "TIS" };
     } else if ("SPL".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM", "SPL" };
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "SPL" };
     } else if ("STO".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "BCS", "DLG" };
     } else if ("TIS".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "WED" };
     } else if ("VVC".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "ARE", "BCS", "DLG", "EFF", "GAM", "INI", "ITM", "PRO", "SPL", "VEF", "VVC" };
+      selectedExt = new String[] { "ARE", "BCS", "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "VEF", "VVC" };
     } else if ("WAV".equalsIgnoreCase(ext)) {
-      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "INI", "ITM", "PRO", "SPL", "VEF",
-          "VVC" };
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "VEF", "VVC" };
     } else if ("WED".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "ARE" };
     } else if ("WMP".equalsIgnoreCase(ext)) {

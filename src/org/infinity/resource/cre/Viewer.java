@@ -46,6 +46,7 @@ public final class Viewer extends JPanel {
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENERAL), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SPECIFICS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
     if (Profile.getGame() != Profile.Game.PSTEE && ResourceFactory.resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
@@ -88,7 +89,7 @@ public final class Viewer extends JPanel {
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENERAL), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
-    // ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Specific"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SPECIFICS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALIGNMENT), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
@@ -313,7 +314,6 @@ public final class Viewer extends JPanel {
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MOVE_SILENTLY), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_FIND_TRAPS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_PICK_POCKETS), gbl, gbc, true);
-    // ViewerUtil.addLabelFieldPair(panel, cre.getAttribute("Tracking"), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_NAME), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SCRIPT_CLASS), gbl, gbc, true);

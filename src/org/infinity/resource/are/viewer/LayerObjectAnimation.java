@@ -46,7 +46,7 @@ public class LayerObjectAnimation extends LayerObject {
       { ViewerIcons.ICON_ITM_ANIM_PVRZ_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_PVRZ_2_BW.getIcon().getImage() },
       { ViewerIcons.ICON_ITM_ANIM_BAM_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_BAM_2_BW.getIcon().getImage() }
   };
-  private static final Point CENTER = new Point(16, 17);
+  private static final Point CENTER = ViewerIcons.ICON_ITM_ANIM_1.getCenter();
 
   private final Animation anim;
   private final Point location = new Point();
@@ -55,7 +55,7 @@ public class LayerObjectAnimation extends LayerObject {
   private Flag scheduleFlags;
 
   public LayerObjectAnimation(AreResource parent, Animation anim) {
-    super("Animation", Animation.class, parent);
+    super("Animation", parent);
     this.anim = anim;
     String keyAnim = "";
     String msg = "";

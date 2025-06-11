@@ -918,9 +918,16 @@ public final class ResourceFactory {
                 } else {
                   line = items[1].trim();
                 }
+
                 if (line.endsWith(":")) {
                   line = line.replace(':', '/');
                 }
+
+                if (!Platform.IS_WINDOWS) {
+                  // Needed to parse Windows paths on non-Windows systems
+                  line = line.replace('\\', '/');
+                }
+
                 // Try to handle Unix paths
                 Path path;
                 if (line.charAt(0) == '/') { // absolute Unix path
@@ -933,6 +940,8 @@ public final class ResourceFactory {
                 } else {
                   path = FileManager.resolve(line);
                 }
+
+                path = fixBiffPath(rootFolders, path);
                 if (FileEx.create(path).isDirectory()) {
                   dirList.add(path);
                 }
@@ -1008,6 +1017,48 @@ public final class ResourceFactory {
       instance.close();
       instance = null;
     }
+  }
+
+  /** Attempts to return an existing biff path based on the specified parameters. */
+  private static Path fixBiffPath(List<Path> rootPaths, Path path) {
+    if (path == null) {
+      if (rootPaths != null) {
+        for (final Path rootPath : rootPaths) {
+          if (rootPath != null && FileEx.create(rootPath).isDirectory()) {
+            return rootPath;
+          }
+        }
+      }
+      return null;
+    }
+
+    if (FileEx.create(path).isDirectory()) {
+      return path;
+    }
+
+    if (rootPaths != null) {
+      for (final Path rootPath : rootPaths) {
+        if (rootPath != null) {
+          final String gameFolder = rootPath.getFileName().toString();
+          for (int i = path.getNameCount() - 1; i >= 0; i--) {
+            final String curFolder = path.getName(i).toString();
+            Path newPath = null;
+            if (gameFolder.equalsIgnoreCase(curFolder)) {
+              if (i == path.getNameCount() - 1) {
+                newPath = rootPath;
+              } else {
+                newPath = rootPath.resolve(path.subpath(i + 1, path.getNameCount()));
+              }
+              if (newPath != null && FileEx.create(newPath).isDirectory()) {
+                return newPath;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return path;
   }
 
   private static ResourceFactory getInstance() {

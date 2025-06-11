@@ -156,6 +156,8 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
     panel.add(buttonPanel, BorderLayout.SOUTH);
     soundPanelWrapper.setBorder(BorderFactory.createLoweredBevelBorder());
 
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+
     loadSoundResource();
 
     return panel;

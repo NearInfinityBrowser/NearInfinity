@@ -41,7 +41,9 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.AbstractBitmap;
+import org.infinity.datatype.AbstractBitmap.FormattedData;
 import org.infinity.datatype.IwdRef;
+import org.infinity.datatype.PortraitIconBitmap.IndexString;
 import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.icon.Icons;
@@ -432,9 +434,18 @@ public class TextListPanel<E> extends JPanel
         boolean cellHasFocus) {
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       if (PortraitIconCache.isIconsAvailable()) {
-        ImageIcon icon = PortraitIconCache.get(index, true);
+        int iconIndex = index;
+        if (value instanceof FormattedData<?>) {
+          final FormattedData<?> fd = (FormattedData<?>)value;
+          final Object data = fd.getData();
+          if (data instanceof IndexString) {
+            final IndexString is = (IndexString)data;
+            iconIndex = is.getIndex();
+          }
+        }
+        ImageIcon icon = PortraitIconCache.get(iconIndex, true);
         if (icon != null && icon.getIconHeight() > 2 * maxIconHeight) {
-          icon = PortraitIconCache.get(index, false);
+          icon = PortraitIconCache.get(iconIndex, false);
         }
         setIcon(icon);
         setIconTextGap(iconGap);

@@ -175,9 +175,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hexadecimal number", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.ICON_REFRESH_16.getIcon(), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.ICON_REFRESH_16.getIcon(), this);
-  private final JMenuItem miApplyToAllRemovables = createMenuItem(CMD_APPLY_TO_ALL, "Apply value to all removable structures", Icons.ICON_COPY_16.getIcon(), this);
-  private final JMenuItem miApplyToNonEmptyRemovables = createMenuItem(CMD_APPLY_TO_NON_EMPTY, "Apply value to non-empty removable structures", Icons.ICON_COPY_16.getIcon(), this);
-  private final JMenuItem miApplyToEmptyRemovables = createMenuItem(CMD_APPLY_TO_EMPTY, "Apply value to empty removable structures", Icons.ICON_COPY_16.getIcon(), this);
+  private final JMenuItem miApplyToAllRemovables = createMenuItem(CMD_APPLY_TO_ALL, "Apply value to all substructures", Icons.ICON_COPY_16.getIcon(), this);
+  private final JMenuItem miApplyToNonEmptyRemovables = createMenuItem(CMD_APPLY_TO_NON_EMPTY, "Apply value to non-empty/zero substructures", Icons.ICON_COPY_16.getIcon(), this);
+  private final JMenuItem miApplyToEmptyRemovables = createMenuItem(CMD_APPLY_TO_EMPTY, "Apply value to empty/zero substructures", Icons.ICON_COPY_16.getIcon(), this);
   private final JMenuItem miAddToAdvSearch = createMenuItem(CMD_ADD_ADV_SEARCH, "Add to Advanced Search", Icons.ICON_FIND_16.getIcon(), this);
   private final JMenuItem miGotoOffset = createMenuItem(CMD_GOTO_OFFSET, "Go to offset", null, this);
   private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.ICON_SELECT_IN_TREE_16.getIcon(), this);
@@ -289,6 +289,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     // TODO: Reactive when pending issues have been solved (see org.infinity.gui.StructCellEditor.java for details)
     // table.setDefaultEditor(Object.class, new StructCellEditor());
 
+    miApplyToAllRemovables.setToolTipText("Apply selected field content to all substructures of the same type and level.");
+    miApplyToNonEmptyRemovables.setToolTipText("Apply selected field content only to substructures of the same type and "
+        + "level with non-empty text data or non-zero numeric data.");
+    miApplyToEmptyRemovables.setToolTipText("Apply selected field content only to substructures of the same type and "
+        + "level with empty text data or numeric value 0.");
+
     popupmenu.add(miCopyValue);
     popupmenu.add(miPasteValue);
     popupmenu.add(miCut);
@@ -376,6 +382,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     lowerpanel.add(new JPanel(), CARD_EMPTY);
     lowerpanel.addComponentListener(this);
     cards.show(lowerpanel, CARD_EMPTY);
+
+    if (struct.getParent() == null) {
+      buttonPanel.addControl(ViewerUtil.createViewerSyncButton(this, struct.getResourceEntry()));
+    }
 
     if (struct instanceof HasChildStructs && !struct.getFields().isEmpty()) {
       try {

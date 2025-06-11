@@ -195,13 +195,21 @@ public class Misc {
   }
 
   /**
-   * Attempts to convert the specified string into a numeric value. Returns defValue of value does not contain a valid
-   * number.
+   * Attempts to convert the specified string into a numeric {@code int} value. Returns defValue if value does not
+   * contain a valid number.
    */
   public static int toNumber(String value, int defValue) {
+    return toNumber(value, 10, defValue);
+  }
+
+  /**
+   * Attempts to convert the specified string of given base "radix" into a numeric {@code int} value. Returns defValue
+   * if value does not contain a valid number.
+   */
+  public static int toNumber(String value, int radix, int defValue) {
     if (value != null) {
       try {
-        return Integer.parseInt(value);
+        return Integer.parseInt(value, radix);
       } catch (NumberFormatException e) {
         Logger.trace(e);
       }
@@ -210,15 +218,71 @@ public class Misc {
   }
 
   /**
-   * Attempts to convert the specified string of given base "radix" into a numeric value. Returns defValue of value does
-   * not contain a valid number.
+   * Attempts to convert the specified string into a numeric {@code long} value. Returns defValue if value does not
+   * contain a valid number.
    */
-  public static int toNumber(String value, int radix, int defValue) {
+  public static long toLong(String value, long defValue) {
+    return toLong(value, 10, defValue);
+  }
+
+  /**
+   * Attempts to convert the specified string of given base "radix" into a numeric {@code long} value. Returns defValue
+   * if value does not contain a valid number.
+   */
+  public static long toLong(String value, int radix, long defValue) {
     if (value != null) {
       try {
-        return Integer.parseInt(value, radix);
+        return Long.parseLong(value, radix);
       } catch (NumberFormatException e) {
         Logger.trace(e);
+      }
+    }
+    return defValue;
+  }
+
+  /**
+   * Attempts to convert the specified string into a {@code double} value. Returns {@code defValue} if {@code value}
+   * does not contain a valid number.
+   */
+  public static float toFloat(String value, float defValue) {
+    if (value != null) {
+      try {
+        return Float.parseFloat(value);
+      } catch (NumberFormatException e) {
+        Logger.trace(e);
+      }
+    }
+    return defValue;
+  }
+
+  /**
+   * Attempts to convert the specified string into a {@code double} value. Returns {@code defValue} if {@code value}
+   * does not contain a valid number.
+   */
+  public static double toDouble(String value, double defValue) {
+    if (value != null) {
+      try {
+        return Double.parseDouble(value);
+      } catch (NumberFormatException e) {
+        Logger.trace(e);
+      }
+    }
+    return defValue;
+  }
+
+  /**
+   * Attempts to convert the specified string into a {@code boolean} value. Returns {@code defValue} if {@code value}
+   * does not contain content that can be evaluated to a boolean.
+   * <p>
+   * Supported values are: the strings {@code "true"}/{@code "false"} and numeric values where {@code 0} indicates false.
+   * </p>
+   */
+  public static boolean toBoolean(String value, boolean defValue) {
+    if (value != null) {
+      if (value.equalsIgnoreCase("true") || toNumber(value, 0) != 0) {
+        return true;
+      } else if (value.equalsIgnoreCase("false") || toNumber(value, 1) == 0) {
+        return false;
       }
     }
     return defValue;
