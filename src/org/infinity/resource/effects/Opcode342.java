@@ -6,11 +6,13 @@ package org.infinity.resource.effects;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.UpdateListener;
 import org.infinity.resource.AbstractStruct;
@@ -24,7 +26,13 @@ public class Opcode342 extends BaseOpcode {
   private static final String EFFECT_FIELD    = "Field";
   private static final String EFFECT_ENABLED  = "Enabled?";
 
-  private static final String[] FIELDS = {"Unknown", "Body heat", "Blood color", "Unknown", "Personal space"};
+  private static final TreeMap<Long, String> FIELDS = new TreeMap<>();
+
+  static {
+    FIELDS.put(1L, "Body heat");
+    FIELDS.put(2L, "Blood color");
+    FIELDS.put(4L, "Personal space");
+  }
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
@@ -43,7 +51,7 @@ public class Opcode342 extends BaseOpcode {
   @Override
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    final Bitmap bmp = new Bitmap(buffer, offset + 4, 4, EFFECT_FIELD, FIELDS);
+    final HashBitmap bmp = new HashBitmap(buffer, offset + 4, 4, EFFECT_FIELD, FIELDS, false);
     switch (bmp.getValue()) {
       case 1:
         list.add(new Bitmap(buffer, offset, 4, EFFECT_ENABLED, AbstractStruct.OPTION_NOYES));
