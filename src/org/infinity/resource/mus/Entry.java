@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioFactory;
-import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -188,15 +188,37 @@ public class Entry {
   }
 
   private AudioBuffer getAudioBuffer(String fileName) throws IOException {
-    // audio file can reside in a number of different locations
-    Path acmFile = FileManager.query(entry.getActualPath().getParent(), dir, dir + fileName + ".acm");
-    if (!FileEx.create(acmFile).isFile()) {
-      acmFile = FileManager.query(entry.getActualPath().getParent(), fileName + ".acm");
+    final Path musPathBase = entry.getActualPath().getParent();
+    final Path musPath = FileManager.query(musPathBase, dir);
+    final String musFileNameBase = fileName + ".acm";
+    final String musFileName = dir + musFileNameBase;
+
+    Path acmFile = null;
+    if (Profile.getEngine() == Profile.Engine.IWD && "MX9000A".equalsIgnoreCase(fileName)) {
+      // special case: silent sound segment (IWD)
+      acmFile = FileManager.queryExisting(musPathBase, musFileNameBase);
+      if (acmFile == null) {
+        acmFile = FileManager.queryExisting(musPathBase, "MX9000", musFileNameBase);
+      }
+    } else if (Profile.getEngine() == Profile.Engine.IWD2 && "MX0000A".equalsIgnoreCase(fileName)) {
+      // special case: silent sound segment (IWD2)
+      acmFile = FileManager.queryExisting(musPathBase, musFileNameBase);
+      if (acmFile == null) {
+        acmFile = FileManager.queryExisting(musPathBase, "MX0000", musFileNameBase);
+      }
     }
-    if (!FileEx.create(acmFile).isFile() && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
-      acmFile = FileManager.query(entry.getActualPath().getParent(), fileName.substring(0, 6), fileName + ".acm");
+
+    if (acmFile == null && fileName.toLowerCase(Locale.ROOT).startsWith("spc")) {
+      // special case: silent sound segment (all games)
+      acmFile = FileManager.queryExisting(musPathBase, musFileNameBase);
     }
-    if (!FileEx.create(acmFile).isFile()) {
+
+    if (acmFile == null) {
+      // regular sound segment
+      acmFile = FileManager.queryExisting(musPath, musFileName);
+    }
+
+    if (acmFile == null) {
       throw new IOException("Could not find " + fileName);
     }
 
