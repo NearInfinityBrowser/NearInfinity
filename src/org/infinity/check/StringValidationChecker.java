@@ -6,12 +6,9 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -38,14 +35,11 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
-import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -53,12 +47,12 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
@@ -74,12 +68,18 @@ import org.infinity.util.tuples.Couple;
 
 public class StringValidationChecker extends AbstractSearcher
     implements Runnable, ActionListener, ListSelectionListener, PropertyChangeListener {
+  /** Index of "Open in StringRef Lookup" button */
+  private static final int BUTTON_LOOKUP    = 0;
+  /** Index of "Open in String Table" button */
+  private static final int BUTTON_TABLE     = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
+  /** Index of "Repair" button */
+  private static final int BUTTON_REPAIR    = 3;
+
   private ChildFrame resultFrame;
+  private ResultPane<SortableTable> resultPane;
   private SortableTable table;
-  private JButton bSave;
-  private JButton bOpenLookup;
-  private JButton bOpenStringTable;
-  private JButton bRepair;
   private SwingWorker<Couple<Integer, Integer>, Void> repairWorker;
   private ProgressMonitor repairProgress;
 
@@ -92,6 +92,10 @@ public class StringValidationChecker extends AbstractSearcher
 
   @Override
   public void run() {
+    table = new SortableTable(new String[] { "String table", "StringRef", "String", "Error message" },
+        new Class<?>[] { ResourceEntry.class, Integer.class, String.class, String.class },
+        new Integer[] { 100, 75, 500, 300 });
+
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
@@ -111,105 +115,65 @@ public class StringValidationChecker extends AbstractSearcher
         return;
       }
 
-      table = new SortableTable(new String[] { "String table", "StringRef", "String", "Error message" },
-          new Class<?>[] { ResourceEntry.class, Integer.class, String.class, String.class },
-          new Integer[] { 100, 75, 500, 300 });
-
       if (runSearch("Checking strings", files)) {
         return;
       }
-
-      if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No string encoding errors found.", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        getResultFrame().setVisible(true);
-      }
-
     } finally {
       blocker.setBlocked(false);
     }
+
+    if (table.getRowCount() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No string encoding errors found.", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    table.tableComplete();
+
+    final JButton openLookupButton = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
+    openLookupButton.setMnemonic('l');
+    openLookupButton.setToolTipText("Only available for male strings.");
+
+    final JButton openStringTableButton = new JButton("Open in String table", Icons.ICON_OPEN_16.getIcon());
+    openStringTableButton.setMnemonic('t');
+
+    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    saveButton.setMnemonic('s');
+
+    final JButton repairButton = new JButton("Repair", Icons.ICON_CHECK_16.getIcon());
+    repairButton.setToolTipText("Replace or remove malformed characters.");
+    repairButton.setMnemonic('r');
+
+    // counting individual strings
+    final HashSet<String> errorMap = new HashSet<>();
+    for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
+      final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
+      errorMap.add(item.resource.toString() + item.strref);
+    }
+
+    final String title = table.getRowCount() + " error(s) found in " + errorMap.size() + " string(s)";
+
+    resultPane = new ResultPane<>(table,
+        new JButton[] { openLookupButton, openStringTableButton, saveButton, repairButton }, title);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    resultFrame = new ChildFrame("Result of string validation", true);
+    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+    resultFrame.getRootPane().setDefaultButton(openLookupButton);
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
-
-  private ChildFrame getResultFrame() {
-    if (resultFrame == null) {
-      table.tableComplete();
-      resultFrame = new ChildFrame("Result of string validation", true);
-      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-      bOpenLookup = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
-      bOpenLookup.setMnemonic('l');
-      bOpenLookup.setToolTipText("Only available for male strings.");
-      bOpenStringTable = new JButton("Open in String table", Icons.ICON_OPEN_16.getIcon());
-      bOpenStringTable.setMnemonic('t');
-      bSave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-      bSave.setMnemonic('s');
-
-      bRepair = new JButton("Repair", Icons.ICON_CHECK_16.getIcon());
-      bRepair.setToolTipText("Replace or remove malformed characters.");
-      bRepair.setMnemonic('r');
-
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      resultFrame.getRootPane().setDefaultButton(bOpenLookup);
-
-      // counting individual strings
-      HashSet<String> errorMap = new HashSet<>();
-      for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
-        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
-        errorMap.add(item.resource.toString() + item.strref);
-      }
-      JLabel count = new JLabel(table.getRowCount() + " error(s) found in " + errorMap.size() + " string(s)",
-          SwingConstants.CENTER);
-      count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-
-      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      panel.add(bOpenLookup);
-      panel.add(bOpenStringTable);
-      panel.add(bSave);
-      panel.add(bRepair);
-
-      JPanel pane = (JPanel) resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(count, BorderLayout.PAGE_START);
-      pane.add(scrollTable, BorderLayout.CENTER);
-      pane.add(panel, BorderLayout.PAGE_END);
-      bOpenLookup.setEnabled(false);
-      bOpenStringTable.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-      table.getSelectionModel().addListSelectionListener(this);
-      final MouseListener listener = new MouseAdapter() {
-        @Override
-        public void mouseReleased(MouseEvent event) {
-          if (event.getClickCount() == 2) {
-            SortableTable table = (SortableTable) event.getSource();
-            int row = table.getSelectedRow();
-            if (row != -1) {
-              StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
-              if (event.isAltDown()) {
-                final StringTable.Type type = item.isFemaleDialog() ? StringTable.Type.FEMALE : StringTable.Type.MALE;
-                ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(type, item.strref);
-              } else if (!item.isFemaleDialog()) {
-                ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-              }
-            }
-          }
-        }
-      };
-      table.addMouseListener(listener);
-      bOpenLookup.addActionListener(this);
-      bOpenStringTable.addActionListener(this);
-      bSave.addActionListener(this);
-      bRepair.addActionListener(this);
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultFrame.setSize(1024, 576);
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-    }
-
-    return resultFrame;
-  }
 
   @Override
   protected Runnable newWorker(ResourceEntry entry) {
@@ -446,7 +410,7 @@ public class StringValidationChecker extends AbstractSearcher
   /** Executes the repair operation as a background task with UI feedback. */
   private void repairEntriesBackground() {
     final String note = (table.getModel().getRowCount() >= 1000) ? "This may take a while..." : null;
-    repairProgress = new ProgressMonitor(getResultFrame(), "Repairing game strings", note, 0, table.getModel().getRowCount());
+    repairProgress = new ProgressMonitor(resultFrame, "Repairing game strings", note, 0, table.getModel().getRowCount());
     repairProgress.setMillisToDecideToPopup(100);
     repairProgress.setMillisToPopup(250);
 
@@ -570,29 +534,42 @@ public class StringValidationChecker extends AbstractSearcher
     return retVal;
   }
 
+  private void tableEntryOpened(boolean openInEditor) {
+    final SortableTable table = resultPane.getTable();
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
+      if (openInEditor) {
+        final StringTable.Type type = item.isFemaleDialog() ? StringTable.Type.FEMALE : StringTable.Type.MALE;
+        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(type, item.strref);
+      } else if (!item.isFemaleDialog()) {
+        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
+      }
+    }
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the information provided by the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    tableEntryOpened(event != null && event.isAltDown());
+  }
+
   // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == bOpenLookup) {
-      final int row = table.getSelectedRow();
-      if (row >= 0) {
-        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
-        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-      }
-    } else if (e.getSource() == bOpenStringTable) {
-      final int row = table.getSelectedRow();
-      if (row >= 0) {
-        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
-        final StringTable.Type type = item.isFemaleDialog() ? StringTable.Type.FEMALE : StringTable.Type.MALE;
-        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(type, item.strref);
-      }
-    } else if (e.getSource() == bSave) {
+    if (e.getSource() == resultPane.getButton(BUTTON_LOOKUP)) {
+      tableEntryOpened(false);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_TABLE)) {
+      tableEntryOpened(true);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_SAVE)) {
       table.saveCheckResult(resultFrame, "Encoding errors in game strings");
-    } else if (e.getSource() == bRepair) {
+    } else if (e.getSource() == resultPane.getButton(BUTTON_REPAIR)) {
       // Check for modified string table
       if (StringTable.isModified()) {
-        final int result = JOptionPane.showConfirmDialog(getResultFrame(),
+        final int result = JOptionPane.showConfirmDialog(resultFrame,
             "The string table contains unsaved data. Save?", "Question",
             JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
@@ -608,7 +585,7 @@ public class StringValidationChecker extends AbstractSearcher
       if (!Profile.isEnhancedEdition()) {
         msg += "\nCaution: Operation may be inaccurate for some languages.";
       }
-      final int result = JOptionPane.showConfirmDialog(getResultFrame(), msg, "Question", JOptionPane.YES_NO_OPTION,
+      final int result = JOptionPane.showConfirmDialog(resultFrame, msg, "Question", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE);
       if (result == JOptionPane.YES_OPTION) {
         repairEntriesBackground();
@@ -621,15 +598,18 @@ public class StringValidationChecker extends AbstractSearcher
   // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e) {
-    final int row = table.getSelectedRow();
-    if (row >= 0) {
-      StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
-      bOpenLookup.setEnabled(!item.isFemaleDialog());
-    } else {
-      bOpenLookup.setEnabled(false);
+  public void valueChanged(ListSelectionEvent event) {
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      if (row != -1) {
+        final StringErrorTableItem item = (StringErrorTableItem) table.getTableItemAt(row);
+        resultPane.getButton(BUTTON_LOOKUP).setEnabled(!item.isFemaleDialog());
+      } else {
+        resultPane.getButton(BUTTON_LOOKUP).setEnabled(false);
+      }
+      resultPane.getButton(BUTTON_TABLE).setEnabled(row != -1);
     }
-    bOpenStringTable.setEnabled(row >= 0);
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -662,17 +642,17 @@ public class StringValidationChecker extends AbstractSearcher
           if (result != null) {
             final int numReplaced = result.getValue0();
             final int numRemoved = result.getValue1();
-            JOptionPane.showMessageDialog(getResultFrame(),
+            JOptionPane.showMessageDialog(resultFrame,
                 "Repair operation completed.\nReplaced characters: " + numReplaced + "\nRemoved characters: " + numRemoved,
                 "Information", JOptionPane.INFORMATION_MESSAGE);
           } else {
             if (isCancelled) {
-              JOptionPane.showMessageDialog(getResultFrame(),
+              JOptionPane.showMessageDialog(resultFrame,
                   "Repair operation was cancelled.\nString table may contain unsaved changes.", "Information",
                   JOptionPane.INFORMATION_MESSAGE);
             } else {
               StringTable.resetAll();
-              JOptionPane.showMessageDialog(getResultFrame(),
+              JOptionPane.showMessageDialog(resultFrame,
                   "Repair operation failed.\nString table may contain unsaved changes.", "Error",
                   JOptionPane.ERROR_MESSAGE);
             }
@@ -680,7 +660,7 @@ public class StringValidationChecker extends AbstractSearcher
           repairProgress = null;
           repairWorker = null;
 
-          getResultFrame().close();
+          resultFrame.close();
         }
       }
     }

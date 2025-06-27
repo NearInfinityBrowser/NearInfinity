@@ -6,32 +6,27 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -45,10 +40,15 @@ import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener {
+  /** Index of "Open" button */
+  private static final int BUTTON_OPEN      = 0;
+  /** Index of "Open in new window" button */
+  private static final int BUTTON_OPEN_NEW  = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
+
   private ChildFrame resultFrame;
-  private JButton bopen;
-  private JButton bopennew;
-  private JButton bsave;
+  private ResultPane<SortableTable> resultPane;
 
   /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
@@ -62,7 +62,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bopen) {
+    if (event.getSource() == resultPane.getButton(BUTTON_OPEN)) {
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
@@ -71,16 +71,9 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
           bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
         });
       }
-    } else if (event.getSource() == bopennew) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        Resource resource = ResourceFactory.getResource(resourceEntry);
-        ViewFrame viewFrame = new ViewFrame(resultFrame, resource);
-        BcsResource bcsfile = (BcsResource) viewFrame.getViewable();
-        bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
-      }
-    } else if (event.getSource() == bsave) {
+    } else if (event.getSource() == resultPane.getButton(BUTTON_OPEN_NEW)) {
+      performTableAction(null);
+    } else if (event.getSource() == resultPane.getButton(BUTTON_SAVE)) {
       table.saveCheckResult(resultFrame, "Unknown IDS references in BCS & BS files");
     }
   }
@@ -91,8 +84,18 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bopen.setEnabled(true);
-    bopennew.setEnabled(true);
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      resultPane.getButton(BUTTON_OPEN).setEnabled(row != -1);
+      resultPane.getButton(BUTTON_OPEN_NEW).setEnabled(row != -1);
+      if (row != -1) {
+        ResourceEntry entry = getResourceEntryAt(row);
+        resultPane.setStatusMessage(entry.getActualPath().toString());
+      } else {
+        resultPane.setStatusMessage("");
+      }
+    }
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -101,75 +104,60 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
 
   @Override
   public void run() {
+    table = new SortableTable(new String[] { "File", "Error message", "Line" },
+        new Class<?>[] { ResourceEntry.class, String.class, Integer.class }, new Integer[] { 100, 300, 50 });
+
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
       final List<ResourceEntry> bcsFiles = ResourceFactory.getResources("BCS");
       bcsFiles.addAll(ResourceFactory.getResources("BS"));
 
-      table = new SortableTable(new String[] { "File", "Error message", "Line" },
-          new Class<?>[] { ResourceEntry.class, String.class, Integer.class }, new Integer[] { 100, 300, 50 });
-
       if (runSearch("Checking", bcsFiles)) {
         return;
-      }
-
-      if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unknown references found", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table.tableComplete();
-        resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
-        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-        JLabel count = new JLabel(table.getRowCount() + " hits(s) found", SwingConstants.CENTER);
-        count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-        bopen.setMnemonic('o');
-        bopennew.setMnemonic('n');
-        bsave.setMnemonic('s');
-        resultFrame.getRootPane().setDefaultButton(bopennew);
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.add(bopen);
-        panel.add(bopennew);
-        panel.add(bsave);
-        JScrollPane scrollTable = new JScrollPane(table);
-        scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel) resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(count, BorderLayout.NORTH);
-        pane.add(scrollTable, BorderLayout.CENTER);
-        pane.add(panel, BorderLayout.SOUTH);
-        bopen.setEnabled(false);
-        bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-        table.getSelectionModel().addListSelectionListener(this);
-        table.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseReleased(MouseEvent event) {
-            if (event.getClickCount() == 2) {
-              int row = table.getSelectedRow();
-              if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-                Resource resource = ResourceFactory.getResource(resourceEntry);
-                new ViewFrame(resultFrame, resource);
-              }
-            }
-          }
-        });
-        bopen.addActionListener(this);
-        bopennew.addActionListener(this);
-        bsave.addActionListener(this);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        resultFrame.pack();
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
       }
     } finally {
       blocker.setBlocked(false);
     }
+
+    if (table.getRowCount() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unknown references found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    table.tableComplete();
+
+    final JButton openButton = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+    openButton.setMnemonic('o');
+    openButton.setEnabled(false);
+
+    final JButton openNewButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+    openNewButton.setMnemonic('n');
+    openNewButton.setEnabled(false);
+
+    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    saveButton.setMnemonic('s');
+
+    final String title = table.getRowCount() + " hits(s) found";
+
+    resultPane = new ResultPane<>(table, new JButton[] { openButton, openNewButton, saveButton }, title, true, true);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    resultFrame = new ChildFrame("Result of Check for Unknown IDS References", true);
+    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+    resultFrame.getRootPane().setDefaultButton(openNewButton);
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -184,6 +172,20 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       }
       advanceProgress();
     };
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the content of the resource specified in the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      final Resource resource = ResourceFactory.getResource(getResourceEntryAt(row));
+      final ViewFrame viewFrame = new ViewFrame(resultFrame, resource);
+      final BcsResource bcsfile = (BcsResource) viewFrame.getViewable();
+      bcsfile.highlightText(((Integer) table.getValueAt(row, 2)), null);
+    }
   }
 
   /**
@@ -208,6 +210,23 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
         }
       }
     }
+  }
+
+  /**
+   * Returns the {@link ResourceEntry} instance specified in the specified table row. Returns {@code null} if entry is
+   * unavailable.
+   */
+  private ResourceEntry getResourceEntryAt(int row) {
+    ResourceEntry retVal = null;
+
+    if (row >= 0 && row < table.getRowCount()) {
+      final Object value = table.getValueAt(row, 0);
+      if (value instanceof ResourceEntry) {
+        retVal = (ResourceEntry)value;
+      }
+    }
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------

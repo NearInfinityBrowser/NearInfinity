@@ -15,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -23,7 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -32,10 +31,10 @@ import org.infinity.datatype.Bestiary;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
@@ -203,13 +202,11 @@ public final class StringUseChecker extends AbstractSearcher
   ));
 
   private ChildFrame resultFrame;
+  private ResultPane<SortableTable> resultPane;
   private JTextArea textArea;
 
-  /** List of the {@link UnusedStringTableItem} objects. */
-  private SortableTable table;
-
   private boolean[] strUsed;
-  private JMenuItem save;
+  private JMenuItem miSave;
 
   public StringUseChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
@@ -220,14 +217,17 @@ public final class StringUseChecker extends AbstractSearcher
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    final int row = table.getSelectedRow();
-    if (row == -1) {
-      textArea.setText(null);
-    } else {
-      final UnusedStringTableItem item = (UnusedStringTableItem) table.getTableItemAt(row);
-      textArea.setText(item.string);
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      if (row != -1) {
+        final UnusedStringTableItem item = (UnusedStringTableItem) resultPane.getTable().getTableItemAt(row);
+        textArea.setText(item.string);
+      } else {
+        textArea.setText("");
+      }
+      textArea.setCaretPosition(0);
     }
-    textArea.setCaretPosition(0);
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -255,58 +255,68 @@ public final class StringUseChecker extends AbstractSearcher
       if (runSearch("Searching", files)) {
         return;
       }
-
-      table = new SortableTable(new String[] { "String", "StrRef" }, new Class<?>[] { String.class, Integer.class },
-          new Integer[] { 450, 20 });
-      for (int i = 0; i < strUsed.length; i++) {
-        if (!strUsed[i]) {
-          table.addTableItem(new UnusedStringTableItem(i));
-        }
-      }
-      if (table.getRowCount() == 0) {
-        resultFrame.close();
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table.tableComplete(1);
-        textArea = new JTextArea(10, 40);
-        textArea.setEditable(false);
-        textArea.setWrapStyleWord(true);
-        textArea.setLineWrap(true);
-        JScrollPane scrollText = new JScrollPane(textArea);
-        resultFrame = new ChildFrame("Result", true);
-        save = new JMenuItem("Save");
-        save.addActionListener(this);
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.add(save);
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(fileMenu);
-        resultFrame.setJMenuBar(menuBar);
-        resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
-        JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", SwingConstants.CENTER);
-        count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-        JScrollPane scrollTable = new JScrollPane(table);
-        scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel) resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(count, BorderLayout.NORTH);
-        pane.add(scrollTable, BorderLayout.CENTER);
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        JPanel searchPanel = SearchMaster.createAsPanel(this, resultFrame);
-        bottomPanel.add(scrollText, BorderLayout.CENTER);
-        bottomPanel.add(searchPanel, BorderLayout.EAST);
-        pane.add(bottomPanel, BorderLayout.SOUTH);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        table.getSelectionModel().addListSelectionListener(this);
-        resultFrame.pack();
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
-      }
     } finally {
       blocker.setBlocked(false);
     }
+
+    final SortableTable table = new SortableTable(new String[] { "String", "StrRef" },
+        new Class<?>[] { String.class, Integer.class }, new Integer[] { 450, 20 });
+    for (int i = 0; i < strUsed.length; i++) {
+      if (!strUsed[i]) {
+        table.addTableItem(new UnusedStringTableItem(i));
+      }
+    }
+
+    if (table.getRowCount() == 0) {
+      if (resultFrame != null) {
+        resultFrame.close();
+      }
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused strings found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    table.tableComplete(1);
+
+    final String title = table.getRowCount() + " unused string(s) found";
+
+    resultFrame = new ChildFrame("Result", true);
+    resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
+
+    miSave = new JMenuItem("Save...", Icons.ICON_SAVE_16.getIcon());
+    miSave.addActionListener(this);
+
+    final JMenu fileMenu = new JMenu("File");
+    fileMenu.add(miSave);
+
+    final JMenuBar menuBar = new JMenuBar();
+    menuBar.add(fileMenu);
+    resultFrame.setJMenuBar(menuBar);
+
+    textArea = new JTextArea(10, 10);
+    textArea.setEditable(false);
+    textArea.setWrapStyleWord(true);
+    textArea.setLineWrap(true);
+    final JScrollPane scrollText = new JScrollPane(textArea);
+
+    final JPanel bottomPanel = new JPanel(new BorderLayout());
+    final JPanel searchPanel = SearchMaster.createAsPanel(this, resultFrame);
+    bottomPanel.add(scrollText, BorderLayout.CENTER);
+    bottomPanel.add(searchPanel, BorderLayout.EAST);
+
+    resultPane = new ResultPane<>(table, bottomPanel, title);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+
+    JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -339,8 +349,8 @@ public final class StringUseChecker extends AbstractSearcher
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == save) {
-      table.saveCheckResult(resultFrame, "Unused strings (maximum " + strUsed.length + ")");
+    if (e.getSource() == miSave) {
+      resultPane.getTable().saveCheckResult(resultFrame, "Unused strings (maximum " + strUsed.length + ")");
     }
   }
 
@@ -350,6 +360,7 @@ public final class StringUseChecker extends AbstractSearcher
 
   @Override
   public String getText(int nr) {
+    final SortableTable table = resultPane.getTable();
     if (nr < 0 || nr >= table.getRowCount()) {
       return null;
     }
@@ -358,6 +369,7 @@ public final class StringUseChecker extends AbstractSearcher
 
   @Override
   public void hitFound(int nr) {
+    final SortableTable table = resultPane.getTable();
     table.getSelectionModel().addSelectionInterval(nr, nr);
     table.scrollRectToVisible(table.getCellRect(table.getSelectionModel().getMinSelectionIndex(), 0, true));
   }

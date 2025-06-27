@@ -6,10 +6,8 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,14 +17,11 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -35,11 +30,11 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -70,15 +65,20 @@ public final class ResourceUseChecker extends AbstractChecker
   private static final String[] CHECK_TYPES = { "ARE", "BAM", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
                                                 "TIS", "VEF", "VVC", "WAV", "WED" };
 
+  /** Index of "Open" button */
+  private static final int BUTTON_OPEN      = 0;
+  /** Index of "Open in new window" button */
+  private static final int BUTTON_OPEN_NEW  = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
+
   private final TreeMap<String, ResourceEntry> unusedResources = new TreeMap<>(String::compareToIgnoreCase);
   private final HashSet<String> checkTypes = new HashSet<>(CHECK_TYPES.length * 2);
 
   private ChildFrame resultFrame;
-  private JButton bopen;
-  private JButton bopennew;
-  private JButton bsave;
+  private ResultPane<SortableTable> resultPane;
 
-  /** List of the {@link UnusedFileTableItem} objects. */
+  /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
 
   public ResourceUseChecker(Component parent) {
@@ -89,20 +89,14 @@ public final class ResourceUseChecker extends AbstractChecker
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bopen) {
-      int row = table.getSelectedRow();
+    if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_OPEN)) {
+      final int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
+        NearInfinity.getInstance().showResourceEntry(getResourceEntryAt(row));
       }
-    } else if (event.getSource() == bopennew) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        Resource resource = ResourceFactory.getResource(resourceEntry);
-        new ViewFrame(resultFrame, resource);
-      }
-    } else if (event.getSource() == bsave) {
+    } else if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_OPEN_NEW)) {
+      performTableAction(null);
+    } else if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_SAVE)) {
       table.saveCheckResult(resultFrame, "Unused resources");
     } else {
       super.actionPerformed(event);
@@ -115,8 +109,18 @@ public final class ResourceUseChecker extends AbstractChecker
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bopen.setEnabled(true);
-    bopennew.setEnabled(true);
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      resultPane.getButton(BUTTON_OPEN).setEnabled(row != -1);
+      resultPane.getButton(BUTTON_OPEN_NEW).setEnabled(row != -1);
+      if (row != -1) {
+        ResourceEntry entry = getResourceEntryAt(row);
+        resultPane.setStatusMessage(entry.getActualPath().toString());
+      } else {
+        resultPane.setStatusMessage("");
+      }
+    }
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -148,71 +152,53 @@ public final class ResourceUseChecker extends AbstractChecker
       if (runSearch("Searching", files)) {
         return;
       }
-
-      if (unusedResources.isEmpty()) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused resources found", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table = new SortableTable(new String[] { "File", "Name" }, new Class<?>[] { ResourceEntry.class, String.class },
-            new Integer[] { 200, 200 });
-        for (final Entry<String, ResourceEntry> entry : unusedResources.entrySet()) {
-          table.addTableItem(new UnusedFileTableItem(entry.getValue()));
-        }
-        table.tableComplete();
-        resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
-        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
-        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-        bopen.setMnemonic('o');
-        bopennew.setMnemonic('n');
-        bsave.setMnemonic('s');
-        resultFrame.getRootPane().setDefaultButton(bopennew);
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.add(bopen);
-        panel.add(bopennew);
-        panel.add(bsave);
-        JLabel count = new JLabel(table.getRowCount() + " unused resources found", SwingConstants.CENTER);
-        count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-        JScrollPane scrollTable = new JScrollPane(table);
-        scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel) resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(count, BorderLayout.NORTH);
-        pane.add(scrollTable, BorderLayout.CENTER);
-        pane.add(panel, BorderLayout.SOUTH);
-        bopen.setEnabled(false);
-        bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-        table.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseReleased(MouseEvent event) {
-            if (event.getClickCount() == 2) {
-              int row = table.getSelectedRow();
-              if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-                Resource resource = ResourceFactory.getResource(resourceEntry);
-                new ViewFrame(resultFrame, resource);
-                if (resource instanceof AbstractStruct) {
-                  ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
-                }
-              }
-            }
-          }
-        });
-        bopen.addActionListener(this);
-        bopennew.addActionListener(this);
-        bsave.addActionListener(this);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        table.getSelectionModel().addListSelectionListener(this);
-        resultFrame.pack();
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
-      }
     } finally {
       blocker.setBlocked(false);
     }
+
+    if (unusedResources.isEmpty()) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused resources found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    table = new SortableTable(new String[] { "File", "Name" },
+        new Class<?>[] { ResourceEntry.class, String.class }, new Integer[] { 50, 150 });
+    for (final Entry<String, ResourceEntry> entry : unusedResources.entrySet()) {
+      table.addTableItem(new UnusedFileTableItem(entry.getValue()));
+    }
+    table.tableComplete();
+
+    final JButton openButton = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+    openButton.setMnemonic('o');
+    openButton.setEnabled(false);
+
+    final JButton openNewButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+    openNewButton.setMnemonic('n');
+    openNewButton.setEnabled(false);
+
+    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    saveButton.setMnemonic('s');
+
+    final String title = table.getRowCount() + " unused resources found";
+
+    resultPane = new ResultPane<>(table, new JButton[] { openButton, openNewButton, saveButton }, title, true, true);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    resultFrame = new ChildFrame("Result", true);
+    resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
+    resultFrame.getRootPane().setDefaultButton(openNewButton);
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -367,6 +353,35 @@ public final class ResourceUseChecker extends AbstractChecker
     synchronized (unusedResources) {
       unusedResources.remove(name);
     }
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the content of the resource specified in the selected table row..
+   */
+  private void performTableAction(MouseEvent event) {
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      final Resource resource = ResourceFactory.getResource(getResourceEntryAt(row));
+      new ViewFrame(resultFrame, resource);
+    }
+  }
+
+  /**
+   * Returns the {@link ResourceEntry} instance specified in the specified table row. Returns {@code null} if entry is
+   * unavailable.
+   */
+  private ResourceEntry getResourceEntryAt(int row) {
+    ResourceEntry retVal = null;
+
+    if (row >= 0 && row < table.getRowCount()) {
+      final Object value = table.getValueAt(row, 0);
+      if (value instanceof ResourceEntry) {
+        retVal = (ResourceEntry)value;
+      }
+    }
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------

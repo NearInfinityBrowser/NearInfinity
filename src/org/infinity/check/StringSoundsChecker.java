@@ -6,24 +6,20 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -33,12 +29,12 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -51,15 +47,20 @@ import org.infinity.util.StringTable;
 /**
  * Checks for illegal sound resrefs associated to TLK strings.
  */
-public class StringSoundsChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener {
-  private ChildFrame resultsFrame;
-  private JTabbedPane tabbedPane;
-  private SortableTable table, tableFemale;
-  private EnumMap<StringTable.Type, List<Integer>> stringMap;
+public class StringSoundsChecker extends AbstractSearcher
+    implements Runnable, ActionListener, ListSelectionListener, ChangeListener {
+  /** Index of "Open in StringRef Lookup" button */
+  private static final int BUTTON_LOOKUP    = 0;
+  /** Index of "Open in String Table" button */
+  private static final int BUTTON_TABLE     = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
 
-  private JButton saveButton;
-  private JButton openLookupButton;
-  private JButton openStringTableButton;
+  private ChildFrame resultsFrame;
+  private ResultPane<SortableTable> resultPane;
+  private ResultPane<SortableTable> resultPaneFemale;
+  private JTabbedPane tabbedPane;
+  private EnumMap<StringTable.Type, List<Integer>> stringMap;
 
   public StringSoundsChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
@@ -70,24 +71,18 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    final SortableTable table = (tabbedPane.getSelectedIndex() == 1) ? this.tableFemale : this.table;
-    if (e.getSource() == saveButton) {
-      if (table != this.tableFemale) {
-        table.saveCheckResult(resultsFrame, "Illegal sound resrefs in string table");
+    final ResultPane<SortableTable> resultPane = getSelectedResultsPane();
+    final SortableTable table = resultPane.getTable();
+
+    if (e.getSource() == resultPane.getButton(BUTTON_LOOKUP)) {
+      tableEntryOpened(false);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_TABLE)) {
+      tableEntryOpened(true);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_SAVE)) {
+      if (table == resultPaneFemale.getTable()) {
+        table.saveCheckResult(resultsFrame, "Illegal sound resrefs in female string table");
       } else {
-        tableFemale.saveCheckResult(resultsFrame, "Illegal sound resrefs in female string table");
-      }
-    } else if (e.getSource() == openLookupButton) {
-      final int row = table.getSelectedRow();
-      if (row != -1) {
-        final StringSoundsItem item = (StringSoundsItem) table.getTableItemAt(row);
-        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-      }
-    } else if (e.getSource() == openStringTableButton) {
-      final int row = table.getSelectedRow();
-      if (row != -1) {
-        final StringSoundsItem item = (StringSoundsItem) table.getTableItemAt(row);
-        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(item.strref);
+        table.saveCheckResult(resultsFrame, "Illegal sound resrefs in string table");
       }
     }
   }
@@ -97,11 +92,8 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
   // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e) {
-    final SortableTable table = (tabbedPane.getSelectedIndex() == 1) ? this.tableFemale : this.table;
-    final int row = table.getSelectedRow();
-    openLookupButton.setEnabled(row != -1);
-    openStringTableButton.setEnabled(row != -1);
+  public void valueChanged(ListSelectionEvent event) {
+    performTableChanged(getSelectedResultsPane());
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -110,11 +102,8 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
 
   @Override
   public void stateChanged(ChangeEvent e) {
-    if (e.getSource() == tabbedPane) {
-      final SortableTable table = (tabbedPane.getSelectedIndex() == 1) ? this.tableFemale : this.table;
-      final ListSelectionEvent event = new ListSelectionEvent(table, table.getSelectedRow(), table.getSelectedRow(), false);
-      valueChanged(event);
-    }
+    performTableChanged(getSelectedResultsPane());
+    resultsFrame.getRootPane().setDefaultButton(getSelectedResultsPane().getButton(BUTTON_LOOKUP));
   }
 
   // --------------------- End Interface ChangeListener ---------------------
@@ -135,39 +124,108 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
       if (runSearch("Checking strings", files)) {
         return;
       }
-
-      boolean found = !stringMap.get(StringTable.Type.MALE).isEmpty();
-      if (stringMap.containsKey(StringTable.Type.FEMALE)) {
-        found |= !stringMap.get(StringTable.Type.FEMALE).isEmpty();
-      }
-      if (!found) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No illegal sound resrefs in strings found.", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table = new SortableTable(new String[] { "StringRef", "String", "Sound" },
-            new Class<?>[] { Integer.class, String.class, String.class },
-            new Integer[] { 25, 600, 50 });
-        List<Integer> list = stringMap.get(StringTable.Type.MALE);
-        for (Integer integer : list) {
-          table.addTableItem(new StringSoundsItem(integer, StringTable.Type.MALE));
-        }
-
-        // Female string table is presented in a separate tab, if available
-        if (stringMap.containsKey(StringTable.Type.FEMALE)) {
-          tableFemale = new SortableTable(new String[] { "StringRef", "String", "Sound" },
-              new Class<?>[] { Integer.class, String.class, String.class },
-              new Integer[] { 25, 600, 50 });
-          list = stringMap.get(StringTable.Type.FEMALE);
-          for (Integer integer : list) {
-            tableFemale.addTableItem(new StringSoundsItem(integer, StringTable.Type.FEMALE));
-          }
-        }
-
-        getResultFrame().setVisible(true);
-      }
     } finally {
       blocker.setBlocked(false);
     }
+
+    boolean found = !stringMap.get(StringTable.Type.MALE).isEmpty();
+    if (stringMap.containsKey(StringTable.Type.FEMALE)) {
+      found |= !stringMap.get(StringTable.Type.FEMALE).isEmpty();
+    }
+
+    if (!found) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No illegal sound resrefs in strings found.", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    final SortableTable table = new SortableTable(new String[] { "StringRef", "String", "Sound" },
+        new Class<?>[] { Integer.class, String.class, String.class },
+        new Integer[] { 25, 600, 50 });
+    List<Integer> list = stringMap.get(StringTable.Type.MALE);
+    for (Integer integer : list) {
+      table.addTableItem(new StringSoundsItem(integer, StringTable.Type.MALE));
+    }
+    table.tableComplete();
+
+    // Female string table is presented in a separate tab, if available
+    final SortableTable tableFemale;
+    if (stringMap.containsKey(StringTable.Type.FEMALE)) {
+      tableFemale = new SortableTable(new String[] { "StringRef", "String", "Sound" },
+          new Class<?>[] { Integer.class, String.class, String.class },
+          new Integer[] { 25, 600, 50 });
+      list = stringMap.get(StringTable.Type.FEMALE);
+      for (Integer integer : list) {
+        tableFemale.addTableItem(new StringSoundsItem(integer, StringTable.Type.FEMALE));
+      }
+      tableFemale.tableComplete();
+    } else {
+      tableFemale = null;
+    }
+
+    // setting up result panes
+    for (int i = 0, imax = (tableFemale != null) ? 2 : 1; i < imax; i++) {
+      final JButton openLookupButton = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
+      openLookupButton.setMnemonic('l');
+      openLookupButton.setEnabled(false);
+
+      final JButton openStringTableButton = new JButton("Open in String Table", Icons.ICON_OPEN_16.getIcon());
+      openStringTableButton.setMnemonic('t');
+      openStringTableButton.setEnabled(false);
+
+      final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+      saveButton.setMnemonic('s');
+
+      final ResultPane<SortableTable> resultPane;
+      if (i == 0) {
+        resultPane = new ResultPane<>(table, new JButton[] { openLookupButton, openStringTableButton, saveButton }, null);
+        this.resultPane = resultPane;
+      } else {
+        resultPane = new ResultPane<>(tableFemale, new JButton[] { openLookupButton, openStringTableButton, saveButton }, null);
+        resultPaneFemale = resultPane;
+      }
+      resultPane.setOnActionPerformed(this::actionPerformed);
+      resultPane.setOnTableSelectionChanged(this::valueChanged);
+      resultPane.setOnTableAction(this::performTableAction);
+    }
+
+    // setting up result window
+    resultsFrame = new ChildFrame("Result", true);
+    resultsFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+
+    int count = table.getRowCount();
+    if (tableFemale != null) {
+      count += tableFemale.getRowCount();
+    }
+    final JLabel countLabel = new JLabel(count + " illegal sound resrefs found", SwingConstants.CENTER);
+    countLabel.setFont(countLabel.getFont().deriveFont(countLabel.getFont().getSize2D() + 2.0f));
+
+    tabbedPane = new JTabbedPane();
+
+    // Male string table
+    tabbedPane.addTab("Male (" + table.getRowCount() + ")", resultPane);
+
+    // Female string table
+    if (tableFemale != null) {
+      tabbedPane.addTab("Female (" + tableFemale.getRowCount() + ")", resultPaneFemale);
+    } else {
+      tabbedPane.addTab("Female", new JPanel());
+      tabbedPane.setEnabledAt(1, false);
+      tabbedPane.setToolTipTextAt(1, "Female string table not available.");
+    }
+    tabbedPane.setSelectedIndex(0);
+    tabbedPane.addChangeListener(this);
+    resultsFrame.getRootPane().setDefaultButton(getSelectedResultsPane().getButton(BUTTON_LOOKUP));
+
+    final JPanel pane = (JPanel) resultsFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(countLabel, BorderLayout.PAGE_START);
+    pane.add(tabbedPane, BorderLayout.CENTER);
+
+    resultsFrame.setPreferredSize(Misc.getScaledDimension(resultsFrame.getPreferredSize()));
+    resultsFrame.pack();
+    Center.center(resultsFrame, NearInfinity.getInstance().getBounds());
+    resultsFrame.setVisible(true);
   }
 
   @Override
@@ -192,99 +250,47 @@ public class StringSoundsChecker extends AbstractSearcher implements Runnable, A
     }
   }
 
-  private ChildFrame getResultFrame() {
-    if (resultsFrame == null) {
-      resultsFrame = new ChildFrame("Result", true);
-      resultsFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-
-      saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-      saveButton.setMnemonic('s');
-      saveButton.addActionListener(this);
-      openLookupButton = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
-      openLookupButton.setMnemonic('l');
-      openLookupButton.setEnabled(false);
-      openLookupButton.addActionListener(this);
-      openStringTableButton = new JButton("Open in String Table", Icons.ICON_OPEN_16.getIcon());
-      openStringTableButton.setMnemonic('t');
-      openStringTableButton.setEnabled(false);
-      openStringTableButton.addActionListener(this);
-      resultsFrame.getRootPane().setDefaultButton(openLookupButton);
-
-      int count = table.getRowCount();
-      if (tableFemale != null) {
-        count += tableFemale.getRowCount();
-      }
-      final JLabel countLabel = new JLabel(count + " illegal sound resrefs found", SwingConstants.CENTER);
-      countLabel.setFont(countLabel.getFont().deriveFont(countLabel.getFont().getSize2D() + 2.0f));
-
-      JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      buttonPanel.add(openLookupButton);
-      buttonPanel.add(openStringTableButton);
-      buttonPanel.add(saveButton);
-
-      tabbedPane = new JTabbedPane(SwingConstants.TOP);
-
-      // Male string table
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      tabbedPane.addTab("Male (" + table.getRowCount() + ")", scrollTable);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-      table.getSelectionModel().addListSelectionListener(this);
-
-      // Female string table
-      if (tableFemale != null) {
-        scrollTable = new JScrollPane(tableFemale);
-        scrollTable.getViewport().setBackground(tableFemale.getBackground());
-        tabbedPane.addTab("Female (" + tableFemale.getRowCount() + ")", scrollTable);
-        tableFemale.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        tableFemale.setRowHeight(tableFemale.getFontMetrics(tableFemale.getFont()).getHeight() + 1);
-        tableFemale.getSelectionModel().addListSelectionListener(this);
+  private void tableEntryOpened(boolean openInEditor) {
+    final SortableTable table = getSelectedResultsPane().getTable();
+    final StringTable.Type tableType =
+        (getSelectedResultsPane() == resultPaneFemale) ? StringTable.Type.FEMALE : StringTable.Type.MALE;
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      final StringSoundsItem item = (StringSoundsItem) table.getTableItemAt(row);
+      if (openInEditor) {
+        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(tableType, item.strref);
       } else {
-        tabbedPane.addTab("Female", new JPanel());
-        tabbedPane.setEnabledAt(1, false);
-        tabbedPane.setToolTipTextAt(1, "Female string table not available.");
+        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
       }
-      tabbedPane.setSelectedIndex(0);
-      tabbedPane.addChangeListener(this);
-
-      JPanel pane = (JPanel) resultsFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(countLabel, BorderLayout.PAGE_START);
-      pane.add(tabbedPane, BorderLayout.CENTER);
-      pane.add(buttonPanel, BorderLayout.PAGE_END);
-
-      final MouseListener listener = new MouseAdapter() {
-        @Override
-        public void mouseReleased(MouseEvent event) {
-          tableEntryOpened(event);
-        }
-      };
-      table.addMouseListener(listener);
-      if (tableFemale != null) {
-        tableFemale.addMouseListener(listener);
-      }
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultsFrame.setSize(1024, 576);
-      Center.center(resultsFrame, NearInfinity.getInstance().getBounds());
     }
-    return resultsFrame;
   }
 
-  private void tableEntryOpened(MouseEvent event) {
-    if (event.getClickCount() == 2) {
-      final SortableTable table = (SortableTable) event.getSource();
-      final StringTable.Type tableType = (table == tableFemale) ? StringTable.Type.FEMALE : StringTable.Type.MALE;
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        final StringSoundsItem item = (StringSoundsItem) table.getTableItemAt(row);
-        if (event.isAltDown()) {
-          ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(tableType, item.strref);
-        } else {
-          ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-        }
-      }
+  /** Updates controls based on the table state in the specified {@link ResultPane}. */
+  private void performTableChanged(ResultPane<SortableTable> resultPane) {
+    if (resultPane == null) {
+      return;
     }
+
+    final ListSelectionModel model = resultPane.getTable().getSelectionModel();
+    final int row = model.getMinSelectionIndex();
+    resultPane.getButton(BUTTON_LOOKUP).setEnabled(row != -1);
+    resultPane.getButton(BUTTON_TABLE).setEnabled(row != -1);
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the information provided by the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    tableEntryOpened(event != null && event.isAltDown());
+  }
+
+  /** Returns the {@link ResultPane} of the currently selected tab. */
+  private ResultPane<SortableTable> getSelectedResultsPane() {
+    if (tabbedPane == null) {
+      return resultPane;
+    }
+    return tabbedPane.getSelectedIndex() == 1 ? resultPaneFemale : resultPane;
   }
 
   // -------------------------- INNER CLASSES --------------------------

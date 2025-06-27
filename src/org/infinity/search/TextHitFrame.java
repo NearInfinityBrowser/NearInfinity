@@ -6,29 +6,24 @@ package org.infinity.search;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -37,68 +32,50 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
-final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener {
-  private final Component parent;
-  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
-  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-  private final JLabel count;
+public final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener {
+  /** Index of "Open" button */
+  private static final int BUTTON_OPEN      = 0;
+  /** Index of "Open in new window" button */
+  private static final int BUTTON_OPEN_NEW  = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
 
-  /** List of the {@link TextHit} objects. */
-  private final SortableTable table;
+  private final Component parent;
+  private final ResultPane<SortableTable> resultPane;
   private final String query;
 
-  TextHitFrame(final String query, Component parent) {
+  public TextHitFrame(final String query, Component parent) {
     super("Search Result", true);
     this.query = query;
     this.parent = parent;
     setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
-    table = new SortableTable(new String[] { "File", "Text", "Line" },
+    final SortableTable table = new SortableTable(new String[] { "File", "Text", "Line" },
         new Class<?>[] { ResourceEntry.class, String.class, Integer.class }, new Integer[] { 100, 300, 50 });
 
-    bopen.setMnemonic('o');
-    bopennew.setMnemonic('n');
-    bsave.setMnemonic('s');
-    getRootPane().setDefaultButton(bopennew);
-    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    panel.add(bopen);
-    panel.add(bopennew);
-    panel.add(bsave);
-    count = new JLabel(table.getRowCount() + " hits found", SwingConstants.CENTER);
-    count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-    JPanel pane = (JPanel) getContentPane();
-    pane.setLayout(new BorderLayout(0, 3));
-    JScrollPane scrollTable = new JScrollPane(table);
-    scrollTable.getViewport().setBackground(table.getBackground());
-    pane.add(count, BorderLayout.NORTH);
-    pane.add(scrollTable, BorderLayout.CENTER);
-    pane.add(panel, BorderLayout.SOUTH);
-    pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-    bopen.setEnabled(false);
-    bopennew.setEnabled(false);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-    table.getSelectionModel().addListSelectionListener(this);
-    final ChildFrame frame = this;
-    table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent event) {
-        if (event.getClickCount() == 2) {
-          int row = table.getSelectedRow();
-          if (row != -1) {
-            Resource res = ResourceFactory.getResource((ResourceEntry) table.getValueAt(row, 0));
-            new ViewFrame(frame, res);
-            if (res instanceof TextResource) {
-              ((TextResource) res).highlightText(((Integer) table.getValueAt(row, 2)), query);
-            }
-          }
-        }
-      }
-    });
-    bopen.addActionListener(this);
-    bopennew.addActionListener(this);
-    bsave.addActionListener(this);
+    final JButton openButton = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+    openButton.setMnemonic('o');
+    openButton.setEnabled(false);
+
+    final JButton openNewButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+    openNewButton.setMnemonic('n');
+    openNewButton.setEnabled(false);
+    getRootPane().setDefaultButton(openNewButton);
+
+    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    saveButton.setMnemonic('s');
+
+    final String title = table.getRowCount() + " hits found";
+
+    resultPane = new ResultPane<>(table, new JButton[] { openButton, openNewButton, saveButton }, title, true, true);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    final JPanel pane = (JPanel) getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
     setPreferredSize(Misc.getScaledDimension(getPreferredSize()));
     pack();
     Center.center(this, parent.getBounds());
@@ -108,36 +85,29 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bopen) {
-      int row = table.getSelectedRow();
+    if (event.getSource() == resultPane.getButton(BUTTON_OPEN)) {
+      final int row = resultPane.getTable().getSelectedRow();
       if (row != -1) {
-        ResourceEntry entry = (ResourceEntry) table.getValueAt(row, 0);
+        final ResourceEntry entry = getResourceEntryAt(row);
         if (parent instanceof ViewFrame && parent.isVisible()) {
-          Resource res = ResourceFactory.getResource(entry);
+          final Resource res = ResourceFactory.getResource(entry);
           ((ViewFrame) parent).setViewable(res);
           if (res instanceof TextResource) {
-            ((TextResource) res).highlightText(((Integer) table.getValueAt(row, 2)), query);
+            ((TextResource) res).highlightText(((Integer) resultPane.getTable().getValueAt(row, 2)), query);
           }
         } else {
           NearInfinity.getInstance().showResourceEntry(entry, () -> {
-            Viewable viewable = NearInfinity.getInstance().getViewable();
+            final Viewable viewable = NearInfinity.getInstance().getViewable();
             if (viewable instanceof TextResource) {
-              ((TextResource) viewable).highlightText(((Integer) table.getValueAt(row, 2)), query);
+              ((TextResource) viewable).highlightText(((Integer) resultPane.getTable().getValueAt(row, 2)), query);
             }
           });
         }
       }
-    } else if (event.getSource() == bopennew) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        Resource res = ResourceFactory.getResource((ResourceEntry) table.getValueAt(row, 0));
-        new ViewFrame(this, res);
-        if (res instanceof TextResource) {
-          ((TextResource) res).highlightText(((Integer) table.getValueAt(row, 2)), query);
-        }
-      }
-    } else if (event.getSource() == bsave) {
-      table.saveSearchResult(this, getFilteredQuery(query));
+    } else if (event.getSource() == resultPane.getButton(BUTTON_OPEN_NEW)) {
+      performTableAction(null);
+    } else if (event.getSource() == resultPane.getButton(BUTTON_SAVE)) {
+      resultPane.getTable().saveSearchResult(this, getFilteredQuery(query));
     }
   }
 
@@ -147,17 +117,28 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bopen.setEnabled(true);
-    bopennew.setEnabled(true);
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      resultPane.getButton(BUTTON_OPEN).setEnabled(row != -1);
+      resultPane.getButton(BUTTON_OPEN_NEW).setEnabled(row != -1);
+      if (row != -1) {
+        final ResourceEntry entry = getResourceEntryAt(row);
+        resultPane.setStatusMessage(entry.getActualPath().toString());
+      } else {
+        resultPane.setStatusMessage("");
+      }
+    }
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
 
   @Override
   public void setVisible(boolean b) {
-    table.tableComplete();
-    count.setText(table.getRowCount() + " hit(s) found");
-    if (b && table.getRowCount() == 0) {
+    resultPane.getTable().tableComplete();
+    final int rowCount = resultPane.getTable().getRowCount();
+    resultPane.setTitle(rowCount + " hit(s) found");
+    if (b && rowCount == 0) {
       JOptionPane.showMessageDialog(parent, "No hits found", "Info", JOptionPane.INFORMATION_MESSAGE);
     } else {
       super.setVisible(b);
@@ -165,7 +146,39 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
   }
 
   public void addHit(ResourceEntry entry, String line, int lineNr) {
-    table.addTableItem(new TextHit(entry, line.trim(), lineNr));
+    resultPane.getTable().addTableItem(new TextHit(entry, line.trim(), lineNr));
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the content of the resource specified in the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    final int row = resultPane.getTable().getSelectedRow();
+    if (row != -1) {
+      final Resource res = ResourceFactory.getResource(getResourceEntryAt(row));
+      new ViewFrame(this, res);
+      if (res instanceof TextResource) {
+        ((TextResource) res).highlightText(((Integer) resultPane.getTable().getValueAt(row, 2)), query);
+      }
+    }
+  }
+
+  /**
+   * Returns the {@link ResourceEntry} instance specified in the specified table row. Returns {@code null} if entry is
+   * unavailable.
+   */
+  private ResourceEntry getResourceEntryAt(int row) {
+    ResourceEntry retVal = null;
+
+    if (row >= 0 && row < resultPane.getTable().getRowCount()) {
+      final Object value = resultPane.getTable().getValueAt(row, 0);
+      if (value instanceof ResourceEntry) {
+        retVal = (ResourceEntry)value;
+      }
+    }
+
+    return retVal;
   }
 
   /** Removes regular expression quotation markers if they enclose the whole string. */

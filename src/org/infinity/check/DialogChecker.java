@@ -6,20 +6,16 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -28,11 +24,11 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -52,13 +48,19 @@ import org.infinity.util.Misc;
 /** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher
     implements Runnable, ActionListener, ListSelectionListener, ChangeListener {
+  /** Index of "Open" button */
+  private static final int BUTTON_OPEN      = 0;
+  /** Index of "Open in new window" button */
+  private static final int BUTTON_OPEN_NEW  = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
+
   private final boolean checkOnlyOverride;
 
   private ChildFrame resultFrame;
-  private JButton bopen;
-  private JButton bopennew;
-  private JButton bsave;
   private JTabbedPane tabbedPane;
+  private ResultPane<SortableTable> errorResultPane;
+  private ResultPane<SortableTable> warningResultPane;
 
   /** List of the {@link Problem} objects with compiler errors in dialog actions. */
   private SortableTable errorTable;
@@ -76,29 +78,21 @@ public final class DialogChecker extends AbstractSearcher
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    SortableTable table = errorTable;
-    if (tabbedPane.getSelectedIndex() == 1) {
-      table = warningTable;
-    }
-    if (event.getSource() == bopen) {
+    final ResultPane<SortableTable> resultPane = getSelectedResultsPane();
+    final SortableTable table = resultPane.getTable();
+
+    if (event.getSource() == resultPane.getButton(BUTTON_OPEN)) {
       int row = table.getSelectedRow();
       if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
         final SortableTable tableCapture = table;
-        NearInfinity.getInstance().showResourceEntry(resourceEntry,
+        NearInfinity.getInstance().showResourceEntry(getResourceEntryAt(table, row),
             () -> ((AbstractStruct)NearInfinity.getInstance().getViewable()).getViewer()
                 .selectEntry((String)tableCapture.getValueAt(row, 1)));
       }
-    } else if (event.getSource() == bopennew) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-        Resource resource = ResourceFactory.getResource(resourceEntry);
-        new ViewFrame(resultFrame, resource);
-        ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
-      }
-    } else if (event.getSource() == bsave) {
-      final String type = table == errorTable ? "Errors" : "Warnings";
+    } else if (event.getSource() == resultPane.getButton(BUTTON_OPEN_NEW)) {
+      performTableAction(null);
+    } else if (event.getSource() == resultPane.getButton(BUTTON_SAVE)) {
+      final String type = (table == errorTable) ? "Errors" : "Warnings";
       table.saveCheckResult(resultFrame, type + " in dialogues");
     }
   }
@@ -109,12 +103,8 @@ public final class DialogChecker extends AbstractSearcher
 
   @Override
   public void stateChanged(ChangeEvent event) {
-    if (tabbedPane.getSelectedIndex() == 0) {
-      bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    } else {
-      bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
-    }
-    bopennew.setEnabled(bopen.isEnabled());
+    performTableChanged(getSelectedResultsPane());
+    resultFrame.getRootPane().setDefaultButton(getSelectedResultsPane().getButton(BUTTON_OPEN_NEW));
   }
 
   // --------------------- End Interface ChangeListener ---------------------
@@ -123,12 +113,7 @@ public final class DialogChecker extends AbstractSearcher
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    if (tabbedPane.getSelectedIndex() == 0) {
-      bopen.setEnabled(errorTable.getSelectedRowCount() > 0);
-    } else {
-      bopen.setEnabled(warningTable.getSelectedRowCount() > 0);
-    }
-    bopennew.setEnabled(bopen.isEnabled());
+    performTableChanged(getSelectedResultsPane());
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -137,6 +122,12 @@ public final class DialogChecker extends AbstractSearcher
 
   @Override
   public void run() {
+    final Class<?>[] colClasses = { ResourceEntry.class, String.class, String.class, Integer.class };
+    errorTable = new SortableTable(new String[] { "Dialogue", "Field", "Error message", "Line" }, colClasses,
+        new Integer[] { 50, 100, 350, 10 });
+    warningTable = new SortableTable(new String[] { "Dialogue", "Field", "Warning", "Line" }, colClasses,
+        new Integer[] { 50, 100, 350, 10 });
+
     final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
@@ -145,83 +136,68 @@ public final class DialogChecker extends AbstractSearcher
         dlgFiles.removeIf(resourceEntry -> !resourceEntry.hasOverride());
       }
 
-      final Class<?>[] colClasses = { ResourceEntry.class, String.class, String.class, Integer.class };
-      errorTable = new SortableTable(new String[] { "Dialogue", "Field", "Error message", "Line" }, colClasses,
-          new Integer[] { 50, 100, 350, 10 });
-      warningTable = new SortableTable(new String[] { "Dialogue", "Field", "Warning", "Line" }, colClasses,
-          new Integer[] { 50, 100, 350, 10 });
-
       if (runSearch("Checking dialogues", dlgFiles)) {
         return;
-      }
-
-      if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found", "Info",
-                                      JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        errorTable.tableComplete();
-        warningTable.tableComplete();
-        resultFrame = new ChildFrame("Result of dialogues check", true);
-        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
-        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-        JScrollPane scrollErrorTable = new JScrollPane(errorTable);
-        scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
-        JScrollPane scrollWarningTable = new JScrollPane(warningTable);
-        scrollWarningTable.getViewport().setBackground(warningTable.getBackground());
-        tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', scrollErrorTable);
-        tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', scrollWarningTable);
-        tabbedPane.addChangeListener(this);
-        bopen.setMnemonic('o');
-        bopennew.setMnemonic('n');
-        bsave.setMnemonic('s');
-        resultFrame.getRootPane().setDefaultButton(bopennew);
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.add(bopen);
-        panel.add(bopennew);
-        panel.add(bsave);
-        JPanel pane = (JPanel) resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(tabbedPane, BorderLayout.CENTER);
-        pane.add(panel, BorderLayout.SOUTH);
-        bopen.setEnabled(false);
-        bopennew.setEnabled(false);
-        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
-        errorTable.getSelectionModel().addListSelectionListener(this);
-        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-        warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
-        warningTable.getSelectionModel().addListSelectionListener(this);
-        MouseListener listener = new MouseAdapter() {
-          @Override
-          public void mouseReleased(MouseEvent event) {
-            if (event.getClickCount() == 2) {
-              SortableTable table = (SortableTable) event.getSource();
-              int row = table.getSelectedRow();
-              if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry) table.getValueAt(row, 0);
-                Resource resource = ResourceFactory.getResource(resourceEntry);
-                new ViewFrame(resultFrame, resource);
-                ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
-              }
-            }
-          }
-        };
-        errorTable.addMouseListener(listener);
-        warningTable.addMouseListener(listener);
-        bopen.addActionListener(this);
-        bopennew.addActionListener(this);
-        bsave.addActionListener(this);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        resultFrame.setSize(700, 600);
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
       }
     } finally {
       blocker.setBlocked(false);
     }
+
+    if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    errorTable.tableComplete();
+    warningTable.tableComplete();
+
+    // setting up result panes
+    for (int i = 0; i < 2; i++) {
+      final JButton openButton = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+      openButton.setMnemonic('o');
+      openButton.setEnabled(false);
+
+      final JButton openNewButton = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+      openNewButton.setMnemonic('n');
+      openNewButton.setEnabled(false);
+
+      final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+      saveButton.setMnemonic('s');
+
+      final ResultPane<SortableTable> resultPane;
+      if (i == 0) {
+        resultPane =
+            new ResultPane<>(errorTable, new JButton[] { openButton, openNewButton, saveButton }, null, true, true);
+        errorResultPane = resultPane;
+      } else {
+        resultPane =
+            new ResultPane<>(warningTable, new JButton[] { openButton, openNewButton, saveButton }, null, true, true);
+        warningResultPane = resultPane;
+      }
+      resultPane.setOnActionPerformed(this::actionPerformed);
+      resultPane.setOnTableSelectionChanged(this::valueChanged);
+      resultPane.setOnTableAction(this::performTableAction);
+    }
+
+    // setting up result window
+    resultFrame = new ChildFrame("Result of dialogues check", true);
+    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+
+    tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', errorResultPane);
+    tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', warningResultPane);
+    tabbedPane.addChangeListener(this);
+    resultFrame.getRootPane().setDefaultButton(getSelectedResultsPane().getButton(BUTTON_OPEN_NEW));
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(tabbedPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -263,6 +239,63 @@ public final class DialogChecker extends AbstractSearcher
         warningTable.addTableItem(new Problem(entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING));
       }
     }
+  }
+
+  /** Updates controls based on the table state in the specified {@link ResultPane}. */
+  private void performTableChanged(ResultPane<SortableTable> resultsPane) {
+    if (resultsPane == null) {
+      return;
+    }
+
+    final ListSelectionModel model = resultsPane.getTable().getSelectionModel();
+    final int row = model.getMinSelectionIndex();
+    resultsPane.getButton(BUTTON_OPEN).setEnabled(row != -1);
+    resultsPane.getButton(BUTTON_OPEN_NEW).setEnabled(row != -1);
+    if (row != -1) {
+      ResourceEntry entry = getResourceEntryAt(resultsPane.getTable(), row);
+      resultsPane.setStatusMessage(entry.getActualPath().toString());
+    } else {
+      resultsPane.setStatusMessage("");
+    }
+  }
+
+  /**
+   * Performs the default action on the selected results table as if the user double-clicked on a table row which opens
+   * a new child window with the content of the resource specified in the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    final SortableTable table = getSelectedResultsPane().getTable();
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      final Resource resource = ResourceFactory.getResource(getResourceEntryAt(table, row));
+      new ViewFrame(resultFrame, resource);
+      ((AbstractStruct) resource).getViewer().selectEntry((String) table.getValueAt(row, 1));
+    }
+  }
+
+  /**
+   * Returns the {@link ResourceEntry} instance specified in the specified table row. Returns {@code null} if entry is
+   * unavailable.
+   */
+  private ResourceEntry getResourceEntryAt(SortableTable table, int row) {
+    ResourceEntry retVal = null;
+
+    if (table != null && row >= 0 && row < table.getRowCount()) {
+      final Object value = table.getValueAt(row, 0);
+      if (value instanceof ResourceEntry) {
+        retVal = (ResourceEntry)value;
+      }
+    }
+
+    return retVal;
+  }
+
+  /** Returns the {@link ResultPane} of the currently selected tab. */
+  private ResultPane<SortableTable> getSelectedResultsPane() {
+    if (tabbedPane == null) {
+      return errorResultPane;
+    }
+    return tabbedPane.getSelectedIndex() == 1 ? warningResultPane : errorResultPane;
   }
 
   // -------------------------- INNER CLASSES --------------------------

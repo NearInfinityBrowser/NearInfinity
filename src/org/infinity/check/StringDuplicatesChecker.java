@@ -6,33 +6,31 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.StringEditor;
 import org.infinity.gui.StringLookup;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.FileResourceEntry;
@@ -43,13 +41,16 @@ import org.infinity.util.StringTable;
 
 public class StringDuplicatesChecker extends AbstractSearcher
     implements Runnable, ListSelectionListener, ActionListener {
-  private ChildFrame resultFrame;
-  private SortableTable table;
-  private StringSet stringSet;
+  /** Index of "Open in StringRef Lookup" button */
+  private static final int BUTTON_LOOKUP    = 0;
+  /** Index of "Open in String Table" button */
+  private static final int BUTTON_TABLE     = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
 
-  private JButton saveButton;
-  private JButton openLookupButton;
-  private JButton openStringTableButton;
+  private ChildFrame resultFrame;
+  private ResultPane<SortableTable> resultPane;
+  private StringSet stringSet;
 
   public StringDuplicatesChecker(Component parent) {
     super(CHECK_MULTI_TYPE_FORMAT, parent);
@@ -60,20 +61,12 @@ public class StringDuplicatesChecker extends AbstractSearcher
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == openLookupButton) {
-      final int row = table.getSelectedRow();
-      if (row != -1) {
-        final DuplicateStringTableItem item = (DuplicateStringTableItem) table.getTableItemAt(row);
-        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-      }
-    } else if (e.getSource() == openStringTableButton) {
-      final int row = table.getSelectedRow();
-      if (row != -1) {
-        final DuplicateStringTableItem item = (DuplicateStringTableItem) table.getTableItemAt(row);
-        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(item.strref);
-      }
-    } else if (e.getSource() == saveButton) {
-      table.saveCheckResult(resultFrame, "Duplicate game strings");
+    if (e.getSource() == resultPane.getButton(BUTTON_LOOKUP)) {
+      tableEntryOpened(false);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_TABLE)) {
+      tableEntryOpened(true);
+    } else if (e.getSource() == resultPane.getButton(BUTTON_SAVE)) {
+      resultPane.getTable().saveCheckResult(resultFrame, "Duplicate game strings");
     }
   }
 
@@ -82,10 +75,13 @@ public class StringDuplicatesChecker extends AbstractSearcher
   // --------------------- Begin Interface ListSelectionListener ---------------------
 
   @Override
-  public void valueChanged(ListSelectionEvent e) {
-    final int row = table.getSelectedRow();
-    openLookupButton.setEnabled(row != -1);
-    openStringTableButton.setEnabled(row != -1);
+  public void valueChanged(ListSelectionEvent event) {
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      resultPane.getButton(BUTTON_LOOKUP).setEnabled(row != -1);
+      resultPane.getButton(BUTTON_TABLE).setEnabled(row != -1);
+    }
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -104,25 +100,59 @@ public class StringDuplicatesChecker extends AbstractSearcher
       if (runSearch("Checking strings", files)) {
         return;
       }
-
-      if (stringSet.size() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No duplicate strings found.", "Info",
-            JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table = new SortableTable(new String[] { "Group", "StringRef", "String", "Sound", "Flags" },
-            new Class<?>[] { Integer.class, Integer.class, String.class, String.class, Integer.class },
-            new Integer[] { 25, 25, 600, 50, 25 });
-        List<List<Integer>> list = stringSet.toList();
-        for (int i = 0, size = list.size(); i < size; i++) {
-          for (final Integer strref : list.get(i)) {
-            table.addTableItem(new DuplicateStringTableItem(strref, i + 1));
-          }
-        }
-        getResultFrame().setVisible(true);
-      }
     } finally {
       blocker.setBlocked(false);
     }
+
+    if (stringSet.size() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No duplicate strings found.", "Info",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    final SortableTable table = new SortableTable(new String[] { "Group", "StringRef", "String", "Sound", "Flags" },
+        new Class<?>[] { Integer.class, Integer.class, String.class, String.class, Integer.class },
+        new Integer[] { 25, 25, 600, 50, 25 });
+
+    final List<List<Integer>> list = stringSet.toList();
+    for (int i = 0, size = list.size(); i < size; i++) {
+      for (final Integer strref : list.get(i)) {
+        table.addTableItem(new DuplicateStringTableItem(strref, i + 1));
+      }
+    }
+
+    table.tableComplete();
+
+    final JButton openLookupButton = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
+    openLookupButton.setMnemonic('l');
+    openLookupButton.setEnabled(false);
+
+    final JButton openStringTableButton = new JButton("Open in String Table", Icons.ICON_OPEN_16.getIcon());
+    openStringTableButton.setMnemonic('t');
+    openStringTableButton.setEnabled(false);
+
+    final JButton saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    saveButton.setMnemonic('s');
+
+    final String title = table.getRowCount() + " duplicate(s) in " + stringSet.size() + " string(s) found";
+
+    resultPane = new ResultPane<>(table, new JButton[] { openLookupButton, openStringTableButton, saveButton }, title);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    resultFrame = new ChildFrame("Result", true);
+    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+    resultFrame.getRootPane().setDefaultButton(openLookupButton);
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -141,73 +171,24 @@ public class StringDuplicatesChecker extends AbstractSearcher
     }
   }
 
-  private ChildFrame getResultFrame() {
-    if (resultFrame == null) {
-      table.tableComplete();
-      resultFrame = new ChildFrame("Result", true);
-      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-      openLookupButton = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
-      openLookupButton.setMnemonic('l');
-      openLookupButton.setEnabled(false);
-      openLookupButton.addActionListener(this);
-      openStringTableButton = new JButton("Open in String Table", Icons.ICON_OPEN_16.getIcon());
-      openStringTableButton.setMnemonic('t');
-      openStringTableButton.setEnabled(false);
-      openStringTableButton.addActionListener(this);
-      saveButton = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
-      saveButton.setMnemonic('s');
-      saveButton.addActionListener(this);
-
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      resultFrame.getRootPane().setDefaultButton(openLookupButton);
-
-      JLabel countLabel = new JLabel(table.getRowCount() + " duplicate(s) in " + stringSet.size() + " string(s) found",
-          SwingConstants.CENTER);
-      countLabel.setFont(countLabel.getFont().deriveFont(countLabel.getFont().getSize2D() + 2.0f));
-
-      JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      buttonPanel.add(openLookupButton);
-      buttonPanel.add(openStringTableButton);
-      buttonPanel.add(saveButton);
-
-      JPanel pane = (JPanel) resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(countLabel, BorderLayout.PAGE_START);
-      pane.add(scrollTable, BorderLayout.CENTER);
-      pane.add(buttonPanel, BorderLayout.PAGE_END);
-
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-      table.getSelectionModel().addListSelectionListener(this);
-
-      final MouseListener listener = new MouseAdapter() {
-        @Override
-        public void mouseReleased(MouseEvent event) {
-          tableEntryOpened(event);
-        }
-      };
-      table.addMouseListener(listener);
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultFrame.setSize(1024, 576);
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-    }
-    return resultFrame;
-  }
-
-  private void tableEntryOpened(MouseEvent event) {
-    if (event.getClickCount() == 2) {
-      final SortableTable table = (SortableTable) event.getSource();
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        final DuplicateStringTableItem item = (DuplicateStringTableItem) table.getTableItemAt(row);
-        if (event.isAltDown()) {
-          ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(item.strref);
-        } else {
-          ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
-        }
+  private void tableEntryOpened(boolean openInEditor) {
+    final int row = resultPane.getTable().getSelectedRow();
+    if (row != -1) {
+      final DuplicateStringTableItem item = (DuplicateStringTableItem) resultPane.getTable().getTableItemAt(row);
+      if (openInEditor) {
+        ChildFrame.show(StringEditor.class, StringEditor::new).showEntry(item.strref);
+      } else {
+        ChildFrame.show(StringLookup.class, StringLookup::new).hitFound(item.strref);
       }
     }
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the information provided by the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    tableEntryOpened(event != null && event.isAltDown());
   }
 
   // -------------------------- INNER CLASSES --------------------------

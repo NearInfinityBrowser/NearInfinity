@@ -5,22 +5,17 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -34,10 +29,11 @@ import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.ResultPane;
 import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
-import org.infinity.gui.menu.BrowserMenuBar;
+import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
@@ -59,6 +55,13 @@ import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public final class StructChecker extends AbstractChecker implements ListSelectionListener {
+  /** Index of "Open" button */
+  private static final int BUTTON_OPEN      = 0;
+  /** Index of "Open in new window" button */
+  private static final int BUTTON_OPEN_NEW  = 1;
+  /** Index of "Save" button */
+  private static final int BUTTON_SAVE      = 2;
+
   private static final String[] FILETYPES = { "ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM", "PRO", "SPL",
                                               "STO", "VEF", "VVC", "WED", "WMP" };
 
@@ -82,37 +85,25 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     FILE_INFO.put("WMP", new StructInfo("WMAP", new String[] { "V1.0" }));
   }
 
-  private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
-  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
-  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
-  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+  private ChildFrame resultFrame;
+  private ResultPane<SortableTable> resultPane;
 
   /** List of the {@link Corruption} objects. */
-  private final SortableTable table;
+  private SortableTable table;
 
   public StructChecker() {
     super("Find Corrupted Files", FILETYPES);
-
-    table = new SortableTable(new String[] { "File", "Offset", "Error message" },
-        new Class<?>[] { ResourceEntry.class, String.class, String.class }, // TODO: replace "Offset" by Integer
-        new Integer[] { 50, 50, 400 });
   }
 
   // --------------------- Begin Interface ActionListener ---------------------
 
   @Override
   public void actionPerformed(ActionEvent event) {
-    if (event.getSource() == bopen) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        showInViewer((Corruption) table.getTableItemAt(row), false);
-      }
-    } else if (event.getSource() == bopennew) {
-      int row = table.getSelectedRow();
-      if (row != -1) {
-        showInViewer((Corruption) table.getTableItemAt(row), true);
-      }
-    } else if (event.getSource() == bsave) {
+    if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_OPEN)) {
+      tableEntryOpened(false);
+    } else if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_OPEN_NEW)) {
+      tableEntryOpened(true);
+    } else if (resultPane != null && event.getSource() == resultPane.getButton(BUTTON_SAVE)) {
       table.saveCheckResult(resultFrame, "Corrupted files");
     } else {
       super.actionPerformed(event);
@@ -125,8 +116,18 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
   @Override
   public void valueChanged(ListSelectionEvent event) {
-    bopen.setEnabled(true);
-    bopennew.setEnabled(true);
+    if (event.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)event.getSource();
+      final int row = model.getMinSelectionIndex();
+      resultPane.getButton(BUTTON_OPEN).setEnabled(row != -1);
+      resultPane.getButton(BUTTON_OPEN_NEW).setEnabled(row != -1);
+      if (row != -1) {
+        ResourceEntry entry = getResourceEntryAt(row);
+        resultPane.setStatusMessage(entry.getActualPath().toString());
+      } else {
+        resultPane.setStatusMessage("");
+      }
+    }
   }
 
   // --------------------- End Interface ListSelectionListener ---------------------
@@ -135,58 +136,61 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
   @Override
   public void run() {
-    if (runCheck(getFiles())) {
-      resultFrame.close();
-      return;
+    table = new SortableTable(new String[] { "File", "Offset", "Error message" },
+        new Class<?>[] { ResourceEntry.class, String.class, String.class }, // TODO: replace "Offset" by Integer
+        new Integer[] { 50, 50, 500 });
+
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    blocker.setBlocked(true);
+    try {
+      if (runCheck(getFiles())) {
+        if (resultFrame != null) {
+          resultFrame.close();
+        }
+        return;
+      }
+    } finally {
+      blocker.setBlocked(false);
     }
 
     if (table.getRowCount() == 0) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found", "Info",
           JOptionPane.INFORMATION_MESSAGE);
-    } else {
-      table.tableComplete();
-      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
-      JLabel count = new JLabel(table.getRowCount() + " error(s) found", SwingConstants.CENTER);
-      count.setFont(count.getFont().deriveFont(count.getFont().getSize() + 2.0f));
-      bopen.setMnemonic('o');
-      bopennew.setMnemonic('n');
-      bsave.setMnemonic('s');
-      resultFrame.getRootPane().setDefaultButton(bopennew);
-      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-      panel.add(bopen);
-      panel.add(bopennew);
-      panel.add(bsave);
-      JScrollPane scrollTable = new JScrollPane(table);
-      scrollTable.getViewport().setBackground(table.getBackground());
-      JPanel pane = (JPanel) resultFrame.getContentPane();
-      pane.setLayout(new BorderLayout(0, 3));
-      pane.add(count, BorderLayout.NORTH);
-      pane.add(scrollTable, BorderLayout.CENTER);
-      pane.add(panel, BorderLayout.SOUTH);
-      bopen.setEnabled(false);
-      bopennew.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getOptions().getScriptFont()));
-      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-      table.getSelectionModel().addListSelectionListener(this);
-      table.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseReleased(MouseEvent event) {
-          if (event.getClickCount() == 2) {
-            final int row = table.getSelectedRow();
-            if (row != -1) {
-              showInViewer((Corruption) table.getTableItemAt(row), true);
-            }
-          }
-        }
-      });
-      bopen.addActionListener(this);
-      bopennew.addActionListener(this);
-      bsave.addActionListener(this);
-      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      resultFrame.setSize(700, 600);
-      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-      resultFrame.setVisible(true);
+      return;
     }
+
+    table.tableComplete();
+
+    final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+    bopen.setMnemonic('o');
+    bopen.setEnabled(false);
+
+    final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+    bopennew.setMnemonic('n');
+    bopennew.setEnabled(false);
+
+    final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
+    bsave.setMnemonic('s');
+
+    final String title = table.getRowCount() + " error(s) found";
+
+    resultPane = new ResultPane<>(table, new JButton[] { bopen, bopennew, bsave }, title, true, true);
+    resultPane.setOnActionPerformed(this::actionPerformed);
+    resultPane.setOnTableSelectionChanged(this::valueChanged);
+    resultPane.setOnTableAction(this::performTableAction);
+
+    resultFrame = new ChildFrame("Corrupted files found", true);
+    resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+    resultFrame.getRootPane().setDefaultButton(bopennew);
+
+    final JPanel pane = (JPanel) resultFrame.getContentPane();
+    pane.setLayout(new BorderLayout());
+    pane.add(resultPane, BorderLayout.CENTER);
+
+    resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+    resultFrame.pack();
+    Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+    resultFrame.setVisible(true);
   }
 
   // --------------------- End Interface Runnable ---------------------
@@ -527,6 +531,42 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         });
       }
     }
+  }
+
+  /**
+   * Opens the currently selected table row entry and selects the relevant data. {@code inNewWindow} indicates whether
+   * the entry should be opened in a new child window or the main view of the Near Infinity instance.
+   */
+  private void tableEntryOpened(boolean inNewWindow) {
+    final int row = table.getSelectedRow();
+    if (row != -1) {
+      showInViewer((Corruption) table.getTableItemAt(row), inNewWindow);
+    }
+  }
+
+  /**
+   * Performs the default action on the results table as if the user double-clicked on a table row which opens a new
+   * child window with the content of the resource specified in the selected table row.
+   */
+  private void performTableAction(MouseEvent event) {
+    tableEntryOpened(event == null || !event.isAltDown());
+  }
+
+  /**
+   * Returns the {@link ResourceEntry} instance specified in the specified table row. Returns {@code null} if entry is
+   * unavailable.
+   */
+  private ResourceEntry getResourceEntryAt(int row) {
+    ResourceEntry retVal = null;
+
+    if (row >= 0 && row < table.getRowCount()) {
+      final Object value = table.getValueAt(row, 0);
+      if (value instanceof ResourceEntry) {
+        retVal = (ResourceEntry)value;
+      }
+    }
+
+    return retVal;
   }
 
   // -------------------------- INNER CLASSES --------------------------

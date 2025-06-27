@@ -17,15 +17,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.menu.BrowserMenuBar;
 
-public final class StatusBar extends JPanel implements CaretListener, ActionListener {
+public final class StatusBar extends JPanel implements CaretListener, ActionListener, ListSelectionListener {
   private final JLabel messageLabel = new JLabel();
   private final JLabel cursorLabel = new JLabel();
   private final JProgressBar memoryProgress = new JProgressBar(JProgressBar.HORIZONTAL);
@@ -88,14 +91,36 @@ public final class StatusBar extends JPanel implements CaretListener, ActionList
       int position = event.getDot();
       try {
         int linenr = source.getLineOfOffset(position);
-        cursorLabel.setText(String.format(" %d:%d", linenr + 1, 1 + position - source.getLineStartOffset(linenr)));
+        setCursorText(String.format("%d:%d", linenr + 1, 1 + position - source.getLineStartOffset(linenr)));
       } catch (BadLocationException e) {
-        cursorLabel.setText("");
+        setCursorText("");
       }
     }
   }
 
   // --------------------- End Interface CaretListener ---------------------
+
+  // --------------------- Begin Interface ListSelectionListener ---------------------
+
+  @Override
+  public void valueChanged(ListSelectionEvent e) {
+    if (e.getSource() instanceof ListSelectionModel) {
+      final ListSelectionModel model = (ListSelectionModel)e.getSource();
+      int minRow = model.getMinSelectionIndex();
+      int maxRow = model.getMaxSelectionIndex();
+      if (minRow >= 0) {
+        if (minRow == maxRow) {
+          setCursorText("Row: " + (minRow + 1));
+        } else {
+          setCursorText(String.format("Rows: %d-%d", minRow + 1, maxRow + 1));
+        }
+      } else {
+        setCursorText("");
+      }
+    }
+  }
+
+  // --------------------- End Interface ListSelectionListener ---------------------
 
   // --------------------- Begin Interface ActionListener ---------------------
 
@@ -123,7 +148,7 @@ public final class StatusBar extends JPanel implements CaretListener, ActionList
 
   public void setMessage(String msg) {
     messageLabel.setText(' ' + msg);
-    cursorLabel.setText("");
+    cursorLabel.setText("");    // XXX: is this really necessary?
   }
 
   public String getMessage() {
