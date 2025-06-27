@@ -5,6 +5,7 @@
 package org.infinity.util;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -327,9 +328,9 @@ public class Weidu {
       resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
       resultFrame.getRootPane().setDefaultButton(openButton);
 
-      final String[] columns = { "Index", "Tp2 file", "Language id", "Component id", "Component name", "Comment" };
+      final String[] columns = { "Order", "Tp2 file", "Language id", "Component id", "Component name", "Comment" };
       final Class<?>[] classes = { DataNumber.class, String.class, Integer.class, Integer.class, String.class, String.class };
-      final Integer[] columnWidths = { 75, 250, 75, 75, 350, 150 };
+      final Integer[] columnWidths = { 50, 300, 50, 50, 500, 150 };
       final SortableTable table = new SortableTable(columns, classes, columnWidths);
       for (final ChangeLogEntry changeLogEntry : resultList) {
         table.addTableItem(new ChangeLogTableItem(changeLogEntry));
@@ -386,8 +387,18 @@ public class Weidu {
       contentPane.add(scrollTable, BorderLayout.CENTER);
       contentPane.add(buttonPanel, BorderLayout.SOUTH);
       contentPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-      final int height = Math.max(400, Math.min(1000, 100 + table.getRowHeight() * table.getRowCount()));
-      resultFrame.setSize(1000, height);
+
+      // calculating optimal display size of the result window
+      final Dimension screenSize = Misc.getDisplaySize(NearInfinity.getInstance());
+      final Dimension defSize = new Dimension(resultFrame.getPreferredSize());
+      final int defWidth = defSize.width * 5 / 2;
+      final int defHeight = defSize.height - scrollTable.getPreferredSize().height + (table.getRowHeight() * table.getRowCount());
+      defSize.width = Math.max(400, Math.min(screenSize.width, defWidth));
+      defSize.height = Math.max(200, Math.min(screenSize.height * 3 / 4, defHeight));
+      resultFrame.setPreferredSize(defSize);
+
+      resultFrame.setPreferredSize(Misc.getScaledDimension(resultFrame.getPreferredSize()));
+      resultFrame.pack();
       Center.center(resultFrame, NearInfinity.getInstance().getBounds());
       resultFrame.setVisible(true);
     } catch (Exception e) {

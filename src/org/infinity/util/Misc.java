@@ -5,10 +5,14 @@
 package org.infinity.util;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -474,6 +478,44 @@ public class Misc {
   public static int getScaledValue(int value) {
     int scale = (NearInfinity.getInstance() != null) ? AppOption.GLOBAL_FONT_SIZE.getIntValue() : 100;
     return value * scale / 100;
+  }
+
+  /**
+   * Returns the display size of the default sceen.
+   *
+   * @return {@link Dimension} containing the display width and height, in pixels.
+   */
+  public static Dimension getDisplaySize() {
+    final DisplayMode mode = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
+    return new Dimension(mode.getWidth(), mode.getHeight());
+  }
+
+  /**
+   * Returns the display size of the screen that displays the specified UI component.
+   *
+   * @param c The {@link Component} object. Can be {@code null}.
+   * @return {@link Dimension} containing the display width and height of the screen that displays the given component.
+   *         Falls back to the screen of the main application window or default screen if unavailable.
+   */
+  public static Dimension getDisplaySize(Component c) {
+    Dimension retVal = null;
+
+    if (c != null) {
+      GraphicsConfiguration gc = c.getGraphicsConfiguration();
+      if (gc == null && NearInfinity.getInstance() != null) {
+        gc = NearInfinity.getInstance().getGraphicsConfiguration();
+      }
+      if (gc != null) {
+        final DisplayMode mode = gc.getDevice().getDisplayMode();
+        retVal = new Dimension(mode.getWidth(), mode.getHeight());
+      }
+    }
+
+    if (retVal == null) {
+      retVal = getDisplaySize();
+    }
+
+    return retVal;
   }
 
   /**
