@@ -16,7 +16,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -34,6 +37,7 @@ import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EventObject;
@@ -87,6 +91,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
@@ -121,6 +126,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.util.Logger;
+import org.infinity.util.StructClipboard;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -1487,13 +1493,22 @@ public class AreaViewer extends ChildFrame {
 
   /** Creates and displays a popup menu containing the items located at the specified location. */
   private boolean updateItemPopup(Point canvasCoords) {
-    final int MaxLen = 32; // max. length of a menuitem text
+    final int MaxLen = 40; // max. length of a menuitem text
 
     if (layerManager != null) {
       // preparing menu items
       final List<JMenuItem> menuItems = new ArrayList<>();
-      Point itemLocation = new Point();
+      final Point itemLocation = new Point();
+      int staticItemsCount = 0;
       pmItems.removeAll();
+
+      // static menu items
+      final String label = "Copy map position to clipboard: " + canvasCoords.x + "," + canvasCoords.y;
+      final DataMenuItem dmiPosition = new DataMenuItem(label, Icons.ICON_COPY_16.getIcon(),
+          MapPosition.getInstance().setPosition(canvasCoords.x, canvasCoords.y));
+      dmiPosition.addActionListener(getListeners());
+      menuItems.add(dmiPosition);
+      staticItemsCount++;
 
       // for each active layer...
       for (final LayerStackingType stacking : Settings.LIST_LAYER_ORDER) {
@@ -1571,8 +1586,11 @@ public class AreaViewer extends ChildFrame {
 
       // updating context menu with the prepared item list
       if (!menuItems.isEmpty()) {
-        for (final JMenuItem item : menuItems) {
-          pmItems.add(item);
+        for (int i = 0, count = menuItems.size(); i < count; i++) {
+          if (i == staticItemsCount) {
+            pmItems.addSeparator();
+          }
+          pmItems.add(menuItems.get(i));
         }
       }
       return !menuItems.isEmpty();
@@ -2605,9 +2623,19 @@ public class AreaViewer extends ChildFrame {
         AbstractLayerItem item = (AbstractLayerItem) event.getSource();
         showTable(item);
       } else if (event.getSource() instanceof DataMenuItem) {
-        DataMenuItem lmi = (DataMenuItem) event.getSource();
-        AbstractLayerItem item = (AbstractLayerItem) lmi.getData();
-        showTable(item);
+        final DataMenuItem lmi = (DataMenuItem) event.getSource();
+        if (lmi.getData() instanceof MapPosition) {
+          // copying current map position to the clipboard
+          final MapPosition mp = (MapPosition) lmi.getData();
+          if (!mp.copyToClipboard(true, true)) {
+            JOptionPane.showMessageDialog(AreaViewer.this,
+                "Could not copy current map coordinates to the clipboard.", "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        } else if (lmi.getData() instanceof AbstractLayerItem) {
+          // opening selected layer item
+          final AbstractLayerItem item = (AbstractLayerItem) lmi.getData();
+          showTable(item);
+        }
       } else if (event.getSource() == tbAre) {
         showTable(map.getAreItem());
       } else if (event.getSource() == tbWed) {
@@ -3448,6 +3476,87 @@ public class AreaViewer extends ChildFrame {
     public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
         boolean leaf, int row) {
       return renderer.getTreeCellRendererComponent(tree, value, isSelected, expanded, leaf, row, true);
+    }
+  }
+
+  /** Creates an {@link AbstractStruct} instance and initializes it with the specified x and y coordinates. */
+  private static class MapPosition extends AbstractStruct {
+    private static final String POSITION   = "Map Position";
+    private static final String POSITION_X = "X";
+    private static final String POSITION_Y = "Y";
+
+    private static MapPosition instance;
+
+    /** Returns the singleton {@code MapPosition} instance. */
+    public static MapPosition getInstance() {
+      if (instance == null) {
+        try {
+          instance = new MapPosition(0, 0);
+        } catch (Exception e) {
+          Logger.error(e);
+        }
+      }
+      return instance;
+    }
+
+    private MapPosition(int x, int y) throws Exception {
+      super(null, POSITION, getBufferData(x, y), 0, 2);
+    }
+
+    @Override
+    public int read(ByteBuffer buffer, int offset) throws Exception {
+      addField(new DecNumber(buffer, offset, 2, POSITION_X));
+      addField(new DecNumber(buffer, offset + 2, 2, POSITION_Y));
+      return offset + 4;
+    }
+
+    /** Returns the current value of the x coordinate. */
+    public int getX() {
+      return ((IsNumeric)getAttribute(POSITION_X)).getValue();
+    }
+
+    /** Returns the current value of the y coordinate. */
+    public int getY() {
+      return ((IsNumeric)getAttribute(POSITION_Y)).getValue();
+    }
+
+    /** Sets the new x and y coordinates to the structure and returns the current {@code MapPosition} instance. */
+    public MapPosition setPosition(int x, int y) {
+      ((DecNumber)getAttribute(POSITION_X)).setValue(x);
+      ((DecNumber)getAttribute(POSITION_Y)).setValue(y);
+      return this;
+    }
+
+    /**
+     * Copies the current map position to the clipboard.
+     *
+     * @param internal Indicates whether to copy the position to the internal {@link StructClipboard} instance.
+     * @param global   Indicates whether to copy the position to the clipboard of the system as a formatted string.
+     * @return {@code true} if the operation succeeded, {@code false} otherwise.
+     */
+    public boolean copyToClipboard(boolean internal, boolean global) {
+      try {
+        if (global) {
+          final String s = getX() + "," + getY();
+          final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+          clipboard.setContents(new StringSelection(s), null);
+        }
+        if (internal) {
+          StructClipboard.getInstance().copyValue(this, 0, 1, false);
+        }
+        return true;
+      } catch (Exception e) {
+        Logger.warn(e);
+      }
+      return false;
+    }
+
+    /** Initializes the internal byte buffer with the specified coordinates. */
+    private static ByteBuffer getBufferData(int x, int y) {
+      final ByteBuffer bb = StreamUtils.getByteBuffer(4);
+      bb.putShort(0, (short)x);
+      bb.putShort(2, (short)y);
+      return bb;
     }
   }
 }

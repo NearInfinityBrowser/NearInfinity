@@ -35,6 +35,9 @@ public final class StructClipboard {
   private Class<? extends StructEntry> contentsClass;
   private boolean hasValues = true;
 
+  // Indicates whether a strict base structure type check is performed before a "paste value" operation is allowed
+  private boolean strictBaseType = true;
+
   public static synchronized StructClipboard getInstance() {
     if (clip == null) {
       clip = new StructClipboard();
@@ -93,7 +96,11 @@ public final class StructClipboard {
   }
 
   public void copyValue(AbstractStruct struct, int firstIndex, int lastIndex) {
-    copy(struct, firstIndex, lastIndex, true);
+    copyValue(struct, firstIndex, lastIndex, true);
+  }
+
+  public void copyValue(AbstractStruct struct, int firstIndex, int lastIndex, boolean typeCheck) {
+    copy(struct, firstIndex, lastIndex, true, typeCheck);
     fireStateChanged();
   }
 
@@ -110,7 +117,7 @@ public final class StructClipboard {
       return CLIPBOARD_EMPTY;
     }
     if (hasValues) {
-      if (struct.getClass().equals(contentsClass)) {
+      if (!strictBaseType || struct.getClass().equals(contentsClass)) {
         return CLIPBOARD_VALUES;
       } else {
         return CLIPBOARD_EMPTY;
@@ -212,9 +219,14 @@ public final class StructClipboard {
   }
 
   private void copy(AbstractStruct struct, int firstIndex, int lastIndex, boolean hasValues) {
+    copy(struct, firstIndex, lastIndex, hasValues, true);
+  }
+
+  private void copy(AbstractStruct struct, int firstIndex, int lastIndex, boolean hasValues, boolean checkBaseType) {
     this.contents.clear();
     this.contentsClass = struct.getClass();
     this.hasValues = hasValues;
+    this.strictBaseType = checkBaseType;
     try {
       for (final StructEntry entry : struct.getFields().subList(firstIndex, lastIndex + 1)) {
         contents.add(entry.clone());
