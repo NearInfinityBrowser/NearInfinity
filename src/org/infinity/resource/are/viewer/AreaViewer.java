@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -43,8 +44,11 @@ import java.util.Locale;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -668,12 +672,14 @@ public class AreaViewer extends ChildFrame {
     toolBar.addSeparator(dimSeparator);
 
     tbSettings = new JButton(ViewerIcons.ICON_BTN_SETTINGS.getIcon());
-    tbSettings.setToolTipText("Area viewer settings");
+    tbSettings.setToolTipText("Area viewer settings (Shortcut: Ctrl+P)");
     tbSettings.addActionListener(getListeners());
+    defineKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK), tbSettings);
     toolBar.add(tbSettings);
     tbRefresh = new JButton(ViewerIcons.ICON_BTN_REFRESH.getIcon());
-    tbRefresh.setToolTipText("Update map");
+    tbRefresh.setToolTipText("Update map (Shortcut: F5)");
     tbRefresh.addActionListener(getListeners());
+    defineKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), tbRefresh);
     toolBar.add(tbRefresh);
 
     toolBar.addSeparator(dimSeparator);
@@ -740,6 +746,30 @@ public class AreaViewer extends ChildFrame {
     updateWindowTitle();
     setVisible(true);
     initialized = true;
+  }
+
+  /**
+   * Sets up a keyboard shortcut for the current area viewer instance.
+   *
+   * @param keyStroke A {@link KeyStroke} object that defines the shortcut keys.
+   * @param control   The associated UI control.
+   */
+  private void defineKeyStroke(KeyStroke keyStroke, JComponent control) {
+    if (control == null || keyStroke == null) {
+      return;
+    }
+
+    final InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    final ActionMap actionMap = getRootPane().getActionMap();
+
+    inputMap.put(keyStroke, control);
+    actionMap.put(control, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        final String cmd = (control instanceof AbstractButton) ? ((AbstractButton)control).getActionCommand() : "";
+        listeners.actionPerformed(new ActionEvent(control, ActionEvent.ACTION_PERFORMED, cmd));
+      }
+    });
   }
 
   /** Returns whether area viewer is still being initialized. */
@@ -1578,7 +1608,20 @@ public class AreaViewer extends ChildFrame {
     rcCanvas.reload(true);
     reloadAreLayers(false);
     reloadWedLayers(false);
+    updateLayerControls();
     applySettings();
+  }
+
+  /** Updates states of layer controls. */
+  private void updateLayerControls() {
+    for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
+      final LayerType layer = LayerManager.getLayerType(i);
+      final int count = layerManager.getLayerObjectCount(layer);
+      final String toolTip = (count > 0) ? layerManager.getLayerAvailability(layer) : null;
+      cbLayers[i].setToolTipText(toolTip);
+      cbLayers[i].setEnabled(count > 0);
+    }
+    treeControls.repaint();
   }
 
   /** Updates ARE-related layer items. */
