@@ -1203,10 +1203,10 @@ public class AreaViewer extends ChildFrame {
         spCanvas.validate(); // required for determining the correct viewport size
       }
       // determining zoom factor by preserving correct aspect ratio
-      Dimension viewDim = new Dimension(spCanvas.getViewport().getExtentSize());
-      Dimension mapDim = new Dimension(rcCanvas.getMapWidth(false), rcCanvas.getMapHeight(false));
-      double zoomX = (double) viewDim.width / (double) mapDim.width;
-      double zoomY = (double) viewDim.height / (double) mapDim.height;
+      final Dimension viewDim = new Dimension(spCanvas.getViewport().getExtentSize());
+      final Dimension mapDim = new Dimension(rcCanvas.getMapWidth(false), rcCanvas.getMapHeight(false));
+      final double zoomX = (double) viewDim.width / (double) mapDim.width;
+      final double zoomY = (double) viewDim.height / (double) mapDim.height;
       zoomFactor = zoomX;
       if ((int) (zoomX * mapDim.height) > viewDim.height) {
         zoomFactor = zoomY;
@@ -1233,9 +1233,9 @@ public class AreaViewer extends ChildFrame {
         rcCanvas.setZoomFactor(zoomFactor);
       }
     }
-    setViewpointCenter();
     Settings.ZoomFactor = zoomFactor;
     updateWindowTitle();
+    SwingUtilities.invokeLater(() -> setViewpointCenter());
   }
 
   /** Handles manual input of zoom factor (in percent). */
@@ -2529,14 +2529,14 @@ public class AreaViewer extends ChildFrame {
       } else if (event.getSource() == cbZoomLevel) {
         WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
-          double previousZoomFactor = Settings.ZoomFactor;
+          final double previousZoomFactor = Settings.ZoomFactor;
           try {
             setZoomFactor(Settings.ITEM_ZOOM_FACTOR[cbZoomLevel.getSelectedIndex()], previousZoomFactor);
           } catch (OutOfMemoryError e) {
             Logger.error(e);
             cbZoomLevel.hidePopup();
             WindowBlocker.blockWindow(AreaViewer.this, false);
-            String msg = "Not enough memory to set selected zoom level.\n"
+            final String msg = "Not enough memory to set selected zoom level.\n"
                 + "(Note: It is highly recommended to close and reopen the area viewer.)";
             JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
             cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(previousZoomFactor));
