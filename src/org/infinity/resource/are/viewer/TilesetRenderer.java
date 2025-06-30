@@ -461,6 +461,7 @@ public class TilesetRenderer extends RenderCanvas {
         case ViewerConstants.MAP_SEARCH:
         case ViewerConstants.MAP_HEIGHT:
         case ViewerConstants.MAP_LIGHT:
+        case ViewerConstants.MAP_EXPLORED:
           miniMap = (bmp.getImage() != null) ? bmp : null;
           miniMapType = (miniMap != null) ? mapType : ViewerConstants.MAP_NONE;
           break;
@@ -1020,6 +1021,7 @@ public class TilesetRenderer extends RenderCanvas {
         int curPixelX;
         int curPixelY = (int) Math.floor(curY);
 
+        final boolean hasAlpha = miniMap.getImage().getColorModel().hasAlpha();
         int srcAlpha = miniMapAlpha;
         int dstAlpha = 256 - srcAlpha;
         int dstOfs = 0;
@@ -1027,6 +1029,11 @@ public class TilesetRenderer extends RenderCanvas {
           curPixelX = startPixelX;
           int srcOfs = curPixelY * miniMapWidth + curPixelX;
           for (int x = 0; x < 64; x++) {
+            if (hasAlpha) {
+              // ignore global alpha and calculate on a per-pixel basis
+              srcAlpha = map[srcOfs] >>> 24;
+              dstAlpha = 256 - srcAlpha;
+            }
             // blending pixels
             int sr = (((map[srcOfs] >>> 16) & 0xff) * srcAlpha) >>> 8;
             int sg = (((map[srcOfs] >>> 8) & 0xff) * srcAlpha) >>> 8;

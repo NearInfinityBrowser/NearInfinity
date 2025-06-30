@@ -33,6 +33,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -113,18 +114,22 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
+import org.infinity.resource.are.Explored;
 import org.infinity.resource.are.RestSpawn;
 import org.infinity.resource.are.Song;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.graphics.BmpDecoder;
+import org.infinity.resource.graphics.BmpEncoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.BIFFResourceEntry;
+import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
+import org.infinity.util.ArrayUtil;
 import org.infinity.util.Logger;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.FileManager;
@@ -150,7 +155,7 @@ public class AreaViewer extends ChildFrame {
   private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];
   private final JCheckBox[] cbLayerRealActor = new JCheckBox[2];
   private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
-  private final JCheckBox[] cbMiniMaps = new JCheckBox[3];
+  private final JCheckBox[] cbMiniMaps = new JCheckBox[4];
 //  private final JToggleButton[] tbAddLayerItem = new JToggleButton[LayerManager.getLayerTypeCount()];
 
   private LayerManager layerManager;
@@ -468,14 +473,17 @@ public class AreaViewer extends ChildFrame {
     cbMiniMaps[ViewerConstants.MAP_LIGHT].addActionListener(getListeners());
     cbMiniMaps[ViewerConstants.MAP_HEIGHT] = new JCheckBox("Display height map");
     cbMiniMaps[ViewerConstants.MAP_HEIGHT].addActionListener(getListeners());
+    cbMiniMaps[ViewerConstants.MAP_EXPLORED] = new JCheckBox("Display explored regions");
+    cbMiniMaps[ViewerConstants.MAP_EXPLORED].setEnabled(map.getMiniMap(ViewerConstants.MAP_EXPLORED, false) != null);
+    cbMiniMaps[ViewerConstants.MAP_EXPLORED].addActionListener(getListeners());
 
     l = new JLabel("Mini maps");
     l.setFont(new Font(l.getFont().getFontName(), Font.BOLD, l.getFont().getSize() + 1));
     t = new DefaultMutableTreeNode(l);
     top.add(t);
-    t.add(new DefaultMutableTreeNode(cbMiniMaps[0]));
-    t.add(new DefaultMutableTreeNode(cbMiniMaps[1]));
-    t.add(new DefaultMutableTreeNode(cbMiniMaps[2]));
+    for (int i = 0; i < cbMiniMaps.length; i++) {
+      t.add(new DefaultMutableTreeNode(cbMiniMaps[i]));
+    }
 
     treeControls = new JTree(new DefaultTreeModel(top));
     treeControls.addTreeExpansionListener(getListeners());
@@ -804,6 +812,8 @@ public class AreaViewer extends ChildFrame {
     cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(Settings.MiniMap == ViewerConstants.MAP_SEARCH);
     cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(Settings.MiniMap == ViewerConstants.MAP_LIGHT);
     cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(Settings.MiniMap == ViewerConstants.MAP_HEIGHT);
+    cbMiniMaps[ViewerConstants.MAP_EXPLORED].setSelected(
+        Settings.MiniMap == ViewerConstants.MAP_EXPLORED && cbMiniMaps[ViewerConstants.MAP_EXPLORED].isEnabled());
 
     // initializing visual state of the map
     setHour(Settings.TimeOfDay);
@@ -1400,6 +1410,9 @@ public class AreaViewer extends ChildFrame {
         case ViewerConstants.MAP_HEIGHT:
           setHeightMapText(x, y, minimap);
           break;
+        case ViewerConstants.MAP_EXPLORED:
+          setFogOfWarText(mapCoords.x / 32, mapCoords.y / 32, minimap);
+          break;
         default:
           taMiniMapInfo.setText("");
       }
@@ -1489,6 +1502,32 @@ public class AreaViewer extends ChildFrame {
       }
     }
     taMiniMapInfo.setText("Height: n/a");
+  }
+
+  /** Updates fog of war information for the specified position. */
+  private void setFogOfWarText(int x, int y, GraphicsResource map) {
+    if (map == null) {
+      return;
+    }
+
+    final BmpDecoder.Info mapInfo = map.getInfo();
+    if (mapInfo == null) {
+      return;
+    }
+
+    if (x < 0 | x >= mapInfo.getWidth() || y < 0 || y >= mapInfo.getHeight()) {
+      return;
+    }
+
+    try {
+      final int alpha = map.getImage().getRGB(x, y) & 0xff000000;
+      final String text = "Explored: " + ((alpha == 0) ? "yes" : "no");
+      taMiniMapInfo.setText(text);
+      return;
+    } catch (Exception e) {
+      Logger.error(e);
+    }
+    taMiniMapInfo.setText("Explored: n/a");
   }
 
   /** Creates and displays a popup menu containing the items located at the specified location. */
@@ -1803,6 +1842,9 @@ public class AreaViewer extends ChildFrame {
     } else if (cbMiniMaps[ViewerConstants.MAP_HEIGHT].isSelected()) {
       type = ViewerConstants.MAP_HEIGHT;
       taMiniMapInfo.setVisible(true);
+    } else if (cbMiniMaps[ViewerConstants.MAP_EXPLORED].isSelected()) {
+      type = ViewerConstants.MAP_EXPLORED;
+      taMiniMapInfo.setVisible(true);
     } else {
       type = ViewerConstants.MAP_NONE;
       taMiniMapInfo.setVisible(false);
@@ -1811,6 +1853,7 @@ public class AreaViewer extends ChildFrame {
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_SEARCH]);
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_LIGHT]);
     updateTreeNode(cbMiniMaps[ViewerConstants.MAP_HEIGHT]);
+    updateTreeNode(cbMiniMaps[ViewerConstants.MAP_EXPLORED]);
     Settings.MiniMap = type;
     rcCanvas.setMiniMap(Settings.MiniMap,
         map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT));
@@ -2553,32 +2596,15 @@ public class AreaViewer extends ChildFrame {
           } finally {
             WindowBlocker.blockWindow(AreaViewer.this, false);
           }
-        } else if (cb == cbMiniMaps[ViewerConstants.MAP_SEARCH]) {
+        } else if (ArrayUtil.indexOf(cbMiniMaps, cb) >= 0) {
+          // handling minimap selections
+          final int index = ArrayUtil.indexOf(cbMiniMaps, cb);
           if (cb.isSelected()) {
-            cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
-            cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
-          }
-          WindowBlocker.blockWindow(AreaViewer.this, true);
-          try {
-            updateMiniMap();
-          } finally {
-            WindowBlocker.blockWindow(AreaViewer.this, false);
-          }
-        } else if (cb == cbMiniMaps[ViewerConstants.MAP_LIGHT]) {
-          if (cb.isSelected()) {
-            cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
-            cbMiniMaps[ViewerConstants.MAP_HEIGHT].setSelected(false);
-          }
-          WindowBlocker.blockWindow(AreaViewer.this, true);
-          try {
-            updateMiniMap();
-          } finally {
-            WindowBlocker.blockWindow(AreaViewer.this, false);
-          }
-        } else if (cb == cbMiniMaps[ViewerConstants.MAP_HEIGHT]) {
-          if (cb.isSelected()) {
-            cbMiniMaps[ViewerConstants.MAP_SEARCH].setSelected(false);
-            cbMiniMaps[ViewerConstants.MAP_LIGHT].setSelected(false);
+            for (int i = 0; i < cbMiniMaps.length; i++) {
+              if (i != index) {
+                cbMiniMaps[i].setSelected(false);
+              }
+            }
           }
           WindowBlocker.blockWindow(AreaViewer.this, true);
           try {
@@ -2987,6 +3013,7 @@ public class AreaViewer extends ChildFrame {
     private AbstractLayerItem restItem;
     private GraphicsResource mapSearch;
     private GraphicsResource mapHeight;
+    private GraphicsResource mapExplored;
 
     public Map(Window parent, AreResource are) {
       this.parent = parent;
@@ -3051,6 +3078,8 @@ public class AreaViewer extends ChildFrame {
           return mapHeight;
         case ViewerConstants.MAP_LIGHT:
           return isNight ? mapLight[1] : mapLight[0];
+        case ViewerConstants.MAP_EXPLORED:
+          return mapExplored;
         default:
           return null;
       }
@@ -3145,7 +3174,7 @@ public class AreaViewer extends ChildFrame {
     }
 
     /**
-     * Reloads the search/light/height maps associated with the area.
+     * Reloads the search/light/height maps associated with the area and generates a fog of war map if available.
      */
     public void reloadMiniMaps() {
       if (wed[ViewerConstants.AREA_DAY] != null) {
@@ -3162,6 +3191,8 @@ public class AreaViewer extends ChildFrame {
         // loading light map(s)
         mapLight[0] = loadMap(mapName + "LM.BMP", null);
         mapLight[1] = hasExtendedNight ? loadMap(mapName + "LN.BMP", mapLight[0]) : mapLight[0];
+        // generating fog of war map
+        mapExplored = generateExploredMap(are, wed[ViewerConstants.AREA_DAY]);
       }
     }
 
@@ -3207,12 +3238,68 @@ public class AreaViewer extends ChildFrame {
       return overlayTransparency;
     }
 
+    /** Attempts to load the specified graphics resource. Otherwise, falls back to the specified default resource. */
     private static GraphicsResource loadMap(String mapName, GraphicsResource def) {
       try {
         return new GraphicsResource(ResourceFactory.getResourceEntry(mapName));
       } catch (Exception e) {
         return def;
       }
+    }
+
+    /**
+     * Generates a explored map if an "explored bitmap" structure exists in the specified {@link AreResource}.
+     * Otherwise, returns {@code null}.
+     */
+    private static GraphicsResource generateExploredMap(AreResource are, WedResource wed) {
+      if (are == null || wed == null) {
+        return null;
+      }
+
+      GraphicsResource retVal = null;
+      int exploredSize = ((IsNumeric)are.getAttribute(AreResource.ARE_SIZE_EXPLORED_BITMAP)).getValue();
+      if (exploredSize > 0) {
+        final Explored explored = (Explored)are.getAttribute(AreResource.ARE_EXPLORED_BITMAP);
+        if (explored != null) {
+          final ByteBuffer data = explored.getData();
+          final int ovlOffset = ((IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS)).getValue();
+          final Overlay overlay = (Overlay)wed.getField(Overlay.class, ovlOffset);
+          final int tilesWidth = ((IsNumeric)overlay.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+          final int tilesHeight = ((IsNumeric)overlay.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+          final int extraCells =
+              (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.PST) ? 0 : 1;
+          final int cellsWidth = tilesWidth * 2;
+          final int cellsHeight = tilesHeight * 2;
+          final int cellsWidthRaw = cellsWidth + extraCells;
+
+          final BufferedImage image = ColorConvert.createCompatibleImage(cellsWidth, cellsHeight, true);
+          final int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+          final int colUnexplored = 0xff000000;
+          final int colExplored = 0;
+          for (int y = 0; y < cellsHeight; y++) {
+            for (int x = 0; x < cellsWidth; x++) {
+              final int ofs = x + y * cellsWidthRaw;
+              final int bytePos = ofs / 8;
+              final int bitPos = ofs & 7;
+              final boolean isExplored = ((data.get(bytePos) >> bitPos) & 1) != 0;
+              final int ofsPixel = x + y * cellsWidth;
+              pixels[ofsPixel] = isExplored ? colExplored : colUnexplored;
+            }
+          }
+
+          try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            BmpEncoder.writeBmp(image, os);
+            final ByteBuffer bb = ByteBuffer.wrap(os.toByteArray());
+            final BufferedResourceEntry entry =
+                new BufferedResourceEntry(bb, are.getResourceEntry().getResourceRef() + "XP.BMP");
+            retVal = new GraphicsResource(entry);
+          } catch (Exception e) {
+            Logger.warn(e);
+          }
+        }
+      }
+
+      return retVal;
     }
 
     private void init() {

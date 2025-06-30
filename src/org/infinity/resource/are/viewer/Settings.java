@@ -332,7 +332,7 @@ public class Settings {
     FrameRateOverlays = Math.min(Math.max(FrameRateOverlays, 1.0), 30.0);
     FrameRateAnimations = Math.min(Math.max(FrameRateAnimations, 1.0), 30.0);
     MiniMapAlpha = Math.min(Math.max(MiniMapAlpha, 0.0), 1.0);
-    MiniMap = Math.min(Math.max(MiniMap, ViewerConstants.MAP_NONE), ViewerConstants.MAP_HEIGHT);
+    MiniMap = Math.min(Math.max(MiniMap, ViewerConstants.MAP_NONE), ViewerConstants.MAP_EXPLORED);
 
     // validating layers z-order
     mask = 0;

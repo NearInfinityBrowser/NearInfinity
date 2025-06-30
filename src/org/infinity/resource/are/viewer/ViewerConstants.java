@@ -119,11 +119,12 @@ public final class ViewerConstants {
   public static final int AREA_DAY    = 0;
   public static final int AREA_NIGHT  = 1;
 
-  // Identifiers for specifying the search/light/height maps for the current area
-  public static final int MAP_NONE    = -1;
-  public static final int MAP_SEARCH  = 0;
-  public static final int MAP_LIGHT   = 1;
-  public static final int MAP_HEIGHT  = 2;
+  // Identifiers for specifying various minimaps for the current area
+  public static final int MAP_NONE      = -1;
+  public static final int MAP_SEARCH    = 0;
+  public static final int MAP_LIGHT     = 1;
+  public static final int MAP_HEIGHT    = 2;
+  public static final int MAP_EXPLORED  = 3;
 
   // Filtering methods for graphics objects
   public static final int FILTERING_AUTO            = 0;
