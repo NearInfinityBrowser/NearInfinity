@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,38 +121,45 @@ public class BmpDecoder {
 
   private void init(ByteBuffer buffer) throws Exception {
     Objects.requireNonNull(buffer);
+    buffer.order(ByteOrder.LITTLE_ENDIAN);
 
     image = null;
     palette = null;
     info = null;
 
     buffer.rewind();
-    try (final ByteBufferInputStream bbis = new ByteBufferInputStream(buffer)) {
-      image = ImageIO.read(bbis);
-      // extracting palette
-      if (image.getColorModel() instanceof IndexColorModel) {
-        final IndexColorModel icm = (IndexColorModel) image.getColorModel();
-        final int numColors = icm.getMapSize();
-        final int[] colors = new int[numColors];
-        icm.getRGBs(colors);
-        final ByteBuffer pb = StreamUtils.getByteBuffer(colors.length * 4);
-        for (final int color : colors) {
-          pb.putInt(color);
+
+    // Initial checks
+    final boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
+    final int bpp = isBMP ? buffer.getShort(28) : 0;
+
+    // ImageIO seems to discard alpha information from 32-bit BMP files
+    if (bpp < 32) {
+      try (final ByteBufferInputStream bbis = new ByteBufferInputStream(buffer)) {
+        image = ImageIO.read(bbis);
+        // extracting palette
+        if (image.getColorModel() instanceof IndexColorModel) {
+          final IndexColorModel icm = (IndexColorModel) image.getColorModel();
+          final int numColors = icm.getMapSize();
+          final int[] colors = new int[numColors];
+          icm.getRGBs(colors);
+          final ByteBuffer pb = StreamUtils.getByteBuffer(colors.length * 4);
+          for (final int color : colors) {
+            pb.putInt(color);
+          }
+          pb.rewind();
+          palette = new Palette(pb, 0, pb.capacity());
         }
-        pb.rewind();
-        palette = new Palette(pb, 0, pb.capacity());
+        info = new Info(image);
+      } catch (Exception e) {
+        image = null;
+        palette = null;
+        info = null;
       }
-      info = new Info(image);
-    } catch (Exception e) {
-      image = null;
-      palette = null;
-      info = null;
     }
 
     if (image == null) {
       buffer.rewind();
-      // Checking signature
-      final boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
       if (isBMP) {
         final int size = buffer.getInt(2);
         if (buffer.limit() < size) {
