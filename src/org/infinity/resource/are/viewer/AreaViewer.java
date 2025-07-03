@@ -2240,10 +2240,17 @@ public class AreaViewer extends ChildFrame {
       try {
         final VirtualMap vmap = importPins(fc.getSelectedFile());
         removeAllPins();
+        final int mapWidth = rcCanvas.getMapWidth(false);
+        final int mapHeight = rcCanvas.getMapHeight(false);
         final List<StructEntry> fields = vmap.getFields(VirtualPosition.class);
         for (final StructEntry field : fields) {
           if (field instanceof VirtualPosition) {
-            addPin((VirtualPosition)field);
+            final VirtualPosition vp = (VirtualPosition)field;
+            final int x = vp.getX();
+            final int y = vp.getY();
+            if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight) {
+              addPin((VirtualPosition)field);
+            }
           }
         }
         return TriState.TRUE;
