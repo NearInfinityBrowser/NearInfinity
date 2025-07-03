@@ -69,6 +69,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     Animations,
     MapNotes,
     SpawnPoints,
+    Pins,
   }
 
   private final EnumMap<LabelIndex, JCheckBox> labelsMap = new EnumMap<>(LabelIndex.class);
@@ -157,6 +158,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     Settings.ShowLabelRegionTargets = labelsMap.get(LabelIndex.RegionTargets).isSelected();
     Settings.ShowLabelSounds = labelsMap.get(LabelIndex.Sounds).isSelected();
     Settings.ShowLabelSpawnPoints = labelsMap.get(LabelIndex.SpawnPoints).isSelected();
+    Settings.ShowLabelPins = labelsMap.get(LabelIndex.Pins).isSelected();
 
     Settings.ShowActorFrame = cbActorFrames.getSelectedIndex();
     Settings.ShowActorSelectionCircle = cbShowActorSelectionCircle.isSelected();
@@ -212,6 +214,7 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     labelsMap.get(LabelIndex.RegionTargets).setSelected(Settings.getDefaultLabelRegionTargets());
     labelsMap.get(LabelIndex.Sounds).setSelected(Settings.getDefaultLabelSounds());
     labelsMap.get(LabelIndex.SpawnPoints).setSelected(Settings.getDefaultLabelSpawnPoints());
+    labelsMap.get(LabelIndex.Pins).setSelected(Settings.getDefaultLabelPins());
 
     cbActorFrames.setSelectedIndex(Settings.getDefaultShowActorFrame());
     cbShowActorSelectionCircle.setSelected(Settings.getDefaultActorSelectionCircle());
@@ -359,6 +362,8 @@ public class SettingsDialog extends JDialog implements ActionListener, ListSelec
     labelsMap.get(LabelIndex.Sounds).setSelected(Settings.ShowLabelSounds);
     labelsMap.put(LabelIndex.SpawnPoints, new JCheckBox("Spawn Points"));
     labelsMap.get(LabelIndex.SpawnPoints).setSelected(Settings.ShowLabelSpawnPoints);
+    labelsMap.put(LabelIndex.Pins, new JCheckBox("Pins"));
+    labelsMap.get(LabelIndex.Pins).setSelected(Settings.ShowLabelPins);
 
     // spread entries over two columns
     for (int idx = 0, len = LabelIndex.values().length; idx < len; idx++) {

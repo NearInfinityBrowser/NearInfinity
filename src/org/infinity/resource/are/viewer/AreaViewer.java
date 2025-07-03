@@ -16,10 +16,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -37,7 +34,12 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -58,6 +60,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -84,6 +87,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -92,11 +96,11 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionOffset;
+import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -111,8 +115,11 @@ import org.infinity.gui.layeritem.LayerItemEvent;
 import org.infinity.gui.layeritem.LayerItemListener;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Explored;
 import org.infinity.resource.are.RestSpawn;
@@ -126,12 +133,13 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.BufferedResourceEntry;
+import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.util.ArrayUtil;
 import org.infinity.util.Logger;
-import org.infinity.util.StructClipboard;
+import org.infinity.util.TriState;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -147,6 +155,10 @@ public class AreaViewer extends ChildFrame {
   private static final String LABEL_ANIMATE_OVERLAYS = "Animate overlays";
   private static final String LABEL_DRAW_TILE_GRID = "Show tile grid";
   private static final String LABEL_DRAW_CELL_GRID = "Show cell grid";
+
+  private static final String COMMAND_POSITION_COPY = "copy_position";
+  private static final String COMMAND_ADD_PIN       = "add_pin";
+  private static final String COMMAND_REMOVE_PIN    = "remove_pin";
 
   private final Listeners listeners;
   private final Map map;
@@ -187,6 +199,11 @@ public class AreaViewer extends ChildFrame {
   private JCheckBox cbLayerRegionTarget;
   private JCheckBox cbLayerContainerTarget;
   private JCheckBox cbLayerDoorTarget;
+  private ButtonPopupMenu bpmLayerPins;
+  private JMenuItem miLayerPinsRefresh;
+  private JMenuItem miLayerPinsClear;
+  private JMenuItem miLayerPinsImport;
+  private JMenuItem miLayerPinsExport;
   private JLabel lPosX;
   private JLabel lPosY;
   private JTextArea taMiniMapInfo;
@@ -244,7 +261,7 @@ public class AreaViewer extends ChildFrame {
     return Settings.TimeOfDay;
   }
 
-  public AreaViewer(Component parent, AreResource are) {
+  public AreaViewer(Component parent, AreResource are) throws Exception {
     super("");
     windowTitle = String.format("Area Viewer: %s", are.getName());
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
@@ -462,6 +479,26 @@ public class AreaViewer extends ChildFrame {
         cbLayerRegionTarget = new JCheckBox("Show target locations");
         cbLayerRegionTarget.addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRegionTarget);
+        t2.add(t3);
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.VIRTUAL_POSITION)) {
+        // Initializing controls for user-defined pins
+        bpmLayerPins = new ButtonPopupMenu("Operations...", ButtonPopupMenu.Align.BOTTOM);
+        bpmLayerPins.setIcon(Icons.ICON_ARROW_DOWN_15.getIcon());
+        miLayerPinsRefresh = new JMenuItem("Refresh pins", Icons.ICON_REFRESH_16.getIcon());
+        miLayerPinsRefresh.setToolTipText("Updates positions of all defined pins on the map.");
+        miLayerPinsRefresh.addActionListener(getListeners());
+        bpmLayerPins.addItem(miLayerPinsRefresh);
+        miLayerPinsClear = new JMenuItem("Clear pins", Icons.ICON_DELETE_16.getIcon());
+        miLayerPinsClear.setToolTipText("Removes all pins from the map.");
+        miLayerPinsClear.addActionListener(getListeners());
+        bpmLayerPins.addItem(miLayerPinsClear);
+        miLayerPinsImport = new JMenuItem("Load external pins...", Icons.ICON_OPEN_16.getIcon());
+        miLayerPinsImport.addActionListener(getListeners());
+        bpmLayerPins.addItem(miLayerPinsImport);
+        miLayerPinsExport = new JMenuItem("Save pins to disk...", Icons.ICON_SAVE_16.getIcon());
+        miLayerPinsExport.addActionListener(getListeners());
+        bpmLayerPins.addItem(miLayerPinsExport);
+        t3 = new DefaultMutableTreeNode(bpmLayerPins);
         t2.add(t3);
       }
     }
@@ -849,7 +886,7 @@ public class AreaViewer extends ChildFrame {
     cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
 
     // initializing layers
-    layerManager = new LayerManager(map.getAre(), getCurrentWed(), this);
+    layerManager = new LayerManager(map.getAre(), getCurrentWed(), map.getVirtualMap(), this);
     layerManager.setDoorState(Settings.DrawClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
     layerManager.setScheduleEnabled(Settings.EnableSchedules);
     layerManager.setSchedule(LayerManager.toSchedule(getHour()));
@@ -863,7 +900,9 @@ public class AreaViewer extends ChildFrame {
       if (count > 0) {
         cbLayers[i].setToolTipText(layerManager.getLayerAvailability(layer));
       }
-      cbLayers[i].setEnabled(count > 0);
+      // Pin layer is always available
+      boolean isEnabled = (count > 0) || (layer == LayerType.VIRTUAL_POSITION);
+      cbLayers[i].setEnabled(isEnabled);
       cbLayers[i].setSelected(isChecked);
       for (final LayerStackingType lst : Settings.layerToStacking(layer)) {
         updateLayerItems(lst);
@@ -901,6 +940,9 @@ public class AreaViewer extends ChildFrame {
     // Setting up region target locations
     cbLayerRegionTarget.setSelected(Settings.ShowRegionTargets);
     updateRegionTargets();
+
+    // Setting up user-defined pins
+    updatePins();
 
     // initializing background animation display
     // Disabling animated frames for performance and safety reasons
@@ -1360,10 +1402,9 @@ public class AreaViewer extends ChildFrame {
   /** Converts canvas coordinates into actual map coordinates. */
   private Point canvasToMapCoordinates(Point coords) {
     if (coords != null) {
-      coords.x = (int) (coords.x / getZoomFactor());
-      coords.y = (int) (coords.y / getZoomFactor());
+      return new Point((int) (coords.x / getZoomFactor()), (int) (coords.y / getZoomFactor()));
     }
-    return coords;
+    return null;
   }
 
   /** Updates the map coordinates pointed to by the current cursor position. */
@@ -1530,9 +1571,14 @@ public class AreaViewer extends ChildFrame {
     taMiniMapInfo.setText("Explored: n/a");
   }
 
-  /** Creates and displays a popup menu containing the items located at the specified location. */
+  /**
+   * Creates and displays a popup menu containing the items located at the specified location.
+   *
+   *  @param canvasCoords {@link Point} structure with raw canvas coordinates.
+   */
   private boolean updateItemPopup(Point canvasCoords) {
     final int MaxLen = 40; // max. length of a menuitem text
+    final Point mapCoords = canvasToMapCoordinates(canvasCoords);
 
     if (layerManager != null) {
       // preparing menu items
@@ -1542,12 +1588,29 @@ public class AreaViewer extends ChildFrame {
       pmItems.removeAll();
 
       // static menu items
-      final String label = "Copy map position to clipboard: " + canvasCoords.x + "," + canvasCoords.y;
+      final String label = "Copy map position to clipboard: " + mapCoords.x + "," + mapCoords.y;
       final DataMenuItem dmiPosition = new DataMenuItem(label, Icons.ICON_COPY_16.getIcon(),
-          MapPosition.getInstance().setPosition(canvasCoords.x, canvasCoords.y));
+          VirtualPosition.getInstance().setPosition(mapCoords.x, mapCoords.y));
+      dmiPosition.setActionCommand(COMMAND_POSITION_COPY);
       dmiPosition.addActionListener(getListeners());
       menuItems.add(dmiPosition);
       staticItemsCount++;
+
+      final boolean isVirtualPositionEnabled =
+          cbLayers[LayerManager.getLayerTypeIndex(LayerType.VIRTUAL_POSITION)].isSelected();
+      if (isVirtualPositionEnabled) {
+        try {
+          final int count = map.getVirtualMap().getPositionCount();
+          final DataMenuItem dmiPin = new DataMenuItem("Add new pin at map position " + mapCoords.x + ',' + mapCoords.y,
+              Icons.ICON_ADD_16.getIcon(), new VirtualPosition(null, mapCoords.x, mapCoords.y, count));
+          dmiPin.setActionCommand(COMMAND_ADD_PIN);
+          dmiPin.addActionListener(getListeners());
+          menuItems.add(dmiPin);
+          staticItemsCount++;
+        } catch (Exception e) {
+          Logger.warn(e);
+        }
+      }
 
       // for each active layer...
       for (final LayerStackingType stacking : Settings.LIST_LAYER_ORDER) {
@@ -1618,6 +1681,15 @@ public class AreaViewer extends ChildFrame {
               }
               dmi.addActionListener(getListeners());
               menuItems.add(dmi);
+
+              // special: pins can be removed
+              if (obj instanceof LayerObjectVirtualPosition) {
+                final DataMenuItem dmiRemove = new DataMenuItem("Remove " + sb.toString(),
+                    Icons.ICON_DELETE_16.getIcon(), obj.getViewable());
+                dmiRemove.setActionCommand(COMMAND_REMOVE_PIN);
+                dmiRemove.addActionListener(getListeners());
+                menuItems.add(dmiRemove);
+              }
             }
           }
         }
@@ -1665,6 +1737,7 @@ public class AreaViewer extends ChildFrame {
     rcCanvas.reload(true);
     reloadAreLayers(false);
     reloadWedLayers(false);
+    reloadVirtualLayers(false);
     updateLayerControls();
     applySettings();
   }
@@ -1676,7 +1749,9 @@ public class AreaViewer extends ChildFrame {
       final int count = layerManager.getLayerObjectCount(layer);
       final String toolTip = (count > 0) ? layerManager.getLayerAvailability(layer) : null;
       cbLayers[i].setToolTipText(toolTip);
-      cbLayers[i].setEnabled(count > 0);
+      // Pin layer is always available
+      boolean isEnabled = (count > 0) || (layer == LayerType.VIRTUAL_POSITION);
+      cbLayers[i].setEnabled(isEnabled);
     }
     treeControls.repaint();
   }
@@ -1730,6 +1805,19 @@ public class AreaViewer extends ChildFrame {
     }
   }
 
+  /** Updates virtual layer items. */
+  private void reloadVirtualLayers(boolean order) {
+    if (layerManager != null) {
+      layerManager.reload(LayerType.VIRTUAL_POSITION);
+    }
+    updateLayerItems(LayerStackingType.VIRTUAL_POSITION);
+    addLayerItems(LayerStackingType.VIRTUAL_POSITION);
+    showLayer(LayerType.VIRTUAL_POSITION, cbLayers[LayerManager.getLayerTypeIndex(LayerType.VIRTUAL_POSITION)].isSelected());
+    if (order) {
+      orderLayerItems();
+    }
+  }
+
   /** Returns the identifier of the specified layer checkbox, or null on error. */
   private LayerType getLayerType(JCheckBox cb) {
     if (cb != null) {
@@ -1755,7 +1843,11 @@ public class AreaViewer extends ChildFrame {
   private void showTable(AbstractLayerItem item) {
     if (item != null) {
       if (item.getViewable() instanceof AbstractStruct) {
-        Window wnd = getViewerWindow((AbstractStruct) item.getViewable());
+        final AbstractStruct viewable = (AbstractStruct) item.getViewable();
+        final List<StructEntry> structChain = viewable.getStructChain();
+        // VirtualMap root structure should not be visible to the user
+        final boolean childOnly = !structChain.isEmpty() && structChain.get(0) instanceof VirtualMap;
+        final Window wnd = getViewerWindow(viewable, childOnly);
         ((AbstractStruct) item.getViewable()).selectEditTab();
         wnd.setVisible(true);
         wnd.toFront();
@@ -1766,10 +1858,15 @@ public class AreaViewer extends ChildFrame {
   }
 
   /**
-   * Attempts to find the Window instance containing the viewer of the specified AbstractStruct object. If it cannot
-   * find one, it creates and returns a new one. If all fails, it returns the NearInfinity instance.
+   * Opens the specified structure and returns the associated Window instance.
+   *
+   * @param as        {@link AbstractStruct} of the viewable to open in a window.
+   * @param childOnly Indicates whether only the child window itself should be opened or the whole chain of parent
+   *                    windows as well.
+   * @return {@link Window} instance containing the viewer of the specified AbstractStruct object. If it cannot find
+   *         one, it creates and returns a new one. If all fails, it returns the NearInfinity instance.
    */
-  private Window getViewerWindow(AbstractStruct as) {
+  private Window getViewerWindow(AbstractStruct as, boolean childOnly) {
     if (as != null) {
       final StructViewer sv = as.getViewer();
       if (sv != null && sv.getParent() != null) {
@@ -1819,8 +1916,12 @@ public class AreaViewer extends ChildFrame {
       }
 
       // creating Viewable chain
-      for (AbstractStruct element : structChain) {
-        wnd = new ViewFrame(wnd, element);
+      if (childOnly && !structChain.isEmpty()) {
+        wnd = new ViewFrame(wnd, structChain.get(structChain.size() - 1));
+      } else {
+        for (AbstractStruct element : structChain) {
+          wnd = new ViewFrame(wnd, element);
+        }
       }
       if (wnd != null && wnd != NearInfinity.getInstance()) {
         return wnd;
@@ -2051,6 +2152,181 @@ public class AreaViewer extends ChildFrame {
       } else if (!cbLayerRealAnimation[0].isSelected()) {
         Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
+    }
+  }
+
+  /** Updates the button state for user-defined pins. */
+  private void updatePins() {
+    if (layerManager != null) {
+      LayerVirtualPosition layer = (LayerVirtualPosition) layerManager.getLayer(LayerType.VIRTUAL_POSITION);
+      if (layer != null) {
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.VIRTUAL_POSITION)];
+        final int count = map.getVirtualMap().getPositionCount();
+        final boolean enabled = cb.isSelected() && cb.isEnabled() && count > 0;
+        miLayerPinsRefresh.setEnabled(enabled);
+        miLayerPinsClear.setEnabled(enabled);
+      } else {
+        miLayerPinsRefresh.setEnabled(false);
+        miLayerPinsClear.setEnabled(false);
+      }
+      updateTreeNode(bpmLayerPins);
+      treeControls.repaint();
+    }
+  }
+
+  /** Removes all user-defined pins from the map. */
+  private void removeAllPins() {
+    final VirtualMap vmap = map.getVirtualMap();
+    final int count = vmap.getPositionCount();
+    if (count > 0) {
+      final List<StructEntry> fields = vmap.getFields(VirtualPosition.class);
+      for (int i = fields.size() - 1; i >= 0; i--) {
+        vmap.removeDatatype((AddRemovable)fields.get(i), true);
+      }
+      rcCanvas.reload(false);
+      reloadVirtualLayers(false);
+      updateLayerControls();
+      updatePins();
+    }
+  }
+
+  /** Removes the specified {@link VirtualPosition} from the map. */
+  private void removePin(VirtualPosition vpos) {
+    if (vpos == null) {
+      return;
+    }
+    map.getVirtualMap().removeDatatype(vpos, true);
+    rcCanvas.reload(false);
+    reloadVirtualLayers(true);
+    updateLayerControls();
+    updatePins();
+  }
+
+  /** Adds the specified {@link VirtualPosition} to the map. */
+  private void addPin(VirtualPosition vpos) {
+    if (vpos == null) {
+      return;
+    }
+    vpos.setParent(map.getVirtualMap());
+    map.getVirtualMap().addDatatype(vpos);
+    rcCanvas.reload(false);
+    reloadVirtualLayers(true);
+    updateLayerControls();
+    updatePins();
+  }
+
+  /** Updates all pin positions on the map. */
+  private void refreshPins() {
+    rcCanvas.reload(false);
+    reloadVirtualLayers(true);
+  }
+
+  /**
+   * Imports a VMAP file through an interactive Open File dialog.
+   *
+   * @return {@code TriState#TRUE} if the operation was successful, {@code TriState#FALSE} if the operation failed, or
+   *         {@code TriState#UNDEFINED} if the operation was cancelled by the user..
+   */
+  private TriState importPinsInteractive() {
+    final JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
+    fc.setDialogTitle("Import pins");
+    fc.setDialogType(JFileChooser.OPEN_DIALOG);
+    fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+    fc.addChoosableFileFilter(new FileNameExtensionFilter("VMAP files (*.vmap)", "VMAP"));
+    fc.setFileFilter(fc.getChoosableFileFilters()[fc.getChoosableFileFilters().length - 1]);
+
+    if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+      try {
+        final VirtualMap vmap = importPins(fc.getSelectedFile());
+        removeAllPins();
+        final List<StructEntry> fields = vmap.getFields(VirtualPosition.class);
+        for (final StructEntry field : fields) {
+          if (field instanceof VirtualPosition) {
+            addPin((VirtualPosition)field);
+          }
+        }
+        return TriState.TRUE;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    } else {
+      return TriState.UNDEFINED;
+    }
+
+    return TriState.FALSE;
+  }
+
+  /**
+   * Imports the specified VMAP file and returns it as a {@code VirtualMap} structure.
+   *
+   * @param vmapFile {@link File} path of the VMAP file.
+   * @return {@link VirtualMap} structure with the data from the VMAP file.
+   * @throws NullPointerException if the parameter is {@code null}.
+   * @throws IOException if an I/O error occurred.
+   */
+  private VirtualMap importPins(File vmapFile) throws IOException {
+    if (vmapFile == null) {
+      throw new NullPointerException("vmapFile is null");
+    }
+
+    final Resource res = ResourceFactory.getResource(new FileResourceEntry(vmapFile.toPath()));
+    if (res instanceof VirtualMap) {
+      return (VirtualMap)res;
+    }
+
+    return null;
+  }
+
+  /**
+   * Exports the current {@code VirtualMap} instance through an interactive Save File dialog.
+   *
+   * @return {@code TriState#TRUE} if the operation was successful, {@code TriState#FALSE} if the operation failed, or
+   *         {@code TriState#UNDEFINED} if the operation was cancelled by the user..
+   */
+  private TriState exportPinsInteractive() {
+    final JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
+    fc.setDialogTitle("Export pins");
+    fc.setDialogType(JFileChooser.SAVE_DIALOG);
+    fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    fc.setSelectedFile(new File(map.getAre().getResourceEntry().getResourceRef() + ".VMAP"));
+
+    fc.addChoosableFileFilter(new FileNameExtensionFilter("VMAP files (*.vmap)", "VMAP"));
+    fc.setFileFilter(fc.getChoosableFileFilters()[fc.getChoosableFileFilters().length - 1]);
+
+    if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+      try {
+        exportPins(map.getVirtualMap(), fc.getSelectedFile());
+        return TriState.TRUE;
+      } catch (Exception e) {
+        Logger.error(e);
+      }
+    } else {
+      return TriState.UNDEFINED;
+    }
+
+    return TriState.FALSE;
+  }
+
+  /**
+   * Exports the current {@code VirtualMap} structure to an external VMAP file.
+   *
+   * @param vmap     {@link VirtualMap} structure to export.
+   * @param vmapFile {@link File} path of the VMAP file to create.
+   * @throws NullPointerException if any of the parameters are {@code null}.
+   * @throws IOException if an I/O error occurred.
+   */
+  private void exportPins(VirtualMap vmap, File vmapFile) throws IOException {
+    if (vmap == null) {
+      throw new NullPointerException("vmap is null");
+    }
+    if (vmapFile == null) {
+      throw new NullPointerException("vmapFile is null");
+    }
+
+    final ByteBuffer bb = vmap.getDataBuffer();
+    try (final OutputStream os = new BufferedOutputStream(new FileOutputStream(vmapFile))) {
+      os.write(bb.array(), 0, bb.capacity());
     }
   }
 
@@ -2517,6 +2793,9 @@ public class AreaViewer extends ChildFrame {
           } else if (layer == LayerType.REGION) {
             // Taking care of region target locations
             updateRegionTargets();
+          } else if (layer == LayerType.VIRTUAL_POSITION) {
+            // Taking care of user-defined pins
+            updatePins();
           }
           updateScheduledItems();
         } else if (cb == cbLayerRealActor[0]) {
@@ -2613,6 +2892,58 @@ public class AreaViewer extends ChildFrame {
             WindowBlocker.blockWindow(AreaViewer.this, false);
           }
         }
+      } else if (event.getSource() == miLayerPinsRefresh) {
+        WindowBlocker.blockWindow(AreaViewer.this, true);
+        try {
+          refreshPins();
+        } finally {
+          WindowBlocker.blockWindow(AreaViewer.this, false);
+        }
+      } else if (event.getSource() == miLayerPinsClear) {
+        // removing all pins
+        final int count = map.getVirtualMap().getPositionCount();
+        final String message;
+        if (count == 1) {
+          message = "Remove pin from the map?";
+        } else {
+          message = "Remove all " + count + " pins from the map?";
+        }
+        final int result = JOptionPane.showConfirmDialog(AreaViewer.this, message, "Confirmation",
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+          WindowBlocker.blockWindow(AreaViewer.this, true);
+          try {
+            removeAllPins();
+          } finally {
+            WindowBlocker.blockWindow(AreaViewer.this, false);
+          }
+        }
+      } else if (event.getSource() == miLayerPinsImport) {
+        final TriState result = importPinsInteractive();
+        if (result == TriState.TRUE) {
+          final int count = map.getVirtualMap().getPositionCount();
+          final String msg;
+          switch (count) {
+            case 0:
+              msg = "No pins imported.";
+              break;
+            case 1:
+              msg = "Pin imported successfully.";
+              break;
+            default:
+              msg = count + " pins imported successfully.";
+          }
+          JOptionPane.showMessageDialog(AreaViewer.this, msg);
+        } else if (result == TriState.FALSE) {
+          JOptionPane.showMessageDialog(AreaViewer.this, "Failed to import pins.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      } else if (event.getSource() == miLayerPinsExport) {
+        final TriState result = exportPinsInteractive();
+        if (result == TriState.TRUE) {
+          JOptionPane.showMessageDialog(AreaViewer.this, "Pins exported successfully.");
+        } else if (result == TriState.FALSE) {
+          JOptionPane.showMessageDialog(AreaViewer.this, "Failed to export pins.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
       } else if (event.getSource() == cbZoomLevel) {
         WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
@@ -2650,13 +2981,21 @@ public class AreaViewer extends ChildFrame {
         showTable(item);
       } else if (event.getSource() instanceof DataMenuItem) {
         final DataMenuItem lmi = (DataMenuItem) event.getSource();
-        if (lmi.getData() instanceof MapPosition) {
+        if (COMMAND_POSITION_COPY.equals(lmi.getActionCommand())) {
           // copying current map position to the clipboard
-          final MapPosition mp = (MapPosition) lmi.getData();
+          final VirtualPosition mp = (VirtualPosition) lmi.getData();
           if (!mp.copyToClipboard(true, true)) {
-            JOptionPane.showMessageDialog(AreaViewer.this,
-                "Could not copy current map coordinates to the clipboard.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(AreaViewer.this, "Could not copy map coordinates to the clipboard.", "Error",
+                JOptionPane.ERROR_MESSAGE);
           }
+        } else if (COMMAND_ADD_PIN.equals(lmi.getActionCommand())) {
+          // adding new pin to map
+          final VirtualPosition pin = (VirtualPosition) lmi.getData();
+          addPin(pin);
+        } else if (COMMAND_REMOVE_PIN.equals(lmi.getActionCommand())) {
+          // removing existing pin from map
+          final VirtualPosition pin = (VirtualPosition) lmi.getData();
+          removePin(pin);
         } else if (lmi.getData() instanceof AbstractLayerItem) {
           // opening selected layer item
           final AbstractLayerItem item = (AbstractLayerItem) lmi.getData();
@@ -3005,6 +3344,7 @@ public class AreaViewer extends ChildFrame {
     private final GraphicsResource[] mapLight = new GraphicsResource[] { null, null };
 
     private final AreResource are;
+    private final VirtualMap vmap;
     private int overlayTransparency;
     private boolean hasDayNight;
     private boolean hasExtendedNight;
@@ -3015,9 +3355,10 @@ public class AreaViewer extends ChildFrame {
     private GraphicsResource mapHeight;
     private GraphicsResource mapExplored;
 
-    public Map(Window parent, AreResource are) {
+    public Map(Window parent, AreResource are) throws Exception {
       this.parent = parent;
       this.are = are;
+      this.vmap = new VirtualMap();
       init();
     }
 
@@ -3060,6 +3401,15 @@ public class AreaViewer extends ChildFrame {
         default:
           return null;
       }
+    }
+
+    /**
+     * Returns the {@link VirtualMap} instance for this area.
+     *
+     * @return The current VirtualMap instance.
+     */
+    public VirtualMap getVirtualMap() {
+      return vmap;
     }
 
     /**
@@ -3563,87 +3913,6 @@ public class AreaViewer extends ChildFrame {
     public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
         boolean leaf, int row) {
       return renderer.getTreeCellRendererComponent(tree, value, isSelected, expanded, leaf, row, true);
-    }
-  }
-
-  /** Creates an {@link AbstractStruct} instance and initializes it with the specified x and y coordinates. */
-  private static class MapPosition extends AbstractStruct {
-    private static final String POSITION   = "Map Position";
-    private static final String POSITION_X = "X";
-    private static final String POSITION_Y = "Y";
-
-    private static MapPosition instance;
-
-    /** Returns the singleton {@code MapPosition} instance. */
-    public static MapPosition getInstance() {
-      if (instance == null) {
-        try {
-          instance = new MapPosition(0, 0);
-        } catch (Exception e) {
-          Logger.error(e);
-        }
-      }
-      return instance;
-    }
-
-    private MapPosition(int x, int y) throws Exception {
-      super(null, POSITION, getBufferData(x, y), 0, 2);
-    }
-
-    @Override
-    public int read(ByteBuffer buffer, int offset) throws Exception {
-      addField(new DecNumber(buffer, offset, 2, POSITION_X));
-      addField(new DecNumber(buffer, offset + 2, 2, POSITION_Y));
-      return offset + 4;
-    }
-
-    /** Returns the current value of the x coordinate. */
-    public int getX() {
-      return ((IsNumeric)getAttribute(POSITION_X)).getValue();
-    }
-
-    /** Returns the current value of the y coordinate. */
-    public int getY() {
-      return ((IsNumeric)getAttribute(POSITION_Y)).getValue();
-    }
-
-    /** Sets the new x and y coordinates to the structure and returns the current {@code MapPosition} instance. */
-    public MapPosition setPosition(int x, int y) {
-      ((DecNumber)getAttribute(POSITION_X)).setValue(x);
-      ((DecNumber)getAttribute(POSITION_Y)).setValue(y);
-      return this;
-    }
-
-    /**
-     * Copies the current map position to the clipboard.
-     *
-     * @param internal Indicates whether to copy the position to the internal {@link StructClipboard} instance.
-     * @param global   Indicates whether to copy the position to the clipboard of the system as a formatted string.
-     * @return {@code true} if the operation succeeded, {@code false} otherwise.
-     */
-    public boolean copyToClipboard(boolean internal, boolean global) {
-      try {
-        if (global) {
-          final String s = getX() + "," + getY();
-          final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-          clipboard.setContents(new StringSelection(s), null);
-        }
-        if (internal) {
-          StructClipboard.getInstance().copyValue(this, 0, 1, false);
-        }
-        return true;
-      } catch (Exception e) {
-        Logger.warn(e);
-      }
-      return false;
-    }
-
-    /** Initializes the internal byte buffer with the specified coordinates. */
-    private static ByteBuffer getBufferData(int x, int y) {
-      final ByteBuffer bb = StreamUtils.getByteBuffer(4);
-      bb.putShort(0, (short)x);
-      bb.putShort(2, (short)y);
-      return bb;
     }
   }
 }

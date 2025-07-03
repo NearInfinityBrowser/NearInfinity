@@ -16,29 +16,12 @@ import org.infinity.util.Logger;
  * Manages all layer objects of a single ARE map.
  */
 public final class LayerManager {
-  // Defines order of drawing
-  public static final LayerType[] LAYER_ORDERED = {
-      LayerType.ACTOR,
-      LayerType.ENTRANCE,
-      LayerType.AMBIENT,
-      LayerType.PRO_TRAP,
-      LayerType.ANIMATION,
-      LayerType.SPAWN_POINT,
-      LayerType.AUTOMAP,
-      LayerType.CONTAINER,
-      LayerType.DOOR,
-      LayerType.REGION,
-      LayerType.TRANSITION,
-      LayerType.DOOR_POLY,
-      LayerType.WALL_POLY,
-      LayerType.DOOR_CELLS
-  };
-
   private final EnumMap<LayerType, BasicLayer<?, ?>> layers = new EnumMap<>(LayerType.class);
   private final AreaViewer viewer;
 
   private AreResource are;
   private WedResource wed;
+  private VirtualMap vmap;
   private boolean scheduleEnabled;
   private boolean animForcedInterpolation;
   private int schedule;
@@ -118,9 +101,9 @@ public final class LayerManager {
     return hour;
   }
 
-  public LayerManager(AreResource are, WedResource wed, AreaViewer viewer) {
+  public LayerManager(AreResource are, WedResource wed, VirtualMap vmap, AreaViewer viewer) {
     this.viewer = viewer;
-    init(are, wed, true);
+    init(are, wed, vmap, true);
   }
 
   /**
@@ -144,7 +127,7 @@ public final class LayerManager {
    */
   public void setAreResource(AreResource are) {
     if (this.are != are) {
-      init(are, wed, false);
+      init(are, wed, vmap, false);
     }
   }
 
@@ -162,7 +145,25 @@ public final class LayerManager {
    */
   public void setWedResource(WedResource wed) {
     if (this.wed != wed) {
-      init(are, wed, false);
+      init(are, wed, vmap, false);
+    }
+  }
+
+  /**
+   * Returns the currently used {@link VirtualMap} resource structure.
+   */
+  public VirtualMap getVirtualMap() {
+    return vmap;
+  }
+
+  /**
+   * Specify a new {@code VirtualMap} resource structure. Automatically reloads related layer objects.
+   *
+   * @param vmap The new {@link VirtualMao} resource structure.
+   */
+  public void setVirtualMap(VirtualMap vmap) {
+    if (this.vmap != vmap) {
+      init(are, wed, vmap, false);
     }
   }
 
@@ -263,7 +264,7 @@ public final class LayerManager {
    * Reloads all objects in every supported layer.
    */
   public void reload() {
-    init(are, wed, true);
+    init(are, wed, vmap, true);
   }
 
   /**
@@ -568,10 +569,11 @@ public final class LayerManager {
 
   // Loads objects for each layer if the parent resource (are, wed) has changed.
   // If forceReload is true, layer objects are always reloaded.
-  private void init(AreResource are, WedResource wed, boolean forced) {
+  private void init(AreResource are, WedResource wed, VirtualMap vmap, boolean forced) {
     if (are != null && wed != null) {
       boolean areChanged = (are != this.are);
       boolean wedChanged = (wed != this.wed);
+      boolean virtualChanged = (vmap != this.vmap);
 
       // updating global structures
       if (this.are != are) {
@@ -579,6 +581,9 @@ public final class LayerManager {
       }
       if (this.wed != wed) {
         this.wed = wed;
+      }
+      if (this.vmap != vmap) {
+        this.vmap = vmap;
       }
 
       for (final LayerType layer : LayerType.values()) {
@@ -600,6 +605,9 @@ public final class LayerManager {
           case DOOR_POLY:
           case WALL_POLY:
             loadLayer(layer, forced || wedChanged);
+            break;
+          case VIRTUAL_POSITION:
+            loadLayer(layer, forced || virtualChanged);
             break;
           default:
             Logger.warn("Unsupported layer type: {}", layer);
@@ -748,6 +756,16 @@ public final class LayerManager {
             retVal = layers.get(layer).loadLayer(forced);
           } else {
             LayerWallPoly obj = new LayerWallPoly(wed, getViewer());
+            layers.put(layer, obj);
+            retVal = obj.getLayerObjectCount();
+          }
+          break;
+        }
+        case VIRTUAL_POSITION: {
+          if (layers.containsKey(layer)) {
+            retVal = layers.get(layer).loadLayer(forced);
+          } else {
+            LayerVirtualPosition obj = new LayerVirtualPosition(vmap, getViewer());
             layers.put(layer, obj);
             retVal = obj.getLayerObjectCount();
           }

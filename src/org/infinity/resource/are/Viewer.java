@@ -17,6 +17,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
@@ -150,7 +151,9 @@ final class Viewer extends JPanel implements ActionListener {
   @Override
   public void actionPerformed(ActionEvent event) {
     if (event.getActionCommand().equals(CMD_VIEWAREA)) {
-      are.showAreaViewer(this);
+      if (are.showAreaViewer(this) == null) {
+        JOptionPane.showMessageDialog(this, "Area Viewer could not be opened.", "Error", JOptionPane.ERROR_MESSAGE);
+      }
     }
   }
 

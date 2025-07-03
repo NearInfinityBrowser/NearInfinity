@@ -932,7 +932,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
   /** Displays the area viewer for this ARE resource. */
   AreaViewer showAreaViewer(Component parent) {
     if (areaViewer == null) {
-      areaViewer = new AreaViewer(parent, this);
+      try {
+        areaViewer = new AreaViewer(parent, this);
+      } catch (Exception e) {
+        Logger.error(e);
+      }
     } else if (!areaViewer.isVisible()) {
       areaViewer.setVisible(true);
       areaViewer.toFront();

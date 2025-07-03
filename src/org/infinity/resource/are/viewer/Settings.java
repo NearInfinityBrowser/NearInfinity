@@ -20,6 +20,7 @@ import org.infinity.util.Logger;
 public class Settings {
   // Default layer order on map
   public static final ViewerConstants.LayerStackingType[] DEFAULT_LAYER_ORDER = {
+      ViewerConstants.LayerStackingType.VIRTUAL_POSITION,
       ViewerConstants.LayerStackingType.CONTAINER_TARGET,
       ViewerConstants.LayerStackingType.REGION_TARGET,
       ViewerConstants.LayerStackingType.DOOR_TARGET,
@@ -37,7 +38,7 @@ public class Settings {
       ViewerConstants.LayerStackingType.WALL_POLY,
       ViewerConstants.LayerStackingType.DOOR_CELLS,
       ViewerConstants.LayerStackingType.AMBIENT_RANGE,
-      ViewerConstants.LayerStackingType.TRANSITION
+      ViewerConstants.LayerStackingType.TRANSITION,
   };
   public static final String[] LABEL_ZOOM_FACTOR = { "Auto-fit", "25%", "33%", "50%", "67%", "75%", "100%", "150%",
                                                    "200%", "300%", "400%", "Custom" };
@@ -127,6 +128,7 @@ public class Settings {
   public static boolean ShowLabelAnimations = getDefaultLabelAnimations();
   public static boolean ShowLabelMapNotes = getDefaultLabelMapNotes();
   public static boolean ShowLabelSpawnPoints = getDefaultLabelSpawnPoints();
+  public static boolean ShowLabelPins = getDefaultLabelPins();
 
   // Preferences keys for specific settings
   private static final String PREFS_STORESETTINGS           = "StoreSettings";
@@ -171,6 +173,7 @@ public class Settings {
   private static final String PREFS_LABEL_REGION_TARGETS    = "LabelRegionTargets";
   private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
   private static final String PREFS_LABEL_SPAWNPOINTS       = "LabelSpawnPoints";
+  private static final String PREFS_LABEL_PINS              = "LabelPins";
 
   private static boolean SettingsLoaded = false;
 
@@ -209,6 +212,7 @@ public class Settings {
       ShowLabelRegionTargets = prefs.getBoolean(PREFS_LABEL_REGION_TARGETS, getDefaultLabelRegionTargets());
       ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
       ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
+      ShowLabelPins = prefs.getBoolean(PREFS_LABEL_PINS, getDefaultLabelPins());
 
       // loading layer z-order
       LIST_LAYER_ORDER.clear();
@@ -280,6 +284,7 @@ public class Settings {
     prefs.putBoolean(PREFS_LABEL_REGION_TARGETS, ShowLabelRegionTargets);
     prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
     prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
+    prefs.putBoolean(PREFS_LABEL_PINS, ShowLabelPins);
 
     // storing layer z-order
     for (int i = 0; i < LIST_LAYER_ORDER.size(); i++) {
@@ -364,7 +369,7 @@ public class Settings {
   }
 
   public static boolean getDefaultStoreVisualSettings() {
-    return false;
+    return true;
   }
 
   public static boolean getDefaultUseColorShades() {
@@ -559,6 +564,10 @@ public class Settings {
     return false;
   }
 
+  public static boolean getDefaultLabelPins() {
+    return false;
+  }
+
   // Converts values from LayerStackingType to LayerType
   public static LayerType stackingToLayer(LayerStackingType type) {
     switch (type) {
@@ -594,6 +603,8 @@ public class Settings {
         return LayerType.TRANSITION;
       case WALL_POLY:
         return LayerType.WALL_POLY;
+      case VIRTUAL_POSITION:
+        return LayerType.VIRTUAL_POSITION;
       default:
         return null;
     }
@@ -630,6 +641,8 @@ public class Settings {
         return new LayerStackingType[] { LayerStackingType.TRANSITION };
       case WALL_POLY:
         return new LayerStackingType[] { LayerStackingType.WALL_POLY };
+      case VIRTUAL_POSITION:
+        return new LayerStackingType[] { LayerStackingType.VIRTUAL_POSITION };
       default:
         return new LayerStackingType[0];
     }

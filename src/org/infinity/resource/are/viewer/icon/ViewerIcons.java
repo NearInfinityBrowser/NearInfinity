@@ -88,6 +88,8 @@ public enum ViewerIcons {
   ICON_ITM_INI_ACTOR_R_2("itm_IniActorR2.png", 12, 40),
   ICON_ITM_PRO_TRAP_1("itm_ProTrap1.png", 14, 14),
   ICON_ITM_PRO_TRAP_2("itm_ProTrap2.png", 14, 14),
+  ICON_ITM_PUSH_PIN_1("itm_PushPin1.png", 1, 12),
+  ICON_ITM_PUSH_PIN_2("itm_PushPin2.png", 1, 12),
   ICON_ITM_REGION_TARGET_1("itm_Region1.png", 13, 29),
   ICON_ITM_REGION_TARGET_2("itm_Region2.png", 13, 29),
   ICON_ITM_REGION_TARGET_A_1("itm_RegionActivation1.png", 13, 29),

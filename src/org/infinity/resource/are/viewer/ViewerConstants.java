@@ -31,13 +31,22 @@ public final class ViewerConstants {
     PRO_TRAP("Projectile Traps", true),
     DOOR_POLY("Door Polygons", false),
     WALL_POLY("Wall Polygons", false),
+    VIRTUAL_POSITION("Pins", false, false, true)
     ;
 
     private final boolean isAre;
+    private final boolean isWed;
+    private final boolean isVirtual;
     private final String label;
     LayerType(String label, boolean isAre) {
+      this(label, isAre, !isAre, false);
+    }
+
+    LayerType(String label, boolean isAre, boolean isWed, boolean isVirtual) {
       this.label = label;
       this.isAre = isAre;
+      this.isWed = isWed;
+      this.isVirtual = isVirtual;
     }
 
     /** Returns a label associated with the layer type. */
@@ -52,7 +61,12 @@ public final class ViewerConstants {
 
     /** Returns whether the layer type is defined in WED resources. */
     public boolean isWed() {
-      return !isAre;
+      return isWed;
+    }
+
+    /** Returns whether the layer type is defined in the internal {@link VirtualMap} structure. */
+    public boolean isVirtual() {
+      return isVirtual;
     }
   }
 
@@ -76,6 +90,7 @@ public final class ViewerConstants {
     PRO_TRAP("Projectile Traps"),
     DOOR_POLY("Door Polygons"),
     WALL_POLY("Wall Polygons"),
+    VIRTUAL_POSITION("User-defined Pins"),
     ;
 
     private final String label;

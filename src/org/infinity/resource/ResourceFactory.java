@@ -43,6 +43,7 @@ import org.infinity.gui.IdsBrowser;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.gui.menu.OverrideMode;
 import org.infinity.resource.are.AreResource;
+import org.infinity.resource.are.viewer.VirtualMap;
 import org.infinity.resource.bcs.BafResource;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.chu.ChuResource;
@@ -255,6 +256,8 @@ public final class ResourceFactory {
         cls = Profile.isEnhancedEdition() ? TtfResource.class : UnknownResource.class;
       } else if (ext.equals("MAZE")) {
         cls = (Profile.getGame() == Profile.Game.PSTEE) ? MazeResource.class : UnknownResource.class;
+      } else if (ext.equals("VMAP")) {
+        cls = VirtualMap.class;
       } else {
         cls = detectResourceType(entry);
         if (cls == null) {
@@ -417,6 +420,8 @@ public final class ResourceFactory {
               cls = getResourceType(entry, "WFX");
             } else if ("WMAP".equals(sig)) {
               cls = getResourceType(entry, "WMP");
+            } else if ("VMAP".equals(sig)) {
+              cls = getResourceType(entry, "VMAP");
             } else {
               if ((Arrays.equals(new byte[] { 0x53, 0x43, 0x0a }, Arrays.copyOfRange(data, 0, 3)) || // == "SC\n"
                   Arrays.equals(new byte[] { 0x53, 0x43, 0x0d, 0x0a }, Arrays.copyOfRange(data, 0, 4)))) { // ==
