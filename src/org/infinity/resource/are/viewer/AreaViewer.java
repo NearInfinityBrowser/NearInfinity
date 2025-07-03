@@ -2249,7 +2249,7 @@ public class AreaViewer extends ChildFrame {
             final int x = vp.getX();
             final int y = vp.getY();
             if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight) {
-              addPin((VirtualPosition)field);
+              addPin(vp);
             }
           }
         }
