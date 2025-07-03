@@ -361,7 +361,7 @@ public final class MusResource
     panel2.add(new InfinityScrollPane(editor, true), BorderLayout.CENTER);
     panel2.add(lowerpanel, BorderLayout.SOUTH);
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel2, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel2, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     return panel2;
   }

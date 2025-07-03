@@ -334,7 +334,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     panel.add(tabbedPane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     bCompile.setEnabled(true);
     bpmErrors.setEnabled(false);

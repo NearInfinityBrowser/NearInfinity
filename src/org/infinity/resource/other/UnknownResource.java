@@ -233,7 +233,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     panelMain.add(tabbedPane, BorderLayout.CENTER);
     panelMain.add(buttonPanel, BorderLayout.SOUTH);
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panelMain, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panelMain, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     return panelMain;
   }

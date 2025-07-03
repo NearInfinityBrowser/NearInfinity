@@ -384,7 +384,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     cards.show(lowerpanel, CARD_EMPTY);
 
     if (struct.getParent() == null) {
-      buttonPanel.addControl(ViewerUtil.createViewerSyncButton(this, struct.getResourceEntry()));
+      buttonPanel.addControl(ViewerUtil.createViewerSyncButton(this, struct.getResourceEntry()),
+          ButtonPanel.Control.SYNC_VIEW);
     }
 
     if (struct instanceof HasChildStructs && !struct.getFields().isEmpty()) {

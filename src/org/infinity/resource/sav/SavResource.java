@@ -299,7 +299,7 @@ public final class SavResource implements Resource, Closeable, Writeable, Action
     panel.add(buttonPanel, BorderLayout.SOUTH);
     centerpanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     return panel;
   }

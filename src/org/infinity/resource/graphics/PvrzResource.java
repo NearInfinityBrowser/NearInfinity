@@ -189,7 +189,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     panel.add(buttonPanel, BorderLayout.SOUTH);
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     return panel;
   }

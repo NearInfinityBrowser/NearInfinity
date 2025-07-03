@@ -603,7 +603,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     panelMain.add(tabbedPane, BorderLayout.CENTER);
     panelMain.add(buttonPanel, BorderLayout.SOUTH);
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panelMain, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panelMain, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     showFrame();
     return panelMain;

@@ -543,7 +543,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     panel.add(buttonPanel, BorderLayout.SOUTH);
     centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     return panel;
   }

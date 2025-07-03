@@ -47,6 +47,8 @@ public class ButtonPanel extends JPanel {
     REMOVE,
     /** "Trim spaces" (JButton) */
     TRIM_SPACES,
+    /** "Synchronize view with resource tree" (JButton) */
+    SYNC_VIEW,
     /** Unused control type. Can be used to identify custom controls. */
     CUSTOM_1,
     /** Unused control type. Can be used to identify custom controls. */

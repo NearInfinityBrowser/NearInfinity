@@ -570,7 +570,7 @@ public class PlainTextResource
     panel.add(pane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
-    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()));
+    buttonPanel.addControl(0, ViewerUtil.createViewerSyncButton(panel, getResourceEntry()), ButtonPanel.Control.SYNC_VIEW);
 
     SwingUtilities.invokeLater(() -> {
       if (highlightedLine >= 0) {
