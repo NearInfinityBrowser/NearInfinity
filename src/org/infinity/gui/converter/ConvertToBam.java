@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -5112,7 +5113,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
      * 2. Section "[Frames]" (optional)
      *  - contains any number of frame source definitions in the format
      *    - key: zero-based frame index
-     *    - value: full path to graphics file,
+     *    - value: path to graphics file (absolute or relative to ini file),
      *             optionally separated by colon ':' followed by a frame index
      *             (only for input files containing multiple frames, default: 0)
      *      Example: 0=c:/myfolder/myfile.bam:12 <- to load frame 12 of myfile.bam
@@ -5287,7 +5288,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           }
 
           if (ini.getSection(SECTION_FRAMES) != null) {
-            if (!loadFrameData(ini.getSection(SECTION_FRAMES))) {
+            if (!loadFrameData(ini.getSection(SECTION_FRAMES), inFile)) {
               throw new Exception("Error loading frame source files.");
             }
           }
@@ -5322,8 +5323,16 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
       return false;
     }
 
-    private boolean loadFrameData(IniMapSection frames) throws Exception {
+    private boolean loadFrameData(IniMapSection frames, Path iniFile) throws Exception {
       if (frames != null && frames.getName().equalsIgnoreCase(SECTION_FRAMES)) {
+        final List<IniMapEntry> frameEntries = new ArrayList<>();
+        final Path basePath;
+        if (iniFile != null && iniFile.getParent() != null) {
+            basePath = iniFile.getParent();
+        } else {
+          basePath = Profile.getGameRoot();
+        }
+
         for (final IniMapEntry entry : frames) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
             throw new Exception("Invalid key value found at line " + (entry.getLine() + 1));
@@ -5332,29 +5341,40 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
           if (value.isEmpty()) {
             throw new Exception("Empty frame source path found at line " + (entry.getLine() + 1));
           }
+
           int sepIdx = value.lastIndexOf(SEPARATOR_FRAME);
-          int frameIdx = Integer.MIN_VALUE;
+          int frameIdx = 0;
           if (sepIdx >= 0) {
-            frameIdx = Misc.toNumber(value.substring(sepIdx + 1), Integer.MIN_VALUE);
+            frameIdx = Misc.toNumber(value.substring(sepIdx + 1), -1);
             value = value.substring(0, sepIdx);
           }
-          if (frameIdx == Integer.MIN_VALUE) {
-            throw new Exception("Frame source path does not contain frame index at line " + (entry.getLine() + 1));
+          if (frameIdx < 0) {
+            throw new Exception("Invalid frame index at line " + (entry.getLine() + 1));
           }
 
+          final String newValue;
           if (value.startsWith(BAM_FRAME_PATH_BIFF)) {
+            // game resource
             String resName = value.substring(BAM_FRAME_PATH_BIFF.length());
             if (!ResourceFactory.resourceExists(resName)) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
+            newValue = value + ':' + frameIdx;
           } else {
-            Path file = FileManager.resolve(value);
+            // external file path
+            Path file = Paths.get(value);
+            if (!file.isAbsolute()) {
+              file = basePath.resolve(file);
+            }
+            file = file.normalize();
             if (!FileEx.create(file).isFile()) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
+            newValue = file.toString() + ':' + frameIdx;
           }
+          frameEntries.add(new IniMapEntry(entry.getKey(), newValue, entry.getLine()));
         }
-        sectionFrames = frames;
+        sectionFrames = new IniMapSection(frames.getName(), frames.getLine(), frameEntries);
         return true;
       }
       return true;
@@ -5733,7 +5753,7 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
     private boolean saveData(Path outFile, boolean silent) {
       boolean retVal = false;
       if (outFile != null) {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
         // creating global section
         sb.append('[').append(SECTION_GLOBAL).append(']').append(Misc.LINE_SEPARATOR);
@@ -5742,13 +5762,21 @@ public class ConvertToBam extends ChildFrame implements ActionListener, Property
 
         // creating frames section
         if (isFramesSelected()) {
+          final Path basePath = outFile.getParent() != null ? outFile.getParent() : null;
           sb.append('[').append(SECTION_FRAMES).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelFrames.getSize(); i++) {
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
             String path = entry.getOption(BAM_FRAME_OPTION_PATH).toString();
+            if (!path.startsWith(BAM_FRAME_PATH_BIFF)) {
+              // regular file path: relativize if possible
+              Path framePath = Paths.get(path);
+              if (framePath.startsWith(basePath)) {
+                framePath = basePath.relativize(framePath);
+              }
+              path = framePath.toString();
+            }
             int index = ((Number) entry.getOption(BAM_FRAME_OPTION_SOURCE_INDEX)).intValue();
-            sb.append(i).append('=').append(path);
-            sb.append(SEPARATOR_FRAME).append(index);
+            sb.append(i).append('=').append(path).append(SEPARATOR_FRAME).append(index);
             sb.append(Misc.LINE_SEPARATOR);
           }
           sb.append(Misc.LINE_SEPARATOR);
