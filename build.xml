@@ -12,7 +12,7 @@
   <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
   <property name="montemedia.file" value="${lib.path.rel}/montemedia/montemedia.jar"/>
   <property name="apng_writer.file" value="${lib.path.rel}/apng-writer/apng-writer-core.jar"/>
-  <property name="json.file" value="${lib.path.rel}/json/json-20230227.jar"/>
+  <property name="json.file" value="${lib.path.rel}/json/json-20250517.jar"/>
   <property name="commonmark.file" value="${lib.path.rel}/commonmark/commonmark-0.21.0.jar"/>
   <property name="flatlaf.file" value="${lib.path.rel}/flatlaf/flatlaf-3.6.jar"/>
   <property name="flatlafthemes.file" value="${lib.path.rel}/flatlaf/flatlaf-intellij-themes-3.6.jar"/>

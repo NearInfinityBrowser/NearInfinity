@@ -6,14 +6,14 @@
 	<classpathentry exported="true" kind="lib" path="lib/jhexview/jhexview.jar" sourcepath="lib/jhexview/jhexview-current.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/montemedia/montemedia.jar" sourcepath="lib/montemedia/MonteMedia-0.7.7.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/apng-writer/apng-writer-core.jar" sourcepath="lib/apng-writer/apng-writer-core-src.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/json/json-20230227.jar" sourcepath="lib/json/JSON-java-20230227.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/json/json-20250517.jar" sourcepath="lib/json/JSON-java-20250517.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commonmark/commonmark-0.21.0.jar" sourcepath="lib/commonmark/commonmark-java-commonmark-parent-0.21.0.zip"/>
-	<classpathentry kind="lib" path="lib/flatlaf/flatlaf-3.6.jar" sourcepath="lib/flatlaf/flatlaf-3.6-sources.jar">
+	<classpathentry exported="true" kind="lib" path="lib/flatlaf/flatlaf-3.6.jar" sourcepath="lib/flatlaf/flatlaf-3.6-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/NearInfinity/lib/flatlaf/flatlaf-3.6-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/flatlaf/flatlaf-intellij-themes-3.6.jar" sourcepath="lib/flatlaf/flatlaf-intellij-themes-3.6-sources.jar">
+	<classpathentry exported="true" kind="lib" path="lib/flatlaf/flatlaf-intellij-themes-3.6.jar" sourcepath="lib/flatlaf/flatlaf-intellij-themes-3.6-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/NearInfinity/lib/flatlaf/flatlaf-intellij-themes-3.6-javadoc.jar!/"/>
 		</attributes>
