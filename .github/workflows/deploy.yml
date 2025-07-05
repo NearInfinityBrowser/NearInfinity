@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-13, macos-14 ]
+        os: [ windows-latest, macos-13, macos-14, ubuntu-latest ]
         java: [ '21' ]
     runs-on: ${{ matrix.os }}
     name: Create installer for ${{ matrix.os }}, JDK ${{ matrix.java }}
@@ -84,14 +84,22 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: 'oracle'
 
+      - name: Set up JRE (linux)
+        if: startsWith(matrix.os, 'ubuntu-')
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          java-package: 'jre'
+
       - name: Echo JAVA_HOME (windows)
         if: startsWith(matrix.os, 'windows-')
         run: |
           echo $env:JAVA_HOME
           java -version
 
-      - name: Echo JAVA_HOME (macos)
-        if: startsWith(matrix.os, 'macos-')
+      - name: Echo JAVA_HOME (macos/linux)
+        if: startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-')
         run: |
           echo $JAVA_HOME
           java -version
@@ -127,13 +135,21 @@ jobs:
           chmod +x build.command
           ./build.command
 
+      - name: Build AppImage (linux)
+        if: startsWith(matrix.os, 'ubuntu-')
+        run: |
+          mv assets/redistributable/linux/package .
+          mv assets/redistributable/linux/build.sh .
+          chmod +x build.sh
+          ./build.sh
+
       # Validation
       - name: List built files (windows)
         if: startsWith(matrix.os, 'windows-')
         run: dir
 
-      - name: List built files (macos)
-        if: startsWith(matrix.os, 'macos-')
+      - name: List built files (macos/linux)
+        if: startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-')
         run: ls -l
 
       # Uploading artifacts (workflow_dispatch)
@@ -164,6 +180,13 @@ jobs:
         with:
           name: installer-macos-arm64
           path: NearInfinity-*.pkg
+
+      - name: Upload appimage artifact (linux)
+        if: startsWith(matrix.os, 'ubuntu-') && github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-linux
+          path: NearInfinity-*.AppImage
 
       # Uploading assets (release)
       - name: Upload portable asset to release (windows)
@@ -203,6 +226,16 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file_glob: true
           file: NearInfinity-*.pkg
+          tag: ${{ github.ref || github.event.release.tag_name }}
+          overwrite: true
+
+      - name: Upload appimage asset to release (linux)
+        if: startsWith(matrix.os, 'ubuntu-') && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: NearInfinity-*.AppImage
           tag: ${{ github.ref || github.event.release.tag_name }}
           overwrite: true
 
