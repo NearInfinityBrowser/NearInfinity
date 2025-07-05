@@ -127,11 +127,10 @@ public class BmpDecoder {
     palette = null;
     info = null;
 
-    buffer.rewind();
-
     // Initial checks
     final boolean isBMP = "BM".equals(StreamUtils.readString(buffer, 0, 2));
     final int bpp = isBMP ? buffer.getShort(28) : 0;
+    buffer.rewind();
 
     // ImageIO seems to discard alpha information from 32-bit BMP files
     if (bpp < 32) {
