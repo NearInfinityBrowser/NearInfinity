@@ -198,8 +198,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGradiantoNatureGreenIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme.class);
-    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme.class);
-    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme.class);
@@ -213,6 +211,23 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme.class);
     CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.FlatXcodeDarkIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTArcDarkIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTAtomOneDarkIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTAtomOneLightIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTDraculaIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubDarkIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTLightOwlIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialDarkerIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialDeepOceanIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialOceanicIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialPalenightIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMonokaiProIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMoonlightIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTNightOwlIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTSolarizedDarkIJTheme.class);
+    CUSTOM_LOOK_AND_FEELS.add(com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTSolarizedLightIJTheme.class);
 
     // Setting Swing UI scale factor (only available for Java 9 or higher)
     if (Platform.JAVA_VERSION > 8) {
