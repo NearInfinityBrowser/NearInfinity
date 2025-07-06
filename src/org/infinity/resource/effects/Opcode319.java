@@ -22,10 +22,11 @@ import org.infinity.resource.StructEntry;
  * Implementation of opcode 319.
  */
 public class Opcode319 extends BaseOpcode {
-  private static final String EFFECT_MODE_EEEX  = "EEex: Mode";
+  private static final String EFFECT_MODE       = "Mode";
   private static final String EFFECT_DESC_NOTE  = "Description note";
 
-  private static final String[] MODES_EEEX = { "Not usable by", "Usable by", "EEex: Usable by (splprot)",
+  private static final String[] MODES = { "Not usable by", "Usable by" };
+  private static final String[] MODES_EEEX = { MODES[0], MODES[1], "EEex: Usable by (splprot)",
       "EEex: Not usable by (splprot)" };
 
   /** Returns the opcode name for the current game variant. */
@@ -45,11 +46,10 @@ public class Opcode319 extends BaseOpcode {
   @Override
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    if (isEEEx()) {
-      final Bitmap power = new Bitmap(buffer, offset - 1, 1, EFFECT_MODE_EEEX, MODES_EEEX);
-      power.addUpdateListener((UpdateListener)parent);
-      list.set(1, power);
-    }
+    final String[] table = isEEEx() ? MODES_EEEX : MODES;
+    final Bitmap powerField = new Bitmap(buffer, offset - 1, 1, EFFECT_MODE, table);
+    powerField.addUpdateListener((UpdateListener)parent);
+    list.set(1, powerField);
 
     String resType = null;
     byte power = buffer.get(offset - 1);
