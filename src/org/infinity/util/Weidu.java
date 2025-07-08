@@ -72,6 +72,9 @@ public class Weidu {
   /** Name of the platform-specific WeiDU executable. */
   public static final String WEIDU_BIN = WEIDU_NAME + Platform.EXECUTABLE_EXT;
 
+  /** Oldest supported WeiDU version. */
+  public static final int WEIDU_VERSION_MIN = 24600;
+
   /**
    * Returns the version of the specified WeiDU binary.
    *
@@ -403,8 +406,15 @@ public class Weidu {
       resultFrame.setVisible(true);
     } catch (Exception e) {
       Logger.error(e);
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Failed to perform a WeiDU changelog on " + entry,
-          "Error", JOptionPane.ERROR_MESSAGE);
+      String msg = "Failed to perform a WeiDU changelog on " + Objects.toString(entry);
+      final String errorMsg = e.getMessage();
+      if (e.getMessage() != null && !e.getMessage().isEmpty()) {
+        msg += "\nError message: " + errorMsg;
+        if (msg.length() > 200) {
+          msg = msg.substring(0, 200) + "...";
+        }
+      }
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
   }
@@ -436,8 +446,10 @@ public class Weidu {
     }
 
     final int weiduVersion = getWeiduVersion(weiduBin);
-    if (weiduVersion < 24600) {
-      throw new IllegalArgumentException("WeiDU version too old or not a WeiDU binary: " + weiduBin);
+    if (weiduVersion <= 0) {
+      throw new IllegalArgumentException("Not a WeiDU binary: " + weiduBin);
+    } else if (weiduVersion < WEIDU_VERSION_MIN) {
+      throw new IllegalArgumentException(String.format("WeiDU version %d too old: %s", weiduVersion / 100, weiduBin));
     } else if (weiduVersion % 100 != 0) {
       Logger.warn("WeiDU binary appears to be a beta or work-in-progress version: " + weiduBin);
     }
