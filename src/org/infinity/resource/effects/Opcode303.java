@@ -6,11 +6,10 @@ package org.infinity.resource.effects;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.TreeMap;
 
+import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HashBitmap;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -19,14 +18,9 @@ import org.infinity.resource.StructEntry;
  * Implementation of opcode 303.
  */
 public class Opcode303 extends BaseOpcode {
-  private static final TreeMap<Long, String> TYPE_MAP_TOBEX = new TreeMap<>();
+  private static final String EFFECT_CONDITION = "Condition";
 
-  static {
-    TYPE_MAP_TOBEX.put(0L, "Normal conditions");
-    TYPE_MAP_TOBEX.put(1L, "Ignore visual state and position");
-    TYPE_MAP_TOBEX.put(2L, "Ignore visual state only");
-    TYPE_MAP_TOBEX.put(4L, "Ignore position only");
-  }
+  private static final String[] CONDITIONS = { "Disabled", "Always", "Ignore invisible", "Ignore facing" };
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
@@ -54,11 +48,19 @@ public class Opcode303 extends BaseOpcode {
   }
 
   @Override
+  protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
+      boolean isVersion1) {
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS));
+    return null;
+  }
+
+  @Override
   protected String makeEffectParamsBG2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     if (isTobEx()) {
       list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-      list.add(new HashBitmap(buffer, offset + 4, 4, EFFECT_TYPE, TYPE_MAP_TOBEX));
+      list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS));
       return null;
     } else {
       return makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
