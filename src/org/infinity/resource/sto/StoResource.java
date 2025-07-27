@@ -94,6 +94,8 @@ public final class StoResource extends AbstractStruct
   public static final String STO_OFFSET_CURES           = "Cures for sale offset";
   public static final String STO_NUM_CURES              = "# cures for sale";
 
+  private static final String SORT_ORDER_NAME_ASC       = "sortOrderNameAsc";
+  private static final String SORT_ORDER_NAME_DEC       = "sortOrderNameDec";
   private static final String SORT_ORDER_SUGGESTED      = "sortOrderSuggested";
   private static final String SORT_ORDER_ASCENDING      = "sortOrderAscending";
   private static final String SORT_ORDER_DESCENDING     = "sortOrderDescending";
@@ -342,11 +344,17 @@ public final class StoResource extends AbstractStruct
   @Override
   public void actionPerformed(ActionEvent e) {
     switch (e.getActionCommand()) {
+      case SORT_ORDER_NAME_ASC:
+        sortItems((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        break;
+      case SORT_ORDER_NAME_DEC:
+        sortItems((a, b) -> b.getName().compareToIgnoreCase(a.getName()));
+        break;
       case SORT_ORDER_ASCENDING:
-        sortItems(Comparator.comparingInt(a -> a));
+        sortItems(Comparator.comparingInt(a -> a.getCategory()));
         break;
       case SORT_ORDER_DESCENDING:
-        sortItems((a, b) -> b - a);
+        sortItems((a, b) -> b.getCategory() - a.getCategory());
         break;
       case SORT_ORDER_SUGGESTED:
       case SORT_ORDER_CUSTOMIZE:
@@ -359,8 +367,10 @@ public final class StoResource extends AbstractStruct
           indexMap = getCustomSortOrder(interactive);
         }
         sortItems((a, b) -> {
-          final int a1 = (a >= 0 && a < indexMap.length) ? indexMap[a] : a;
-          final int b1 = (b >= 0 && b < indexMap.length) ? indexMap[b] : b;
+          final int ca = a.getCategory();
+          final int cb = b.getCategory();
+          final int a1 = (ca >= 0 && ca < indexMap.length) ? indexMap[ca] : ca;
+          final int b1 = (cb >= 0 && cb < indexMap.length) ? indexMap[cb] : cb;
           return a1 - b1;
         });
         break;
@@ -417,23 +427,34 @@ public final class StoResource extends AbstractStruct
     if (viewer != null) {
       final ButtonPanel buttons = viewer.getButtonPanel();
       final ButtonPopupMenu bpmSort = new ButtonPopupMenu("Sort items...");
-      final JMenuItem miSuggested = new JMenuItem("In suggested order");
+      final JMenuItem miByNameAsc = new JMenuItem("Alphabetically in ascending order");
+      miByNameAsc.setToolTipText("Note: Sort order is language-dependent.");
+      miByNameAsc.setActionCommand(SORT_ORDER_NAME_ASC);
+      miByNameAsc.addActionListener(this);
+      final JMenuItem miByNameDec = new JMenuItem("Alphabetically in descending order");
+      miByNameDec.setToolTipText("Note: Sort order is language-dependent.");
+      miByNameDec.setActionCommand(SORT_ORDER_NAME_DEC);
+      miByNameDec.addActionListener(this);
+      final JMenuItem miSuggested = new JMenuItem("In suggested category order");
       miSuggested.setToolTipText("Sort order: weapons, armor, jewelry, potions, scrolls, wands, ...");
       miSuggested.setActionCommand(SORT_ORDER_SUGGESTED);
       miSuggested.addActionListener(this);
-      final JMenuItem miAscending = new JMenuItem("In ascending order");
+      final JMenuItem miAscending = new JMenuItem("In ascending category order");
       miAscending.setToolTipText("Sort by item category number in ascending order.");
       miAscending.setActionCommand(SORT_ORDER_ASCENDING);
       miAscending.addActionListener(this);
-      final JMenuItem miDescending = new JMenuItem("In descending order");
+      final JMenuItem miDescending = new JMenuItem("In descending category order");
       miDescending.setToolTipText("Sort by item category number in descending order.");
       miDescending.setActionCommand(SORT_ORDER_DESCENDING);
       miDescending.addActionListener(this);
-      final JMenuItem miCustomize = new JMenuItem("In user-defined order...");
+      final JMenuItem miCustomize = new JMenuItem("In user-defined category order...");
       final String keyName = (Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() == KeyEvent.CTRL_MASK) ? "CTRL" : "COMMAND";
       miCustomize.setToolTipText("Specify sort order manually. Press " + keyName + " key to auto-apply last used item category order.");
       miCustomize.setActionCommand(SORT_ORDER_CUSTOMIZE);
       miCustomize.addActionListener(this);
+      bpmSort.addItem(miByNameAsc);
+      bpmSort.addItem(miByNameDec);
+      bpmSort.addSeparator();
       bpmSort.addItem(miSuggested);
       bpmSort.addItem(miAscending);
       bpmSort.addItem(miDescending);
@@ -443,12 +464,11 @@ public final class StoResource extends AbstractStruct
   }
 
   /**
-   * Sorts {@link ItemSale} or{@link ItemSale11} structures by their item category index.
-   * Category index of non-existing items is treated as 0.
+   * Sorts {@link ItemSale} or{@link ItemSale11} structures by the specified criteria.
    *
-   * @param cmp A {@link Comparator} object that compares item category indices.
+   * @param cmp A {@link Comparator} object that compares {@link SortableItem} instances.
    */
-  private void sortItems(Comparator<Integer> cmp) {
+  private void sortItems(Comparator<SortableItem<? extends AbstractStruct>> cmp) {
     // assembling item list
     final SectionOffset soItemsForSale = (SectionOffset) getAttribute(STO_OFFSET_ITEMS_FOR_SALE);
     if (soItemsForSale == null) {
@@ -472,7 +492,7 @@ public final class StoResource extends AbstractStruct
     }
 
     // sorting item list
-    itemList.sort((a, b) -> cmp.compare(a.getCategory(), b.getCategory()));
+    itemList.sort(cmp);
 
     // replacing existing item list
     for (int i = 0, size = Math.min(itemList.size(), fieldList.size()); i < size; i++) {
@@ -644,10 +664,12 @@ public final class StoResource extends AbstractStruct
   /** Helper class that associates an {@link ItemSale} or {@link ItemSale11} instance with the related item category. */
   private static class SortableItem<T extends AbstractStruct> {
     private final T item;
+    private final String name;
     private final int category;
 
     public SortableItem(T item) {
       this.item = Objects.requireNonNull(item);
+      this.name = readItemName(this.item, "");
       this.category = readItemCategory(this.item, Integer.MAX_VALUE);
     }
 
@@ -656,9 +678,36 @@ public final class StoResource extends AbstractStruct
       return item;
     }
 
+    /** Returns the name of the item. Returns an empty string if name is not available. */
+    public String getName() {
+      return name;
+    }
+
     /** Returns the category index of the item. Returns {@link Integer#MAX_VALUE} if not available. */
     public int getCategory() {
       return category;
+    }
+
+    /**
+     * Fetches the item name from the ITM resref stored in the item's resref field. Returns a default name if not
+     * available.
+     *
+     * @param item    The {@link ItemSale} or {@link ItemSale11} object.
+     * @param defName A default name to return if ITM resource is not available.
+     * @return Item name, as {@code String}.
+     */
+    private String readItemName(T item, String defName) {
+      final ByteBuffer bb = getResourceBuffer(item);
+      if (bb != null) {
+        int strref = bb.order(ByteOrder.LITTLE_ENDIAN).getInt(0x0c);  // identified name
+        if (!StringTable.isValidStringRef(strref)) {
+          strref = bb.order(ByteOrder.LITTLE_ENDIAN).getInt(0x08);  // general name
+        }
+        if (StringTable.isValidStringRef(strref)) {
+          return StringTable.getStringRef(strref);
+        }
+      }
+      return defName;
     }
 
     /**
@@ -670,6 +719,20 @@ public final class StoResource extends AbstractStruct
      * @return Item category index.
      */
     private int readItemCategory(T item, int defCat) {
+      final ByteBuffer bb = getResourceBuffer(item);
+      if (bb != null ) {
+        return bb.order(ByteOrder.LITTLE_ENDIAN).getShort(0x1c);
+      }
+      return defCat;
+    }
+
+    /**
+     * Retrieves the ITM resource from the item's resref field, as {@code ByteBuffer}.
+     *
+     * @param item The {@link ItemSale} or {@link ItemSale11} object.
+     * @return {@code ITM} resource as {@link ByteBuffer}.
+     */
+    private ByteBuffer getResourceBuffer(T item) {
       if (item != null) {
         final StructEntry se = item.getAttribute(ItemSale.STO_SALE_ITEM);
         if (se instanceof ResourceRef) {
@@ -678,16 +741,15 @@ public final class StoResource extends AbstractStruct
             final ResourceEntry re = ResourceFactory.getResourceEntry(itemResref + ".ITM");
             if (re != null) {
               try {
-                final ByteBuffer bb = re.getResourceBuffer();
-                return bb.order(ByteOrder.LITTLE_ENDIAN).getShort(0x1c);
+                return re.getResourceBuffer();
               } catch (Exception e) {
-                Logger.info("Could not read item category from {}: {}", re, e.getMessage());
+                Logger.info("Could not retrieve item resource \"{}\": {}", re, e.getMessage());
               }
             }
           }
         }
       }
-      return defCat;
+      return null;
     }
 
     /**
