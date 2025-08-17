@@ -166,18 +166,17 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder {
     ACTION_PREFIX_MAP.put(Sequence.PST_MISC7, "ms7");
     ACTION_PREFIX_MAP.put(Sequence.PST_MISC8, "ms8");
     ACTION_PREFIX_MAP.put(Sequence.PST_MISC9, "ms9");
-    // guessed action prefixes
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC10, "msa");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC11, "msb");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC12, "msc");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC13, "msd");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC14, "mse");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC15, "msf");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC16, "msg");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC17, "msh");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC18, "msi");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC19, "msj");
-    ACTION_PREFIX_MAP.put(Sequence.PST_MISC20, "msk");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC10, "ms10");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC11, "ms11");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC12, "ms12");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC13, "ms13");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC14, "ms14");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC15, "ms15");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC16, "ms16");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC17, "ms17");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC18, "ms18");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC19, "ms19");
+    ACTION_PREFIX_MAP.put(Sequence.PST_MISC20, "ms20");
   }
 
   /**
