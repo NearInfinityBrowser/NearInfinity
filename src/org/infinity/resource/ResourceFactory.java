@@ -788,6 +788,75 @@ public final class ResourceFactory {
   }
 
   /**
+   * Convenience method that asks for user confirmation to overwrite if the specified file exists and
+   * {@code interactive} mode is enabled.
+   *
+   * <p>Dialog title is defined as "Confirmation". Options "Overwrite" and "Cancel" are presented.</p>
+   *
+   * @param file        The file {@link Path} to check.
+   * @param interactive Specifies whether an interactive dialog should be presented if the {@code file} already exists.
+   * @param parent      determines the {@code Frame} in which the dialog is displayed; if {@code null}, or if the
+   *                      {@code parent} has no {@code Frame}, a default {@code Frame} is used.
+   * @return {@code 0} if {@code file} does not yet exist, or the user accepted to overwrite it. Returns a positive
+   *         non-zero value if the file already exists and/or the user decided to cancel the write operation. Returns -1
+   *         if {@code file} is {@code null}.
+   */
+  public static int confirmOverwrite(Path file, boolean interactive, Component parent) {
+    return confirmOverwrite(file, interactive, parent, null, null);
+  }
+
+  /**
+   * Convenience method that asks for user confirmation to overwrite if the specified file exists and
+   * {@code interactive} mode is enabled.
+   *
+   * <p>Options "Overwrite" and "Cancel" are presented.</p>
+   *
+   * @param file        The file {@link Path} to check.
+   * @param interactive Specifies whether an interactive dialog should be presented if the {@code file} already exists.
+   * @param parent      determines the {@code Frame} in which the dialog is displayed; if {@code null}, or if the
+   *                      {@code parent} has no {@code Frame}, a default {@code Frame} is used.
+   * @param title       Optional confirmation dialog title. (Default: "Confirmation")
+   * @return {@code 0} if {@code file} does not yet exist, or the user accepted to overwrite it. Returns a positive
+   *         non-zero value if the file already exists and/or the user decided to cancel the write operation. Returns -1
+   *         if {@code file} is {@code null}.
+   */
+  public static int confirmOverwrite(Path file, boolean interactive, Component parent, String title) {
+    return confirmOverwrite(file, interactive, parent, title, null);
+  }
+
+  /**
+   * Convenience method that asks for user confirmation to overwrite if the specified file exists and
+   * {@code interactive} mode is enabled.
+   *
+   * @param file        The file {@link Path} to check.
+   * @param interactive Specifies whether an interactive dialog should be presented if the {@code file} already exists.
+   * @param parent      determines the {@code Frame} in which the dialog is displayed; if {@code null}, or if the
+   *                      {@code parent} has no {@code Frame}, a default {@code Frame} is used.
+   * @param title       Optional confirmation dialog title. (Default: "Confirmation")
+   * @param options     Optional array of available confirmation options. Array must contain 2 or 3 options. The first
+   *                      option indicates that the write operation can continue as planned.
+   * @return {@code 0} if {@code file} does not yet exist, or the user accepted to overwrite it. Returns a positive
+   *         non-zero value if the file already exists and/or the user decided to cancel the write operation. Returns -1
+   *         if {@code file} is {@code null}.
+   */
+  public static int confirmOverwrite(Path file, boolean interactive, Component parent, String title, String[] options) {
+    if (file == null) {
+      return -1;
+    }
+
+    int retVal = Files.exists(file) ? 1 : 0;
+    if (retVal != 0 && interactive) {
+      final String dlgTitle = (title != null) ? title : "Confirmation";
+      final String[] dlgOptions = (options != null && options.length > 0) ? options : new String[] { "Overwrite", "Cancel" };
+      final int msgType = (dlgOptions.length == 3) ? JOptionPane.YES_NO_CANCEL_OPTION : JOptionPane.YES_NO_OPTION;
+      retVal = JOptionPane.showOptionDialog(parent, file + " exists. Overwrite?", dlgTitle, msgType,
+          JOptionPane.WARNING_MESSAGE, null, dlgOptions, dlgOptions[0]);
+    }
+
+    return retVal;
+  }
+
+  /**
    * Returns a list of available game language directories for the current game in Enhanced Edition games. Returns an
    * empty list otherwise.
    */
@@ -1145,9 +1214,7 @@ public final class ResourceFactory {
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       path = fc.getSelectedFile().toPath();
       if (!forceOverwrite && FileEx.create(path).exists()) {
-        final String[] options = { "Overwrite", "Cancel" };
-        if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+        if (confirmOverwrite(path, true, parent, "Export resource") != 0) {
           path = null;
         }
       }
@@ -1592,10 +1659,7 @@ public final class ResourceFactory {
     }
 
     if (FileEx.create(outFile).exists()) {
-      String[] options = { "Overwrite", "Cancel" };
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
-          "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
-          options[0]) != 0) {
+      if (confirmOverwrite(outFile, true, NearInfinity.getInstance(), "Confirm overwrite " + outFile) != 0) {
         return;
       }
     }
@@ -1701,9 +1765,7 @@ public final class ResourceFactory {
       if (overwrite) {
         result = JOptionPane.YES_OPTION;
       } else {
-        String[] options = { "Overwrite", "Discard", "Cancel" };
-        result = JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
-            JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+        result = confirmOverwrite(outPath, true, parent, "Save resource", new String[]{ "Overwrite", "Discard", "Cancel" });
       }
       switch (result) {
         case JOptionPane.YES_OPTION:  // Overwrite
