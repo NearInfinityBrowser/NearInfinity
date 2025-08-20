@@ -4,10 +4,18 @@
 
 package org.infinity.resource.gam;
 
+import java.io.File;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.TreeMap;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
@@ -15,20 +23,28 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.ResourceStructure;
+import org.infinity.util.StringTable;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.tinylog.Logger;
 
 public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable {
   // GAM/PartyNPC-specific field labels
@@ -169,6 +185,15 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     final StructEntry last = getFields().get(getFields().size() - 1);
     ((DecNumber) getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeRemovedInChild(child, datatype);
+  }
+
+  @Override
+  protected void viewerInitialized(StructViewer viewer) {
+    // adding export button
+    final ButtonPanel panel = viewer.getButtonPanel();
+    final JButton bExport = (JButton)panel.addControl(ButtonPanel.Control.EXPORT_BUTTON);
+    bExport.setText("Export as CHR...");
+    bExport.addActionListener(evt -> exportChrInteractive());
   }
 
   void updateCREOffset() {
@@ -432,5 +457,250 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       size = 384;
     }
     return StreamUtils.getByteBuffer(size);
+  }
+
+  /**
+   * Interactively exports the current structure as {@code CHR} file.
+   */
+  private void exportChrInteractive() {
+    final FileNameExtensionFilter chrFilter = new FileNameExtensionFilter("CHR files (*.chr)", "chr");
+    final File outFile = Profile.getGameRoot().resolve("EXPORT.CHR").toFile();
+    final JFileChooser fc = new JFileChooser(outFile.getParent());
+    fc.setSelectedFile(outFile);
+    fc.setDialogTitle("Export as CHR resource");
+    fc.setDialogType(JFileChooser.SAVE_DIALOG);
+    for (final FileFilter filter : fc.getChoosableFileFilters()) {
+      fc.removeChoosableFileFilter(filter);
+    }
+    fc.addChoosableFileFilter(chrFilter);
+    fc.setFileFilter(chrFilter);
+    if (fc.showSaveDialog(getViewer()) == JFileChooser.APPROVE_OPTION) {
+      final File chrFile = fc.getSelectedFile();
+      if (chrFile != null) {
+        boolean overwrite = true;
+        if (FileEx.create(chrFile.toPath()).exists()) {
+          overwrite = ResourceFactory.confirmOverwrite(chrFile.toPath(), true, getViewer(), "Export resource") == 0;
+        }
+        if (overwrite) {
+          try {
+            exportChr(chrFile.toPath());
+            JOptionPane.showMessageDialog(getViewer(), "Structure exported to " + chrFile, "Export complete",
+                JOptionPane.INFORMATION_MESSAGE);
+          } catch (Exception ex) {
+            Logger.error(ex);
+            JOptionPane.showMessageDialog(getViewer(), "Structure could not be exported:\n" + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Exports the current structure as a {@code CHR} file.
+   *
+   * @param chrFile {@link Path} of the exported CHR file.
+   * @throws Exception if an error occurred.
+   */
+  private void exportChr(Path chrFile) throws Exception {
+    final ByteBuffer buffer;
+    switch (Profile.getEngine()) {
+      case IWD2:
+        buffer = createChr("V2.2");
+        break;
+      case BG1:
+      case IWD:
+      case PST:
+        buffer = createChr("V1.0");
+        break;
+      default:
+      {
+        final String version = (getParent() != null) ? ((IsTextual)getParent().getAttribute(COMMON_VERSION)).getText() : "V2.0";
+        buffer = createChr(version);
+        break;
+      }
+    }
+
+    if (buffer != null) {
+      // writing buffer to file
+      try (final OutputStream os = StreamUtils.getOutputStream(chrFile, true)) {
+        StreamUtils.writeBytes(os, buffer);
+      }
+    }
+  }
+
+  /** Creates a {@code CHR} structure of the specified version from the current structure. */
+  private ByteBuffer createChr(String version) throws Exception {
+    if (version == null) {
+      throw new Exception("Version string is null");
+    } else if (version.length() != 4) {
+      throw new Exception("Incompatible version string length");
+    }
+
+    final ResourceStructure struct = new ResourceStructure();
+    final CreResource creStruct = getCreStructure();
+    final int creOffset = version.equalsIgnoreCase("V2.2") ? 0x224 : 0x64;
+    final int creSize = creStruct.getSize();
+
+    // resource header
+    struct.add(ResourceStructure.ID_STRING, 4, "CHR ");
+    struct.add(ResourceStructure.ID_STRING, 4, version);
+
+    // character name
+    final String creName;
+    int creNameStrref = ((IsNumeric)creStruct.getAttribute(CreResource.CRE_NAME)).getValue();
+    if (creNameStrref >= 0) {
+      creName = StringTable.getStringRef(creNameStrref);
+    } else {
+      creName = ((IsTextual)getAttribute(GAM_NPC_NAME)).getText();
+    }
+    struct.add(ResourceStructure.ID_STRING, 32, creName);
+
+    struct.add(ResourceStructure.ID_DWORD, creOffset);
+    struct.add(ResourceStructure.ID_DWORD, creSize);
+
+    // character configuration
+    if (version.equalsIgnoreCase("V2.2")) {
+      for (int i = 1; i <= 4; i++) {
+        StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i));
+        int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+
+        field = getAttribute(String.format(GAM_NPC_QUICK_SHIELD_SLOT_FMT, i));
+        value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 4; i++) {
+        StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i));
+        int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+
+        field = getAttribute(String.format(GAM_NPC_QUICK_SHIELD_ABILITY_FMT, i));
+        value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 9; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_SPELL_FMT, i));
+        final String value = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+        struct.add(ResourceStructure.ID_STRING, 8, value);
+      }
+
+      for (int i = 1; i <= 9; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_SPELL_CLASS_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : 0;
+        struct.add(ResourceStructure.ID_BYTE, value);
+      }
+
+      struct.add(ResourceStructure.ID_BYTE, 0); // Unknown
+
+      for (int i = 1; i <= 3; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 3; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 9; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_ABILITY_FMT, i));
+        final String value = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+        struct.add(ResourceStructure.ID_STRING, 8, value);
+      }
+
+      for (int i = 1; i <= 9; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_SONG_FMT, i));
+        final String value = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+        struct.add(ResourceStructure.ID_STRING, 8, value);
+      }
+
+      for (int i = 1; i <= 9; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_BUTTON_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : 0;
+        struct.add(ResourceStructure.ID_DWORD, value);
+      }
+
+      struct.add(ResourceStructure.ID_BUFFER, 26, ByteBuffer.allocate(26)); // Unknown
+
+      StructEntry field = getAttribute(GAM_NPC_VOICE_SET_PREFIX);
+      String text = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+      struct.add(ResourceStructure.ID_STRING, 8, text);
+
+      field = getAttribute(GAM_NPC_VOICE_SET);
+      text = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+      struct.add(ResourceStructure.ID_STRING, 32, text);
+
+      struct.add(ResourceStructure.ID_BUFFER, 128, ByteBuffer.allocate(128)); // Unknown
+    } else {
+      for (int i = 1; i <= 4; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 4; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_WEAPON_ABILITY_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 3; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_SPELL_FMT, i));
+        final String value = (field instanceof IsTextual) ? ((IsTextual)field).getText() : "";
+        struct.add(ResourceStructure.ID_STRING, 8, value);
+      }
+
+      for (int i = 1; i <= 3; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+
+      for (int i = 1; i <= 3; i++) {
+        final StructEntry field = getAttribute(String.format(GAM_NPC_QUICK_ITEM_ABILITY_FMT, i));
+        final int value = (field instanceof IsNumeric) ? ((IsNumeric)field).getValue() : -1;
+        struct.add(ResourceStructure.ID_WORD, value);
+      }
+    }
+
+    struct.add(ResourceStructure.ID_BUFFER, creSize, creStruct.getDataBuffer());
+
+    return struct.getBuffer();
+  }
+
+  /** Returns the associated {@code CRE} structure as {@code CreResource} object. */
+  private CreResource getCreStructure() throws Exception {
+    CreResource retVal = null;
+
+    final StructEntry creOffsetField = getAttribute(GAM_NPC_OFFSET_CRE);
+    if (creOffsetField instanceof IsNumeric) {
+      final int creOfs = ((IsNumeric)creOffsetField).getValue();
+      if (creOfs != 0) {
+        // embedded CRE structure
+        final StructEntry creResourceField = getAttribute(GAM_NPC_CRE_RESOURCE);
+        if (creResourceField instanceof CreResource) {
+          retVal = (CreResource)creResourceField;
+        } else {
+          throw new Exception("CRE resource structure not available");
+        }
+      } else {
+        // referenced CRE resource
+        final String creResource = ((IsTextual)getAttribute(GAM_NPC_CHARACTER)).getText() + ".CRE";
+        if (ResourceFactory.resourceExists(creResource)) {
+          retVal = new CreResource(ResourceFactory.getResourceEntry(creResource));
+        } else {
+          throw new Exception("CRE resource not found: " + creResource);
+        }
+      }
+    } else {
+      throw new Exception("CRE structure offset not available");
+    }
+
+    return retVal;
   }
 }

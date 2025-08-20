@@ -6,6 +6,7 @@ package org.infinity.resource.cre;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,8 +22,11 @@ import java.util.TreeMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.AnimateBitmap;
@@ -79,6 +83,8 @@ import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
+import org.infinity.util.io.FileEx;
+import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -977,8 +983,8 @@ public final class CreResource extends AbstractStruct
   protected void viewerInitialized(StructViewer viewer) {
     viewer.addTabChangeListener(hexViewer);
     if (isChr) {
-      ButtonPanel panel = viewer.getButtonPanel();
-      JButton b = (JButton) panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
+      final ButtonPanel panel = viewer.getButtonPanel();
+      final JButton b = (JButton) panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
       int idx = panel.getControlPosition(b);
       if (b != null && idx >= 0) {
         // replacing button with menu
@@ -991,6 +997,10 @@ public final class CreResource extends AbstractStruct
         bExport.setMenuItems(new JMenuItem[] { miExport, miConvert });
         bExport.addItemListener(this);
       }
+    } else if (getParent() instanceof PartyNPC) {
+      final ButtonPanel panel = viewer.getButtonPanel();
+      final JButton button = (JButton)panel.addControl(ButtonPanel.Control.EXPORT_BUTTON);
+      button.addActionListener(evt -> exportCre(FileManager.resolve(Profile.getGameRoot().toString(), "EXPORT.CRE"), true));
     }
   }
 
@@ -1098,10 +1108,15 @@ public final class CreResource extends AbstractStruct
         addField(new Unknown(buffer, offset + 420, 128));
       } else if (version.toString().equalsIgnoreCase("V1.0") || version.toString().equalsIgnoreCase("V2.0")
           || version.toString().equalsIgnoreCase("V2.1")) {
+        final boolean hasSlots = ResourceFactory.resourceExists("SLOTS.IDS");
         for (int i = 0; i < 4; i++) {
-          bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
-              String.format(CHR_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
-          bitmap.addIdsMapEntry(entryNone);
+          if (hasSlots) {
+            bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
+                String.format(CHR_QUICK_WEAPON_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
+            bitmap.addIdsMapEntry(entryNone);
+          } else {
+            addField(new DecNumber(buffer, offset + 48 + (i * 2), 2, String.format(CHR_QUICK_WEAPON_SLOT_FMT, i + 1)));
+          }
         }
         for (int i = 0; i < 4; i++) {
           addField(new DecNumber(buffer, offset + 56 + (i * 2), 2, String.format(CHR_QUICK_WEAPON_ABILITY_FMT, i + 1)));
@@ -1110,9 +1125,13 @@ public final class CreResource extends AbstractStruct
           addField(new ResourceRef(buffer, offset + 64 + (i * 8), String.format(CHR_QUICK_SPELL_FMT, i + 1), "SPL"));
         }
         for (int i = 0; i < 3; i++) {
-          bitmap = addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
-              String.format(CHR_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
-          bitmap.addIdsMapEntry(entryNone);
+          if (hasSlots) {
+            bitmap = addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
+                String.format(CHR_QUICK_ITEM_SLOT_FMT, i + 1), "SLOTS.IDS", true, false, true));
+            bitmap.addIdsMapEntry(entryNone);
+          } else {
+            addField(new DecNumber(buffer, offset + 88 + (i * 2), 2, String.format(CHR_QUICK_ITEM_SLOT_FMT, i + 1)));
+          }
         }
         for (int i = 0; i < 3; i++) {
           addField(new DecNumber(buffer, offset + 94 + (i * 2), 2, String.format(CHR_QUICK_ITEM_ABILITY_FMT, i + 1)));
@@ -2198,6 +2217,54 @@ public final class CreResource extends AbstractStruct
       }
     }
     return retVal;
+  }
+
+  /**
+   * Exports the current {@code CreResource} instance to the specified file.
+   *
+   * @param creFile     {@link Path} for the CRE file. Specifies the initial path if {@code interactive} is
+   *                      {@code true}.
+   * @param interactive Specifies whether the CRE path should be queried interactively from the user.
+   */
+  private void exportCre(Path creFile, boolean interactive) {
+    try {
+      File outFile = (creFile != null) ? creFile.toFile() : Profile.getGameRoot().resolve("EXPORT.CRE").toFile();
+      if (interactive) {
+        final FileNameExtensionFilter chrFilter = new FileNameExtensionFilter("CRE files (*.cre)", "cre");
+        final JFileChooser fc = new JFileChooser(outFile);
+        fc.setSelectedFile(outFile);
+        fc.setDialogTitle("Export as CRE resource");
+        fc.setDialogType(JFileChooser.SAVE_DIALOG);
+        for (final FileFilter filter : fc.getChoosableFileFilters()) {
+          fc.removeChoosableFileFilter(filter);
+        }
+        fc.addChoosableFileFilter(chrFilter);
+        fc.setFileFilter(chrFilter);
+
+        if (fc.showSaveDialog(getViewer()) == JFileChooser.APPROVE_OPTION) {
+          outFile = fc.getSelectedFile();
+        } else {
+          outFile = null;
+        }
+      }
+
+      if (outFile != null) {
+        boolean overwrite = true;
+        if (FileEx.create(outFile.toPath()).exists()) {
+          overwrite = ResourceFactory.confirmOverwrite(outFile.toPath(), true, getViewer(), "Export resource") == 0;
+        }
+        if (overwrite) {
+          try (final OutputStream os = StreamUtils.getOutputStream(outFile.toPath(), true)) {
+            StreamUtils.writeBytes(os, getDataBuffer());
+          }
+          JOptionPane.showMessageDialog(getViewer(), "File exported to " + outFile, "Export complete",
+              JOptionPane.INFORMATION_MESSAGE);
+        }
+      }
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(getViewer(), "Structure could not be exported:\n" + e.getMessage(), "Error",
+          JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   @Override
