@@ -317,11 +317,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
         boolean cancelled = false;
         if (fc.getSelectedFile().isFile()) {
-          final String[] options = { "Overwrite", "Cancel" };
-          final String msg = fc.getSelectedFile().toString() + " exists. Overwrite?";
-          final String title = "Export MVE to AVI";
-          int ret = JOptionPane.showOptionDialog(parent, msg, title, JOptionPane.YES_NO_OPTION,
-              JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+          int ret = ResourceFactory.confirmOverwrite(fc.getSelectedFile().toPath(), true, parent, "Export MVE to AVI");
           cancelled = (ret != JOptionPane.YES_OPTION);
         }
         if (!cancelled) {

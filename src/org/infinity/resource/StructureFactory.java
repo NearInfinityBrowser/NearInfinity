@@ -109,9 +109,7 @@ public final class StructureFactory {
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       Path outFile = fc.getSelectedFile().toPath();
       if (FileEx.create(outFile).exists()) {
-        final String[] options = { "Overwrite", "Cancel" };
-        if (JOptionPane.showOptionDialog(parent, outFile + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+        if (ResourceFactory.confirmOverwrite(outFile, true, parent, title) != 0) {
           return;
         }
       }

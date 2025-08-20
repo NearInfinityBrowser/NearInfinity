@@ -26,6 +26,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.menu.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.util.Logger;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileEx;
@@ -79,9 +80,7 @@ public class DebugConsole extends ChildFrame implements ActionListener {
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
         if (FileEx.create(output).exists()) {
-          String[] options = { "Overwrite", "Cancel" };
-          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log",
-              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+          if (ResourceFactory.confirmOverwrite(output, true, this, "Save debug log") != 0) {
             return;
           }
         }

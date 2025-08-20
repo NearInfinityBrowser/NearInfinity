@@ -601,9 +601,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       retVal = fc.getSelectedFile().toPath();
       if (FileEx.create(retVal).exists()) {
-        final String[] options = { "Overwrite", "Cancel" };
-        if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+        if (ResourceFactory.confirmOverwrite(retVal, true, parent, "Export resource") != 0) {
           retVal = null;
         }
       }
@@ -1851,9 +1849,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         if (Files.exists(tisPath)) {
           int result = 1;
           if (interactive) {
-            final String[] options = { "Overwrite", "Cancel" };
-            result = JOptionPane.showOptionDialog(this, tisPath + " exists. Overwrite?", "Question",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            result = ResourceFactory.confirmOverwrite(tisPath, true, this, "Question");
             if (result != 0) {
               tfTisFile.requestFocus();
             }

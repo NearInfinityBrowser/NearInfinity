@@ -501,9 +501,7 @@ public class StructHexViewer extends JPanel
 
     if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
-      String[] options = { "Overwrite", "Cancel" };
-      if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
-          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
+      if (ResourceFactory.confirmOverwrite(outPath, true, this, "Save resource") == 0) {
         if (BrowserMenuBar.getInstance().getOptions().backupOnSave()) {
           try {
             Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");

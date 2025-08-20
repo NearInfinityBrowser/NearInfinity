@@ -744,10 +744,8 @@ public class AdvancedSearch extends ChildFrame implements Runnable {
           if (chooser.getFileFilter().getDescription().contains("*.xml") && selectedFile.getName().indexOf('.') < 0) {
             selectedFile = new File(selectedFile.getAbsolutePath() + ".xml");
           }
-          if (!selectedFile.exists()
-              || JOptionPane.showOptionDialog(AdvancedSearch.this, String.format("%s exists. Overwrite?", selectedFile),
-                  "Save configuration", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                  new String[] { "Overwrite", "Cancel" }, "Overwrite") == JOptionPane.YES_OPTION) {
+          if (!selectedFile.exists() || ResourceFactory.confirmOverwrite(selectedFile.toPath(), true,
+              AdvancedSearch.this, "Save configuration") == 0) {
             if (exportConfig(selectedFile)) {
               JOptionPane.showMessageDialog(AdvancedSearch.this,
                   String.format("Search configuration saved to\n%s.", selectedFile), "Save configuration",
