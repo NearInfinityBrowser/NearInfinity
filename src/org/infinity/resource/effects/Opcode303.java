@@ -10,6 +10,7 @@ import java.util.List;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -20,7 +21,8 @@ import org.infinity.resource.StructEntry;
 public class Opcode303 extends BaseOpcode {
   private static final String EFFECT_CONDITION = "Condition";
 
-  private static final String[] CONDITIONS = { "Disabled", "Always", "Ignore invisible", "Ignore facing" };
+  private static final String[] CONDITIONS = { "Disabled", "Always" };
+  private static final String[] CONDITIONS_EX = { "Disabled", "Always", "Ignore invisibility", "Ignore positioning" };
 
   /** Returns the opcode name for the current game variant. */
   private static String getOpcodeName() {
@@ -51,19 +53,19 @@ public class Opcode303 extends BaseOpcode {
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
     list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS));
+    list.add(new Flag(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS_EX));
     return null;
   }
 
   @Override
   protected String makeEffectParamsBG2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
+    list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
     if (isTobEx()) {
-      list.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-      list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS));
-      return null;
+      list.add(new Flag(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS_EX));
     } else {
-      return makeEffectParamsGeneric(parent, buffer, offset, list, isVersion1);
+      list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_CONDITION, CONDITIONS));
     }
+    return null;
   }
 }
