@@ -214,6 +214,8 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
     } else if ("BAM".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "INI", "ITM", "MENU", "PRO",
           "SPL", "VEF", "VVC", "WMP" };
+    } else if ("BCS".equalsIgnoreCase(ext) || "BS".equalsIgnoreCase(ext)) {
+      selectedExt = new String[] { "2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "INI", "ITM", "SPL" };
     } else if ("BMP".equalsIgnoreCase(ext)) {
       selectedExt = new String[] { "2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "INI", "ITM", "PRO", "SPL",
           "VEF", "VVC" };

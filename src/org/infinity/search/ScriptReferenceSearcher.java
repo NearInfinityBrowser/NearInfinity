@@ -5,19 +5,20 @@
 package org.infinity.search;
 
 import java.awt.Component;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
-import org.infinity.resource.are.Container;
-import org.infinity.resource.are.Door;
-import org.infinity.resource.are.ITEPoint;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.cre.CreResource;
@@ -33,7 +34,7 @@ import org.tinylog.Logger;
  */
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
   public ScriptReferenceSearcher(ResourceEntry bcsScript, Component parent) {
-    super(bcsScript, new String[] { "ARE", "BCS", "CHR", "CRE", "DLG", "INI" }, parent);
+    super(bcsScript, getSupportedTypes(), parent);
   }
 
   @Override
@@ -59,10 +60,10 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
         } else {
           addHit(entry, null, o);
         }
-      } else if (o instanceof Actor || o instanceof Container || o instanceof Door || o instanceof ITEPoint) {
-        searchStruct(entry, (AbstractStruct) o);
       } else if (o instanceof AbstractCode) {
         searchScript(entry, ((AbstractCode) o).getText(), o);
+      } else if (o instanceof AbstractStruct) {
+        searchStruct(entry, (AbstractStruct) o);
       }
     }
   }
@@ -94,5 +95,21 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher {
     } catch (Exception e) {
       Logger.error(e);
     }
+  }
+
+  /**
+   * A helper method that returns an array of resource types for the reference search that are supported by the current
+   * game.
+   */
+  private static String[] getSupportedTypes() {
+    final ArrayList<String> list = new ArrayList<>();
+    final String[] extensions = { "2DA", "ARE", "BCS", "CHR", "CRE", "DLG", "EFF", "GAM", "INI", "ITM", "SPL" };
+    final List<String> availableExtensions = Arrays.asList(Profile.getAvailableResourceTypes());
+    for (final String ext : extensions) {
+      if (availableExtensions.contains(ext)) {
+        list.add(ext);
+      }
+    }
+    return list.toArray(new String[list.size()]);
   }
 }
