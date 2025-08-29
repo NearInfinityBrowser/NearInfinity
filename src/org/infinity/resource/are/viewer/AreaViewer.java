@@ -3633,14 +3633,18 @@ public class AreaViewer extends ChildFrame {
           final int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
           final int colUnexplored = 0xff000000;
           final int colExplored = 0;
-          for (int y = 0; y < cellsHeight; y++) {
-            for (int x = 0; x < cellsWidth; x++) {
+          boolean isValidOffset = data.limit() > 0;
+          for (int y = 0; y < cellsHeight && isValidOffset; y++) {
+            for (int x = 0; x < cellsWidth && isValidOffset; x++) {
               final int ofs = x + y * cellsWidthRaw;
-              final int bytePos = ofs / 8;
+              final int bytePos = ofs >> 3;
               final int bitPos = ofs & 7;
-              final boolean isExplored = ((data.get(bytePos) >> bitPos) & 1) != 0;
-              final int ofsPixel = x + y * cellsWidth;
-              pixels[ofsPixel] = isExplored ? colExplored : colUnexplored;
+              isValidOffset = bytePos < data.limit();
+              if (isValidOffset) {
+                final boolean isExplored = ((data.get(bytePos) >> bitPos) & 1) != 0;
+                final int ofsPixel = x + y * cellsWidth;
+                pixels[ofsPixel] = isExplored ? colExplored : colUnexplored;
+              }
             }
           }
 
