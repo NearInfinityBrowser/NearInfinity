@@ -160,7 +160,6 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWSIZE                  = "ShowSize";
   public static final String OPTION_SHOWSIZEHEX               = "ShowSizeHex";
   public static final String OPTION_BACKUPONSAVE              = "BackupOnSave";
-  public static final String OPTION_IGNOREOVERRIDE            = "IgnoreOverride";
   public static final String OPTION_IGNOREREADERRORS          = "IgnoreReadErrors";
   public static final String OPTION_LAUNCHGAMEALLOWED         = "LaunchGameAllowed";
   public static final String OPTION_SHOWUNKNOWNRESOURCES      = "ShowUnknownResources";
@@ -571,7 +570,8 @@ public class OptionsMenuItem extends JMenuItem {
 
   /** Returns whether override files are ignored in the resource tree. */
   public boolean ignoreOverrides() {
-    return AppOption.IGNORE_OVERRIDE.getBoolValue();
+    // XXX: Always returns false: keeps code changes to a minimum after removal of the "Ignore Override" option
+    return false;
   }
 
   /** Returns if read errors are shown in the status bar instead of a dialog prompt. */
