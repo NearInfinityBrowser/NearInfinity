@@ -13,7 +13,8 @@ import org.infinity.datatype.DecNumber;
  */
 public class IndexNumber extends DecNumber {
   public IndexNumber(ByteBuffer buffer, int offset, int length, String name) {
-    super(buffer, offset, length, name);
+  // WED index numbers are unsigned 16-bit values (tile indices). Read as unsigned by default.
+  super(buffer, offset, length, name, false);
   }
 
   public IndexNumber(ByteBuffer buffer, int offset, int length, String name, boolean signed) {
