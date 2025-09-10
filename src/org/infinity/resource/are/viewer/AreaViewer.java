@@ -206,6 +206,7 @@ public class AreaViewer extends ChildFrame {
   private JMenuItem miLayerPinsExport;
   private JLabel lPosX;
   private JLabel lPosY;
+  private JLabel lTile;
   private JTextArea taMiniMapInfo;
   private JTextArea taInfo;
   private boolean bMapDragging;
@@ -555,10 +556,12 @@ public class AreaViewer extends ChildFrame {
     spTree.setMinimumSize(dim);
 
     // Creating Info Box area
-    JLabel lPosXLabel = new JLabel(LABEL_INFO_X);
-    JLabel lPosYLabel = new JLabel(LABEL_INFO_Y);
-    lPosX = new JLabel("0");
-    lPosY = new JLabel("0");
+  JLabel lPosXLabel = new JLabel(LABEL_INFO_X);
+  JLabel lPosYLabel = new JLabel(LABEL_INFO_Y);
+  JLabel lTileLabel = new JLabel("Tile #:");
+  lPosX = new JLabel("0");
+  lPosY = new JLabel("0");
+  lTile = new JLabel("0");
 
     taMiniMapInfo = new JTextArea();
     taMiniMapInfo.setEditable(false);
@@ -593,12 +596,18 @@ public class AreaViewer extends ChildFrame {
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(4, 8, 0, 0), 0, 0);
     pInfoBox.add(lPosY, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
-        new Insets(4, 0, 0, 0), 0, 0);
-    pInfoBox.add(taMiniMapInfo, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
-        new Insets(4, 0, 0, 0), 0, 0);
-    pInfoBox.add(taInfo, c);
+  c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+    new Insets(4, 0, 0, 0), 0, 0);
+  pInfoBox.add(lTileLabel, c);
+  c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+    new Insets(4, 8, 0, 0), 0, 0);
+  pInfoBox.add(lTile, c);
+  c = ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+    new Insets(4, 0, 0, 0), 0, 0);
+  pInfoBox.add(taMiniMapInfo, c);
+  c = ViewerUtil.setGBC(c, 0, 4, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH,
+    new Insets(4, 0, 0, 0), 0, 0);
+  pInfoBox.add(taInfo, c);
     pInfoBox.setMinimumSize(pInfoBox.getPreferredSize());
 
     // Assembling right side bar
@@ -1419,6 +1428,24 @@ public class AreaViewer extends ChildFrame {
       if (coords.y != mapCoordinates.y) {
         mapCoordinates.y = coords.y;
         lPosY.setText(Integer.toString(mapCoordinates.y));
+      }
+    // Compute tile number (tiles are 64x64 pixels). If renderer not ready, show N/A.
+  if (rcCanvas != null && rcCanvas.isTilesetLoaded()) {
+        try {
+          int tileX = mapCoordinates.x / 64;
+          int tileY = mapCoordinates.y / 64;
+      int tilesPerRow = rcCanvas.getTilesX();
+          int tileNumber = tileY * tilesPerRow + tileX;
+          if (tileX < 0 || tileY < 0 || tileX >= tilesPerRow || tileNumber < 0) {
+            lTile.setText("N/A");
+          } else {
+            lTile.setText(Integer.toString(tileNumber));
+          }
+        } catch (Exception e) {
+          lTile.setText("N/A");
+        }
+      } else {
+        lTile.setText("N/A");
       }
       setMiniMapText(coords);
     }

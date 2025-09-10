@@ -34,9 +34,30 @@ public final class Tilemap extends AbstractStruct { // WED/Tilemap-specific fiel
 
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
+    // Primary tile index is stored as unsigned 16-bit in WED. Read with public constructor then fix value.
     addField(new DecNumber(buffer, offset, 2, WED_TILEMAP_TILE_INDEX_PRI));
     addField(new DecNumber(buffer, offset + 2, 2, WED_TILEMAP_TILE_COUNT_PRI));
+    // Read secondary tile index as unsigned 16-bit where 0xFFFF means 'no secondary index' (-1).
     addField(new DecNumber(buffer, offset + 4, 2, WED_TILEMAP_TILE_INDEX_SEC));
+    // Post-process primary and secondary values to interpret as unsigned (with 0xFFFF => -1 for secondary).
+    try {
+      DecNumber pri = (DecNumber) getAttribute(WED_TILEMAP_TILE_INDEX_PRI);
+      int rawPri = buffer.getShort(offset) & 0xffff;
+      pri.setValue(rawPri);
+    } catch (Exception e) {
+      // ignore
+    }
+    try {
+      DecNumber sec = (DecNumber) getAttribute(WED_TILEMAP_TILE_INDEX_SEC);
+      int rawSec = buffer.getShort(offset + 4) & 0xffff;
+      if (rawSec == 0xffff) {
+        sec.setValue(-1);
+      } else {
+        sec.setValue(rawSec);
+      }
+    } catch (Exception e) {
+      // ignore
+    }
     addField(new Flag(buffer, offset + 6, 1, WED_TILEMAP_DRAW_OVERLAYS, FLAGS_ARRAY));
     addField(new DecNumber(buffer, offset + 7, 1, WED_TILEMAP_ANIMATION_SPEED));
     addField(new Unknown(buffer, offset + 8, 2));

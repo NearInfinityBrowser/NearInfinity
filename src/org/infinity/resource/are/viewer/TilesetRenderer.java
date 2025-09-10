@@ -410,6 +410,35 @@ public class TilesetRenderer extends RenderCanvas {
   }
 
   /**
+   * Returns number of tiles per row (tiles X) of the primary tileset.
+   * Returns 0 when no tileset is loaded.
+   */
+  public int getTilesX() {
+    if (isInitialized()) {
+      return listTilesets.get(0).tilesX;
+    }
+    return 0;
+  }
+
+  /**
+   * Returns number of tiles per column (tiles Y) of the primary tileset.
+   * Returns 0 when no tileset is loaded.
+   */
+  public int getTilesY() {
+    if (isInitialized()) {
+      return listTilesets.get(0).tilesY;
+    }
+    return 0;
+  }
+
+  /**
+   * Public wrapper to indicate whether tileset data is available.
+   */
+  public boolean isTilesetLoaded() {
+    return isInitialized();
+  }
+
+  /**
    * Advances the frame index by one for animated overlays.
    */
   public void advanceTileFrame() {
