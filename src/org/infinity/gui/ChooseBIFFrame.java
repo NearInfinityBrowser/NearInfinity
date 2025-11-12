@@ -88,8 +88,13 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener {
     rbcreate.addActionListener(this);
 
     cbbifname = new JComboBox<>(ResourceFactory.getKeyfile().getBIFFEntriesSorted());
-    cbbifname.setSelectedIndex(0);
     cbbifname.setEditable(false);
+    if (cbbifname.getItemCount() > 0) {
+      cbbifname.setSelectedIndex(0);
+    } else {
+      rbcreate.doClick();
+      rbedit.setEnabled(false);
+    }
 
     JPanel pane = (JPanel) getContentPane();
     GridBagLayout gbl = new GridBagLayout();
@@ -114,11 +119,13 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener {
 
     gbc.insets = new Insets(3, 3, 6, 6);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbl.setConstraints(cbbifname, gbc);
     pane.add(cbbifname);
 
     gbc.insets = new Insets(6, 6, 3, 6);
     gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.NONE;
     gbl.setConstraints(rbcreate, gbc);
     pane.add(rbcreate);
 
