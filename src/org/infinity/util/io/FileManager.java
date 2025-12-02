@@ -5,7 +5,6 @@
 package org.infinity.util.io;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -14,9 +13,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import org.infinity.util.Logger;
 import org.infinity.util.Platform;
@@ -35,6 +34,12 @@ public class FileManager {
    */
   public static boolean isCaseSensitiveMode() {
     return caseSensitiveMode;
+  }
+
+  private static final BiFunction<Path, Boolean, Path> pathResolver = makePathResolver();
+  
+  private static BiFunction<Path, Boolean, Path> makePathResolver() {
+    return isCaseSensitiveMode() ? new CaseAwarePathResolver()::resolve : (p, f) -> p;
   }
 
   /**
@@ -363,39 +368,7 @@ public class FileManager {
       // validating path segments
       Path validatedPath = path.getRoot();
       if (validatedPath != null && FileEx.create(validatedPath).exists()) {
-        int idx = 0;
-        for (; idx < path.getNameCount(); idx++) {
-          final Path pathItem = path.getName(idx);
-          final String pathName = pathItem.toString();
-
-          final Path resolvedPath = validatedPath.resolve(pathName);
-          if (Files.exists(resolvedPath)) {
-            validatedPath = resolvedPath;
-          } else {
-            try (final DirectoryStream<Path> ds = Files.newDirectoryStream(validatedPath,
-                p -> p.getFileName().toString().equalsIgnoreCase(pathName))) {
-              final Iterator<Path> iter = ds.iterator();
-              if (iter.hasNext()) {
-                validatedPath = iter.next();
-              } else {
-                break;
-              }
-            } catch (IOException e) {
-              break;
-            }
-          }
-        }
-
-        // adding remaining unvalidated path segments (if any)
-        if (forced && idx < path.getNameCount()) {
-          validatedPath = null;
-        } else {
-          for (; idx < path.getNameCount(); idx++) {
-            validatedPath = validatedPath.resolve(path.getName(idx));
-          }
-        }
-
-        retVal = validatedPath;
+          retVal = pathResolver.apply(path, forced);
       }
     } else if (forced && !pathEx.exists()) {
       retVal = null;
