@@ -107,13 +107,15 @@ public class StringEditor extends ChildFrame implements SearchClient {
   public StringEditor() {
     super(getWindowTitle(StringTable.Type.MALE));
 
-    String msg = "Make sure you have a backup of ";
-    msg += StringTable.getPath(StringTable.Type.MALE).getFileName().toString();
-    if (StringTable.hasFemaleTable()) {
-      msg += " and " + StringTable.getPath(StringTable.Type.FEMALE).getFileName().toString();
+    if (BrowserMenuBar.getInstance().getOptions().showOpenStringTableWarning()) {
+      String msg = "Make sure you have a backup of ";
+      msg += StringTable.getPath(StringTable.Type.MALE).getFileName().toString();
+      if (StringTable.hasFemaleTable()) {
+        msg += " and " + StringTable.getPath(StringTable.Type.FEMALE).getFileName().toString();
+      }
+      msg += ".";
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Warning", JOptionPane.WARNING_MESSAGE);
     }
-    msg += ".";
-    JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Warning", JOptionPane.WARNING_MESSAGE);
 
     initUI();
     showEntry(0);

@@ -93,7 +93,7 @@ public class AppOption {
       false);
   /** Menu Options: LaunchGameAllowed (Boolean, Default: true) */
   public static final AppOption LAUNCH_GAME_ALLOWED = new AppOption(OptionsMenuItem.OPTION_LAUNCHGAMEALLOWED,
-      "Allow launching games", true);
+      "Allow Launching Games", true);
   /** Menu Options: UpdateTreeOnCopy (Boolean, Default: false) */
   public static final AppOption KEEP_VIEW_ON_COPY = new AppOption(OptionsMenuItem.OPTION_KEEPVIEWONCOPY,
       "Keep View after Copy Operations", false);
@@ -114,12 +114,14 @@ public class AppOption {
   /** Menu Options: OpenBookmarksPrompt (Boolean, Default: true) */
   public static final AppOption OPEN_BOOKMARKS_PROMPT = new AppOption(OptionsMenuItem.OPTION_OPENBOOKMARKSPROMPT,
       "Confirm Opening Bookmarked Gamed", true);
+  public static final AppOption OPEN_STRINGTABLE_WARNING = new AppOption(OptionsMenuItem.OPTION_OPENSTRINGTABLEWARNING,
+      "Show Backup Warning When Opening String Table Editor", true);
   /** Menu Options: RememberChildFrameRect (Boolean, Default: false) */
   public static final AppOption REMEMBER_CHILD_FRAME_RECT = new AppOption(OptionsMenuItem.OPTION_REMEMBER_CHILDFRAME_RECT,
       "Remember Last Child Frame Size and Position", false);
   /** Menu Options: ShowCreaturesOnPanel (Boolean, Default: false) */
   public static final AppOption SHOW_CREATURES_ON_PANEL = new AppOption(OptionsMenuItem.OPTION_SHOW_CREATURES_ON_PANEL,
-      "Show creatures on main panel", false);
+      "Show Creatures on Main Panel", false);
   /**
    * Menu Options: OptionFixedInternal (Integer, Default: 0).
    * Note: Used internally to fix incorrect default values after the public release.
@@ -151,7 +153,7 @@ public class AppOption {
       "Autocheck for Overrides", true);
   /** Menu Options > Resources: ShowLastIdsSymbol (Boolean, Default: true) */
   public static final AppOption IDS_SYMBOL_DISPLAY = new AppOption(OptionsMenuItem.OPTION_IDS_SYMBOL_DISPLAY,
-      "Use last available IDS symbol for display", true);
+      "Use Last Available IDS Symbol for Display", true);
   /** Menu Options > Resources: getOpenResourceMenuEnabled (Boolean, Default: true) */
   public static final AppOption OPEN_RESOURCE_TEXT_MENU = new AppOption(OptionsMenuItem.OPTION_OPEN_RESOURCE_TEXT_MENU,
       "Add \"Open resource\" option to text resource context menus", true);

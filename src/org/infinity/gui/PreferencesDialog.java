@@ -275,6 +275,10 @@ public class PreferencesDialog extends JDialog {
                       + "<p><strong>Note:</strong> This option can also be changed in the confirmation dialog of the "
                       + "bookmarked games themselves</p>",
                   AppOption.OPEN_BOOKMARKS_PROMPT),
+              OptionCheckBox.create(AppOption.OPEN_STRINGTABLE_WARNING.getName(), AppOption.OPEN_STRINGTABLE_WARNING.getLabel(),
+                  "With this option enabled a warning dialog about making a backup of the \"dialog.tlk\" is shown when "
+                      + "you open the String Table Editor.",
+                  AppOption.OPEN_STRINGTABLE_WARNING),
               OptionCheckBox.create(AppOption.REMEMBER_CHILD_FRAME_RECT.getName(), AppOption.REMEMBER_CHILD_FRAME_RECT.getLabel(),
                   "With this option enabled Near Infinity remembers current size and position of child windows on the screen.<br/>"
                       + "This information is only remembered across the current session and will be discarded whenever "

@@ -180,6 +180,7 @@ public class OptionsMenuItem extends JMenuItem {
   public static final String OPTION_SHOWSYSINFO               = "ShowSysInfo";
   public static final String OPTION_SHOWMEMSTATUS             = "ShowMemStatus";
   public static final String OPTION_OPENBOOKMARKSPROMPT       = "OpenBookmarksPrompt";
+  public static final String OPTION_OPENSTRINGTABLEWARNING    = "OpenStringTableWarning";
   public static final String OPTION_REMEMBER_CHILDFRAME_RECT  = "RememberChildFrameRect";
   public static final String OPTION_SHOW_CREATURES_ON_PANEL   = "ShowCreaturesOnPanel";
 
@@ -709,6 +710,11 @@ public class OptionsMenuItem extends JMenuItem {
    */
   public void setShowOpenBookmarksPrompt(boolean show) {
     AppOption.OPEN_BOOKMARKS_PROMPT.setInitialValue(show);
+  }
+
+  /** Returns whether to show a warning dialog when opening the string table editor. */
+  public boolean showOpenStringTableWarning() {
+    return AppOption.OPEN_STRINGTABLE_WARNING.getBoolValue();
   }
 
   /** Returns whether the size and position of the last opened child frame should be reused for new child frames. */
