@@ -44,7 +44,7 @@ public class Opcode112 extends BaseOpcode {
   @Override
   protected String makeEffectParamsEE(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> list,
       boolean isVersion1) {
-    list.add(new Bitmap(buffer, offset + 4, 4, EFFECT_SOUND_FX, SOUND_FX_EE));
+    list.add(new Bitmap(buffer, offset, 4, EFFECT_SOUND_FX, SOUND_FX_EE));
     list.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
     return RES_TYPE;
   }
