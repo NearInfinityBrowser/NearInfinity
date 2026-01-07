@@ -605,17 +605,16 @@ public class PreferencesDialog extends JDialog {
                   "Choose a Look & Feel theme for the GUI."
                       + "<p><strong>Metal</strong> is the default L&F theme and provides the most consistent user experience. "
                       + "It is available on all platforms.</p>"
-                      + "<p>Look & Feel themes marked with an asterisk are compatible with the \"Follow system color scheme\" "
+                      + "<p>Look & Feel themes marked with an asterisk (*) are compatible with the \"Follow system color scheme\" "
                       + "option.</p>",
                   0, new DataItem<?>[0], AppOption.LOOK_AND_FEEL_CLASS)
               .setOnInit(this::lookAndFeelClassOnInit).setOnAccept(this::lookAndFeelClassOnAccept),
               OptionCheckBox.create(AppOption.LOOK_AND_FEEL_AUTO_MODE.getName(), AppOption.LOOK_AND_FEEL_AUTO_MODE.getLabel(),
                   "With this option enabled a light or dark mode theme will be automatically chosen based on the system's "
                       + "color scheme."
-                      + "<p><strong>Note:</strong> Only Look & Feel themes marked with an asterisk are compatible with "
+                      + "<p><strong>Note:</strong> Only Look & Feel themes marked with an asterisk (*) are compatible with "
                       + "this feature.</p>",
                   AppOption.LOOK_AND_FEEL_AUTO_MODE)
-              .setOnCreated(this::luaSyntaxHighlightingOnCreated).setOnAction(this::luaSyntaxHighlightingOnAction)
           ),
           OptionGroup.create("Override UI Scaling",
               OptionCheckBox.create(AppOption.UI_SCALE_ENABLED.getName(), AppOption.UI_SCALE_ENABLED.getLabel(),
