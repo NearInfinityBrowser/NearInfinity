@@ -1500,7 +1500,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
             if (as != struct) {
               final StructEntry att = as.getAttribute(as.getOffset() + relOfs, false);
               if (att != null) {
-                if (att.getSize() == entry.getSize() && att.getClass().equals(entry.getClass())) {
+                if (att.getSize() == entry.getSize() && isCompatibleAttribute(entry, att)) {
                   // testing whether to apply data
                   boolean shouldApply = !filterEmpty || isEmptyStructure(att);
                   if (filterEmpty && invertFilter) {
@@ -1530,6 +1530,23 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       JOptionPane.showMessageDialog(getTopLevelAncestor(), "No further structures present.", "Information",
           JOptionPane.INFORMATION_MESSAGE);
     }
+  }
+
+  /**
+   * Determines whether the specified {@code StructEntry} parameters are compatible.
+   *
+   * @param srcEntry {@code StructEntry} instance of the source attribute.
+   * @param dstEntry {@code StructEntry} instance of the destination attribute.
+   * @return {@code true} if both instances are fundamentally compatible. Returns {@code false} otherwise.
+   */
+  private boolean isCompatibleAttribute(StructEntry srcEntry, StructEntry dstEntry) {
+    boolean retVal = srcEntry != null && dstEntry != null && (srcEntry.getSize() == dstEntry.getSize());
+    if (retVal) {
+      retVal = (srcEntry instanceof IsTextual && dstEntry instanceof IsTextual) ||
+               (srcEntry instanceof IsNumeric && dstEntry instanceof IsNumeric) ||
+               dstEntry.getClass().equals(srcEntry.getClass());
+    }
+    return retVal;
   }
 
   /**
