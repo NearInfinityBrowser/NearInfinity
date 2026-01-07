@@ -1587,6 +1587,7 @@ public final class Profile {
     list = new ArrayList<>();
     list.add("Baldur.exe");
     list.add("BGEE.exe");
+    list.add("InfinityLoader.exe");
     osMap.put(Platform.OS.WINDOWS, list);
     DEFAULT_GAME_BINARIES.put(Game.BG1EE, osMap);
 
@@ -1613,6 +1614,7 @@ public final class Profile {
     list.add("SiegeOfDragonspear.exe");
     list.add("SOD.exe");
     list.add("Baldur.exe");
+    list.add("InfinityLoader.exe");
     list.add("BGEE.exe");
     osMap.put(Platform.OS.WINDOWS, list);
     DEFAULT_GAME_BINARIES.put(Game.BG1SoD, osMap);
@@ -1637,6 +1639,7 @@ public final class Profile {
     osMap.put(Platform.OS.MAC_OS, list);
     list = new ArrayList<>();
     list.add("Baldur.exe");
+    list.add("InfinityLoader.exe");
     list.add("BG2EE.exe");
     osMap.put(Platform.OS.WINDOWS, list);
     DEFAULT_GAME_BINARIES.put(Game.BG2EE, osMap);
@@ -1660,6 +1663,7 @@ public final class Profile {
     osMap.put(Platform.OS.MAC_OS, list);
     list = new ArrayList<>();
     list.add("Icewind.exe");
+    list.add("InfinityLoader.exe");
     list.add("IWD.exe");
     osMap.put(Platform.OS.WINDOWS, list);
     DEFAULT_GAME_BINARIES.put(Game.IWDEE, osMap);
