@@ -21,7 +21,7 @@ import org.infinity.util.StructClipboard;
 
 public class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener {
   private final JButton bclearclipboard = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
-  private final InfinityTextArea taClipBoard = new InfinityTextArea(false);
+  private final InfinityTextArea taClipBoard = new InfinityTextArea(true);
 
   public ClipboardViewer() {
     super("Clipboard");

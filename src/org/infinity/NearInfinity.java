@@ -245,8 +245,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
-  private static final InfinityTextArea CONSOLE_TEXT = new InfinityTextArea(true);
+  // settings are applied lazily since app settings aren't available at initialization time
+  private static final InfinityTextArea CONSOLE_TEXT = new InfinityTextArea(false);
 
+  private static boolean consoleSettingsApplied = false;
   private static NearInfinity browser;
 
   private final SpriteAnimationPanel containerpanel;
@@ -295,6 +297,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
   public static InfinityTextArea getConsoleText() {
+    if (!consoleSettingsApplied) {
+      consoleSettingsApplied = true;
+      CONSOLE_TEXT.applySettings(true);
+      CONSOLE_TEXT.applyExtendedSettings(null, null);
+      CONSOLE_TEXT.setFont(Misc.getScaledFont(CONSOLE_TEXT.getFont()));
+    }
     return CONSOLE_TEXT;
   }
 
