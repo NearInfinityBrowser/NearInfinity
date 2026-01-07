@@ -136,7 +136,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
 
   @Override
   public boolean canRemove() {
-    return true;
+    // TODO: re-enable after fixing GAM corruption after adding/removing PartyNPC structures
+    return false;
   }
 
   // --------------------- End Interface AddRemovable ---------------------
