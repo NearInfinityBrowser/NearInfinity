@@ -17,6 +17,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1269,17 +1270,21 @@ public final class Profile {
     if (relPath != null) {
       List<Path> roots = getRootFolders();
       for (final Path root : roots) {
-        Path savePath = root.resolve(relPath);
-        List<String> folderNames = getProperty(Key.GET_GAME_SAVE_FOLDER_NAMES);
-        for (final String saveFolder : folderNames) {
-          Path saveRootPath = FileManager.queryExisting(root, saveFolder);
-          if (saveRootPath != null && savePath.startsWith(saveRootPath)) {
-            retVal = true;
+        try {
+          Path savePath = root.resolve(relPath);
+          List<String> folderNames = getProperty(Key.GET_GAME_SAVE_FOLDER_NAMES);
+          for (final String saveFolder : folderNames) {
+            Path saveRootPath = FileManager.queryExisting(root, saveFolder);
+            if (saveRootPath != null && savePath.startsWith(saveRootPath)) {
+              retVal = true;
+              break;
+            }
+          }
+          if (retVal) {
             break;
           }
-        }
-        if (retVal) {
-          break;
+        } catch (ProviderMismatchException e) {
+          // incompatible filesystem roots: ignore
         }
       }
     }
