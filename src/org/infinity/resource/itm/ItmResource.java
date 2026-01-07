@@ -188,7 +188,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     is.skip(8);
     String defName = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
     String name = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
-    if (name.isEmpty() || name.equalsIgnoreCase("No such index")) {
+    if (name.isEmpty() || name.equalsIgnoreCase(StringTable.DEFAULT_STRING)) {
       return defName;
     } else {
       return name;

@@ -70,6 +70,7 @@ import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.IconCache;
 import org.infinity.util.Logger;
 import org.infinity.util.Operation;
+import org.infinity.util.StringTable;
 import org.infinity.util.Weidu;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
@@ -862,7 +863,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           // TODO: refactor code and remove "No such index" comparison
           // Now getSearchString returns that string when StringRef index not found
           // in the talk table
-          final boolean hasTitle = title != null && !title.isEmpty() && !"No such index".equals(title);
+          final boolean hasTitle = title != null && !title.isEmpty() && !StringTable.DEFAULT_STRING.equals(title);
           setText(hasTitle ? name + " - " + title : name);
         }
         setIcon(icon);

@@ -86,6 +86,9 @@ public class StringTable {
   /** Strref start index for virtual strings referenced by ENGINEST.2DA (EE only) */
   public static final int STRREF_VIRTUAL = 0xf00000;
 
+  /** Default string returned if a requested string is unavailable. */
+  public static final String DEFAULT_STRING = "No such index";
+
   private static final EnumMap<Type, StringTable> TLK_TABLE = new EnumMap<>(Type.class);
 
   private static Charset charset = null;
@@ -326,7 +329,7 @@ public class StringTable {
     try {
       return instance(type)._getStringRef(index, getDisplayFormat());
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -349,7 +352,7 @@ public class StringTable {
     try {
       return instance(type)._getStringRef(index, fmt);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -394,7 +397,7 @@ public class StringTable {
     try {
       instance(type)._setStringRef(index, text);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -418,7 +421,7 @@ public class StringTable {
     try {
       return instance(type)._getSoundResource(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -444,7 +447,7 @@ public class StringTable {
     try {
       instance(type)._setSoundResource(index, resRef);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -466,7 +469,7 @@ public class StringTable {
     try {
       return instance(type)._getFlags(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -492,7 +495,7 @@ public class StringTable {
     try {
       instance(type)._setFlags(index, value);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -514,7 +517,7 @@ public class StringTable {
     try {
       return instance(type)._getVolume(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -540,7 +543,7 @@ public class StringTable {
     try {
       instance(type)._setVolume(index, value);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -562,7 +565,7 @@ public class StringTable {
     try {
       return instance(type)._getPitch(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -588,7 +591,7 @@ public class StringTable {
     try {
       instance(type)._setPitch(index, value);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -602,7 +605,7 @@ public class StringTable {
     try {
       return instance(type)._getEntry(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -721,7 +724,7 @@ public class StringTable {
     try {
       return instance(type)._insertEntry(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -757,7 +760,7 @@ public class StringTable {
     try {
       return instance(type)._insertEntry(index, newEntry);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -786,7 +789,7 @@ public class StringTable {
     try {
       instance(type)._removeEntry(index);
     } catch (StringTableUnavailableException e) {
-      throw new IndexOutOfBoundsException(index + " >= 0");
+      throw new IndexOutOfBoundsException("String table does not exist");
     }
   }
 
@@ -1608,7 +1611,7 @@ public class StringTable {
   // Manages a single string entry
   public static class StringEntry extends AbstractStruct {
     // Default entry for non-existing indices
-    private static final StringEntry INVALID = new StringEntry(null, FLAGS_HAS_TEXT, "", 0, 0, "No such index", null);
+    private static final StringEntry INVALID = new StringEntry(null, FLAGS_HAS_TEXT, "", 0, 0, StringTable.DEFAULT_STRING, null);
 
     private StringTable parent;
     private short flags;
