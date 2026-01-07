@@ -78,6 +78,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     this.container = container;
     blocker = new WindowBlocker(container);
     container.getRootPane().setDefaultButton(bnext);
+    bclear.setEnabled(false);
     bclear.setMnemonic('n');
     bnext.addActionListener(this);
     tfinput.addActionListener(this);
@@ -98,8 +99,7 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     tfinput.setMinimumSize(new Dimension(tfinput.getMinimumSize().width, bnext.getMinimumSize().height));
     tfinput.setPreferredSize(new Dimension(tfinput.getPreferredSize().width, bnext.getPreferredSize().height));
 
-    JPanel dirpanel = new JPanel();
-    dirpanel.add(new JPanel());
+    JPanel dirpanel = new JPanel(new GridLayout(2, 1));
     dirpanel.add(rbup);
     dirpanel.add(rbdown);
     dirpanel.setBorder(BorderFactory.createTitledBorder("Direction"));
@@ -145,11 +145,14 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
     gbl.setConstraints(matchpanel, gbc);
     add(matchpanel);
 
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.weighty = 1.0;
     gbc.gridwidth = 1;
     gbc.insets.left = 3;
     gbl.setConstraints(dirpanel, gbc);
     add(dirpanel);
 
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.anchor = GridBagConstraints.NORTH;
     gbc.insets.right = 6;
@@ -181,8 +184,12 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
 
   @Override
   public void run() {
-    index = 0;
     String term = tfinput.getText();
+    if (term.isEmpty()) {
+      return;
+    }
+
+    index = 0;
     if (!cbregex.isSelected()) {
       term = Pattern.quote(term);
     }
@@ -201,9 +208,11 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
       return;
     }
     blocker.setBlocked(true);
+    bclear.setEnabled(true);
     bnext.setEnabled(false);
     cbwhole.setEnabled(false);
     cbcase.setEnabled(false);
+    cbregex.setEnabled(false);
     tfinput.setEnabled(false);
     while (true) {
       String s = slave.getText(index);
@@ -236,9 +245,11 @@ public final class SearchMaster extends JPanel implements Runnable, ActionListen
       }
     }
     blocker.setBlocked(false);
+    bclear.setEnabled(false);
     bnext.setEnabled(true);
     cbwhole.setEnabled(true);
     cbcase.setEnabled(true);
+    cbregex.setEnabled(true);
     tfinput.setEnabled(true);
     if (term != null) {
       JOptionPane.showMessageDialog(this, "No more matches found", "Search complete", JOptionPane.INFORMATION_MESSAGE);
