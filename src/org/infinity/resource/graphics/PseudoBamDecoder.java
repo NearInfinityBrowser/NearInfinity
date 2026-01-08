@@ -1281,7 +1281,7 @@ public class PseudoBamDecoder extends BamDecoder {
         int w = Math.min(pageDim, imgWidth - x);
         int h = Math.min(pageDim, imgHeight - y);
         // use multiple of 4 to take advantage of texture compression algorithm
-        final Dimension space = new Dimension((w + 3) & ~3, (w + 3) & ~3);
+        final Dimension space = new Dimension((w + 3) & ~3, (h + 3) & ~3);
         int pageIdx = -1;
         Rectangle rectMatch = null;
         for (int i = 0; i < gridList.size(); i++) {
