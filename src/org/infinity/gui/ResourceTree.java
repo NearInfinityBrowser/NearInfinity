@@ -75,7 +75,6 @@ import org.infinity.util.Weidu;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
-import org.infinity.util.tuples.Couple;
 
 public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener {
   private final JButton bnext = new JButton("Forward", Icons.ICON_FORWARD_16.getIcon());
@@ -803,9 +802,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       miDelete.setEnabled(entry != null && entry.hasOverride() || entry instanceof FileResourceEntry);
       miRestore.setEnabled(isBackupAvailable(entry));
 
-      final Couple<Boolean, String> canChangeLog = Weidu.isChangelogAvailable();
-      miChangelog.setEnabled(entry != null && canChangeLog.getValue0());
-      miChangelog.setToolTipText(canChangeLog.getValue1());
+      final Weidu.WEIDU_ERROR weiduError = Weidu.isChangelogAvailable();
+      miChangelog.setToolTipText(weiduError.getMessage());
 
       miZip.setEnabled(entry instanceof FileResourceEntry && Profile.isSaveGame(entry.getActualPath()));
 

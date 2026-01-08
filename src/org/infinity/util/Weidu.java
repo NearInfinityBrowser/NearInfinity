@@ -60,12 +60,39 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.tuples.Couple;
 
 /**
  * This class provides methods for performing various WeiDU-related operations.
  */
 public class Weidu {
+  /** Available WeiDU changelog error types. */
+  public enum WEIDU_ERROR {
+    /** No error detected. */
+    NO_ERROR(false, ""),
+    /** WeiDU binary could not be determined. */
+    NO_BINARY(true, "WeiDU binary not available."),
+    /** WeiDU.log does not exist. */
+    NO_LOG(true, "WeiDU.log does not exist."),
+    ;
+
+    private final boolean error;
+    private final String message;
+    WEIDU_ERROR(boolean error, String message) {
+      this.error = error;
+      this.message = message;
+    }
+
+    /** Returns whether the enum value indicates an error. */
+    public boolean isError() {
+      return error;
+    }
+
+    /** Returns a short descriptive message associated with the error. */
+    public String getMessage() {
+      return message;
+    }
+  }
+
   /** Name of the WeiDU tool (without any file extension). */
   public static final String WEIDU_NAME = "weidu";
 
@@ -243,18 +270,15 @@ public class Weidu {
   /**
    * Returns information about the availability of the WeiDU changelog operation.
    *
-   * @return {@link Couple} instance with availability state and a message string if availability is {@code false}.
+   * @return {@link #WEIDU_ERROR} enum with error state and associative message string.
    */
-  public static Couple<Boolean, String> isChangelogAvailable() {
-    final Couple<Boolean, String> retVal = new Couple<>(true, null);
+  public static WEIDU_ERROR isChangelogAvailable() {
+    WEIDU_ERROR retVal = WEIDU_ERROR.NO_ERROR;
 
-    final boolean weiduExists = (Weidu.getWeiduPath() != null);
-    final boolean logExists = (FileManager.queryExisting(Profile.getGameRoot(), "weidu.log") != null);
-    retVal.setValue0(weiduExists && logExists);
-    if (!weiduExists) {
-      retVal.setValue1("WeiDU binary not available.");
-    } else if (!logExists) {
-      retVal.setValue1("WeiDU.log does not exist.");
+    if (Weidu.getWeiduPath() == null) {
+      retVal = WEIDU_ERROR.NO_BINARY;
+    } else if (FileManager.queryExisting(Profile.getGameRoot(), "weidu.log") == null) {
+      retVal = WEIDU_ERROR.NO_LOG;
     }
 
     return retVal;
@@ -267,7 +291,27 @@ public class Weidu {
    * @param entry {@link ResourceEntry} of the game resource to perform the changelog on.
    */
   public static void performChangelog(ResourceEntry entry) {
-    new Thread(() -> performChangeLogTask(entry)).start();
+    final WEIDU_ERROR result = isChangelogAvailable();
+
+    if (result.isError()) {
+      String message = null;
+      switch (result) {
+        case NO_BINARY:
+          message = "WeiDU binary not found. Either specify the WeiDU path\n"
+                  + "in the \"Resources\" section of the Preferences, or place\n"
+                  + "the WeiDU binary into the game directory or the system path.";
+          break;
+        case NO_LOG:
+          message = "WeiDU.log could not be found for the current game.";
+          break;
+        default:
+      }
+      if (message != null) {
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), message, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    } else {
+      new Thread(() -> performChangeLogTask(entry)).start();
+    }
   }
 
   /**
