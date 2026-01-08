@@ -1499,19 +1499,17 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
             final AbstractStruct as = (AbstractStruct) se;
             if (as != struct) {
               final StructEntry att = as.getAttribute(as.getOffset() + relOfs, false);
-              if (att != null) {
-                if (att.getSize() == entry.getSize() && isCompatibleAttribute(entry, att)) {
-                  // testing whether to apply data
-                  boolean shouldApply = !filterEmpty || isEmptyStructure(att);
-                  if (filterEmpty && invertFilter) {
-                    shouldApply = !shouldApply;
-                  }
-                  if (shouldApply) {
-                    att.read(bb, 0);
-                    as.setStructChanged(true);
-                    as.getParent().fireTableDataChanged();
-                    count++;
-                  }
+              if (isCompatibleAttribute(entry, att)) {
+                // testing whether to apply data
+                boolean shouldApply = !filterEmpty || isEmptyStructure(att);
+                if (filterEmpty && invertFilter) {
+                  shouldApply = !shouldApply;
+                }
+                if (shouldApply) {
+                  att.read(bb, 0);
+                  as.setStructChanged(true);
+                  as.getParent().fireTableDataChanged();
+                  count++;
                 }
               }
             }
