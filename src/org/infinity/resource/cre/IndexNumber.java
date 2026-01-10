@@ -13,12 +13,12 @@ import org.infinity.datatype.DecNumber;
  */
 public class IndexNumber extends DecNumber {
   public IndexNumber(ByteBuffer buffer, int offset, int length, String name) {
-  // CRE index numbers are unsigned 16-bit values. Read as unsigned by default.
-  super(buffer, offset, length, name, false);
+    // CRE index numbers are originally unsigned 16-bit values
+    // but presented as signed by default for the user's convenience.
+    super(buffer, offset, length, name);
   }
 
   public IndexNumber(ByteBuffer buffer, int offset, int length, String name, boolean signed) {
     super(buffer, offset, length, name, signed);
   }
-
 }
