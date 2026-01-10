@@ -4,6 +4,7 @@
 
 package org.infinity.resource.cre;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -11,16 +12,21 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.infinity.datatype.AbstractBitmap;
-import org.infinity.resource.AbstractStruct;
+import org.infinity.gui.TextListPanel;
+import org.infinity.gui.ViewFrame;
+import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
 /**
  * Specialized bitmap type that represents a CRE inventory slot.
  */
-public class InventorySlotIndex extends AbstractBitmap<Item> {
+public class InventorySlotIndex extends AbstractBitmap<Item> implements ActionListener, ListSelectionListener {
   private static final String INV_UNDEFINED = "(Undefined)";
   private static final String INV_EMPTY = "(Empty)";
 
@@ -37,8 +43,13 @@ public class InventorySlotIndex extends AbstractBitmap<Item> {
     return retVal + " - " + index;
   };
 
+  private final JButton bView;
+
   public InventorySlotIndex(ByteBuffer buffer, int offset, int length, String name, CreResource cre) {
     super(buffer, offset, length, name, getUpdatedItemList(cre, null), ITEM_FORMATTER, true);
+    bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
+    bView.addActionListener(this);
+    addButtons(bView);
   }
 
   @Override
@@ -46,22 +57,57 @@ public class InventorySlotIndex extends AbstractBitmap<Item> {
     // refreshing item list
     getUpdatedItemList((CreResource)getParent(), getBitmap());
 
-    return super.edit(container);
+    final JComponent retVal = super.edit(container);
+
+    // customizing list control
+    final JComponent ctrl = getUiControl();
+    if (ctrl instanceof TextListPanel<?>) {
+      ((TextListPanel<?>)ctrl).addListSelectionListener(this);
+      bView.setEnabled(getSelectedCreItem() != null);
+    }
+
+    return retVal;
   }
 
-  /**
-   * As {@link #updateValue(AbstractStruct)} but also recreates the list of item references if requested.
-   *
-   * @param struct      Structure that owns that object and must be updated.
-   * @param updateItems Specifies whether the item list should be recreated.
-   * @return {@code true} if object succesfully changed, {@code false} otherwise
-   */
-  public boolean updateValue(AbstractStruct struct, boolean updateItems) {
-    if (updateItems) {
-      // refreshing item list
-      getUpdatedItemList((CreResource)getParent(), getBitmap());
+  // --------------------- Begin Interface ActionListener ---------------------
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (e.getSource() == bView) {
+      final Item item = getSelectedCreItem();
+      if (item != null) {
+        new ViewFrame(getUiControl().getTopLevelAncestor(), item);
+      }
     }
-    return super.updateValue(struct);
+  }
+
+  // --------------------- End Interface ActionListener ---------------------
+
+  // --------------------- Begin Interface ListSelectionListener ---------------------
+
+  @Override
+  public void valueChanged(ListSelectionEvent e) {
+    bView.setEnabled(getSelectedCreItem() != null);
+  }
+
+  // --------------------- Begin Interface ListSelectionListener ---------------------
+
+  /**
+   * Returns the currently selected {@link Item} instance.
+   *
+   * @return Selected {@link Item} if available, {@code null} otherwise.
+   */
+  private Item getSelectedCreItem() {
+    if (getUiControl() instanceof TextListPanel<?>) {
+      final TextListPanel<?> listPanel = (TextListPanel<?>)getUiControl();
+      if (listPanel.getSelectedValue() instanceof FormattedData<?>) {
+        final FormattedData<?> data = (FormattedData<?>)listPanel.getSelectedValue();
+        if (data.getData() instanceof Item) {
+          return (Item)data.getData();
+        }
+      }
+    }
+    return null;
   }
 
   /**
