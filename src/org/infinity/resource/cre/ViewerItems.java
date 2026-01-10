@@ -26,7 +26,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ToolTipTableCellRenderer;
@@ -51,7 +50,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item) {
         items.add((Item) entry);
-      } else if (entry.getOffset() >= slotsOffset.getValue() + cre.getOffset() && entry instanceof DecNumber
+      } else if (entry.getOffset() >= slotsOffset.getValue() + cre.getOffset() && entry instanceof IsNumeric
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY)) {
         slots.add(entry);

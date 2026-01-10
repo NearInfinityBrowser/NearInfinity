@@ -11,12 +11,14 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.datatype.UpdateEvent;
+import org.infinity.datatype.UpdateListener;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.util.io.StreamUtils;
 
-public final class Item extends AbstractStruct implements AddRemovable {
+public final class Item extends AbstractStruct implements AddRemovable, UpdateListener {
   // CRE/Item-specific field labels
   public static final String CRE_ITEM             = "Item";
   public static final String CRE_ITEM_RESREF      = "Item";
@@ -46,9 +48,24 @@ public final class Item extends AbstractStruct implements AddRemovable {
 
   // --------------------- End Interface AddRemovable ---------------------
 
+  // --------------------- Begin Interface UpdateListener ---------------------
+
+  @Override
+  public boolean valueUpdated(UpdateEvent event) {
+    if (getParent() instanceof CreResource) {
+      final CreResource cre = (CreResource)getParent();
+      cre.updateInventorySlots();
+    }
+    return true;
+  }
+
+  // --------------------- End Interface UpdateListener ---------------------
+
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception {
-    addField(new ResourceRef(buffer, offset, CRE_ITEM_RESREF, "ITM"));
+    final ResourceRef itmResref = new ResourceRef(buffer, offset, CRE_ITEM_RESREF, "ITM");
+    itmResref.addUpdateListener(this);
+    addField(itmResref);
     if (Profile.isEnhancedEdition()) {
       addField(new UnsignDecNumber(buffer, offset + 8, 2, CRE_ITEM_DURATION));
     } else {

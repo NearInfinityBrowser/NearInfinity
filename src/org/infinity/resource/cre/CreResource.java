@@ -690,7 +690,7 @@ public final class CreResource extends AbstractStruct
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemSlotsOffset.setValue(offsetStructs);
-    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, IndexNumber.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, InventorySlotIndex.class);
     copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
     fields.clear();
@@ -889,6 +889,20 @@ public final class CreResource extends AbstractStruct
     return nameEntry;
   }
 
+  /**
+   * Updates the content of inventory slots. This method should be called after the item section has been modified.
+   */
+  public void updateInventorySlots() {
+    final List<StructEntry> entries = getFields(InventorySlotIndex.class);
+    if (entries != null) {
+      for (final StructEntry entry : entries) {
+        final InventorySlotIndex slot = (InventorySlotIndex)entry;
+        InventorySlotIndex.getUpdatedItemList(this, slot.getBitmap());
+      }
+      fireTableDataChanged();
+    }
+  }
+
   @Override
   public void close() throws Exception {
     JComponent c = getViewerTab(TAB_INDEX_ANIMATION);
@@ -1009,6 +1023,8 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, datatype.getSize());
     if (datatype instanceof SpellMemorization) {
       updateMemorizedSpells();
+    } else if (datatype instanceof Item) {
+      updateInventorySlots();
     }
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -1032,6 +1048,8 @@ public final class CreResource extends AbstractStruct
     updateOffsets(datatype, -datatype.getSize());
     if (datatype instanceof SpellMemorization) {
       updateMemorizedSpells();
+    } else if (datatype instanceof Item) {
+      updateInventorySlots();
     }
     if (hexViewer != null) {
       hexViewer.dataModified();
@@ -1484,7 +1502,7 @@ public final class CreResource extends AbstractStruct
         CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
     addField(shapeStruct);
 
-    SectionOffset itemslotsOffset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, IndexNumber.class);
+    SectionOffset itemslotsOffset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, InventorySlotIndex.class);
     addField(itemslotsOffset);
     SectionOffset itemsOffset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS, Item.class);
     addField(itemsOffset);
@@ -1527,32 +1545,32 @@ public final class CreResource extends AbstractStruct
     }
 
     offset = getExtraOffset() + itemslotsOffset.getValue();
-    addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
-    addField(new IndexNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
-    addField(new IndexNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
-    addField(new IndexNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GAUNTLETS));
-    addField(new IndexNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
-    addField(new IndexNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
-    addField(new IndexNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
-    addField(new IndexNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
-    addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+    addField(new InventorySlotIndex(buffer, offset, 2, CRE_ITEM_SLOT_HELMET, this));
+    addField(new InventorySlotIndex(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR, this));
+    addField(new InventorySlotIndex(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD, this));
+    addField(new InventorySlotIndex(buffer, offset + 6, 2, CRE_ITEM_SLOT_GAUNTLETS, this));
+    addField(new InventorySlotIndex(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING, this));
+    addField(new InventorySlotIndex(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING, this));
+    addField(new InventorySlotIndex(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET, this));
+    addField(new InventorySlotIndex(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT, this));
+    addField(new InventorySlotIndex(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS, this));
     for (int i = 0; i < 4; i++) {
-      addField(new IndexNumber(buffer, offset + 18 + (i * 4), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
-      addField(new IndexNumber(buffer, offset + 20 + (i * 4), 2, String.format(CRE_ITEM_SLOT_SHIELD_FMT, i + 1)));
+      addField(new InventorySlotIndex(buffer, offset + 18 + (i * 4), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1), this));
+      addField(new InventorySlotIndex(buffer, offset + 20 + (i * 4), 2, String.format(CRE_ITEM_SLOT_SHIELD_FMT, i + 1), this));
     }
     for (int i = 0; i < 4; i++) {
-      addField(new IndexNumber(buffer, offset + 34 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
+      addField(new InventorySlotIndex(buffer, offset + 34 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1), this));
     }
-    addField(new IndexNumber(buffer, offset + 42, 2, CRE_ITEM_SLOT_CLOAK));
+    addField(new InventorySlotIndex(buffer, offset + 42, 2, CRE_ITEM_SLOT_CLOAK, this));
     for (int i = 0; i < 3; i++) {
-      addField(new IndexNumber(buffer, offset + 44 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
+      addField(new InventorySlotIndex(buffer, offset + 44 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1), this));
     }
     for (int i = 0; i < 24; i++) {
-      addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
+      addField(new InventorySlotIndex(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1), this));
     }
-    addField(new IndexNumber(buffer, offset + 98, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
-    addField(new IndexNumber(buffer, offset + 100, 2, CRE_SELECTED_WEAPON_SLOT));
-    addField(new IndexNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
+    addField(new InventorySlotIndex(buffer, offset + 98, 2, CRE_ITEM_SLOT_MAGIC_WEAPON, this));
+    addField(new DecNumber(buffer, offset + 100, 2, CRE_SELECTED_WEAPON_SLOT));
+    addField(new DecNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
 
     int endoffset = offset;
     for (final StructEntry entry : getFields()) {
@@ -1870,7 +1888,7 @@ public final class CreResource extends AbstractStruct
     SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, CRE_NUM_MEMORIZED_SPELLS,
         MemorizedSpells.class);
     addField(countMemSpells);
-    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, IndexNumber.class);
+    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, InventorySlotIndex.class);
     addField(offsetItemslots);
     SectionOffset offsetItems = new SectionOffset(buffer, offset + 692, CRE_OFFSET_ITEMS, Item.class);
     addField(offsetItems);
@@ -1929,86 +1947,86 @@ public final class CreResource extends AbstractStruct
     offset = getExtraOffset() + offsetItemslots.getValue();
     int slotCount = 0;
     if (version.equalsIgnoreCase("V1.2")) {
-      addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_RIGHT_EARRING));
-      addField(new IndexNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST));
-      addField(new IndexNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_LEFT_TATTOO));
-      addField(new IndexNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND));
-      addField(new IndexNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
-      addField(new IndexNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
-      addField(new IndexNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_LEFT_EARRING));
-      addField(new IndexNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER));
-      addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
+      addField(new InventorySlotIndex(buffer, offset, 2, CRE_ITEM_SLOT_RIGHT_EARRING, this));
+      addField(new InventorySlotIndex(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST, this));
+      addField(new InventorySlotIndex(buffer, offset + 4, 2, CRE_ITEM_SLOT_LEFT_TATTOO, this));
+      addField(new InventorySlotIndex(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND, this));
+      addField(new InventorySlotIndex(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING, this));
+      addField(new InventorySlotIndex(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING, this));
+      addField(new InventorySlotIndex(buffer, offset + 12, 2, CRE_ITEM_SLOT_LEFT_EARRING, this));
+      addField(new InventorySlotIndex(buffer, offset + 14, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER, this));
+      addField(new InventorySlotIndex(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST, this));
       slotCount += 9;
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1), this));
       }
       slotCount += 4;
       for (int i = 0; i < 6; i++) {
-        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1), this));
       }
-      addField(new IndexNumber(buffer, offset + 38, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
+      addField(new InventorySlotIndex(buffer, offset + 38, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER, this));
       slotCount += 7;
       for (int i = 0; i < 5; i++) {
-        addField(new IndexNumber(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1), this));
       }
       slotCount += 5;
       for (int i = 0; i < 20; i++) {
-        addField(new IndexNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1), this));
       }
       slotCount += 20;
-      addField(new IndexNumber(buffer, offset + 90, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
-      addField(new IndexNumber(buffer, offset + 92, 2, CRE_SELECTED_WEAPON_SLOT));
-      addField(new IndexNumber(buffer, offset + 94, 2, CRE_SELECTED_WEAPON_ABILITY));
+      addField(new InventorySlotIndex(buffer, offset + 90, 2, CRE_ITEM_SLOT_MAGIC_WEAPON, this));
+      addField(new DecNumber(buffer, offset + 92, 2, CRE_SELECTED_WEAPON_SLOT));
+      addField(new DecNumber(buffer, offset + 94, 2, CRE_SELECTED_WEAPON_ABILITY));
       slotCount += 3;
     } else {
       if (Profile.getGame() == Profile.Game.PSTEE) {
         // REMEMBER: ITMSLOTS.2DA can be used as reference for item slot layout
-        addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_LEFT_EARRING));
-        addField(new IndexNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST));
-        addField(new IndexNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER));
-        addField(new IndexNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND));
-        addField(new IndexNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_RIGHT_RING));
-        addField(new IndexNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_LEFT_RING));
-        addField(new IndexNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_RIGHT_EARRING));
-        addField(new IndexNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_LEFT_TATTOO));
-        addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
+        addField(new InventorySlotIndex(buffer, offset, 2, CRE_ITEM_SLOT_LEFT_EARRING, this));
+        addField(new InventorySlotIndex(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST, this));
+        addField(new InventorySlotIndex(buffer, offset + 4, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER, this));
+        addField(new InventorySlotIndex(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND, this));
+        addField(new InventorySlotIndex(buffer, offset + 8, 2, CRE_ITEM_SLOT_RIGHT_RING, this));
+        addField(new InventorySlotIndex(buffer, offset + 10, 2, CRE_ITEM_SLOT_LEFT_RING, this));
+        addField(new InventorySlotIndex(buffer, offset + 12, 2, CRE_ITEM_SLOT_RIGHT_EARRING, this));
+        addField(new InventorySlotIndex(buffer, offset + 14, 2, CRE_ITEM_SLOT_LEFT_TATTOO, this));
+        addField(new InventorySlotIndex(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST, this));
         slotCount += 9;
       } else {
-        addField(new IndexNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
-        addField(new IndexNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
-        addField(new IndexNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
-        addField(new IndexNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GLOVES));
-        addField(new IndexNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
-        addField(new IndexNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
-        addField(new IndexNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
-        addField(new IndexNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
-        addField(new IndexNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+        addField(new InventorySlotIndex(buffer, offset, 2, CRE_ITEM_SLOT_HELMET, this));
+        addField(new InventorySlotIndex(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR, this));
+        addField(new InventorySlotIndex(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD, this));
+        addField(new InventorySlotIndex(buffer, offset + 6, 2, CRE_ITEM_SLOT_GLOVES, this));
+        addField(new InventorySlotIndex(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING, this));
+        addField(new InventorySlotIndex(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING, this));
+        addField(new InventorySlotIndex(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET, this));
+        addField(new InventorySlotIndex(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT, this));
+        addField(new InventorySlotIndex(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS, this));
         slotCount += 9;
       }
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i + 1), this));
         slotCount++;
       }
       for (int i = 0; i < 4; i++) {
-        addField(new IndexNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i + 1), this));
         slotCount++;
       }
       if (Profile.getGame() == Profile.Game.PSTEE) {
-        addField(new IndexNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
+        addField(new InventorySlotIndex(buffer, offset + 34, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER, this));
         slotCount++;
       } else {
-        addField(new IndexNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_CLOAK));
+        addField(new InventorySlotIndex(buffer, offset + 34, 2, CRE_ITEM_SLOT_CLOAK, this));
         slotCount++;
       }
       for (int i = 0; i < 3; i++) {
-        addField(new IndexNumber(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i + 1), this));
         slotCount++;
       }
       for (int i = 0; i < 16; i++) {
-        addField(new IndexNumber(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1)));
+        addField(new InventorySlotIndex(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 1), this));
         slotCount++;
       }
-      addField(new IndexNumber(buffer, offset + 74, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
+      addField(new InventorySlotIndex(buffer, offset + 74, 2, CRE_ITEM_SLOT_MAGIC_WEAPON, this));
       slotCount++;
       StructEntry se = getAttribute(CRE_NUM_ITEM_SLOTS);
       int maxSlotCount = 0;
@@ -2018,30 +2036,30 @@ public final class CreResource extends AbstractStruct
       if (Profile.getGame() == Profile.Game.PSTEE && slotCount + 8 < maxSlotCount) {
         // registered characters gain additional item slots
         int idxUnused = 1;
-        addField(new IndexNumber(buffer, offset + 76, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 5)));
-        addField(new IndexNumber(buffer, offset + 78, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++)));
-        addField(new IndexNumber(buffer, offset + 80, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 4)));
-        addField(new IndexNumber(buffer, offset + 82, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 5)));
+        addField(new InventorySlotIndex(buffer, offset + 76, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 5), this));
+        addField(new InventorySlotIndex(buffer, offset + 78, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++), this));
+        addField(new InventorySlotIndex(buffer, offset + 80, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 4), this));
+        addField(new InventorySlotIndex(buffer, offset + 82, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 5), this));
         slotCount += 4;
         offset += 84;
         for (int i = 0; i < 4; i++) {
-          addField(new IndexNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 17)));
+          addField(new InventorySlotIndex(buffer, offset, 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i + 17), this));
           slotCount++;
           offset += 2;
         }
         // filling the gap with placeholder slots
         for (int i = 0, imax = maxSlotCount - slotCount - 1; i < imax; i++) {
-          addField(new IndexNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++)));
+          addField(new InventorySlotIndex(buffer, offset, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++), this));
           slotCount++;
           offset += 2;
         }
-        addField(new IndexNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_SLOT));
+        addField(new DecNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_SLOT));
         offset += 2;
-        addField(new IndexNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_ABILITY));
+        addField(new DecNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_ABILITY));
         offset += 2;
       } else {
-        addField(new IndexNumber(buffer, offset + 76, 2, CRE_SELECTED_WEAPON_SLOT));
-        addField(new IndexNumber(buffer, offset + 78, 2, CRE_SELECTED_WEAPON_ABILITY));
+        addField(new DecNumber(buffer, offset + 76, 2, CRE_SELECTED_WEAPON_SLOT));
+        addField(new DecNumber(buffer, offset + 78, 2, CRE_SELECTED_WEAPON_ABILITY));
         offset += 80;
       }
     }

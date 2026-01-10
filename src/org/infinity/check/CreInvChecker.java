@@ -20,7 +20,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -177,7 +176,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
 
   private void checkCreature(CreResource cre) {
     final List<Item> items = new ArrayList<>();
-    final List<DecNumber> slots = new ArrayList<>();
+    final List<IsNumeric> slots = new ArrayList<>();
     final int slotsOffset = ((IsNumeric) cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue() + cre.getOffset();
 
     // Gathering item and slot entries
@@ -185,15 +184,15 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
       if (entry instanceof Item) {
         items.add((Item) entry);
       } else if (entry.getOffset() >= slotsOffset
-          && entry instanceof DecNumber
+          && entry instanceof IsNumeric
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
           && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY)) {
-        slots.add((DecNumber) entry);
+        slots.add((IsNumeric) entry);
       }
     }
 
     // Checking item references
-    for (final DecNumber slot : slots) {
+    for (final IsNumeric slot : slots) {
       final int value = slot.getValue();
       if (value >= 0 && value < items.size()) {
         items.set(value, null);
