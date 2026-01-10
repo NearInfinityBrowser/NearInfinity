@@ -1656,7 +1656,7 @@ public final class CreResource extends AbstractStruct
       addField(new UnsignDecNumber(buffer, offset + 92, 1, CRE_DETECT_ILLUSION));
     }
     addField(new UnsignDecNumber(buffer, offset + 93, 1, CRE_SET_TRAPS));
-    addField(new DecNumber(buffer, offset + 94, 1, CRE_LORE));
+    addField(new UnsignDecNumber(buffer, offset + 94, 1, CRE_LORE));
     addField(new UnsignDecNumber(buffer, offset + 95, 1, CRE_OPEN_LOCKS));
     addField(new UnsignDecNumber(buffer, offset + 96, 1, CRE_MOVE_SILENTLY));
     addField(new UnsignDecNumber(buffer, offset + 97, 1, CRE_FIND_TRAPS));
