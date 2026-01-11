@@ -146,7 +146,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   // --------------------- End Interface Comparable ---------------------
 
   public Path getActualPath() {
-    return getActualPath((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
+    return getActualPath(false);
   }
 
   public ImageIcon getIcon() {
@@ -154,20 +154,19 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry> {
   }
 
   public long getResourceSize() {
-    return getResourceSize((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
+    return getResourceSize(false);
   }
 
   public ByteBuffer getResourceBuffer() throws Exception {
-    return getResourceBuffer((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
+    return getResourceBuffer(false);
   }
 
   public InputStream getResourceDataAsStream() throws Exception {
-    return getResourceDataAsStream(
-        (NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
+    return getResourceDataAsStream(false);
   }
 
   public int[] getResourceInfo() throws Exception {
-    return getResourceInfo((NearInfinity.getInstance() != null) && BrowserMenuBar.getInstance().getOptions().ignoreOverrides());
+    return getResourceInfo(false);
   }
 
   /**

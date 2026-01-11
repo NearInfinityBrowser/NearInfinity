@@ -790,8 +790,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       final ResourceEntry entry = getResourceEntry();
 
       boolean biffEnable =
-          (!BrowserMenuBar.getInstance().getOptions().ignoreOverrides() ||
-              BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) &&
+          (BrowserMenuBar.getInstance().getOptions().getOverrideMode() == OverrideMode.InOverride) &&
           entry.hasOverride();
       miOpenBiffedNew.setEnabled(biffEnable);
 

@@ -569,12 +569,6 @@ public class OptionsMenuItem extends JMenuItem {
     return AppOption.LAUNCH_GAME_ALLOWED.getBoolValue();
   }
 
-  /** Returns whether override files are ignored in the resource tree. */
-  public boolean ignoreOverrides() {
-    // XXX: Always returns false: keeps code changes to a minimum after removal of the "Ignore Override" option
-    return false;
-  }
-
   /** Returns if read errors are shown in the status bar instead of a dialog prompt. */
   public boolean ignoreReadErrors() {
     return AppOption.IGNORE_READ_ERRORS.getBoolValue();

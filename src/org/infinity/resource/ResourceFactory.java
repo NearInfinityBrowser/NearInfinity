@@ -1569,7 +1569,7 @@ public final class ResourceFactory {
     }
 
     // include override folders
-    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {
+    if (BrowserMenuBar.isInstantiated()) {
       ResourceTreeFolder overrideNode = treeModel.getFolder(Profile.getOverrideFolderName());
       if (overrideNode != null) {
         list.addAll(overrideNode.getResourceEntries(type));
@@ -1597,7 +1597,7 @@ public final class ResourceFactory {
     extraDirs.forEach(path -> fillResources(retList, path.getFileName().toString(), pattern));
 
     // include override folders
-    if (BrowserMenuBar.isInstantiated() && !BrowserMenuBar.getInstance().getOptions().ignoreOverrides()) {
+    if (BrowserMenuBar.isInstantiated()) {
       fillResources(retList, Profile.getOverrideFolderName(), pattern);
     }
 
